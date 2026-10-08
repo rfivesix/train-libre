@@ -5003,6 +5003,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsSectionHealthTracking => 'Gesundheit & Tracking';
 
   @override
+  String get healthSettingsTitle => 'Gesundheit';
+
+  @override
+  String get healthSettingsStepActive => 'Schritt-Tracking ist aktiv';
+
+  @override
+  String get healthSettingsStepAvailable => 'Schrittdaten sind verfügbar';
+
+  @override
+  String get healthSettingsStepUnavailable =>
+      'Schrittdaten sind nicht verfügbar';
+
+  @override
+  String get healthSettingsSyncSteps => 'Schritte jetzt synchronisieren';
+
+  @override
+  String get healthSettingsSyncExport => 'Jetzt exportieren';
+
+  @override
+  String healthSettingsStepsSyncResult(int count) {
+    return '$count Schrittabschnitte aktualisiert';
+  }
+
+  @override
+  String healthSettingsSleepSyncResult(int count) {
+    return '$count Schlafsitzungen importiert';
+  }
+
+  @override
   String get settingsStepsSubtitle =>
       'Tracking, Quellenrichtlinie und Provider';
 

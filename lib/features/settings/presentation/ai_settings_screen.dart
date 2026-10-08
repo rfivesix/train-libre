@@ -47,6 +47,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _obscureKey = true;
   bool _hasKey = false;
   int _timeoutSeconds = 60;
+  int _retentionDays = 180;
 
   /// Only shown on devices that can actually measure — elsewhere the switch
   /// would advertise something the hardware cannot do.
@@ -465,12 +466,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           AppSettingsRow.switchTile(
             title: l10n.aiEnableTitle,
             subtitle: l10n.aiEnableSubtitle,
-            leading: ShaderMask(
-              blendMode: BlendMode.srcIn,
-              shaderCallback: (bounds) =>
-                  DesignConstants.createAiGradientShader(bounds),
-              child: const Icon(LucideIcons.sparkles),
-            ),
+            leading: const Icon(LucideIcons.sparkles),
             value: aiEnabled,
             onChanged: (value) => themeService.setAiEnabled(value),
           ),
@@ -506,140 +502,99 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           if (aiEnabled) ...[
             const SizedBox(height: DesignConstants.spacingL),
             AppSectionHeader(title: l10n.aiProviderSectionTitle),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                    PlatformAdaptiveDropdownFormField<AiProvider>(
-                      key: ValueKey(
-                          'ai_provider_dropdown_${_selectedProvider.name}'),
-                      value: _selectedProvider,
-                      initialValue: _selectedProvider,
-                      decoration: InputDecoration(
-                        labelText: l10n.aiProviderLabel,
-                        border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PlatformAdaptivePopupMenu<AiProvider>(
+                  selectedValue: _selectedProvider,
+                  onSelected: (val) {
+                    _onProviderChanged(val);
+                  },
+                  items: AiService.instance
+                      .getSupportedProviders()
+                      .map(
+                        (providerMeta) => PlatformAdaptivePopupMenuItem(
+                          value: providerMeta.provider,
+                          label: providerMeta.displayName,
                         ),
-                      ),
-                      items: AiService.instance
-                          .getSupportedProviders()
+                      )
+                      .toList(),
+                  icon: AppSettingsRow.navigation(
+                    title: l10n.aiProviderLabel,
+                    subtitle: AiService.instance
+                        .getProviderMetadata(_selectedProvider)
+                        .displayName,
+                  ),
+                ),
+                if (_selectedProvider == AiProvider.appleFoundation) ...[
+                  const Divider(height: 1),
+                  AppInfoRow(
+                    leading: Icon(
+                      _isAppleFoundationAvailable
+                          ? LucideIcons.shield_check
+                          : LucideIcons.circle_alert,
+                      color: _isAppleFoundationAvailable
+                          ? const Color(0xFF34C759)
+                          : Colors.orange,
+                    ),
+                    title: _isAppleFoundationAvailable
+                        ? 'Funktioniert 100% offline auf dem Gerät'
+                        : 'In den iOS-Einstellungen aktivieren',
+                    subtitle: _isAppleFoundationAvailable
+                        ? 'Keine Datenübertragung, keine API-Kosten.'
+                        : null,
+                  ),
+                ],
+                if (_selectedProvider != AiProvider.ollama &&
+                    _selectedProvider != AiProvider.custom &&
+                    _selectedProvider != AiProvider.appleFoundation) ...[
+                  const Divider(height: 1),
+                  Skeletonizer(
+                    enabled: _isLoadingModels,
+                    child: PlatformAdaptivePopupMenu<String>(
+                      selectedValue:
+                          _selectedModel.isNotEmpty ? _selectedModel : null,
+                      onSelected: (val) {
+                        if (!_isLoadingModels) _onModelChanged(val);
+                      },
+                      items: _modelOptions
                           .map(
-                            (providerMeta) => DropdownMenuItem(
-                              value: providerMeta.provider,
-                              child: Text(providerMeta.displayName),
+                            (model) => PlatformAdaptivePopupMenuItem(
+                              value: model.id,
+                              label: model.label,
                             ),
                           )
                           .toList(),
-                      onChanged: _onProviderChanged,
+                      icon: AppSettingsRow.navigation(
+                        title: l10n.aiModelLabel,
+                        subtitle: _modelOptions
+                            .cast<AiModelOption?>()
+                            .firstWhere(
+                              (m) => m?.id == _selectedModel,
+                              orElse: () => null,
+                            )
+                            ?.label ??
+                            (_selectedModel.isNotEmpty
+                                ? _selectedModel
+                                : '–'),
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    if (_selectedProvider == AiProvider.appleFoundation) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: theme.colorScheme.outlineVariant
-                                .withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: (_isAppleFoundationAvailable
-                                        ? const Color(0xFF34C759)
-                                        : Colors.orange)
-                                    .withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                _isAppleFoundationAvailable
-                                    ? LucideIcons.shield_check
-                                    : LucideIcons.circle_alert,
-                                color: _isAppleFoundationAvailable
-                                    ? const Color(0xFF34C759)
-                                    : Colors.orange,
-                                size: 18,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _isAppleFoundationAvailable
-                                        ? 'Funktioniert 100% offline auf dem Gerät'
-                                        : 'In den iOS-Einstellungen aktivieren',
-                                    style: theme.textTheme.labelMedium
-                                        ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: _isAppleFoundationAvailable
-                                          ? theme.colorScheme.onSurface
-                                          : Colors.orange,
-                                    ),
-                                  ),
-                                  if (_isAppleFoundationAvailable)
-                                    Text(
-                                      'Keine Datenübertragung, keine API-Kosten.',
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                        color:
-                                            theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  ),
+                  if (!_isLoadingModels && _modelListError != null) ...[
+                    const SizedBox(height: 8),
+                    _buildModelListFallbackNotice(
+                      l10n,
+                      theme,
+                      _modelListError!,
+                    ),
+                  ],
+                ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       const SizedBox(height: 12),
-                    ],
-                    if (_selectedProvider != AiProvider.ollama &&
-                        _selectedProvider != AiProvider.custom &&
-                        _selectedProvider != AiProvider.appleFoundation) ...[
-                      Skeletonizer(
-                        enabled: _isLoadingModels,
-                        child: PlatformAdaptiveDropdownFormField<String>(
-                          key: ValueKey('ai_model_dropdown_$_selectedProvider'),
-                          initialValue:
-                              _selectedModel.isNotEmpty ? _selectedModel : null,
-                          decoration: InputDecoration(
-                            labelText: l10n.aiModelLabel,
-                            border: const OutlineInputBorder(),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          items: _modelOptions
-                              .map(
-                                (model) => DropdownMenuItem(
-                                  value: model.id,
-                                  child: Text(model.label),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: _isLoadingModels ? null : _onModelChanged,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (!_isLoadingModels && _modelListError != null)
-                        _buildModelListFallbackNotice(
-                          l10n,
-                          theme,
-                          _modelListError!,
-                        ),
-                    ],
                     if (_selectedProvider == AiProvider.ollama) ...[
                       TextField(
                         controller: _customModelController,
@@ -834,89 +789,82 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 ),
               ),
             ],
+          ),
+        ],
 
           const SizedBox(height: DesignConstants.spacingL),
 
           // --- Photo Storage & Retention ---
           AppSectionHeader(title: l10n.mealPhotoStorageSection),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.mealPhotoRetentionTitle,
-                    style: theme.textTheme.labelLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.mealPhotoRetentionBody,
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    initialValue: 180,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PlatformAdaptivePopupMenu<int>(
+                selectedValue: _retentionDays,
+                onSelected: (val) {
+                  setState(() => _retentionDays = val);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.mealPhotoRetentionSaved)),
+                  );
+                },
+                items: [
+                  for (final days in [30, 90, 180, 365])
+                    PlatformAdaptivePopupMenuItem(
+                      value: days,
+                      label: days == 180
+                          ? '${l10n.mealPhotoRetentionDays(days)} ${l10n.mealPhotoRetentionDefaultSuffix}'
+                          : l10n.mealPhotoRetentionDays(days),
                     ),
-                    items: [
-                      for (final days in [30, 90, 180, 365])
-                        DropdownMenuItem(
-                          value: days,
-                          child: Text(days == 180
-                              ? '${l10n.mealPhotoRetentionDays(days)} '
-                                  '${l10n.mealPhotoRetentionDefaultSuffix}'
-                              : l10n.mealPhotoRetentionDays(days)),
-                        ),
-                      DropdownMenuItem(
-                        value: -1,
-                        child: Text(l10n.mealPhotoRetentionUnlimited),
-                      ),
-                    ],
-                    onChanged: (val) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.mealPhotoRetentionSaved)),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  AppButton.secondary(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text(l10n.mealPhotoDeleteAllTitle),
-                          content: Text(l10n.mealPhotoDeleteAllBody),
-                          actions: [
-                            TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(),
-                                child: Text(l10n.cancel)),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(ctx).pop();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(l10n.mealPhotoDeleted)),
-                                );
-                              },
-                              child: Text(l10n.delete,
-                                  style: const TextStyle(color: Colors.red)),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    label: l10n.mealPhotoDeleteAll,
-                    tooltip: l10n.mealPhotoDeleteAll,
-                    icon: LucideIcons.trash,
+                  PlatformAdaptivePopupMenuItem(
+                    value: -1,
+                    label: l10n.mealPhotoRetentionUnlimited,
                   ),
                 ],
+                icon: AppSettingsRow.navigation(
+                  title: l10n.mealPhotoRetentionTitle,
+                  subtitle: _retentionDays == -1
+                      ? l10n.mealPhotoRetentionUnlimited
+                      : (_retentionDays == 180
+                          ? '${l10n.mealPhotoRetentionDays(_retentionDays)} ${l10n.mealPhotoRetentionDefaultSuffix}'
+                          : l10n.mealPhotoRetentionDays(_retentionDays)),
+                ),
               ),
-            ),
+              const Divider(height: 1),
+              AppSettingsRow(
+                title: l10n.mealPhotoDeleteAll,
+                subtitle: l10n.mealPhotoRetentionBody,
+                leading: const Icon(LucideIcons.trash),
+                isDestructive: true,
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text(l10n.mealPhotoDeleteAllTitle),
+                      content: Text(l10n.mealPhotoDeleteAllBody),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          child: Text(l10n.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(l10n.mealPhotoDeleted)),
+                            );
+                          },
+                          child: Text(
+                            l10n.delete,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
 
           const SizedBox(height: DesignConstants.spacingXL),
 

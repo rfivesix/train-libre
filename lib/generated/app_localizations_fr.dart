@@ -5049,6 +5049,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsSectionHealthTracking => 'Santé et suivi';
 
   @override
+  String get healthSettingsTitle => 'Santé';
+
+  @override
+  String get healthSettingsStepActive => 'Le suivi des pas est activé';
+
+  @override
+  String get healthSettingsStepAvailable =>
+      'Les données de pas sont disponibles';
+
+  @override
+  String get healthSettingsStepUnavailable =>
+      'Les données de pas sont indisponibles';
+
+  @override
+  String get healthSettingsSyncSteps => 'Synchroniser les pas';
+
+  @override
+  String get healthSettingsSyncExport => 'Exporter maintenant';
+
+  @override
+  String healthSettingsStepsSyncResult(int count) {
+    return '$count segments de pas mis à jour';
+  }
+
+  @override
+  String healthSettingsSleepSyncResult(int count) {
+    return '$count sessions de sommeil importées';
+  }
+
+  @override
   String get settingsStepsSubtitle =>
       'Suivi, politique de source et fournisseurs';
 

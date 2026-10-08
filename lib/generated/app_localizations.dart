@@ -8712,6 +8712,54 @@ abstract class AppLocalizations {
   /// **'Health & Tracking'**
   String get settingsSectionHealthTracking;
 
+  /// No description provided for @healthSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get healthSettingsTitle;
+
+  /// No description provided for @healthSettingsStepActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Step tracking is on'**
+  String get healthSettingsStepActive;
+
+  /// No description provided for @healthSettingsStepAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Step data is available'**
+  String get healthSettingsStepAvailable;
+
+  /// No description provided for @healthSettingsStepUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Step data is unavailable'**
+  String get healthSettingsStepUnavailable;
+
+  /// No description provided for @healthSettingsSyncSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync steps now'**
+  String get healthSettingsSyncSteps;
+
+  /// No description provided for @healthSettingsSyncExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export now'**
+  String get healthSettingsSyncExport;
+
+  /// No description provided for @healthSettingsStepsSyncResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {count} step segments'**
+  String healthSettingsStepsSyncResult(int count);
+
+  /// No description provided for @healthSettingsSleepSyncResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {count} sleep sessions'**
+  String healthSettingsSleepSyncResult(int count);
+
   /// No description provided for @settingsStepsSubtitle.
   ///
   /// In en, this message translates to:

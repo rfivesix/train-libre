@@ -4805,6 +4805,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsSectionHealthTracking => '健康状態と追跡';
 
   @override
+  String get healthSettingsTitle => 'ヘルスケア';
+
+  @override
+  String get healthSettingsStepActive => '歩数の記録はオンです';
+
+  @override
+  String get healthSettingsStepAvailable => '歩数データを利用できます';
+
+  @override
+  String get healthSettingsStepUnavailable => '歩数データを利用できません';
+
+  @override
+  String get healthSettingsSyncSteps => '歩数を今すぐ同期';
+
+  @override
+  String get healthSettingsSyncExport => '今すぐエクスポート';
+
+  @override
+  String healthSettingsStepsSyncResult(int count) {
+    return '歩数データを$count件更新しました';
+  }
+
+  @override
+  String healthSettingsSleepSyncResult(int count) {
+    return '睡眠セッションを$count件読み込みました';
+  }
+
+  @override
   String get settingsStepsSubtitle => '追跡、ソースポリシー、およびプロバイダー';
 
   @override

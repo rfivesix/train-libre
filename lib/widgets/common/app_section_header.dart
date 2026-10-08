@@ -63,7 +63,10 @@ class AppSectionHeader extends StatelessWidget {
     return Padding(
       padding: resolvedPadding,
       child: action == null
-          ? titleTextWidget
+          ? Align(
+              alignment: Alignment.centerLeft,
+              child: titleTextWidget,
+            )
           : Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

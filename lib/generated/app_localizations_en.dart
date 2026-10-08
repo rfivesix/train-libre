@@ -4967,6 +4967,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionHealthTracking => 'Health & Tracking';
 
   @override
+  String get healthSettingsTitle => 'Health';
+
+  @override
+  String get healthSettingsStepActive => 'Step tracking is on';
+
+  @override
+  String get healthSettingsStepAvailable => 'Step data is available';
+
+  @override
+  String get healthSettingsStepUnavailable => 'Step data is unavailable';
+
+  @override
+  String get healthSettingsSyncSteps => 'Sync steps now';
+
+  @override
+  String get healthSettingsSyncExport => 'Export now';
+
+  @override
+  String healthSettingsStepsSyncResult(int count) {
+    return 'Updated $count step segments';
+  }
+
+  @override
+  String healthSettingsSleepSyncResult(int count) {
+    return 'Imported $count sleep sessions';
+  }
+
+  @override
   String get settingsStepsSubtitle => 'Tracking, source policy, and providers';
 
   @override

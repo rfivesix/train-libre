@@ -23,11 +23,7 @@ import 'developer_settings_screen.dart';
 import 'data_management_screen.dart';
 import 'goal_notification_settings_screen.dart';
 import 'calculation_basis_screen.dart';
-import 'health_export_settings_screen.dart';
-import 'pulse_settings_screen.dart';
-import 'sleep_settings_screen.dart';
-import 'steps_settings_screen.dart';
-import '../../profile/presentation/measurement_import_settings_screen.dart';
+import 'health_settings_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
@@ -530,99 +526,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               _buildNavigationCard(
                 context: context,
-                icon: LucideIcons.footprints,
-                title: l10n.steps,
-                subtitle: l10n.settingsStepsSubtitle,
-                tileKey: const Key('settings_steps_entry'),
+                icon: LucideIcons.heart_pulse,
+                title: l10n.healthSettingsTitle,
+                subtitle: Platform.isIOS ? 'Apple Health' : 'Health Connect',
+                tileKey: const Key('settings_health_entry'),
                 onTap: () async {
                   final changed = await Navigator.of(context).push<bool>(
                     MaterialPageRoute(
-                      builder: (context) => const StepsSettingsScreen(),
-                    ),
-                  );
-                  if (_settingsChildMayHaveChanged(changed)) {
-                    hasStepsSettingsChanged = true;
-                  }
-                },
-                wrapInCard: false,
-              ),
-              const Divider(height: 1),
-              _buildNavigationCard(
-                context: context,
-                icon: LucideIcons.moon,
-                title: l10n.sleepSettingsSectionTitle,
-                subtitle: l10n.settingsSleepSubtitle,
-                tileKey: const Key('settings_sleep_entry'),
-                onTap: () async {
-                  final changed = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (context) => SleepSettingsScreen(
+                      builder: (context) => HealthSettingsScreen(
                         sleepSyncService: _sleepSyncService,
                         sleepPermissionController: _sleepPermissionController,
                       ),
-                    ),
-                  );
-                  if (_settingsChildMayHaveChanged(changed)) {
-                    hasStepsSettingsChanged = true;
-                  }
-                },
-                wrapInCard: false,
-              ),
-              const Divider(height: 1),
-              _buildNavigationCard(
-                context: context,
-                icon: LucideIcons.heart_pulse,
-                title: l10n.pulseTitle,
-                subtitle: l10n.settingsPulseSubtitle,
-                tileKey: const Key('settings_pulse_entry'),
-                onTap: () async {
-                  final changed = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (context) => const PulseSettingsScreen(),
-                    ),
-                  );
-                  if (_settingsChildMayHaveChanged(changed)) {
-                    hasStepsSettingsChanged = true;
-                  }
-                },
-                wrapInCard: false,
-              ),
-              const Divider(height: 1),
-              _buildNavigationCard(
-                context: context,
-                icon: LucideIcons.ruler,
-                title: Platform.isIOS
-                    ? l10n.appleHealthWeightImportTitle
-                    : l10n.healthConnectWeightImportTitle,
-                subtitle: Platform.isIOS
-                    ? l10n.appleHealthWeightImportSubtitle
-                    : l10n.healthConnectWeightImportSubtitle,
-                tileKey: const Key('settings_measurement_import_entry'),
-                onTap: () async {
-                  final changed = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const MeasurementImportSettingsScreen(),
-                    ),
-                  );
-                  if (_settingsChildMayHaveChanged(changed)) {
-                    hasStepsSettingsChanged = true;
-                  }
-                },
-                wrapInCard: false,
-              ),
-              const Divider(height: 1),
-              _buildNavigationCard(
-                context: context,
-                icon: LucideIcons.heart,
-                title: l10n.healthExportTitle,
-                subtitle: l10n.settingsHealthExportSubtitle,
-                tileKey: const Key('settings_health_export_entry'),
-                onTap: () async {
-                  final changed = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const HealthExportSettingsScreen(),
                     ),
                   );
                   if (_settingsChildMayHaveChanged(changed)) {

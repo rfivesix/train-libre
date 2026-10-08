@@ -6,7 +6,7 @@ import 'package:train_libre/features/sleep/platform/permissions/sleep_permission
 import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/generated/app_localizations.dart';
-import 'package:train_libre/features/settings/presentation/health_export_settings_screen.dart';
+import 'package:train_libre/features/settings/presentation/health_settings_screen.dart';
 import 'package:train_libre/features/settings/presentation/settings_screen.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/unit_service.dart';
@@ -96,7 +96,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  testWidgets('settings health export entry opens health export sub-screen', (
+  testWidgets('settings health entry opens unified health screen', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(900, 2200));
@@ -116,7 +116,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final exportTile = find.text('Health export');
+    final exportTile = find.text('Health');
     await tester.scrollUntilVisible(
       exportTile,
       350,
@@ -126,6 +126,6 @@ void main() {
     await tester.tap(exportTile);
     await tester.pumpAndSettle();
 
-    expect(find.byType(HealthExportSettingsScreen), findsOneWidget);
+    expect(find.byType(HealthSettingsScreen), findsOneWidget);
   });
 }

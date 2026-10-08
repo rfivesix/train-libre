@@ -131,9 +131,6 @@ class AppSettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final titleColor = isDestructive
-        ? theme.colorScheme.error
-        : theme.colorScheme.onSurface;
 
     Widget content = Padding(
       padding: padding,
@@ -146,7 +143,9 @@ class AppSettingsRow extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: IconTheme(
                   data: IconThemeData(
-                    color: theme.colorScheme.primary,
+                    color: isDestructive
+                        ? theme.colorScheme.error
+                        : theme.colorScheme.primary,
                     size: 24,
                   ),
                   child: leading!,
@@ -164,7 +163,7 @@ class AppSettingsRow extends StatelessWidget {
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: titleColor,
+                    color: isDestructive ? theme.colorScheme.error : null,
                   ),
                 ),
                 if (subtitleWidget != null) ...[
