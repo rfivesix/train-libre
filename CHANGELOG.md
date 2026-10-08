@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Contextual JSON import for saved content:** Routines, training plans, and recipes can now be imported from pasted JSON or a file from their overview or editor. Imports are validated and previewed before confirmation; replacing a saved item leaves completed workout history intact. Recipe actions are grouped in the overflow menu, and text-pasted JSON now enables the import action as expected.
 
 ### Changed
+- **Pinned timeframe filters in analytics screens:** Moved date-range chips into the app bar on macro statistics, body/nutrition correlation, muscle group analytics, consistency, steps, measurements, and sleep screens. Their filters remain visible while scrolling; the PR dashboard is unchanged.
 - **Workout screen controls and sharing:** Added compact front/back muscle views beside non-cardio exercises, aligned the note prompt and pause timer on one row when no note exists, and moved note, timer, and remove actions into the platform-adaptive overflow menu. Pause text now uses consistent bold emphasis. Workout text, JSON, and image shares preserve workout and exercise notes and pause durations, JSON imports restore exercise notes, and share outputs link to `https://trainlibre.com`.
 
 ## [1.5.1] - 2026-10-07

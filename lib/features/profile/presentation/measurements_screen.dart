@@ -261,11 +261,48 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final locale = Localizations.localeOf(context).toString();
     final dateFormat = DateFormat.yMMMMEEEEd(locale).add_Hm();
     final double topPadding =
-        MediaQuery.of(context).padding.top + kToolbarHeight;
+        MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
     final hasNoData = _filteredSessions.isEmpty;
     final displaySessions =
         hasNoData ? getMockSessions(_activeDateRange) : _filteredSessions;
+
+    final timeframeFilter = TimeRangeFilter(
+      ranges: _timeRangeLabels(l10n),
+      selectedIndex: _blocks.indexOf(_activeBlock),
+      onSelected: (index) {
+        setState(() {
+          _activeBlock = _blocks[index];
+          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+          _anchorDate = DateTime.now();
+        });
+      },
+      onPrevious: _activeBlock == TimeframeBlock.maxBlock
+          ? null
+          : () => _shiftTimeframe(true),
+      onNext: _nextEnabled ? () => _shiftTimeframe(false) : null,
+      displayDate: _rangeDisplayLabel(l10n),
+      onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
+          ? null
+          : () async {
+              final selected =
+                  await adaptive_pickers.showAdaptiveTimeframePicker(
+                context: context,
+                activeBlock: _activeBlock,
+                initialAnchor: _anchorDate,
+                initialIsRolling: _isRolling,
+                earliestAvailableDay: DateTime(2020),
+              );
+              if (selected != null) {
+                setState(() {
+                  _anchorDate = selected.anchorDate;
+                  _isRolling = selected.isRolling;
+                });
+              }
+            },
+      nextEnabled: _nextEnabled,
+      showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+    );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -285,6 +322,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             },
           ),
         ],
+        bottom: timeframeFilter,
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SeamlessLoadingOverlay(
@@ -304,45 +342,6 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Unified time range filter (identical to Statistics Hub) ──
-                    TimeRangeFilter(
-                      ranges: _timeRangeLabels(l10n),
-                      selectedIndex: _blocks.indexOf(_activeBlock),
-                      onSelected: (index) {
-                        setState(() {
-                          _activeBlock = _blocks[index];
-                          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
-                          _anchorDate = DateTime.now();
-                        });
-                      },
-                      onPrevious: _activeBlock == TimeframeBlock.maxBlock
-                          ? null
-                          : () => _shiftTimeframe(true),
-                      onNext:
-                          _nextEnabled ? () => _shiftTimeframe(false) : null,
-                      displayDate: _rangeDisplayLabel(l10n),
-                      onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
-                          ? null
-                          : () async {
-                              final selected = await adaptive_pickers
-                                  .showAdaptiveTimeframePicker(
-                                context: context,
-                                activeBlock: _activeBlock,
-                                initialAnchor: _anchorDate,
-                                initialIsRolling: _isRolling,
-                                earliestAvailableDay: DateTime(2020),
-                              );
-                              if (selected != null) {
-                                setState(() {
-                                  _anchorDate = selected.anchorDate;
-                                  _isRolling = selected.isRolling;
-                                });
-                              }
-                            },
-                      nextEnabled: _nextEnabled,
-                      showDateNavigation:
-                          _activeBlock != TimeframeBlock.maxBlock,
-                    ),
                     const SizedBox(height: DesignConstants.spacingL),
                     // ── Chart (follows same date range) ──
                     _buildChartSection(l10n, colorScheme, textTheme),
