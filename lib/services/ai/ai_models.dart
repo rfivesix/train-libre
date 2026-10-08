@@ -10,7 +10,6 @@ enum AiProvider {
   ollama,
   custom,
   appleFoundation,
-  localModel,
 }
 
 /// Usage reported by a provider, never inferred from prompt length.

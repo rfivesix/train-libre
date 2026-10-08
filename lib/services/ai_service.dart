@@ -15,8 +15,6 @@ import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
-import 'package:flutter/services.dart';
-import 'ai/local_ai_model_manager.dart';
 import 'ai/apple_foundation_service.dart';
 
 part 'ai/ai_models.dart';
@@ -263,24 +261,6 @@ class AiService {
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
-    AiProvider.localModel: AiProviderMetadata(
-      provider: AiProvider.localModel,
-      displayName: 'On-Device (Hugging Face)',
-      keyHint: 'Offline Local Model',
-      defaultModel: 'qwen-3-vl-4b',
-      rankingHints: [
-        'qwen-3-vl-4b',
-        'qwen-2.5-vl-3b',
-        'smolvlm-2.2b',
-      ],
-      emergencyFallbackModels: [
-        'qwen-3-vl-4b',
-        'qwen-2.5-vl-3b',
-        'smolvlm-2.2b',
-      ],
-      supportsVision: true,
-      supportsDynamicModelLoading: false,
-    ),
   };
 
   // ---------------------------------------------------------------------------
@@ -435,9 +415,6 @@ class AiService {
   }
 
   Future<String> getSelectedModel(AiProvider provider) async {
-    if (provider == AiProvider.localModel) {
-      return LocalAiModelManager.instance.selectedModelId;
-    }
     if (provider == AiProvider.appleFoundation) {
       return getProviderMetadata(provider).defaultModel;
     }
@@ -460,11 +437,6 @@ class AiService {
     if (provider == AiProvider.appleFoundation) {
       return 'Apple Intelligence';
     }
-    if (provider == AiProvider.localModel) {
-      final selected = LocalAiModelManager.instance.selectedModel;
-      final name = selected.name.replaceAll(' (Empfohlen)', '').trim();
-      return '$name (Lokal)';
-    }
     final modelId = await getSelectedModel(provider);
     if (provider == AiProvider.custom) {
       return 'Custom · $modelId';
@@ -478,10 +450,6 @@ class AiService {
       _openAiSupportsCustomTemperature(modelId);
 
   Future<void> setSelectedModel(AiProvider provider, String model) async {
-    if (provider == AiProvider.localModel) {
-      await LocalAiModelManager.instance.selectModel(model);
-      return;
-    }
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       await setCustomModel(model);
       return;
@@ -1101,8 +1069,7 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       String? apiKey;
       final isOfflineProvider = providerEnum == AiProvider.ollama ||
           providerEnum == AiProvider.custom ||
-          providerEnum == AiProvider.appleFoundation ||
-          providerEnum == AiProvider.localModel;
+          providerEnum == AiProvider.appleFoundation;
       if (!isOfflineProvider) {
         apiKey = await getApiKey(providerEnum);
         if (apiKey == null || apiKey.isEmpty) {
@@ -1132,34 +1099,6 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
             prompt: userContent,
             systemPrompt: systemPrompt,
             imagesBase64: imageDataList,
-          );
-          rawResult = _AiRawResponse(response, null);
-          break;
-        case AiProvider.localModel:
-          final isDownloaded =
-              await LocalAiModelManager.instance.ensureDownloaded(model);
-          if (!isDownloaded) {
-            throw const AiUnsupportedFeatureException(
-              'Das gewählte lokale Modell ist noch nicht vollständig heruntergeladen. Bitte lade es in den KI-Einstellungen herunter.',
-            );
-          }
-          final modelFile =
-              await LocalAiModelManager.instance.getModelFile(model);
-          if (!await modelFile.exists()) {
-            throw const AiUnsupportedFeatureException(
-              'Die Modelldatei wurde auf dem Gerät nicht gefunden. Bitte lade das Modell erneut herunter.',
-            );
-          }
-          final projectorFile =
-              await LocalAiModelManager.instance.getProjectorFile(model);
-          final response = await _callNativeLocalModelRaw(
-            modelPath: modelFile.path,
-            mmprojPath: (projectorFile != null && await projectorFile.exists())
-                ? projectorFile.path
-                : null,
-            userContent: userContent,
-            systemPrompt: systemPrompt,
-            imageDataList: imageDataList,
           );
           rawResult = _AiRawResponse(response, null);
           break;
@@ -1245,7 +1184,9 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       }
 
       usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
-      debugPrint('[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
+      if (kDebugMode) {
+        debugPrint('[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
+      }
       return rawResult.text;
     } catch (e) {
       usageCollector?.finishRequest(null, requestId: usageRequestId);
@@ -1275,35 +1216,6 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
         }
       }
       rethrow;
-    }
-  }
-
-  Future<String> _callNativeLocalModelRaw({
-    required String modelPath,
-    String? mmprojPath,
-    required String userContent,
-    required String systemPrompt,
-    required List<String> imageDataList,
-  }) async {
-    const channel = MethodChannel('trainlibre.ai/local_model');
-    try {
-      final fullPrompt = '$systemPrompt\n\nUser request: $userContent';
-      final response = await channel.invokeMethod<String>('runInference', {
-        'modelPath': modelPath,
-        'mmprojPath': mmprojPath,
-        'prompt': fullPrompt,
-        'images': imageDataList,
-      });
-      if (response == null || response.trim().isEmpty) {
-        throw StateError('Lokales Modell lieferte eine leere Antwort.');
-      }
-      return response;
-    } on PlatformException catch (e) {
-      throw StateError('Lokales Modell Inferenzfehler: ${e.message ?? e.code}');
-    } on MissingPluginException {
-      throw const AiUnsupportedFeatureException(
-        'Lokale Inferenz wird auf dieser Plattform noch vorbereitet.',
-      );
     }
   }
 }

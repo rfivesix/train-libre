@@ -1,5 +1,11 @@
 part of '../ai_service.dart';
 
+void _debugLog(String message) {
+  if (kDebugMode) {
+    debugPrint(message);
+  }
+}
+
 List<String> _parseSearchTerms(dynamic raw) {
   if (raw is! List) return const [];
   return raw
@@ -141,7 +147,7 @@ extension AiParsing on AiService {
   }
 
   AiMealCandidate _parseMealCandidateFromContentSync(String content) {
-    debugPrint('[AiParsing] Attempting to parse meal candidate from AI response:\n$content');
+    _debugLog('[AiParsing] Attempting to parse meal candidate from AI response:\n$content');
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
@@ -209,7 +215,7 @@ extension AiParsing on AiService {
         if (items.isNotEmpty) return AiMealCandidate(items: items);
       }
     } catch (e) {
-      debugPrint('[AiParsing] Direct jsonDecode failed: $e');
+      _debugLog('[AiParsing] Direct jsonDecode failed: $e');
     }
 
     // Try wrapping in brackets if it looks like comma-separated JSON objects without outer array
@@ -225,7 +231,7 @@ extension AiParsing on AiService {
           if (items.isNotEmpty) return AiMealCandidate(items: items);
         }
       } catch (e) {
-        debugPrint('[AiParsing] Wrapped objects jsonDecode failed: $e');
+        _debugLog('[AiParsing] Wrapped objects jsonDecode failed: $e');
       }
     }
 
@@ -262,7 +268,7 @@ extension AiParsing on AiService {
           }
         }
       } catch (e) {
-        debugPrint('[AiParsing] Bracket extraction jsonDecode failed: $e');
+        _debugLog('[AiParsing] Bracket extraction jsonDecode failed: $e');
       }
     }
 
@@ -322,7 +328,7 @@ extension AiParsing on AiService {
           }
         }
       } catch (e) {
-        debugPrint('[AiParsing] mealContext recovery failed: $e');
+        _debugLog('[AiParsing] mealContext recovery failed: $e');
       }
     }
 
@@ -382,7 +388,7 @@ extension AiParsing on AiService {
         .toList();
 
     if (bulletLines.isNotEmpty) {
-      debugPrint('[AiParsing] Fallback parsing bullet points into candidate items: $bulletLines');
+      _debugLog('[AiParsing] Fallback parsing bullet points into candidate items: $bulletLines');
       final fallbackItems = bulletLines.map((line) {
         final gramMatch = RegExp(r'(\d+)\s*g\b', caseSensitive: false).firstMatch(line);
         final grams = gramMatch != null ? int.tryParse(gramMatch.group(1)!) ?? 100 : 100;
@@ -402,7 +408,7 @@ extension AiParsing on AiService {
       );
     }
 
-    debugPrint('[AiParsing] Failed to parse meal candidate. Raw AI response:\n$content');
+    _debugLog('[AiParsing] Failed to parse meal candidate. Raw AI response:\n$content');
     throw const AiParseException(
         'No valid JSON object or array found in response.');
   }
@@ -413,7 +419,7 @@ extension AiParsing on AiService {
   }
 
   List<AiSuggestedItem> _parseItemsFromContentSync(String content) {
-    debugPrint('[AiParsing] Attempting to parse suggested items from AI response:\n$content');
+    _debugLog('[AiParsing] Attempting to parse suggested items from AI response:\n$content');
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
@@ -447,7 +453,7 @@ extension AiParsing on AiService {
         if (items.isNotEmpty) return items;
       }
     } catch (e) {
-      debugPrint('[AiParsing] Direct items jsonDecode failed: $e');
+      _debugLog('[AiParsing] Direct items jsonDecode failed: $e');
     }
 
     // Try wrapping in brackets if it looks like comma-separated JSON objects without outer array
@@ -470,7 +476,7 @@ extension AiParsing on AiService {
           if (items.isNotEmpty) return items;
         }
       } catch (e) {
-        debugPrint('[AiParsing] Wrapped objects suggested items jsonDecode failed: $e');
+        _debugLog('[AiParsing] Wrapped objects suggested items jsonDecode failed: $e');
       }
     }
 
@@ -491,7 +497,7 @@ extension AiParsing on AiService {
         }
         if (items.isNotEmpty) return items;
       } catch (e) {
-        debugPrint('[AiParsing] Items array extraction failed: $e');
+        _debugLog('[AiParsing] Items array extraction failed: $e');
       }
     }
 
@@ -507,7 +513,7 @@ extension AiParsing on AiService {
           if (items.isNotEmpty) return items;
         }
       } catch (e) {
-        debugPrint('[AiParsing] Items object extraction failed: $e');
+        _debugLog('[AiParsing] Items object extraction failed: $e');
       }
     }
 
@@ -545,7 +551,7 @@ extension AiParsing on AiService {
         .toList();
 
     if (bulletLines.isNotEmpty) {
-      debugPrint('[AiParsing] Fallback parsing bullet points into suggested items: $bulletLines');
+      _debugLog('[AiParsing] Fallback parsing bullet points into suggested items: $bulletLines');
       return bulletLines.map((line) {
         final gramMatch = RegExp(r'(\d+)\s*g\b', caseSensitive: false).firstMatch(line);
         final grams = gramMatch != null ? int.tryParse(gramMatch.group(1)!) ?? 100 : 100;
@@ -561,7 +567,7 @@ extension AiParsing on AiService {
       }).toList();
     }
 
-    debugPrint('[AiParsing] Failed to parse items. Raw AI response:\n$content');
+    _debugLog('[AiParsing] Failed to parse items. Raw AI response:\n$content');
     throw const AiParseException('No JSON array found in response.');
   }
 }

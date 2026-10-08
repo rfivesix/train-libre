@@ -222,14 +222,6 @@ import UserNotifications
       AppleFoundationPlugin.handle(call, result: result)
     }
 
-    let localModelChannel = FlutterMethodChannel(
-      name: LocalModelPlugin.channelName,
-      binaryMessenger: messenger
-    )
-    localModelChannel.setMethodCallHandler { call, result in
-      LocalModelPlugin.handle(call, result: result)
-    }
-
     channelsConfigured = true
   }
 
