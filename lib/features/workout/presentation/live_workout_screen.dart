@@ -36,6 +36,7 @@ import '../domain/classification/workout_set_position.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/log_mask_labels.dart';
 import 'widgets/live_workout_set_row.dart';
+import 'widgets/workout_keyboard_accessory_bar.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -1770,7 +1771,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                     ),
 
                     // --- Keyboard Done Accessory Bar ---
-                    const _LiveWorkoutKeyboardDoneBar(),
+                    const WorkoutKeyboardAccessoryBar(),
                   ],
                 ),
         ),
@@ -1792,99 +1793,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final match = RegExp(r'[-+]?\d+(?:[.,]\d+)?').firstMatch(text);
     if (match == null) return null;
     return double.tryParse(match.group(0)!.replaceAll(',', '.'));
-  }
-}
-
-class _LiveWorkoutKeyboardDoneBar extends StatefulWidget {
-  const _LiveWorkoutKeyboardDoneBar();
-
-  @override
-  State<_LiveWorkoutKeyboardDoneBar> createState() =>
-      _LiveWorkoutKeyboardDoneBarState();
-}
-
-class _LiveWorkoutKeyboardDoneBarState
-    extends State<_LiveWorkoutKeyboardDoneBar> with WidgetsBindingObserver {
-  double _keyboardHeight = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateKeyboardHeight();
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    _updateKeyboardHeight();
-  }
-
-  void _updateKeyboardHeight() {
-    if (!mounted) return;
-    final view = View.of(context);
-    final newHeight = view.viewInsets.bottom / view.devicePixelRatio;
-    if (newHeight != _keyboardHeight) {
-      setState(() {
-        _keyboardHeight = newHeight;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_keyboardHeight <= 0) {
-      return const SizedBox.shrink();
-    }
-    final l10n = AppLocalizations.of(context)!;
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Material(
-        elevation: 8.0,
-        child: Container(
-          height: 44,
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF1E1E1E)
-                : const Color(0xFFF5F5F7),
-            border: Border(
-              top: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white10
-                    : Colors.black12,
-                width: 0.5,
-              ),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: Text(
-                  l10n.doneButtonLabel,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

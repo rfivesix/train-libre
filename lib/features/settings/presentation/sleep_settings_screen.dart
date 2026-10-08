@@ -130,150 +130,141 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
           ValueListenableBuilder<SleepPermissionStatus>(
             valueListenable: _sleepPermissionController.state,
             builder: (context, permission, _) {
-              return SummaryCard(
-                child: Column(
-                  children: [
-                    PlatformAdaptiveSwitchListTile(
-                      secondary: const Icon(LucideIcons.moon),
-                      title: Text(
-                        l10n.sleepEnableTrackingTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(l10n.sleepEnableTrackingSubtitle),
-                      value: _sleepTrackingEnabled,
-                      onChanged: (value) async {
-                        final wasEnabled = _sleepTrackingEnabled;
-                        await _sleepSyncService.setTrackingEnabled(value);
-                        if (value && !wasEnabled) {
-                          await _sleepPermissionController
-                              // ignore: use_build_context_synchronously
-                              .requestAccess(context);
-                        }
-                        await _sleepPermissionController.refresh();
-                        if (!mounted) return;
-                        setState(() {
-                          _sleepTrackingEnabled = value;
-                          _hasChanges = true;
-                        });
-                      },
+              return Column(
+                children: [
+                  AppSettingsRow.switchTile(
+                    title: l10n.sleepEnableTrackingTitle,
+                    subtitle: l10n.sleepEnableTrackingSubtitle,
+                    leading: const Icon(LucideIcons.moon),
+                    value: _sleepTrackingEnabled,
+                    onChanged: (value) async {
+                      final wasEnabled = _sleepTrackingEnabled;
+                      await _sleepSyncService.setTrackingEnabled(value);
+                      if (value && !wasEnabled) {
+                        await _sleepPermissionController
+                            // ignore: use_build_context_synchronously
+                            .requestAccess(context);
+                      }
+                      await _sleepPermissionController.refresh();
+                      if (!mounted) return;
+                      setState(() {
+                        _sleepTrackingEnabled = value;
+                        _hasChanges = true;
+                      });
+                    },
+                  ),
+                  const Divider(height: 1),
+                  AppSettingsRow(
+                    title: l10n.sleepHealthConnectionStatusTitle,
+                    leading: const Icon(LucideIcons.shield_check),
+                    subtitleWidget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_sleepStatusSubtitle(permission, l10n)),
+                        const SizedBox(height: 4),
+                        Text(
+                          permission.state == SleepPermissionState.ready
+                              ? (Platform.isIOS
+                                  ? l10n.sleepDataStatusSubtitleIos
+                                  : l10n.sleepDataStatusSubtitle)
+                              : (permission.state ==
+                                          SleepPermissionState.denied ||
+                                      permission.state ==
+                                          SleepPermissionState.partial
+                                  ? l10n.sleepNoPermissionSubtitle
+                                  : l10n.sleepFeatureUnavailableSubtitle),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                        ),
+                      ],
                     ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(LucideIcons.shield_check),
-                      title: Text(
-                        l10n.sleepHealthConnectionStatusTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_sleepStatusSubtitle(permission, l10n)),
-                          const SizedBox(height: 4),
-                          Text(
-                            permission.state == SleepPermissionState.ready
-                                ? (Platform.isIOS
-                                    ? l10n.sleepDataStatusSubtitleIos
-                                    : l10n.sleepDataStatusSubtitle)
-                                : (permission.state ==
-                                            SleepPermissionState.denied ||
-                                        permission.state ==
-                                            SleepPermissionState.partial
-                                    ? l10n.sleepNoPermissionSubtitle
-                                    : l10n.sleepFeatureUnavailableSubtitle),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
+                    trailing: Icon(
+                      permission.state == SleepPermissionState.ready
+                          ? LucideIcons.circle_check
+                          : (permission.state ==
+                                      SleepPermissionState.denied ||
+                                  permission.state ==
+                                      SleepPermissionState.partial
+                              ? LucideIcons.chevron_right
+                              : _sleepStatusIcon(permission.state)),
+                      color: _sleepStatusColor(context, permission.state),
+                    ),
+                    onTap: (permission.state == SleepPermissionState.denied ||
+                            permission.state == SleepPermissionState.partial)
+                        ? () async {
+                            await _sleepPermissionController
+                                .requestAccess(context);
+                            if (!mounted) return;
+                            setState(() {});
+                          }
+                        : null,
+                  ),
+                  const Divider(height: 1),
+                  AppSettingsRow.navigation(
+                    title: l10n.sleepImportNowTitle,
+                    subtitle: l10n.sleepImportNowSubtitle,
+                    leading: const Icon(LucideIcons.refresh_cw),
+                    onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final l10n = AppLocalizations.of(context)!;
+                      SleepSyncResult? importResult;
+
+                      final success = await LongRunningOperationOverlay.run(
+                        context: context,
+                        title: l10n.sleepSyncTitle,
+                        initialStatus: l10n.sleepSyncTitle,
+                        icon: LucideIcons.refresh_cw,
+                        operation: (token, updateProgress) async {
+                          importResult = await _sleepSyncService.importRecent(
+                            lookbackDays: 365,
+                            forceFullSync: true,
+                            token: token,
+                            onProgress: (index, total) {
+                              final statusText = index == 0
+                                  ? l10n.sleepSyncTitle
+                                  : l10n.progressImportingNight(index, total);
+                              final progressValue = index == 0
+                                  ? -1.0
+                                  : (total > 0 ? index / total : 0.0);
+                              updateProgress(statusText, progressValue);
+                            },
+                          );
+                        },
+                      );
+
+                      if (!mounted) return;
+                      setState(() {
+                        _hasChanges = true;
+                      });
+
+                      final res = importResult;
+                      if (res != null) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              res.success
+                                  ? l10n.sleepImportFinishedSessions(
+                                      res.importedSessions)
+                                  : (res.message ??
+                                      l10n.sleepImportUnavailableCheckPermissions),
+                            ),
                           ),
-                        ],
-                      ),
-                      trailing: Icon(
-                        permission.state == SleepPermissionState.ready
-                            ? LucideIcons.circle_check
-                            : (permission.state ==
-                                        SleepPermissionState.denied ||
-                                    permission.state ==
-                                        SleepPermissionState.partial
-                                ? LucideIcons.chevron_right
-                                : _sleepStatusIcon(permission.state)),
-                        color: _sleepStatusColor(context, permission.state),
-                      ),
-                      onTap: (permission.state == SleepPermissionState.denied ||
-                              permission.state == SleepPermissionState.partial)
-                          ? () async {
-                              await _sleepPermissionController
-                                  .requestAccess(context);
-                              if (!mounted) return;
-                              setState(() {});
-                            }
-                          : null,
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(LucideIcons.refresh_cw),
-                      title: Text(l10n.sleepImportNowTitle),
-                      subtitle: Text(l10n.sleepImportNowSubtitle),
-                      trailing: const Icon(LucideIcons.chevron_right),
-                      onTap: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        final l10n = AppLocalizations.of(context)!;
-                        SleepSyncResult? importResult;
-
-                        final success = await LongRunningOperationOverlay.run(
-                          context: context,
-                          title: l10n.sleepSyncTitle,
-                          initialStatus: l10n.sleepSyncTitle,
-                          icon: LucideIcons.refresh_cw,
-                          operation: (token, updateProgress) async {
-                            importResult = await _sleepSyncService.importRecent(
-                              lookbackDays: 365,
-                              forceFullSync: true,
-                              token: token,
-                              onProgress: (index, total) {
-                                final statusText = index == 0
-                                    ? l10n.sleepSyncTitle
-                                    : l10n.progressImportingNight(index, total);
-                                final progressValue = index == 0
-                                    ? -1.0
-                                    : (total > 0 ? index / total : 0.0);
-                                updateProgress(statusText, progressValue);
-                              },
-                            );
-                          },
                         );
-
-                        if (!mounted) return;
-                        setState(() {
-                          _hasChanges = true;
-                        });
-
-                        final res = importResult;
-                        if (res != null) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                res.success
-                                    ? l10n.sleepImportFinishedSessions(
-                                        res.importedSessions)
-                                    : (res.message ??
-                                        l10n.sleepImportUnavailableCheckPermissions),
-                              ),
-                            ),
-                          );
-                        } else if (!success) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(l10n.snackbarImportError),
-                            ),
-                          );
-                        }
-                        await _sleepPermissionController.refresh();
-                      },
-                    ),
-                  ],
-                ),
+                      } else if (!success) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.snackbarImportError),
+                          ),
+                        );
+                      }
+                      await _sleepPermissionController.refresh();
+                    },
+                  ),
+                ],
               );
             },
           ),

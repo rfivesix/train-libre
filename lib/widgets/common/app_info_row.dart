@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 class AppInfoRow extends StatelessWidget {
   final String title;
   final String? subtitle;
+  final Widget? leading;
   final EdgeInsetsGeometry padding;
 
   const AppInfoRow({
     super.key,
     required this.title,
     this.subtitle,
-    this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+    this.leading,
+    this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
   });
 
   @override
@@ -23,6 +25,16 @@ class AppInfoRow extends StatelessWidget {
         padding: padding,
         child: Row(
           children: [
+            SizedBox(
+              width: 32.0,
+              child: leading != null
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: leading!,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12.0),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

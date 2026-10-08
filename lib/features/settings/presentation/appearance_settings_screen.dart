@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -8,7 +9,6 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});
@@ -30,71 +30,57 @@ class AppearanceSettingsScreen extends StatelessWidget {
         ),
         children: [
           AppSectionHeader(title: l10n.settingsAppearance),
-          SummaryCard(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(DesignConstants.spacingL),
-                  child: Row(
-                    children: [
-                      const Icon(LucideIcons.sun_moon),
-                      const SizedBox(width: DesignConstants.spacingL),
-                      Expanded(
-                        child: PlatformAdaptiveDropdownFormField<ThemeMode>(
-                          key: ValueKey(themeService.themeMode),
-                          value: themeService.themeMode,
-                          decoration: InputDecoration(
-                            labelText: l10n.settingsAppearance,
-                            border: const OutlineInputBorder(),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: DesignConstants.spacingM,
-                              vertical: DesignConstants.spacingS,
-                            ),
-                          ),
-                          items: ThemeMode.values
-                              .map(
-                                (mode) => DropdownMenuItem<ThemeMode>(
-                                  value: mode,
-                                  child: Text(_themeModeLabel(l10n, mode)),
-                                ),
-                              )
-                              .toList(growable: false),
-                          onChanged: (value) {
-                            if (value == null) return;
-                            themeService.setThemeMode(value);
-                          },
-                        ),
+          Column(
+            children: [
+              PlatformAdaptivePopupMenu<ThemeMode>(
+                selectedValue: themeService.themeMode,
+                onSelected: (mode) => themeService.setThemeMode(mode),
+                items: ThemeMode.values
+                    .map(
+                      (mode) => PlatformAdaptivePopupMenuItem<ThemeMode>(
+                        value: mode,
+                        label: _themeModeLabel(l10n, mode),
                       ),
-                    ],
+                    )
+                    .toList(growable: false),
+                icon: AppSettingsRow.navigation(
+                  title: l10n.settingsAppearance,
+                  subtitle: _themeModeLabel(l10n, themeService.themeMode),
+                  leading: Icon(
+                    LucideIcons.sun_moon,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                if (isAndroid) ...[
-                  const Divider(height: 1),
-                  PlatformAdaptiveSwitchListTile(
-                    secondary: const Icon(LucideIcons.palette),
-                    title: Text(
-                      l10n.settingsMaterialColorsTitle,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(l10n.settingsMaterialColorsSubtitle),
-                    value: themeService.materialColorsEnabled,
-                    onChanged: (value) =>
-                        themeService.setMaterialColorsEnabled(value),
-                  ),
-                ],
+              ),
+              if (isAndroid) ...[
                 const Divider(height: 1),
-                PlatformAdaptiveSwitchListTile(
-                  secondary: const Icon(LucideIcons.vibrate),
-                  title: Text(
-                    l10n.settingsHapticFeedbackTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                AppSettingsRow.switchTile(
+                  title: l10n.settingsMaterialColorsTitle,
+                  subtitle: l10n.settingsMaterialColorsSubtitle,
+                  leading: Icon(
+                    LucideIcons.palette,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                  subtitle: Text(l10n.settingsHapticFeedbackSubtitle),
-                  value: themeService.hapticsEnabled,
-                  onChanged: (value) => themeService.setHapticsEnabled(value),
+                  value: themeService.materialColorsEnabled,
+                  onChanged: (value) =>
+                      themeService.setMaterialColorsEnabled(value),
                 ),
               ],
-            ),
+              const Divider(height: 1),
+              AppSettingsRow.switchTile(
+                title: l10n.settingsHapticFeedbackTitle,
+                subtitle: l10n.settingsHapticFeedbackSubtitle,
+                leading: Icon(
+                  LucideIcons.vibrate,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                value: themeService.hapticsEnabled,
+                onChanged: (value) => themeService.setHapticsEnabled(value),
+              ),
+            ],
           ),
         ],
       ),

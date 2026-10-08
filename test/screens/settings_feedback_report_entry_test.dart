@@ -114,7 +114,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final feedbackTile = find.widgetWithText(ListTile, 'Send feedback');
+    final feedbackTile = find.text('Send feedback');
     await tester.scrollUntilVisible(
       feedbackTile,
       300,

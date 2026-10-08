@@ -116,7 +116,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final exportTile = find.widgetWithText(ListTile, 'Health export');
+    final exportTile = find.text('Health export');
     await tester.scrollUntilVisible(
       exportTile,
       350,

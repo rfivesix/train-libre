@@ -116,24 +116,18 @@ class DeveloperSettingsScreen extends StatelessWidget {
       padding: DesignConstants.cardPadding,
       children: [
         AppSectionHeader(title: l10n.settingsDeveloperTitle),
-        SummaryCard(
-          child: ListTile(
-            key: const Key('developer_performance_log'),
-            contentPadding: DesignConstants.screenPadding,
-            leading: Icon(
-              LucideIcons.activity,
-              color: theme.colorScheme.primary,
-            ),
-            title: Text(
-              l10n.settingsPerformanceLogTitle,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(l10n.settingsPerformanceLogSubtitle),
-            trailing: const Icon(LucideIcons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const PerformanceDiagnosticsScreen(),
-              ),
+        AppSettingsRow.navigation(
+          key: const Key('developer_performance_log'),
+          title: l10n.settingsPerformanceLogTitle,
+          subtitle: l10n.settingsPerformanceLogSubtitle,
+          leading: Icon(
+            LucideIcons.activity,
+            size: 24,
+            color: theme.colorScheme.primary,
+          ),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const PerformanceDiagnosticsScreen(),
             ),
           ),
         ),

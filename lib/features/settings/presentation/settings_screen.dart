@@ -316,533 +316,488 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: const Key('settings_section_app'),
             title: l10n.settingsSectionApp,
           ),
-          SummaryCard(
-            child: Column(
-              children: [
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.palette,
-                  title: l10n.settingsAppearance,
-                  subtitle: l10n.settingsAppearanceSubtitle,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AppearanceSettingsScreen(),
-                      ),
-                    );
-                  },
-                  tileKey: const Key('settings_appearance_entry'),
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.bell,
-                  title: l10n.notificationSettingsTitle,
-                  subtitle: l10n.notificationSettingsSubtitle,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const GoalNotificationSettingsScreen(),
-                      ),
-                    );
-                  },
-                  tileKey: const Key('settings_goal_notifications_entry'),
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.calculator,
-                  title: l10n.calculationBasisTitle,
-                  subtitle: l10n.calculationBasisSubtitle,
-                  onTap: () async {
-                    final changed = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) => const CalculationBasisScreen(),
-                      ),
-                    );
-                    if (_settingsChildMayHaveChanged(changed)) {
-                      hasStepsSettingsChanged = true;
-                    }
-                  },
-                  tileKey: const Key('settings_calculation_basis_entry'),
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                PlatformAdaptivePopupMenu<String>(
-                  selectedValue: _overviewExtraNutrient,
-                  onSelected: (value) async {
-                    if (value == _overviewExtraNutrient) return;
-                    setState(() {
-                      _overviewExtraNutrient = value;
-                    });
-                    await UserPreferencesRepository.instance
-                        .setOverviewExtraNutrient(value);
-                    unawaited(TelemetryService.instance.trackSettingToggled(
-                      settingKey: 'overview_extra_nutrient',
-                      value: value,
-                    ));
-                  },
-                  items: [
-                    PlatformAdaptivePopupMenuItem(
-                      value: 'fiber',
-                      label: l10n.fiber,
-                      icon: LucideIcons.wheat,
+          Column(
+            children: [
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.palette,
+                title: l10n.settingsAppearance,
+                subtitle: l10n.settingsAppearanceSubtitle,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AppearanceSettingsScreen(),
                     ),
-                    PlatformAdaptivePopupMenuItem(
-                      value: 'sugar',
-                      label: l10n.sugar,
-                      icon: LucideIcons.candy,
+                  );
+                },
+                tileKey: const Key('settings_appearance_entry'),
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.bell,
+                title: l10n.notificationSettingsTitle,
+                subtitle: l10n.notificationSettingsSubtitle,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const GoalNotificationSettingsScreen(),
                     ),
-                    PlatformAdaptivePopupMenuItem(
-                      value: 'salt',
-                      label: l10n.salt,
-                      icon: LucideIcons.cooking_pot,
+                  );
+                },
+                tileKey: const Key('settings_goal_notifications_entry'),
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.calculator,
+                title: l10n.calculationBasisTitle,
+                subtitle: l10n.calculationBasisSubtitle,
+                onTap: () async {
+                  final changed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) => const CalculationBasisScreen(),
                     ),
-                  ],
-                  icon: ListTile(
-                    contentPadding: DesignConstants.screenPadding,
-                    leading: Icon(
-                      _getExtraNutrientIcon(_overviewExtraNutrient),
-                      size: 36,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: Text(
-                      l10n.settingsOverviewExtraNutrientTitle,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
+                  );
+                  if (_settingsChildMayHaveChanged(changed)) {
+                    hasStepsSettingsChanged = true;
+                  }
+                },
+                tileKey: const Key('settings_calculation_basis_entry'),
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              PlatformAdaptivePopupMenu<String>(
+                selectedValue: _overviewExtraNutrient,
+                onSelected: (value) async {
+                  if (value == _overviewExtraNutrient) return;
+                  setState(() {
+                    _overviewExtraNutrient = value;
+                  });
+                  await UserPreferencesRepository.instance
+                      .setOverviewExtraNutrient(value);
+                  unawaited(TelemetryService.instance.trackSettingToggled(
+                    settingKey: 'overview_extra_nutrient',
+                    value: value,
+                  ));
+                },
+                items: [
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'fiber',
+                    label: l10n.fiber,
+                    icon: LucideIcons.wheat,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'sugar',
+                    label: l10n.sugar,
+                    icon: LucideIcons.candy,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'salt',
+                    label: l10n.salt,
+                    icon: LucideIcons.cooking_pot,
+                  ),
+                ],
+                icon: AppSettingsRow.navigation(
+                  title: l10n.settingsOverviewExtraNutrientTitle,
+                  subtitle:
                       _getExtraNutrientLabel(l10n, _overviewExtraNutrient),
-                    ),
-                    trailing: const Icon(LucideIcons.chevron_right),
+                  leading: Icon(
+                    _getExtraNutrientIcon(_overviewExtraNutrient),
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const Divider(height: 1),
-                PlatformAdaptivePopupMenu<UnitSystem>(
-                  selectedValue: unitService.unitSystem,
-                  onSelected: (value) {
-                    unitService.setUnitSystem(value);
-                    unawaited(TelemetryService.instance.trackSettingToggled(
-                      settingKey: 'unit_system',
-                      value: value.name,
-                    ));
-                  },
-                  items: [
-                    PlatformAdaptivePopupMenuItem(
-                      value: UnitSystem.metric,
-                      label: 'Metric (kg, cm, ml)',
-                    ),
-                    PlatformAdaptivePopupMenuItem(
-                      value: UnitSystem.imperial,
-                      label: 'Imperial (lbs, in, fl oz)',
-                    ),
-                  ],
-                  icon: ListTile(
-                    contentPadding: DesignConstants.screenPadding,
-                    leading: Icon(
-                      LucideIcons.ruler_dimension_line,
-                      size: 36,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: const Text(
-                      'Unit System',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      unitService.isMetric
-                          ? 'Metric (kg, cm, ml)'
-                          : 'Imperial (lbs, in, fl oz)',
-                    ),
-                    trailing: const Icon(LucideIcons.chevron_right),
+              ),
+              const Divider(height: 1),
+              PlatformAdaptivePopupMenu<UnitSystem>(
+                selectedValue: unitService.unitSystem,
+                onSelected: (value) {
+                  unitService.setUnitSystem(value);
+                  unawaited(TelemetryService.instance.trackSettingToggled(
+                    settingKey: 'unit_system',
+                    value: value.name,
+                  ));
+                },
+                items: [
+                  PlatformAdaptivePopupMenuItem(
+                    value: UnitSystem.metric,
+                    label: 'Metric (kg, cm, ml)',
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: UnitSystem.imperial,
+                    label: 'Imperial (lbs, in, fl oz)',
+                  ),
+                ],
+                icon: AppSettingsRow.navigation(
+                  title: 'Unit System',
+                  subtitle: unitService.isMetric
+                      ? 'Metric (kg, cm, ml)'
+                      : 'Imperial (lbs, in, fl oz)',
+                  leading: Icon(
+                    LucideIcons.ruler_dimension_line,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const Divider(height: 1),
-                PlatformAdaptivePopupMenu<ExperienceLevel>(
-                  key: const Key('settings_training_experience_entry'),
-                  selectedValue: currentExperienceLevel,
-                  onSelected: (value) async {
-                    if (value == currentExperienceLevel) return;
-                    await experienceLevelService.setLevel(value);
-                    unawaited(TelemetryService.instance.trackSettingToggled(
-                      settingKey: 'training_experience_level',
-                      value: value.name,
-                    ));
-                  },
-                  items: [
-                    PlatformAdaptivePopupMenuItem(
-                      value: ExperienceLevel.beginner,
-                      label: l10n.experienceLevelBeginner,
-                      icon: LucideIcons.sprout,
-                    ),
-                    PlatformAdaptivePopupMenuItem(
-                      value: ExperienceLevel.advanced,
-                      label: l10n.experienceLevelAdvanced,
-                      icon: LucideIcons.dumbbell,
-                    ),
-                    PlatformAdaptivePopupMenuItem(
-                      value: ExperienceLevel.pro,
-                      label: l10n.experienceLevelPro,
-                      icon: LucideIcons.flame,
-                    ),
-                  ],
-                  icon: ListTile(
-                    contentPadding: DesignConstants.screenPadding,
-                    leading: Icon(
-                      LucideIcons.award,
-                      size: 36,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: Text(
-                      l10n.settingsTrainingExperienceTitle,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
+              ),
+              const Divider(height: 1),
+              PlatformAdaptivePopupMenu<ExperienceLevel>(
+                key: const Key('settings_training_experience_entry'),
+                selectedValue: currentExperienceLevel,
+                onSelected: (value) async {
+                  if (value == currentExperienceLevel) return;
+                  await experienceLevelService.setLevel(value);
+                  unawaited(TelemetryService.instance.trackSettingToggled(
+                    settingKey: 'training_experience_level',
+                    value: value.name,
+                  ));
+                },
+                items: [
+                  PlatformAdaptivePopupMenuItem(
+                    value: ExperienceLevel.beginner,
+                    label: l10n.experienceLevelBeginner,
+                    icon: LucideIcons.sprout,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: ExperienceLevel.advanced,
+                    label: l10n.experienceLevelAdvanced,
+                    icon: LucideIcons.dumbbell,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: ExperienceLevel.pro,
+                    label: l10n.experienceLevelPro,
+                    icon: LucideIcons.flame,
+                  ),
+                ],
+                icon: AppSettingsRow.navigation(
+                  title: l10n.settingsTrainingExperienceTitle,
+                  subtitle:
                       '${l10n.settingsTrainingExperienceSubtitle}\n$experienceLevelLabel',
-                    ),
-                    isThreeLine: true,
-                    trailing: const Icon(LucideIcons.chevron_right),
+                  leading: Icon(
+                    LucideIcons.award,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const Divider(height: 1),
-                PlatformAdaptivePopupMenu<AutonomyLevel>(
-                  key: const Key('settings_training_progression_entry'),
-                  selectedValue: currentAutonomy,
-                  onSelected: (value) async {
-                    if (value == currentAutonomy) return;
-                    await trainingAutonomyService.setLevel(value);
-                    unawaited(TelemetryService.instance.trackSettingToggled(
-                      settingKey: 'training_autonomy_level',
-                      value: value.name,
-                    ));
-                  },
-                  items: [
-                    PlatformAdaptivePopupMenuItem(
-                      value: AutonomyLevel.off,
-                      label: l10n.trainingProgressionOff,
-                      icon: LucideIcons.circle_off,
-                    ),
-                    PlatformAdaptivePopupMenuItem(
-                      value: AutonomyLevel.suggest,
-                      label: l10n.trainingProgressionSuggest,
-                      icon: LucideIcons.sparkles,
-                    ),
-                  ],
-                  icon: ListTile(
-                    contentPadding: DesignConstants.screenPadding,
-                    leading: Icon(
-                      LucideIcons.trending_up,
-                      size: 36,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: Text(
-                      l10n.settingsTrainingProgressionTitle,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
+              ),
+              const Divider(height: 1),
+              PlatformAdaptivePopupMenu<AutonomyLevel>(
+                key: const Key('settings_training_progression_entry'),
+                selectedValue: currentAutonomy,
+                onSelected: (value) async {
+                  if (value == currentAutonomy) return;
+                  await trainingAutonomyService.setLevel(value);
+                  unawaited(TelemetryService.instance.trackSettingToggled(
+                    settingKey: 'training_autonomy_level',
+                    value: value.name,
+                  ));
+                },
+                items: [
+                  PlatformAdaptivePopupMenuItem(
+                    value: AutonomyLevel.off,
+                    label: l10n.trainingProgressionOff,
+                    icon: LucideIcons.circle_off,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: AutonomyLevel.suggest,
+                    label: l10n.trainingProgressionSuggest,
+                    icon: LucideIcons.sparkles,
+                  ),
+                ],
+                icon: AppSettingsRow.navigation(
+                  title: l10n.settingsTrainingProgressionTitle,
+                  subtitle:
                       '${l10n.settingsTrainingProgressionSubtitle}\n$autonomyLabel',
-                    ),
-                    isThreeLine: true,
-                    trailing: const Icon(LucideIcons.chevron_right),
+                  leading: Icon(
+                    LucideIcons.trending_up,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
             key: const Key('settings_section_health_tracking'),
             title: l10n.settingsSectionHealthTracking,
           ),
-          SummaryCard(
-            child: Column(
-              children: [
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.footprints,
-                  title: l10n.steps,
-                  subtitle: l10n.settingsStepsSubtitle,
-                  tileKey: const Key('settings_steps_entry'),
-                  onTap: () async {
-                    final changed = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) => const StepsSettingsScreen(),
+          Column(
+            children: [
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.footprints,
+                title: l10n.steps,
+                subtitle: l10n.settingsStepsSubtitle,
+                tileKey: const Key('settings_steps_entry'),
+                onTap: () async {
+                  final changed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) => const StepsSettingsScreen(),
+                    ),
+                  );
+                  if (_settingsChildMayHaveChanged(changed)) {
+                    hasStepsSettingsChanged = true;
+                  }
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.moon,
+                title: l10n.sleepSettingsSectionTitle,
+                subtitle: l10n.settingsSleepSubtitle,
+                tileKey: const Key('settings_sleep_entry'),
+                onTap: () async {
+                  final changed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) => SleepSettingsScreen(
+                        sleepSyncService: _sleepSyncService,
+                        sleepPermissionController: _sleepPermissionController,
                       ),
-                    );
-                    if (_settingsChildMayHaveChanged(changed)) {
-                      hasStepsSettingsChanged = true;
-                    }
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.moon,
-                  title: l10n.sleepSettingsSectionTitle,
-                  subtitle: l10n.settingsSleepSubtitle,
-                  tileKey: const Key('settings_sleep_entry'),
-                  onTap: () async {
-                    final changed = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) => SleepSettingsScreen(
-                          sleepSyncService: _sleepSyncService,
-                          sleepPermissionController: _sleepPermissionController,
-                        ),
-                      ),
-                    );
-                    if (_settingsChildMayHaveChanged(changed)) {
-                      hasStepsSettingsChanged = true;
-                    }
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.heart_pulse,
-                  title: l10n.pulseTitle,
-                  subtitle: l10n.settingsPulseSubtitle,
-                  tileKey: const Key('settings_pulse_entry'),
-                  onTap: () async {
-                    final changed = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) => const PulseSettingsScreen(),
-                      ),
-                    );
-                    if (_settingsChildMayHaveChanged(changed)) {
-                      hasStepsSettingsChanged = true;
-                    }
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.ruler,
-                  title: Platform.isIOS
-                      ? l10n.appleHealthWeightImportTitle
-                      : l10n.healthConnectWeightImportTitle,
-                  subtitle: Platform.isIOS
-                      ? l10n.appleHealthWeightImportSubtitle
-                      : l10n.healthConnectWeightImportSubtitle,
-                  tileKey: const Key('settings_measurement_import_entry'),
-                  onTap: () async {
-                    final changed = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const MeasurementImportSettingsScreen(),
-                      ),
-                    );
-                    if (_settingsChildMayHaveChanged(changed)) {
-                      hasStepsSettingsChanged = true;
-                    }
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.heart,
-                  title: l10n.healthExportTitle,
-                  subtitle: l10n.settingsHealthExportSubtitle,
-                  tileKey: const Key('settings_health_export_entry'),
-                  onTap: () async {
-                    final changed = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const HealthExportSettingsScreen(),
-                      ),
-                    );
-                    if (_settingsChildMayHaveChanged(changed)) {
-                      hasStepsSettingsChanged = true;
-                    }
-                  },
-                  wrapInCard: false,
-                ),
-              ],
-            ),
+                    ),
+                  );
+                  if (_settingsChildMayHaveChanged(changed)) {
+                    hasStepsSettingsChanged = true;
+                  }
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.heart_pulse,
+                title: l10n.pulseTitle,
+                subtitle: l10n.settingsPulseSubtitle,
+                tileKey: const Key('settings_pulse_entry'),
+                onTap: () async {
+                  final changed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) => const PulseSettingsScreen(),
+                    ),
+                  );
+                  if (_settingsChildMayHaveChanged(changed)) {
+                    hasStepsSettingsChanged = true;
+                  }
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.ruler,
+                title: Platform.isIOS
+                    ? l10n.appleHealthWeightImportTitle
+                    : l10n.healthConnectWeightImportTitle,
+                subtitle: Platform.isIOS
+                    ? l10n.appleHealthWeightImportSubtitle
+                    : l10n.healthConnectWeightImportSubtitle,
+                tileKey: const Key('settings_measurement_import_entry'),
+                onTap: () async {
+                  final changed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const MeasurementImportSettingsScreen(),
+                    ),
+                  );
+                  if (_settingsChildMayHaveChanged(changed)) {
+                    hasStepsSettingsChanged = true;
+                  }
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.heart,
+                title: l10n.healthExportTitle,
+                subtitle: l10n.settingsHealthExportSubtitle,
+                tileKey: const Key('settings_health_export_entry'),
+                onTap: () async {
+                  final changed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const HealthExportSettingsScreen(),
+                    ),
+                  );
+                  if (_settingsChildMayHaveChanged(changed)) {
+                    hasStepsSettingsChanged = true;
+                  }
+                },
+                wrapInCard: false,
+              ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
             key: const Key('settings_section_nutrition_data'),
             title: l10n.settingsSectionNutritionAndData,
           ),
-          SummaryCard(
-            child: Column(
-              children: [
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.sparkles,
-                  title: l10n.aiSettingsTitle,
-                  subtitle: l10n.aiSettingsDescription,
-                  useGradientIcon: true,
-                  tileKey: const Key('settings_ai_entry'),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AiSettingsScreen(),
+          Column(
+            children: [
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.sparkles,
+                title: l10n.aiSettingsTitle,
+                subtitle: l10n.aiSettingsDescription,
+                useGradientIcon: true,
+                tileKey: const Key('settings_ai_entry'),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AiSettingsScreen(),
+                    ),
+                  );
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.database_backup,
+                title: l10n.backup_and_import,
+                subtitle: l10n.backup_and_import_description,
+                tileKey: const Key('settings_backup_import_entry'),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const DataManagementScreen(),
+                    ),
+                  );
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.cloud_download,
+                title: l10n.settingsUpdateFoodDatabase,
+                subtitle: l10n.settingsUpdateFoodDatabaseSubtitle,
+                tileKey: const Key('settings_sync_off_database'),
+                onTap: () async {
+                  final result = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AppInitializerScreen(
+                        forceUpdate: true,
+                        isModal: true,
                       ),
-                    );
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.database_backup,
-                  title: l10n.backup_and_import,
-                  subtitle: l10n.backup_and_import_description,
-                  tileKey: const Key('settings_backup_import_entry'),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const DataManagementScreen(),
-                      ),
-                    );
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.cloud_download,
-                  title: l10n.settingsUpdateFoodDatabase,
-                  subtitle: l10n.settingsUpdateFoodDatabaseSubtitle,
-                  tileKey: const Key('settings_sync_off_database'),
-                  onTap: () async {
-                    final result = await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AppInitializerScreen(
-                          forceUpdate: true,
-                          isModal: true,
-                        ),
-                      ),
-                    );
+                    ),
+                  );
 
-                    if (result == true && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.settingsUpdateFoodDatabaseSuccess),
-                        ),
-                      );
-                    }
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(
-                    LucideIcons.earth,
-                    size: 36,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(
-                    l10n.settingsFoodDbRegionTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
+                  if (result == true && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.settingsUpdateFoodDatabaseSuccess),
+                      ),
+                    );
+                  }
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              AppSettingsRow.navigation(
+                title: l10n.settingsFoodDbRegionTitle,
+                subtitle:
                     '${l10n.settingsFoodDbRegionSubtitle}\n'
                     '${l10n.settingsFoodDbRegionCurrent}: '
                     '${_offCountryLabel(_activeOffCatalogCountry, l10n)}',
-                  ),
-                  isThreeLine: true,
-                  trailing: const Icon(LucideIcons.chevron_right),
-                  onTap: _showOffCatalogRegionPicker,
+                leading: Icon(
+                  LucideIcons.earth,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(
-                    LucideIcons.languages,
-                    size: 36,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(
-                    l10n.settingsBaseFoodLanguageTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    _baseFoodLanguageLabel(_baseFoodLanguage, l10n),
-                  ),
-                  trailing: const Icon(LucideIcons.chevron_right),
-                  onTap: _showBaseFoodLanguagePicker,
+                onTap: _showOffCatalogRegionPicker,
+              ),
+              const Divider(height: 1),
+              AppSettingsRow.navigation(
+                title: l10n.settingsBaseFoodLanguageTitle,
+                subtitle: _baseFoodLanguageLabel(_baseFoodLanguage, l10n),
+                leading: Icon(
+                  LucideIcons.languages,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-              ],
-            ),
+                onTap: _showBaseFoodLanguagePicker,
+              ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
             key: const Key('settings_section_support_about'),
             title: l10n.settingsSectionSupportAbout,
           ),
-          SummaryCard(
-            child: Column(
-              children: [
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.compass,
-                  title: l10n.appTourRestartTitle,
-                  subtitle: l10n.appTourRestartSubtitle,
-                  tileKey: const Key('settings_restart_app_tour_tile'),
-                  onTap: () async {
-                    await AppTourService.instance.requestRestartFromSettings();
-                    if (!context.mounted) return;
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  },
-                  wrapInCard: false,
+          Column(
+            children: [
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.compass,
+                title: l10n.appTourRestartTitle,
+                subtitle: l10n.appTourRestartSubtitle,
+                tileKey: const Key('settings_restart_app_tour_tile'),
+                onTap: () async {
+                  await AppTourService.instance.requestRestartFromSettings();
+                  if (!context.mounted) return;
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              _buildNavigationCard(
+                context: context,
+                icon: LucideIcons.message_square,
+                title: l10n.feedbackReportSettingsEntryTitle,
+                subtitle: l10n.feedbackReportSettingsEntrySubtitle,
+                tileKey: const Key('settings_feedback_entry'),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const FeedbackReportScreen(),
+                    ),
+                  );
+                },
+                wrapInCard: false,
+              ),
+              const Divider(height: 1),
+              AppSettingsRow.switchTile(
+                title: l10n.settingsTelemetryToggleTitle,
+                subtitle: l10n.settingsTelemetryToggleSubtitle,
+                leading: Icon(
+                  LucideIcons.chart_bar,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.message_square,
-                  title: l10n.feedbackReportSettingsEntryTitle,
-                  subtitle: l10n.feedbackReportSettingsEntrySubtitle,
-                  tileKey: const Key('settings_feedback_entry'),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const FeedbackReportScreen(),
-                      ),
-                    );
-                  },
-                  wrapInCard: false,
-                ),
-                const Divider(height: 1),
-                PlatformAdaptiveSwitchListTile(
-                  secondary: Icon(
-                    LucideIcons.chart_bar,
-                    size: 36,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(
-                    l10n.settingsTelemetryToggleTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(l10n.settingsTelemetryToggleSubtitle),
-                  value: _isTelemetryOptedIn,
-                  onChanged: (value) async {
-                    if (value) {
-                      await TelemetryService.instance.optIn();
-                    } else {
-                      await TelemetryService.instance.optOut();
-                    }
-                    unawaited(TelemetryService.instance.trackSettingToggled(
-                      settingKey: 'telemetry_opt_in',
-                      value: value,
-                    ));
-                    if (!mounted) return;
-                    setState(() => _isTelemetryOptedIn = value);
-                  },
-                ),
-              ],
-            ),
+                value: _isTelemetryOptedIn,
+                onChanged: (value) async {
+                  if (value) {
+                    await TelemetryService.instance.optIn();
+                  } else {
+                    await TelemetryService.instance.optOut();
+                  }
+                  unawaited(TelemetryService.instance.trackSettingToggled(
+                    settingKey: 'telemetry_opt_in',
+                    value: value,
+                  ));
+                  if (!mounted) return;
+                  setState(() => _isTelemetryOptedIn = value);
+                },
+              ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingS),
           AppLinkRow(
             key: const Key('settings_reset_telemetry_data'),
             title: l10n.settingsTelemetryDeleteTitle,
             subtitle: l10n.settingsTelemetryDeleteSubtitle,
+            leading: Icon(
+              LucideIcons.trash,
+              size: 24,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             trailingIcon: LucideIcons.trash,
             onTap: () async {
               final confirmed = await _showTelemetryDeletionConfirmation();
@@ -863,6 +818,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: const Key('settings_developer'),
             title: l10n.settingsDeveloperTitle,
             subtitle: l10n.settingsDeveloperSubtitle,
+            leading: Icon(
+              LucideIcons.code,
+              size: 24,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -1088,7 +1048,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // content entities where card expansion would feel unnatural.
   Widget _buildNavigationCard({
     required BuildContext context,
-    required IconData icon,
+    IconData? icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
@@ -1096,32 +1056,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     bool useGradientIcon = false,
     bool wrapInCard = true,
   }) {
-    Widget iconWidget = Icon(
-      icon,
-      size: 36,
-      color: Theme.of(context).colorScheme.primary,
-    );
-
-    if (useGradientIcon) {
-      iconWidget = ShaderMask(
-        blendMode: BlendMode.srcIn,
-        shaderCallback: (bounds) =>
-            DesignConstants.createAiGradientShader(bounds),
-        child: Icon(icon, size: 36),
-      );
+    Widget? leadingWidget;
+    if (icon != null) {
+      if (useGradientIcon) {
+        leadingWidget = ShaderMask(
+          blendMode: BlendMode.srcIn,
+          shaderCallback: (bounds) =>
+              DesignConstants.createAiGradientShader(bounds),
+          child: Icon(icon, size: 24),
+        );
+      } else {
+        leadingWidget = Icon(
+          icon,
+          size: 24,
+          color: Theme.of(context).colorScheme.primary,
+        );
+      }
     }
 
-    final tile = ListTile(
+    final tile = AppSettingsRow.navigation(
       key: tileKey,
-      contentPadding: DesignConstants.screenPadding,
-      leading: iconWidget,
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle),
-      trailing: const Icon(LucideIcons.chevron_right),
+      title: title,
+      subtitle: subtitle,
+      leading: leadingWidget,
       onTap: onTap,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
     );
 
     if (!wrapInCard) {
@@ -1129,6 +1087,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return SummaryCard(
+      padding: EdgeInsets.zero,
       child: tile,
     );
   }

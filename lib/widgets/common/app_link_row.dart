@@ -9,6 +9,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 class AppLinkRow extends StatelessWidget {
   final String title;
   final String? subtitle;
+  final Widget? leading;
   final VoidCallback onTap;
   final EdgeInsetsGeometry padding;
   final BorderRadius borderRadius;
@@ -18,8 +19,9 @@ class AppLinkRow extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.leading,
     required this.onTap,
-    this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+    this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
     this.borderRadius = const BorderRadius.all(Radius.circular(12.0)),
     this.trailingIcon = LucideIcons.chevron_right,
   });
@@ -40,6 +42,16 @@ class AppLinkRow extends StatelessWidget {
             padding: padding,
             child: Row(
               children: [
+                SizedBox(
+                  width: 32.0,
+                  child: leading != null
+                      ? Align(
+                          alignment: Alignment.centerLeft,
+                          child: leading!,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

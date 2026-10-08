@@ -126,161 +126,153 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
           ValueListenableBuilder<SleepPermissionStatus>(
             valueListenable: _permissionController.state,
             builder: (context, permission, _) {
-              return SummaryCard(
-                child: Column(
-                  children: [
-                    PlatformAdaptiveSwitchListTile(
-                      secondary: const Icon(LucideIcons.footprints),
-                      title: Text(
-                        l10n.stepsSettingsEnableTrackingTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(l10n.stepsSettingsEnableTrackingSubtitle),
-                      value: _stepsTrackingEnabled,
-                      onChanged: _requesting ? null : _setEnabled,
+              return Column(
+                children: [
+                  AppSettingsRow.switchTile(
+                    title: l10n.stepsSettingsEnableTrackingTitle,
+                    subtitle: l10n.stepsSettingsEnableTrackingSubtitle,
+                    leading: const Icon(LucideIcons.footprints),
+                    value: _stepsTrackingEnabled,
+                    onChanged: _requesting ? null : _setEnabled,
+                  ),
+                  const Divider(height: 1),
+                  AppSettingsRow(
+                    title: l10n.sleepHealthConnectionStatusTitle,
+                    leading: const Icon(LucideIcons.shield_check),
+                    subtitleWidget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_statusSubtitle(permission, l10n)),
+                        const SizedBox(height: 4),
+                        Text(
+                          permission.state == SleepPermissionState.ready
+                              ? (Platform.isIOS
+                                  ? l10n.sleepDataStatusSubtitleIos
+                                  : l10n.sleepDataStatusSubtitle)
+                              : (permission.state ==
+                                          SleepPermissionState.denied ||
+                                      permission.state ==
+                                          SleepPermissionState.partial
+                                  ? l10n.sleepNoPermissionSubtitle
+                                  : l10n.sleepFeatureUnavailableSubtitle),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                        ),
+                      ],
                     ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(LucideIcons.shield_check),
-                      title: Text(
-                        l10n.sleepHealthConnectionStatusTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_statusSubtitle(permission, l10n)),
-                          const SizedBox(height: 4),
-                          Text(
+                    trailing: _requesting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
                             permission.state == SleepPermissionState.ready
-                                ? (Platform.isIOS
-                                    ? l10n.sleepDataStatusSubtitleIos
-                                    : l10n.sleepDataStatusSubtitle)
+                                ? LucideIcons.circle_check
                                 : (permission.state ==
                                             SleepPermissionState.denied ||
                                         permission.state ==
                                             SleepPermissionState.partial
-                                    ? l10n.sleepNoPermissionSubtitle
-                                    : l10n.sleepFeatureUnavailableSubtitle),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
+                                    ? LucideIcons.chevron_right
+                                    : _statusIcon(permission.state)),
+                            color: _statusColor(context, permission.state),
                           ),
-                        ],
+                    onTap: (_requesting ||
+                            permission.state == SleepPermissionState.ready)
+                        ? null
+                        : _requestAccess,
+                  ),
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        l10n.stepsSettingsSourcePolicyTitle,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      trailing: _requesting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Icon(
-                              permission.state == SleepPermissionState.ready
-                                  ? LucideIcons.circle_check
-                                  : (permission.state ==
-                                              SleepPermissionState.denied ||
-                                          permission.state ==
-                                              SleepPermissionState.partial
-                                      ? LucideIcons.chevron_right
-                                      : _statusIcon(permission.state)),
-                              color: _statusColor(context, permission.state),
-                            ),
-                      onTap: (_requesting ||
-                              permission.state == SleepPermissionState.ready)
-                          ? null
-                          : _requestAccess,
                     ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          l10n.stepsSettingsSourcePolicyTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  RadioGroup<StepsSourcePolicy>(
+                    groupValue: _stepsSourcePolicy,
+                    onChanged: (value) async {
+                      if (value == null) return;
+                      await _stepsSyncService.setSourcePolicy(value);
+                      if (!mounted) return;
+                      setState(() {
+                        _stepsSourcePolicy = value;
+                        _hasChanges = true;
+                      });
+                    },
+                    child: Column(
+                      children: [
+                        RadioListTile<StepsSourcePolicy>(
+                          title: Text(
+                            l10n.stepsSettingsSourcePolicyAutoDominant,
+                          ),
+                          subtitle: Text(
+                            l10n.stepsSettingsSourcePolicyAutoDominantSubtitle,
+                          ),
+                          value: StepsSourcePolicy.autoDominant,
                         ),
-                      ),
-                    ),
-                    RadioGroup<StepsSourcePolicy>(
-                      groupValue: _stepsSourcePolicy,
-                      onChanged: (value) async {
-                        if (value == null) return;
-                        await _stepsSyncService.setSourcePolicy(value);
-                        if (!mounted) return;
-                        setState(() {
-                          _stepsSourcePolicy = value;
-                          _hasChanges = true;
-                        });
-                      },
-                      child: Column(
-                        children: [
-                          RadioListTile<StepsSourcePolicy>(
-                            title: Text(
-                              l10n.stepsSettingsSourcePolicyAutoDominant,
-                            ),
-                            subtitle: Text(
-                              l10n.stepsSettingsSourcePolicyAutoDominantSubtitle,
-                            ),
-                            value: StepsSourcePolicy.autoDominant,
+                        RadioListTile<StepsSourcePolicy>(
+                          title: Text(
+                            l10n.stepsSettingsSourcePolicyMaxPerHour,
                           ),
-                          RadioListTile<StepsSourcePolicy>(
-                            title: Text(
-                              l10n.stepsSettingsSourcePolicyMaxPerHour,
-                            ),
-                            subtitle: Text(
-                              l10n.stepsSettingsSourcePolicyMaxPerHourSubtitle,
-                            ),
-                            value: StepsSourcePolicy.maxPerHour,
+                          subtitle: Text(
+                            l10n.stepsSettingsSourcePolicyMaxPerHourSubtitle,
                           ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          l10n.stepsSettingsProviderFilterTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          value: StepsSourcePolicy.maxPerHour,
                         ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        l10n.stepsSettingsProviderFilterTitle,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    RadioGroup<StepsProviderFilter>(
-                      groupValue: _stepsProviderFilter,
-                      onChanged: (value) async {
-                        if (value == null) return;
-                        await _stepsSyncService.setProviderFilter(value);
-                        if (!mounted) return;
-                        setState(() {
-                          _stepsProviderFilter = value;
-                          _hasChanges = true;
-                        });
-                      },
-                      child: Column(
-                        children: [
+                  ),
+                  RadioGroup<StepsProviderFilter>(
+                    groupValue: _stepsProviderFilter,
+                    onChanged: (value) async {
+                      if (value == null) return;
+                      await _stepsSyncService.setProviderFilter(value);
+                      if (!mounted) return;
+                      setState(() {
+                        _stepsProviderFilter = value;
+                        _hasChanges = true;
+                      });
+                    },
+                    child: Column(
+                      children: [
+                        RadioListTile<StepsProviderFilter>(
+                          title: Text(l10n.filterAll),
+                          value: StepsProviderFilter.all,
+                        ),
+                        if (Platform.isIOS)
                           RadioListTile<StepsProviderFilter>(
-                            title: Text(l10n.filterAll),
-                            value: StepsProviderFilter.all,
+                            title: Text(l10n.statisticsProviderAppleHealth),
+                            value: StepsProviderFilter.apple,
                           ),
-                          if (Platform.isIOS)
-                            RadioListTile<StepsProviderFilter>(
-                              title: Text(l10n.statisticsProviderAppleHealth),
-                              value: StepsProviderFilter.apple,
-                            ),
-                          if (Platform.isAndroid)
-                            RadioListTile<StepsProviderFilter>(
-                              title: Text(l10n.statisticsProviderHealthConnect),
-                              value: StepsProviderFilter.google,
-                            ),
-                        ],
-                      ),
+                        if (Platform.isAndroid)
+                          RadioListTile<StepsProviderFilter>(
+                            title: Text(l10n.statisticsProviderHealthConnect),
+                            value: StepsProviderFilter.google,
+                          ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               );
             },
           ),

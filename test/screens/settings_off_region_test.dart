@@ -118,7 +118,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final regionTile = find.widgetWithText(ListTile, 'Food database region');
+    final regionTile = find.text('Food database region');
     await tester.scrollUntilVisible(
       regionTile,
       400,

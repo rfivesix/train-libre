@@ -6,12 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/app_link_row.dart';
-import '../../../widgets/common/app_section_header.dart';
-import '../../../widgets/common/platform_adaptive_pickers.dart';
-import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 import '../../../services/local_notification_service.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
@@ -169,61 +166,53 @@ class _GoalNotificationSettingsScreenState
                   title: l10n.notificationWorkoutSectionTitle,
                   isFirst: true,
                 ),
-                SummaryCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      PlatformAdaptiveSwitchListTile(
-                        secondary: Icon(
-                          LucideIcons.dumbbell,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: Text(
-                          l10n.workoutPlanNotifyTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: Text(
-                          _hasActiveWorkoutPlan
-                              ? l10n.workoutPlanNotifySubtitle
-                              : l10n.workoutPlanNotifyNoActivePlan,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                        value: _workoutPlanReminderEnabled,
-                        onChanged: _setWorkoutPlanReminder,
+                Column(
+                  children: [
+                    AppSettingsRow.switchTile(
+                      title: l10n.workoutPlanNotifyTitle,
+                      subtitle: _hasActiveWorkoutPlan
+                          ? l10n.workoutPlanNotifySubtitle
+                          : l10n.workoutPlanNotifyNoActivePlan,
+                      leading: Icon(
+                        LucideIcons.dumbbell,
+                        size: 24,
+                        color: theme.colorScheme.primary,
                       ),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutCubic,
-                        child: _workoutPlanReminderEnabled
-                            ? Column(
-                                children: [
-                                  const Divider(height: 1),
-                                  AppLinkRow(
-                                    title: l10n.workoutPlanNotifyTimeTitle,
-                                    subtitle: MaterialLocalizations.of(context)
-                                        .formatTimeOfDay(
-                                      TimeOfDay(
-                                        hour: _workoutPlanReminderHour,
-                                        minute: _workoutPlanReminderMinute,
-                                      ),
-                                      alwaysUse24HourFormat:
-                                          MediaQuery.alwaysUse24HourFormatOf(
-                                              context),
+                      value: _workoutPlanReminderEnabled,
+                      onChanged: _setWorkoutPlanReminder,
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      child: _workoutPlanReminderEnabled
+                          ? Column(
+                              children: [
+                                const Divider(height: 1),
+                                AppLinkRow(
+                                  title: l10n.workoutPlanNotifyTimeTitle,
+                                  subtitle: MaterialLocalizations.of(context)
+                                      .formatTimeOfDay(
+                                    TimeOfDay(
+                                      hour: _workoutPlanReminderHour,
+                                      minute: _workoutPlanReminderMinute,
                                     ),
-                                    trailingIcon: LucideIcons.clock_3,
-                                    onTap: _chooseWorkoutReminderTime,
+                                    alwaysUse24HourFormat:
+                                        MediaQuery.alwaysUse24HourFormatOf(
+                                            context),
                                   ),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
-                  ),
+                                  leading: Icon(
+                                    LucideIcons.clock_3,
+                                    size: 24,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  trailingIcon: LucideIcons.chevron_right,
+                                  onTap: _chooseWorkoutReminderTime,
+                                ),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
                 if (_systemNotificationsEnabled == false &&
                     _workoutPlanReminderEnabled)
@@ -243,124 +232,62 @@ class _GoalNotificationSettingsScreenState
                   ),
                 const SizedBox(height: DesignConstants.spacingL),
                 AppSectionHeader(title: l10n.notificationGoalsSectionTitle),
-                SummaryCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      PlatformAdaptiveSwitchListTile(
-                        secondary: Icon(
-                          LucideIcons.calendar_check_2,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: Text(
-                          l10n.goalNotifyWeeklyReviewTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: Text(
-                          l10n.goalNotifyWeeklyReviewSubtitle,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                        value: _weeklyReviewEnabled,
-                        onChanged: (val) {
-                          setState(() => _weeklyReviewEnabled = val);
-                          _saveSetting('notify_weekly_goal_review', val);
-                        },
+                Column(
+                  children: [
+                    AppSettingsRow.switchTile(
+                      title: l10n.goalNotifyWeeklyReviewTitle,
+                      subtitle: l10n.goalNotifyWeeklyReviewSubtitle,
+                      leading: Icon(
+                        LucideIcons.calendar_check_2,
+                        size: 24,
+                        color: theme.colorScheme.primary,
                       ),
-                      const Divider(height: 1),
-                      PlatformAdaptiveSwitchListTile(
-                        secondary: Icon(
-                          LucideIcons.sparkles,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: Text(
-                          l10n.goalNotifyRecommendationDueTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: Text(
-                          l10n.goalNotifyRecommendationDueSubtitle,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                        value: _recommendationDueEnabled,
-                        onChanged: (val) {
-                          setState(() => _recommendationDueEnabled = val);
-                          _saveSetting('notify_adaptive_recommendation', val);
-                        },
+                      value: _weeklyReviewEnabled,
+                      onChanged: (val) {
+                        setState(() => _weeklyReviewEnabled = val);
+                        _saveSetting('notify_weekly_goal_review', val);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    AppSettingsRow.switchTile(
+                      title: l10n.goalNotifyRecommendationDueTitle,
+                      subtitle: l10n.goalNotifyRecommendationDueSubtitle,
+                      leading: Icon(
+                        LucideIcons.sparkles,
+                        size: 24,
+                        color: theme.colorScheme.primary,
                       ),
-                      const Divider(height: 1),
-                      PlatformAdaptiveSwitchListTile(
-                        secondary: Icon(
-                          LucideIcons.flag,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: Text(
-                          l10n.goalNotifyTargetDateTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: Text(
-                          l10n.goalNotifyTargetDateSubtitle,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                        value: _targetDateReminderEnabled,
-                        onChanged: (val) {
-                          setState(() => _targetDateReminderEnabled = val);
-                          _saveSetting('notify_goal_target_date', val);
-                        },
+                      value: _recommendationDueEnabled,
+                      onChanged: (val) {
+                        setState(() => _recommendationDueEnabled = val);
+                        _saveSetting('notify_adaptive_recommendation', val);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    AppSettingsRow.switchTile(
+                      title: l10n.goalNotifyTargetDateTitle,
+                      subtitle: l10n.goalNotifyTargetDateSubtitle,
+                      leading: Icon(
+                        LucideIcons.flag,
+                        size: 24,
+                        color: theme.colorScheme.primary,
                       ),
-                    ],
-                  ),
+                      value: _targetDateReminderEnabled,
+                      onChanged: (val) {
+                        setState(() => _targetDateReminderEnabled = val);
+                        _saveSetting('notify_goal_target_date', val);
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
-                SummaryCard(
-                  child: Padding(
-                    padding: DesignConstants.cardPadding,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          LucideIcons.shield_check,
-                          color: theme.colorScheme.primary,
-                          size: 24,
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.notificationPrivacyTitle,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: DesignConstants.spacingXS),
-                              Text(
-                                l10n.notificationPrivacyBody,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                AppInfoRow(
+                  title: l10n.notificationPrivacyTitle,
+                  subtitle: l10n.notificationPrivacyBody,
+                  leading: Icon(
+                    LucideIcons.shield_check,
+                    size: 24,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
               ],
