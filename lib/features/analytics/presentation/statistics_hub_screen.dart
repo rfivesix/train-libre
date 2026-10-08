@@ -140,6 +140,23 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
     _viewModel.markDirty();
   }
 
+  Widget buildPinnedTimeframeFilter(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, _) {
+        final l10n = AppLocalizations.of(context)!;
+        if (_viewModel.isColdStart && !_viewModel.isLoadingColdStart) {
+          return const SizedBox.shrink();
+        }
+        return _StatisticsHubScreenView()._buildTimeframeFilter(
+          context,
+          _viewModel,
+          l10n,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<StatisticsHubViewModel>.value(
@@ -152,15 +169,6 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
 class _StatisticsHubScreenView extends StatelessWidget {
   const _StatisticsHubScreenView();
 
-  List<String> _timeRanges(AppLocalizations l10n) => [
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter6MonthsShort,
-        l10n.filter1YearShort,
-        l10n.filterMax,
-      ];
-
   static const _hubBlocks = [
     TimeframeBlock.week,
     TimeframeBlock.month,
@@ -170,14 +178,62 @@ class _StatisticsHubScreenView extends StatelessWidget {
     TimeframeBlock.maxBlock,
   ];
 
+  Widget _buildTimeframeFilter(
+    BuildContext context,
+    StatisticsHubViewModel viewModel,
+    AppLocalizations l10n,
+  ) {
+    return TimeRangeFilter(
+      ranges: [
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filter1YearShort,
+        l10n.filterMax,
+      ],
+      selectedIndex: _hubBlocks.indexOf(viewModel.activeBlockType),
+      onSelected: (index) => viewModel.activeBlockType = _hubBlocks[index],
+      onPrevious: viewModel.activeBlockType == TimeframeBlock.maxBlock
+          ? null
+          : () => viewModel.shiftTimeframe(true),
+      onNext: viewModel.activeBlockType == TimeframeBlock.maxBlock
+          ? null
+          : () => viewModel.shiftTimeframe(false),
+      displayDate: _unifiedRangeLabel(viewModel, l10n),
+      onTapDateDisplay: () async {
+        final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+          context: context,
+          activeBlock: viewModel.activeBlockType,
+          initialAnchor: viewModel.anchorDate,
+          initialIsRolling: viewModel.isRolling,
+          earliestAvailableDay: DateTime(2020),
+        );
+        if (selected != null) viewModel.setTimeframeSelection(selected);
+      },
+      nextEnabled: viewModel.activeBlockType != TimeframeBlock.maxBlock &&
+          (viewModel.isRolling ||
+              !viewModel.activeBlockType
+                  .getBounds(viewModel.anchorDate, DateTime(2020))
+                  .start
+                  .isAtSameMomentAs(viewModel.activeBlockType
+                      .getBounds(DateTime.now(), DateTime(2020))
+                      .start)),
+      showDateNavigation: viewModel.activeBlockType != TimeframeBlock.maxBlock,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<StatisticsHubViewModel>();
     final l10n = AppLocalizations.of(context)!;
-    final appBarHeight = MediaQuery.paddingOf(context)
-        .top; // + kToolbarHeight omitted: same as DiaryScreen/WorkoutHubScreen
+    // The tab content already starts below the host toolbar. Reserve the
+    // safe-area inset and the painted filter extension without counting the
+    // toolbar a second time.
+    final filterTop = MediaQuery.paddingOf(context).top;
+    const filterRowHeight = 56.0;
     final finalPadding = EdgeInsets.only(
-      top: appBarHeight + DesignConstants.cardPadding.top,
+      top: filterTop + filterRowHeight,
       left: 0,
       right: 0,
       bottom: DesignConstants.cardPadding.bottom,
@@ -204,49 +260,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   )
                 : SliverList(
                     delegate: SliverChildListDelegate([
-                      TimeRangeFilter(
-                        ranges: _timeRanges(l10n),
-                        selectedIndex:
-                            _hubBlocks.indexOf(viewModel.activeBlockType),
-                        onSelected: (index) {
-                          viewModel.activeBlockType = _hubBlocks[index];
-                        },
-                        onPrevious:
-                            viewModel.activeBlockType == TimeframeBlock.maxBlock
-                                ? null
-                                : () => viewModel.shiftTimeframe(true),
-                        onNext:
-                            viewModel.activeBlockType == TimeframeBlock.maxBlock
-                                ? null
-                                : () => viewModel.shiftTimeframe(false),
-                        displayDate: _unifiedRangeLabel(viewModel, l10n),
-                        onTapDateDisplay: () async {
-                          final selected = await adaptive_pickers
-                              .showAdaptiveTimeframePicker(
-                            context: context,
-                            activeBlock: viewModel.activeBlockType,
-                            initialAnchor: viewModel.anchorDate,
-                            initialIsRolling: viewModel.isRolling,
-                            earliestAvailableDay: DateTime(2020),
-                          );
-                          if (selected != null) {
-                            viewModel.setTimeframeSelection(selected);
-                          }
-                        },
-                        nextEnabled: viewModel.activeBlockType !=
-                                TimeframeBlock.maxBlock &&
-                            (viewModel.isRolling ||
-                                !viewModel.activeBlockType
-                                    .getBounds(
-                                        viewModel.anchorDate, DateTime(2020))
-                                    .start
-                                    .isAtSameMomentAs(viewModel.activeBlockType
-                                        .getBounds(
-                                            DateTime.now(), DateTime(2020))
-                                        .start)),
-                        showDateNavigation: viewModel.activeBlockType !=
-                            TimeframeBlock.maxBlock,
-                      ),
                       const SizedBox(height: DesignConstants.spacingL),
                       Builder(builder: (context) {
                         Widget contentColumn = Column(
@@ -260,7 +273,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
                               ),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
-                            AppSectionHeader(title: l10n.sectionRecovery),
+                            if (viewModel.sleepTrackingEnabled ||
+                                viewModel.pulseTrackingEnabled)
+                              AppSectionHeader(title: l10n.sectionRecovery),
                             if (viewModel.sleepTrackingEnabled) ...[
                               const SizedBox(height: DesignConstants.spacingS),
                               RepaintBoundary(
@@ -321,7 +336,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
                             viewModel.isSkeletonizing) {
                           content = SizedBox(
                             height: MediaQuery.of(context).size.height -
-                                appBarHeight -
+                                MediaQuery.paddingOf(context).top -
+                                kToolbarHeight -
                                 140,
                             child: ClipRect(
                               child: SingleChildScrollView(

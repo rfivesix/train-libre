@@ -1159,9 +1159,15 @@ class _MainScreenState extends State<MainScreen>
           ],
         );
       case 2: // Stats
+        if (_statsKey.currentState == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _currentIndex == 2) setState(() {});
+          });
+        }
         return GlobalAppBar(
           title: l10n.statistics,
           actions: [_profileAppBarButton(context)],
+          bottom: _statsKey.currentState?.buildPinnedTimeframeFilter(context),
         );
       case 3: // Nutrition Hub
         return GlobalAppBar(
