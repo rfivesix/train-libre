@@ -329,7 +329,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 tileKey: const Key('settings_appearance_entry'),
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               _buildNavigationCard(
                 context: context,
                 icon: LucideIcons.bell,
@@ -346,7 +345,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 tileKey: const Key('settings_goal_notifications_entry'),
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               _buildNavigationCard(
                 context: context,
                 icon: LucideIcons.calculator,
@@ -365,7 +363,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 tileKey: const Key('settings_calculation_basis_entry'),
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               PlatformAdaptivePopupMenu<String>(
                 selectedValue: _overviewExtraNutrient,
                 onSelected: (value) async {
@@ -408,7 +405,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const Divider(height: 1),
               PlatformAdaptivePopupMenu<UnitSystem>(
                 selectedValue: unitService.unitSystem,
                 onSelected: (value) {
@@ -440,7 +436,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const Divider(height: 1),
               PlatformAdaptivePopupMenu<ExperienceLevel>(
                 key: const Key('settings_training_experience_entry'),
                 selectedValue: currentExperienceLevel,
@@ -480,7 +475,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const Divider(height: 1),
               PlatformAdaptivePopupMenu<AutonomyLevel>(
                 key: const Key('settings_training_progression_entry'),
                 selectedValue: currentAutonomy,
@@ -570,7 +564,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               _buildNavigationCard(
                 context: context,
                 icon: LucideIcons.database_backup,
@@ -586,7 +579,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               _buildNavigationCard(
                 context: context,
                 icon: LucideIcons.cloud_download,
@@ -613,7 +605,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               AppSettingsRow.navigation(
                 title: l10n.settingsFoodDbRegionTitle,
                 subtitle: '${l10n.settingsFoodDbRegionSubtitle}\n'
@@ -626,7 +617,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 onTap: _showOffCatalogRegionPicker,
               ),
-              const Divider(height: 1),
               AppSettingsRow.navigation(
                 title: l10n.settingsBaseFoodLanguageTitle,
                 subtitle: _baseFoodLanguageLabel(_baseFoodLanguage, l10n),
@@ -659,7 +649,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               _buildNavigationCard(
                 context: context,
                 icon: LucideIcons.message_square,
@@ -675,7 +664,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 wrapInCard: false,
               ),
-              const Divider(height: 1),
               AppSettingsRow.switchTile(
                 title: l10n.settingsTelemetryToggleTitle,
                 subtitle: l10n.settingsTelemetryToggleSubtitle,

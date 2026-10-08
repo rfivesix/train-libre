@@ -152,7 +152,6 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       });
                     },
                   ),
-                  const Divider(height: 1),
                   AppSettingsRow(
                     title: l10n.sleepHealthConnectionStatusTitle,
                     leading: const Icon(LucideIcons.shield_check),
@@ -201,7 +200,6 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                           }
                         : null,
                   ),
-                  const Divider(height: 1),
                   AppSettingsRow.navigation(
                     title: l10n.sleepImportNowTitle,
                     subtitle: l10n.sleepImportNowSubtitle,

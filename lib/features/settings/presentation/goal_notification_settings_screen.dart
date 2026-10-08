@@ -186,7 +186,6 @@ class _GoalNotificationSettingsScreenState
                       child: _workoutPlanReminderEnabled
                           ? Column(
                               children: [
-                                const Divider(height: 1),
                                 AppLinkRow(
                                   title: l10n.workoutPlanNotifyTimeTitle,
                                   subtitle: MaterialLocalizations.of(context)
@@ -247,7 +246,6 @@ class _GoalNotificationSettingsScreenState
                         _saveSetting('notify_weekly_goal_review', val);
                       },
                     ),
-                    const Divider(height: 1),
                     AppSettingsRow.switchTile(
                       title: l10n.goalNotifyRecommendationDueTitle,
                       subtitle: l10n.goalNotifyRecommendationDueSubtitle,
@@ -262,7 +260,6 @@ class _GoalNotificationSettingsScreenState
                         _saveSetting('notify_adaptive_recommendation', val);
                       },
                     ),
-                    const Divider(height: 1),
                     AppSettingsRow.switchTile(
                       title: l10n.goalNotifyTargetDateTitle,
                       subtitle: l10n.goalNotifyTargetDateSubtitle,

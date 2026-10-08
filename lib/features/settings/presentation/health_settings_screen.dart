@@ -381,34 +381,29 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     String? actionLabel,
     VoidCallback? onAction,
   }) {
-    return Column(
-      children: [
-        AppSettingsRow(
-          title: title,
-          subtitle: subtitle,
-          leading: Icon(icon),
-          onTap: _busy ? null : () => onChanged(!value),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (value && actionLabel != null) ...[
-                IconButton(
-                  tooltip: actionLabel,
-                  visualDensity: VisualDensity.compact,
-                  onPressed: _busy ? null : onAction,
-                  icon: const Icon(LucideIcons.refresh_cw),
-                ),
-                const SizedBox(width: 4),
-              ],
-              PlatformAdaptiveSwitch(
-                value: value,
-                onChanged: _busy ? null : onChanged,
-              ),
-            ],
+    return AppSettingsRow(
+      title: title,
+      subtitle: subtitle,
+      leading: Icon(icon),
+      onTap: _busy ? null : () => onChanged(!value),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (value && actionLabel != null) ...[
+            IconButton(
+              tooltip: actionLabel,
+              visualDensity: VisualDensity.compact,
+              onPressed: _busy ? null : onAction,
+              icon: const Icon(LucideIcons.refresh_cw),
+            ),
+            const SizedBox(width: 4),
+          ],
+          PlatformAdaptiveSwitch(
+            value: value,
+            onChanged: _busy ? null : onChanged,
           ),
-        ),
-        const Divider(height: 1),
-      ],
+        ],
+      ),
     );
   }
 

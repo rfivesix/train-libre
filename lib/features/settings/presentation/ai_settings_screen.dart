@@ -471,7 +471,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
             onChanged: (value) => themeService.setAiEnabled(value),
           ),
           if (aiEnabled && _hasLidar) ...[
-            const Divider(height: 1),
             AppSettingsRow.switchTile(
               title: l10n.aiLidarScaleTitle,
               subtitle: l10n.aiLidarScaleSubtitle,
@@ -483,7 +482,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 setState(() => _scaleHintEnabled = value);
               },
             ),
-            const Divider(height: 1),
             AppSettingsRow.switchTile(
               title: l10n.aiDepthImageTitle,
               subtitle: l10n.aiDepthImageSubtitle,
@@ -525,7 +523,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                   ),
                 ),
                 if (_selectedProvider == AiProvider.appleFoundation) ...[
-                  const Divider(height: 1),
                   AppInfoRow(
                     leading: Icon(
                       _isAppleFoundationAvailable
@@ -546,7 +543,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 if (_selectedProvider != AiProvider.ollama &&
                     _selectedProvider != AiProvider.custom &&
                     _selectedProvider != AiProvider.appleFoundation) ...[
-                  const Divider(height: 1),
                   Skeletonizer(
                     enabled: _isLoadingModels,
                     child: PlatformAdaptivePopupMenu<String>(
@@ -828,7 +824,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           : l10n.mealPhotoRetentionDays(_retentionDays)),
                 ),
               ),
-              const Divider(height: 1),
               AppSettingsRow(
                 title: l10n.mealPhotoDeleteAll,
                 subtitle: l10n.mealPhotoRetentionBody,

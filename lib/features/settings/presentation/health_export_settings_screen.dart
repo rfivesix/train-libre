@@ -236,7 +236,6 @@ class _HealthExportSettingsScreenState
                     enabled: value,
                   ),
                 ),
-                const Divider(height: 1),
                 AppSettingsRow(
                   title: l10n.healthExportAppleHealthStatusTitle,
                   leading: const Icon(LucideIcons.shield_check),
@@ -287,7 +286,6 @@ class _HealthExportSettingsScreenState
                     enabled: value,
                   ),
                 ),
-                const Divider(height: 1),
                 AppSettingsRow(
                   title: l10n.healthExportHealthConnectStatusTitle,
                   leading: const Icon(LucideIcons.shield_check),

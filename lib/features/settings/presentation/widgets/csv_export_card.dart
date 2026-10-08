@@ -47,17 +47,14 @@ class CsvExportCard extends StatelessWidget {
             title: l10n.excelExportButton,
             onTap: isCsvExportRunning ? null : onExcelExportPressed,
           ),
-          const Divider(height: 1),
           _buildExportTile(
             title: l10n.nutritionDiary,
             onTap: isCsvExportRunning ? null : onNutritionExportPressed,
           ),
-          const Divider(height: 1),
           _buildExportTile(
             title: l10n.drawerMeasurements,
             onTap: isCsvExportRunning ? null : onMeasurementsExportPressed,
           ),
-          const Divider(height: 1),
           _buildExportTile(
             title: l10n.workoutHistoryTitle,
             onTap: isCsvExportRunning ? null : onWorkoutsExportPressed,

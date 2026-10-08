@@ -129,7 +129,6 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
                     value: _stepsTrackingEnabled,
                     onChanged: _requesting ? null : _setEnabled,
                   ),
-                  const Divider(height: 1),
                   AppSettingsRow(
                     title: l10n.sleepHealthConnectionStatusTitle,
                     leading: const Icon(LucideIcons.shield_check),
@@ -180,7 +179,6 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
                         ? null
                         : _requestAccess,
                   ),
-                  const Divider(height: 1),
                 ],
               );
             },

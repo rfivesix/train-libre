@@ -129,7 +129,6 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                     value: _enabled,
                     onChanged: _requesting ? null : _setEnabled,
                   ),
-                  const Divider(height: 1),
                   AppSettingsRow(
                     title: l10n.sleepHealthConnectionStatusTitle,
                     leading: const Icon(LucideIcons.shield_check),
@@ -180,7 +179,6 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                         ? null
                         : _requestAccess,
                   ),
-                  const Divider(height: 1),
                   AppInfoRow(
                     title: copy.honestTitle,
                     subtitle: copy.honestSubtitle,

@@ -53,7 +53,6 @@ class AppearanceSettingsScreen extends StatelessWidget {
                 ),
               ),
               if (isAndroid) ...[
-                const Divider(height: 1),
                 AppSettingsRow.switchTile(
                   title: l10n.settingsMaterialColorsTitle,
                   subtitle: l10n.settingsMaterialColorsSubtitle,
@@ -67,7 +66,6 @@ class AppearanceSettingsScreen extends StatelessWidget {
                       themeService.setMaterialColorsEnabled(value),
                 ),
               ],
-              const Divider(height: 1),
               AppSettingsRow.switchTile(
                 title: l10n.settingsHapticFeedbackTitle,
                 subtitle: l10n.settingsHapticFeedbackSubtitle,

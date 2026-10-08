@@ -148,7 +148,6 @@ class _MeasurementImportSettingsScreenState
                 value: _enabled,
                 onChanged: _importing ? null : _toggle,
               ),
-              const Divider(height: 1),
               AppSettingsRow(
                 title: l10n.healthConnectWeightImportNow,
                 leading: const Icon(LucideIcons.download),
