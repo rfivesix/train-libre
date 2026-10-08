@@ -826,20 +826,26 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final savedCompleter = Completer<bool?>();
       int revealStartedMilliseconds = 0;
 
-      void navigateToReview({
+      Future<void> navigateToReview({
         required List<AiMealCandidateItem> items,
         AiValidationResult? validation,
         AiMealContext? mealContext,
-      }) {
+      }) async {
         if (reviewNavigated || !mounted || _analysisCancelled) return;
         reviewNavigated = true;
         _stopAiWaitingHaptics();
+
+        // Let the living cloud return to its calm circle, then hold that shape
+        // briefly before the reveal route disperses it into vapor. The startup
+        // initializer has its own contraction timing and does not use this path.
+        await controller.contractToCircle();
+        if (!mounted || _analysisCancelled) return;
+
         if (mounted) {
           setState(() => _isAnalyzing = false);
         }
 
-        // Smoothly contract cloud back into circle and pause before organic vapor dispersion
-        // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
+        // Hide the orb and its UI beneath the review route after the contraction.
         controller.isFinished.value = true;
 
         final detectedType = _detectMealTypeFromText(text);
@@ -912,10 +918,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         fastMode: fastMode && cloudProvider,
         isCancelled: () => _analysisCancelled || !mounted,
         onCandidateReady: (candidate) {
-          navigateToReview(
+          unawaited(navigateToReview(
             items: candidate.items,
             mealContext: candidate.context,
-          );
+          ));
         },
         onValidationReady: (validation, _) {
           if (!reviewNavigated || !mounted) return;
@@ -988,7 +994,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewReady,
           elapsedMilliseconds: readyMilliseconds));
       if (!reviewNavigated) {
-        navigateToReview(
+        await navigateToReview(
           items: validationOutcome.validation.candidate.items,
           validation: validationOutcome.validation,
           mealContext: validationOutcome.validation.candidate.context,
