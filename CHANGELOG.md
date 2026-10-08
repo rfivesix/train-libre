@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.5.1] - 2026-10-07
 
 ### Added
+- **Scoped Exercise Notes (Issue #710):** Added pinned exercise notes, pinned notes per routine exercise, and workout-only notes per exercise instance. Pinned notes prefill the live workout; note scopes are editable from the workout and exercise detail screens. Existing workout notes migrate without losing their text, and the new note data is preserved through backups, imports, exports, and workout sharing.
 - **Recipe Portions & Diary Grouping (Issue #686):** Saved recipes now log as one expandable diary meal with the recipe title and linked ingredients. Recipes can store their serving count and cooked finished weight; logging lets you scale by grams or fractional servings, and saved recipes can be duplicated.
 - **Serverless Share Links (Issue #713):** Added compressed, versioned URL-fragment links for routines, manual training plans, and saved recipes; native glass import previews with local import under fresh IDs; Android App Links and iOS Universal Links; and a static browser preview with app install links.
 - **Portable Sharing and Import (Issue #711):** Added formatted text and versioned JSON exports for routines, manual plans, recipes, and completed workouts, with copy and file sharing. Added additive JSON import from Data & Backup and shared files, previewed before import. Web-link actions now appear only when their encoded URLs fit the 2,000-character limit; larger items remain available as text or JSON.

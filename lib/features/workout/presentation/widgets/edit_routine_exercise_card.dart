@@ -125,7 +125,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const Icon(LucideIcons.pencil),
-                        tooltip: l10n.exerciseNoteTitle,
+                        tooltip: l10n.pinnedRoutineNoteTitle,
                         onPressed: onEditNotes,
                       ),
                       if (showPauseAction &&

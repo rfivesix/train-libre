@@ -561,7 +561,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         children: [
           IconButton(
             icon: const Icon(LucideIcons.pencil),
-            tooltip: l10n.exerciseNoteTitle,
+            tooltip: l10n.noteTypeTitle,
             onPressed: isProxy
                 ? null
                 : () => _editExerciseNotes(context, routineExercise),
@@ -767,30 +767,91 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final l10n = AppLocalizations.of(context)!;
     final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
 
-    final result = await showGlassBottomMenu<String?>(
+    final canEditRoutineNote = manager.canEditRoutineNoteFor(re);
+    final scope = await showGlassBottomMenu<String>(
       context: context,
-      title: l10n.exerciseNoteTitle,
+      title: l10n.noteTypeTitle,
       contentBuilder: (ctx, close) {
-        return ExerciseNotesDialog(
-          initialNotes: re.notes,
-          onSave: (notes) {
-            close();
-            Navigator.of(ctx).pop(notes);
-          },
-          onDelete: () {
-            close();
-            Navigator.of(ctx).pop('');
-          },
-          onCancel: () {
-            close();
-            Navigator.of(ctx).pop(null);
-          },
+        Widget option({
+          required String key,
+          required IconData icon,
+          required String title,
+          required String description,
+        }) =>
+            ListTile(
+              leading: Icon(icon),
+              title: Text(title),
+              subtitle: Text(description),
+              onTap: () {
+                close();
+                Navigator.of(ctx).pop(key);
+              },
+            );
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            option(
+              key: 'exercise',
+              icon: Icons.push_pin_outlined,
+              title: l10n.pinnedExerciseNoteTitle,
+              description: l10n.pinnedExerciseNoteDescription,
+            ),
+            if (canEditRoutineNote)
+              option(
+                key: 'routine',
+                icon: Icons.bookmark_border,
+                title: l10n.pinnedRoutineNoteTitle,
+                description: l10n.pinnedRoutineNoteDescription,
+              ),
+            option(
+              key: 'workout',
+              icon: Icons.description_outlined,
+              title: l10n.workoutExerciseNoteTitle,
+              description: l10n.workoutExerciseNoteDescription,
+            ),
+          ],
         );
       },
     );
+    if (scope == null || !context.mounted) return;
 
-    if (result != null) {
-      await manager.updateExerciseNotes(re.exercise.canonicalName, result);
+    final initialNotes = switch (scope) {
+      'exercise' => re.exercise.pinnedNote,
+      'routine' => re.notes,
+      _ => manager.workoutNoteFor(re),
+    };
+    final result = await showGlassBottomMenu<String?>(
+      context: context,
+      title: switch (scope) {
+        'exercise' => l10n.pinnedExerciseNoteTitle,
+        'routine' => l10n.pinnedRoutineNoteTitle,
+        _ => l10n.workoutExerciseNoteTitle,
+      },
+      contentBuilder: (ctx, close) => ExerciseNotesDialog(
+        initialNotes: initialNotes,
+        onSave: (notes) {
+          close();
+          Navigator.of(ctx).pop(notes);
+        },
+        onDelete: () {
+          close();
+          Navigator.of(ctx).pop('');
+        },
+        onCancel: () {
+          close();
+          Navigator.of(ctx).pop(null);
+        },
+      ),
+    );
+    if (result == null) return;
+    switch (scope) {
+      case 'exercise':
+        await manager.updatePinnedExerciseNote(re, result);
+      case 'routine':
+        await manager.updateRoutineExerciseNote(re, result);
+      default:
+        await manager.updateWorkoutExerciseNote(re, result);
     }
   }
 
@@ -1152,6 +1213,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final exercises =
         context.select<LiveWorkoutViewModel, List<RoutineExercise>>(
             (vm) => vm.exercises);
+    final workoutNotes = context.select<LiveWorkoutViewModel, Map<int, String>>(
+        (vm) => vm.workoutExerciseNotes);
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
 
@@ -1476,48 +1539,31 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                           CrossAxisAlignment
                                                                               .start,
                                                                       children: [
-                                                                        if (routineExercise.notes !=
-                                                                                null &&
-                                                                            routineExercise.notes!.isNotEmpty)
+                                                                        if (manager
+                                                                                .workoutNoteFor(
+                                                                                  routineExercise,
+                                                                                  workoutNotes,
+                                                                                )
+                                                                                ?.trim()
+                                                                                .isNotEmpty ==
+                                                                            true)
                                                                           Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.only(
-                                                                              left: 16.0,
-                                                                              right: 16.0,
-                                                                              bottom: 12.0,
-                                                                            ),
+                                                                            // Align the note text with the exercise title. The
+                                                                            // workout note is the single effective note here;
+                                                                            // routine and exercise notes were copied into it when
+                                                                            // this exercise instance entered the workout.
+                                                                            padding: const EdgeInsets.only(
+                                                                                left: 16,
+                                                                                right: 16,
+                                                                                bottom: 12),
                                                                             child:
                                                                                 InkWell(
                                                                               onTap: () => _editExerciseNotes(context, routineExercise),
                                                                               borderRadius: BorderRadius.circular(8),
-                                                                              child: Container(
-                                                                                width: double.infinity,
-                                                                                padding: const EdgeInsets.all(12),
-                                                                                decoration: BoxDecoration(
-                                                                                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                                                                                  borderRadius: BorderRadius.circular(8),
-                                                                                  border: Border.all(
-                                                                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                                                                                  ),
-                                                                                ),
-                                                                                child: Row(
-                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                  children: [
-                                                                                    Icon(
-                                                                                      Icons.description_outlined,
-                                                                                      size: 16,
-                                                                                      color: colorScheme.onSurfaceVariant,
-                                                                                    ),
-                                                                                    const SizedBox(width: 8),
-                                                                                    Expanded(
-                                                                                      child: Text(
-                                                                                        routineExercise.notes!,
-                                                                                        style: textTheme.bodyMedium?.copyWith(
-                                                                                          color: colorScheme.onSurfaceVariant,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
+                                                                              child: Text(
+                                                                                manager.workoutNoteFor(routineExercise, workoutNotes)!,
+                                                                                style: textTheme.bodyMedium?.copyWith(
+                                                                                  color: colorScheme.onSurfaceVariant,
                                                                                 ),
                                                                               ),
                                                                             ),

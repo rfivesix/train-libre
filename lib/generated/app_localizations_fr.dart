@@ -6094,6 +6094,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get exerciseNoteHint => 'Saisir des notes ou des indices...';
 
   @override
+  String get noteTypeTitle => 'Type de note';
+
+  @override
+  String get pinnedExerciseNoteTitle => 'Note d’exercice épinglée';
+
+  @override
+  String get pinnedExerciseNoteDescription =>
+      'Préremplie à chaque enregistrement de cet exercice.';
+
+  @override
+  String get pinnedRoutineNoteTitle => 'Note de routine épinglée';
+
+  @override
+  String get pinnedRoutineNoteDescription =>
+      'Préremplie uniquement pour cet exercice dans cette routine.';
+
+  @override
+  String get workoutExerciseNoteTitle => 'Note de séance';
+
+  @override
+  String get workoutExerciseNoteDescription =>
+      'Concerne uniquement cet exercice dans cette séance.';
+
+  @override
   String get deleteNoteTooltip => 'Supprimer la note';
 
   @override

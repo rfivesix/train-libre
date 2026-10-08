@@ -19,6 +19,7 @@ import '../domain/repositories/workout_repository.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
 import '../data/live_activity/workout_live_activity_service.dart';
+import '../data/sources/workout_local_data_source.dart';
 import '../domain/live_activity/build_workout_live_activity_content.dart';
 import '../domain/live_activity/workout_live_activity_content.dart';
 import '../domain/live_activity/workout_live_activity_strings.dart';
@@ -140,6 +141,18 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   WorkoutLog? _workoutLog;
   bool isFromTrainingPlan = false;
   List<RoutineExercise> _exercises = [];
+  Map<int, String> workoutExerciseNotes = const {};
+  final Map<int, int> _routineExerciseNoteTargetsByBlock = {};
+  WorkoutLog? get currentWorkout => _workoutLog;
+
+  String? workoutNoteFor(
+    RoutineExercise exercise, [
+    Map<int, String>? notes,
+  ]) {
+    final block = exerciseBlockFor(exercise);
+    return block == null ? null : (notes ?? workoutExerciseNotes)[block];
+  }
+
   final Map<int, SetLog> _setLogs = {};
   final Map<int, int?> pauseTimes = {};
 
@@ -586,6 +599,14 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     _workoutLog = log;
     _exercises = normalizeSupersetGroups(List.from(routineExercises));
+    workoutExerciseNotes = {};
+    _routineExerciseNoteTargetsByBlock
+      ..clear()
+      ..addEntries([
+        for (var i = 0; i < _exercises.length; i++)
+          if (_workoutLog?.routineId != null && _exercises[i].id != null)
+            MapEntry(i, _exercises[i].id!),
+      ]);
 
     _setLogs.clear();
     _completedWorkingOrder.clear();
@@ -594,15 +615,24 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _overriddenTemplates.clear();
     pauseTimes.clear();
 
-    for (var re in _exercises) {
+    for (var blockIndex = 0; blockIndex < _exercises.length; blockIndex++) {
+      final re = _exercises[blockIndex];
       if (re.id != null) {
         pauseTimes[re.id!] = re.pauseSeconds;
       }
-      if (re.notes != null && re.notes!.isNotEmpty) {
-        await _repository.saveWorkoutExerciseNote(
+      final prefilledNote = re.notes?.trim().isNotEmpty == true
+          ? re.notes!.trim()
+          : re.exercise.pinnedNote?.trim();
+      if (prefilledNote != null && prefilledNote.isNotEmpty) {
+        workoutExerciseNotes = {
+          ...workoutExerciseNotes,
+          blockIndex: prefilledNote,
+        };
+        await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
           workoutLogId: log.id!,
+          exerciseBlock: blockIndex,
           exerciseName: re.exercise.canonicalName,
-          notes: re.notes,
+          notes: prefilledNote,
         );
       }
     }
@@ -673,8 +703,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> restoreWorkoutSession(WorkoutLog log) async {
     _workoutLog = log;
     final savedSets = await _repository.getSetLogsForWorkout(log.id!);
-    final savedExerciseNotes =
-        await _repository.getWorkoutExerciseNotes(log.id!);
+    final savedExerciseNotes = await WorkoutLocalDataSource.instance
+        .getWorkoutExerciseNotesByBlock(log.id!);
+    workoutExerciseNotes = Map<int, String>.from(savedExerciseNotes);
 
     _setLogs.clear();
     _completedWorkingOrder.clear();
@@ -682,6 +713,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _suggestedTemplates.clear();
     _overriddenTemplates.clear();
     final List<RoutineExercise> restoredExercises = [];
+    _routineExerciseNoteTargetsByBlock.clear();
     _exercises = restoredExercises;
     pauseTimes.clear();
     _totalVolume = 0;
@@ -692,6 +724,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         final routine = await _repository.getRoutineByName(log.routineName!);
         if (routine != null) {
           _exercises = List.from(routine.exercises);
+          _routineExerciseNoteTargetsByBlock.addEntries([
+            for (var i = 0; i < _exercises.length; i++)
+              if (_exercises[i].id != null) MapEntry(i, _exercises[i].id!),
+          ]);
           for (var re in _exercises) {
             if (re.id != null) pauseTimes[re.id!] = re.pauseSeconds;
           }
@@ -722,6 +758,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final blocks = isLegacySession
         ? _groupSetsByName(sortedSets)
         : _groupSetsByBlock(sortedSets);
+    final persistedRoutine = log.routineId == null
+        ? null
+        : await _repository.getRoutineByUuid(log.routineId!);
 
     final usedIds = <int>{};
     for (int i = 0; i < blocks.length; i++) {
@@ -737,6 +776,19 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             primaryMuscles: const [],
             secondaryMuscles: const [],
           );
+      final blockId = firstSet.exerciseBlock;
+      final routineSlot = blockId != null &&
+              blockId >= 0 &&
+              blockId < (persistedRoutine?.exercises.length ?? 0)
+          ? persistedRoutine!.exercises[blockId]
+          : null;
+      final matchingRoutineSlot =
+          routineSlot != null && routineSlot.exercise.uuid == exercise.uuid
+              ? routineSlot
+              : null;
+      if (blockId != null && matchingRoutineSlot?.id != null) {
+        _routineExerciseNoteTargetsByBlock[blockId] = matchingRoutineSlot!.id!;
+      }
 
       // Ids derived from the clock could collide across blocks and silently
       // drop a set, because the map they key is the session's only copy of it.
@@ -791,10 +843,6 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         _totalSets++;
       }
 
-      final savedNote = savedExerciseNotes[exercise.canonicalName] ??
-          exercise.allNames
-              .map((name) => savedExerciseNotes[name])
-              .firstWhere((note) => note != null, orElse: () => null);
       final re = RoutineExercise(
         id: syntheticReId,
         exercise: firstSet.progression.loadMode == null
@@ -804,7 +852,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         pauseSeconds: pauseSec,
         supersetGroup: isLegacySession ? null : firstSet.supersetGroup,
         progressionData: firstSet.progressionData,
-        notes: savedNote,
+        notes: matchingRoutineSlot?.notes,
       );
 
       restoredExercises.add(re);
@@ -1476,6 +1524,17 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final reIndex = _exercises.indexWhere((e) => e.id == routineExerciseId);
     if (reIndex == -1) return;
     final re = _exercises[reIndex];
+    final noteBlock = exerciseBlockFor(re);
+    if (noteBlock != null && _workoutLog?.id != null) {
+      await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
+        workoutLogId: _workoutLog!.id!,
+        exerciseBlock: noteBlock,
+        exerciseName: re.exercise.canonicalName,
+        notes: null,
+      );
+      workoutExerciseNotes = Map<int, String>.from(workoutExerciseNotes)
+        ..remove(noteBlock);
+    }
 
     final existingTemplateIds = _allTemplateIds()..addAll(_setLogs.keys);
     final tempTemplateId = _nextSyntheticId(existingTemplateIds);
@@ -1637,6 +1696,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         exercise: exercise,
         setTemplates: templates,
         pauseSeconds: 0);
+    final exerciseBlock = _nextWorkoutExerciseBlock();
 
     // Insert directly after the lowest exercise that has at least 1 completed set
     int lastCompletedIndex = -1;
@@ -1670,10 +1730,25 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         restTimeSeconds: 0,
         isCompleted: false,
         logOrder: _setLogs.length,
+        exerciseBlock: exerciseBlock,
       );
       final dbId = await _repository.insertSetLog(newSetLog);
       _setLogs[t.id!] = newSetLog.copyWith(id: dbId);
       _totalSets++;
+    }
+
+    final pinnedNote = exercise.pinnedNote?.trim();
+    if (pinnedNote != null && pinnedNote.isNotEmpty) {
+      workoutExerciseNotes = {
+        ...workoutExerciseNotes,
+        exerciseBlock: pinnedNote,
+      };
+      await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
+        workoutLogId: _workoutLog!.id!,
+        exerciseBlock: exerciseBlock,
+        exerciseName: exercise.canonicalName,
+        notes: pinnedNote,
+      );
     }
 
     await _updateLogOrdersInDatabase();
@@ -1795,26 +1870,112 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
-    final newExercises = List<RoutineExercise>.from(_exercises);
-    for (int i = 0; i < newExercises.length; i++) {
-      if (newExercises[i].exercise.allNames.contains(exerciseName)) {
-        newExercises[i] = newExercises[i].copyWith(
-          notes: notes,
-          clearNotes: notes == null || notes.isEmpty,
-        );
-        break;
-      }
+  int? exerciseBlockFor(RoutineExercise exercise) {
+    for (final template in exercise.setTemplates) {
+      final block = _setLogs[template.id]?.exerciseBlock;
+      if (block != null) return block;
     }
-    _exercises = newExercises;
+    return null;
+  }
 
-    if (_workoutLog?.id != null) {
-      await _repository.saveWorkoutExerciseNote(
-        workoutLogId: _workoutLog!.id!,
-        exerciseName: exerciseName,
-        notes: notes,
-      );
+  bool canEditRoutineNoteFor(RoutineExercise exercise) {
+    if (_workoutLog?.routineId == null) return false;
+    if (exercise.id != null &&
+        _routineExerciseNoteTargetsByBlock.values.contains(exercise.id)) {
+      return true;
     }
+    final block = exerciseBlockFor(exercise);
+    return block != null &&
+        _routineExerciseNoteTargetsByBlock.containsKey(block);
+  }
+
+  int _nextWorkoutExerciseBlock() {
+    final blocks =
+        _setLogs.values.map((set) => set.exerciseBlock).whereType<int>();
+    return blocks.isEmpty ? 0 : blocks.reduce((a, b) => a > b ? a : b) + 1;
+  }
+
+  Future<void> updateWorkoutExerciseNote(
+      RoutineExercise exercise, String? notes) async {
+    final block = exerciseBlockFor(exercise);
+    if (block == null || _workoutLog?.id == null) return;
+    final normalized = notes?.trim();
+    await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
+      workoutLogId: _workoutLog!.id!,
+      exerciseBlock: block,
+      exerciseName: exercise.exercise.canonicalName,
+      notes: normalized,
+    );
+    if (normalized == null || normalized.isEmpty) {
+      workoutExerciseNotes = Map<int, String>.from(workoutExerciseNotes)
+        ..remove(block);
+    } else {
+      workoutExerciseNotes = {
+        ...workoutExerciseNotes,
+        block: normalized,
+      };
+    }
+    notifyListeners();
+  }
+
+  /// Backwards-compatible name-based entry point for older callers.
+  /// New UI code should target a specific routine exercise instance instead.
+  @Deprecated('Use updateWorkoutExerciseNote with a RoutineExercise instance')
+  Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
+    final exercise = _exercises.cast<RoutineExercise?>().firstWhere(
+          (entry) => entry?.exercise.canonicalName == exerciseName,
+          orElse: () => null,
+        );
+    if (exercise != null) {
+      await updateWorkoutExerciseNote(exercise, notes);
+    }
+  }
+
+  Future<void> updateRoutineExerciseNote(
+      RoutineExercise exercise, String? notes) async {
+    if (_workoutLog?.routineId == null) return;
+    final block = exerciseBlockFor(exercise);
+    final targetId = block == null
+        ? exercise.id
+        : (_routineExerciseNoteTargetsByBlock[block] ?? exercise.id);
+    if (targetId == null) return;
+    final normalized = notes?.trim();
+    await _repository.updateRoutineExerciseNotes(
+      targetId,
+      normalized == null || normalized.isEmpty ? null : normalized,
+    );
+    _exercises = _exercises.map((entry) {
+      if (block == null
+          ? entry.id != exercise.id
+          : entry.id != exercise.id && exerciseBlockFor(entry) != block) {
+        return entry;
+      }
+      return entry.copyWith(
+        notes: normalized,
+        clearNotes: normalized == null || normalized.isEmpty,
+      );
+    }).toList();
+    notifyListeners();
+  }
+
+  Future<void> updatePinnedExerciseNote(
+      RoutineExercise exercise, String? notes) async {
+    final uuid = exercise.exercise.uuid;
+    if (uuid == null) return;
+    final normalized = notes?.trim();
+    await WorkoutLocalDataSource.instance.savePinnedExerciseNote(
+      exerciseUuid: uuid,
+      notes: normalized == null || normalized.isEmpty ? null : normalized,
+    );
+    _exercises = _exercises.map((entry) {
+      if (entry.exercise.uuid != uuid) return entry;
+      return entry.copyWith(
+        exercise: entry.exercise.copyWith(
+          pinnedNote: normalized,
+          clearPinnedNote: normalized == null || normalized.isEmpty,
+        ),
+      );
+    }).toList();
     notifyListeners();
   }
 

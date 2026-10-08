@@ -56,7 +56,9 @@ class ShareLinkPayload {
               (raw['equipment'] != null && raw['equipment'] is! String) ||
               (raw['pause'] != null && raw['pause'] is! num) ||
               (raw['superset'] != null && raw['superset'] is! num) ||
-              (raw['notes'] != null && raw['notes'] is! String) ||
+              (raw['notes'] != null &&
+                  (raw['notes'] is! String ||
+                      (raw['notes'] as String).length > 10000)) ||
               (raw['progression'] != null && raw['progression'] is! String) ||
               raw['sets'] is! List ||
               (raw['sets'] as List).length > 100) {
@@ -106,7 +108,9 @@ class ShareLinkPayload {
         }
       case 'recipe':
         if (rows.isEmpty ||
-            (data['notes'] != null && data['notes'] is! String) ||
+            (data['notes'] != null &&
+                (data['notes'] is! String ||
+                    (data['notes'] as String).length > 10000)) ||
             (data['portions'] != null &&
                 (data['portions'] is! int || data['portions'] <= 0)) ||
             (data['cookedWeightInGrams'] != null &&
@@ -154,7 +158,15 @@ class ShareLinkPayload {
               (raw['exercise_name'] as String).trim().isEmpty ||
               raw['set_type'] is! String ||
               (raw['exercise_id'] != null && raw['exercise_id'] is! String) ||
-              (raw['notes'] != null && raw['notes'] is! String) ||
+              (raw['notes'] != null &&
+                  (raw['notes'] is! String ||
+                      (raw['notes'] as String).length > 10000)) ||
+              (raw['workout_exercise_note'] != null &&
+                  (raw['workout_exercise_note'] is! String ||
+                      (raw['workout_exercise_note'] as String).length >
+                          10000)) ||
+              (raw['exercise_block'] != null &&
+                  raw['exercise_block'] is! int) ||
               (raw['progression_data'] != null &&
                   raw['progression_data'] is! String) ||
               (raw['is_completed'] != null &&
@@ -305,6 +317,8 @@ class ShareLinkCodec {
             final row = set.toMap();
             row.remove('id');
             row.remove('workout_log_id');
+            row['workout_exercise_note'] =
+                workout.exerciseNotesByBlock[set.exerciseBlock];
             return row;
           }).toList(),
         },

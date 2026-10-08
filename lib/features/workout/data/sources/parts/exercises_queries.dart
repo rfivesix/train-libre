@@ -492,6 +492,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
              t_best.name AS display_name,
              t_best.description AS display_description,
              t_best.language_code AS display_language,
+             (SELECT pn.notes FROM pinned_exercise_notes pn
+               WHERE pn.exercise_id = e.id LIMIT 1) AS pinned_note,
              (
                SELECT COUNT(*) * 15
                FROM set_logs s
@@ -525,6 +527,7 @@ $_kBestTranslationJoinSql
         dbInstance.exerciseTags,
         dbInstance.setLogs,
         dbInstance.workoutLogs,
+        dbInstance.pinnedExerciseNotes,
       },
     ).get();
 
@@ -631,6 +634,45 @@ $_kBestTranslationJoinSql
     return row != null ? _mapExerciseRowToModel(dbInstance, row) : null;
   }
 
+  Future<void> savePinnedExerciseNote({
+    required String exerciseUuid,
+    required String? notes,
+  }) async {
+    final dbInstance = await database;
+    final normalized = notes?.trim();
+    await dbInstance.transaction(() async {
+      final existing = await (dbInstance.select(dbInstance.pinnedExerciseNotes)
+            ..where((row) => row.exerciseId.equals(exerciseUuid)))
+          .getSingleOrNull();
+      if (normalized == null || normalized.isEmpty) {
+        if (existing != null) {
+          await (dbInstance.delete(dbInstance.pinnedExerciseNotes)
+                ..where((row) => row.localId.equals(existing.localId)))
+              .go();
+        }
+        return;
+      }
+      if (normalized.length > 10000) {
+        throw ArgumentError.value(notes, 'notes', 'Note exceeds 10000 chars');
+      }
+      if (existing != null) {
+        await (dbInstance.update(dbInstance.pinnedExerciseNotes)
+              ..where((row) => row.localId.equals(existing.localId)))
+            .write(db.PinnedExerciseNotesCompanion(
+          notes: drift.Value(normalized),
+          updatedAt: drift.Value(DateTime.now()),
+        ));
+      } else {
+        await dbInstance.into(dbInstance.pinnedExerciseNotes).insert(
+              db.PinnedExerciseNotesCompanion(
+                exerciseId: drift.Value(exerciseUuid),
+                notes: drift.Value(normalized),
+              ),
+            );
+      }
+    });
+  }
+
   Future<Exercise?> resolveExerciseForSetLog(SetLog setLog) async {
     final dbInstance = await database;
     String? exerciseUuid;
@@ -683,6 +725,11 @@ $_kBestTranslationJoinSql
 
       // Insert translations
       await _upsertTranslations(dbInstance, row.id, exercise);
+      await _writePinnedExerciseNote(
+        dbInstance,
+        row.id,
+        exercise.pinnedNote,
+      );
 
       return _mapExerciseRowToModel(dbInstance, row);
     });
@@ -713,6 +760,7 @@ $_kBestTranslationJoinSql
             );
 
         await _upsertTranslations(dbInstance, row.id, ex);
+        await _writePinnedExerciseNote(dbInstance, row.id, ex.pinnedNote);
       }
     });
   }
@@ -818,6 +866,10 @@ $_kBestTranslationJoinSql
             ..where((tbl) => tbl.exerciseId.equals(exerciseUuid)))
           .go();
 
+      await (dbInstance.delete(dbInstance.pinnedExerciseNotes)
+            ..where((tbl) => tbl.exerciseId.equals(exerciseUuid)))
+          .go();
+
       // 4. Delete the exercise itself (translations cascade via FK)
       await (dbInstance.delete(dbInstance.exercises)
             ..where((tbl) => tbl.localId.equals(localId)))
@@ -874,6 +926,25 @@ $_kBestTranslationJoinSql
     }
   }
 
+  Future<void> _writePinnedExerciseNote(
+    db.AppDatabase dbInstance,
+    String exerciseUuid,
+    String? notes,
+  ) async {
+    final normalized = notes?.trim();
+    if (normalized == null || normalized.isEmpty) return;
+    if (normalized.length > 10000) {
+      throw ArgumentError.value(notes, 'notes', 'Note exceeds 10000 chars');
+    }
+    await dbInstance.into(dbInstance.pinnedExerciseNotes).insert(
+          db.PinnedExerciseNotesCompanion(
+            exerciseId: drift.Value(exerciseUuid),
+            notes: drift.Value(normalized),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+  }
+
   /// Maps one search row to [Exercise].
   ///
   /// Carries exactly the one language the query resolved, under its real code.
@@ -916,6 +987,7 @@ $_kBestTranslationJoinSql
       difficulty: rawExercise.difficulty,
       movementPattern: rawExercise.movementPattern,
       forceVector: rawExercise.forceVector,
+      pinnedNote: row.readNullable<String>('pinned_note'),
     );
   }
 
@@ -935,6 +1007,10 @@ $_kBestTranslationJoinSql
     final muscleRows = await (dbInstance.select(dbInstance.exerciseMuscles)
           ..where((m) => m.exerciseId.equals(row.id)))
         .get();
+    final pinnedNoteRow =
+        await (dbInstance.select(dbInstance.pinnedExerciseNotes)
+              ..where((note) => note.exerciseId.equals(row.id)))
+            .getSingleOrNull();
 
     // Every language this exercise has. This path returns a single exercise —
     // a detail screen, a resolved set log — where the cost is one query and
@@ -977,6 +1053,7 @@ $_kBestTranslationJoinSql
       difficulty: row.difficulty,
       movementPattern: row.movementPattern,
       forceVector: row.forceVector,
+      pinnedNote: pinnedNoteRow?.notes,
     );
   }
 }

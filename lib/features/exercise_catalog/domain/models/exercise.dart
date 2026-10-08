@@ -41,6 +41,9 @@ class Exercise {
   /// An optional path to an image representing the exercise.
   final String? imagePath;
 
+  /// User-authored note pinned to this stable exercise identity.
+  final String? pinnedNote;
+
   /// A list of primary muscles targeted by this exercise.
   final List<String> primaryMuscles;
 
@@ -217,6 +220,7 @@ class Exercise {
     this.movementPattern,
     this.forceVector,
     this.imagePath,
+    this.pinnedNote,
   });
 
   /// An exercise whose text exists in exactly one language.
@@ -245,6 +249,7 @@ class Exercise {
     this.movementPattern,
     this.forceVector,
     this.imagePath,
+    this.pinnedNote,
   }) : texts = {
           languageCode: ExerciseText(name: name, description: description),
         };
@@ -300,6 +305,7 @@ class Exercise {
       texts: _parseTexts(m),
       categoryName: (m['category_name'] ?? '') as String,
       imagePath: m['image_path'] as String?,
+      pinnedNote: (m['pinned_note'] ?? m['pinnedNote']) as String?,
       primaryMuscles: _parseMuscleList(primRaw),
       secondaryMuscles: _parseMuscleList(secRaw),
     );
@@ -356,6 +362,7 @@ class Exercise {
       },
       'category_name': categoryName,
       'image_path': imagePath,
+      if (pinnedNote != null) 'pinned_note': pinnedNote,
       'primaryMuscles': jsonEncode(primaryMuscles),
       'secondaryMuscles': jsonEncode(secondaryMuscles),
     };
@@ -371,6 +378,8 @@ class Exercise {
     Map<String, ExerciseText>? texts,
     String? categoryName,
     String? imagePath,
+    String? pinnedNote,
+    bool clearPinnedNote = false,
     List<String>? primaryMuscles,
     List<String>? secondaryMuscles,
     List<String>? primaryMuscleIds,
@@ -393,6 +402,7 @@ class Exercise {
       texts: texts ?? this.texts,
       categoryName: categoryName ?? this.categoryName,
       imagePath: imagePath ?? this.imagePath,
+      pinnedNote: clearPinnedNote ? null : (pinnedNote ?? this.pinnedNote),
       primaryMuscles: primaryMuscles ?? this.primaryMuscles,
       secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
       primaryMuscleIds: primaryMuscleIds ?? this.primaryMuscleIds,

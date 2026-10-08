@@ -673,7 +673,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     final l10n = AppLocalizations.of(context)!;
     final result = await showGlassBottomMenu<String?>(
       context: context,
-      title: l10n.exerciseNoteTitle,
+      title: l10n.pinnedRoutineNoteTitle,
       contentBuilder: (ctx, close) {
         return ExerciseNotesDialog(
           initialNotes: re.notes,

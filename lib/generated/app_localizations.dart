@@ -10519,6 +10519,48 @@ abstract class AppLocalizations {
   /// **'Enter notes or hints...'**
   String get exerciseNoteHint;
 
+  /// No description provided for @noteTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note type'**
+  String get noteTypeTitle;
+
+  /// No description provided for @pinnedExerciseNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned Exercise Note'**
+  String get pinnedExerciseNoteTitle;
+
+  /// No description provided for @pinnedExerciseNoteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefilled every time you log this exercise.'**
+  String get pinnedExerciseNoteDescription;
+
+  /// No description provided for @pinnedRoutineNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned Routine Note'**
+  String get pinnedRoutineNoteTitle;
+
+  /// No description provided for @pinnedRoutineNoteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefilled only for this exercise in this routine.'**
+  String get pinnedRoutineNoteDescription;
+
+  /// No description provided for @workoutExerciseNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout Note'**
+  String get workoutExerciseNoteTitle;
+
+  /// No description provided for @workoutExerciseNoteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies only to this exercise in this workout.'**
+  String get workoutExerciseNoteDescription;
+
   /// No description provided for @deleteNoteTooltip.
   ///
   /// In en, this message translates to:

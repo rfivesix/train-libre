@@ -12,6 +12,7 @@ class ShareLabels {
     required this.exercises,
     required this.sets,
     required this.set,
+    this.notes = 'Notes',
     required this.setNumber,
     required this.reps,
     required this.kg,
@@ -48,6 +49,7 @@ class ShareLabels {
       exercises: l10n.shareExercisesLabel,
       sets: l10n.shareSetsLabel,
       set: l10n.shareSetLabel,
+      notes: l10n.notesLabel,
       setNumber: l10n.shareSetNumber,
       reps: l10n.repsShort,
       kg: unitService.suffixFor(UnitDimension.weight),
@@ -113,6 +115,7 @@ class ShareLabels {
   final String exercises;
   final String sets;
   final String set;
+  final String notes;
   final String Function(int number) setNumber;
   final String reps;
   final String kg;

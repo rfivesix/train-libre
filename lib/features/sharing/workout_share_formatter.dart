@@ -59,6 +59,12 @@ class WorkoutShareFormatter {
       final label = _supersetLabelAt(entries, entryIndex);
       final prefix = label == null ? '' : '$label · ';
       buffer.writeln('$prefix${_exerciseName(entry.key.exerciseName)}');
+      final workoutNote = entry.key.exerciseBlock == null
+          ? null
+          : workout.exerciseNotesByBlock[entry.key.exerciseBlock!];
+      if (workoutNote?.trim().isNotEmpty == true) {
+        buffer.writeln('${labels.notes}: ${workoutNote!.trim()}');
+      }
       for (var index = 0; index < entry.value.length; index += 1) {
         buffer.writeln(
           '${labels.setNumber(index + 1)}: ${_formatSetLine(entry.value[index])}',

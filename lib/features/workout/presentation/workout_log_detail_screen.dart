@@ -451,7 +451,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     }
 
     final savedExerciseNotes = await WorkoutLocalDataSource.instance
-        .getWorkoutExerciseNotes(widget.logId);
+        .getWorkoutExerciseNotesByBlock(widget.logId);
 
     final heartRateFuture = _heartRateService.loadForWorkoutWindow(
       startTime: data.startTime,
@@ -524,7 +524,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     final updatedGroups = groupSetsByExerciseBlock(data.sets);
     final notesByBlock = <ExerciseBlockKey, String>{};
     for (final key in updatedGroups.keys) {
-      final note = savedExerciseNotes[key.exerciseName];
+      final note = key.exerciseBlock == null
+          ? null
+          : savedExerciseNotes[key.exerciseBlock!];
       if (note != null) notesByBlock[key] = note;
     }
 
@@ -937,10 +939,29 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         }
         for (final key in _exerciseNotes.keys) {
           final note = _exerciseNotes[key];
+          final block = key.exerciseBlock;
+          if (block == null) continue;
           await dbHelper.saveWorkoutExerciseNote(
             workoutLogId: widget.logId,
+            exerciseBlock: block,
             exerciseName: key.exerciseName,
             notes: note != null && note.isNotEmpty ? note : null,
+          );
+        }
+        for (final entry in _log!.exerciseNotesByBlock.entries) {
+          if (_exerciseNotes.keys.any(
+            (key) => key.exerciseBlock == entry.key,
+          )) {
+            continue;
+          }
+          final set = _log!.sets.firstWhere(
+            (item) => item.exerciseBlock == entry.key,
+          );
+          await dbHelper.saveWorkoutExerciseNote(
+            workoutLogId: widget.logId,
+            exerciseBlock: entry.key,
+            exerciseName: set.exerciseName,
+            notes: null,
           );
         }
       });

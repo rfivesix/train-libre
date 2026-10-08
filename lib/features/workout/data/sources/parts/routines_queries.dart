@@ -603,16 +603,25 @@ extension RoutinesQueries on WorkoutLocalDataSource {
   Future<void> updateRoutineExerciseNotes(
       int routineExerciseId, String? notes) async {
     final dbInstance = await database;
+    final normalized = notes?.trim();
+    if ((normalized?.length ?? 0) > 10000) {
+      throw ArgumentError.value(notes, 'notes', 'Note exceeds 10000 chars');
+    }
     await (dbInstance.update(
       dbInstance.routineExercises,
     )..where((tbl) => tbl.localId.equals(routineExerciseId)))
         .write(
-      db.RoutineExercisesCompanion(notes: drift.Value(notes)),
+      db.RoutineExercisesCompanion(
+        notes: drift.Value(
+            normalized == null || normalized.isEmpty ? null : normalized),
+        updatedAt: drift.Value(DateTime.now()),
+      ),
     );
   }
 
   Future<void> saveWorkoutExerciseNote({
     required int workoutLogId,
+    int? exerciseBlock,
     required String exerciseName,
     required String? notes,
   }) async {
@@ -623,35 +632,69 @@ extension RoutinesQueries on WorkoutLocalDataSource {
     );
     if (workoutLogUuid == null) return;
 
-    // Resolve exercise uuid if exists
-    final exercise = await getExerciseByName(exerciseName);
-    final exerciseUuid = exercise?.uuid;
+    final targetBlock = exerciseBlock ??
+        (await (dbInstance.select(dbInstance.setLogs)
+                  ..where((tbl) =>
+                      tbl.workoutLogId.equals(workoutLogUuid) &
+                      tbl.exerciseNameSnapshot.equals(exerciseName))
+                  ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.logOrder)])
+                  ..limit(1))
+                .getSingleOrNull())
+            ?.exerciseBlock ??
+        0;
 
-    // Check if a note already exists for this exercise in this workout
-    final existingRow = await (dbInstance.select(dbInstance.workoutExerciseLogs)
-          ..where((tbl) =>
-              tbl.workoutLogId.equals(workoutLogUuid) &
-              tbl.exerciseNameSnapshot.equals(exerciseName))
-          ..limit(1))
-        .getSingleOrNull();
+    await dbInstance.transaction(() async {
+      final normalized = notes?.trim();
+      final existingRow =
+          await (dbInstance.select(dbInstance.workoutExerciseLogs)
+                ..where((tbl) =>
+                    tbl.workoutLogId.equals(workoutLogUuid) &
+              tbl.exerciseBlock.equals(targetBlock))
+                ..limit(1))
+              .getSingleOrNull();
 
-    final companion = db.WorkoutExerciseLogsCompanion(
-      workoutLogId: drift.Value(workoutLogUuid),
-      exerciseId: drift.Value(exerciseUuid),
-      exerciseNameSnapshot: drift.Value(exerciseName),
-      notes: drift.Value(notes),
-    );
+      if (normalized == null || normalized.isEmpty) {
+        if (existingRow != null) {
+          await (dbInstance.delete(dbInstance.workoutExerciseLogs)
+                ..where((tbl) => tbl.localId.equals(existingRow.localId)))
+              .go();
+        }
+        return;
+      }
+      if (normalized.length > 10000) {
+        throw ArgumentError.value(notes, 'notes', 'Note exceeds 10000 chars');
+      }
 
-    if (existingRow != null) {
-      await (dbInstance.update(dbInstance.workoutExerciseLogs)
-            ..where((tbl) => tbl.localId.equals(existingRow.localId)))
-          .write(companion);
-    } else {
-      await dbInstance.into(dbInstance.workoutExerciseLogs).insert(companion);
-    }
+      final matchingSet = await (dbInstance.select(dbInstance.setLogs)
+            ..where((tbl) =>
+                tbl.workoutLogId.equals(workoutLogUuid) &
+              tbl.exerciseBlock.equals(targetBlock))
+            ..limit(1))
+          .getSingleOrNull();
+      final exerciseUuid = matchingSet?.exerciseId ??
+          (await getExerciseByName(exerciseName))?.uuid;
+
+      final companion = db.WorkoutExerciseLogsCompanion(
+        workoutLogId: drift.Value(workoutLogUuid),
+        exerciseId: drift.Value(exerciseUuid),
+        exerciseNameSnapshot: drift.Value(exerciseName),
+        notes: drift.Value(normalized),
+        exerciseBlock: drift.Value(targetBlock),
+        updatedAt: drift.Value(DateTime.now()),
+      );
+
+      if (existingRow != null) {
+        await (dbInstance.update(dbInstance.workoutExerciseLogs)
+              ..where((tbl) => tbl.localId.equals(existingRow.localId)))
+            .write(companion);
+      } else {
+        await dbInstance.into(dbInstance.workoutExerciseLogs).insert(companion);
+      }
+    });
   }
 
-  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async {
+  Future<Map<int, String>> getWorkoutExerciseNotesByBlock(
+      int workoutLogId) async {
     final dbInstance = await database;
     final workoutLogUuid = await _getUuidFromLocalId(
       dbInstance.workoutLogs,
@@ -664,7 +707,27 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         .get();
 
     return {
-      for (final r in rows) r.exerciseNameSnapshot ?? '': r.notes ?? '',
+      for (final r in rows)
+        if (r.exerciseBlock != null && (r.notes?.isNotEmpty ?? false))
+          r.exerciseBlock!: r.notes!,
+    };
+  }
+
+  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async {
+    final dbInstance = await database;
+    final workoutLogUuid = await _getUuidFromLocalId(
+      dbInstance.workoutLogs,
+      workoutLogId,
+    );
+    if (workoutLogUuid == null) return {};
+    final rows = await (dbInstance.select(dbInstance.workoutExerciseLogs)
+          ..where((tbl) => tbl.workoutLogId.equals(workoutLogUuid)))
+        .get();
+    return {
+      for (final row in rows)
+        if (row.notes?.isNotEmpty == true &&
+            row.exerciseNameSnapshot?.isNotEmpty == true)
+          row.exerciseNameSnapshot!: row.notes!,
     };
   }
 

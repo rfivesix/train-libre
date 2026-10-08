@@ -21,6 +21,7 @@ class WorkoutImportData {
   final DateTime startTime;
   final DateTime? endTime;
   final List<SetLog> sets;
+  final Map<int, String> exerciseNotesByBlock;
 
   WorkoutImportData({
     required this.title,
@@ -28,6 +29,7 @@ class WorkoutImportData {
     required this.startTime,
     this.endTime,
     required this.sets,
+    this.exerciseNotesByBlock = const {},
   });
 }
 
@@ -145,6 +147,16 @@ class ImportManager {
               cachedExercise,
             );
           }
+          for (final entry in workoutData.exerciseNotesByBlock.entries) {
+            await workoutHelper.saveWorkoutExerciseNote(
+              workoutLogId: newLog.id!,
+              exerciseBlock: entry.key,
+              exerciseName: workoutData.sets
+                  .firstWhere((set) => set.exerciseBlock == entry.key)
+                  .exerciseName,
+              notes: entry.value,
+            );
+          }
           importedWorkouts++;
         }
       });
@@ -178,6 +190,7 @@ class ImportManager {
       restTimeSeconds: drift.Value(setLog.restTimeSeconds),
       isCompleted: drift.Value(setLog.isCompleted ?? false),
       logOrder: drift.Value(setLog.logOrder ?? 0),
+      exerciseBlock: drift.Value(setLog.exerciseBlock),
       notes: drift.Value(setLog.notes),
       distance: drift.Value(setLog.distanceKm),
       durationSeconds: drift.Value(setLog.durationSeconds),
@@ -275,10 +288,28 @@ class ImportManager {
       final endTime = _parseDate(firstRow['end_time']);
 
       final List<SetLog> sets = [];
+      final exerciseNotesByBlock = <int, String>{};
       int setOrder = 0;
+      var nextBlock = 0;
+      String? previousExercise;
+      int? contiguousBlock;
       for (var row in group) {
         final rawExerciseName =
             row['exercise']?.toString() ?? params.defaultExerciseName;
+        final explicitBlock =
+            int.tryParse(row['exercise_block']?.toString() ?? '');
+        if (explicitBlock == null && rawExerciseName != previousExercise) {
+          contiguousBlock = nextBlock++;
+        }
+        final exerciseBlock = explicitBlock ?? contiguousBlock ?? nextBlock++;
+        if (explicitBlock != null && explicitBlock >= nextBlock) {
+          nextBlock = explicitBlock + 1;
+        }
+        previousExercise = rawExerciseName;
+        final note = row['workout_exercise_note']?.toString().trim();
+        if (note != null && note.isNotEmpty) {
+          exerciseNotesByBlock[exerciseBlock] = note;
+        }
 
         double? weight = double.tryParse(row['weight']?.toString() ?? '');
         if (weight != null && isImperial) {
@@ -295,6 +326,7 @@ class ImportManager {
           durationSeconds: int.tryParse(row['duration']?.toString() ?? ''),
           rpe: int.tryParse(row['rpe']?.toString() ?? ''),
           logOrder: setOrder++,
+          exerciseBlock: exerciseBlock,
           notes: row['set_notes']?.toString(),
           isCompleted: true,
         ));
@@ -306,6 +338,7 @@ class ImportManager {
         startTime: startTime,
         endTime: endTime,
         sets: sets,
+        exerciseNotesByBlock: exerciseNotesByBlock,
       ));
     }
 
@@ -327,6 +360,8 @@ class ImportManager {
       } else if (['end_time', 'end'].contains(h)) {
         map['end_time'] = i;
       } else if (['description', 'notes', 'notiz'].contains(h)) {
+        map['description'] = i;
+      } else if (['workout_notes', 'workout_comments'].contains(h)) {
         map['description'] = i;
       }
       // Exercise & Set
@@ -351,6 +386,11 @@ class ImportManager {
         map['rpe'] = i;
       } else if (['exercise_notes', 'set_notes'].contains(h)) {
         map['set_notes'] = i;
+      } else if (['workout_exercise_note', 'exercise_workout_note']
+          .contains(h)) {
+        map['workout_exercise_note'] = i;
+      } else if (['exercise_block'].contains(h)) {
+        map['exercise_block'] = i;
       }
     }
     return map;

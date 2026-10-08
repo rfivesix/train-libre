@@ -11,6 +11,8 @@ import '../domain/exercise_classification_labels.dart';
 import '../domain/muscle_vocabulary.dart';
 import '../domain/models/exercise.dart';
 import '../../workout/domain/models/set_log.dart';
+import '../../workout/data/sources/workout_local_data_source.dart';
+import '../../workout/presentation/widgets/exercise_notes_dialog.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../util/design_constants.dart';
@@ -192,6 +194,37 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         );
       }
     }
+  }
+
+  Future<void> _editPinnedNote() async {
+    final uuid = _currentExercise.uuid;
+    if (uuid == null) return;
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showGlassBottomMenu<String?>(
+      context: context,
+      title: l10n.pinnedExerciseNoteTitle,
+      contentBuilder: (ctx, close) => ExerciseNotesDialog(
+        initialNotes: _currentExercise.pinnedNote,
+        onSave: (notes) {
+          close();
+          Navigator.of(ctx).pop(notes);
+        },
+        onDelete: () {
+          close();
+          Navigator.of(ctx).pop('');
+        },
+        onCancel: () {
+          close();
+          Navigator.of(ctx).pop(null);
+        },
+      ),
+    );
+    if (result == null) return;
+    await WorkoutLocalDataSource.instance.savePinnedExerciseNote(
+      exerciseUuid: uuid,
+      notes: result,
+    );
+    await _loadData();
   }
 
   void _showSystemEditMenu(BuildContext context) {
@@ -475,6 +508,16 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             if ((_currentExercise.imagePath ?? '').isNotEmpty)
               const SizedBox(height: DesignConstants.spacingXL),
             _ClassificationChips(exercise: _currentExercise),
+            AppLinkRow(
+              title: l10n.pinnedExerciseNoteTitle,
+              subtitle: _currentExercise.pinnedNote?.trim().isNotEmpty == true
+                  ? _currentExercise.pinnedNote!
+                  : l10n.exerciseNoteHint,
+              leading: const Icon(Icons.push_pin_outlined),
+              trailingIcon: LucideIcons.pencil,
+              onTap: _editPinnedNote,
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
             AppInfoRow(
               title: l10n.descriptionLabel,
               subtitle:

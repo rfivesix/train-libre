@@ -5798,6 +5798,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exerciseNoteHint => 'メモやヒントを入力...';
 
   @override
+  String get noteTypeTitle => 'メモの種類';
+
+  @override
+  String get pinnedExerciseNoteTitle => '固定エクササイズメモ';
+
+  @override
+  String get pinnedExerciseNoteDescription => 'このエクササイズを記録するたびに入力欄に表示されます。';
+
+  @override
+  String get pinnedRoutineNoteTitle => '固定ルーティンメモ';
+
+  @override
+  String get pinnedRoutineNoteDescription => 'このルーティン内のこのエクササイズだけに表示されます。';
+
+  @override
+  String get workoutExerciseNoteTitle => 'ワークアウトメモ';
+
+  @override
+  String get workoutExerciseNoteDescription => 'このワークアウト内のこのエクササイズだけに適用されます。';
+
+  @override
   String get deleteNoteTooltip => 'メモを削除';
 
   @override

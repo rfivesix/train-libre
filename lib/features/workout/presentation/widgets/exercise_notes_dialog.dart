@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -48,7 +49,10 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
       children: [
         TextField(
           controller: _controller,
-          maxLines: 3,
+          minLines: 2,
+          maxLines: 5,
+          maxLength: 10000,
+          maxLengthEnforcement: MaxLengthEnforcement.enforced,
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(

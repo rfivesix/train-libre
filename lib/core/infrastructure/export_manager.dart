@@ -61,6 +61,8 @@ class WorkoutRowDto {
   final int? rpe;
   final String? setNotes;
   final String? workoutComments;
+  final int? exerciseBlock;
+  final String? workoutExerciseNote;
 
   const WorkoutRowDto({
     required this.workoutName,
@@ -72,6 +74,22 @@ class WorkoutRowDto {
     this.rpe,
     this.setNotes,
     this.workoutComments,
+    this.exerciseBlock,
+    this.workoutExerciseNote,
+  });
+}
+
+class PinnedNoteRowDto {
+  final String scope;
+  final String owner;
+  final String exerciseName;
+  final String note;
+
+  const PinnedNoteRowDto({
+    required this.scope,
+    required this.owner,
+    required this.exerciseName,
+    required this.note,
   });
 }
 
@@ -166,6 +184,7 @@ class ExcelExportData {
   final Map<String, WorkoutHeartRateDto> workoutHeartRatesByDay;
   final StepsSourcePolicy stepsSourcePolicy;
   final List<MeasurementRowDto> measurementRows;
+  final List<PinnedNoteRowDto> pinnedNoteRows;
 
   const ExcelExportData({
     required this.nutritionRows,
@@ -176,6 +195,7 @@ class ExcelExportData {
     required this.workoutHeartRatesByDay,
     required this.stepsSourcePolicy,
     required this.measurementRows,
+    required this.pinnedNoteRows,
   });
 }
 
@@ -374,9 +394,38 @@ class ExportManager {
           rpe: set.rpe,
           setNotes: set.notes,
           workoutComments: log.notes,
+          exerciseBlock: set.exerciseBlock,
+          workoutExerciseNote: log.exerciseNotesByBlock[set.exerciseBlock],
         ));
       }
     }
+
+    final pinnedNoteQuery = await dbInst.customSelect('''
+      SELECT 'exercise' AS scope, '' AS owner,
+             COALESCE(te.name, e.id) AS exercise_name, pn.notes AS note
+      FROM pinned_exercise_notes pn
+      JOIN exercises e ON e.id = pn.exercise_id
+      LEFT JOIN exercise_translations te
+        ON te.exercise_id = e.id AND te.language_code = 'en'
+      UNION ALL
+      SELECT 'routine' AS scope, r.name AS owner,
+             COALESCE(tr.name, e.id) AS exercise_name, re.notes AS note
+      FROM routine_exercises re
+      JOIN routines r ON r.id = re.routine_id
+      JOIN exercises e ON e.id = re.exercise_id
+      LEFT JOIN exercise_translations tr
+        ON tr.exercise_id = e.id AND tr.language_code = 'en'
+      WHERE re.notes IS NOT NULL AND TRIM(re.notes) <> ''
+      ORDER BY scope, owner, exercise_name
+    ''').get();
+    final pinnedNoteRows = pinnedNoteQuery
+        .map((row) => PinnedNoteRowDto(
+              scope: row.read<String>('scope'),
+              owner: row.read<String>('owner'),
+              exerciseName: row.read<String>('exercise_name'),
+              note: row.read<String>('note'),
+            ))
+        .toList(growable: false);
 
     // -------------------------------------------------------------------------
     // 3. Pre-fetch Sleep Sheet Data
@@ -553,6 +602,7 @@ class ExportManager {
       workoutHeartRatesByDay: workoutHeartRatesByDay,
       stepsSourcePolicy: stepsSourcePolicy,
       measurementRows: measurementRows,
+      pinnedNoteRows: pinnedNoteRows,
     );
 
     final bytes = await compute(_generateExcelIsolate, data);
@@ -648,7 +698,9 @@ class ExportManager {
       'RIR',
       'RPE',
       'Set Notes',
-      'Workout Comments'
+      'Workout Comments',
+      'Exercise Block',
+      'Workout Exercise Note'
     ];
     for (int col = 0; col < workoutHeaders.length; col++) {
       writeCell(workoutSheet, col, 0, TextCellValue(workoutHeaders[col]));
@@ -690,6 +742,29 @@ class ExportManager {
           workoutSheet, 7, rowIndex, TextCellValue(rowData.setNotes ?? ''));
       writeCell(workoutSheet, 8, rowIndex,
           TextCellValue(rowData.workoutComments ?? ''));
+      writeCell(
+          workoutSheet,
+          9,
+          rowIndex,
+          rowData.exerciseBlock == null
+              ? TextCellValue('')
+              : IntCellValue(rowData.exerciseBlock!));
+      writeCell(workoutSheet, 10, rowIndex,
+          TextCellValue(rowData.workoutExerciseNote ?? ''));
+    }
+
+    final notesSheet = excel['Pinned Notes'];
+    const notesHeaders = ['Scope', 'Routine', 'Exercise', 'Note'];
+    for (int col = 0; col < notesHeaders.length; col++) {
+      writeCell(notesSheet, col, 0, TextCellValue(notesHeaders[col]));
+    }
+    for (int r = 0; r < data.pinnedNoteRows.length; r++) {
+      final note = data.pinnedNoteRows[r];
+      final row = r + 1;
+      writeCell(notesSheet, 0, row, TextCellValue(note.scope));
+      writeCell(notesSheet, 1, row, TextCellValue(note.owner));
+      writeCell(notesSheet, 2, row, TextCellValue(note.exerciseName));
+      writeCell(notesSheet, 3, row, TextCellValue(note.note));
     }
 
     // -------------------------------------------------------------------------
