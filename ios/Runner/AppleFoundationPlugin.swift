@@ -11,6 +11,9 @@ import FoundationModels
 enum AppleFoundationPlugin {
   static let channelName = "trainlibre.ai/apple_foundation"
 
+  private static var _warmSession: Any? = nil
+  private static var _warmSessionPrompt: String? = nil
+
   static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "isAvailable":
@@ -30,6 +33,32 @@ enum AppleFoundationPlugin {
       result(false)
       #endif
 
+    case "prewarm":
+      let systemPrompt = (call.arguments as? [String: Any])?["systemPrompt"] as? String
+      #if canImport(FoundationModels)
+      if #available(iOS 26.0, *) {
+        let model = SystemLanguageModel.default
+        if case .available = model.availability {
+          Task {
+            let session: LanguageModelSession
+            if let sysPrompt = systemPrompt, !sysPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+              session = LanguageModelSession(instructions: sysPrompt)
+            } else {
+              session = LanguageModelSession()
+            }
+            _warmSession = session
+            _warmSessionPrompt = systemPrompt
+            session.prewarm()
+            DispatchQueue.main.async {
+              result(true)
+            }
+          }
+          return
+        }
+      }
+      #endif
+      result(false)
+
     case "generateMealJson":
       guard let args = call.arguments as? [String: Any],
             let prompt = args["prompt"] as? String else {
@@ -37,6 +66,7 @@ enum AppleFoundationPlugin {
         return
       }
 
+      let systemPrompt = args["systemPrompt"] as? String
       let imagesBase64 = (args["images"] as? [String]) ?? []
       var cgImages: [CGImage] = []
       for b64 in imagesBase64 {
@@ -51,7 +81,22 @@ enum AppleFoundationPlugin {
       if #available(iOS 26.0, *) {
         Task {
           do {
-            let session = LanguageModelSession()
+            let session: LanguageModelSession
+            let trimmedSysPrompt = systemPrompt?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if let existing = _warmSession as? LanguageModelSession,
+               (trimmedSysPrompt.isEmpty || _warmSessionPrompt == systemPrompt) {
+              // Reuse prewarmed session with its already cached neural weights and instructions
+              session = existing
+              _warmSession = nil
+              _warmSessionPrompt = nil
+            } else if !trimmedSysPrompt.isEmpty {
+              // Dedicated instructions parameter separates system prompt from conversation turns
+              session = LanguageModelSession(instructions: trimmedSysPrompt)
+              _warmSession = nil
+              _warmSessionPrompt = nil
+            } else {
+              session = LanguageModelSession()
+            }
             let responseContent: String
 
             #if compiler(>=6.4)

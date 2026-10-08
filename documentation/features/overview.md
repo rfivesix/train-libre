@@ -33,9 +33,9 @@ A mathematical engine utilizing a recursive Kalman filter. It combines a recent 
 The deterministic second stage of the nutrition recommendation. It turns the estimator's calorie target into protein, carbohydrate, and fat figures: protein and fat are anchored per kilogram of body weight and scaled with the goal, carbohydrates take the remainder, and a fat floor bounds how far the distribution may give way on a budget too small to carry both targets.
 *   *Learn more in the [**Macronutrient Distribution Documentation**](macro_distribution.md).*
 
-### 3. BYOK AI Meal Capture & Validation
-An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates under a **Bring Your Own Key (BYOK)** security structure, communicating directly with provider endpoints (OpenAI, Gemini, Anthropic, Mistral, xAI, Ollama, or custom OpenAI-compatible servers). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving.
-*   *Learn more in the [**BYOK AI Captured Meal Validation Documentation**](byok_ai_validation.md).*
+### 3. On-Device & BYOK AI Meal Capture
+An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates either **100% on-device** using Apple's native `FoundationModels` framework (iOS 26+) on the Neural Engine with zero data leaving the device, or under a **Bring Your Own Key (BYOK)** security structure directly communicating with configured provider endpoints (OpenAI, Gemini, Anthropic, Mistral, xAI, Ollama, or custom OpenAI-compatible servers). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving.
+*   *Learn more in the [**AI Captured Meal Validation Documentation**](byok_ai_validation.md).*
 
 ### 4. Native Health Sync & Export
 A local synchronization pipe bridging local wellness records with native platform health frameworks (Apple HealthKit on iOS and Google Health Connect on Android). The architecture is bidirectional:

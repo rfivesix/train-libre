@@ -15,8 +15,6 @@ import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
-import 'package:flutter/services.dart';
-import 'ai/local_ai_model_manager.dart';
 import 'ai/apple_foundation_service.dart';
 
 part 'ai/ai_models.dart';
@@ -263,24 +261,6 @@ class AiService {
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
-    AiProvider.localModel: AiProviderMetadata(
-      provider: AiProvider.localModel,
-      displayName: 'On-Device (Hugging Face)',
-      keyHint: 'Offline Local Model',
-      defaultModel: 'qwen-3-vl-4b',
-      rankingHints: [
-        'qwen-3-vl-4b',
-        'qwen-2.5-vl-3b',
-        'smolvlm-2.2b',
-      ],
-      emergencyFallbackModels: [
-        'qwen-3-vl-4b',
-        'qwen-2.5-vl-3b',
-        'smolvlm-2.2b',
-      ],
-      supportsVision: true,
-      supportsDynamicModelLoading: false,
-    ),
   };
 
   // ---------------------------------------------------------------------------
@@ -400,7 +380,7 @@ class AiService {
   AiProviderMetadata getProviderMetadata(AiProvider provider) =>
       _providerRegistry[provider]!;
 
-  /// Returns the currently selected provider (default: OpenAI).
+  /// Returns the currently selected provider (default: Apple Foundation if available, otherwise OpenAI).
   Future<AiProvider> getSelectedProvider() async {
     try {
       final value = await _secureStorage.read(key: _providerKey);
@@ -408,7 +388,7 @@ class AiService {
         for (final provider in AiProvider.values) {
           if (provider.name == value) return provider;
         }
-        return AiProvider.openai;
+        return await _resolveDefaultProvider();
       }
     } catch (_) {}
 
@@ -422,6 +402,16 @@ class AiService {
       }
     } catch (_) {}
 
+    return await _resolveDefaultProvider();
+  }
+
+  Future<AiProvider> _resolveDefaultProvider() async {
+    if (!kIsWeb && Platform.isIOS) {
+      final appleAvailable = await AppleFoundationService.instance.isAvailable();
+      if (appleAvailable) {
+        return AiProvider.appleFoundation;
+      }
+    }
     return AiProvider.openai;
   }
 
@@ -435,9 +425,6 @@ class AiService {
   }
 
   Future<String> getSelectedModel(AiProvider provider) async {
-    if (provider == AiProvider.localModel) {
-      return LocalAiModelManager.instance.selectedModelId;
-    }
     if (provider == AiProvider.appleFoundation) {
       return getProviderMetadata(provider).defaultModel;
     }
@@ -460,11 +447,6 @@ class AiService {
     if (provider == AiProvider.appleFoundation) {
       return 'Apple Intelligence';
     }
-    if (provider == AiProvider.localModel) {
-      final selected = LocalAiModelManager.instance.selectedModel;
-      final name = selected.name.replaceAll(' (Empfohlen)', '').trim();
-      return '$name (Lokal)';
-    }
     final modelId = await getSelectedModel(provider);
     if (provider == AiProvider.custom) {
       return 'Custom · $modelId';
@@ -478,10 +460,6 @@ class AiService {
       _openAiSupportsCustomTemperature(modelId);
 
   Future<void> setSelectedModel(AiProvider provider, String model) async {
-    if (provider == AiProvider.localModel) {
-      await LocalAiModelManager.instance.selectModel(model);
-      return;
-    }
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       await setCustomModel(model);
       return;
@@ -695,8 +673,22 @@ class AiService {
   }
 
   // ---------------------------------------------------------------------------
-  // Analysis
+  // Pre-warming & Analysis
   // ---------------------------------------------------------------------------
+
+  /// Pre-warms the currently selected AI provider (e.g. Apple Foundation Models)
+  /// in the background so that model weights/caches are loaded before the user initiates a scan.
+  Future<void> prewarm({String? languageCode}) async {
+    try {
+      final provider = await getSelectedProvider();
+      if (provider == AiProvider.appleFoundation) {
+        final prompt = _AiPrompts.buildSystemPrompt(
+          languageCode: languageCode,
+        );
+        await AppleFoundationService.instance.prewarm(systemPrompt: prompt);
+      }
+    } catch (_) {}
+  }
 
   Future<bool> _supportsMealSchema() async {
     final provider = await getSelectedProvider();
@@ -728,8 +720,9 @@ class AiService {
     AiUsageCollector? usageCollector,
   }) async {
     final structuredOutput = await _supportsMealSchema();
-    final userContent =
-        textHint ?? 'Analyze this meal and identify all food components.';
+    final userContent = textHint != null && textHint.trim().isNotEmpty
+        ? '$textHint. Return the identified ingredients as a JSON object.'
+        : 'Analyze this meal and identify all food components. Return ONLY a valid JSON object matching the requested format.';
     final attachDepthMap = depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;
@@ -1004,25 +997,69 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       return candidate.copyWith(items: updated);
     }
 
-    return AiMealCandidate(
-      items: List.generate(repaired.length, (index) {
-        final item = repaired[index];
-        final previous =
-            index < candidate.items.length ? candidate.items[index] : null;
-        return AiMealCandidateItem(
+    final mergedItems = <AiMealCandidateItem>[];
+    final repairedByName = <String, AiSuggestedItem>{
+      for (final r in repaired) r.name.toLowerCase().trim(): r,
+    };
+    final usedRepairs = <AiSuggestedItem>{};
+
+    for (var i = 0; i < candidate.items.length; i++) {
+      final prev = candidate.items[i];
+      final prevNameLower = prev.name.toLowerCase().trim();
+
+      // Priority 1: Match by index if repaired length matches candidate length
+      // Priority 2: Match by exact lowercase name
+      // Priority 3: Match by index if i < repaired.length and repair candidate isn't used
+      AiSuggestedItem? matchedRepair;
+      if (repaired.length == candidate.items.length) {
+        matchedRepair = repaired[i];
+      } else if (repairedByName.containsKey(prevNameLower)) {
+        matchedRepair = repairedByName[prevNameLower];
+      } else if (i < repaired.length && !usedRepairs.contains(repaired[i])) {
+        matchedRepair = repaired[i];
+      }
+
+      if (matchedRepair != null) {
+        usedRepairs.add(matchedRepair);
+        mergedItems.add(AiMealCandidateItem(
+          name: matchedRepair.name,
+          grams: matchedRepair.estimatedGrams > 0
+              ? matchedRepair.estimatedGrams
+              : prev.grams,
+          servedGrams: matchedRepair.servedGrams ?? prev.servedGrams,
+          confidence: matchedRepair.confidence,
+          matchedBarcode: matchedRepair.matchedBarcode ?? prev.matchedBarcode,
+          stateHint: matchedRepair.stateHint ?? prev.stateHint,
+          catalogSearchTerm:
+              matchedRepair.catalogSearchTerm ?? prev.catalogSearchTerm,
+          searchTerms: matchedRepair.searchTerms.isNotEmpty
+              ? matchedRepair.searchTerms
+              : prev.searchTerms,
+        ));
+      } else {
+        // Keep the unmentioned original item intact
+        mergedItems.add(prev);
+      }
+    }
+
+    // Append any extra repaired items that didn't match an existing candidate item
+    for (final item in repaired) {
+      if (!usedRepairs.contains(item)) {
+        mergedItems.add(AiMealCandidateItem(
           name: item.name,
           grams: item.estimatedGrams,
-          servedGrams: item.servedGrams ?? previous?.servedGrams,
+          servedGrams: item.servedGrams,
           confidence: item.confidence,
           matchedBarcode: item.matchedBarcode,
-          stateHint: item.stateHint ?? previous?.stateHint,
-          catalogSearchTerm:
-              item.catalogSearchTerm ?? previous?.catalogSearchTerm,
-          searchTerms: item.searchTerms.isNotEmpty
-              ? item.searchTerms
-              : (previous?.searchTerms ?? const []),
-        );
-      }, growable: false),
+          stateHint: item.stateHint,
+          catalogSearchTerm: item.catalogSearchTerm,
+          searchTerms: item.searchTerms,
+        ));
+      }
+    }
+
+    return AiMealCandidate(
+      items: mergedItems,
       context: candidate.context,
     );
   }
@@ -1042,8 +1079,7 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       String? apiKey;
       final isOfflineProvider = providerEnum == AiProvider.ollama ||
           providerEnum == AiProvider.custom ||
-          providerEnum == AiProvider.appleFoundation ||
-          providerEnum == AiProvider.localModel;
+          providerEnum == AiProvider.appleFoundation;
       if (!isOfflineProvider) {
         apiKey = await getApiKey(providerEnum);
         if (apiKey == null || apiKey.isEmpty) {
@@ -1068,34 +1104,11 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       final _AiRawResponse rawResult;
       switch (providerEnum) {
         case AiProvider.appleFoundation:
-          final fullPrompt = '$systemPrompt\n\nUser request: $userContent';
           final response =
               await AppleFoundationService.instance.generateMealJson(
-            prompt: fullPrompt,
-            imagesBase64: imageDataList,
-          );
-          rawResult = _AiRawResponse(response, null);
-          break;
-        case AiProvider.localModel:
-          final isDownloaded =
-              LocalAiModelManager.instance.isDownloaded(model);
-          if (!isDownloaded) {
-            throw const AiUnsupportedFeatureException(
-              'Das gewählte lokale Modell ist noch nicht heruntergeladen. Bitte lade es in den KI-Einstellungen herunter.',
-            );
-          }
-          final modelFile =
-              await LocalAiModelManager.instance.getModelFile(model);
-          final projectorFile =
-              await LocalAiModelManager.instance.getProjectorFile(model);
-          final response = await _callNativeLocalModelRaw(
-            modelPath: modelFile.path,
-            mmprojPath: (projectorFile != null && await projectorFile.exists())
-                ? projectorFile.path
-                : null,
-            userContent: userContent,
+            prompt: userContent,
             systemPrompt: systemPrompt,
-            imageDataList: imageDataList,
+            imagesBase64: imageDataList,
           );
           rawResult = _AiRawResponse(response, null);
           break;
@@ -1181,6 +1194,9 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       }
 
       usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
+      if (kDebugMode) {
+        debugPrint('[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
+      }
       return rawResult.text;
     } catch (e) {
       usageCollector?.finishRequest(null, requestId: usageRequestId);
@@ -1210,35 +1226,6 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
         }
       }
       rethrow;
-    }
-  }
-
-  Future<String> _callNativeLocalModelRaw({
-    required String modelPath,
-    String? mmprojPath,
-    required String userContent,
-    required String systemPrompt,
-    required List<String> imageDataList,
-  }) async {
-    const channel = MethodChannel('trainlibre.ai/local_model');
-    try {
-      final fullPrompt = '$systemPrompt\n\nUser request: $userContent';
-      final response = await channel.invokeMethod<String>('runInference', {
-        'modelPath': modelPath,
-        'mmprojPath': mmprojPath,
-        'prompt': fullPrompt,
-        'images': imageDataList,
-      });
-      if (response == null || response.trim().isEmpty) {
-        throw StateError('Lokales Modell lieferte eine leere Antwort.');
-      }
-      return response;
-    } on PlatformException catch (e) {
-      throw StateError('Lokales Modell Inferenzfehler: ${e.message ?? e.code}');
-    } on MissingPluginException {
-      throw const AiUnsupportedFeatureException(
-        'Lokale Inferenz wird auf dieser Plattform noch vorbereitet.',
-      );
     }
   }
 }

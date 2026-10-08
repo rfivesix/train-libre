@@ -1,7 +1,7 @@
 # Informativa sulla privacy per l'applicazione mobile «Train Libre» e il sito web
 
-**Versione 1.7**  
-**Aggiornato al: 7 agosto 2026**
+**Versione 1.8**  
+**Aggiornato al: 8 ottobre 2026**
 
 Questa informativa sulla privacy vi informa, ai sensi degli articoli 13 e 14 del Regolamento generale sulla protezione dei dati (GDPR), sul trattamento dei dati personali e dei dati relativi alla salute nell'applicazione mobile "Train Libre" e durante la visita a questo sito web.
 
@@ -62,19 +62,30 @@ L'uso dell'applicazione comporta l'elaborazione dei dati nel database SQLite loc
 
 Per fornire funzionalità avanzate, l'app dispone di interfacce verso servizi esterni. Queste funzioni sono opzionali.
 
-### A. Riconoscimento pasti tramite IA (BYOK)
-L'app offre la possibilità di analizzare i pasti tramite foto o testo fornendo la propria chiave API (BYOK) di un fornitore supportato.
+### A. Riconoscimento pasti tramite IA (Sul dispositivo & BYOK)
+L'app offre la possibilità di analizzare i pasti tramite foto o testo mediante intelligenza artificiale. A seconda della configurazione e della compatibilità del dispositivo, l'analisi avviene **completamente sul dispositivo** oppure tramite API cloud esterne secondo il principio **«Bring-Your-Own-Key» (BYOK)**:
 
-* **Fornitori supportati:** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama.
-* **Archiviazione sicura:** La chiave API viene salvata cifrata con AES-256 tramite `flutter_secure_storage` nel portachiavi sicuro del dispositivo (iOS Keychain o Android Keystore) e non viene mai trasmessa a noi.
-* **Trasmissione limitata:** L'immagine o il testo vengono inviati tramite connessione HTTPS protetta direttamente all'API del fornitore scelto, senza metadati personali.
-* **Elaborazione analitica:** L'IA viene usata esclusivamente per identificare i componenti del pasto e stimare i grammi. Train Libre non genera piani nutrizionali o ricette tramite l'IA.
-* **Protezione tramite prompt di sistema:** Il prompt indica all'IA di non calcolare i nutrienti. La corrispondenza degli alimenti avviene offline sul dispositivo per calcolare i macro tramite database locale.
-* **Algoritmo locale:** I calcoli di calorie e macro rimangono 100% locali sul tuo dispositivo e non vengono usati per addestrare i modelli globali.
-* **Responsabilità:** L'uso della chiave implica un rapporto diretto con il fornitore dell'IA. Si invita a consultare la loro informativa sulla privacy.
+1. **Elaborazione sul dispositivo (Apple Intelligence / Foundation Models):**  
+   Sui dispositivi Apple compatibili (iOS con Apple Intelligence), Train Libre utilizza nativamente il framework `FoundationModels` (`SystemLanguageModel.default`).
+   * **Nessun trasferimento di rete:** L'elaborazione di testi e immagini avviene al 100% in locale sul Neural Engine del dispositivo. Nessun dato lascia il dispositivo fisico (0 byte trasferiti).
+   * **Nessuna chiave API richiesta:** Il riconoscimento locale non richiede account di terze parti né chiavi API.
+   * **Nessun addestramento:** I dati non vengono utilizzati per addestrare modelli IA.
+
+2. **Bring-Your-Own-Key (BYOK) per provider Cloud:**  
+   In alternativa, è possibile utilizzare servizi cloud terzi inserendo la propria chiave API personale.
+   * **Fornitori supportati:** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama ed endpoint compatibili OpenAI.
+   * **Archiviazione sicura:** La chiave API viene salvata cifrata con AES-256 tramite `flutter_secure_storage` nel portachiavi sicuro del dispositivo (iOS Keychain o Android Keystore) e non viene mai trasmessa a noi.
+   * **Trasmissione limitata:** L'immagine o il testo vengono inviati tramite connessione HTTPS protetta direttamente all'API del fornitore scelto, senza metadati personali.
+   * **Responsabilità:** L'uso della chiave implica un rapporto diretto con il fornitore dell'IA. Si invita a consultare la loro informativa sulla privacy.
+
+3. **Garanzie comuni di privacy:**
+   * **Elaborazione analitica:** L'IA viene usata esclusivamente per identificare i componenti del pasto e stimare i grammi. Train Libre non genera piani nutrizionali o ricette tramite l'IA.
+   * **Protezione tramite prompt di sistema:** Il prompt indica al modello di non calcolare i nutrienti. La corrispondenza degli alimenti avviene offline sul dispositivo per calcolare i macro tramite database locale.
+   * **Algoritmo locale:** I calcoli di calorie e macro rimangono 100% locali sul tuo dispositivo e non vengono usati per addestrare i modelli globali.
 
 | Fornitore | Informativa sulla privacy |
 | :--- | :--- |
+| Apple Intelligence | https://www.apple.com/legal/privacy/ |
 | OpenAI | https://openai.com/policies/privacy-policy |
 | Google Gemini | https://policies.google.com/privacy |
 | Anthropic Claude | https://www.anthropic.com/privacy |
@@ -92,6 +103,9 @@ L'app offre la possibilità di analizzare i pasti tramite foto o testo fornendo 
 ## 5. Interfacce dati sanitari del sistema
 
 Train Libre può interagire con i database sanitari di sistema (Apple HealthKit o Google Health Connect). L'interazione avviene offline e richiede il tuo consenso esplicito.
+
+* **Importazione (Lettura):** Misurazioni corporee (peso, percentuale di grasso, circonferenza vita), passi, sonno e frequenza cardiaca per la visualizzazione locale e la calibrazione del metabolismo.
+* **Esportazione (Scrittura):** Allenamenti, pasti e peso registrati con protezione di idempotenza locale.
 
 ---
 

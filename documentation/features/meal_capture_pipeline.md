@@ -74,8 +74,9 @@ Photos are local files, not database blobs; treat them accordingly when reasonin
 |---|---|
 | Catalog search, template, manual entry | No |
 | Barcode | No — matched against the locally installed Open Food Facts catalog |
-| AI photo / text | Photo and text go to the user's own configured BYOK provider only |
-| AI photo with depth | Additionally a few centimetre measurements and, if enabled, a false-colour depth image |
+| **AI photo / text (Apple Foundation Models)** | **No** — processed 100% on-device on the Neural Engine via native `FoundationModels` |
+| AI photo / text (BYOK Cloud Providers) | Photo and text go to the user's own configured BYOK provider only |
+| AI photo with depth (BYOK Cloud) | Additionally a few centimetre measurements and, if enabled, a false-colour depth image |
 | Voice dictation | Audio to the platform recognizer only when the device has no on-device recognizer; the resulting text then follows the AI text path |
 
 Without a configured AI provider, none of the AI paths exist and nothing is transmitted.

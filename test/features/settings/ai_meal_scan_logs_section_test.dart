@@ -131,5 +131,15 @@ void main() {
     expect(text, contains('Provider: unknown'));
     expect(text, isNot(contains('secret endpoint')));
     expect(text, isNot(contains('private meal text')));
+
+    await logs.start(
+      id: 'apple-scan',
+      provider: 'appleFoundation',
+      inputMode: 'multimodal',
+      photoCount: 1,
+      startedAt: DateTime(2026, 10, 3),
+    );
+    final appleText = logs.export(logs.entries.first);
+    expect(appleText, contains('Provider: appleFoundation'));
   });
 }

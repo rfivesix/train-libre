@@ -2918,6 +2918,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Permet l\'utilisation de l\'IA pour la reconnaissance des repas. La désactivation de cette option masque tous les boutons AI de l\'application.';
 
   @override
+  String get aiStatusAndFeaturesSectionTitle => 'Statut et fonctionnalités';
+
+  @override
+  String get aiProviderSectionTitle => 'Modèle d\'IA et fournisseur';
+
+  @override
+  String get aiAdvancedOptionsTitle => 'Options avancées';
+
+  @override
   String get aiCustomInstructionsTitle => 'Instructions mondiales sur l\'IA';
 
   @override

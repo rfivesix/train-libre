@@ -2811,6 +2811,15 @@ class AppLocalizationsJa extends AppLocalizations {
       'AIを利用した食事認識が可能になります。これを無効にすると、アプリ内のすべての AI ボタン​​が非表示になります。';
 
   @override
+  String get aiStatusAndFeaturesSectionTitle => 'ステータスと機能';
+
+  @override
+  String get aiProviderSectionTitle => 'AIモデルとプロバイダー';
+
+  @override
+  String get aiAdvancedOptionsTitle => '詳細設定';
+
+  @override
   String get aiCustomInstructionsTitle => 'グローバル AI 命令';
 
   @override

@@ -3,6 +3,7 @@ import 'package:train_libre/features/diary/domain/models/food_item.dart';
 import 'package:train_libre/services/ai_meal_context.dart';
 import 'package:train_libre/services/ai_repair_candidate.dart';
 import 'package:train_libre/services/ai_meal_validation.dart';
+import 'package:train_libre/services/ai_service.dart';
 
 FoodItem food(
   String name, {
@@ -531,6 +532,135 @@ void main() {
         result.allIssues.any((issue) => issue.code == 'state_mismatch'),
         isFalse,
       );
+    });
+  });
+
+  group('AiParsing', () {
+    test('extracts dishType into AiMealContext from root JSON map', () {
+      const rawJson = '''
+{
+  "dishType": "Döner Kebab",
+  "items": [
+    {"name": "Fladenbrot", "estimatedGrams": 150},
+    {"name": "Dönerfleisch", "estimatedGrams": 180},
+    {"name": "Tomaten", "estimatedGrams": 50}
+  ]
+}''';
+      final candidate =
+          AiService.instance.parseMealCandidateForTesting(rawJson);
+      expect(candidate.context?.dishType, 'Döner Kebab');
+      expect(candidate.items.length, 3);
+      expect(candidate.items[0].name, 'Fladenbrot');
+      expect(candidate.items[0].grams, 150);
+      expect(candidate.items[1].name, 'Dönerfleisch');
+      expect(candidate.items[1].grams, 180);
+    });
+
+    test('parses food_components format gracefully', () {
+      const rawJson = '''
+```json
+{
+  "food_components": [
+    "bread",
+    "meat",
+    "tomatoes",
+    "red onions",
+    "parsley"
+  ]
+}
+```''';
+      final candidate =
+          AiService.instance.parseMealCandidateForTesting(rawJson);
+      expect(candidate.items.length, 5);
+      expect(candidate.items.map((i) => i.name).toList(), [
+        'bread',
+        'meat',
+        'tomatoes',
+        'red onions',
+        'parsley',
+      ]);
+    });
+
+    test('parses unbracketed comma-separated JSON objects', () {
+      const raw =
+          '{"name":"Banh Canh Nudel Bowl","estimatedGrams":120},{"name":"Tomato","estimatedGrams":30}';
+      final items = AiService.instance.parseItemsForTesting(raw);
+      expect(items.length, 2);
+      expect(items[0].name, 'Banh Canh Nudel Bowl');
+      expect(items[0].estimatedGrams, 120);
+      expect(items[1].name, 'Tomato');
+      expect(items[1].estimatedGrams, 30);
+    });
+
+    test('parses sequence of mealContext and item objects from Apple Intelligence response', () {
+      const raw = '''{"mealContext": {"dishType": "Pizza mit Fleisch", "expectedKcalRange": [600, 1200], "expectedMacroProfile": {"proteinPercent": 20, "carbsPercent": 40, "fatPercent": 30}, "cookingMethod": "baked", "contextNotes": "Traditional pizza base with meat and toppings"}, {"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 250, "estimatedGrams": 250, "confidence": 0.95, "stateHint": "baked", "searchTerms": ["Fladenbrot", "Pizza", "Crust"]} {"name": "Hähnchenbrust", "catalogSearchTerm": "Hähnchenbrust", "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.90, "stateHint": "cooked", "searchTerms": ["Hähnchenbrust", "Chicken breast"]}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Pizza mit Fleisch');
+      expect(candidate.items.length, 2);
+      expect(candidate.items[0].name, 'Fladenbrot');
+      expect(candidate.items[0].grams, 250);
+      expect(candidate.items[1].name, 'Hähnchenbrust');
+      expect(candidate.items[1].grams, 100);
+    });
+
+    test('parses response with angle-bracketed range values gracefully', () {
+      const raw = '''
+```json
+{
+  "mealContext": {
+    "dishType": "Test",
+    "expectedKcalRange": [<100, 200],
+    "expectedMacroProfile": {
+      "proteinPercent": [0%, 5%],
+      "carbsPercent": [10%, 20%],
+      "fatPercent": [0%, 10%]
+    },
+    "cookingMethod": "raw",
+    "contextNotes": "Simple test component with minimal ingredients."
+  },
+  "items": [
+    {
+      "name": "Test",
+      "catalogSearchTerm": ["Test", "placeholder"],
+      "servedGrams": 1,
+      "estimatedGrams": 1,
+      "confidence": 1.0,
+      "stateHint": "raw",
+      "searchTerms": ["Test", "raw", "simple"]
+    }
+  ]
+}
+```''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.items.length, 1);
+      expect(candidate.items[0].name, 'Test');
+    });
+
+    test('parses exact Apple Intelligence test connection output with unclosed items', () {
+      const raw = '''{"mealContext": {"dishType": "Test", "expectedKcalRange": [500, 800], "expectedMacroProfile": {"proteinPercent": [15, 25], "carbsPercent": [45, 55], "fatPercent": [25, 35]}, "cookingMethod": "baked", "contextNotes": "placeholder test meal"}, {"name": "Test", "catalogSearchTerm": null, "servedGrams": 1, "estimatedGrams": 1, "confidence": 1.0, "stateHint": "raw", "searchTerms": ["Test", "single item", "basic test"]}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Test');
+      expect(candidate.items.length, 1);
+      expect(candidate.items[0].name, 'Test');
+      expect(candidate.items[0].grams, 1);
+    });
+
+    test('parses exact Apple Intelligence pizza output with uncomma-separated objects in items', () {
+      const raw = '''{"dishType": "Pizza", "expectedKcalRange": [500, 800], "cookingMethod": "baked", "items": [{"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["fladenbrot", "base", "bread"]} {"name": "Fleisch", "catalogSearchTerm": null, "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.85, "stateHint": "cooked", "searchTerms": ["fleisch", "meat", "hähnchen"]}]}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Pizza');
+      expect(candidate.items.length, 2);
+      expect(candidate.items[0].name, 'Fladenbrot');
+      expect(candidate.items[1].name, 'Fleisch');
+    });
+
+    test('parses exact Apple Intelligence output with double bracket closing error', () {
+      const raw = '''{"dishType": "Pilz und Reis", "expectedKcalRange": [500, 800], "cookingMethod": "fried", "items": [{"name": "Reis", "catalogSearchTerm": ["Reis", "alternative search term"], "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["Reis", "cooked rice"]}]]}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Pilz und Reis');
+      expect(candidate.items.length, 1);
+      expect(candidate.items[0].name, 'Reis');
+      expect(candidate.items[0].grams, 150);
     });
   });
 }

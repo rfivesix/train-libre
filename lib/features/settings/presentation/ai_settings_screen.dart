@@ -17,9 +17,7 @@ import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
-import '../../../services/voice/voice_dictation_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
-import '../../../services/ai/local_ai_model_manager.dart';
 import '../../../services/ai/apple_foundation_service.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
@@ -56,7 +54,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _hasLidar = false;
   bool _scaleHintEnabled = true;
   bool _depthImageEnabled = true;
-  bool _voiceTidyEnabled = true;
   bool _isAppleFoundationAvailable = false;
 
   @override
@@ -64,16 +61,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.aiSettings));
-    LocalAiModelManager.instance.addListener(_onLocalModelsChanged);
-    unawaited(LocalAiModelManager.instance.initialize());
     unawaited(_checkAppleFoundationAvailability());
     _loadSettings();
     unawaited(_loadDepthSettings());
-    unawaited(_loadVoiceSettings());
-  }
-
-  void _onLocalModelsChanged() {
-    if (mounted) setState(() {});
   }
 
   Future<void> _checkAppleFoundationAvailability() async {
@@ -93,15 +83,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     });
   }
 
-  Future<void> _loadVoiceSettings() async {
-    final enabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
-    if (!mounted) return;
-    setState(() => _voiceTidyEnabled = enabled);
-  }
-
   @override
   void dispose() {
-    LocalAiModelManager.instance.removeListener(_onLocalModelsChanged);
     _keyController.dispose();
     _baseUrlController.dispose();
     _customModelController.dispose();
@@ -118,12 +101,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
 
     final isCloud = provider != AiProvider.ollama &&
         provider != AiProvider.custom &&
-        provider != AiProvider.appleFoundation &&
-        provider != AiProvider.localModel;
+        provider != AiProvider.appleFoundation;
     final isOffline = provider == AiProvider.ollama ||
         provider == AiProvider.custom ||
-        provider == AiProvider.appleFoundation ||
-        provider == AiProvider.localModel;
+        provider == AiProvider.appleFoundation;
     final meta = AiService.instance.getProviderMetadata(provider);
     final effectiveModel =
         savedModel.isNotEmpty ? savedModel : meta.defaultModel;
@@ -143,8 +124,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         _timeoutSeconds = timeout;
         if (_hasKey &&
             provider != AiProvider.ollama &&
-            provider != AiProvider.appleFoundation &&
-            provider != AiProvider.localModel) {
+            provider != AiProvider.appleFoundation) {
           _keyController.text = '••••••••••••••••••••';
         } else {
           _keyController.text = '';
@@ -196,12 +176,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     if (provider == null) return;
     final isCloud = provider != AiProvider.ollama &&
         provider != AiProvider.custom &&
-        provider != AiProvider.appleFoundation &&
-        provider != AiProvider.localModel;
+        provider != AiProvider.appleFoundation;
     final isOffline = provider == AiProvider.ollama ||
         provider == AiProvider.custom ||
-        provider == AiProvider.appleFoundation ||
-        provider == AiProvider.localModel;
+        provider == AiProvider.appleFoundation;
     final meta = AiService.instance.getProviderMetadata(provider);
     final savedModel = await AiService.instance.getSelectedModel(provider);
     final effectiveModel =
@@ -227,8 +205,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         _hasKey = isOffline || (key != null && key.isNotEmpty);
         _keyController.text = _hasKey &&
                 provider != AiProvider.ollama &&
-                provider != AiProvider.appleFoundation &&
-                provider != AiProvider.localModel
+                provider != AiProvider.appleFoundation
             ? '••••••••••••••••••••'
             : '';
         _baseUrlController.text = customBaseUrl ?? '';
@@ -454,66 +431,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     }
   }
 
-  Future<void> _startModelDownload(LocalAiModelDefinition model) async {
-    try {
-      final completed =
-          await LocalAiModelManager.instance.startDownload(model.id);
-      if (!completed) return; // User cancelled download
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${model.name} erfolgreich heruntergeladen!'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Download fehlgeschlagen: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _confirmDeleteModel(LocalAiModelDefinition model) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Modell löschen?'),
-        content: Text(
-          'Möchtest du "${model.name}" wirklich löschen? Dadurch werden ${model.formattedSize} Speicher auf deinem Gerät freigegeben.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Abbrechen'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Löschen'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await LocalAiModelManager.instance.deleteModel(model.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${model.name} gelöscht.'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -553,7 +470,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           ),
           const SizedBox(height: DesignConstants.spacingXL),
 
-          AppSectionHeader(title: l10n.aiSettingsTitle),
+          AppSectionHeader(title: l10n.aiStatusAndFeaturesSectionTitle),
           SummaryCard(
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -612,25 +529,20 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       },
                     ),
                   ],
-                  if (aiEnabled) ...[
-                    const SizedBox(height: 12),
-                    PlatformAdaptiveSwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      secondary: const Icon(LucideIcons.mic),
-                      title: Text(
-                        l10n.aiVoiceTidyTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(l10n.aiVoiceTidySubtitle),
-                      value: _voiceTidyEnabled,
-                      onChanged: (value) async {
-                        await VoiceDictationSettings.instance
-                            .setAiTidyEnabled(value);
-                        if (!mounted) return;
-                        setState(() => _voiceTidyEnabled = value);
-                      },
-                    ),
-                    const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+
+          if (aiEnabled) ...[
+            const SizedBox(height: DesignConstants.spacingL),
+            AppSectionHeader(title: l10n.aiProviderSectionTitle),
+            SummaryCard(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     PlatformAdaptiveDropdownFormField<AiProvider>(
                       key: ValueKey(
                           'ai_provider_dropdown_${_selectedProvider.name}'),
@@ -655,11 +567,78 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           .toList(),
                       onChanged: _onProviderChanged,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
+                    if (_selectedProvider == AiProvider.appleFoundation) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: (_isAppleFoundationAvailable
+                                        ? const Color(0xFF34C759)
+                                        : Colors.orange)
+                                    .withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _isAppleFoundationAvailable
+                                    ? LucideIcons.shield_check
+                                    : LucideIcons.circle_alert,
+                                color: _isAppleFoundationAvailable
+                                    ? const Color(0xFF34C759)
+                                    : Colors.orange,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isAppleFoundationAvailable
+                                        ? 'Funktioniert 100% offline auf dem Gerät'
+                                        : 'In den iOS-Einstellungen aktivieren',
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: _isAppleFoundationAvailable
+                                          ? theme.colorScheme.onSurface
+                                          : Colors.orange,
+                                    ),
+                                  ),
+                                  if (_isAppleFoundationAvailable)
+                                    Text(
+                                      'Keine Datenübertragung, keine API-Kosten.',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     if (_selectedProvider != AiProvider.ollama &&
                         _selectedProvider != AiProvider.custom &&
-                        _selectedProvider != AiProvider.appleFoundation &&
-                        _selectedProvider != AiProvider.localModel) ...[
+                        _selectedProvider != AiProvider.appleFoundation) ...[
                       Skeletonizer(
                         enabled: _isLoadingModels,
                         child: PlatformAdaptiveDropdownFormField<String>(
@@ -692,418 +671,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           theme,
                           _modelListError!,
                         ),
-                    ],
-                    if (_selectedProvider == AiProvider.appleFoundation) ...[
-                      SummaryCard(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary
-                                        .withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    LucideIcons.sparkles,
-                                    color: theme.colorScheme.primary,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Apple Intelligence (On-Device)',
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            _isAppleFoundationAvailable
-                                                ? LucideIcons.circle_check
-                                                : LucideIcons.circle_alert,
-                                            size: 14,
-                                            color: _isAppleFoundationAvailable
-                                                ? Colors.green
-                                                : Colors.orange,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            _isAppleFoundationAvailable
-                                                ? 'Aktiv & Bereit auf diesem Gerät'
-                                                : 'In den iOS-Einstellungen aktivieren',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color: _isAppleFoundationAvailable
-                                                  ? Colors.green
-                                                  : Colors.orange,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Verwendet das native Apple Foundation Model direkt über die Apple Neural Engine des iPhone 16 Pro.',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme
-                                        .colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    '0 MB Download',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme
-                                        .colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    '100% Offline',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme
-                                        .colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    'Volle Privatsphäre',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-                    if (_selectedProvider == AiProvider.localModel) ...[
-                      SummaryCard(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.secondary
-                                        .withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    LucideIcons.cpu,
-                                    color: theme.colorScheme.secondary,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Lokale Hugging Face Modelle',
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      FutureBuilder<int>(
-                                        future: LocalAiModelManager.instance
-                                            .getTotalLocalStorageBytes(),
-                                        builder: (context, snapshot) {
-                                          final bytes = snapshot.data ?? 0;
-                                          final mb = bytes / (1024 * 1024);
-                                          final formatted = mb > 1024
-                                              ? '${(mb / 1024).toStringAsFixed(1)} GB'
-                                              : '${mb.toStringAsFixed(0)} MB';
-                                          return Text(
-                                            'Belegter Modellspeicher: $formatted',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: theme.colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Lade kuratierte Open-Source Vision-Modelle direkt von Hugging Face herunter, um Mahlzeiten komplett offline auszuführen.',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      ...LocalAiModelManager.availableModels.map((model) {
-                        final isSelected = LocalAiModelManager
-                                .instance.selectedModelId ==
-                            model.id;
-                        final isDownloaded = LocalAiModelManager.instance
-                            .isDownloaded(model.id);
-                        final downloadState = LocalAiModelManager.instance
-                            .getDownloadState(model.id);
-                        final isDownloading = downloadState != null;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: AppCardContainer(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            model.name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: model.isRecommended
-                                                  ? theme.colorScheme.primary
-                                                      .withValues(alpha: 0.15)
-                                                  : theme.colorScheme
-                                                      .surfaceContainerHighest,
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              model.tag,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
-                                                color: model.isRecommended
-                                                    ? theme.colorScheme.primary
-                                                    : theme.colorScheme
-                                                        .onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text(
-                                      model.formattedSize,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  model.description,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                if (isDownloading) ...[
-                                  LinearProgressIndicator(
-                                    value: downloadState.progress > 0
-                                        ? downloadState.progress
-                                        : null,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '${(downloadState.progress * 100).toStringAsFixed(0)}% (${(downloadState.receivedBytes / (1024 * 1024)).toStringAsFixed(0)} MB / ${(downloadState.totalBytes / (1024 * 1024)).toStringAsFixed(0)} MB)',
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => LocalAiModelManager
-                                            .instance
-                                            .cancelDownload(model.id),
-                                        child: const Text('Abbrechen',
-                                            style:
-                                                TextStyle(color: Colors.red)),
-                                      ),
-                                    ],
-                                  ),
-                                ] else ...[
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      if (isDownloaded) ...[
-                                        const Row(
-                                          children: [
-                                            Icon(LucideIcons.circle_check,
-                                                size: 16, color: Colors.green),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              'Heruntergeladen',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.green,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            if (!isSelected)
-                                              AppButton.secondary(
-                                                onPressed: () async {
-                                                  await LocalAiModelManager
-                                                      .instance
-                                                      .selectModel(model.id);
-                                                  await AiService.instance
-                                                      .setSelectedModel(
-                                                          AiProvider.localModel,
-                                                          model.id);
-                                                  setState(() =>
-                                                      _selectedModel =
-                                                          model.id);
-                                                },
-                                                label: 'Aktivieren',
-                                                tooltip:
-                                                    'Als aktives Modell wählen',
-                                              )
-                                            else
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 5),
-                                                decoration: BoxDecoration(
-                                                  color: theme
-                                                      .colorScheme.primary
-                                                      .withValues(alpha: 0.15),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(LucideIcons.check,
-                                                        size: 14,
-                                                        color: theme
-                                                            .colorScheme
-                                                            .primary),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      'Aktiv',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: theme
-                                                            .colorScheme
-                                                            .primary,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            const SizedBox(width: 8),
-                                            IconButton(
-                                              icon: const Icon(
-                                                  LucideIcons.trash,
-                                                  size: 18,
-                                                  color: Colors.red),
-                                              tooltip: 'Modell löschen',
-                                              onPressed: () =>
-                                                  _confirmDeleteModel(model),
-                                            ),
-                                          ],
-                                        ),
-                                      ] else ...[
-                                        const Spacer(),
-                                        AppButton.secondary(
-                                          onPressed: () =>
-                                              _startModelDownload(model),
-                                          label: 'Herunterladen',
-                                          tooltip:
-                                              'Modell von Hugging Face herunterladen',
-                                          icon: LucideIcons.download,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 10),
                     ],
                     if (_selectedProvider == AiProvider.ollama) ...[
                       TextField(
@@ -1148,58 +715,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       ),
                       const SizedBox(height: 10),
                     ],
-
-                    // Request Timeout Slider
-                    if (_selectedProvider != AiProvider.appleFoundation &&
-                        _selectedProvider != AiProvider.localModel) ...[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  l10n.settingsRequestTimeout,
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  l10n.settingsSeconds(_timeoutSeconds),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Slider(
-                            value: _timeoutSeconds.toDouble(),
-                            min: 10,
-                            max: 300,
-                            divisions: 29, // 10s steps: (300-10)/10 = 29
-                            label: l10n.settingsSeconds(_timeoutSeconds),
-                            activeColor: theme.colorScheme.primary,
-                            onChanged: (value) async {
-                              final seconds = value.round();
-                              setState(() => _timeoutSeconds = seconds);
-                              await AiService.instance.setAiTimeoutSeconds(
-                                seconds,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                    ],
                     if (_selectedProvider != AiProvider.ollama &&
-                        _selectedProvider != AiProvider.appleFoundation &&
-                        _selectedProvider != AiProvider.localModel) ...[
+                        _selectedProvider != AiProvider.appleFoundation) ...[
                       TextField(
                         controller: _keyController,
                         obscureText: _obscureKey,
@@ -1244,12 +761,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                     ],
                     Row(
                       children: [
-                        if (_selectedProvider != AiProvider.appleFoundation &&
-                            _selectedProvider != AiProvider.localModel) ...[
+                        if (_selectedProvider != AiProvider.appleFoundation) ...[
                           Expanded(
                             child: AppButton.primary(
                               onPressed: _saveApiKey,
@@ -1266,18 +782,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ],
                         Expanded(
                           child: AppButton.secondary(
+                            isLoading: _isTesting,
                             onPressed: ((_hasKey ||
                                         _selectedProvider ==
                                             AiProvider.ollama ||
                                         _selectedProvider ==
-                                            AiProvider.appleFoundation ||
-                                        (_selectedProvider ==
-                                                AiProvider.localModel &&
-                                            LocalAiModelManager.instance
-                                                .isDownloaded(
-                                                    LocalAiModelManager
-                                                        .instance
-                                                        .selectedModelId))) &&
+                                            AiProvider.appleFoundation) &&
                                     !_isTesting)
                                 ? _testConnection
                                 : null,
@@ -1287,15 +797,80 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ),
                       ],
                     ),
+                    if (_selectedProvider != AiProvider.appleFoundation) ...[
+                      const SizedBox(height: 8),
+                      Theme(
+                        data: theme.copyWith(
+                          dividerColor: Colors.transparent,
+                        ),
+                        child: ExpansionTile(
+                          tilePadding: EdgeInsets.zero,
+                          childrenPadding: const EdgeInsets.only(top: 8, bottom: 4),
+                          title: Text(
+                            l10n.aiAdvancedOptionsTitle,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        l10n.settingsRequestTimeout,
+                                        style:
+                                            theme.textTheme.labelMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        l10n.settingsSeconds(_timeoutSeconds),
+                                        style:
+                                            theme.textTheme.labelMedium?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Slider(
+                                  value: _timeoutSeconds.toDouble(),
+                                  min: 10,
+                                  max: 300,
+                                  divisions: 29,
+                                  label: l10n.settingsSeconds(_timeoutSeconds),
+                                  activeColor: theme.colorScheme.primary,
+                                  onChanged: (value) async {
+                                    final seconds = value.round();
+                                    setState(() => _timeoutSeconds = seconds);
+                                    await AiService.instance
+                                        .setAiTimeoutSeconds(seconds);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
+          ],
 
           const SizedBox(height: DesignConstants.spacingL),
 
-          // --- Photo Storage & Retention (Screen E2) ---
+          // --- Photo Storage & Retention ---
           AppSectionHeader(title: l10n.mealPhotoStorageSection),
           SummaryCard(
             child: Padding(
@@ -1372,45 +947,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     label: l10n.mealPhotoDeleteAll,
                     tooltip: l10n.mealPhotoDeleteAll,
                     icon: LucideIcons.trash,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // --- Speech Recognition (Screen E3) ---
-          AppSectionHeader(title: l10n.speechSectionTitle),
-          SummaryCard(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF34C759),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.speechOnDeviceActive,
-                        style: theme.textTheme.labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.speechOnDeviceBody,
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

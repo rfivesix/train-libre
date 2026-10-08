@@ -1,17 +1,24 @@
-# BYOK AI Meal Capture & Deterministic Validation Engine
+# AI Meal Capture & Deterministic Validation Engine
 
-Train Libre translates food descriptions, dictated speech or meal photos into precise, loggable items. The language model is the only part that leaves the device, and only to the provider the user configured themselves: the feature operates on a **Bring Your Own Key (BYOK)** model, and every model output is verified on-device by a deterministic validation pipeline before it can be saved. All nutritional numbers come from the local database, never from the model.
+Train Libre translates food descriptions, dictated speech or meal photos into precise, loggable items. Depending on user preference and hardware capabilities, meal analysis runs either **100% on-device** via Apple's native Foundation Models or connects directly to external providers via a **Bring Your Own Key (BYOK)** model. In both cases, every model output is strictly verified on-device by a deterministic validation pipeline before it can be saved. All nutritional numbers come from the local database, never from the model.
 
 This document describes the analysis and validation engine. The surrounding capture flow — the unified camera, barcode detection, dictation, meal grouping and photo storage — is described in [Meal Capture Pipeline](meal_capture_pipeline.md).
 
 ---
 
-## 1. Bring Your Own Key (BYOK) Security Architecture
+## 1. On-Device Foundation Models & BYOK Architecture
 
-Train Libre does not deploy intermediate servers to handle AI requests. All calls are dispatched directly from the user's mobile device to the selected AI provider.
+Train Libre does not deploy intermediate servers to handle AI requests. All calls are dispatched directly on-device or straight to the selected AI provider.
 
-### Encrypted Key Storage
-User-configured API keys are stored directly inside native system secure vaults (iOS Keychain and Android Keystore) via `FlutterSecureStorage`, using device-only accessibility so they are never carried into an iCloud Keychain backup. The key for each provider is stored under `ai_api_key_<provider>`:
+### Native On-Device Apple Foundation Models (`appleFoundation`)
+On compatible iOS devices (iOS 26+ with Apple Intelligence), Train Libre integrates directly with Apple's native `FoundationModels` framework (`SystemLanguageModel.default`).
+*   **Zero Network Requests:** Photos and prompts are processed directly on Apple Silicon's Neural Engine. Absolutely zero bytes leave the physical device.
+*   **Zero Storage Overhead:** Operates with a 0 MB disk footprint by tapping into the system's pre-installed foundation weights.
+*   **Native Multimodal Input:** Photo bytes are passed directly into native `LanguageModelSession` prompt attachments.
+*   **Pre-Warmed Session Caching:** When entering the capture screen, the engine pre-warms a native session in the background with system instructions, drastically reducing first-token latency on capture.
+
+### Encrypted Key Storage (BYOK Providers)
+For cloud providers, user-configured API keys are stored directly inside native system secure vaults (iOS Keychain and Android Keystore) via `FlutterSecureStorage`, using device-only accessibility so they are never carried into an iCloud Keychain backup. The key for each provider is stored under `ai_api_key_<provider>`:
 
 *   `ai_api_key_openai`: Secure key for OpenAI.
 *   `ai_api_key_gemini`: Secure key for Google Gemini.
@@ -24,9 +31,9 @@ User-configured API keys are stored directly inside native system secure vaults 
 The active provider (`ai_selected_provider`) and the selected model (`ai_selected_model_<provider>`) are saved in the same secure store, isolating all credentials from external developers.
 
 ### Self-Hosted and Custom Endpoints
-Two of the seven providers do not imply a third party at all:
+Beyond Apple Foundation Models, two additional providers do not imply a third-party commercial cloud:
 
-*   **Ollama**: points at a local or home-network Ollama server; the meal photo never leaves the user's own machines.
+*   **Ollama**: points at a local or home-network Ollama server; the meal photo never leaves the user's own network.
 *   **Custom OpenAI Compatible**: any endpoint the user enters under `ai_custom_base_url`, with an optional key and model name.
 
 Both support vision, so the full photo pipeline works without any commercial provider involved. The request timeout is user-configurable (`ai_timeout_seconds`).

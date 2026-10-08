@@ -129,6 +129,8 @@ Train Libre is built with Flutter and natively supports:
 
 ## Key Features
 
+- **On-Device AI Meal Capture (Apple Intelligence & Foundation Models):** Zero-cloud, 100% offline meal recognition directly powered by Apple's native `FoundationModels` framework and Apple Silicon Neural Engine (iOS 26+). Log whole plates and ingredients in seconds with zero subscription costs, zero third-party API keys, 0 MB disk footprint, and zero bytes leaving your device.
+- **Privacy-First AI Meal Capture & Multi-Provider BYOK:** Capture meals from photos, dictated speech, or text. Support for on-device Foundation Models alongside Bring Your Own Key (BYOK) setup for OpenAI, Google Gemini, Anthropic Claude, Mistral, xAI Grok, or local self-hosted Ollama and custom OpenAI-compatible endpoints. Fully integrated with a culinary context anchor (`mealContext`) and a deterministic SQLite validation pipeline to prevent hallucinations.
 - **Workout & Routine Tracker (Hypertrophy & Strength):** Built for progressive overload, bodybuilding, and serious lifting. Create saved workout templates, customizable routines, and flexible training splits (PPL, Upper/Lower, Full Body). Log sets with warm-ups, working sets, failure sets, dropsets, timed sets, and RIR (Reps in Reserve) alongside rest timers and live session tracking.
 - **400+ Offline Exercise Library:** Bundled offline exercise database derived from [OpenExerciseDB](https://github.com/rfivesix/OpenExerciseDB) and wger. Filter by primary and secondary muscle groups, equipment, and movement patterns, or create custom exercises.
 - **Progress Tracking & Analytics:** Real-time personal record (PR) detection, estimated 1-Rep Max (1RM) progression curves (Brzycki model), volume load trends per muscle group, and comprehensive body measurement tracking (arms, chest, waist, hips, calves, thighs) with trend smoothing.
@@ -136,7 +138,6 @@ Train Libre is built with Flutter and natively supports:
 - **Muscle Recovery & Readiness:** Per-set RIR-aware residual load model with muscle-specific recovery decay and readiness heatmaps, paired with an algorithmic Sleep Health Score across five domains.
 - **Calorie & Macro Tracker:** Track nutrition, hydration, caffeine, creatine, and custom supplements in one unified local diary with adaptive weekly guidance and a Bayesian TDEE Estimator.
 - **Meal Logging, Four Ways:** Barcode scanning, offline food catalog search, saved meal templates, or the camera — barcodes are detected passively while the meal camera is open, so there is no mode to pick in advance.
-- **Next-Gen AI Meal Capture:** Capture meals from photos, dictated speech, or text via BYOK (Bring Your Own Key) setup. Fully integrated with a holistic culinary anchor (`mealContext`) and a state-aware "Top-N Fuzzy Alternatives" SQLite matching system that prevents hallucinations. Always reviewable and self-repairing before saving. Self-hosted Ollama and any OpenAI-compatible endpoint are supported alongside commercial providers.
 - **LiDAR Scale Hint:** On supported iPhones, a measured physical scale of the scene assists the model instead of a guessed plate size — tackling the largest source of portion estimation error. Switchable and silently skipped everywhere else.
 - **Privacy & Local-First:** 100% offline-first architecture. All data stays securely on your device. No ads, no commercial tracking, and no mandatory cloud accounts.
 
@@ -145,7 +146,7 @@ Train Libre is built with Flutter and natively supports:
 - **No Ads. No Mandatory Account. No Commercial Tracking (Optional Pseudonymised Usage Statistics, off by default).**
 - **Offline-First:** Your data stays local unless you explicitly choose otherwise.
 - **Open-Source Transparency:** Trust through public code and understandable data flows.
-- **User-Controlled AI:** Optional AI features require your own API key; no data is sent to providers without opt-in.
+- **On-Device & User-Controlled AI:** On-device Apple Foundation Models run 100% locally on your Neural Engine with zero network requests. Optional cloud AI features require your own API key (BYOK); no data is sent to external providers without explicit configuration and opt-in.
 
 ## Documentation
 

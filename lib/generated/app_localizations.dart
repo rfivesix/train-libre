@@ -5222,6 +5222,24 @@ abstract class AppLocalizations {
   /// **'Allows the use of AI for meal recognition. Disabling this hides all AI buttons in the app.'**
   String get aiEnableSubtitle;
 
+  /// No description provided for @aiStatusAndFeaturesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Status & Features'**
+  String get aiStatusAndFeaturesSectionTitle;
+
+  /// No description provided for @aiProviderSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model & Provider'**
+  String get aiProviderSectionTitle;
+
+  /// No description provided for @aiAdvancedOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Options'**
+  String get aiAdvancedOptionsTitle;
+
   /// No description provided for @aiCustomInstructionsTitle.
   ///
   /// In en, this message translates to:
