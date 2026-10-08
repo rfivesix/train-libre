@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Automated iOS Internal Testing deployment (`script/deploy_ios_internal.sh`):** Added one command to generate the Flutter iOS configuration, build and archive the current version, upload it to TestFlight, and advance the pubspec build number after a successful upload.
 - **Contextual JSON import for saved content:** Routines, training plans, and recipes can now be imported from pasted JSON or a file from their overview or editor. Imports are validated and previewed before confirmation; replacing a saved item leaves completed workout history intact. Recipe actions are grouped in the overflow menu, and text-pasted JSON now enables the import action as expected.
 
 ### Changed
