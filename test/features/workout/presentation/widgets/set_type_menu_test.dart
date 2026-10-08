@@ -42,7 +42,8 @@ void main() {
     expect(find.text('1'), findsOneWidget);
   });
 
-  testWidgets('Tapping SetTypeMenu opens dropdown with set types and info item', (tester) async {
+  testWidgets('Tapping SetTypeMenu opens dropdown with set types and info item',
+      (tester) async {
     String? selected;
     await tester.pumpWidget(
       buildTestableWidget(
@@ -66,7 +67,8 @@ void main() {
     expect(selected, 'warmup');
   });
 
-  testWidgets('Tapping Info & Explanations opens explanation-rich bottom sheet', (tester) async {
+  testWidgets('Tapping Info & Explanations opens explanation-rich bottom sheet',
+      (tester) async {
     String? selected;
     await tester.pumpWidget(
       buildTestableWidget(
@@ -85,7 +87,8 @@ void main() {
     expect(find.text('Change set type'), findsOneWidget);
     // And explanation subtitles
     expect(
-      find.text('A regular working set. After warming up, the first is usually your heavy focus set; it counts towards progression.'),
+      find.text(
+          'A regular working set. After warming up, the first is usually your heavy focus set; it counts towards progression.'),
       findsOneWidget,
     );
 
@@ -96,7 +99,8 @@ void main() {
     expect(selected, 'dropset');
   });
 
-  testWidgets('Disabled SetTypeMenu does not open dropdown on tap', (tester) async {
+  testWidgets('Disabled SetTypeMenu does not open dropdown on tap',
+      (tester) async {
     await tester.pumpWidget(
       buildTestableWidget(
         currentSetType: 'normal',

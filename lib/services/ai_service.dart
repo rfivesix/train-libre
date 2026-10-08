@@ -407,7 +407,8 @@ class AiService {
 
   Future<AiProvider> _resolveDefaultProvider() async {
     if (!kIsWeb && Platform.isIOS) {
-      final appleAvailable = await AppleFoundationService.instance.isAvailable();
+      final appleAvailable =
+          await AppleFoundationService.instance.isAvailable();
       if (appleAvailable) {
         return AiProvider.appleFoundation;
       }
@@ -1195,7 +1196,8 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
 
       usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
       if (kDebugMode) {
-        debugPrint('[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
+        debugPrint(
+            '[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
       }
       return rawResult.text;
     } catch (e) {

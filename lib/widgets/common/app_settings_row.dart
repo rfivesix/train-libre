@@ -112,9 +112,7 @@ class AppSettingsRow extends StatelessWidget {
         builder: (context) {
           final theme = Theme.of(context);
           return Icon(
-            selected
-                ? LucideIcons.circle_dot
-                : LucideIcons.circle,
+            selected ? LucideIcons.circle_dot : LucideIcons.circle,
             size: 20,
             color: selected
                 ? theme.colorScheme.primary

@@ -597,8 +597,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                             sourceContext: fabCtx,
                             sourceBuilder: (_) => buildFab(),
                             onSourceVisibilityChanged: (hidden) {
-                              if (mounted)
+                              if (mounted) {
                                 setState(() => _isFabHidden = hidden);
+                              }
                             },
                           );
                         } else {
@@ -606,8 +607,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                             sourceContext: fabCtx,
                             sourceBuilder: (_) => buildFab(),
                             onSourceVisibilityChanged: (hidden) {
-                              if (mounted)
+                              if (mounted) {
                                 setState(() => _isFabHidden = hidden);
+                              }
                             },
                           );
                         }

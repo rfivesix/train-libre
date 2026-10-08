@@ -186,10 +186,10 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                     subtitle: copy.honestSubtitle,
                     leading: const Icon(LucideIcons.info),
                   ),
-                  ],
-                );
-              },
-            ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

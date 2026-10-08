@@ -1739,11 +1739,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                       onSetTypeTap: (setId) =>
                                                           _showSetTypePicker(
                                                               setId),
-                                                      onSetTypeChanged:
-                                                          (setId, newType) =>
-                                                              _changeSetType(
-                                                                  setId,
-                                                                  newType),
+                                                      onSetTypeChanged: (setId,
+                                                              newType) =>
+                                                          _changeSetType(
+                                                              setId, newType),
                                                       index: index,
                                                       supersetLabel:
                                                           supersetStyle?.label,

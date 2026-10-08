@@ -478,8 +478,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
               leading: const Icon(LucideIcons.ruler),
               value: _scaleHintEnabled,
               onChanged: (value) async {
-                await DepthScanSettings.instance
-                    .setScaleHintEnabled(value);
+                await DepthScanSettings.instance.setScaleHintEnabled(value);
                 if (!mounted) return;
                 setState(() => _scaleHintEnabled = value);
               },
@@ -491,8 +490,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
               leading: const Icon(LucideIcons.layers),
               value: _depthImageEnabled,
               onChanged: (value) async {
-                await DepthScanSettings.instance
-                    .setDepthImageEnabled(value);
+                await DepthScanSettings.instance.setDepthImageEnabled(value);
                 if (!mounted) return;
                 setState(() => _depthImageEnabled = value);
               },
@@ -568,15 +566,13 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       icon: AppSettingsRow.navigation(
                         title: l10n.aiModelLabel,
                         subtitle: _modelOptions
-                            .cast<AiModelOption?>()
-                            .firstWhere(
-                              (m) => m?.id == _selectedModel,
-                              orElse: () => null,
-                            )
-                            ?.label ??
-                            (_selectedModel.isNotEmpty
-                                ? _selectedModel
-                                : '–'),
+                                .cast<AiModelOption?>()
+                                .firstWhere(
+                                  (m) => m?.id == _selectedModel,
+                                  orElse: () => null,
+                                )
+                                ?.label ??
+                            (_selectedModel.isNotEmpty ? _selectedModel : '–'),
                       ),
                     ),
                   ),
@@ -595,202 +591,205 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 12),
-                    if (_selectedProvider == AiProvider.ollama) ...[
-                      TextField(
-                        controller: _customModelController,
-                        decoration: InputDecoration(
-                          labelText: l10n.settingsLocalModelName,
-                          hintText: 'llama3',
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                      if (_selectedProvider == AiProvider.ollama) ...[
+                        TextField(
+                          controller: _customModelController,
+                          decoration: InputDecoration(
+                            labelText: l10n.settingsLocalModelName,
+                            hintText: 'llama3',
+                            border: const OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                    if (_selectedProvider == AiProvider.custom) ...[
-                      TextField(
-                        controller: _baseUrlController,
-                        decoration: InputDecoration(
-                          labelText: l10n.settingsCustomBaseUrl,
-                          hintText: 'http://localhost:8080/v1',
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                        const SizedBox(height: 10),
+                      ],
+                      if (_selectedProvider == AiProvider.custom) ...[
+                        TextField(
+                          controller: _baseUrlController,
+                          decoration: InputDecoration(
+                            labelText: l10n.settingsCustomBaseUrl,
+                            hintText: 'http://localhost:8080/v1',
+                            border: const OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _customModelController,
-                        decoration: InputDecoration(
-                          labelText: l10n.settingsCustomModelName,
-                          hintText: 'custom-model',
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _customModelController,
+                          decoration: InputDecoration(
+                            labelText: l10n.settingsCustomModelName,
+                            hintText: 'custom-model',
+                            border: const OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                    if (_selectedProvider != AiProvider.ollama &&
-                        _selectedProvider != AiProvider.appleFoundation) ...[
-                      TextField(
-                        controller: _keyController,
-                        obscureText: _obscureKey,
-                        onTap: () {
-                          if (_keyController.text.startsWith('••')) {
-                            _keyController.clear();
-                            setState(() => _obscureKey = false);
-                          }
-                        },
-                        decoration: InputDecoration(
-                          labelText: l10n.aiApiKeyLabel,
-                          hintText: AiService.instance
-                              .getProviderMetadata(_selectedProvider)
-                              .keyHint,
-                          border: const OutlineInputBorder(),
-                          suffixIcon: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: l10n.passwordLabel,
-                                icon: Icon(
-                                  _obscureKey
-                                      ? LucideIcons.eye_off
-                                      : LucideIcons.eye,
-                                ),
-                                onPressed: () {
-                                  setState(
-                                    () => _obscureKey = !_obscureKey,
-                                  );
-                                },
-                              ),
-                              if (_hasKey)
+                        const SizedBox(height: 10),
+                      ],
+                      if (_selectedProvider != AiProvider.ollama &&
+                          _selectedProvider != AiProvider.appleFoundation) ...[
+                        TextField(
+                          controller: _keyController,
+                          obscureText: _obscureKey,
+                          onTap: () {
+                            if (_keyController.text.startsWith('••')) {
+                              _keyController.clear();
+                              setState(() => _obscureKey = false);
+                            }
+                          },
+                          decoration: InputDecoration(
+                            labelText: l10n.aiApiKeyLabel,
+                            hintText: AiService.instance
+                                .getProviderMetadata(_selectedProvider)
+                                .keyHint,
+                            border: const OutlineInputBorder(),
+                            suffixIcon: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                                 IconButton(
-                                  tooltip: l10n.delete,
-                                  icon: const Icon(
-                                    LucideIcons.trash,
-                                    color: Colors.red,
+                                  tooltip: l10n.passwordLabel,
+                                  icon: Icon(
+                                    _obscureKey
+                                        ? LucideIcons.eye_off
+                                        : LucideIcons.eye,
                                   ),
-                                  onPressed: _deleteApiKey,
+                                  onPressed: () {
+                                    setState(
+                                      () => _obscureKey = !_obscureKey,
+                                    );
+                                  },
                                 ),
+                                if (_hasKey)
+                                  IconButton(
+                                    tooltip: l10n.delete,
+                                    icon: const Icon(
+                                      LucideIcons.trash,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: _deleteApiKey,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      Row(
+                        children: [
+                          if (_selectedProvider !=
+                              AiProvider.appleFoundation) ...[
+                            Expanded(
+                              child: AppButton.primary(
+                                onPressed: _saveApiKey,
+                                label: _selectedProvider == AiProvider.ollama
+                                    ? 'Save Settings'
+                                    : l10n.aiSaveKey,
+                                tooltip: _selectedProvider == AiProvider.ollama
+                                    ? 'Save Settings'
+                                    : l10n.aiSaveKey,
+                                icon: LucideIcons.save,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
+                          Expanded(
+                            child: AppButton.secondary(
+                              isLoading: _isTesting,
+                              onPressed: ((_hasKey ||
+                                          _selectedProvider ==
+                                              AiProvider.ollama ||
+                                          _selectedProvider ==
+                                              AiProvider.appleFoundation) &&
+                                      !_isTesting)
+                                  ? _testConnection
+                                  : null,
+                              label: l10n.aiTestConnection,
+                              tooltip: l10n.aiTestConnection,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_selectedProvider != AiProvider.appleFoundation) ...[
+                        const SizedBox(height: 8),
+                        Theme(
+                          data: theme.copyWith(
+                            dividerColor: Colors.transparent,
+                          ),
+                          child: ExpansionTile(
+                            tilePadding: EdgeInsets.zero,
+                            childrenPadding:
+                                const EdgeInsets.only(top: 8, bottom: 4),
+                            title: Text(
+                              l10n.aiAdvancedOptionsTitle,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          l10n.settingsRequestTimeout,
+                                          style: theme.textTheme.labelMedium
+                                              ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          l10n.settingsSeconds(_timeoutSeconds),
+                                          style: theme.textTheme.labelMedium
+                                              ?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Slider(
+                                    value: _timeoutSeconds.toDouble(),
+                                    min: 10,
+                                    max: 300,
+                                    divisions: 29,
+                                    label:
+                                        l10n.settingsSeconds(_timeoutSeconds),
+                                    activeColor: theme.colorScheme.primary,
+                                    onChanged: (value) async {
+                                      final seconds = value.round();
+                                      setState(() => _timeoutSeconds = seconds);
+                                      await AiService.instance
+                                          .setAiTimeoutSeconds(seconds);
+                                    },
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    Row(
-                      children: [
-                        if (_selectedProvider != AiProvider.appleFoundation) ...[
-                          Expanded(
-                            child: AppButton.primary(
-                              onPressed: _saveApiKey,
-                              label: _selectedProvider == AiProvider.ollama
-                                  ? 'Save Settings'
-                                  : l10n.aiSaveKey,
-                              tooltip: _selectedProvider == AiProvider.ollama
-                                  ? 'Save Settings'
-                                  : l10n.aiSaveKey,
-                              icon: LucideIcons.save,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                        ],
-                        Expanded(
-                          child: AppButton.secondary(
-                            isLoading: _isTesting,
-                            onPressed: ((_hasKey ||
-                                        _selectedProvider ==
-                                            AiProvider.ollama ||
-                                        _selectedProvider ==
-                                            AiProvider.appleFoundation) &&
-                                    !_isTesting)
-                                ? _testConnection
-                                : null,
-                            label: l10n.aiTestConnection,
-                            tooltip: l10n.aiTestConnection,
-                          ),
-                        ),
                       ],
-                    ),
-                    if (_selectedProvider != AiProvider.appleFoundation) ...[
-                      const SizedBox(height: 8),
-                      Theme(
-                        data: theme.copyWith(
-                          dividerColor: Colors.transparent,
-                        ),
-                        child: ExpansionTile(
-                          tilePadding: EdgeInsets.zero,
-                          childrenPadding: const EdgeInsets.only(top: 8, bottom: 4),
-                          title: Text(
-                            l10n.aiAdvancedOptionsTitle,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        l10n.settingsRequestTimeout,
-                                        style:
-                                            theme.textTheme.labelMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        l10n.settingsSeconds(_timeoutSeconds),
-                                        style:
-                                            theme.textTheme.labelMedium?.copyWith(
-                                          color: theme.colorScheme.primary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Slider(
-                                  value: _timeoutSeconds.toDouble(),
-                                  min: 10,
-                                  max: 300,
-                                  divisions: 29,
-                                  label: l10n.settingsSeconds(_timeoutSeconds),
-                                  activeColor: theme.colorScheme.primary,
-                                  onChanged: (value) async {
-                                    final seconds = value.round();
-                                    setState(() => _timeoutSeconds = seconds);
-                                    await AiService.instance
-                                        .setAiTimeoutSeconds(seconds);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
 
           const SizedBox(height: DesignConstants.spacingL),
 

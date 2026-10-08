@@ -35,7 +35,9 @@ AiMealValidationEngine engineWith(Map<String, List<FoodItem>> matches) {
 
 void main() {
   group('AiMealValidationEngine', () {
-    test('prioritizes base food parenthetical stem matches over generic off matches for Reis', () async {
+    test(
+        'prioritizes base food parenthetical stem matches over generic off matches for Reis',
+        () async {
       final engine = engineWith({
         'reis': [
           food(
@@ -592,8 +594,11 @@ void main() {
       expect(items[1].estimatedGrams, 30);
     });
 
-    test('parses sequence of mealContext and item objects from Apple Intelligence response', () {
-      const raw = '''{"mealContext": {"dishType": "Pizza mit Fleisch", "expectedKcalRange": [600, 1200], "expectedMacroProfile": {"proteinPercent": 20, "carbsPercent": 40, "fatPercent": 30}, "cookingMethod": "baked", "contextNotes": "Traditional pizza base with meat and toppings"}, {"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 250, "estimatedGrams": 250, "confidence": 0.95, "stateHint": "baked", "searchTerms": ["Fladenbrot", "Pizza", "Crust"]} {"name": "Hähnchenbrust", "catalogSearchTerm": "Hähnchenbrust", "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.90, "stateHint": "cooked", "searchTerms": ["Hähnchenbrust", "Chicken breast"]}''';
+    test(
+        'parses sequence of mealContext and item objects from Apple Intelligence response',
+        () {
+      const raw =
+          '''{"mealContext": {"dishType": "Pizza mit Fleisch", "expectedKcalRange": [600, 1200], "expectedMacroProfile": {"proteinPercent": 20, "carbsPercent": 40, "fatPercent": 30}, "cookingMethod": "baked", "contextNotes": "Traditional pizza base with meat and toppings"}, {"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 250, "estimatedGrams": 250, "confidence": 0.95, "stateHint": "baked", "searchTerms": ["Fladenbrot", "Pizza", "Crust"]} {"name": "Hähnchenbrust", "catalogSearchTerm": "Hähnchenbrust", "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.90, "stateHint": "cooked", "searchTerms": ["Hähnchenbrust", "Chicken breast"]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
       expect(candidate.context?.dishType, 'Pizza mit Fleisch');
       expect(candidate.items.length, 2);
@@ -636,8 +641,11 @@ void main() {
       expect(candidate.items[0].name, 'Test');
     });
 
-    test('parses exact Apple Intelligence test connection output with unclosed items', () {
-      const raw = '''{"mealContext": {"dishType": "Test", "expectedKcalRange": [500, 800], "expectedMacroProfile": {"proteinPercent": [15, 25], "carbsPercent": [45, 55], "fatPercent": [25, 35]}, "cookingMethod": "baked", "contextNotes": "placeholder test meal"}, {"name": "Test", "catalogSearchTerm": null, "servedGrams": 1, "estimatedGrams": 1, "confidence": 1.0, "stateHint": "raw", "searchTerms": ["Test", "single item", "basic test"]}''';
+    test(
+        'parses exact Apple Intelligence test connection output with unclosed items',
+        () {
+      const raw =
+          '''{"mealContext": {"dishType": "Test", "expectedKcalRange": [500, 800], "expectedMacroProfile": {"proteinPercent": [15, 25], "carbsPercent": [45, 55], "fatPercent": [25, 35]}, "cookingMethod": "baked", "contextNotes": "placeholder test meal"}, {"name": "Test", "catalogSearchTerm": null, "servedGrams": 1, "estimatedGrams": 1, "confidence": 1.0, "stateHint": "raw", "searchTerms": ["Test", "single item", "basic test"]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
       expect(candidate.context?.dishType, 'Test');
       expect(candidate.items.length, 1);
@@ -645,8 +653,11 @@ void main() {
       expect(candidate.items[0].grams, 1);
     });
 
-    test('parses exact Apple Intelligence pizza output with uncomma-separated objects in items', () {
-      const raw = '''{"dishType": "Pizza", "expectedKcalRange": [500, 800], "cookingMethod": "baked", "items": [{"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["fladenbrot", "base", "bread"]} {"name": "Fleisch", "catalogSearchTerm": null, "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.85, "stateHint": "cooked", "searchTerms": ["fleisch", "meat", "hähnchen"]}]}''';
+    test(
+        'parses exact Apple Intelligence pizza output with uncomma-separated objects in items',
+        () {
+      const raw =
+          '''{"dishType": "Pizza", "expectedKcalRange": [500, 800], "cookingMethod": "baked", "items": [{"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["fladenbrot", "base", "bread"]} {"name": "Fleisch", "catalogSearchTerm": null, "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.85, "stateHint": "cooked", "searchTerms": ["fleisch", "meat", "hähnchen"]}]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
       expect(candidate.context?.dishType, 'Pizza');
       expect(candidate.items.length, 2);
@@ -654,8 +665,11 @@ void main() {
       expect(candidate.items[1].name, 'Fleisch');
     });
 
-    test('parses exact Apple Intelligence output with double bracket closing error', () {
-      const raw = '''{"dishType": "Pilz und Reis", "expectedKcalRange": [500, 800], "cookingMethod": "fried", "items": [{"name": "Reis", "catalogSearchTerm": ["Reis", "alternative search term"], "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["Reis", "cooked rice"]}]]}''';
+    test(
+        'parses exact Apple Intelligence output with double bracket closing error',
+        () {
+      const raw =
+          '''{"dishType": "Pilz und Reis", "expectedKcalRange": [500, 800], "cookingMethod": "fried", "items": [{"name": "Reis", "catalogSearchTerm": ["Reis", "alternative search term"], "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["Reis", "cooked rice"]}]]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
       expect(candidate.context?.dishType, 'Pilz und Reis');
       expect(candidate.items.length, 1);

@@ -450,8 +450,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                 onPickDirectory: _pickAutoBackupDirectory,
                 onCopyPath: _copyAutoBackupPathToClipboard,
                 onRunNow: () async {
-                  final ok =
-                      await BackupManager.instance.runAutoBackupIfDue(
+                  final ok = await BackupManager.instance.runAutoBackupIfDue(
                     interval: const Duration(days: 1),
                     encrypted: false,
                     passphrase: null,
@@ -474,9 +473,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     SnackBar(
                       content: Text(successText),
                       backgroundColor: ok
-                          ? (_lastAutoBackupUsedFallback
-                              ? Colors.orange
-                              : null)
+                          ? (_lastAutoBackupUsedFallback ? Colors.orange : null)
                           : Theme.of(this.context).colorScheme.error,
                     ),
                   );

@@ -616,8 +616,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(height: 1),
               AppSettingsRow.navigation(
                 title: l10n.settingsFoodDbRegionTitle,
-                subtitle:
-                    '${l10n.settingsFoodDbRegionSubtitle}\n'
+                subtitle: '${l10n.settingsFoodDbRegionSubtitle}\n'
                     '${l10n.settingsFoodDbRegionCurrent}: '
                     '${_offCountryLabel(_activeOffCatalogCountry, l10n)}',
                 leading: Icon(
@@ -768,9 +767,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: SizedBox(
               width: double.infinity,
               child: AppButton.danger(
-                onPressed: _isLocalResetRunning
-                    ? null
-                    : _confirmAndDeleteLocalData,
+                onPressed:
+                    _isLocalResetRunning ? null : _confirmAndDeleteLocalData,
                 label: l10n.deleteAllLocalAppData,
                 tooltip: l10n.deleteAllLocalAppData,
                 icon: LucideIcons.trash,

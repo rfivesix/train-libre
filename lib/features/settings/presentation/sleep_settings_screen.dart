@@ -184,8 +184,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                     trailing: Icon(
                       permission.state == SleepPermissionState.ready
                           ? LucideIcons.circle_check
-                          : (permission.state ==
-                                      SleepPermissionState.denied ||
+                          : (permission.state == SleepPermissionState.denied ||
                                   permission.state ==
                                       SleepPermissionState.partial
                               ? LucideIcons.chevron_right

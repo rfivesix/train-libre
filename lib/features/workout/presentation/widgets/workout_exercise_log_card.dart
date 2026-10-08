@@ -365,8 +365,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                       ? () => onSetTypeTap!(setLog.id!)
                                       : null,
                                   onSetTypeChanged: onSetTypeChanged != null
-                                      ? (newType) => onSetTypeChanged!(
-                                          setLog.id!, newType)
+                                      ? (newType) =>
+                                          onSetTypeChanged!(setLog.id!, newType)
                                       : null,
                                 );
                               }),

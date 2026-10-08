@@ -421,11 +421,14 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
 
     // Check app features
-    if ((_consistencyState.data?.trainingStats.totalWorkouts ?? 0) > 0)
+    if ((_consistencyState.data?.trainingStats.totalWorkouts ?? 0) > 0) {
       return false;
+    }
     if (bodyNutrition != null &&
-        (bodyNutrition!.weightDays > 0 || bodyNutrition!.loggedCalorieDays > 0))
+        (bodyNutrition!.weightDays > 0 ||
+            bodyNutrition!.loggedCalorieDays > 0)) {
       return false;
+    }
 
     // If nothing has data, it's an active gap
     return true;
