@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/drift_database.dart' as db;
+import '../../../generated/app_localizations.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -29,6 +30,7 @@ import 'live_workout_view_model.dart';
 import 'edit_routine_screen.dart';
 import 'manual_plan_editor_screen.dart';
 import 'manual_plan_text.dart';
+import '../../sharing/share_service.dart';
 import 'workout_log_detail_screen.dart';
 import 'widgets/manual_plan_ui.dart';
 
@@ -213,6 +215,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         await _versions(plan);
       case 'deactivate':
         await _deactivate(plan);
+      case 'share':
+        await const ShareService().showPlanShareSheet(
+          context: context,
+          plan: plan,
+        );
     }
   }
 
@@ -666,6 +673,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                     value: 'history',
                     label: text.get('history'),
                     icon: LucideIcons.rotate_ccw_clock,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'share',
+                    label: AppLocalizations.of(context)!.share,
+                    icon: LucideIcons.link,
                   ),
                   if (plan.active)
                     PlatformAdaptivePopupMenuItem(

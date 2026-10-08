@@ -63,6 +63,9 @@ import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
 import 'features/home_widgets/application/home_widget_sync_service.dart';
 import 'features/home_widgets/home_widget_deep_link.dart';
+import 'features/sharing/share_link_codec.dart';
+import 'features/sharing/share_link_preview_screen.dart';
+import 'features/sharing/share_file_import_screen.dart';
 import 'features/analytics/presentation/recovery_tracker_screen.dart';
 import 'features/steps/presentation/steps_module_screen.dart';
 import 'features/profile/presentation/measurements_screen.dart';
@@ -413,6 +416,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Future<bool> didPushRouteInformation(RouteInformation routeInformation) {
     final location = routeInformation.uri.toString();
+    if (_handledShareLink(location)) {
+      return SynchronousFuture<bool>(true);
+    }
     if (_returnedToOpenLiveWorkout(location)) {
       return SynchronousFuture<bool>(true);
     }
@@ -420,6 +426,38 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       return SynchronousFuture<bool>(true);
     }
     return super.didPushRouteInformation(routeInformation);
+  }
+
+  bool _handledShareLink(String location) {
+    final uri = Uri.tryParse(location);
+    if (uri?.scheme == 'trainlibre' && uri?.host == 'share-file') {
+      final fileUri = Uri.tryParse(uri?.queryParameters['uri'] ?? '');
+      final navigator = _navigatorKey.currentState;
+      if (navigator == null) return false;
+      navigator.push(MaterialPageRoute<void>(
+        builder: (_) => ShareFileImportScreen(uri: fileUri),
+      ));
+      return true;
+    }
+    if (uri == null ||
+        !(uri.path == '/share' ||
+            uri.path == '/share/' ||
+            (uri.scheme == 'trainlibre' && uri.host == 'share'))) {
+      return false;
+    }
+    ShareLinkPayload? payload;
+    String? error;
+    try {
+      payload = ShareLinkCodec.fromUri(uri);
+    } catch (e) {
+      error = e.toString();
+    }
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return false;
+    navigator.push(MaterialPageRoute<void>(
+      builder: (_) => ShareLinkPreviewScreen(payload: payload, error: error),
+    ));
+    return true;
   }
 
   /// Handles the URLs the iOS Home Screen widgets emit.
@@ -1020,6 +1058,34 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           darkTheme: baseDarkTheme,
           themeMode: themeService.themeMode,
           onGenerateRoute: (settings) {
+            final uri = Uri.tryParse(settings.name ?? '');
+            if (uri?.scheme == 'trainlibre' && uri?.host == 'share-file') {
+              return MaterialPageRoute<void>(
+                settings: settings,
+                builder: (_) => ShareFileImportScreen(
+                  uri: Uri.tryParse(uri?.queryParameters['uri'] ?? ''),
+                ),
+              );
+            }
+            if (uri != null &&
+                (uri.path == '/share' ||
+                    uri.path == '/share/' ||
+                    (uri.scheme == 'trainlibre' && uri.host == 'share'))) {
+              ShareLinkPayload? payload;
+              String? error;
+              try {
+                payload = ShareLinkCodec.fromUri(uri);
+              } catch (e) {
+                error = e.toString();
+              }
+              return MaterialPageRoute<void>(
+                settings: settings,
+                builder: (_) => ShareLinkPreviewScreen(
+                  payload: payload,
+                  error: error,
+                ),
+              );
+            }
             final sleepRoute = SleepNavigation.onGenerateRoute(settings);
             if (sleepRoute != null) return sleepRoute;
 

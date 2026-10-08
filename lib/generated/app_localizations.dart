@@ -1406,6 +1406,138 @@ abstract class AppLocalizations {
   /// **'Share as text'**
   String get shareAsText;
 
+  /// No description provided for @shareWebLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Share web link'**
+  String get shareWebLink;
+
+  /// No description provided for @shareFormattedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as formatted text'**
+  String get shareFormattedText;
+
+  /// No description provided for @sharePortableJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as JSON / data'**
+  String get sharePortableJson;
+
+  /// No description provided for @shareCopyJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy JSON'**
+  String get shareCopyJson;
+
+  /// No description provided for @shareJsonCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'JSON copied to clipboard'**
+  String get shareJsonCopied;
+
+  /// No description provided for @shareJsonFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Share JSON file'**
+  String get shareJsonFile;
+
+  /// No description provided for @shareImportFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import shared JSON file'**
+  String get shareImportFile;
+
+  /// No description provided for @shareImportPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Import shared item'**
+  String get shareImportPreview;
+
+  /// No description provided for @shareImportConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Import to Train Libre'**
+  String get shareImportConfirm;
+
+  /// No description provided for @shareImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported successfully'**
+  String get shareImportSuccess;
+
+  /// No description provided for @shareImportInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This shared item could not be imported.'**
+  String get shareImportInvalid;
+
+  /// No description provided for @shareImportRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get shareImportRetry;
+
+  /// No description provided for @sharePlanWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly plan'**
+  String get sharePlanWeekly;
+
+  /// No description provided for @sharePlanSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sequence'**
+  String get sharePlanSequence;
+
+  /// No description provided for @shareRestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day'**
+  String get shareRestDay;
+
+  /// No description provided for @shareDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get shareDay;
+
+  /// No description provided for @shareDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get shareDays;
+
+  /// No description provided for @sharePortions.
+  ///
+  /// In en, this message translates to:
+  /// **'Portions'**
+  String get sharePortions;
+
+  /// No description provided for @shareIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get shareIngredients;
+
+  /// No description provided for @shareRestSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest (seconds)'**
+  String get shareRestSeconds;
+
+  /// No description provided for @shareTargetMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Target muscles'**
+  String get shareTargetMuscles;
+
+  /// No description provided for @shareTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get shareTotal;
+
   /// No description provided for @sharedFromTrainLibre.
   ///
   /// In en, this message translates to:

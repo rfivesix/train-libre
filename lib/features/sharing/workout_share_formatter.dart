@@ -296,6 +296,7 @@ class WorkoutShareFormatter {
     if (hasDuration) {
       parts.add(_formatMinutes(Duration(seconds: set.durationSeconds!)));
     }
+    if (set.rir != null) parts.add('RIR ${set.rir}');
 
     final line = parts.isEmpty ? labels.set : parts.join(' · ');
     final suffix = _specialSetTypeSuffix(set);

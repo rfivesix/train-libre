@@ -711,6 +711,73 @@ class AppLocalizationsIt extends AppLocalizations {
   String get shareAsText => 'Condividi come testo';
 
   @override
+  String get shareWebLink => 'Condividi link web';
+
+  @override
+  String get shareFormattedText => 'Condividi come testo formattato';
+
+  @override
+  String get sharePortableJson => 'Esporta come JSON / dati';
+
+  @override
+  String get shareCopyJson => 'Copia JSON';
+
+  @override
+  String get shareJsonCopied => 'JSON copiato negli appunti';
+
+  @override
+  String get shareJsonFile => 'Condividi file JSON';
+
+  @override
+  String get shareImportFile => 'Importa file JSON condiviso';
+
+  @override
+  String get shareImportPreview => 'Importa elemento condiviso';
+
+  @override
+  String get shareImportConfirm => 'Importa in Train Libre';
+
+  @override
+  String get shareImportSuccess => 'Importazione riuscita';
+
+  @override
+  String get shareImportInvalid =>
+      'Impossibile importare questo elemento condiviso.';
+
+  @override
+  String get shareImportRetry => 'Riprova';
+
+  @override
+  String get sharePlanWeekly => 'Piano settimanale';
+
+  @override
+  String get sharePlanSequence => 'Sequenza di allenamento';
+
+  @override
+  String get shareRestDay => 'Giorno di riposo';
+
+  @override
+  String get shareDay => 'Giorno';
+
+  @override
+  String get shareDays => 'giorni';
+
+  @override
+  String get sharePortions => 'Porzioni';
+
+  @override
+  String get shareIngredients => 'Ingredienti';
+
+  @override
+  String get shareRestSeconds => 'Recupero (secondi)';
+
+  @override
+  String get shareTargetMuscles => 'Muscoli interessati';
+
+  @override
+  String get shareTotal => 'Totale';
+
+  @override
   String get sharedFromTrainLibre => 'Condiviso da Train Libre';
 
   @override

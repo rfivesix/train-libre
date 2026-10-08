@@ -33,6 +33,8 @@ import '../../../core/infrastructure/icloud_sync_service.dart';
 import '../../../data/database_helper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../sharing/share_link_codec.dart';
+import '../../sharing/share_link_preview_screen.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_restart.dart';
@@ -221,6 +223,30 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           );
         }
       }
+    }
+  }
+
+  Future<void> _performSharedJsonImport() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (result.isEmpty || result.single.path == null || !mounted) return;
+    try {
+      final file = File(result.single.path!);
+      if (await file.length() > SharePortableCodec.maxFileBytes) {
+        throw const FormatException('Share file is too large');
+      }
+      final payload = SharePortableCodec.decode(await file.readAsString());
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => ShareLinkPreviewScreen(payload: payload),
+      ));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.shareImportInvalid),
+      ));
     }
   }
 
@@ -437,6 +463,12 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                   );
                 }
               },
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            AppButton.secondary(
+              onPressed: _performSharedJsonImport,
+              label: l10n.shareImportFile,
+              icon: LucideIcons.file_down,
             ),
             if (!isApple) ...[
               const SizedBox(height: DesignConstants.spacingL),

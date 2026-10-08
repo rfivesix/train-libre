@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.rfivesix.trainlibre",
+      "sha256_cert_fingerprints": [
+        "7B:EA:1C:C4:37:D2:3A:D8:65:35:00:1C:29:96:C2:2D:EF:49:D8:D7:5B:D6:B4:94:2B:6A:AD:59:57:2B:17:CC"
+      ]
+    }
+  }
+]

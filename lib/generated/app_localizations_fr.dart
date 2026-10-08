@@ -716,6 +716,73 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shareAsText => 'Partager sous forme de texte';
 
   @override
+  String get shareWebLink => 'Partager un lien web';
+
+  @override
+  String get shareFormattedText => 'Partager en texte formaté';
+
+  @override
+  String get sharePortableJson => 'Exporter en JSON / données';
+
+  @override
+  String get shareCopyJson => 'Copier le JSON';
+
+  @override
+  String get shareJsonCopied => 'JSON copié dans le presse-papiers';
+
+  @override
+  String get shareJsonFile => 'Partager le fichier JSON';
+
+  @override
+  String get shareImportFile => 'Importer un fichier JSON partagé';
+
+  @override
+  String get shareImportPreview => 'Importer un élément partagé';
+
+  @override
+  String get shareImportConfirm => 'Importer dans Train Libre';
+
+  @override
+  String get shareImportSuccess => 'Importation réussie';
+
+  @override
+  String get shareImportInvalid =>
+      'Cet élément partagé n’a pas pu être importé.';
+
+  @override
+  String get shareImportRetry => 'Réessayer';
+
+  @override
+  String get sharePlanWeekly => 'Plan hebdomadaire';
+
+  @override
+  String get sharePlanSequence => 'Séquence d’entraînement';
+
+  @override
+  String get shareRestDay => 'Jour de repos';
+
+  @override
+  String get shareDay => 'Jour';
+
+  @override
+  String get shareDays => 'jours';
+
+  @override
+  String get sharePortions => 'Portions';
+
+  @override
+  String get shareIngredients => 'Ingrédients';
+
+  @override
+  String get shareRestSeconds => 'Repos (secondes)';
+
+  @override
+  String get shareTargetMuscles => 'Muscles ciblés';
+
+  @override
+  String get shareTotal => 'Total';
+
+  @override
   String get sharedFromTrainLibre => 'Partagé depuis Train Libre';
 
   @override

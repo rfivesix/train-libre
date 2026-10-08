@@ -21,6 +21,7 @@ import 'meal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../sharing/share_service.dart';
 
 /// A screen that displays a list of the user's saved meals.
 ///
@@ -373,6 +374,9 @@ class _MealsScreenState extends State<MealsScreen> {
                                   ingredientCount:
                                       _mealItemsCache[mealId]?.length ?? 0,
                                   onAdd: () => _confirmAndLogMeal(meal, l10n),
+                                  onShare: () => const ShareService()
+                                      .showRecipeShareSheet(
+                                          context: context, meal: meal),
                                   onEdit: () async {
                                     await Navigator.of(context).push(
                                       CardMorphRoute(

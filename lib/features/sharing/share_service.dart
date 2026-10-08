@@ -7,17 +7,22 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 import '../workout/data/sources/workout_local_data_source.dart';
 import '../../generated/app_localizations.dart';
 import '../exercise_catalog/domain/models/exercise.dart';
 import '../workout/domain/models/routine.dart';
 import '../workout/domain/models/workout_log.dart';
+import '../workout/domain/models/manual_training_plan.dart';
 import '../app/presentation/widgets/glass_bottom_menu.dart';
-import 'routine_share_formatter.dart';
 import 'share_card_renderer.dart';
 import 'share_labels.dart';
 import 'workout_share_formatter.dart';
+import 'share_link_codec.dart';
+import 'share_link_repository.dart';
+import 'share_export_formatter.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:async';
 import '../../services/telemetry/telemetry_service.dart';
@@ -47,10 +52,46 @@ class ShareService {
         ),
         GlassMenuAction(
           icon: LucideIcons.text_initial,
-          label: l10n.shareAsText,
+          label: l10n.shareFormattedText,
           onTap: () => shareWorkoutAsText(context: context, workout: workout),
         ),
+        GlassMenuAction(
+          icon: LucideIcons.file_text,
+          label: l10n.sharePortableJson,
+          onTap: () => _showJsonActions(
+            context,
+            ShareLinkCodec.forWorkout(workout),
+          ),
+        ),
       ],
+    );
+  }
+
+  static bool _canShareAsLink(ShareLinkPayload payload) {
+    try {
+      ShareLinkPayload.fromJson(payload.toJson());
+      return ShareLinkCodec.link(payload).length <=
+          ShareLinkCodec.maxLinkLength;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _sharePayload(
+    BuildContext context,
+    ShareLinkPayload payload,
+  ) async {
+    try {
+      if (!_canShareAsLink(payload)) return;
+      await _shareText(ShareLinkCodec.link(payload), subject: payload.name);
+    } catch (_) {
+      if (context.mounted) _showLinkError(context);
+    }
+  }
+
+  void _showLinkError(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.shareFailed)),
     );
   }
 
@@ -61,10 +102,17 @@ class ShareService {
     unawaited(TelemetryService.instance
         .trackFeatureUsed(featureKey: FeatureKey.routineShared));
     final l10n = AppLocalizations.of(context)!;
+    final payload = ShareLinkCodec.forRoutine(routine);
     await showGlassBottomMenu<void>(
       context: context,
       title: l10n.shareRoutine,
       actions: [
+        if (_canShareAsLink(payload))
+          GlassMenuAction(
+            icon: LucideIcons.link,
+            label: l10n.shareWebLink,
+            onTap: () => _sharePayload(context, payload),
+          ),
         GlassMenuAction(
           icon: LucideIcons.image,
           label: l10n.shareAsImage,
@@ -75,11 +123,128 @@ class ShareService {
         ),
         GlassMenuAction(
           icon: LucideIcons.text_initial,
-          label: l10n.shareAsText,
+          label: l10n.shareFormattedText,
           onTap: () => shareRoutineAsText(context: context, routine: routine),
+        ),
+        GlassMenuAction(
+          icon: LucideIcons.file_text,
+          label: l10n.sharePortableJson,
+          onTap: () => _showJsonActions(context, payload),
         ),
       ],
     );
+  }
+
+  Future<void> showPlanShareSheet({
+    required BuildContext context,
+    required ManualTrainingPlan plan,
+  }) async {
+    final payload = ShareLinkCodec.forPlan(plan);
+    await _showPortableShareSheet(context, payload);
+  }
+
+  Future<void> showRecipeShareSheet({
+    required BuildContext context,
+    required Map<String, dynamic> meal,
+  }) async {
+    try {
+      final payload = await const ShareLinkRepository().forRecipe(meal);
+      if (context.mounted) await _showPortableShareSheet(context, payload);
+    } catch (_) {
+      if (context.mounted) _showLinkError(context);
+    }
+  }
+
+  Future<void> _showPortableShareSheet(
+    BuildContext context,
+    ShareLinkPayload payload,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: l10n.share,
+      actions: [
+        if (_canShareAsLink(payload))
+          GlassMenuAction(
+            icon: LucideIcons.link,
+            label: l10n.shareWebLink,
+            onTap: () => _sharePayload(context, payload),
+          ),
+        GlassMenuAction(
+          icon: LucideIcons.text_initial,
+          label: l10n.shareFormattedText,
+          onTap: () => _sharePortableText(context, payload),
+        ),
+        GlassMenuAction(
+          icon: LucideIcons.file_text,
+          label: l10n.sharePortableJson,
+          onTap: () => _showJsonActions(context, payload),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _sharePortableText(
+      BuildContext context, ShareLinkPayload payload) async {
+    final text = ShareExportFormatter.format(
+      payload,
+      AppLocalizations.of(context)!,
+      context.read<UnitService>(),
+      Localizations.localeOf(context).toString(),
+    );
+    await _shareText(text, subject: payload.name);
+  }
+
+  Future<void> _showJsonActions(
+      BuildContext context, ShareLinkPayload payload) async {
+    final l10n = AppLocalizations.of(context)!;
+    late final String content;
+    try {
+      content = SharePortableCodec.encode(payload);
+    } catch (_) {
+      if (context.mounted) _showLinkError(context);
+      return;
+    }
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: l10n.sharePortableJson,
+      actions: [
+        GlassMenuAction(
+          icon: LucideIcons.copy,
+          label: l10n.shareCopyJson,
+          onTap: () async {
+            await Clipboard.setData(ClipboardData(text: content));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.shareJsonCopied)),
+              );
+            }
+          },
+        ),
+        GlassMenuAction(
+          icon: LucideIcons.file_up,
+          label: l10n.shareJsonFile,
+          onTap: () => _shareJsonFile(context, payload, content),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _shareJsonFile(
+      BuildContext context, ShareLinkPayload payload, String content) async {
+    try {
+      final directory = await getTemporaryDirectory();
+      final file = File(
+          '${directory.path}/train-libre-${payload.type}-${DateTime.now().microsecondsSinceEpoch}.json');
+      await file.writeAsString(content);
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path, mimeType: 'application/json')],
+        subject: payload.name,
+        sharePositionOrigin: _sharePositionOrigin(),
+      ));
+    } catch (_) {
+      if (context.mounted) _showLinkError(context);
+    }
   }
 
   Future<void> _showWorkoutImageLayoutSheet({
@@ -184,11 +349,7 @@ class ShareService {
     required BuildContext context,
     required Routine routine,
   }) async {
-    final labels = ShareLabels.fromL10n(
-        AppLocalizations.of(context)!, context.read<UnitService>());
-    final locale = Localizations.localeOf(context).toString();
-    final text = RoutineShareFormatter(labels, locale: locale).format(routine);
-    await _shareText(text, subject: routine.name);
+    await _sharePortableText(context, ShareLinkCodec.forRoutine(routine));
   }
 
   Future<void> shareWorkoutAsImage({

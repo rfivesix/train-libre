@@ -44,6 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.time.ZoneOffset
 
@@ -63,6 +64,7 @@ class MainActivity : FlutterActivity() {
     private val exportHealthConnectChannelName = "trainlibre.health/export_health_connect"
     private val weightImportHealthConnectChannelName = "trainlibre.health/import_weight_health_connect"
     private val storageChannelName = "trainlibre.storage/saf"
+    private val sharedFileChannelName = "trainlibre.app/shared_file"
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingPermissionRequestSet: Set<String>? = null
     private var pendingDirectoryPickerResult: MethodChannel.Result? = null
@@ -242,6 +244,46 @@ class MainActivity : FlutterActivity() {
             }
         }
 
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            sharedFileChannelName,
+        ).setMethodCallHandler { call, result ->
+            if (call.method != "readJson") {
+                result.notImplemented()
+            } else {
+                val uri = call.argument<String>("uri")?.let { Uri.parse(it) }
+                if (uri == null || uri.scheme != "content") {
+                    result.error("invalid_uri", "Expected a shared content URI", null)
+                } else {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val stream = contentResolver.openInputStream(uri)
+                                ?: throw IllegalArgumentException("Cannot open shared file")
+                            val output = ByteArrayOutputStream()
+                            stream.use { input ->
+                                val buffer = ByteArray(8192)
+                                while (true) {
+                                    val count = input.read(buffer)
+                                    if (count < 0) break
+                                    if (output.size() + count > 5 * 1024 * 1024) {
+                                        throw IllegalArgumentException("Shared file is too large")
+                                    }
+                                    output.write(buffer, 0, count)
+                                }
+                            }
+                            withContext(Dispatchers.Main) {
+                                result.success(output.toString(Charsets.UTF_8.name()))
+                            }
+                        } catch (error: Exception) {
+                            withContext(Dispatchers.Main) {
+                                result.error("read_failed", error.message, null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         val homeWidgetBridge = HomeWidgetBridge(applicationContext)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -256,7 +298,7 @@ class MainActivity : FlutterActivity() {
 
         // The engine only exists now, so a widget tap that launched the app has
         // been waiting in the intent since onCreate.
-        deliverWidgetDeepLink(flutterEngine, intent)
+        deliverIncomingLink(flutterEngine, intent)
     }
 
     /**
@@ -268,7 +310,7 @@ class MainActivity : FlutterActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        flutterEngine?.let { deliverWidgetDeepLink(it, intent) }
+        flutterEngine?.let { deliverIncomingLink(it, intent) }
     }
 
     /**
@@ -280,10 +322,25 @@ class MainActivity : FlutterActivity() {
      * `lib/main.dart` already runs for the iOS widgets, so both platforms end up
      * in the same place and no Dart code has to know which one it is on.
      */
-    private fun deliverWidgetDeepLink(engine: FlutterEngine, intent: Intent?) {
-        val uri = intent?.data ?: return
-        if (uri.scheme != WidgetDeepLinks.SCHEME) return
-        engine.navigationChannel.pushRouteInformation(uri.toString())
+    private fun deliverIncomingLink(engine: FlutterEngine, intent: Intent?) {
+        if (intent == null) return
+        val uri = intent.data
+        if (uri != null && (
+                uri.scheme == WidgetDeepLinks.SCHEME ||
+                (uri.scheme == "https" && uri.host == "trainlibre.com" &&
+                    (uri.path == "/share" || uri.path == "/share/"))
+            )) {
+            engine.navigationChannel.pushRouteInformation(uri.toString())
+            return
+        }
+        val fileUri = when (intent.action) {
+            Intent.ACTION_SEND -> intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
+            Intent.ACTION_VIEW -> uri?.takeIf { it.scheme == "content" }
+            else -> null
+        } ?: return
+        engine.navigationChannel.pushRouteInformation(
+            "trainlibre://share-file?uri=${Uri.encode(fileUri.toString())}"
+        )
     }
 
     private fun handleAvailability(result: MethodChannel.Result) {

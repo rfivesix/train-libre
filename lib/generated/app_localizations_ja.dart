@@ -700,6 +700,72 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shareAsText => 'テキストとして共有する';
 
   @override
+  String get shareWebLink => 'ウェブリンクを共有';
+
+  @override
+  String get shareFormattedText => '整形済みテキストで共有';
+
+  @override
+  String get sharePortableJson => 'JSON・データとして書き出す';
+
+  @override
+  String get shareCopyJson => 'JSONをコピー';
+
+  @override
+  String get shareJsonCopied => 'JSONをクリップボードにコピーしました';
+
+  @override
+  String get shareJsonFile => 'JSONファイルを共有';
+
+  @override
+  String get shareImportFile => '共有JSONファイルを読み込む';
+
+  @override
+  String get shareImportPreview => '共有アイテムを読み込む';
+
+  @override
+  String get shareImportConfirm => 'Train Libreに読み込む';
+
+  @override
+  String get shareImportSuccess => '読み込みが完了しました';
+
+  @override
+  String get shareImportInvalid => 'この共有アイテムを読み込めませんでした。';
+
+  @override
+  String get shareImportRetry => '再試行';
+
+  @override
+  String get sharePlanWeekly => '週間プラン';
+
+  @override
+  String get sharePlanSequence => 'トレーニング順序';
+
+  @override
+  String get shareRestDay => '休息日';
+
+  @override
+  String get shareDay => '日目';
+
+  @override
+  String get shareDays => '日間';
+
+  @override
+  String get sharePortions => '人数分';
+
+  @override
+  String get shareIngredients => '材料';
+
+  @override
+  String get shareRestSeconds => '休憩（秒）';
+
+  @override
+  String get shareTargetMuscles => '対象の筋肉';
+
+  @override
+  String get shareTotal => '合計';
+
+  @override
   String get sharedFromTrainLibre => 'トレイン・リブレから共有';
 
   @override

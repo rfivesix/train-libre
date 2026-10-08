@@ -18,6 +18,9 @@ import UserNotifications
   private let liveActivityBridge = WorkoutLiveActivityBridge()
   private let homeWidgetBridge = HomeWidgetBridge()
   private var pendingShortcutURL: URL?
+  private var pendingIncomingURL: URL?
+  private var pendingUniversalLink: NSUserActivity?
+  private var pendingSharedFileRoute: String?
 
   override func application(
     _ application: UIApplication,
@@ -39,7 +42,33 @@ import UserNotifications
       pendingShortcutURL = nil
       openInApp(url)
     }
+    if let url = pendingIncomingURL {
+      pendingIncomingURL = nil
+      openInApp(url)
+    }
+    if let activity = pendingUniversalLink {
+      pendingUniversalLink = nil
+      continueUniversalLink(activity)
+    }
+    if let route = pendingSharedFileRoute,
+       let controller = resolveFlutterViewController() {
+      pendingSharedFileRoute = nil
+      controller.pushRoute(route)
+    }
     super.applicationDidBecomeActive(application)
+  }
+
+  func enqueueIncomingURL(_ url: URL) {
+    pendingIncomingURL = url
+  }
+
+  func enqueueUniversalLink(_ activity: NSUserActivity) {
+    pendingUniversalLink = activity
+  }
+
+  @discardableResult
+  func continueUniversalLink(_ activity: NSUserActivity) -> Bool {
+    return application(UIApplication.shared, continue: activity, restorationHandler: { _ in })
   }
 
   /// Parks a Home Screen quick action tapped during a cold launch.
@@ -76,7 +105,37 @@ import UserNotifications
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey : Any] = [:]
   ) -> Bool {
+    if url.isFileURL && url.pathExtension.lowercased() == "json" {
+      return openSharedJson(url)
+    }
     return super.application(app, open: url, options: options)
+  }
+
+  private func openSharedJson(_ url: URL) -> Bool {
+    let scoped = url.startAccessingSecurityScopedResource()
+    defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+    do {
+      let handle = try FileHandle(forReadingFrom: url)
+      defer { try? handle.close() }
+      let data = try handle.read(upToCount: 5 * 1024 * 1024 + 1) ?? Data()
+      guard data.count <= 5 * 1024 * 1024 else { return false }
+      let destination = FileManager.default.temporaryDirectory
+        .appendingPathComponent("train-libre-share-\(UUID().uuidString).json")
+      try data.write(to: destination, options: .atomic)
+      var route = URLComponents()
+      route.scheme = "trainlibre"
+      route.host = "share-file"
+      route.queryItems = [URLQueryItem(name: "uri", value: destination.absoluteString)]
+      guard let routeString = route.string else { return false }
+      if let controller = resolveFlutterViewController() {
+        controller.pushRoute(routeString)
+      } else {
+        pendingSharedFileRoute = routeString
+      }
+      return true
+    } catch {
+      return false
+    }
   }
 
   override func application(
