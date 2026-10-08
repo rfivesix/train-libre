@@ -2310,9 +2310,66 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealTotalAmountLabel => 'レシピ全体の量';
 
   @override
+  String get mealWeightBasisLabel => '状態';
+
+  @override
+  String get mealWeightBasisRaw => '調理前';
+
+  @override
+  String get mealWeightBasisCooked => '調理後';
+
+  @override
+  String get mealPreviewBasisLabel => 'プレビューの基準';
+
+  @override
+  String get mealTotalNutrientsLabel => '合計';
+
+  @override
   String mealTotalAmountHint(int grams) {
     return 'レシピ全体: $grams g。材料は比例して調整されます。';
   }
+
+  @override
+  String get mealServingCountLabel => 'レシピの分量数';
+
+  @override
+  String get mealServingCountHint => 'レシピ全体で何人分できるかを入力します。';
+
+  @override
+  String get mealCookedWeightLabel => '調理後の完成重量';
+
+  @override
+  String get mealCookedWeightHint => '任意: 完成したレシピを量ると、グラム単位の分量を正確に調整できます。';
+
+  @override
+  String mealServingsSummary(String count) {
+    return '$count人分';
+  }
+
+  @override
+  String mealCookedWeightSummary(String weight) {
+    return '調理後 $weight g';
+  }
+
+  @override
+  String get mealPortionAmountLabel => '食べた分量';
+
+  @override
+  String get mealDecreasePortion => '0.5人前減らす';
+
+  @override
+  String get mealIncreasePortion => '0.5人前増やす';
+
+  @override
+  String mealPortionAmountHint(int count) {
+    return '保存したレシピ: $count人分';
+  }
+
+  @override
+  String get mealDuplicate => 'レシピを複製';
+
+  @override
+  String get mealCopySuffix => '(コピー)';
 
   @override
   String get mealDeleteConfirmTitle => 'レシピを削除する';

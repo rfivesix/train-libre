@@ -4292,11 +4292,113 @@ abstract class AppLocalizations {
   /// **'Total recipe amount'**
   String get mealTotalAmountLabel;
 
+  /// No description provided for @mealWeightBasisLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get mealWeightBasisLabel;
+
+  /// No description provided for @mealWeightBasisRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw'**
+  String get mealWeightBasisRaw;
+
+  /// No description provided for @mealWeightBasisCooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooked'**
+  String get mealWeightBasisCooked;
+
+  /// No description provided for @mealPreviewBasisLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust preview by'**
+  String get mealPreviewBasisLabel;
+
+  /// No description provided for @mealTotalNutrientsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'total'**
+  String get mealTotalNutrientsLabel;
+
   /// No description provided for @mealTotalAmountHint.
   ///
   /// In en, this message translates to:
   /// **'Full recipe: {grams} g. Ingredients scale proportionally.'**
   String mealTotalAmountHint(int grams);
+
+  /// No description provided for @mealServingCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Servings in recipe'**
+  String get mealServingCountLabel;
+
+  /// No description provided for @mealServingCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How many servings the full recipe makes.'**
+  String get mealServingCountHint;
+
+  /// No description provided for @mealCookedWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished weight after cooking'**
+  String get mealCookedWeightLabel;
+
+  /// No description provided for @mealCookedWeightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: weigh the finished recipe to scale gram portions accurately.'**
+  String get mealCookedWeightHint;
+
+  /// No description provided for @mealServingsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} servings'**
+  String mealServingsSummary(String count);
+
+  /// No description provided for @mealCookedWeightSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} g cooked'**
+  String mealCookedWeightSummary(String weight);
+
+  /// No description provided for @mealPortionAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Servings eaten'**
+  String get mealPortionAmountLabel;
+
+  /// No description provided for @mealDecreasePortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease by 0.5 serving'**
+  String get mealDecreasePortion;
+
+  /// No description provided for @mealIncreasePortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase by 0.5 serving'**
+  String get mealIncreasePortion;
+
+  /// No description provided for @mealPortionAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved recipe: {count} servings'**
+  String mealPortionAmountHint(int count);
+
+  /// No description provided for @mealDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate recipe'**
+  String get mealDuplicate;
+
+  /// No description provided for @mealCopySuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'(copy)'**
+  String get mealCopySuffix;
 
   /// No description provided for @mealDeleteConfirmTitle.
   ///

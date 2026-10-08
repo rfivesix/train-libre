@@ -30,7 +30,7 @@ void main() {
         .get();
     final names = columns.map((row) => row.read<String>('name')).toSet();
 
-    expect(database.schemaVersion, 38);
+    expect(database.schemaVersion, 39);
     expect(
       names,
       containsAll(<String>{

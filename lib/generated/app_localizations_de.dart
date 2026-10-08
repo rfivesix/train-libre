@@ -2365,9 +2365,68 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealTotalAmountLabel => 'Gesamtmenge des Rezepts';
 
   @override
+  String get mealWeightBasisLabel => 'Zustand';
+
+  @override
+  String get mealWeightBasisRaw => 'Roh';
+
+  @override
+  String get mealWeightBasisCooked => 'Gekocht';
+
+  @override
+  String get mealPreviewBasisLabel => 'Vorschau anpassen über';
+
+  @override
+  String get mealTotalNutrientsLabel => 'Nährwerte insgesamt';
+
+  @override
   String mealTotalAmountHint(int grams) {
     return 'Gesamtrezept: $grams g. Die Zutaten werden proportional angepasst.';
   }
+
+  @override
+  String get mealServingCountLabel => 'Portionen im Rezept';
+
+  @override
+  String get mealServingCountHint =>
+      'Anzahl der Portionen, die das ganze Rezept ergibt.';
+
+  @override
+  String get mealCookedWeightLabel => 'Endgewicht nach dem Kochen';
+
+  @override
+  String get mealCookedWeightHint =>
+      'Optional: wiege das fertige Rezept, damit Gramm-Portionen genau skaliert werden.';
+
+  @override
+  String mealServingsSummary(String count) {
+    return '$count Portionen';
+  }
+
+  @override
+  String mealCookedWeightSummary(String weight) {
+    return '$weight g gekocht';
+  }
+
+  @override
+  String get mealPortionAmountLabel => 'Gegessene Portionen';
+
+  @override
+  String get mealDecreasePortion => 'Portion um 0,5 verringern';
+
+  @override
+  String get mealIncreasePortion => 'Portion um 0,5 erhöhen';
+
+  @override
+  String mealPortionAmountHint(int count) {
+    return 'Gespeichertes Rezept: $count Portionen';
+  }
+
+  @override
+  String get mealDuplicate => 'Rezept duplizieren';
+
+  @override
+  String get mealCopySuffix => '(Kopie)';
 
   @override
   String get mealDeleteConfirmTitle => 'Rezept löschen';

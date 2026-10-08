@@ -44,7 +44,8 @@ class ShareLinkRepository {
     if (items.isEmpty) throw const FormatException('Recipe has no items');
     return ShareLinkPayload('recipe', meal['name'] as String, {
       'notes': meal['notes'],
-      'portions': 1,
+      'portions': (meal['serving_count'] as num?)?.toInt(),
+      'cookedWeightInGrams': meal['cooked_weight_in_grams'],
       'items': items,
     });
   }
@@ -220,6 +221,9 @@ class ShareLinkRepository {
     final mealId = await DatabaseHelper.instance.insertMeal(
       name: payload.name,
       notes: payload.data['notes'] as String?,
+      servingCount: (payload.data['portions'] as num?)?.toInt(),
+      cookedWeightInGrams:
+          (payload.data['cookedWeightInGrams'] as num?)?.toInt(),
     );
     for (final item in items) {
       await DatabaseHelper.instance.addMealItem(

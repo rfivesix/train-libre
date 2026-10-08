@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.5.1] - 2026-10-07
 
 ### Added
-- **Recipe Portion Logging (Issue #686):** Added a total recipe amount field when logging a saved meal. Entering an amount scales every ingredient proportionally, while keeping the per-ingredient fields available for adjustments.
+- **Recipe Portions & Diary Grouping (Issue #686):** Saved recipes now log as one expandable diary meal with the recipe title and linked ingredients. Recipes can store their serving count and cooked finished weight; logging lets you scale by grams or fractional servings, and saved recipes can be duplicated.
 - **Serverless Share Links (Issue #713):** Added compressed, versioned URL-fragment links for routines, manual training plans, and saved recipes; native glass import previews with local import under fresh IDs; Android App Links and iOS Universal Links; and a static browser preview with app install links.
 - **Portable Sharing and Import (Issue #711):** Added formatted text and versioned JSON exports for routines, manual plans, recipes, and completed workouts, with copy and file sharing. Added additive JSON import from Data & Backup and shared files, previewed before import. Web-link actions now appear only when their encoded URLs fit the 2,000-character limit; larger items remain available as text or JSON.
 - **Standardized Settings Row Component (`AppSettingsRow`, `app_settings_row.dart`, `common.dart`):** Created a unified, modern row widget providing standard typography, layout spacing, optional subtitle widgets, right-side action indicators (chevrons, platform switches, or custom action widgets), and tap interaction matching the design of `AppLinkRow`.

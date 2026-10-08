@@ -9,6 +9,7 @@ import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/meal_entry.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import 'create_food_screen.dart';
@@ -30,6 +31,7 @@ import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_navigation_result.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
@@ -1109,6 +1111,13 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         );
         await _loadMeals();
       },
+      onDuplicate: () async {
+        await DatabaseHelper.instance.duplicateMeal(
+          mealId,
+          copySuffix: l10n.mealCopySuffix,
+        );
+        await _loadMeals();
+      },
       onDelete: () => _deleteMeal(meal, l10n),
       onTap: () async {
         await Navigator.of(context).push(
@@ -1159,38 +1168,48 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
     await showGlassBottomMenu<bool>(
       context: context,
-      title: l10n.mealsAddToDiary,
       contentBuilder: (ctx, close) {
         return ConfirmLogMealBottomSheet(
           mealName: meal['name'] as String,
           rawItems: rawItems,
           products: products,
+          recipeCookedWeightInGrams:
+              (meal['cooked_weight_in_grams'] as num?)?.toInt(),
+          recipeServingCount: (meal['serving_count'] as num?)?.toInt(),
           initialDate: widget.initialDate ?? DateTime.now(),
           initialMealType: widget.initialMealType ?? 'mealtypeBreakfast',
-          onClose: close,
           onSave: (date, mealType, quantities) async {
-            for (final it in rawItems) {
-              final bc = it['barcode'] as String;
-              final qty = quantities[bc] ?? (it['quantity_in_grams'] as int);
-
-              final newFoodEntryId =
-                  await DatabaseHelper.instance.insertFoodEntry(
-                FoodEntry(
-                  barcode: bc,
-                  timestamp: date,
-                  quantityInGrams: qty,
-                  mealType: mealType,
-                ),
-                telemetrySource: FoodLogSource.meal,
+            final foodEntries = rawItems.map((item) {
+              final barcode = item['barcode'] as String;
+              return FoodEntry(
+                barcode: barcode,
+                timestamp: date,
+                quantityInGrams:
+                    quantities[item['id']?.toString() ?? barcode] ??
+                        (item['quantity_in_grams'] as int),
+                mealType: mealType,
               );
-
+            }).toList();
+            final foodEntryIds =
+                await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
+                    MealEntry(
+                      id: const Uuid().v4(),
+                      title: meal['name'] as String,
+                      consumedAt: date,
+                      mealType: mealType,
+                      source: 'template',
+                    ),
+                    foodEntries);
+            for (var i = 0; i < foodEntries.length; i++) {
+              final bc = foodEntries[i].barcode;
+              final qty = foodEntries[i].quantityInGrams;
               final fi = products[bc];
               final c100 = fi?.caffeineMgPer100ml;
               if (fi?.isLiquid == true && c100 != null && c100 > 0) {
                 await _logCaffeineDose(
                   c100 * (qty / 100.0),
                   date,
-                  foodEntryId: newFoodEntryId,
+                  foodEntryId: foodEntryIds[i],
                 );
               }
             }

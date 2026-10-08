@@ -7,7 +7,7 @@ class ColdStartEmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final String callToAction;
+  final String? callToAction;
   final bool targetCenter;
   final double? customEndXOffset;
   final double? customTargetYOffset;
@@ -18,7 +18,7 @@ class ColdStartEmptyState extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.callToAction,
+    this.callToAction,
     this.targetCenter = false,
     this.customEndXOffset,
     this.customTargetYOffset,
@@ -104,19 +104,22 @@ class ColdStartEmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingXXL),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingL),
-            child: Text(
-              callToAction,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: isDark ? Colors.white70 : Colors.black87,
+          if (callToAction != null) ...[
+            const SizedBox(height: DesignConstants.spacingXXL),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingL),
+              child: Text(
+                callToAction!,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
+          ],
+          if (showArrow && callToAction != null)
+            const SizedBox(height: DesignConstants.spacingM),
           if (showArrow)
             Expanded(
               flex: 4,

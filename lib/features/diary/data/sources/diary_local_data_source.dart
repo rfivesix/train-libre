@@ -964,6 +964,27 @@ class DiaryLocalDataSource {
     return companion.id.value;
   }
 
+  /// Saves the parent meal and all of its food logs together, so a failed
+  /// insert cannot leave a partial group in the diary.
+  Future<List<int>> insertMealEntryWithFoodEntries(
+    MealEntry mealEntry,
+    List<FoodEntry> entries, {
+    required String telemetrySource,
+  }) async {
+    if (entries.isEmpty) throw ArgumentError('A meal must contain food items');
+    return _db.transaction(() async {
+      final mealEntryId = await insertMealEntry(mealEntry);
+      final ids = <int>[];
+      for (final entry in entries) {
+        ids.add(await insertFoodEntry(
+          entry.copyWith(mealEntryId: mealEntryId),
+          telemetrySource: telemetrySource,
+        ));
+      }
+      return ids;
+    });
+  }
+
   Future<void> updateMealEntry(MealEntry entry) async {
     final companion = drift_db.MealEntriesCompanion(
       userId: drift.Value(entry.userId),

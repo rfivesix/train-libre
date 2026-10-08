@@ -672,6 +672,8 @@ class Meals extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()(); // For future multi-user logic
   TextColumn get name => text()();
   TextColumn get notes => text().nullable()();
+  IntColumn get servingCount => integer().nullable()();
+  IntColumn get cookedWeightInGrams => integer().nullable()();
 }
 
 class MealItems extends Table with HybridId, MetaColumns {
@@ -959,7 +961,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 38;
+  int get schemaVersion => 39;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1109,6 +1111,15 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 39) {
+              final cols = await _columnsOf(this, meals.actualTableName);
+              if (!cols.contains('serving_count')) {
+                await m.addColumn(meals, meals.servingCount);
+              }
+              if (!cols.contains('cooked_weight_in_grams')) {
+                await m.addColumn(meals, meals.cookedWeightInGrams);
+              }
+            }
             if (from < 38) {
               await customStatement('''
                 CREATE TABLE IF NOT EXISTS health_export_identities (

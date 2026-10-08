@@ -15,6 +15,7 @@ class MealItemCard extends StatelessWidget {
   final int ingredientCount;
   final VoidCallback onAdd;
   final VoidCallback onEdit;
+  final VoidCallback onDuplicate;
   final VoidCallback? onShare;
   final VoidCallback onDelete;
   final VoidCallback onTap;
@@ -26,6 +27,7 @@ class MealItemCard extends StatelessWidget {
     required this.ingredientCount,
     required this.onAdd,
     required this.onEdit,
+    required this.onDuplicate,
     this.onShare,
     required this.onDelete,
     required this.onTap,
@@ -122,6 +124,11 @@ class MealItemCard extends StatelessWidget {
                 tooltip: AppLocalizations.of(context)!.mealsEdit,
                 icon: const Icon(LucideIcons.pencil),
                 onPressed: onEdit,
+              ),
+              IconButton(
+                tooltip: AppLocalizations.of(context)!.mealDuplicate,
+                icon: const Icon(LucideIcons.copy),
+                onPressed: onDuplicate,
               ),
               IconButton(
                 tooltip: AppLocalizations.of(context)!.mealsDelete,

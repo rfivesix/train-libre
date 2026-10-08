@@ -10,6 +10,7 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/meal_entry.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import '../../../services/haptic_feedback_service.dart';
@@ -23,9 +24,12 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/macro_badge_row.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:uuid/uuid.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../sharing/share_service.dart';
+import 'widgets/confirm_log_meal_bottom_sheet.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
 ///
@@ -58,6 +62,11 @@ class MealScreen extends StatefulWidget {
 class _MealScreenState extends State<MealScreen> {
   late TextEditingController _nameCtrl;
   late TextEditingController _notesCtrl;
+  late TextEditingController _servingsCtrl;
+  late TextEditingController _cookedWeightCtrl;
+  late int? _previewServingCount;
+  late int? _previewCookedWeight;
+  late String _previewWeightBasis;
   bool _editMode = false;
   bool _saving = false;
 
@@ -67,6 +76,20 @@ class _MealScreenState extends State<MealScreen> {
   // Totals (recomputed from `_items` whenever data changes).
   int _totalKcal = 0;
   double _totalC = 0, _totalF = 0, _totalP = 0;
+
+  double get _previewScale {
+    final savedServings = _positiveIntOrNull(_servingsCtrl.text);
+    if (_previewServingCount != null) {
+      return _previewServingCount! / (savedServings ?? 1);
+    }
+    final savedCookedWeight = _positiveIntOrNull(_cookedWeightCtrl.text);
+    if (savedCookedWeight != null &&
+        savedCookedWeight > 0 &&
+        _previewCookedWeight != null) {
+      return _previewCookedWeight! / savedCookedWeight;
+    }
+    return 1;
+  }
 
   @override
   void initState() {
@@ -85,6 +108,15 @@ class _MealScreenState extends State<MealScreen> {
           ? ''
           : (widget.meal['notes'] as String? ?? ''),
     );
+    _servingsCtrl = TextEditingController(
+      text: widget.meal['serving_count']?.toString() ?? '',
+    );
+    _cookedWeightCtrl = TextEditingController(
+      text: widget.meal['cooked_weight_in_grams']?.toString() ?? '',
+    );
+    _previewServingCount = _positiveIntOrNull(_servingsCtrl.text);
+    _previewCookedWeight = _positiveIntOrNull(_cookedWeightCtrl.text);
+    _previewWeightBasis = _previewCookedWeight == null ? 'raw' : 'cooked';
     _loadItems();
   }
 
@@ -92,6 +124,8 @@ class _MealScreenState extends State<MealScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _notesCtrl.dispose();
+    _servingsCtrl.dispose();
+    _cookedWeightCtrl.dispose();
     super.dispose();
   }
 
@@ -148,6 +182,7 @@ class _MealScreenState extends State<MealScreen> {
 
     final canSave =
         _nameCtrl.text.trim().isNotEmpty && _items.isNotEmpty && !_saving;
+    final displayScale = _editMode ? 1.0 : _previewScale;
 
     // Compute top padding for content shown beneath GlobalAppBar.
     final double topPadding =
@@ -202,17 +237,21 @@ class _MealScreenState extends State<MealScreen> {
                       ),
                     ),
             )
-          else
-            TextButton(
+          else ...[
+            IconButton(
+              tooltip: l10n.mealsEdit,
               onPressed: () => setState(() => _editMode = true),
-              child: Text(
-                l10n.mealsEdit,
-                style: TextStyle(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              icon: const Icon(LucideIcons.pencil),
             ),
+            IconButton(
+              tooltip: l10n.share,
+              onPressed: () => const ShareService().showRecipeShareSheet(
+                context: context,
+                meal: widget.meal,
+              ),
+              icon: Icon(DesignConstants.adaptiveShareIcon),
+            ),
+          ],
         ],
       ),
       floatingActionButton: fab,
@@ -226,68 +265,122 @@ class _MealScreenState extends State<MealScreen> {
                   padding: EdgeInsets.fromLTRB(16, 12 + topPadding, 16, 96),
                   children: [
                     // Name and notes section.
-                    AppCardContainer(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _editMode
-                              ? TextField(
-                                  controller: _nameCtrl,
-                                  textInputAction: TextInputAction.done,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.mealNameLabel,
-                                  ),
-                                  onChanged: (_) => setState(() {}),
-                                )
-                              : Text(
-                                  _nameCtrl.text.isNotEmpty
-                                      ? _nameCtrl.text
-                                      : l10n.unknown,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                    _editMode
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextField(
+                                controller: _nameCtrl,
+                                textInputAction: TextInputAction.done,
+                                decoration: InputDecoration(
+                                  labelText: l10n.mealNameLabel,
                                 ),
-                          const SizedBox(height: 8),
-                          _editMode
-                              ? TextField(
-                                  controller: _notesCtrl,
-                                  maxLines: 3,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.mealNotesLabel,
-                                  ),
-                                )
-                              : Text(
-                                  _notesCtrl.text.isNotEmpty
-                                      ? _notesCtrl.text
-                                      : l10n.noNotes,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
+                                onChanged: (_) => setState(() {}),
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: _servingsCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.mealServingCountLabel,
                                 ),
-                        ],
-                      ),
-                    ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 12, top: 6, bottom: 12),
+                                child: Text(l10n.mealServingCountHint,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme
+                                            .colorScheme.onSurfaceVariant)),
+                              ),
+                              TextField(
+                                controller: _cookedWeightCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.mealCookedWeightLabel,
+                                  suffixText: l10n.unit_grams,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 12, top: 6, bottom: 12),
+                                child: Text(l10n.mealCookedWeightHint,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant),
+                                    maxLines: 2),
+                              ),
+                              TextField(
+                                controller: _notesCtrl,
+                                maxLines: 3,
+                                decoration: InputDecoration(
+                                  labelText: l10n.mealNotesLabel,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppSettingsRow(
+                                title: _previewServingCount != null
+                                    ? l10n.mealServingsSummary(
+                                        '$_previewServingCount')
+                                    : l10n.mealServingCountLabel,
+                                subtitle: [
+                                  if (_previewServingCount case final servings?
+                                      when servings > 0)
+                                    '${(_totalKcal * displayScale).round()} ${l10n.unit_kcal} ${l10n.mealTotalNutrientsLabel}',
+                                  if (_previewWeightBasis == 'cooked' &&
+                                      _previewCookedWeight != null &&
+                                      _previewCookedWeight! > 0)
+                                    l10n.mealCookedWeightSummary(
+                                        '$_previewCookedWeight'),
+                                  if (_previewWeightBasis == 'raw')
+                                    '${(_items.fold<int>(0, (sum, item) => sum + ((item['quantity_in_grams'] as num?)?.round() ?? 0)) * displayScale).round()} ${l10n.unit_grams} ${l10n.mealWeightBasisRaw}',
+                                ].join(' · '),
+                                onTap: _editServingDetails,
+                                trailing: const Icon(LucideIcons.chevron_right),
+                              ),
+                              if (_notesCtrl.text.isNotEmpty)
+                                AppSettingsRow(
+                                    title: l10n.mealNotesLabel,
+                                    subtitle: _notesCtrl.text),
+                            ],
+                          ),
 
                     const SizedBox(height: 18),
 
                     // === Nutrients (total sum) ===
-                    AppSectionHeader(title: l10n.nutritionSectionLabel),
+                    AppSectionHeader(
+                      title: !_editMode && displayScale != 1
+                          ? l10n.mealTotalNutrientsLabel
+                          : l10n.nutritionSectionLabel,
+                    ),
                     AppCardContainer(
                       child: Skeletonizer(
                         enabled: _editMode && _items.isEmpty,
                         child: MacroBadgeRow(
                           kcal: (_editMode && _items.isEmpty)
                               ? 0
-                              : (_items.isEmpty ? null : _totalKcal.round()),
+                              : (_items.isEmpty
+                                  ? null
+                                  : (_totalKcal * displayScale).round()),
                           protein: (_editMode && _items.isEmpty)
                               ? 0.0
-                              : (_items.isEmpty ? null : _totalP),
+                              : (_items.isEmpty
+                                  ? null
+                                  : _totalP * displayScale),
                           carbs: (_editMode && _items.isEmpty)
                               ? 0.0
-                              : (_items.isEmpty ? null : _totalC),
+                              : (_items.isEmpty
+                                  ? null
+                                  : _totalC * displayScale),
                           fat: (_editMode && _items.isEmpty)
                               ? 0.0
-                              : (_items.isEmpty ? null : _totalF),
+                              : (_items.isEmpty
+                                  ? null
+                                  : _totalF * displayScale),
                           useBadges: Provider.of<ThemeService>(context)
                               .useColorfulMacroBadges,
                           style: theme.textTheme.headlineSmall?.copyWith(
@@ -310,8 +403,7 @@ class _MealScreenState extends State<MealScreen> {
                             icon: LucideIcons.apple,
                             title: l10n.mealIngredientsTitle,
                             subtitle: l10n.emptyCategory,
-                            callToAction: l10n.mealAddIngredient,
-                            showArrow: true,
+                            showArrow: false,
                             customEndXOffset: 110.0,
                             customTargetYOffset:
                                 110.0 + MediaQuery.paddingOf(context).bottom,
@@ -328,7 +420,18 @@ class _MealScreenState extends State<MealScreen> {
                     else
                       Column(
                         children: List.generate(_items.length, (i) {
-                          final it = _items[i];
+                          final originalItem = _items[i];
+                          final it = !_editMode && displayScale != 1
+                              ? {
+                                  ...originalItem,
+                                  'quantity_in_grams':
+                                      ((originalItem['quantity_in_grams']
+                                                      as num)
+                                                  .toDouble() *
+                                              displayScale)
+                                          .round(),
+                                }
+                              : originalItem;
                           return _IngredientCard(
                             key: ValueKey('ing_$i'),
                             item: it,
@@ -390,6 +493,8 @@ class _MealScreenState extends State<MealScreen> {
         mealId,
         name: name,
         notes: _notesCtrl.text.trim(),
+        servingCount: _positiveIntOrNull(_servingsCtrl.text),
+        cookedWeightInGrams: _positiveIntOrNull(_cookedWeightCtrl.text),
       );
       await DatabaseHelper.instance.clearMealItems(mealId);
       for (final it in _items) {
@@ -401,7 +506,11 @@ class _MealScreenState extends State<MealScreen> {
         );
       }
       if (mounted) {
-        setState(() => _editMode = false);
+        setState(() {
+          _previewServingCount = _positiveIntOrNull(_servingsCtrl.text);
+          _previewCookedWeight = _positiveIntOrNull(_cookedWeightCtrl.text);
+          _editMode = false;
+        });
         HapticFeedbackService.instance.confirmationFeedback();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.mealSaved)),
@@ -415,6 +524,40 @@ class _MealScreenState extends State<MealScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  int? _positiveIntOrNull(String value) {
+    final parsed = int.tryParse(value.trim());
+    return parsed != null && parsed > 0 ? parsed : null;
+  }
+
+  Future<void> _editServingDetails() async {
+    final originalServings = _positiveIntOrNull(_servingsCtrl.text);
+    final originalCookedWeight = _positiveIntOrNull(_cookedWeightCtrl.text);
+    final originalRawWeight = _items.fold<int>(
+      0,
+      (sum, item) => sum + ((item['quantity_in_grams'] as num?)?.round() ?? 0),
+    );
+    final result = await showGlassBottomMenu<_RecipePreviewValues>(
+      context: context,
+      contentBuilder: (sheetContext, close) => _RecipePreviewEditor(
+        initialServings: _previewServingCount ?? originalServings ?? 1,
+        initialCookedWeight: _previewCookedWeight,
+        originalServings: originalServings,
+        originalCookedWeight: originalCookedWeight,
+        originalRawWeight: originalRawWeight,
+        initialWeightBasis: _previewWeightBasis,
+        totalCalories: _totalKcal,
+        onClose: close,
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() {
+        _previewServingCount = result.servings;
+        _previewCookedWeight = result.cookedWeight;
+        _previewWeightBasis = result.weightBasis;
+      });
     }
   }
   // In lib/screens/meal_screen.dart
@@ -458,7 +601,6 @@ class _MealScreenState extends State<MealScreen> {
               ),
               onSubmitted: (val) {
                 final q = int.tryParse(val);
-                closeQty();
                 Navigator.of(qtyCtx).pop(q);
               },
             ),
@@ -468,7 +610,6 @@ class _MealScreenState extends State<MealScreen> {
                 Expanded(
                   child: AppButton.secondary(
                     onPressed: () {
-                      closeQty();
                       Navigator.of(qtyCtx).pop(null);
                     },
                     label: l10n.cancel,
@@ -480,7 +621,6 @@ class _MealScreenState extends State<MealScreen> {
                   child: AppButton.primary(
                     onPressed: () {
                       final val = int.tryParse(qtyCtrl.text);
-                      closeQty();
                       Navigator.of(qtyCtx).pop(val);
                     },
                     label: l10n.add_button,
@@ -513,210 +653,91 @@ class _MealScreenState extends State<MealScreen> {
   /// Logs the current meal as individual FoodEntries in the diary.
   Future<void> _addMealToDiaryFlow() async {
     final l10n = AppLocalizations.of(context)!;
-
-    // Load products
-    final Map<String, FoodItem?> products = {};
-    for (final it in _items) {
-      final bc = it['barcode'] as String;
-      products[bc] = await ProductLocalDataSource.instance.getProductByBarcode(
-        bc,
-      );
+    final products = <String, FoodItem>{};
+    for (final item in _items) {
+      final barcode = item['barcode'] as String;
+      final product =
+          await ProductLocalDataSource.instance.getProductByBarcode(barcode);
+      if (product != null) products[barcode] = product;
     }
-
-    // Controllers for quantities
-    final Map<String, TextEditingController> qtyCtrls = {
-      for (final it in _items)
-        (it['barcode'] as String): TextEditingController(
-          text: '${it['quantity_in_grams']}',
-        ),
-    };
-
-    const internalTypes = [
-      'mealtypeBreakfast',
-      'mealtypeLunch',
-      'mealtypeDinner',
-      'mealtypeSnack',
-    ];
-    String selectedMealType = internalTypes.first;
-
-    final Map<String, String> mealTypeLabel = {
-      'mealtypeBreakfast': l10n.mealtypeBreakfast,
-      'mealtypeLunch': l10n.mealtypeLunch,
-      'mealtypeDinner': l10n.mealtypeDinner,
-      'mealtypeSnack': l10n.mealtypeSnack,
-    };
     if (!mounted) return;
 
-    final ok = await showGlassBottomMenu<bool>(
-          context: context,
-          title: l10n.mealsAddToDiary,
-          contentBuilder: (ctx, close) {
-            return StatefulBuilder(
-              builder: (ctx, modalSetState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _nameCtrl.text,
-                      style: Theme.of(ctx).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 12),
-                    PlatformAdaptiveDropdownFormField<String>(
-                      initialValue: selectedMealType,
-                      decoration: InputDecoration(
-                        labelText: l10n.mealTypeLabel,
-                        border: const OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                      items: internalTypes
-                          .map(
-                            (key) => DropdownMenuItem(
-                              value: key,
-                              child: Text(mealTypeLabel[key] ?? key),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) {
-                          modalSetState(() => selectedMealType = v);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 360),
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: _items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (_, i) {
-                          final it = _items[i];
-                          final bc = it['barcode'] as String;
-                          final fi = products[bc];
-                          final displayName = fi != null
-                              ? (() {
-                                  final themeService =
-                                      Provider.of<ThemeService>(context);
-                                  final baseFoodLang = BaseFoodLanguageService
-                                      .resolveLanguageCode(
-                                    choice: themeService.baseFoodLanguage,
-                                    context: context,
-                                  );
-                                  return fi.source == FoodItemSource.base
-                                      ? fi.getLocalizedName(context,
-                                          languageCode: baseFoodLang)
-                                      : fi.getLocalizedName(context);
-                                })()
-                              : bc;
-                          final unit = (fi?.isLiquid == true)
-                              ? l10n.unit_milliliters
-                              : l10n.unit_grams;
+    final storedServings = _positiveIntOrNull(_servingsCtrl.text);
+    final storedCookedWeight = _positiveIntOrNull(_cookedWeightCtrl.text);
+    final portionScale = storedServings != null && storedServings > 0
+        ? (_previewServingCount ?? storedServings) / storedServings
+        : _previewServingCount != null
+            ? _previewServingCount!.toDouble()
+            : storedCookedWeight != null && storedCookedWeight > 0
+                ? (_previewCookedWeight ?? storedCookedWeight) /
+                    storedCookedWeight
+                : 1.0;
+    final loggingItems = _items.map((item) {
+      final copy = Map<String, dynamic>.from(item);
+      final grams = (item['quantity_in_grams'] as num?)?.toDouble() ?? 0;
+      copy['quantity_in_grams'] = (grams * portionScale).round();
+      return copy;
+    }).toList();
 
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 14),
-                                child: Icon(LucideIcons.sandwich),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: qtyCtrls[bc],
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                                  decoration: InputDecoration(
-                                    labelText: displayName,
-                                    helperText: l10n.amountLabel,
-                                    suffixText: unit,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppButton.secondary(
-                            onPressed: () {
-                              close();
-                              Navigator.of(ctx).pop(false);
-                            },
-                            label: l10n.cancel,
-                            tooltip: l10n.cancel,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppButton.primary(
-                            onPressed: () {
-                              close();
-                              Navigator.of(ctx).pop(true);
-                            },
-                            label: l10n.save,
-                            tooltip: l10n.save,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
+    await showGlassBottomMenu<bool>(
+      context: context,
+      contentBuilder: (sheetContext, close) => ConfirmLogMealBottomSheet(
+        mealName: _nameCtrl.text,
+        rawItems: loggingItems,
+        products: products,
+        recipeCookedWeightInGrams: _previewCookedWeight,
+        initialWeightBasis: _previewWeightBasis,
+        recipeServingCount: _previewServingCount,
+        initialDate: DateTime.now(),
+        initialMealType: 'mealtypeBreakfast',
+        onSave: (date, mealType, quantities) async {
+          final foodEntries = loggingItems.map((item) {
+            final barcode = item['barcode'] as String;
+            final qty = quantities[item['id']?.toString() ?? barcode] ??
+                (item['quantity_in_grams'] as int);
+            return FoodEntry(
+              barcode: barcode,
+              timestamp: date,
+              quantityInGrams: qty,
+              mealType: mealType,
             );
-          },
-        ) ??
-        false;
-
-    if (!ok) return;
-
-    final ts = DateTime.now();
-    for (final it in _items) {
-      final bc = it['barcode'] as String;
-      final ctrl = qtyCtrls[bc]!;
-      final qty =
-          int.tryParse(ctrl.text.trim()) ?? (it['quantity_in_grams'] as int);
-
-      final newFoodEntryId = await DatabaseHelper.instance.insertFoodEntry(
-        FoodEntry(
-          barcode: bc,
-          timestamp: ts,
-          quantityInGrams: qty,
-          mealType: selectedMealType,
-        ),
-        telemetrySource: FoodLogSource.meal,
-      );
-
-      final fi = await ProductLocalDataSource.instance.getProductByBarcode(bc);
-      if (fi != null) {
-        if (fi.isLiquid == true) {
-          // water logging if desired
-        }
-        final c100 = fi.caffeineMgPer100ml;
-        if (fi.isLiquid == true && c100 != null && c100 > 0) {
-          await _logCaffeineDose(
-            c100 * (qty / 100.0),
-            ts,
-            foodEntryId: newFoodEntryId,
+          }).toList();
+          final entryIds =
+              await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
+            MealEntry(
+              id: const Uuid().v4(),
+              title: _nameCtrl.text,
+              consumedAt: date,
+              mealType: mealType,
+              source: 'template',
+            ),
+            foodEntries,
+            telemetrySource: FoodLogSource.meal,
           );
-        }
-      }
-    }
-
-    if (mounted) {
-      HapticFeedbackService.instance.confirmationFeedback();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.mealAddedToDiarySuccess)));
-    }
+          for (var i = 0; i < foodEntries.length; i++) {
+            final entry = foodEntries[i];
+            final entryId = entryIds[i];
+            final qty = entry.quantityInGrams;
+            final product = products[entry.barcode];
+            final caffeinePer100ml = product?.caffeineMgPer100ml;
+            if (product?.isLiquid == true &&
+                caffeinePer100ml != null &&
+                caffeinePer100ml > 0) {
+              await _logCaffeineDose(
+                caffeinePer100ml * (qty / 100.0),
+                date,
+                foodEntryId: entryId,
+              );
+            }
+          }
+          if (!mounted) return;
+          HapticFeedbackService.instance.confirmationFeedback();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.mealAddedToDiarySuccess)),
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _logCaffeineDose(
@@ -750,6 +771,245 @@ class _MealScreenState extends State<MealScreen> {
         timestamp: timestamp,
         sourceFoodEntryId: foodEntryId,
       ),
+    );
+  }
+}
+
+class _RecipePreviewValues {
+  final int? servings;
+  final int? cookedWeight;
+  final String weightBasis;
+
+  const _RecipePreviewValues(
+      {required this.servings,
+      required this.cookedWeight,
+      required this.weightBasis});
+}
+
+class _RecipePreviewEditor extends StatefulWidget {
+  final int? initialServings;
+  final int? initialCookedWeight;
+  final int? originalServings;
+  final int? originalCookedWeight;
+  final int originalRawWeight;
+  final String initialWeightBasis;
+  final int totalCalories;
+  final VoidCallback onClose;
+
+  const _RecipePreviewEditor({
+    required this.initialServings,
+    required this.initialCookedWeight,
+    required this.originalServings,
+    required this.originalCookedWeight,
+    required this.originalRawWeight,
+    required this.initialWeightBasis,
+    required this.totalCalories,
+    required this.onClose,
+  });
+
+  @override
+  State<_RecipePreviewEditor> createState() => _RecipePreviewEditorState();
+}
+
+class _RecipePreviewEditorState extends State<_RecipePreviewEditor> {
+  late final TextEditingController _servingsCtrl;
+  late final TextEditingController _weightCtrl;
+  late int? _servings;
+  late int? _cookedWeight;
+  late String _weightBasis;
+
+  @override
+  void initState() {
+    super.initState();
+    _servings = widget.initialServings;
+    _cookedWeight = widget.initialCookedWeight;
+    _weightBasis = widget.initialWeightBasis;
+    _servingsCtrl = TextEditingController(text: _servings?.toString() ?? '');
+    _weightCtrl = TextEditingController(text: _initialWeight.toString());
+  }
+
+  @override
+  void dispose() {
+    _servingsCtrl.dispose();
+    _weightCtrl.dispose();
+    super.dispose();
+  }
+
+  int? _positiveInt(String value) {
+    final parsed = int.tryParse(value.trim());
+    return parsed != null && parsed > 0 ? parsed : null;
+  }
+
+  double get _scale {
+    final baseServings = widget.originalServings ?? 1;
+    if (_servings != null && baseServings > 0) return _servings! / baseServings;
+    final baseWeight = _baselineWeight;
+    final amount = _positiveInt(_weightCtrl.text);
+    return amount != null && baseWeight > 0 ? amount / baseWeight : 1;
+  }
+
+  int get _baselineWeight => _weightBasis == 'cooked'
+      ? (widget.originalCookedWeight ?? widget.originalRawWeight)
+      : widget.originalRawWeight;
+
+  int get _initialWeight {
+    if (_weightBasis == 'cooked' && widget.initialCookedWeight != null) {
+      return widget.initialCookedWeight!;
+    }
+    final servings = widget.initialServings ?? widget.originalServings ?? 1;
+    return (_baselineWeight * servings / (widget.originalServings ?? 1))
+        .round();
+  }
+
+  void _updateFromServings(int? servings) {
+    setState(() {
+      _servings = servings;
+      if (servings != null) {
+        final scale = servings / (widget.originalServings ?? 1);
+        final weight = (_baselineWeight * scale).round();
+        _weightCtrl.text = '$weight';
+        if (_weightBasis == 'cooked') {
+          _cookedWeight = weight;
+        } else if (widget.originalCookedWeight != null) {
+          _cookedWeight = (widget.originalCookedWeight! * scale).round();
+        } else {
+          _cookedWeight = null;
+        }
+      } else {
+        _weightCtrl.clear();
+      }
+    });
+  }
+
+  void _updateFromWeight(int? weight) {
+    setState(() {
+      if (weight == null) {
+        _servings = null;
+        _cookedWeight = null;
+        return;
+      }
+      final baseWeight = _baselineWeight;
+      final baseServings = widget.originalServings ?? 1;
+      _servings = baseWeight > 0
+          ? (baseServings * weight / baseWeight).round().clamp(1, 1 << 31)
+          : baseServings;
+      final scale = _servings! / baseServings;
+      if (_weightBasis == 'cooked') {
+        _cookedWeight = weight;
+      } else if (widget.originalCookedWeight != null) {
+        _cookedWeight = (widget.originalCookedWeight! * scale).round();
+      } else {
+        _cookedWeight = null;
+      }
+      _servingsCtrl.text = _servings?.toString() ?? '';
+    });
+  }
+
+  InputDecoration _decoration(String label, {String? suffix}) =>
+      InputDecoration(
+        labelText: label,
+        suffixText: suffix,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+          borderSide: BorderSide.none,
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _servingsCtrl,
+          keyboardType: TextInputType.number,
+          decoration: _decoration(l10n.mealServingCountLabel),
+          onChanged: (value) => _updateFromServings(_positiveInt(value)),
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: TextField(
+                controller: _weightCtrl,
+                keyboardType: TextInputType.number,
+                decoration: _decoration(
+                  _weightBasis == 'raw'
+                      ? l10n.mealTotalAmountLabel
+                      : l10n.mealCookedWeightLabel,
+                  suffix: l10n.unit_grams,
+                ),
+                onChanged: (value) => _updateFromWeight(_positiveInt(value)),
+              ),
+            ),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(
+              flex: 2,
+              child: PlatformAdaptiveDropdownFormField<String>(
+                initialValue: _weightBasis,
+                decoration: _decoration(l10n.mealWeightBasisLabel),
+                items: [
+                  DropdownMenuItem(
+                      value: 'raw', child: Text(l10n.mealWeightBasisRaw)),
+                  DropdownMenuItem(
+                      value: 'cooked', child: Text(l10n.mealWeightBasisCooked)),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    _weightBasis = value;
+                    final scale = (_servings ?? widget.originalServings ?? 1) /
+                        (widget.originalServings ?? 1);
+                    final amount = (_baselineWeight * scale).round();
+                    _weightCtrl.text = '$amount';
+                    if (_weightBasis == 'cooked') {
+                      _cookedWeight = amount;
+                    } else if (widget.originalCookedWeight != null) {
+                      _cookedWeight =
+                          (widget.originalCookedWeight! * scale).round();
+                    } else {
+                      _cookedWeight = null;
+                    }
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Text(
+          '${(widget.totalCalories * _scale).round()} ${l10n.unit_kcal} ${l10n.mealTotalNutrientsLabel}',
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+        Row(
+          children: [
+            Expanded(
+              child: AppButton.secondary(
+                onPressed: widget.onClose,
+                label: l10n.cancel,
+                tooltip: l10n.cancel,
+              ),
+            ),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(
+              child: AppButton.primary(
+                onPressed: () => Navigator.of(context).pop(
+                  _RecipePreviewValues(
+                    servings: _servings,
+                    cookedWeight: _cookedWeight,
+                    weightBasis: _weightBasis,
+                  ),
+                ),
+                label: l10n.doneButtonLabel,
+                tooltip: l10n.doneButtonLabel,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -840,7 +1100,11 @@ class _IngredientCard extends StatelessWidget {
           decoration: InputDecoration(
             isDense: true,
             suffixText: unit,
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderSide: BorderSide.none,
+            ),
           ),
           onChanged: (v) {
             final parsed = int.tryParse(v.trim());

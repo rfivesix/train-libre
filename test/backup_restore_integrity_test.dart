@@ -112,6 +112,8 @@ void main() {
       final mealId = await dbHelper.insertMeal(
         name: 'Lunch Bowl',
         notes: 'High-carb pre-workout',
+        servingCount: 2,
+        cookedWeightInGrams: 320,
       );
       await dbHelper.addMealItem(
         mealId: mealId,
@@ -129,6 +131,8 @@ void main() {
       expect(restoredMeals.length, 1);
       expect(restoredMeals.first['name'], 'Lunch Bowl');
       expect(restoredMeals.first['notes'], 'High-carb pre-workout');
+      expect(restoredMeals.first['serving_count'], 2);
+      expect(restoredMeals.first['cooked_weight_in_grams'], 320);
 
       final restoredItems =
           await dbHelper.getMealItems(restoredMeals.first['id'] as int);

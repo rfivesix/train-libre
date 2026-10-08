@@ -20,23 +20,44 @@ class MealLocalDataSource {
     return _dbInstance;
   }
 
-  Future<int> insertMeal({required String name, String? notes}) async {
+  Future<int> insertMeal({
+    required String name,
+    String? notes,
+    int? servingCount,
+    int? cookedWeightInGrams,
+  }) async {
     unawaited(TelemetryService.instance
         .trackFeatureUsed(featureKey: FeatureKey.recipeCreated));
     final dbInstance = await database;
     final row = await dbInstance.into(dbInstance.meals).insertReturning(
-          db.MealsCompanion(name: drift.Value(name), notes: drift.Value(notes)),
+          db.MealsCompanion(
+            name: drift.Value(name),
+            notes: drift.Value(notes),
+            servingCount: drift.Value(servingCount),
+            cookedWeightInGrams: drift.Value(cookedWeightInGrams),
+          ),
         );
     return row.localId;
   }
 
-  Future<void> updateMeal(int id, {required String name, String? notes}) async {
+  Future<void> updateMeal(
+    int id, {
+    required String name,
+    String? notes,
+    int? servingCount,
+    int? cookedWeightInGrams,
+  }) async {
     final dbInstance = await database;
     await (dbInstance.update(
       dbInstance.meals,
     )..where((t) => t.localId.equals(id)))
         .write(
-      db.MealsCompanion(name: drift.Value(name), notes: drift.Value(notes)),
+      db.MealsCompanion(
+        name: drift.Value(name),
+        notes: drift.Value(notes),
+        servingCount: drift.Value(servingCount),
+        cookedWeightInGrams: drift.Value(cookedWeightInGrams),
+      ),
     );
   }
 
@@ -48,12 +69,50 @@ class MealLocalDataSource {
         .go();
   }
 
+  Future<int> duplicateMeal(int mealLocalId,
+      {required String copySuffix}) async {
+    final database = await this.database;
+    return database.transaction(() async {
+      final original = await (database.select(database.meals)
+            ..where((t) => t.localId.equals(mealLocalId)))
+          .getSingle();
+      final copied = await database.into(database.meals).insertReturning(
+            db.MealsCompanion(
+              name: drift.Value('${original.name} $copySuffix'),
+              notes: drift.Value(original.notes),
+              servingCount: drift.Value(original.servingCount),
+              cookedWeightInGrams: drift.Value(original.cookedWeightInGrams),
+            ),
+          );
+      final items = await (database.select(database.mealItems)
+            ..where((t) => t.mealId.equals(original.id)))
+          .get();
+      for (final item in items) {
+        await database.into(database.mealItems).insert(
+              db.MealItemsCompanion(
+                mealId: drift.Value(copied.id),
+                productBarcode: drift.Value(item.productBarcode),
+                productId: drift.Value(item.productId),
+                quantityInGrams: drift.Value(item.quantityInGrams),
+              ),
+            );
+      }
+      return copied.localId;
+    });
+  }
+
   Future<List<Map<String, dynamic>>> getMeals() async {
     final dbInstance = await database;
     final rows = await dbInstance.select(dbInstance.meals).get();
 
     return rows
-        .map((r) => {'id': r.localId, 'name': r.name, 'notes': r.notes})
+        .map((r) => {
+              'id': r.localId,
+              'name': r.name,
+              'notes': r.notes,
+              'serving_count': r.servingCount,
+              'cooked_weight_in_grams': r.cookedWeightInGrams,
+            })
         .toList();
   }
 
@@ -149,6 +208,8 @@ class MealLocalDataSource {
       result.add(<String, dynamic>{
         'name': meal.name,
         'notes': meal.notes,
+        'servingCount': meal.servingCount,
+        'cookedWeightInGrams': meal.cookedWeightInGrams,
         'items': items,
       });
     }
@@ -171,6 +232,12 @@ class MealLocalDataSource {
               db.MealsCompanion(
                 name: drift.Value(name),
                 notes: drift.Value(notes),
+                servingCount: drift.Value(
+                  (template['servingCount'] as num?)?.toInt(),
+                ),
+                cookedWeightInGrams: drift.Value(
+                  (template['cookedWeightInGrams'] as num?)?.toInt(),
+                ),
               ),
             );
 

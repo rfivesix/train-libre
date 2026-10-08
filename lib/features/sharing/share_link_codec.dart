@@ -108,7 +108,10 @@ class ShareLinkPayload {
         if (rows.isEmpty ||
             (data['notes'] != null && data['notes'] is! String) ||
             (data['portions'] != null &&
-                (data['portions'] is! int || data['portions'] <= 0))) {
+                (data['portions'] is! int || data['portions'] <= 0)) ||
+            (data['cookedWeightInGrams'] != null &&
+                (data['cookedWeightInGrams'] is! int ||
+                    data['cookedWeightInGrams'] <= 0))) {
           throw const FormatException('Invalid recipe');
         }
         for (final item in rows) {

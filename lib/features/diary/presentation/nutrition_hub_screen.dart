@@ -8,7 +8,6 @@ import '../../../data/database_helper.dart';
 import '../../../data/drift_database.dart' as db;
 import '../../../generated/app_localizations.dart';
 import '../../../services/haptic_feedback_service.dart';
-import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
@@ -16,6 +15,7 @@ import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
@@ -33,6 +33,7 @@ import '../../supplements/presentation/supplement_hub_screen.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/meal_entry.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -136,28 +137,39 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
 
     await showGlassBottomMenu<bool>(
       context: context,
-      title: l10n.mealsAddToDiary,
       contentBuilder: (sheetContext, close) => ConfirmLogMealBottomSheet(
         mealName: meal['name'] as String,
         rawItems: items,
         products: products,
+        recipeCookedWeightInGrams:
+            (meal['cooked_weight_in_grams'] as num?)?.toInt(),
+        recipeServingCount: (meal['serving_count'] as num?)?.toInt(),
         initialDate: DateTime.now(),
         initialMealType: 'mealtypeBreakfast',
-        onClose: close,
         onSave: (date, mealType, quantities) async {
-          for (final item in items) {
+          final foodEntries = items.map((item) {
             final barcode = item['barcode'] as String;
-            final quantity =
-                quantities[barcode] ?? (item['quantity_in_grams'] as int);
-            final foodEntryId = await DatabaseHelper.instance.insertFoodEntry(
-              FoodEntry(
-                barcode: barcode,
-                timestamp: date,
-                quantityInGrams: quantity,
-                mealType: mealType,
-              ),
-              telemetrySource: FoodLogSource.meal,
+            return FoodEntry(
+              barcode: barcode,
+              timestamp: date,
+              quantityInGrams: quantities[item['id']?.toString() ?? barcode] ??
+                  (item['quantity_in_grams'] as int),
+              mealType: mealType,
             );
+          }).toList();
+          final foodEntryIds =
+              await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
+                  MealEntry(
+                    id: const Uuid().v4(),
+                    title: meal['name'] as String,
+                    consumedAt: date,
+                    mealType: mealType,
+                    source: 'template',
+                  ),
+                  foodEntries);
+          for (var i = 0; i < foodEntries.length; i++) {
+            final barcode = foodEntries[i].barcode;
+            final quantity = foodEntries[i].quantityInGrams;
             final product = products[barcode];
             final caffeinePer100ml = product?.caffeineMgPer100ml;
             if (product?.isLiquid == true &&
@@ -166,7 +178,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
               await _logCaffeineDose(
                 caffeinePer100ml * (quantity / 100.0),
                 date,
-                foodEntryId: foodEntryId,
+                foodEntryId: foodEntryIds[i],
               );
             }
           }
@@ -486,7 +498,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                   width: double.infinity,
                   child: AppButton.primary(
                     label: l10n.mealsCreate,
-                    icon: LucideIcons.plus,
                     onPressed: _createMealAndOpenEditor,
                   ),
                 ),
@@ -584,21 +595,50 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                                   ),
                         ),
                       ),
-                      IconButton(
-                        tooltip: l10n.share,
-                        icon: const Icon(LucideIcons.link),
-                        onPressed: () => const ShareService()
-                            .showRecipeShareSheet(context: context, meal: meal),
-                      ),
-                      IconButton(
-                        tooltip: l10n.mealsEdit,
-                        icon: const Icon(LucideIcons.pencil),
-                        onPressed: () => openRecipe(edit: true),
-                      ),
-                      IconButton(
-                        tooltip: l10n.mealsDelete,
-                        icon: const Icon(LucideIcons.trash),
-                        onPressed: () => _deleteRecipe(meal, l10n),
+                      PlatformAdaptivePopupMenu<String>(
+                        icon: const Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Icon(LucideIcons.ellipsis),
+                        ),
+                        items: [
+                          PlatformAdaptivePopupMenuItem(
+                              value: 'share',
+                              label: l10n.share,
+                              icon: DesignConstants.adaptiveShareIcon),
+                          PlatformAdaptivePopupMenuItem(
+                              value: 'edit',
+                              label: l10n.mealsEdit,
+                              icon: LucideIcons.pencil),
+                          PlatformAdaptivePopupMenuItem(
+                              value: 'duplicate',
+                              label: l10n.mealDuplicate,
+                              icon: LucideIcons.copy),
+                          PlatformAdaptivePopupMenuItem(
+                              value: 'delete',
+                              label: l10n.mealsDelete,
+                              icon: LucideIcons.trash,
+                              isDestructive: true),
+                        ],
+                        onSelected: (action) async {
+                          switch (action) {
+                            case 'share':
+                              await const ShareService().showRecipeShareSheet(
+                                  context: context, meal: meal);
+                              break;
+                            case 'edit':
+                              await openRecipe(edit: true);
+                              break;
+                            case 'duplicate':
+                              await DatabaseHelper.instance.duplicateMeal(
+                                  meal['id'] as int,
+                                  copySuffix: l10n.mealCopySuffix);
+                              await _refreshData();
+                              break;
+                            case 'delete':
+                              await _deleteRecipe(meal, l10n);
+                              break;
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -607,7 +647,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                     width: double.infinity,
                     child: AppButton.primary(
                       label: l10n.mealsAddToDiary,
-                      icon: LucideIcons.circle_plus,
                       onPressed: () => _logRecipe(meal),
                     ),
                   ),

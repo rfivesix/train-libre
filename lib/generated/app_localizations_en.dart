@@ -2354,9 +2354,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealTotalAmountLabel => 'Total recipe amount';
 
   @override
+  String get mealWeightBasisLabel => 'State';
+
+  @override
+  String get mealWeightBasisRaw => 'Raw';
+
+  @override
+  String get mealWeightBasisCooked => 'Cooked';
+
+  @override
+  String get mealPreviewBasisLabel => 'Adjust preview by';
+
+  @override
+  String get mealTotalNutrientsLabel => 'total';
+
+  @override
   String mealTotalAmountHint(int grams) {
     return 'Full recipe: $grams g. Ingredients scale proportionally.';
   }
+
+  @override
+  String get mealServingCountLabel => 'Servings in recipe';
+
+  @override
+  String get mealServingCountHint => 'How many servings the full recipe makes.';
+
+  @override
+  String get mealCookedWeightLabel => 'Finished weight after cooking';
+
+  @override
+  String get mealCookedWeightHint =>
+      'Optional: weigh the finished recipe to scale gram portions accurately.';
+
+  @override
+  String mealServingsSummary(String count) {
+    return '$count servings';
+  }
+
+  @override
+  String mealCookedWeightSummary(String weight) {
+    return '$weight g cooked';
+  }
+
+  @override
+  String get mealPortionAmountLabel => 'Servings eaten';
+
+  @override
+  String get mealDecreasePortion => 'Decrease by 0.5 serving';
+
+  @override
+  String get mealIncreasePortion => 'Increase by 0.5 serving';
+
+  @override
+  String mealPortionAmountHint(int count) {
+    return 'Saved recipe: $count servings';
+  }
+
+  @override
+  String get mealDuplicate => 'Duplicate recipe';
+
+  @override
+  String get mealCopySuffix => '(copy)';
 
   @override
   String get mealDeleteConfirmTitle => 'Delete recipe';

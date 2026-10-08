@@ -14968,9 +14968,31 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
       'notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _servingCountMeta =
+      const VerificationMeta('servingCount');
   @override
-  List<GeneratedColumn> get $columns =>
-      [localId, id, createdAt, updatedAt, deletedAt, userId, name, notes];
+  late final GeneratedColumn<int> servingCount = GeneratedColumn<int>(
+      'serving_count', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _cookedWeightInGramsMeta =
+      const VerificationMeta('cookedWeightInGrams');
+  @override
+  late final GeneratedColumn<int> cookedWeightInGrams = GeneratedColumn<int>(
+      'cooked_weight_in_grams', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        userId,
+        name,
+        notes,
+        servingCount,
+        cookedWeightInGrams
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -15014,6 +15036,18 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
+    if (data.containsKey('serving_count')) {
+      context.handle(
+          _servingCountMeta,
+          servingCount.isAcceptableOrUnknown(
+              data['serving_count']!, _servingCountMeta));
+    }
+    if (data.containsKey('cooked_weight_in_grams')) {
+      context.handle(
+          _cookedWeightInGramsMeta,
+          cookedWeightInGrams.isAcceptableOrUnknown(
+              data['cooked_weight_in_grams']!, _cookedWeightInGramsMeta));
+    }
     return context;
   }
 
@@ -15039,6 +15073,10 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      servingCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}serving_count']),
+      cookedWeightInGrams: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}cooked_weight_in_grams']),
     );
   }
 
@@ -15057,6 +15095,8 @@ class Meal extends DataClass implements Insertable<Meal> {
   final String? userId;
   final String name;
   final String? notes;
+  final int? servingCount;
+  final int? cookedWeightInGrams;
   const Meal(
       {required this.localId,
       required this.id,
@@ -15065,7 +15105,9 @@ class Meal extends DataClass implements Insertable<Meal> {
       this.deletedAt,
       this.userId,
       required this.name,
-      this.notes});
+      this.notes,
+      this.servingCount,
+      this.cookedWeightInGrams});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -15082,6 +15124,12 @@ class Meal extends DataClass implements Insertable<Meal> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || servingCount != null) {
+      map['serving_count'] = Variable<int>(servingCount);
+    }
+    if (!nullToAbsent || cookedWeightInGrams != null) {
+      map['cooked_weight_in_grams'] = Variable<int>(cookedWeightInGrams);
     }
     return map;
   }
@@ -15100,6 +15148,12 @@ class Meal extends DataClass implements Insertable<Meal> {
       name: Value(name),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      servingCount: servingCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(servingCount),
+      cookedWeightInGrams: cookedWeightInGrams == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cookedWeightInGrams),
     );
   }
 
@@ -15115,6 +15169,9 @@ class Meal extends DataClass implements Insertable<Meal> {
       userId: serializer.fromJson<String?>(json['userId']),
       name: serializer.fromJson<String>(json['name']),
       notes: serializer.fromJson<String?>(json['notes']),
+      servingCount: serializer.fromJson<int?>(json['servingCount']),
+      cookedWeightInGrams:
+          serializer.fromJson<int?>(json['cookedWeightInGrams']),
     );
   }
   @override
@@ -15129,6 +15186,8 @@ class Meal extends DataClass implements Insertable<Meal> {
       'userId': serializer.toJson<String?>(userId),
       'name': serializer.toJson<String>(name),
       'notes': serializer.toJson<String?>(notes),
+      'servingCount': serializer.toJson<int?>(servingCount),
+      'cookedWeightInGrams': serializer.toJson<int?>(cookedWeightInGrams),
     };
   }
 
@@ -15140,7 +15199,9 @@ class Meal extends DataClass implements Insertable<Meal> {
           Value<DateTime?> deletedAt = const Value.absent(),
           Value<String?> userId = const Value.absent(),
           String? name,
-          Value<String?> notes = const Value.absent()}) =>
+          Value<String?> notes = const Value.absent(),
+          Value<int?> servingCount = const Value.absent(),
+          Value<int?> cookedWeightInGrams = const Value.absent()}) =>
       Meal(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -15150,6 +15211,11 @@ class Meal extends DataClass implements Insertable<Meal> {
         userId: userId.present ? userId.value : this.userId,
         name: name ?? this.name,
         notes: notes.present ? notes.value : this.notes,
+        servingCount:
+            servingCount.present ? servingCount.value : this.servingCount,
+        cookedWeightInGrams: cookedWeightInGrams.present
+            ? cookedWeightInGrams.value
+            : this.cookedWeightInGrams,
       );
   Meal copyWithCompanion(MealsCompanion data) {
     return Meal(
@@ -15161,6 +15227,12 @@ class Meal extends DataClass implements Insertable<Meal> {
       userId: data.userId.present ? data.userId.value : this.userId,
       name: data.name.present ? data.name.value : this.name,
       notes: data.notes.present ? data.notes.value : this.notes,
+      servingCount: data.servingCount.present
+          ? data.servingCount.value
+          : this.servingCount,
+      cookedWeightInGrams: data.cookedWeightInGrams.present
+          ? data.cookedWeightInGrams.value
+          : this.cookedWeightInGrams,
     );
   }
 
@@ -15174,14 +15246,16 @@ class Meal extends DataClass implements Insertable<Meal> {
           ..write('deletedAt: $deletedAt, ')
           ..write('userId: $userId, ')
           ..write('name: $name, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('servingCount: $servingCount, ')
+          ..write('cookedWeightInGrams: $cookedWeightInGrams')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      localId, id, createdAt, updatedAt, deletedAt, userId, name, notes);
+  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
+      userId, name, notes, servingCount, cookedWeightInGrams);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -15193,7 +15267,9 @@ class Meal extends DataClass implements Insertable<Meal> {
           other.deletedAt == this.deletedAt &&
           other.userId == this.userId &&
           other.name == this.name &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.servingCount == this.servingCount &&
+          other.cookedWeightInGrams == this.cookedWeightInGrams);
 }
 
 class MealsCompanion extends UpdateCompanion<Meal> {
@@ -15205,6 +15281,8 @@ class MealsCompanion extends UpdateCompanion<Meal> {
   final Value<String?> userId;
   final Value<String> name;
   final Value<String?> notes;
+  final Value<int?> servingCount;
+  final Value<int?> cookedWeightInGrams;
   const MealsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -15214,6 +15292,8 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     this.userId = const Value.absent(),
     this.name = const Value.absent(),
     this.notes = const Value.absent(),
+    this.servingCount = const Value.absent(),
+    this.cookedWeightInGrams = const Value.absent(),
   });
   MealsCompanion.insert({
     this.localId = const Value.absent(),
@@ -15224,6 +15304,8 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     this.userId = const Value.absent(),
     required String name,
     this.notes = const Value.absent(),
+    this.servingCount = const Value.absent(),
+    this.cookedWeightInGrams = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Meal> custom({
     Expression<int>? localId,
@@ -15234,6 +15316,8 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     Expression<String>? userId,
     Expression<String>? name,
     Expression<String>? notes,
+    Expression<int>? servingCount,
+    Expression<int>? cookedWeightInGrams,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -15244,6 +15328,9 @@ class MealsCompanion extends UpdateCompanion<Meal> {
       if (userId != null) 'user_id': userId,
       if (name != null) 'name': name,
       if (notes != null) 'notes': notes,
+      if (servingCount != null) 'serving_count': servingCount,
+      if (cookedWeightInGrams != null)
+        'cooked_weight_in_grams': cookedWeightInGrams,
     });
   }
 
@@ -15255,7 +15342,9 @@ class MealsCompanion extends UpdateCompanion<Meal> {
       Value<DateTime?>? deletedAt,
       Value<String?>? userId,
       Value<String>? name,
-      Value<String?>? notes}) {
+      Value<String?>? notes,
+      Value<int?>? servingCount,
+      Value<int?>? cookedWeightInGrams}) {
     return MealsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -15265,6 +15354,8 @@ class MealsCompanion extends UpdateCompanion<Meal> {
       userId: userId ?? this.userId,
       name: name ?? this.name,
       notes: notes ?? this.notes,
+      servingCount: servingCount ?? this.servingCount,
+      cookedWeightInGrams: cookedWeightInGrams ?? this.cookedWeightInGrams,
     );
   }
 
@@ -15295,6 +15386,12 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (servingCount.present) {
+      map['serving_count'] = Variable<int>(servingCount.value);
+    }
+    if (cookedWeightInGrams.present) {
+      map['cooked_weight_in_grams'] = Variable<int>(cookedWeightInGrams.value);
+    }
     return map;
   }
 
@@ -15308,7 +15405,9 @@ class MealsCompanion extends UpdateCompanion<Meal> {
           ..write('deletedAt: $deletedAt, ')
           ..write('userId: $userId, ')
           ..write('name: $name, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('servingCount: $servingCount, ')
+          ..write('cookedWeightInGrams: $cookedWeightInGrams')
           ..write(')'))
         .toString();
   }
@@ -38663,6 +38762,8 @@ typedef $$MealsTableCreateCompanionBuilder = MealsCompanion Function({
   Value<String?> userId,
   required String name,
   Value<String?> notes,
+  Value<int?> servingCount,
+  Value<int?> cookedWeightInGrams,
 });
 typedef $$MealsTableUpdateCompanionBuilder = MealsCompanion Function({
   Value<int> localId,
@@ -38673,6 +38774,8 @@ typedef $$MealsTableUpdateCompanionBuilder = MealsCompanion Function({
   Value<String?> userId,
   Value<String> name,
   Value<String?> notes,
+  Value<int?> servingCount,
+  Value<int?> cookedWeightInGrams,
 });
 
 final class $$MealsTableReferences
@@ -38725,6 +38828,13 @@ class $$MealsTableFilterComposer extends Composer<_$AppDatabase, $MealsTable> {
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get servingCount => $composableBuilder(
+      column: $table.servingCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get cookedWeightInGrams => $composableBuilder(
+      column: $table.cookedWeightInGrams,
+      builder: (column) => ColumnFilters(column));
 
   Expression<bool> mealItemsRefs(
       Expression<bool> Function($$MealItemsTableFilterComposer f) f) {
@@ -38780,6 +38890,14 @@ class $$MealsTableOrderingComposer
 
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get servingCount => $composableBuilder(
+      column: $table.servingCount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get cookedWeightInGrams => $composableBuilder(
+      column: $table.cookedWeightInGrams,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$MealsTableAnnotationComposer
@@ -38814,6 +38932,12 @@ class $$MealsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<int> get servingCount => $composableBuilder(
+      column: $table.servingCount, builder: (column) => column);
+
+  GeneratedColumn<int> get cookedWeightInGrams => $composableBuilder(
+      column: $table.cookedWeightInGrams, builder: (column) => column);
 
   Expression<T> mealItemsRefs<T extends Object>(
       Expression<T> Function($$MealItemsTableAnnotationComposer a) f) {
@@ -38868,6 +38992,8 @@ class $$MealsTableTableManager extends RootTableManager<
             Value<String?> userId = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<int?> servingCount = const Value.absent(),
+            Value<int?> cookedWeightInGrams = const Value.absent(),
           }) =>
               MealsCompanion(
             localId: localId,
@@ -38878,6 +39004,8 @@ class $$MealsTableTableManager extends RootTableManager<
             userId: userId,
             name: name,
             notes: notes,
+            servingCount: servingCount,
+            cookedWeightInGrams: cookedWeightInGrams,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -38888,6 +39016,8 @@ class $$MealsTableTableManager extends RootTableManager<
             Value<String?> userId = const Value.absent(),
             required String name,
             Value<String?> notes = const Value.absent(),
+            Value<int?> servingCount = const Value.absent(),
+            Value<int?> cookedWeightInGrams = const Value.absent(),
           }) =>
               MealsCompanion.insert(
             localId: localId,
@@ -38898,6 +39028,8 @@ class $$MealsTableTableManager extends RootTableManager<
             userId: userId,
             name: name,
             notes: notes,
+            servingCount: servingCount,
+            cookedWeightInGrams: cookedWeightInGrams,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
