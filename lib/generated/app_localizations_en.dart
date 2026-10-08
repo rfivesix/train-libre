@@ -734,6 +734,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareImportFile => 'Import shared JSON file';
 
   @override
+  String get shareImportSectionTitle => 'Import shared content';
+
+  @override
+  String get shareImportSectionDescription =>
+      'Import routines, training plans, recipes, or workouts from a JSON file, or paste JSON text such as an AI response. Review the content before importing.';
+
+  @override
+  String get shareImportPasteButton => 'Paste JSON text';
+
+  @override
+  String get shareImportPasteTitle => 'Import JSON text';
+
+  @override
+  String get shareImportPasteDescription =>
+      'Paste the complete Train Libre JSON content here. You can review it before saving.';
+
+  @override
+  String get shareImportPasteHint => 'Paste JSON here';
+
+  @override
   String get shareImportPreview => 'Import shared item';
 
   @override

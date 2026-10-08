@@ -727,6 +727,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shareImportFile => '共有JSONファイルを読み込む';
 
   @override
+  String get shareImportSectionTitle => '共有コンテンツを読み込む';
+
+  @override
+  String get shareImportSectionDescription =>
+      'JSONファイルからルーティン、トレーニングプラン、レシピ、ワークアウトを読み込むか、AIの回答などからJSONテキストを貼り付けます。読み込み前に内容を確認できます。';
+
+  @override
+  String get shareImportPasteButton => 'JSONテキストを貼り付け';
+
+  @override
+  String get shareImportPasteTitle => 'JSONテキストを読み込む';
+
+  @override
+  String get shareImportPasteDescription =>
+      'Train LibreのJSON全体をここに貼り付けてください。保存前に内容を確認できます。';
+
+  @override
+  String get shareImportPasteHint => 'ここにJSONを貼り付け';
+
+  @override
   String get shareImportPreview => '共有アイテムを読み込む';
 
   @override

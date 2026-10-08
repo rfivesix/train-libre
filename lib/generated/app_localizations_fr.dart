@@ -743,6 +743,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shareImportFile => 'Importer un fichier JSON partagé';
 
   @override
+  String get shareImportSectionTitle => 'Importer du contenu partagé';
+
+  @override
+  String get shareImportSectionDescription =>
+      'Importez des routines, des programmes, des recettes ou des séances depuis un fichier JSON, ou collez du texte JSON, par exemple depuis une réponse d’IA. Vérifiez le contenu avant l’importation.';
+
+  @override
+  String get shareImportPasteButton => 'Coller du texte JSON';
+
+  @override
+  String get shareImportPasteTitle => 'Importer du texte JSON';
+
+  @override
+  String get shareImportPasteDescription =>
+      'Collez ici le contenu JSON complet de Train Libre. Vous pourrez le vérifier avant de l’enregistrer.';
+
+  @override
+  String get shareImportPasteHint => 'Collez le JSON ici';
+
+  @override
   String get shareImportPreview => 'Importer un élément partagé';
 
   @override

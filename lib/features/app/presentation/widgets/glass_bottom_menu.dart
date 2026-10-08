@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
@@ -67,7 +69,36 @@ Future<T?> showGlassBottomMenu<T>({
       ? Colors.black.withValues(alpha: 0.5)
       : Colors.black.withValues(alpha: 0.3);
 
-  return showModalBottomSheet<T>(
+  final sheetDisposed = Completer<void>();
+  return _showGlassBottomMenuAndWaitForDismissal<T>(
+    sheetDisposed: sheetDisposed,
+    context: context,
+    title: title,
+    headerTrailing: headerTrailing,
+    actions: actions,
+    contentBuilder: contentBuilder,
+    isDismissible: isDismissible,
+    enableDrag: enableDrag,
+    applySafeAreaBottom: applySafeAreaBottom,
+    expandToFullHeight: expandToFullHeight,
+    barrierColor: barrierColor,
+  );
+}
+
+Future<T?> _showGlassBottomMenuAndWaitForDismissal<T>({
+  required Completer<void> sheetDisposed,
+  required BuildContext context,
+  required String? title,
+  required Widget? headerTrailing,
+  required List<GlassMenuAction>? actions,
+  required Widget Function(BuildContext, VoidCallback)? contentBuilder,
+  required bool isDismissible,
+  required bool enableDrag,
+  required bool applySafeAreaBottom,
+  required bool expandToFullHeight,
+  required Color barrierColor,
+}) async {
+  final result = await showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
     useRootNavigator: true,
@@ -88,10 +119,18 @@ Future<T?> showGlassBottomMenu<T>({
           contentBuilder: contentBuilder,
           applySafeAreaBottom: applySafeAreaBottom,
           expandToFullHeight: expandToFullHeight,
+          onDisposed: () {
+            if (!sheetDisposed.isCompleted) sheetDisposed.complete();
+          },
         ),
       );
     },
   );
+  // showModalBottomSheet completes when popped, before the reverse transition
+  // has removed the sheet subtree. Callers often dispose TextField controllers
+  // after awaiting this function, so wait for that subtree to actually unmount.
+  await sheetDisposed.future;
+  return result;
 }
 
 class _GlassBottomMenuSheet extends StatelessWidget {
@@ -102,6 +141,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     this.actions = const <GlassMenuAction>[],
     this.applySafeAreaBottom = true,
     this.expandToFullHeight = false,
+    required this.onDisposed,
   });
 
   final String? title;
@@ -113,6 +153,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
   /// Fills the screen instead of hugging its content. For sheets that are a
   /// task in their own right rather than a short question.
   final bool expandToFullHeight;
+  final VoidCallback onDisposed;
 
   @override
   Widget build(BuildContext context) {
@@ -321,59 +362,88 @@ class _GlassBottomMenuSheet extends StatelessWidget {
       );
     }
 
-    return SafeArea(
-      top: false,
-      bottom: false,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              if (keyboardInset > 0)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  bottom: -keyboardInset,
-                  child: ClipPath(
-                    clipper: const ShapeBorderClipper(
-                      shape: RoundedSuperellipseBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+    return _GlassMenuDisposalNotifier(
+      onDisposed: onDisposed,
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints:
+                BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                if (keyboardInset > 0)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: -keyboardInset,
+                    child: ClipPath(
+                      clipper: const ShapeBorderClipper(
+                        shape: RoundedSuperellipseBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(r)),
+                        ),
                       ),
-                    ),
-                    child: RepaintBoundary(
-                      child: AdaptiveGlass(
-                        settings: LiquidGlassSettings(
-                          thickness: 0,
-                          blur: 8,
-                          glassColor: effectiveGlass,
-                          lightIntensity: 0,
-                          saturation: 1.20,
-                        ),
-                        shape: const LiquidVerticalRoundedSuperellipse(
-                          topRadius: r,
-                          bottomRadius: 0,
-                        ),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: neutralTint,
+                      child: RepaintBoundary(
+                        child: AdaptiveGlass(
+                          settings: LiquidGlassSettings(
+                            thickness: 0,
+                            blur: 8,
+                            glassColor: effectiveGlass,
+                            lightIntensity: 0,
+                            saturation: 1.20,
+                          ),
+                          shape: const LiquidVerticalRoundedSuperellipse(
+                            topRadius: r,
+                            bottomRadius: 0,
+                          ),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: neutralTint,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              liquidCard(),
-            ],
+                liquidCard(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+class _GlassMenuDisposalNotifier extends StatefulWidget {
+  const _GlassMenuDisposalNotifier({
+    required this.onDisposed,
+    required this.child,
+  });
+
+  final VoidCallback onDisposed;
+  final Widget child;
+
+  @override
+  State<_GlassMenuDisposalNotifier> createState() =>
+      _GlassMenuDisposalNotifierState();
+}
+
+class _GlassMenuDisposalNotifierState
+    extends State<_GlassMenuDisposalNotifier> {
+  @override
+  void dispose() {
+    widget.onDisposed();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 // In lib/widgets/glass_bottom_menu.dart
 

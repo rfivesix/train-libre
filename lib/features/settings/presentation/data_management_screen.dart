@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../../../core/infrastructure/backup_manager.dart';
@@ -237,17 +238,46 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       if (await file.length() > SharePortableCodec.maxFileBytes) {
         throw const FormatException('Share file is too large');
       }
-      final payload = SharePortableCodec.decode(await file.readAsString());
-      if (!mounted) return;
-      await Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => ShareLinkPreviewScreen(payload: payload),
-      ));
+      await _previewSharedJson(await file.readAsString());
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(AppLocalizations.of(context)!.shareImportInvalid),
       ));
     }
+  }
+
+  Future<void> _performSharedJsonTextImport() async {
+    final l10n = AppLocalizations.of(context)!;
+    final jsonText = await showGlassBottomMenu<String>(
+      context: context,
+      title: l10n.shareImportPasteTitle,
+      contentBuilder: (ctx, close) => _SharedJsonImportTextForm(
+        l10n: l10n,
+        onCancel: () => Navigator.of(ctx).pop(),
+        onSubmit: (text) => Navigator.of(ctx).pop(text),
+      ),
+    );
+    if (jsonText == null || !mounted) return;
+    try {
+      await _previewSharedJson(jsonText);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.shareImportInvalid),
+      ));
+    }
+  }
+
+  Future<void> _previewSharedJson(String jsonText) async {
+    if (utf8.encode(jsonText).length > SharePortableCodec.maxFileBytes) {
+      throw const FormatException('Share JSON is too large');
+    }
+    final payload = SharePortableCodec.decode(jsonText);
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ShareLinkPreviewScreen(payload: payload),
+    ));
   }
 
   // --- Externer Workout-Import (neutral) ---
@@ -412,6 +442,51 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.shareImportSectionTitle,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Text(
+                    l10n.shareImportSectionDescription,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                        ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AppButton.secondary(
+                      onPressed: _performSharedJsonImport,
+                      label: l10n.shareImportFile,
+                      icon: LucideIcons.file_down,
+                      tooltip: l10n.shareImportFile,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AppButton.secondary(
+                      onPressed: _performSharedJsonTextImport,
+                      label: l10n.shareImportPasteButton,
+                      icon: LucideIcons.clipboard,
+                      tooltip: l10n.shareImportPasteButton,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
             DataBackupCard(
               isFullBackupRunning: false,
               onExportPressed: _performFullExport,
@@ -464,15 +539,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                 }
               },
             ),
-            const SizedBox(height: DesignConstants.spacingS),
-            AppButton.secondary(
-              onPressed: _performSharedJsonImport,
-              label: l10n.shareImportFile,
-              icon: LucideIcons.file_down,
-            ),
             if (!isApple) ...[
-              const SizedBox(height: DesignConstants.spacingL),
-              const Divider(height: 1),
               const SizedBox(height: DesignConstants.spacingL),
               DataAutoBackupCard(
                 autoBackupDir: _autoBackupDir,
@@ -514,8 +581,6 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
             ],
             if (isApple) ...[
               const SizedBox(height: DesignConstants.spacingL),
-              const Divider(height: 1),
-              const SizedBox(height: DesignConstants.spacingL),
               ICloudSyncCard(
                 onBackupNow: ({onProgress}) async {
                   final db = DatabaseHelper.driftDb!;
@@ -526,8 +591,6 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                 },
               ),
             ],
-            const SizedBox(height: DesignConstants.spacingL),
-            const Divider(height: 1),
             const SizedBox(height: DesignConstants.spacingL),
             LocalDataDeletionCard(
               isLocalResetRunning: _isLocalResetRunning,
@@ -897,6 +960,86 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           },
         );
       },
+    );
+  }
+}
+
+/// Owns its controller for the lifetime of the bottom-sheet route. The route
+/// may keep its outgoing transition subtree alive after Navigator.pop returns.
+class _SharedJsonImportTextForm extends StatefulWidget {
+  const _SharedJsonImportTextForm({
+    required this.l10n,
+    required this.onCancel,
+    required this.onSubmit,
+  });
+
+  final AppLocalizations l10n;
+  final VoidCallback onCancel;
+  final ValueChanged<String> onSubmit;
+
+  @override
+  State<_SharedJsonImportTextForm> createState() =>
+      _SharedJsonImportTextFormState();
+}
+
+class _SharedJsonImportTextFormState extends State<_SharedJsonImportTextForm> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        DesignConstants.spacingL,
+        DesignConstants.spacingM,
+        DesignConstants.spacingL,
+        DesignConstants.spacingL,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(l10n.shareImportPasteDescription),
+          const SizedBox(height: DesignConstants.spacingM),
+          TextField(
+            controller: _controller,
+            minLines: 6,
+            maxLines: 10,
+            keyboardType: TextInputType.multiline,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: InputDecoration(
+              hintText: l10n.shareImportPasteHint,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: widget.onCancel,
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () => widget.onSubmit(_controller.text),
+                  label: l10n.shareImportConfirm,
+                  tooltip: l10n.shareImportConfirm,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

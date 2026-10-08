@@ -739,6 +739,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shareImportFile => 'Geteilte JSON-Datei importieren';
 
   @override
+  String get shareImportSectionTitle => 'Geteilte Inhalte importieren';
+
+  @override
+  String get shareImportSectionDescription =>
+      'Importiere Routinen, Trainingspläne, Rezepte oder Workouts aus einer JSON-Datei oder füge JSON-Text ein, zum Beispiel aus einer KI-Antwort. Prüfe den Inhalt vor dem Import.';
+
+  @override
+  String get shareImportPasteButton => 'JSON-Text einfügen';
+
+  @override
+  String get shareImportPasteTitle => 'JSON-Text importieren';
+
+  @override
+  String get shareImportPasteDescription =>
+      'Füge hier den vollständigen Train-Libre-JSON-Inhalt ein. Du kannst den Inhalt vor dem Speichern prüfen.';
+
+  @override
+  String get shareImportPasteHint => 'JSON hier einfügen';
+
+  @override
   String get shareImportPreview => 'Geteilten Inhalt importieren';
 
   @override

@@ -1460,6 +1460,42 @@ abstract class AppLocalizations {
   /// **'Import shared JSON file'**
   String get shareImportFile;
 
+  /// No description provided for @shareImportSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import shared content'**
+  String get shareImportSectionTitle;
+
+  /// No description provided for @shareImportSectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import routines, training plans, recipes, or workouts from a JSON file, or paste JSON text such as an AI response. Review the content before importing.'**
+  String get shareImportSectionDescription;
+
+  /// No description provided for @shareImportPasteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste JSON text'**
+  String get shareImportPasteButton;
+
+  /// No description provided for @shareImportPasteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import JSON text'**
+  String get shareImportPasteTitle;
+
+  /// No description provided for @shareImportPasteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the complete Train Libre JSON content here. You can review it before saving.'**
+  String get shareImportPasteDescription;
+
+  /// No description provided for @shareImportPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste JSON here'**
+  String get shareImportPasteHint;
+
   /// No description provided for @shareImportPreview.
   ///
   /// In en, this message translates to:
