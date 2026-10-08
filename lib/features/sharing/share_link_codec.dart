@@ -146,6 +146,24 @@ class ShareLinkPayload {
                 DateTime.tryParse(end) != null &&
                 DateTime.parse(end).isBefore(DateTime.parse(start))) ||
             (data['notes'] != null && data['notes'] is! String) ||
+            (data['exercise_notes_by_block'] != null &&
+                (data['exercise_notes_by_block'] is! Map ||
+                    (data['exercise_notes_by_block'] as Map).entries.any(
+                          (entry) =>
+                              int.tryParse(entry.key.toString()) == null ||
+                              entry.value is! String ||
+                              (entry.value as String).length > 10000,
+                        ))) ||
+            (data['pause_seconds_by_block'] != null &&
+                (data['pause_seconds_by_block'] is! Map ||
+                    (data['pause_seconds_by_block'] as Map).entries.any(
+                          (entry) =>
+                              int.tryParse(entry.key.toString()) == null ||
+                              entry.value is! List ||
+                              (entry.value as List).any(
+                                (seconds) => seconds is! int || seconds < 0,
+                              ),
+                        ))) ||
             (data['startZoneOffsetMinutes'] != null &&
                 data['startZoneOffsetMinutes'] is! int) ||
             (data['endZoneOffsetMinutes'] != null &&
@@ -196,7 +214,8 @@ class ShareLinkPayload {
 }
 
 class ShareLinkCodec {
-  static const baseUrl = 'https://trainlibre.com/share/';
+  static const websiteUrl = 'https://trainlibre.com';
+  static const baseUrl = '$websiteUrl/share/';
   static const maxLinkLength = 2000;
   static const maxEncodedLength = 16000;
   static const maxDecodedBytes = 128 * 1024;
@@ -311,8 +330,13 @@ class ShareLinkCodec {
           'start': workout.startTime.toIso8601String(),
           'end': workout.endTime?.toIso8601String(),
           'notes': workout.notes,
+          'exercise_notes_by_block': {
+            for (final entry in workout.exerciseNotesByBlock.entries)
+              entry.key.toString(): entry.value,
+          },
           'startZoneOffsetMinutes': workout.startZoneOffsetMinutes,
           'endZoneOffsetMinutes': workout.endZoneOffsetMinutes,
+          'pause_seconds_by_block': _pauseSecondsByBlock(workout),
           'sets': workout.sets.map((set) {
             final row = set.toMap();
             row.remove('id');
@@ -323,6 +347,20 @@ class ShareLinkCodec {
           }).toList(),
         },
       );
+
+  static Map<String, List<int>> _pauseSecondsByBlock(WorkoutLog workout) {
+    final values = <String, Set<int>>{};
+    for (final set in workout.sets) {
+      final block = set.exerciseBlock;
+      final seconds = set.restTimeSeconds;
+      if (block == null || seconds == null) continue;
+      values.putIfAbsent('$block', () => <int>{}).add(seconds);
+    }
+    return {
+      for (final entry in values.entries)
+        entry.key: (entry.value.toList()..sort()),
+    };
+  }
 }
 
 /// Readable JSON files use the same validated data model as URL links.
@@ -336,6 +374,7 @@ class SharePortableCodec {
     final encoded = const JsonEncoder.withIndent('  ').convert({
       'format': 'train-libre-share',
       'version': 1,
+      'source_url': ShareLinkCodec.websiteUrl,
       'type': payload.type,
       'name': payload.name,
       'data': payload.data,

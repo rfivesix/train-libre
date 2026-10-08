@@ -1,6 +1,7 @@
 import '../../generated/app_localizations.dart';
 import '../../services/unit_service.dart';
 import 'share_set_type.dart';
+import 'share_link_codec.dart';
 
 class ShareLabels {
   const ShareLabels({
@@ -13,6 +14,8 @@ class ShareLabels {
     required this.sets,
     required this.set,
     this.notes = 'Notes',
+    this.pauseTimer = 'Rest timer',
+    this.timerOff = 'OFF',
     required this.setNumber,
     required this.reps,
     required this.kg,
@@ -50,6 +53,8 @@ class ShareLabels {
       sets: l10n.shareSetsLabel,
       set: l10n.shareSetLabel,
       notes: l10n.notesLabel,
+      pauseTimer: l10n.pauseTimerLabel,
+      timerOff: l10n.timerOffLabel.toUpperCase(),
       setNumber: l10n.shareSetNumber,
       reps: l10n.repsShort,
       kg: unitService.suffixFor(UnitDimension.weight),
@@ -69,7 +74,7 @@ class ShareLabels {
       setTypeCount: (type, count) => _setTypeCount(l10n, type, count),
       setTypeCompact: (type, count) => _setTypeCompact(l10n, type, count),
       moreExercises: l10n.moreExercises,
-      githubUrl: 'https://github.com/rfivesix/train-libre',
+      githubUrl: ShareLinkCodec.websiteUrl,
       shareImageSummary: l10n.shareImageSummary,
       shareImageExercises: l10n.shareImageExercises,
       shareImageMuscleFocus: l10n.shareImageMuscleFocus,
@@ -116,6 +121,8 @@ class ShareLabels {
   final String sets;
   final String set;
   final String notes;
+  final String pauseTimer;
+  final String timerOff;
   final String Function(int number) setNumber;
   final String reps;
   final String kg;

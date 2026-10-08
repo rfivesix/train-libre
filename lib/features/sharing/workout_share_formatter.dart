@@ -6,6 +6,7 @@ import '../exercise_catalog/domain/models/exercise.dart';
 import '../workout/domain/models/set_log.dart';
 import '../workout/domain/models/exercise_block_key.dart';
 import '../workout/domain/models/workout_log.dart';
+import '../../util/time_util.dart';
 import 'share_labels.dart';
 import 'share_set_type.dart';
 
@@ -36,6 +37,12 @@ class WorkoutShareFormatter {
       ..writeln(_workoutName(workout))
       ..writeln(_dateDurationLine(workout));
 
+    if (workout.notes?.trim().isNotEmpty == true) {
+      buffer
+        ..writeln()
+        ..writeln('${labels.notes}: ${workout.notes!.trim()}');
+    }
+
     final volume = totalVolume(workout);
     if (volume > 0) {
       buffer.writeln('${labels.volume}: ${_formatWeight(volume)}');
@@ -64,6 +71,19 @@ class WorkoutShareFormatter {
           : workout.exerciseNotesByBlock[entry.key.exerciseBlock!];
       if (workoutNote?.trim().isNotEmpty == true) {
         buffer.writeln('${labels.notes}: ${workoutNote!.trim()}');
+      }
+      final pauseTimes = entry.value
+          .map((set) => set.restTimeSeconds)
+          .whereType<int>()
+          .toSet()
+          .toList()
+        ..sort();
+      if (pauseTimes.isNotEmpty) {
+        final formattedPauseTimes = pauseTimes
+            .map((seconds) =>
+                seconds > 0 ? formatPauseDuration(seconds) : labels.timerOff)
+            .join(' / ');
+        buffer.writeln('${labels.pauseTimer}: $formattedPauseTimes');
       }
       for (var index = 0; index < entry.value.length; index += 1) {
         buffer.writeln(

@@ -478,6 +478,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get restTimerLabel => 'Pause';
 
   @override
+  String get pauseTimerLabel => 'Pausentimer';
+
+  @override
+  String get timerOffLabel => 'Aus';
+
+  @override
   String get skipButton => 'Überspringen';
 
   @override
@@ -6038,6 +6044,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get exerciseNoteHint => 'Notizen oder Hinweise eingeben...';
+
+  @override
+  String get editExerciseNotes => 'Notiz hinzufügen/bearbeiten';
+
+  @override
+  String get workoutNoteAddHint => 'Notiz hier hinzufügen...';
 
   @override
   String get noteTypeTitle => 'Notiztyp';

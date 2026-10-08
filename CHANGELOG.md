@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Changed
+- **Workout screen controls and sharing:** Added compact front/back muscle views beside non-cardio exercises, aligned the note prompt and pause timer on one row when no note exists, and moved note, timer, and remove actions into the platform-adaptive overflow menu. Pause text now uses consistent bold emphasis. Workout text, JSON, and image shares preserve workout and exercise notes and pause durations, JSON imports restore exercise notes, and share outputs link to `https://trainlibre.com`.
+
 ## [1.5.1] - 2026-10-07
 
 ### Added

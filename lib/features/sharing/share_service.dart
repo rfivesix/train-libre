@@ -382,7 +382,17 @@ class ShareService {
         muscleSummaries: muscleSummaries,
         exerciseDetails: details,
       );
-      await _shareImage(file, subject: workout.routineName ?? labels.appName);
+      final formattedText = WorkoutShareFormatter(
+        labels,
+        locale: locale,
+        exerciseDetails: details,
+        unitService: unitService,
+      ).format(workout);
+      await _shareImage(
+        file,
+        subject: workout.routineName ?? labels.appName,
+        text: formattedText,
+      );
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -401,7 +411,8 @@ class ShareService {
     RoutineShareCardLayout layout = RoutineShareCardLayout.summary,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final labels = ShareLabels.fromL10n(l10n, context.read<UnitService>());
+    final unitService = context.read<UnitService>();
+    final labels = ShareLabels.fromL10n(l10n, unitService);
     final locale = Localizations.localeOf(context).toString();
     try {
       final file = await _renderer.renderRoutineCard(
@@ -411,7 +422,17 @@ class ShareService {
         locale: locale,
         layout: layout,
       );
-      await _shareImage(file, subject: routine.name);
+      final formattedText = ShareExportFormatter.format(
+        ShareLinkCodec.forRoutine(routine),
+        l10n,
+        unitService,
+        locale,
+      );
+      await _shareImage(
+        file,
+        subject: routine.name,
+        text: formattedText,
+      );
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -434,9 +455,10 @@ class ShareService {
     );
   }
 
-  Future<void> _shareImage(File file, {String? subject}) {
+  Future<void> _shareImage(File file, {String? subject, String? text}) {
     return SharePlus.instance.share(
       ShareParams(
+        text: text,
         files: [XFile(file.path, mimeType: 'image/png')],
         subject: subject,
         sharePositionOrigin: _sharePositionOrigin(),

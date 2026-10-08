@@ -986,6 +986,18 @@ abstract class AppLocalizations {
   /// **'Rest'**
   String get restTimerLabel;
 
+  /// No description provided for @pauseTimerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest timer'**
+  String get pauseTimerLabel;
+
+  /// No description provided for @timerOffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get timerOffLabel;
+
   /// No description provided for @skipButton.
   ///
   /// In en, this message translates to:
@@ -10518,6 +10530,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter notes or hints...'**
   String get exerciseNoteHint;
+
+  /// No description provided for @editExerciseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add/edit note'**
+  String get editExerciseNotes;
+
+  /// No description provided for @workoutNoteAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note here...'**
+  String get workoutNoteAddHint;
 
   /// No description provided for @noteTypeTitle.
   ///

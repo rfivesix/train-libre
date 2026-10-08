@@ -472,6 +472,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get restTimerLabel => '休む';
 
   @override
+  String get pauseTimerLabel => '休憩タイマー';
+
+  @override
+  String get timerOffLabel => 'オフ';
+
+  @override
   String get skipButton => 'スキップ';
 
   @override
@@ -5796,6 +5802,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get exerciseNoteHint => 'メモやヒントを入力...';
+
+  @override
+  String get editExerciseNotes => 'メモを追加/編集';
+
+  @override
+  String get workoutNoteAddHint => 'ここにメモを追加...';
 
   @override
   String get noteTypeTitle => 'メモの種類';

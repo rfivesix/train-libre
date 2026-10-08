@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../generated/app_localizations.dart';
 import '../../services/unit_service.dart';
 import 'share_link_codec.dart';
+import '../../util/time_util.dart';
 
 /// Human-readable exports built from the same snapshot used for JSON and links.
 class ShareExportFormatter {
@@ -104,10 +105,63 @@ class ShareExportFormatter {
             ..writeln()
             ..writeln(payload.data['notes']);
         }
+      case 'workout':
+        final sets = payload.data['sets'] as List;
+        if ((payload.data['notes'] as String?)?.trim().isNotEmpty == true) {
+          buffer
+            ..writeln()
+            ..writeln('${l10n.notesLabel}: '
+                '${(payload.data['notes'] as String).trim()}');
+        }
+        final groups = <String, List<Map>>{};
+        for (final raw in sets) {
+          final set = raw as Map;
+          final block = set['exercise_block'];
+          final key =
+              block == null ? 'name:${set['exercise_name']}' : 'block:$block';
+          groups.putIfAbsent(key, () => <Map>[]).add(set);
+        }
+        for (final group in groups.values) {
+          if (group.isEmpty) continue;
+          final first = group.first;
+          buffer.writeln('• ${first['exercise_name']}');
+          final note = group
+                  .map((set) => set['workout_exercise_note'])
+                  .whereType<String>()
+                  .firstOrNull ??
+              (payload.data['exercise_notes_by_block']
+                  as Map?)?['${first['exercise_block']}'];
+          if (note is String && note.trim().isNotEmpty) {
+            buffer.writeln('  ${l10n.notesLabel}: ${note.trim()}');
+          }
+          final pauses = group
+              .map((set) => set['rest_time_seconds'])
+              .whereType<int>()
+              .toSet()
+              .toList()
+            ..sort();
+          if (pauses.isNotEmpty) {
+            buffer.writeln(
+              '  ${l10n.pauseTimerLabel}: ${pauses.map((seconds) => seconds > 0 ? formatPauseDuration(seconds) : l10n.timerOffLabel.toUpperCase()).join(' / ')}',
+            );
+          }
+          for (final entry in group.asMap().entries) {
+            final rawSet = entry.value;
+            buffer.writeln(
+              '  ${setLine({
+                    'type': rawSet['set_type'],
+                    'reps': rawSet['reps'],
+                    'weight': rawSet['weight_kg'],
+                    'rir': rawSet['rir'],
+                  }, entry.key)}',
+            );
+          }
+        }
       default:
         throw const FormatException('Unsupported text export');
     }
-    return buffer.toString().trimRight();
+    return '${buffer.toString().trimRight()}\n\n'
+        '${l10n.sharedWithTrainLibre}\n${ShareLinkCodec.websiteUrl}';
   }
 
   static String _setType(String raw, AppLocalizations l10n) => switch (raw) {

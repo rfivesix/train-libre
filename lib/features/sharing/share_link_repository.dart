@@ -264,5 +264,27 @@ class ShareLinkRepository {
       set['exercise_id'] = exercise?.uuid;
       await source.insertSetLog(SetLog.fromMap(set));
     }
+
+    final rawNotes = data['exercise_notes_by_block'];
+    if (rawNotes is Map) {
+      for (final entry in rawNotes.entries) {
+        final block = int.tryParse(entry.key.toString());
+        final note = entry.value;
+        if (block == null || note is! String || note.trim().isEmpty) continue;
+        var exerciseName = '';
+        for (final rawSet in data['sets'] as List) {
+          if (rawSet is Map && rawSet['exercise_block'] == block) {
+            exerciseName = rawSet['exercise_name'] as String? ?? '';
+            break;
+          }
+        }
+        await source.saveWorkoutExerciseNote(
+          workoutLogId: row.localId,
+          exerciseBlock: block,
+          exerciseName: exerciseName,
+          notes: note,
+        );
+      }
+    }
   }
 }
