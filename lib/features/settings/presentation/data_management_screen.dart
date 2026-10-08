@@ -9,7 +9,6 @@ import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../core/infrastructure/export_manager.dart';
 import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
@@ -387,117 +386,119 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SummaryCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  DataBackupCard(
-                    isFullBackupRunning: false,
-                    onExportPressed: _performFullExport,
-                    onImportPressed: _performFullImport,
-                    onExportEncryptedPressed: () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final pw = await _askPassword(
-                        title: l10n.dialogPasswordForExport,
-                      );
-                      if (!context.mounted) return;
-                      if (pw == null || pw.isEmpty) return;
+            DataBackupCard(
+              isFullBackupRunning: false,
+              onExportPressed: _performFullExport,
+              onImportPressed: _performFullImport,
+              onExportEncryptedPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final pw = await _askPassword(
+                  title: l10n.dialogPasswordForExport,
+                );
+                if (!context.mounted) return;
+                if (pw == null || pw.isEmpty) return;
 
-                      bool ok = false;
-                      bool wasCanceled = false;
-                      try {
-                        ok = await LongRunningOperationOverlay.run(
-                          context: context,
-                          title: l10n.backupExportTitle,
-                          initialStatus: l10n.backupExportTitle,
-                          icon: LucideIcons.lock,
-                          operation: (token, updateProgress) async {
-                            await BackupManager.instance
-                                .exportFullBackupEncrypted(pw, token, (
-                              tableName,
-                              progress,
-                            ) {
-                              final statusText =
-                                  l10n.progressExportingTable(tableName);
-                              updateProgress(statusText, progress);
-                            });
-                          },
-                        );
-                      } catch (e) {
-                        if (e is OperationCanceledException) {
-                          wasCanceled = true;
-                        }
-                        ok = false;
-                      }
-
-                      if (!wasCanceled) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              ok
-                                  ? l10n.snackbarEncryptedBackupShared
-                                  : l10n.exportFailed,
-                            ),
-                          ),
-                        );
-                      }
+                bool ok = false;
+                bool wasCanceled = false;
+                try {
+                  ok = await LongRunningOperationOverlay.run(
+                    context: context,
+                    title: l10n.backupExportTitle,
+                    initialStatus: l10n.backupExportTitle,
+                    icon: LucideIcons.lock,
+                    operation: (token, updateProgress) async {
+                      await BackupManager.instance
+                          .exportFullBackupEncrypted(pw, token, (
+                        tableName,
+                        progress,
+                      ) {
+                        final statusText =
+                            l10n.progressExportingTable(tableName);
+                        updateProgress(statusText, progress);
+                      });
                     },
-                  ),
-                  const Divider(height: 1),
-                  if (!isApple)
-                    DataAutoBackupCard(
-                      autoBackupDir: _autoBackupDir,
-                      lastAutoBackupFilePath: _lastAutoBackupFilePath,
-                      lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
-                      lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
-                      onPickDirectory: _pickAutoBackupDirectory,
-                      onCopyPath: _copyAutoBackupPathToClipboard,
-                      onRunNow: () async {
-                        final ok =
-                            await BackupManager.instance.runAutoBackupIfDue(
-                          interval: const Duration(days: 1),
-                          encrypted: false,
-                          passphrase: null,
-                          retention: 7,
-                          dirPath: _autoBackupDir,
-                          force: true, // New: run immediately
-                        );
-                        await _loadAutoBackupDir();
-                        if (!mounted) return;
-                        final successText = ok
-                            ? (_lastAutoBackupFilePath != null &&
-                                    _lastAutoBackupFilePath!.isNotEmpty
-                                ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
-                                : l10n.snackbarAutoBackupSuccess)
-                            : (_lastAutoBackupError != null &&
-                                    _lastAutoBackupError!.isNotEmpty
-                                ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
-                                : l10n.snackbarAutoBackupFailed);
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                          SnackBar(
-                            content: Text(successText),
-                            backgroundColor: ok
-                                ? (_lastAutoBackupUsedFallback
-                                    ? Colors.orange
-                                    : null)
-                                : Theme.of(this.context).colorScheme.error,
-                          ),
-                        );
-                      },
+                  );
+                } catch (e) {
+                  if (e is OperationCanceledException) {
+                    wasCanceled = true;
+                  }
+                  ok = false;
+                }
+
+                if (!wasCanceled) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? l10n.snackbarEncryptedBackupShared
+                            : l10n.exportFailed,
+                      ),
                     ),
-                  if (isApple)
-                    ICloudSyncCard(
-                      onBackupNow: ({onProgress}) async {
-                        final db = DatabaseHelper.driftDb!;
-                        return await ICloudSyncService.instance.backupNow(
-                          db,
-                          onProgress: onProgress,
-                        );
-                      },
-                    ),
-                ],
-              ),
+                  );
+                }
+              },
             ),
+            if (!isApple) ...[
+              const SizedBox(height: DesignConstants.spacingL),
+              const Divider(height: 1),
+              const SizedBox(height: DesignConstants.spacingL),
+              DataAutoBackupCard(
+                autoBackupDir: _autoBackupDir,
+                lastAutoBackupFilePath: _lastAutoBackupFilePath,
+                lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
+                lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
+                onPickDirectory: _pickAutoBackupDirectory,
+                onCopyPath: _copyAutoBackupPathToClipboard,
+                onRunNow: () async {
+                  final ok =
+                      await BackupManager.instance.runAutoBackupIfDue(
+                    interval: const Duration(days: 1),
+                    encrypted: false,
+                    passphrase: null,
+                    retention: 7,
+                    dirPath: _autoBackupDir,
+                    force: true, // New: run immediately
+                  );
+                  await _loadAutoBackupDir();
+                  if (!mounted) return;
+                  final successText = ok
+                      ? (_lastAutoBackupFilePath != null &&
+                              _lastAutoBackupFilePath!.isNotEmpty
+                          ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
+                          : l10n.snackbarAutoBackupSuccess)
+                      : (_lastAutoBackupError != null &&
+                              _lastAutoBackupError!.isNotEmpty
+                          ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
+                          : l10n.snackbarAutoBackupFailed);
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    SnackBar(
+                      content: Text(successText),
+                      backgroundColor: ok
+                          ? (_lastAutoBackupUsedFallback
+                              ? Colors.orange
+                              : null)
+                          : Theme.of(this.context).colorScheme.error,
+                    ),
+                  );
+                },
+              ),
+            ],
+            if (isApple) ...[
+              const SizedBox(height: DesignConstants.spacingL),
+              const Divider(height: 1),
+              const SizedBox(height: DesignConstants.spacingL),
+              ICloudSyncCard(
+                onBackupNow: ({onProgress}) async {
+                  final db = DatabaseHelper.driftDb!;
+                  return await ICloudSyncService.instance.backupNow(
+                    db,
+                    onProgress: onProgress,
+                  );
+                },
+              ),
+            ],
+            const SizedBox(height: DesignConstants.spacingL),
+            const Divider(height: 1),
             const SizedBox(height: DesignConstants.spacingL),
             LocalDataDeletionCard(
               isLocalResetRunning: _isLocalResetRunning,

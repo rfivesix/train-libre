@@ -93,6 +93,41 @@ class AppSettingsRow extends StatelessWidget {
     );
   }
 
+  /// Factory constructor for a radio selection row with the radio in the leading slot.
+  factory AppSettingsRow.radioTile({
+    Key? key,
+    required String title,
+    String? subtitle,
+    required bool selected,
+    required VoidCallback? onTap,
+    EdgeInsetsGeometry padding =
+        const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
+    BorderRadius borderRadius = const BorderRadius.all(Radius.circular(12.0)),
+  }) {
+    return AppSettingsRow(
+      key: key,
+      title: title,
+      subtitle: subtitle,
+      leading: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          return Icon(
+            selected
+                ? LucideIcons.circle_dot
+                : LucideIcons.circle,
+            size: 20,
+            color: selected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+          );
+        },
+      ),
+      padding: padding,
+      borderRadius: borderRadius,
+      onTap: onTap,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -104,16 +139,22 @@ class AppSettingsRow extends StatelessWidget {
       padding: padding,
       child: Row(
         children: [
-          SizedBox(
-            width: 32.0,
-            child: leading != null
-                ? Align(
-                    alignment: Alignment.centerLeft,
-                    child: leading!,
-                  )
-                : null,
-          ),
-          const SizedBox(width: 12.0),
+          if (leading != null) ...[
+            SizedBox(
+              width: 32.0,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: IconTheme(
+                  data: IconThemeData(
+                    color: theme.colorScheme.primary,
+                    size: 24,
+                  ),
+                  child: leading!,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12.0),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

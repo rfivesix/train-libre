@@ -9,9 +9,8 @@ import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
-import '../../../widgets/common/summary_card.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
@@ -451,18 +450,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           AppInfoRow(
             title: l10n.aiSettingsInstructionTitle,
             subtitle: l10n.aiSettingsInstructionBody,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
           ),
           AppLinkRow(
             title: l10n.aiSettingsSetupGuideTitle,
             subtitle: l10n.aiSettingsSetupGuideBody,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
             onTap: () => launchUrl(
               Uri.parse('https://ai.google.dev/gemini-api/docs/api-key'),
               mode: LaunchMode.externalApplication,
@@ -471,78 +462,55 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           const SizedBox(height: DesignConstants.spacingXL),
 
           AppSectionHeader(title: l10n.aiStatusAndFeaturesSectionTitle),
-          SummaryCard(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  PlatformAdaptiveSwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    secondary: ShaderMask(
-                      blendMode: BlendMode.srcIn,
-                      shaderCallback: (bounds) =>
-                          DesignConstants.createAiGradientShader(bounds),
-                      child: const Icon(LucideIcons.sparkles),
-                    ),
-                    title: Text(
-                      l10n.aiEnableTitle,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(l10n.aiEnableSubtitle),
-                    value: aiEnabled,
-                    onChanged: (value) => themeService.setAiEnabled(value),
-                  ),
-                  if (aiEnabled && _hasLidar) ...[
-                    const SizedBox(height: 12),
-                    PlatformAdaptiveSwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      secondary: const Icon(LucideIcons.ruler),
-                      title: Text(
-                        l10n.aiLidarScaleTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(l10n.aiLidarScaleSubtitle),
-                      value: _scaleHintEnabled,
-                      onChanged: (value) async {
-                        await DepthScanSettings.instance
-                            .setScaleHintEnabled(value);
-                        if (!mounted) return;
-                        setState(() => _scaleHintEnabled = value);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    PlatformAdaptiveSwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      secondary: const Icon(LucideIcons.layers),
-                      title: Text(
-                        l10n.aiDepthImageTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(l10n.aiDepthImageSubtitle),
-                      value: _depthImageEnabled,
-                      onChanged: (value) async {
-                        await DepthScanSettings.instance
-                            .setDepthImageEnabled(value);
-                        if (!mounted) return;
-                        setState(() => _depthImageEnabled = value);
-                      },
-                    ),
-                  ],
-                ],
-              ),
+          AppSettingsRow.switchTile(
+            title: l10n.aiEnableTitle,
+            subtitle: l10n.aiEnableSubtitle,
+            leading: ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (bounds) =>
+                  DesignConstants.createAiGradientShader(bounds),
+              child: const Icon(LucideIcons.sparkles),
             ),
+            value: aiEnabled,
+            onChanged: (value) => themeService.setAiEnabled(value),
           ),
+          if (aiEnabled && _hasLidar) ...[
+            const Divider(height: 1),
+            AppSettingsRow.switchTile(
+              title: l10n.aiLidarScaleTitle,
+              subtitle: l10n.aiLidarScaleSubtitle,
+              leading: const Icon(LucideIcons.ruler),
+              value: _scaleHintEnabled,
+              onChanged: (value) async {
+                await DepthScanSettings.instance
+                    .setScaleHintEnabled(value);
+                if (!mounted) return;
+                setState(() => _scaleHintEnabled = value);
+              },
+            ),
+            const Divider(height: 1),
+            AppSettingsRow.switchTile(
+              title: l10n.aiDepthImageTitle,
+              subtitle: l10n.aiDepthImageSubtitle,
+              leading: const Icon(LucideIcons.layers),
+              value: _depthImageEnabled,
+              onChanged: (value) async {
+                await DepthScanSettings.instance
+                    .setDepthImageEnabled(value);
+                if (!mounted) return;
+                setState(() => _depthImageEnabled = value);
+              },
+            ),
+          ],
 
           if (aiEnabled) ...[
             const SizedBox(height: DesignConstants.spacingL),
             AppSectionHeader(title: l10n.aiProviderSectionTitle),
-            SummaryCard(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                     PlatformAdaptiveDropdownFormField<AiProvider>(
                       key: ValueKey(
                           'ai_provider_dropdown_${_selectedProvider.name}'),
@@ -865,17 +833,15 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
 
           const SizedBox(height: DesignConstants.spacingL),
 
           // --- Photo Storage & Retention ---
           AppSectionHeader(title: l10n.mealPhotoStorageSection),
-          SummaryCard(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -951,7 +917,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 ],
               ),
             ),
-          ),
 
           const SizedBox(height: DesignConstants.spacingXL),
 
@@ -959,10 +924,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           AppInfoRow(
             title: l10n.aiPrivacySection,
             subtitle: l10n.aiPrivacyDisclosure,
-            padding: const EdgeInsets.symmetric(
-              vertical: 4,
-              horizontal: 16,
-            ),
           ),
           const BottomContentSpacer(),
         ],

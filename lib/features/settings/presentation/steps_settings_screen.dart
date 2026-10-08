@@ -11,7 +11,6 @@ import '../../../util/permission_dialogs.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/permissions/sleep_permission_models.dart';
@@ -187,91 +186,90 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
                         : _requestAccess,
                   ),
                   const Divider(height: 1),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        l10n.stepsSettingsSourcePolicyTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                  AppSectionHeader(
+                    title: l10n.stepsSettingsSourcePolicyTitle,
+                    autoUpperCase: false,
                   ),
-                  RadioGroup<StepsSourcePolicy>(
-                    groupValue: _stepsSourcePolicy,
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await _stepsSyncService.setSourcePolicy(value);
+                  AppSettingsRow.radioTile(
+                    title: l10n.stepsSettingsSourcePolicyAutoDominant,
+                    subtitle: l10n.stepsSettingsSourcePolicyAutoDominantSubtitle,
+                    selected: _stepsSourcePolicy == StepsSourcePolicy.autoDominant,
+                    onTap: () async {
+                      await _stepsSyncService
+                          .setSourcePolicy(StepsSourcePolicy.autoDominant);
                       if (!mounted) return;
                       setState(() {
-                        _stepsSourcePolicy = value;
+                        _stepsSourcePolicy = StepsSourcePolicy.autoDominant;
                         _hasChanges = true;
                       });
                     },
-                    child: Column(
-                      children: [
-                        RadioListTile<StepsSourcePolicy>(
-                          title: Text(
-                            l10n.stepsSettingsSourcePolicyAutoDominant,
-                          ),
-                          subtitle: Text(
-                            l10n.stepsSettingsSourcePolicyAutoDominantSubtitle,
-                          ),
-                          value: StepsSourcePolicy.autoDominant,
-                        ),
-                        RadioListTile<StepsSourcePolicy>(
-                          title: Text(
-                            l10n.stepsSettingsSourcePolicyMaxPerHour,
-                          ),
-                          subtitle: Text(
-                            l10n.stepsSettingsSourcePolicyMaxPerHourSubtitle,
-                          ),
-                          value: StepsSourcePolicy.maxPerHour,
-                        ),
-                      ],
-                    ),
                   ),
                   const Divider(height: 1),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        l10n.stepsSettingsProviderFilterTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  RadioGroup<StepsProviderFilter>(
-                    groupValue: _stepsProviderFilter,
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await _stepsSyncService.setProviderFilter(value);
+                  AppSettingsRow.radioTile(
+                    title: l10n.stepsSettingsSourcePolicyMaxPerHour,
+                    subtitle: l10n.stepsSettingsSourcePolicyMaxPerHourSubtitle,
+                    selected: _stepsSourcePolicy == StepsSourcePolicy.maxPerHour,
+                    onTap: () async {
+                      await _stepsSyncService
+                          .setSourcePolicy(StepsSourcePolicy.maxPerHour);
                       if (!mounted) return;
                       setState(() {
-                        _stepsProviderFilter = value;
+                        _stepsSourcePolicy = StepsSourcePolicy.maxPerHour;
                         _hasChanges = true;
                       });
                     },
-                    child: Column(
-                      children: [
-                        RadioListTile<StepsProviderFilter>(
-                          title: Text(l10n.filterAll),
-                          value: StepsProviderFilter.all,
-                        ),
-                        if (Platform.isIOS)
-                          RadioListTile<StepsProviderFilter>(
-                            title: Text(l10n.statisticsProviderAppleHealth),
-                            value: StepsProviderFilter.apple,
-                          ),
-                        if (Platform.isAndroid)
-                          RadioListTile<StepsProviderFilter>(
-                            title: Text(l10n.statisticsProviderHealthConnect),
-                            value: StepsProviderFilter.google,
-                          ),
-                      ],
-                    ),
                   ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                  AppSectionHeader(
+                    title: l10n.stepsSettingsProviderFilterTitle,
+                    autoUpperCase: false,
+                  ),
+                  AppSettingsRow.radioTile(
+                    title: l10n.filterAll,
+                    selected: _stepsProviderFilter == StepsProviderFilter.all,
+                    onTap: () async {
+                      await _stepsSyncService
+                          .setProviderFilter(StepsProviderFilter.all);
+                      if (!mounted) return;
+                      setState(() {
+                        _stepsProviderFilter = StepsProviderFilter.all;
+                        _hasChanges = true;
+                      });
+                    },
+                  ),
+                  if (Platform.isIOS) ...[
+                    const Divider(height: 1),
+                    AppSettingsRow.radioTile(
+                      title: l10n.statisticsProviderAppleHealth,
+                      selected: _stepsProviderFilter == StepsProviderFilter.apple,
+                      onTap: () async {
+                        await _stepsSyncService
+                            .setProviderFilter(StepsProviderFilter.apple);
+                        if (!mounted) return;
+                        setState(() {
+                          _stepsProviderFilter = StepsProviderFilter.apple;
+                          _hasChanges = true;
+                        });
+                      },
+                    ),
+                  ],
+                  if (Platform.isAndroid) ...[
+                    const Divider(height: 1),
+                    AppSettingsRow.radioTile(
+                      title: l10n.statisticsProviderHealthConnect,
+                      selected: _stepsProviderFilter == StepsProviderFilter.google,
+                      onTap: () async {
+                        await _stepsSyncService
+                            .setProviderFilter(StepsProviderFilter.google);
+                        if (!mounted) return;
+                        setState(() {
+                          _stepsProviderFilter = StepsProviderFilter.google;
+                          _hasChanges = true;
+                        });
+                      },
+                    ),
+                  ],
                 ],
               );
             },

@@ -24,7 +24,7 @@ class DataBackupCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: DesignConstants.cardPadding,
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -37,7 +37,9 @@ class DataBackupCard extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.dataManagementBackupDescription,
-            style: theme.textTheme.bodyMedium,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingL),
           Row(

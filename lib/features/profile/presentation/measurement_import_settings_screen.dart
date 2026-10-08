@@ -10,7 +10,6 @@ import '../../../services/health/health_connect_weight_import.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
 
 /// Health reads belong with body measurements, not with the one-way export.
 /// The import is opt-in and then runs again when the app next cold-starts.

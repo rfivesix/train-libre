@@ -30,7 +30,7 @@ class DataAutoBackupCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.all(DesignConstants.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -41,7 +41,12 @@ class DataAutoBackupCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          Text(l10n.autoBackupDescription, style: theme.textTheme.bodyMedium),
+          Text(
+            l10n.autoBackupDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
           const SizedBox(height: DesignConstants.spacingS),
           SelectableText(
             autoBackupDir ?? l10n.autoBackupDefaultFolder,

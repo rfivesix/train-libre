@@ -5,7 +5,6 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../../util/permission_dialogs.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';

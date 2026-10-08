@@ -836,45 +836,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: const Key('settings_section_reset'),
             title: l10n.localDataDeletionCardTitle,
           ),
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.localDataDeletionCardTitle,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Text(
+              l10n.localDataDeletionCardDescription,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
                   ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Text(
-                    l10n.localDataDeletionCardDescription,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                  SizedBox(
-                    width: double.infinity,
-                    child: AppButton.danger(
-                      onPressed: _isLocalResetRunning
-                          ? null
-                          : _confirmAndDeleteLocalData,
-                      label: l10n.deleteAllLocalAppData,
-                      tooltip: l10n.deleteAllLocalAppData,
-                      icon: LucideIcons.trash,
-                      isLoading: _isLocalResetRunning,
-                    ),
-                  ),
-                  if (_isLocalResetRunning)
-                    const Padding(
-                      padding: EdgeInsets.only(top: DesignConstants.spacingL),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                ],
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: AppButton.danger(
+                onPressed: _isLocalResetRunning
+                    ? null
+                    : _confirmAndDeleteLocalData,
+                label: l10n.deleteAllLocalAppData,
+                tooltip: l10n.deleteAllLocalAppData,
+                icon: LucideIcons.trash,
+                isLoading: _isLocalResetRunning,
               ),
             ),
           ),
+          if (_isLocalResetRunning)
+            const Padding(
+              padding: EdgeInsets.only(top: DesignConstants.spacingL),
+              child: Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
     );

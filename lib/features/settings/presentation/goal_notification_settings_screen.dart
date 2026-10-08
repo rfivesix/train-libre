@@ -8,7 +8,6 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../../services/local_notification_service.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
