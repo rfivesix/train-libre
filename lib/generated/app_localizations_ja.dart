@@ -747,6 +747,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shareImportPasteHint => 'ここにJSONを貼り付け';
 
   @override
+  String get shareImportReplaceWarning =>
+      '現在開いている内容はすべて置き換えられます。完了済みのワークアウトと過去のプラン履歴は保持されます。';
+
+  @override
+  String get shareImportAddWarning =>
+      'この内容は新しい項目として読み込まれます。既存のルーティン、プラン、レシピ、ワークアウトは変更されません。';
+
+  @override
   String get shareImportPreview => '共有アイテムを読み込む';
 
   @override

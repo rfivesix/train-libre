@@ -276,6 +276,8 @@
   "shareImportPasteTitle": "Importa testo JSON",
   "shareImportPasteDescription": "Incolla qui il contenuto JSON completo di Train Libre. Puoi controllarlo prima di salvarlo.",
   "shareImportPasteHint": "Incolla qui il JSON",
+  "shareImportReplaceWarning": "Il contenuto attualmente aperto verrà sostituito completamente. Gli allenamenti completati e le revisioni precedenti del piano saranno conservati.",
+  "shareImportAddWarning": "Questo contenuto verrà importato come nuovo elemento. Routine, piani, ricette e allenamenti esistenti resteranno invariati.",
   "shareImportPreview": "Importa elemento condiviso",
   "shareImportConfirm": "Importa in Train Libre",
   "shareImportSuccess": "Importazione riuscita",

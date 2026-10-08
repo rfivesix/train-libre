@@ -11,6 +11,8 @@ import '../../supplements/domain/models/supplement_log.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/morph_source.dart';
@@ -63,6 +65,30 @@ class _MealsScreenState extends State<MealsScreen> {
       _meals = meals;
       _loading = false;
     });
+  }
+
+  Future<void> _importRecipe() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'recipe',
+      warning: l10n.shareImportAddWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      await const ShareLinkRepository().import(payload);
+      if (!mounted) return;
+      await _reloadMeals();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
+    }
   }
 
   Future<List<Map<String, dynamic>>> _getMealItems(int mealId) async {
@@ -287,7 +313,16 @@ class _MealsScreenState extends State<MealsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: GlobalAppBar(title: l10n.tabMeals),
+      appBar: GlobalAppBar(
+        title: l10n.tabMeals,
+        actions: [
+          IconButton(
+            tooltip: l10n.shareImportSectionTitle,
+            onPressed: _importRecipe,
+            icon: const Icon(LucideIcons.file_down),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           _loading

@@ -69,6 +69,111 @@ class ShareLinkRepository {
     });
   }
 
+  /// Imports a routine as a new item and returns the created local model.
+  Future<Routine> importRoutine(ShareLinkPayload payload) async {
+    payload = ShareLinkPayload.fromJson(payload.toJson());
+    if (payload.type != 'routine') {
+      throw const FormatException('Expected a routine');
+    }
+    return DatabaseHelper.instance.dbInstance
+        .transaction(() => _importRoutine(payload));
+  }
+
+  /// Replaces only the saved routine template. Workout logs and their
+  /// routine reference remain attached to the same stable routine ID.
+  Future<void> replaceRoutine(int routineId, ShareLinkPayload payload) async {
+    payload = ShareLinkPayload.fromJson(payload.toJson());
+    if (payload.type != 'routine') {
+      throw const FormatException('Expected a routine');
+    }
+    final database = DatabaseHelper.instance.dbInstance;
+    await database.transaction(() async {
+      final target = await (database.select(database.routines)
+            ..where((row) => row.localId.equals(routineId)))
+          .getSingleOrNull();
+      if (target == null) throw StateError('Routine no longer exists');
+
+      // Stage through the normal, validated importer so exercise matching,
+      // set templates and metadata follow exactly the existing import rules.
+      final staged = await _importRoutine(payload);
+      final stagedRow = await (database.select(database.routines)
+            ..where((row) => row.localId.equals(staged.id!)))
+          .getSingle();
+      final incomingRows = await (database.select(database.routineExercises)
+            ..where((row) => row.routineId.equals(stagedRow.id))
+            ..orderBy([(row) => drift.OrderingTerm.asc(row.orderIndex)]))
+          .get();
+
+      await (database.delete(database.routineExercises)
+            ..where((row) => row.routineId.equals(target.id)))
+          .go();
+      for (var index = 0; index < incomingRows.length; index++) {
+        final row = incomingRows[index];
+        await (database.update(database.routineExercises)
+              ..where((item) => item.localId.equals(row.localId)))
+            .write(db.RoutineExercisesCompanion(
+          routineId: drift.Value(target.id),
+          orderIndex: drift.Value(index),
+        ));
+      }
+      await (database.update(database.routines)
+            ..where((row) => row.id.equals(target.id)))
+          .write(db.RoutinesCompanion(name: drift.Value(payload.name.trim())));
+      await (database.delete(database.routines)
+            ..where((row) => row.id.equals(stagedRow.id)))
+          .go();
+    });
+  }
+
+  /// Resolves routines embedded in a plan to local exercise IDs and builds
+  /// detached snapshots suitable for a plan editor draft.
+  Future<({TrainingPlanKind kind, List<TrainingPlanDay> days})>
+      decodePlanForEditor(ShareLinkPayload payload) async {
+    payload = ShareLinkPayload.fromJson(payload.toJson());
+    if (payload.type != 'plan') {
+      throw const FormatException('Expected a training plan');
+    }
+    final kind = TrainingPlanKind.values.byName(payload.data['kind'] as String);
+    final database = DatabaseHelper.instance.dbInstance;
+    return database.transaction(() async {
+      final days = <TrainingPlanDay>[];
+      for (final raw in payload.data['days'] as List) {
+        if (raw == null) {
+          days.add(const TrainingPlanDay());
+          continue;
+        }
+        final nested = ShareLinkPayload.fromJson(
+          Map<String, dynamic>.from(raw as Map),
+        );
+        final staged = await _importRoutine(nested);
+        final snapshotExercises = staged.exercises.map((entry) {
+          return {
+            'exercise': entry.exercise.toMap(),
+            'setTemplates': entry.setTemplates
+                .map((set) => {
+                      ...set.toMap(),
+                      'id': null,
+                    })
+                .toList(),
+            'pause_seconds': entry.pauseSeconds,
+            'superset_group': entry.supersetGroup,
+            'notes': entry.notes,
+            'progression_data': entry.progressionData,
+          };
+        }).toList();
+        final routine = {
+          'name': staged.name,
+          'exercises': snapshotExercises,
+        };
+        days.add(TrainingPlanDay(routineSnapshot: routine));
+        await (database.delete(database.routines)
+              ..where((row) => row.localId.equals(staged.id!)))
+            .go();
+      }
+      return (kind: kind, days: days);
+    });
+  }
+
   Future<Routine> _importRoutine(ShareLinkPayload payload) async {
     final source = WorkoutLocalDataSource.instance;
     final rows = payload.data['exercises'] as List;
@@ -172,7 +277,20 @@ class ShareLinkRepository {
     );
   }
 
-  Future<void> _importRecipe(ShareLinkPayload payload) async {
+  Future<void> replaceRecipe(int mealId, ShareLinkPayload payload) async {
+    payload = ShareLinkPayload.fromJson(payload.toJson());
+    if (payload.type != 'recipe') {
+      throw const FormatException('Expected a recipe');
+    }
+    await DatabaseHelper.instance.dbInstance.transaction(
+      () => _importRecipe(payload, existingMealId: mealId),
+    );
+  }
+
+  Future<void> _importRecipe(
+    ShareLinkPayload payload, {
+    int? existingMealId,
+  }) async {
     final rows = payload.data['items'] as List;
     if (rows.isEmpty) throw const FormatException('Recipe has no items');
     final items = rows.map((raw) {
@@ -218,13 +336,25 @@ class ShareLinkRepository {
       ));
       importedBarcodes[barcode] = targetBarcode;
     }
-    final mealId = await DatabaseHelper.instance.insertMeal(
-      name: payload.name,
-      notes: payload.data['notes'] as String?,
-      servingCount: (payload.data['portions'] as num?)?.toInt(),
-      cookedWeightInGrams:
-          (payload.data['cookedWeightInGrams'] as num?)?.toInt(),
-    );
+    final mealId = existingMealId ??
+        await DatabaseHelper.instance.insertMeal(
+          name: payload.name,
+          notes: payload.data['notes'] as String?,
+          servingCount: (payload.data['portions'] as num?)?.toInt(),
+          cookedWeightInGrams:
+              (payload.data['cookedWeightInGrams'] as num?)?.toInt(),
+        );
+    if (existingMealId != null) {
+      await DatabaseHelper.instance.updateMeal(
+        mealId,
+        name: payload.name.trim(),
+        notes: payload.data['notes'] as String?,
+        servingCount: (payload.data['portions'] as num?)?.toInt(),
+        cookedWeightInGrams:
+            (payload.data['cookedWeightInGrams'] as num?)?.toInt(),
+      );
+      await DatabaseHelper.instance.clearMealItems(mealId);
+    }
     for (final item in items) {
       await DatabaseHelper.instance.addMealItem(
         mealId: mealId,

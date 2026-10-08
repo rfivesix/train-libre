@@ -276,6 +276,8 @@
   "shareImportPasteTitle": "JSON-Text importieren",
   "shareImportPasteDescription": "Füge hier den vollständigen Train-Libre-JSON-Inhalt ein. Du kannst den Inhalt vor dem Speichern prüfen.",
   "shareImportPasteHint": "JSON hier einfügen",
+  "shareImportReplaceWarning": "Der aktuell geöffnete Inhalt wird vollständig ersetzt. Bereits absolvierte Workouts und ältere Planversionen bleiben erhalten.",
+  "shareImportAddWarning": "Der Inhalt wird als neuer Eintrag importiert. Vorhandene Routinen, Trainingspläne, Rezepte und Workouts bleiben unverändert.",
   "shareImportPreview": "Geteilten Inhalt importieren",
   "shareImportConfirm": "In Train Libre importieren",
   "shareImportSuccess": "Erfolgreich importiert",

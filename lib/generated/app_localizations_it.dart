@@ -758,6 +758,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get shareImportPasteHint => 'Incolla qui il JSON';
 
   @override
+  String get shareImportReplaceWarning =>
+      'Il contenuto attualmente aperto verrà sostituito completamente. Gli allenamenti completati e le revisioni precedenti del piano saranno conservati.';
+
+  @override
+  String get shareImportAddWarning =>
+      'Questo contenuto verrà importato come nuovo elemento. Routine, piani, ricette e allenamenti esistenti resteranno invariati.';
+
+  @override
   String get shareImportPreview => 'Importa elemento condiviso';
 
   @override

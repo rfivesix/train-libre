@@ -31,6 +31,8 @@ import 'edit_routine_screen.dart';
 import 'manual_plan_editor_screen.dart';
 import 'manual_plan_text.dart';
 import '../../sharing/share_service.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import 'workout_log_detail_screen.dart';
 import 'widgets/manual_plan_ui.dart';
 
@@ -134,6 +136,32 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       _selectedDate = null;
       _weekDirection = 0;
       _reload();
+    }
+  }
+
+  Future<void> _importPlan() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'plan',
+      warning: l10n.shareImportAddWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      await const ShareLinkRepository().import(payload);
+      if (!mounted) return;
+      _selectedId = null;
+      _weekAnchor = null;
+      _selectedDate = null;
+      _reload();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
     }
   }
 
@@ -471,15 +499,19 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
           extendBodyBehindAppBar: true,
           appBar: GlobalAppBar(
             title: text.get('plan'),
-            actions: hasPlans
-                ? [
-                    IconButton(
-                      tooltip: text.get('create'),
-                      onPressed: () => _createOrEdit(null),
-                      icon: const Icon(LucideIcons.plus),
-                    ),
-                  ]
-                : null,
+            actions: [
+              IconButton(
+                tooltip: AppLocalizations.of(context)!.shareImportSectionTitle,
+                onPressed: _importPlan,
+                icon: const Icon(LucideIcons.file_down),
+              ),
+              if (hasPlans)
+                IconButton(
+                  tooltip: text.get('create'),
+                  onPressed: () => _createOrEdit(null),
+                  icon: const Icon(LucideIcons.plus),
+                ),
+            ],
           ),
           body: !snapshot.hasData
               ? Padding(

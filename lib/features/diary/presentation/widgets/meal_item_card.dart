@@ -6,6 +6,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../widgets/common/macro_badge_row.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../add_food_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -106,34 +107,59 @@ class MealItemCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: DesignConstants.spacingS),
-          Wrap(
-            spacing: 4,
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              if (onShare != null)
-                IconButton(
-                  tooltip: AppLocalizations.of(context)!.share,
-                  icon: const Icon(LucideIcons.link),
-                  onPressed: onShare,
-                ),
               IconButton(
                 tooltip: AppLocalizations.of(context)!.mealsAddToDiary,
                 icon: Icon(LucideIcons.circle_plus, color: color.primary),
                 onPressed: onAdd,
               ),
-              IconButton(
-                tooltip: AppLocalizations.of(context)!.mealsEdit,
-                icon: const Icon(LucideIcons.pencil),
-                onPressed: onEdit,
-              ),
-              IconButton(
-                tooltip: AppLocalizations.of(context)!.mealDuplicate,
-                icon: const Icon(LucideIcons.copy),
-                onPressed: onDuplicate,
-              ),
-              IconButton(
-                tooltip: AppLocalizations.of(context)!.mealsDelete,
-                icon: const Icon(LucideIcons.trash),
-                onPressed: onDelete,
+              PlatformAdaptivePopupMenu<String>(
+                icon: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(LucideIcons.ellipsis_vertical),
+                ),
+                items: [
+                  if (onShare != null)
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'share',
+                      label: AppLocalizations.of(context)!.share,
+                      icon: LucideIcons.link,
+                    ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'edit',
+                    label: AppLocalizations.of(context)!.mealsEdit,
+                    icon: LucideIcons.pencil,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'duplicate',
+                    label: AppLocalizations.of(context)!.mealDuplicate,
+                    icon: LucideIcons.copy,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'delete',
+                    label: AppLocalizations.of(context)!.mealsDelete,
+                    icon: LucideIcons.trash,
+                    isDestructive: true,
+                  ),
+                ],
+                onSelected: (action) {
+                  switch (action) {
+                    case 'share':
+                      onShare?.call();
+                      break;
+                    case 'edit':
+                      onEdit();
+                      break;
+                    case 'duplicate':
+                      onDuplicate();
+                      break;
+                    case 'delete':
+                      onDelete();
+                      break;
+                  }
+                },
               ),
             ],
           ),

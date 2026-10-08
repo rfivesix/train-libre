@@ -275,6 +275,8 @@
   "shareImportPasteTitle": "Import JSON text",
   "shareImportPasteDescription": "Paste the complete Train Libre JSON content here. You can review it before saving.",
   "shareImportPasteHint": "Paste JSON here",
+  "shareImportReplaceWarning": "The currently open content will be completely replaced. Completed workouts and older plan revisions will remain intact.",
+  "shareImportAddWarning": "This content will be imported as a new item. Existing routines, training plans, recipes, and workouts will remain unchanged.",
   "shareImportPreview": "Import shared item",
   "shareImportConfirm": "Import to Train Libre",
   "shareImportSuccess": "Imported successfully",

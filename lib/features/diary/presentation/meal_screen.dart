@@ -29,6 +29,8 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../sharing/share_service.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
@@ -218,6 +220,12 @@ class _MealScreenState extends State<MealScreen> {
                 ? _nameCtrl.text
                 : l10n.mealsViewTitle),
         actions: [
+          if (_editMode)
+            IconButton(
+              tooltip: l10n.shareImportSectionTitle,
+              onPressed: _importRecipe,
+              icon: const Icon(LucideIcons.file_down),
+            ),
           if (_editMode)
             TextButton(
               onPressed: canSave ? _save : null,
@@ -524,6 +532,43 @@ class _MealScreenState extends State<MealScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _importRecipe() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'recipe',
+      warning: l10n.shareImportReplaceWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      await const ShareLinkRepository()
+          .replaceRecipe(widget.meal['id'] as int, payload);
+      if (!mounted) return;
+      setState(() {
+        _nameCtrl.text = payload.name;
+        _notesCtrl.text = payload.data['notes'] as String? ?? '';
+        _servingsCtrl.text = payload.data['portions']?.toString() ?? '';
+        _cookedWeightCtrl.text =
+            payload.data['cookedWeightInGrams']?.toString() ?? '';
+        _previewServingCount = _positiveIntOrNull(_servingsCtrl.text);
+        _previewCookedWeight = _positiveIntOrNull(_cookedWeightCtrl.text);
+        _previewWeightBasis = _previewCookedWeight == null ? 'raw' : 'cooked';
+        _editMode = true;
+        _loadingItems = true;
+      });
+      await _loadItems();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
     }
   }
 

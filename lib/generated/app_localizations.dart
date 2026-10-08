@@ -1496,6 +1496,18 @@ abstract class AppLocalizations {
   /// **'Paste JSON here'**
   String get shareImportPasteHint;
 
+  /// No description provided for @shareImportReplaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The currently open content will be completely replaced. Completed workouts and older plan revisions will remain intact.'**
+  String get shareImportReplaceWarning;
+
+  /// No description provided for @shareImportAddWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This content will be imported as a new item. Existing routines, training plans, recipes, and workouts will remain unchanged.'**
+  String get shareImportAddWarning;
+
   /// No description provided for @shareImportPreview.
   ///
   /// In en, this message translates to:

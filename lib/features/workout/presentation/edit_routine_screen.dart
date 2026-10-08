@@ -11,6 +11,8 @@ import '../data/manual_training_plan_repository.dart';
 import 'manual_plan_text.dart';
 import '../domain/services/workout_plan_notification_orchestrator.dart';
 import '../../sharing/share_service.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine.dart';
@@ -878,6 +880,44 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     _shareService.showRoutineShareSheet(context: context, routine: routine);
   }
 
+  Future<void> _importRoutine() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'routine',
+      warning: l10n.shareImportReplaceWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      final repository = const ShareLinkRepository();
+      if (_routineId == null) {
+        final imported = await repository.importRoutine(payload);
+        _routineId = imported.id;
+        _isNewRoutine = false;
+      } else {
+        await repository.replaceRoutine(_routineId!, payload);
+      }
+      _nameController.text = payload.name;
+      _originalName = payload.name;
+      _routineChangedInSession = true;
+      setState(() {
+        _isEditMode = true;
+        _canPop = false;
+      });
+      await _loadExercisesForRoutine();
+      await _offerPlanUpdate();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -921,6 +961,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     tooltip: l10n.share,
                     icon: Icon(DesignConstants.adaptiveShareIcon),
                     onPressed: _shareCurrentRoutine,
+                  ),
+                if (_isEditMode)
+                  IconButton(
+                    tooltip: l10n.shareImportSectionTitle,
+                    icon: const Icon(LucideIcons.file_down),
+                    onPressed: _importRoutine,
                   ),
                 if (_isEditMode)
                   TextButton(

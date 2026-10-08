@@ -763,6 +763,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shareImportPasteHint => 'Collez le JSON ici';
 
   @override
+  String get shareImportReplaceWarning =>
+      'Le contenu actuellement ouvert sera entièrement remplacé. Les séances déjà effectuées et les anciennes révisions du programme seront conservées.';
+
+  @override
+  String get shareImportAddWarning =>
+      'Ce contenu sera importé comme nouvel élément. Les routines, programmes, recettes et séances existants resteront inchangés.';
+
+  @override
   String get shareImportPreview => 'Importer un élément partagé';
 
   @override

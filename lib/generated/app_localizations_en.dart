@@ -754,6 +754,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareImportPasteHint => 'Paste JSON here';
 
   @override
+  String get shareImportReplaceWarning =>
+      'The currently open content will be completely replaced. Completed workouts and older plan revisions will remain intact.';
+
+  @override
+  String get shareImportAddWarning =>
+      'This content will be imported as a new item. Existing routines, training plans, recipes, and workouts will remain unchanged.';
+
+  @override
   String get shareImportPreview => 'Import shared item';
 
   @override

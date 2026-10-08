@@ -759,6 +759,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shareImportPasteHint => 'JSON hier einfügen';
 
   @override
+  String get shareImportReplaceWarning =>
+      'Der aktuell geöffnete Inhalt wird vollständig ersetzt. Bereits absolvierte Workouts und ältere Planversionen bleiben erhalten.';
+
+  @override
+  String get shareImportAddWarning =>
+      'Der Inhalt wird als neuer Eintrag importiert. Vorhandene Routinen, Trainingspläne, Rezepte und Workouts bleiben unverändert.';
+
+  @override
   String get shareImportPreview => 'Geteilten Inhalt importieren';
 
   @override
