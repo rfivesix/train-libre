@@ -2878,6 +2878,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allows the use of AI for meal recognition. Disabling this hides all AI buttons in the app.';
 
   @override
+  String get aiStatusAndFeaturesSectionTitle => 'Status & Features';
+
+  @override
+  String get aiProviderSectionTitle => 'AI Model & Provider';
+
+  @override
+  String get aiAdvancedOptionsTitle => 'Advanced Options';
+
+  @override
   String get aiCustomInstructionsTitle => 'Global AI Instructions';
 
   @override

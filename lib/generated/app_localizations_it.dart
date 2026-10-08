@@ -2905,6 +2905,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Consente l\'uso dell\'intelligenza artificiale per il riconoscimento dei pasti. Disabilitando questa opzione si nascondono tutti i pulsanti AI nell\'app.';
 
   @override
+  String get aiStatusAndFeaturesSectionTitle => 'Stato e funzionalità';
+
+  @override
+  String get aiProviderSectionTitle => 'Modello IA e fornitore';
+
+  @override
+  String get aiAdvancedOptionsTitle => 'Opzioni avanzate';
+
+  @override
   String get aiCustomInstructionsTitle =>
       'Istruzioni globali sull\'intelligenza artificiale';
 

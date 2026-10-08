@@ -380,7 +380,7 @@ class AiService {
   AiProviderMetadata getProviderMetadata(AiProvider provider) =>
       _providerRegistry[provider]!;
 
-  /// Returns the currently selected provider (default: OpenAI).
+  /// Returns the currently selected provider (default: Apple Foundation if available, otherwise OpenAI).
   Future<AiProvider> getSelectedProvider() async {
     try {
       final value = await _secureStorage.read(key: _providerKey);
@@ -388,7 +388,7 @@ class AiService {
         for (final provider in AiProvider.values) {
           if (provider.name == value) return provider;
         }
-        return AiProvider.openai;
+        return await _resolveDefaultProvider();
       }
     } catch (_) {}
 
@@ -402,6 +402,16 @@ class AiService {
       }
     } catch (_) {}
 
+    return await _resolveDefaultProvider();
+  }
+
+  Future<AiProvider> _resolveDefaultProvider() async {
+    if (!kIsWeb && Platform.isIOS) {
+      final appleAvailable = await AppleFoundationService.instance.isAvailable();
+      if (appleAvailable) {
+        return AiProvider.appleFoundation;
+      }
+    }
     return AiProvider.openai;
   }
 

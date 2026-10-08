@@ -1,7 +1,7 @@
 # Privacy Policy for the App "Train Libre"
 
-**Version:** 1.7  
-**As of:** August 7, 2026  
+**Version:** 1.8  
+**As of:** October 8, 2026  
 
 This privacy policy informs you in accordance with Articles 13 and 14 of the General Data Protection Regulation (GDPR) about the processing of personal data and health-related data in the mobile application "Train Libre". 
 
@@ -27,7 +27,7 @@ Since the controller is an individual developer and the statutory requirements f
 
 ## 2. Core Philosophy
 
-Train Libre is based on the principles of "privacy by design" and "privacy by default" (Article 25 of the GDPR) as well as the principle of data minimization (Article 5(1)(c) of the GDPR). 
+Train Libre is based on the principles of "privacy by design" and "privacy by default" (Article 25 of the GDPR) as well as the principle of data minimization (Article 5(1)(c) of the GDPR).
 
 * **No User Accounts:** No registration or creation of a user account is required to use the app. No email addresses, passwords, or login credentials are stored on external servers.
 * **Local-First Architecture:** All profile settings, athletic activities, nutrition data, vital signs, and measurements entered by you are stored exclusively in a local SQLite database on your own end device.
@@ -67,20 +67,31 @@ Since storage and evaluation take place exclusively locally on your end device, 
 
 To provide advanced features, the app has interfaces to external services. These functions are optional and require your active participation.
 
-### A. Bring-Your-Own-Key (BYOK) AI Meal Capture
+### A. AI Meal Capture (On-Device & BYOK)
 
-Train Libre offers the option to analyze meals via photos or free-text descriptions using artificial intelligence. This function is based on the "Bring-Your-Own-Key" (BYOK) principle. You must store your own API key from a supported provider in the app to use this.
+Train Libre offers the option to analyze meals via photos or free-text descriptions using artificial intelligence. Depending on your configuration and device compatibility, analysis is performed either **completely locally on your end device** or via external cloud APIs based on the **"Bring-Your-Own-Key" (BYOK)** principle:
 
-* **Supported Providers:** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama, and custom OpenAI-compatible endpoints.
-* **Secure Local Key Storage:** The API key you enter is stored encrypted using AES-256 encryption via the `flutter_secure_storage` package in the operating system's secured storage area (iOS Keychain or Android Keystore). The key remains exclusively local to your device and is never transmitted to us.
-* **Restricted Data Transmission:** When using the AI analysis, your device sends the captured meal photo or entered text description directly via an encrypted HTTPS connection to the API of the selected AI provider. **No personalized account data, user metadata, or historical profile information from Train Libre is attached to these external endpoint payloads.**
-* **Analytical AI Processing (No Generative Coaching):** The AI analysis is used for the **exclusive analytical purpose** of decomposing meal photos or text descriptions into **atomic ingredients**. Train Libre does **not** use AI to dynamically generate or propose personalized recipes, meal plans, or automated health coaching.
-* **Privacy Protection via System Prompt:** To maximize your privacy, the app's globally stored system prompt is configured to instruct the AI provider to identify only food components and estimate their weight in grams. The AI provider is explicitly instructed **not** to perform any nutrient calculations (such as calories, protein, fat, or carbohydrates). The determination of nutrients is then performed via a **hybrid approach**: recognized food names are matched against your **local offline database** using a deterministic **Jaro-Winkler-based matching engine** (SQLite/Drift).
-* **Local-First Alignment:** Core macro calculations, user profiling, and history tracking remain **strictly local-first** on your device and are never transmitted to external providers or used to train global AI models.
-* **Responsibility:** Since you are using your personal API key, you enter into a direct user relationship with the respective AI provider. Data processing by the AI provider is subject to their respective privacy policies. Please check your provider's privacy policy (especially regarding the use of data for training purposes and server locations) before using the function.
+1. **On-Device Processing (Apple Intelligence / Foundation Models):**  
+   On compatible Apple devices (iOS with Apple Intelligence), Train Libre integrates directly with Apple's native `FoundationModels` framework (`SystemLanguageModel.default`).
+   * **Zero Network Requests:** Text and image processing runs 100% locally on your device's Apple Neural Engine. Absolutely zero image or text data leaves the physical device (0 bytes network transfer).
+   * **No API Key Required:** On-device recognition does not require an account or an API key.
+   * **No Model Training:** Your inputs and photos are never used by Train Libre to train AI models.
+
+2. **Bring-Your-Own-Key (BYOK) for Cloud Providers:**  
+   Alternatively, you can analyze meals using external cloud AI services by storing your own API key in the app.
+   * **Supported Providers:** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama, and custom OpenAI-compatible endpoints.
+   * **Secure Local Key Storage:** The API key you enter is stored encrypted using AES-256 encryption via the `flutter_secure_storage` package in the operating system's secured storage area (iOS Keychain or Android Keystore). The key remains exclusively local to your device and is never transmitted to us.
+   * **Restricted Data Transmission:** When using external AI analysis, your device sends the captured meal photo or entered text description directly via an encrypted HTTPS connection to the API of the selected AI provider. **No personalized account data, user metadata, or historical profile information from Train Libre is attached to these external endpoint payloads.**
+   * **Responsibility:** Since you are using your personal API key, you enter into a direct user relationship with the respective AI provider. Data processing by the AI provider is subject to their respective privacy policies. Please check your provider's privacy policy (especially regarding the use of data for training purposes and server locations) before using the function.
+
+3. **Common Privacy Safeguards across all AI Modes:**
+   * **Analytical AI Processing (No Generative Coaching):** The AI analysis is used for the **exclusive analytical purpose** of decomposing meal photos or text descriptions into **atomic ingredients**. Train Libre does **not** use AI to dynamically generate or propose personalized recipes, meal plans, or automated health coaching.
+   * **Hybrid Local Verification:** To maximize your privacy, the app's globally stored system prompt is configured to instruct the AI model to identify only food components and estimate their weight in grams. The AI model is explicitly instructed **not** to perform any nutrient calculations (such as calories, protein, fat, or carbohydrates). The determination of nutrients is then performed via a **hybrid approach**: recognized food names are matched against your **local offline database** using a deterministic **Jaro-Winkler-based matching engine** (SQLite/Drift).
+   * **Local-First Alignment:** Core macro calculations, user profiling, and history tracking remain **strictly local-first** on your device and are never transmitted to external providers or used to train global AI models.
 
 | Provider | Privacy Policy |
 | :--- | :--- |
+| Apple Intelligence | [https://www.apple.com/legal/privacy/](https://www.apple.com/legal/privacy/) |
 | OpenAI | [https://openai.com/policies/privacy-policy](https://openai.com/policies/privacy-policy) |
 | Google Gemini | [https://policies.google.com/privacy](https://policies.google.com/privacy) |
 | Anthropic Claude | [https://www.anthropic.com/privacy](https://www.anthropic.com/privacy) |
@@ -88,7 +99,7 @@ Train Libre offers the option to analyze meals via photos or free-text descripti
 | xAI Grok | [https://x.ai/privacy-policy](https://x.ai/privacy-policy) |
 | Ollama | [https://ollama.com/privacy](https://ollama.com/privacy) |
 
-For transmissions to providers outside the European Union (especially the USA), this occurs on the basis of standard contractual clauses or adequacy decisions that you have agreed with the provider.
+For transmissions to cloud providers outside the European Union (especially the USA), this occurs on the basis of standard contractual clauses or adequacy decisions that you have agreed with the provider.
 
 ### B. Offline Catalog Updates (Open Food Facts & Exercise Catalog)
 
@@ -107,6 +118,7 @@ Train Libre can interact with your operating system's system-wide health databas
 ### A. Data Import (Reading)
 
 If you grant permission to the app, Train Libre reads data from Apple HealthKit or Google Health Connect to display and process it locally within the app:
+* **Body Measurements:** Import of weight, body-fat percentage, and waist circumference (from smart scales or external tracking apps) for accurate tracking trends and adaptive TDEE calibration.
 * **Step Counts:** Import of recorded step count segments for offline evaluation.
 * **Sleep Data:** Import of sleep intervals and sleep phases.
 * **Heart Rate:** Import of heart rate samples to calculate local hourly aggregations.
@@ -140,6 +152,7 @@ The app offers functions to back up your data in order to prevent data loss in t
 2. **Encryption:** To protect your sensitive data, backups can be encrypted with a password of your choice before export. The encryption is performed locally on the device using strong cryptographic algorithms. Unencrypted backups should always be stored in secure locations.
 3. **Automatic Backups:** You can enable automatic backups at configurable intervals. On Android, this feature uses the Storage Access Framework (SAF) to save directly to a target folder selected by you. Alternatively, the file is saved in the local app document directory. These backup files remain on your device unless you actively copy them to an external cloud storage location (e.g., iCloud Drive or Google Drive).
 4. **System Backups:** Please note that if system-wide device backups are enabled (e.g., via Apple iCloud or Google Drive Backup), Train Libre's application data will by default be uploaded to the respective cloud by the operating system. This is beyond our control and can be disabled for Train Libre in your device's system settings.
+5. **iCloud Backup (iOS only):** Train Libre offers an optional iCloud Backup feature on iOS. If enabled by you, the app automatically syncs your local database to your personal iCloud Drive folder via Apple's iCloud infrastructure. This feature is strictly opt-in and controlled exclusively through your Apple ID and iOS system settings — Train Libre does not activate, schedule, or access it without your action. Backup data is encrypted at rest and in transit by Apple's iCloud infrastructure; Train Libre does not store, host, process, or have access to any of your backup files or encryption keys on any external company server. Your data privacy for this feature is governed by Apple's iCloud Privacy Policy (https://www.apple.com/legal/privacy/).
 
 ### C. Optional Pseudonymised Usage Statistics
 

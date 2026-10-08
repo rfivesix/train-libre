@@ -17,7 +17,6 @@ import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
-import '../../../services/voice/voice_dictation_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../../services/ai/apple_foundation_service.dart';
 
@@ -55,7 +54,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _hasLidar = false;
   bool _scaleHintEnabled = true;
   bool _depthImageEnabled = true;
-  bool _voiceTidyEnabled = true;
   bool _isAppleFoundationAvailable = false;
 
   @override
@@ -66,7 +64,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     unawaited(_checkAppleFoundationAvailability());
     _loadSettings();
     unawaited(_loadDepthSettings());
-    unawaited(_loadVoiceSettings());
   }
 
   Future<void> _checkAppleFoundationAvailability() async {
@@ -84,12 +81,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       _scaleHintEnabled = enabled;
       _depthImageEnabled = depthImage;
     });
-  }
-
-  Future<void> _loadVoiceSettings() async {
-    final enabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
-    if (!mounted) return;
-    setState(() => _voiceTidyEnabled = enabled);
   }
 
   @override
@@ -479,7 +470,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           ),
           const SizedBox(height: DesignConstants.spacingXL),
 
-          AppSectionHeader(title: l10n.aiSettingsTitle),
+          AppSectionHeader(title: l10n.aiStatusAndFeaturesSectionTitle),
           SummaryCard(
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -538,25 +529,20 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       },
                     ),
                   ],
-                  if (aiEnabled) ...[
-                    const SizedBox(height: 12),
-                    PlatformAdaptiveSwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      secondary: const Icon(LucideIcons.mic),
-                      title: Text(
-                        l10n.aiVoiceTidyTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(l10n.aiVoiceTidySubtitle),
-                      value: _voiceTidyEnabled,
-                      onChanged: (value) async {
-                        await VoiceDictationSettings.instance
-                            .setAiTidyEnabled(value);
-                        if (!mounted) return;
-                        setState(() => _voiceTidyEnabled = value);
-                      },
-                    ),
-                    const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+
+          if (aiEnabled) ...[
+            const SizedBox(height: DesignConstants.spacingL),
+            AppSectionHeader(title: l10n.aiProviderSectionTitle),
+            SummaryCard(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     PlatformAdaptiveDropdownFormField<AiProvider>(
                       key: ValueKey(
                           'ai_provider_dropdown_${_selectedProvider.name}'),
@@ -581,7 +567,75 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           .toList(),
                       onChanged: _onProviderChanged,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
+                    if (_selectedProvider == AiProvider.appleFoundation) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: (_isAppleFoundationAvailable
+                                        ? const Color(0xFF34C759)
+                                        : Colors.orange)
+                                    .withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _isAppleFoundationAvailable
+                                    ? LucideIcons.shield_check
+                                    : LucideIcons.circle_alert,
+                                color: _isAppleFoundationAvailable
+                                    ? const Color(0xFF34C759)
+                                    : Colors.orange,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isAppleFoundationAvailable
+                                        ? 'Funktioniert 100% offline auf dem Gerät'
+                                        : 'In den iOS-Einstellungen aktivieren',
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: _isAppleFoundationAvailable
+                                          ? theme.colorScheme.onSurface
+                                          : Colors.orange,
+                                    ),
+                                  ),
+                                  if (_isAppleFoundationAvailable)
+                                    Text(
+                                      'Keine Datenübertragung, keine API-Kosten.',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     if (_selectedProvider != AiProvider.ollama &&
                         _selectedProvider != AiProvider.custom &&
                         _selectedProvider != AiProvider.appleFoundation) ...[
@@ -617,136 +671,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           theme,
                           _modelListError!,
                         ),
-                    ],
-                    if (_selectedProvider == AiProvider.appleFoundation) ...[
-                      SummaryCard(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary
-                                        .withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    LucideIcons.sparkles,
-                                    color: theme.colorScheme.primary,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Apple Intelligence (On-Device)',
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            _isAppleFoundationAvailable
-                                                ? LucideIcons.circle_check
-                                                : LucideIcons.circle_alert,
-                                            size: 14,
-                                            color: _isAppleFoundationAvailable
-                                                ? Colors.green
-                                                : Colors.orange,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            _isAppleFoundationAvailable
-                                                ? 'Aktiv & Bereit auf diesem Gerät'
-                                                : 'In den iOS-Einstellungen aktivieren',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color: _isAppleFoundationAvailable
-                                                  ? Colors.green
-                                                  : Colors.orange,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Verwendet das native Apple Foundation Model direkt über die Apple Neural Engine des iPhone 16 Pro.',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme
-                                        .colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    '0 MB Download',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme
-                                        .colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    '100% Offline',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: theme
-                                        .colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    'Volle Privatsphäre',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
                     ],
                     if (_selectedProvider == AiProvider.ollama) ...[
                       TextField(
@@ -788,54 +712,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             vertical: 8,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-
-                    // Request Timeout Slider
-                    if (_selectedProvider != AiProvider.appleFoundation) ...[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  l10n.settingsRequestTimeout,
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  l10n.settingsSeconds(_timeoutSeconds),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Slider(
-                            value: _timeoutSeconds.toDouble(),
-                            min: 10,
-                            max: 300,
-                            divisions: 29, // 10s steps: (300-10)/10 = 29
-                            label: l10n.settingsSeconds(_timeoutSeconds),
-                            activeColor: theme.colorScheme.primary,
-                            onChanged: (value) async {
-                              final seconds = value.round();
-                              setState(() => _timeoutSeconds = seconds);
-                              await AiService.instance.setAiTimeoutSeconds(
-                                seconds,
-                              );
-                            },
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 10),
                     ],
@@ -885,7 +761,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                     ],
                     Row(
                       children: [
@@ -921,15 +797,80 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ),
                       ],
                     ),
+                    if (_selectedProvider != AiProvider.appleFoundation) ...[
+                      const SizedBox(height: 8),
+                      Theme(
+                        data: theme.copyWith(
+                          dividerColor: Colors.transparent,
+                        ),
+                        child: ExpansionTile(
+                          tilePadding: EdgeInsets.zero,
+                          childrenPadding: const EdgeInsets.only(top: 8, bottom: 4),
+                          title: Text(
+                            l10n.aiAdvancedOptionsTitle,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        l10n.settingsRequestTimeout,
+                                        style:
+                                            theme.textTheme.labelMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        l10n.settingsSeconds(_timeoutSeconds),
+                                        style:
+                                            theme.textTheme.labelMedium?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Slider(
+                                  value: _timeoutSeconds.toDouble(),
+                                  min: 10,
+                                  max: 300,
+                                  divisions: 29,
+                                  label: l10n.settingsSeconds(_timeoutSeconds),
+                                  activeColor: theme.colorScheme.primary,
+                                  onChanged: (value) async {
+                                    final seconds = value.round();
+                                    setState(() => _timeoutSeconds = seconds);
+                                    await AiService.instance
+                                        .setAiTimeoutSeconds(seconds);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
+          ],
 
           const SizedBox(height: DesignConstants.spacingL),
 
-          // --- Photo Storage & Retention (Screen E2) ---
+          // --- Photo Storage & Retention ---
           AppSectionHeader(title: l10n.mealPhotoStorageSection),
           SummaryCard(
             child: Padding(
@@ -1006,45 +947,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     label: l10n.mealPhotoDeleteAll,
                     tooltip: l10n.mealPhotoDeleteAll,
                     icon: LucideIcons.trash,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // --- Speech Recognition (Screen E3) ---
-          AppSectionHeader(title: l10n.speechSectionTitle),
-          SummaryCard(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF34C759),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.speechOnDeviceActive,
-                        style: theme.textTheme.labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.speechOnDeviceBody,
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

@@ -2893,6 +2893,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ermöglicht die Nutzung von KI zur Mahlzeitenerkennung. Bei Deaktivierung werden alle KI-Buttons in der App ausgeblendet.';
 
   @override
+  String get aiStatusAndFeaturesSectionTitle => 'Status & Features';
+
+  @override
+  String get aiProviderSectionTitle => 'KI-Modell & Anbieter';
+
+  @override
+  String get aiAdvancedOptionsTitle => 'Erweiterte Optionen';
+
+  @override
   String get aiCustomInstructionsTitle => 'Globale KI-Anweisungen';
 
   @override

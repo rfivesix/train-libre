@@ -14,7 +14,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 
 /// Single source of truth for the active Privacy Policy & Terms of Service version.
-const String kCurrentLegalVersion = '1.7';
+const String kCurrentLegalVersion = '1.8';
 
 class LegalScreen extends StatefulWidget {
   const LegalScreen({super.key});
@@ -521,8 +521,8 @@ class _LegalSection {
 }
 
 const _germanLegalDocument = _LegalDocument(
-  version: '1.7',
-  date: '7. August 2026',
+  version: '1.8',
+  date: '8. Oktober 2026',
   legalNotice: '''
 Angaben gemäß § 5 DDG:
 
@@ -608,19 +608,30 @@ Da die Speicherung und Auswertung ausschließlich lokal auf Ihrem Endgerät stat
       content: '''
 Um erweiterte Funktionen bereitzustellen, verfügt die App über Schnittstellen zu externen Diensten. Diese Funktionen sind optional und erfordern Ihre aktive Mitwirkung.
 
-A. Bring-Your-Own-Key (BYOK) AI Meal Capture
+A. KI-Mahlzeiten-Erkennung (On-Device & BYOK)
 
-Train Libre bietet die Möglichkeit, Mahlzeiten über Fotos oder Freitextbeschreibungen mittels Künstlicher Intelligenz analysieren zu lassen. Diese Funktion basiert auf dem „Bring-Your-Own-Key“-Prinzip (BYOK). Sie müssen hierfür Ihren eigenen API-Schlüssel eines unterstützten Anbieters in der App hinterlegen.
+Train Libre bietet die Möglichkeit, Mahlzeiten über Fotos oder Freitextbeschreibungen mittels Künstlicher Intelligenz analysieren zu lassen. Je nach gewählter Konfiguration und Gerätekompatibilität erfolgt die Analyse entweder vollständig lokal auf dem Endgerät oder über externe KI-Schnittstellen nach dem „Bring-Your-Own-Key“-Prinzip (BYOK):
 
+1. On-Device-Verarbeitung (Apple Intelligence / Foundation Models):
+Auf kompatiblen Apple-Geräten (iOS mit Apple Intelligence) nutzt Train Libre direkt das systemeigene FoundationModels-Framework (SystemLanguageModel.default).
+- Keine Netzwerkübertragung: Die Text- und Bildverarbeitung findet zu 100 % lokal auf der Apple Neural Engine Ihres Geräts statt. Es werden keinerlei Bild- oder Textdaten über das Internet übertragen (0 Bytes Datentransfer).
+- Kein API-Schlüssel: Für die On-Device-Erkennung ist kein Drittanbieter-Konto und kein API-Schlüssel erforderlich.
+- Kein Training: Ihre Eingaben und Fotos werden von Train Libre nicht für das Training von KI-Modellen verwendet.
+
+2. Bring-Your-Own-Key (BYOK) für Cloud-Anbieter:
+Alternativ können Sie Mahlzeiten über externe Cloud-KI-Dienste analysieren lassen, indem Sie Ihren eigenen API-Schlüssel hinterlegen.
 - Unterstützte Anbieter: OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama sowie benutzerdefinierte OpenAI-kompatible Endpunkte.
 - Sichere lokale Schlüsselverwahrung: Der von Ihnen eingegebene API-Schlüssel wird unter Verwendung des Pakets flutter_secure_storage mit AES-256-Verschlüsselung im gesicherten Speicherbereich des Betriebssystems abgelegt (iOS Keychain bzw. Android Keystore). Der Schlüssel verbleibt ausschließlich lokal auf Ihrem Gerät und wird niemals an uns übertragen.
-- Eingeschränkte Datenübertragung: Bei der Nutzung der KI-Analyse sendet Ihr Gerät das aufgenommene Mahlzeiten-Foto bzw. die eingegebene Textbeschreibung direkt über eine verschlüsselte HTTPS-Verbindung an die API des ausgewählten KI-Anbieters. Es werden keinerlei personalisierte Kontodaten, Metadaten oder Profilinformationen aus Train Libre an diese externen Endpunkte übermittelt.
-- Analytische KI-Verarbeitung (Kein generatives Coaching): Die KI-Analyse dient dem ausschließlichen analytischen Zweck, Mahlzeiten in ihre atomaren Bestandteile (Zutaten) zu zerlegen. Train Libre nutzt die KI nicht zur dynamischen Generierung oder zum Vorschlag von Rezepten, Ernährungsplänen oder automatisiertem Gesundheitscoaching.
-- Hybride lokale Verifizierung: Um Ihre Privatsphäre maximal zu schützen, ist der systemweit hinterlegte Prompt der App so konfiguriert, dass der KI-Anbieter angewiesen wird, ausschließlich Lebensmittelkomponenten zu identifizieren und deren Gewicht in Gramm zu schätzen. Der KI-Anbieter wird ausdrücklich angewiesen, keine Nährwertberechnungen (wie Kalorien, Proteine, Fett oder Kohlenhydrate) durchzuführen. Die Ermittlung der Nährwerte erfolgt über einen hybriden Ansatz: Die erkannten Lebensmittelnamen werden über eine lokale Jaro-Winkler-basierte Matching-Engine (SQLite/Drift) vollständig offline auf Ihrem Gerät mit Ihrem lokalen Katalog abgeglichen.
-- Local-First-Prinzip: Die Berechnung der Makronährstoffe, das Nutzer-Profiling sowie die Verlaufshistorie verbleiben strikt lokal auf Ihrem Endgerät und werden niemals für das Training globaler KI-Modelle verwendet.
+- Eingeschränkte Datenübertragung: Bei der Nutzung der externen KI-Analyse sendet Ihr Gerät das aufgenommene Mahlzeiten-Foto bzw. die eingegebene Textbeschreibung direkt über eine verschlüsselte HTTPS-Verbindung an die API des ausgewählten KI-Anbieters. Es werden keinerlei personalisierte Kontodaten, Metadaten oder Profilinformationen aus Train Libre an diese externen Endpunkte übermittelt.
 - Verantwortlichkeit: Da Sie Ihren persönlichen API-Schlüssel verwenden, schließen Sie direkt ein Nutzungsverhältnis mit dem jeweiligen KI-Anbieter ab. Die Datenverarbeitung durch den KI-Anbieter unterliegt dessen jeweiligen Datenschutzbestimmungen. Bitte prüfen Sie die Datenschutzrichtlinien Ihres Anbieters (insbesondere bezüglich der Datenverwendung für Trainingszwecke und der Serverstandorte), bevor Sie die Funktion nutzen.
 
+3. Gemeinsame Datenschutz-Garantien für alle KI-Modi:
+- Analytische KI-Verarbeitung (Kein generatives Coaching): Die KI-Analyse dient dem ausschließlichen analytischen Zweck, Mahlzeiten in ihre atomaren Bestandteile (Zutaten) zu zerlegen. Train Libre nutzt die KI nicht zur dynamischen Generierung oder zum Vorschlag von Rezepten, Ernährungsplänen oder automatisiertem Gesundheitscoaching.
+- Hybride lokale Verifizierung: Um Ihre Privatsphäre maximal zu schützen, ist der systemweit hinterlegte Prompt der App so konfiguriert, dass das KI-Modell angewiesen wird, ausschließlich Lebensmittelkomponenten zu identifizieren und deren Gewicht in Gramm zu schätzen. Das KI-Modell wird ausdrücklich angewiesen, keine Nährwertberechnungen (wie Kalorien, Proteine, Fett oder Kohlenhydrate) durchzuführen. Die Ermittlung der Nährwerte erfolgt über einen hybriden Ansatz: Die erkannten Lebensmittelnamen werden über eine lokale Jaro-Winkler-basierte Matching-Engine (SQLite/Drift) vollständig offline auf Ihrem Gerät mit Ihrem lokalen Katalog abgeglichen.
+- Local-First-Prinzip: Die Berechnung der Makronährstoffe, das Nutzer-Profiling sowie die Verlaufshistorie verbleiben strikt lokal auf Ihrem Endgerät und werden niemals für das Training globaler KI-Modelle verwendet.
+
 Bitte prüfen Sie die Datenschutzrichtlinien Ihres Anbieters hier:
+• Apple Intelligence: https://www.apple.com/legal/privacy/
 • OpenAI: https://openai.com/policies/privacy-policy
 • Google Gemini: https://policies.google.com/privacy
 • Anthropic Claude: https://www.anthropic.com/privacy
@@ -628,7 +639,7 @@ Bitte prüfen Sie die Datenschutzrichtlinien Ihres Anbieters hier:
 • xAI Grok: https://x.ai/privacy-policy
 • Ollama: https://ollama.com/privacy
 
-Bei Übertragungen an Anbieter außerhalb der Europäischen Union (insbesondere in die USA) erfolgt dies auf Grundlage von Standardvertragsklauseln oder Angemessenheitsbeschlüssen, die Sie mit dem Anbieter vereinbart haben.
+Bei Übertragungen an Cloud-Anbieter außerhalb der Europäischen Union (insbesondere in die USA) erfolgt dies auf Grundlage von Standardvertragsklauseln oder Angemessenheitsbeschlüssen, die Sie mit dem Anbieter vereinbart haben.
 
 B. Offline-Katalog-Updates (Open Food Facts & Exercise Catalog)
 
@@ -636,7 +647,7 @@ Um Lebensmittel-Barcodes offline scannen und Übungen nachschlagen zu können, n
 
 - Funktionsweise: Die App prüft in regelmäßigen Abständen, ob Aktualisierungen für den Lebensmittelkatalog (basierend auf Open Food Facts) oder den Übungskatalog (basierend auf wger/GitHub) vorliegen. Die Prüfung und der anschließende Download der komprimierten Katalogdatenbanken erfolgen über eine verschlüsselte HTTPS-Verbindung direkt zu den Servern des Hosting-Dienstleisters (z. B. GitHub Pages / GitHub Inc. bzw. Open Food Facts).
 - Datenminimierung: Beim Herunterladen der Katalog-Updates werden systembedingt technische Verbindungsdaten (insbesondere Ihre IP-Adresse, Datum/Uhrzeit des Zugriffs und der User-Agent der App) an den Hoster übertragen. Es werden zu keinem Zeitpunkt nutzergenerierte Daten, gescannte Barcodes oder persönliche Profileigenschaften an die Katalog-Hoster gesendet.
-- Lokale Barcode-Zuordnung: Der Abgleich eines gescannten Barcodes oder die Suche nach Lebensmitteln und Übungen findet zu 100 Prozent offline auf Ihrem Gerät. Im Gegensatz to herkömmlichen Ernährungs-Apps wird beim Scannen eines Produkts keine Anfrage mit dem Barcode an einen Cloud-Server gesendet.
+- Lokale Barcode-Zuordnung: Der Abgleich eines gescannten Barcodes oder die Suche nach Lebensmitteln und Übungen findet zu 100 Prozent offline auf Ihrem Gerät. Im Gegensatz zu herkömmlichen Ernährungs-Apps wird beim Scannen eines Produkts keine Anfrage mit dem Barcode an einen Cloud-Server gesendet.
 ''',
     ),
     _LegalSection(
@@ -647,6 +658,7 @@ Train Libre kann mit den systemweiten Gesundheitsdatenbanken Ihres Betriebssyste
 A. Daten-Import (Lesen)
 
 Sofern Sie der App die Berechtigung erteilen, liest Train Libre Daten aus Apple HealthKit bzw. Google Health Connect aus, um diese lokal in der App anzuzeigen und zu verarbeiten:
+- Körpermesswerte: Import von Gewicht, Körperfettanteil und Taillenumfang zur präzisen Verlaufsdarstellung und TDEE-Kalibrierung.
 - Schrittzahlen: Import der aufgezeichneten Schrittzahlsegmente zur Offline-Auswertung.
 - Schlafdaten: Import von Schlafzeiträumen und Schlafphasen.
 - Herzfrequenz: Import von Puls-Stichproben zur Berechnung lokaler stündlicher Aggregationen.
@@ -752,8 +764,8 @@ Der Quellcode von Train Libre wird unter der GNU General Public License v3.0 (GP
 );
 
 const _englishLegalDocument = _LegalDocument(
-  version: '1.7',
-  date: 'August 7, 2026',
+  version: '1.8',
+  date: 'October 8, 2026',
   legalNotice: '''
 Information according to § 5 DDG:
 
@@ -836,17 +848,30 @@ Since storage and evaluation take place exclusively locally on your end device, 
       content: '''
 To provide advanced features, the app has interfaces to external services. These functions are optional and require your active participation.
 
-A. Bring-Your-Own-Key (BYOK) AI Meal Capture
+A. AI Meal Capture (On-Device & BYOK)
 
-Train Libre offers the option to analyze meals via photos or free-text descriptions using artificial intelligence. This function is based on the "Bring-Your-Own-Key" (BYOK) principle. You must store your own API key from a supported provider in the app to use this.
+Train Libre offers the option to analyze meals via photos or free-text descriptions using artificial intelligence. Depending on your configuration and device compatibility, analysis is performed either completely locally on your end device or via external cloud APIs based on the "Bring-Your-Own-Key" (BYOK) principle:
 
+1. On-Device Processing (Apple Intelligence / Foundation Models):
+On compatible Apple devices (iOS with Apple Intelligence), Train Libre integrates directly with Apple's native FoundationModels framework (SystemLanguageModel.default).
+- Zero Network Requests: Text and image processing runs 100% locally on your device's Apple Neural Engine. Absolutely zero image or text data leaves the physical device (0 bytes network transfer).
+- No API Key Required: On-device recognition does not require an account or an API key.
+- No Model Training: Your inputs and photos are never used by Train Libre to train AI models.
+
+2. Bring-Your-Own-Key (BYOK) for Cloud Providers:
+Alternatively, you can analyze meals using external cloud AI services by storing your own API key in the app.
 - Supported Providers: OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama, and custom OpenAI-compatible endpoints.
 - Secure Local Key Storage: The API key you enter is stored encrypted using AES-256 encryption via the flutter_secure_storage package in the operating system's secured storage area (iOS Keychain or Android Keystore). The key remains exclusively local to your device and is never transmitted to us.
-- Restricted Data Transmission: When using the AI analysis, your device sends the captured meal photo or entered text description directly via an encrypted HTTPS connection to the API of the selected AI provider.
-- Privacy Protection via System Prompt: To maximize your privacy, the app's globally stored system prompt is configured to instruct the AI provider to identify only food components and estimate their weight in grams. The AI provider is explicitly instructed not to perform any nutrient calculations (such as calories, protein, fat, or carbohydrates). The determination of nutrients is then performed completely locally and offline on your device by matching the recognized food names with your local offline catalog. Thus, no personal nutrition or health history is transmitted to the AI services.
+- Restricted Data Transmission: When using external AI analysis, your device sends the captured meal photo or entered text description directly via an encrypted HTTPS connection to the API of the selected AI provider. No personalized account data, user metadata, or historical profile information from Train Libre is attached to these external endpoint payloads.
 - Responsibility: Since you are using your personal API key, you enter into a direct user relationship with the respective AI provider. Data processing by the AI provider is subject to their respective privacy policies. Please check your provider's privacy policy (especially regarding the use of data for training purposes and server locations) before using the function.
 
+3. Common Privacy Safeguards across all AI Modes:
+- Analytical AI Processing (No Generative Coaching): The AI analysis is used for the exclusive analytical purpose of decomposing meal photos or text descriptions into atomic ingredients. Train Libre does not use AI to dynamically generate or propose personalized recipes, meal plans, or automated health coaching.
+- Hybrid Local Verification: To maximize your privacy, the app's globally stored system prompt is configured to instruct the AI model to identify only food components and estimate their weight in grams. The AI model is explicitly instructed not to perform any nutrient calculations (such as calories, protein, fat, or carbohydrates). The determination of nutrients is then performed via a hybrid approach: recognized food names are matched against your local offline database using a deterministic Jaro-Winkler-based matching engine (SQLite/Drift).
+- Local-First Alignment: Core macro calculations, user profiling, and history tracking remain strictly local-first on your device and are never transmitted to external providers or used to train global AI models.
+
 Please check your provider's privacy policy here:
+• Apple Intelligence: https://www.apple.com/legal/privacy/
 • OpenAI: https://openai.com/policies/privacy-policy
 • Google Gemini: https://policies.google.com/privacy
 • Anthropic Claude: https://www.anthropic.com/privacy
@@ -854,7 +879,7 @@ Please check your provider's privacy policy here:
 • xAI Grok: https://x.ai/privacy-policy
 • Ollama: https://ollama.com/privacy
 
-For transmissions to providers outside the European Union (especially the USA), this occurs on the basis of standard contractual clauses or adequacy decisions that you have agreed with the provider.
+For transmissions to cloud providers outside the European Union (especially the USA), this occurs on the basis of standard contractual clauses or adequacy decisions that you have agreed with the provider.
 
 B. Offline Catalog Updates (Open Food Facts & Exercise Catalog)
 
@@ -873,6 +898,7 @@ Train Libre can interact with your operating system's system-wide health databas
 A. Data Import (Reading)
 
 If you grant permission to the app, Train Libre reads data from Apple HealthKit or Google Health Connect to display and process it locally within the app:
+- Body Measurements: Import of weight, body-fat percentage, and waist circumference (from smart scales or external tracking apps) for accurate tracking trends and adaptive TDEE calibration.
 - Step Counts: Import of recorded step count segments for offline evaluation.
 - Sleep Data: Import of sleep intervals and sleep phases.
 - Heart Rate: Import of heart rate samples to calculate local hourly aggregations.

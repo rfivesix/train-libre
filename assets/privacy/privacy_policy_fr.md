@@ -1,7 +1,7 @@
 # Charte de confidentialité pour l'application mobile « Train Libre » et le site web
 
-**Version 1.7**  
-**En date du : 7 août 2026**
+**Version 1.8**  
+**En date du : 8 octobre 2026**
 
 Cette charte de confidentialité vous informe conformément aux articles 13 et 14 du Règlement Général sur la Protection des Données (RGPD) du traitement des données à caractère personnel et des données relatives à la santé dans l'application mobile « Train Libre » ainsi que lors de votre visite sur ce site web.
 
@@ -62,19 +62,30 @@ L'utilisation de l'application implique le traitement de vos données par le sys
 
 Pour fournir des fonctions avancées, l'application dispose d'interfaces vers des services externes. Ces fonctions sont facultatives et nécessitent votre action.
 
-### A. Reconnaissance des repas par IA (BYOK)
-Train Libre vous permet d'analyser vos repas par photo ou texte en fournissant votre propre clé API (BYOK) d'un fournisseur pris en charge.
+### A. Reconnaissance des repas par IA (Sur l'appareil & BYOK)
+Train Libre vous permet d'analyser vos repas par photo ou texte au moyen de l'intelligence artificielle. Selon la configuration choisie et la compatibilité de votre appareil, l'analyse s'effectue soit **entièrement localement sur l'appareil**, soit via des API de cloud externes selon le principe du **« Bring-Your-Own-Key » (BYOK)** :
 
-* **Fournisseurs pris en charge :** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama et end-points compatibles OpenAI.
-* **Stockage sécurisé :** Votre clé API est chiffrée en AES-256 via `flutter_secure_storage` dans le trousseau sécurisé de l'appareil (iOS Keychain / Android Keystore) et n'est jamais transmise de notre côté.
-* **Transmission limitée :** L'image ou la description est envoyée chiffrée en HTTPS directement à l'API du fournisseur sélectionné. Aucune métadonnée personnelle n'est jointe.
-* **Traitement analytique :** L'IA est utilisée uniquement pour décomposer la description ou l'image en ingrédients. Train Libre ne génère pas de conseils ou de plans de repas via l'IA.
-* **Protection par prompt système :** Le prompt système demande à l'IA de ne pas calculer les nutriments. Les aliments sont mis en correspondance localement sur votre appareil avec la base SQLite hors-ligne pour en déduire les macros.
-* **Algorithme local :** Les calculs de calories et le suivi restent 100% locaux sur votre appareil et ne servent pas à entraîner les modèles globaux d'IA.
-* **Responsabilité :** L'utilisation de votre clé implique une relation directe avec le fournisseur d'IA. Veuillez consulter sa charte de confidentialité avant utilisation.
+1. **Traitement sur l'appareil (Apple Intelligence / Foundation Models) :**  
+   Sur les appareils Apple compatibles (iOS avec Apple Intelligence), Train Libre utilise nativement le framework `FoundationModels` (`SystemLanguageModel.default`).
+   * **Zéro transfert réseau :** Le traitement du texte et des images est réalisé à 100 % localement sur l'Apple Neural Engine de votre appareil. Aucun octet ne quitte votre appareil (0 octet transmis).
+   * **Aucune clé API requise :** La reconnaissance locale ne nécessite aucun compte tiers ni clé API.
+   * **Aucun entraînement :** Vos données ne sont jamais utilisées pour entraîner des modèles d'IA.
+
+2. **Bring-Your-Own-Key (BYOK) pour les fournisseurs Cloud :**  
+   Alternativement, vous pouvez utiliser des services cloud tiers en renseignant votre propre clé API dans l'application.
+   * **Fournisseurs pris en charge :** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama et end-points compatibles OpenAI.
+   * **Stockage sécurisé :** Votre clé API est chiffrée en AES-256 via `flutter_secure_storage` dans le trousseau sécurisé de l'appareil (iOS Keychain / Android Keystore) et n'est jamais transmise de notre côté.
+   * **Transmission limitée :** L'image ou la description est envoyée chiffrée en HTTPS directement à l'API du fournisseur sélectionné. Aucune métadonnée personnelle n'est jointe.
+   * **Responsabilité :** L'utilisation de votre clé implique une relation directe avec le fournisseur d'IA. Veuillez consulter sa charte de confidentialité avant utilisation.
+
+3. **Garanties communes de confidentialité :**
+   * **Traitement analytique :** L'IA est utilisée uniquement pour décomposer la description ou l'image en ingrédients. Train Libre ne génère pas de conseils ou de plans de repas via l'IA.
+   * **Protection par prompt système :** Le prompt système demande au modèle de ne pas calculer les nutriments. Les aliments sont mis en correspondance localement sur votre appareil avec la base SQLite hors-ligne pour en déduire les macros.
+   * **Algorithme local :** Les calculs de calories et le suivi restent 100% locaux sur votre appareil et ne servent pas à entraîner les modèles globaux d'IA.
 
 | Fournisseur | Charte de confidentialité |
 | :--- | :--- |
+| Apple Intelligence | https://www.apple.com/legal/privacy/ |
 | OpenAI | https://openai.com/policies/privacy-policy |
 | Google Gemini | https://policies.google.com/privacy |
 | Anthropic Claude | https://www.anthropic.com/privacy |
@@ -93,7 +104,7 @@ Train Libre vous permet d'analyser vos repas par photo ou texte en fournissant v
 
 Train Libre peut interagir avec les bases de santé système (Apple HealthKit ou Google Health Connect). Cela requiert votre autorisation explicite et peut être révoqué dans les réglages système.
 
-* **Importation (Lecture) :** Pas, sommeil et fréquence cardiaque pour affichage local.
+* **Importation (Lecture) :** Mensurations corporelles (poids, masse grasse, tour de taille), pas, sommeil et fréquence cardiaque pour affichage local et étalonnage du métabolisme.
 * **Exportation (Écriture) :** Séances, repas et poids.
 * **Protection contre les doublons :** Registre local d'idempotence (`health_export_records`) pour éviter les écritures en double.
 
