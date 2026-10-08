@@ -141,7 +141,7 @@ class _GlassPillButtonState extends State<GlassPillButton>
     );
 
     return GestureDetector(
-      behavior: HitTestBehavior.translucent,
+      behavior: HitTestBehavior.opaque,
       onTapDown: _hasTap ? _onTapDown : null,
       onTapUp: _hasTap ? _onTapUp : null,
       onTapCancel: _hasTap ? _onTapCancel : null,

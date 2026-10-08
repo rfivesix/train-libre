@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../../generated/app_localizations.dart';
-import '../../../../widgets/common/app_button.dart';
+import '../../../../services/haptic_feedback_service.dart';
+import '../../../../util/design_constants.dart';
 
 /// Glass accessory controls shown above the keyboard on workout screens.
 class WorkoutKeyboardAccessoryBar extends StatefulWidget {
@@ -20,6 +23,7 @@ class _WorkoutKeyboardAccessoryBarState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    FocusManager.instance.addListener(_onFocusChanged);
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _updateKeyboardHeight());
   }
@@ -27,7 +31,12 @@ class _WorkoutKeyboardAccessoryBarState
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    FocusManager.instance.removeListener(_onFocusChanged);
     super.dispose();
+  }
+
+  void _onFocusChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -64,41 +73,139 @@ class _WorkoutKeyboardAccessoryBarState
     );
   }
 
+  bool _hasNextFocus() {
+    final current = FocusManager.instance.primaryFocus;
+    final currentContext = current?.context;
+    final scope = current?.nearestScope;
+    if (current == null ||
+        currentContext == null ||
+        !currentContext.mounted ||
+        scope == null) {
+      return false;
+    }
+
+    final ordered = scope.traversalDescendants.toList(growable: false);
+    final currentIndex = ordered.indexOf(current);
+    return currentIndex >= 0 && currentIndex < ordered.length - 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_keyboardHeight <= 0) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context)!;
     return Positioned(
-      bottom: 0,
+      bottom: 8,
       left: 0,
       right: 0,
-      child: Material(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
-            : const Color(0xFFF5F5F7),
-        elevation: 8,
-        child: SizedBox(
-          height: 48,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                AppButton.secondary(
-                  label: '-',
-                  semanticsLabel: 'Insert hyphen',
-                  size: AppButtonSize.small,
-                  onPressed: _insertHyphen,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _KeyboardGlassButton(
+              label: '-',
+              onPressed: _insertHyphen,
+              circular: true,
+            ),
+            const SizedBox(width: 8),
+            if (_hasNextFocus()) ...[
+              _KeyboardGlassButton(
+                label: '',
+                icon: LucideIcons.chevron_right,
+                semanticLabel: l10n.appTourNext,
+                onPressed: () =>
+                    FocusManager.instance.primaryFocus?.nextFocus(),
+              ),
+              const SizedBox(width: 8),
+            ],
+            _KeyboardGlassButton(
+              label: l10n.doneButtonLabel,
+              onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _KeyboardGlassButton extends StatelessWidget {
+  const _KeyboardGlassButton({
+    required this.label,
+    required this.onPressed,
+    this.circular = false,
+    this.icon,
+    this.semanticLabel,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool circular;
+  final IconData? icon;
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = isDark ? Colors.white : Colors.black;
+    final content = circular
+        ? SizedBox(
+            width: 36,
+            height: 36,
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: foreground,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 8),
-                AppButton.primary(
-                  label: l10n.doneButtonLabel,
-                  size: AppButtonSize.small,
-                  onPressed: () =>
-                      FocusManager.instance.primaryFocus?.unfocus(),
-                ),
-              ],
+              ),
+            ),
+          )
+        : Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: SizedBox(
+              height: 36,
+              child: Center(
+                child: icon == null
+                    ? Text(
+                        label,
+                        style: TextStyle(
+                          color: foreground,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : Icon(icon, color: foreground, size: 18),
+              ),
+            ),
+          );
+
+    return Semantics(
+      button: true,
+      label: semanticLabel ?? (circular ? 'Insert hyphen' : label),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedbackService.instance.lightImpact();
+          onPressed();
+        },
+        child: GlassAdaptiveScope(
+          maxQuality: DesignConstants.defaultGlassQuality,
+          minQuality: DesignConstants.minGlassQuality,
+          child: RepaintBoundary(
+            child: GlassContainer(
+              useOwnLayer: true,
+              height: 36,
+              width: circular ? 36 : null,
+              shape: circular
+                  ? const LiquidOval()
+                  : const LiquidRoundedSuperellipse(borderRadius: 18),
+              quality: DesignConstants.defaultGlassQuality,
+              settings: DesignConstants.liquidGlassSettings(isDark),
+              child: content,
             ),
           ),
         ),

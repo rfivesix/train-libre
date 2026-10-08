@@ -25,16 +25,16 @@ class AppInfoRow extends StatelessWidget {
         padding: padding,
         child: Row(
           children: [
-            SizedBox(
-              width: 32.0,
-              child: leading != null
-                  ? Align(
-                      alignment: Alignment.centerLeft,
-                      child: leading!,
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12.0),
+            if (leading != null) ...[
+              SizedBox(
+                width: 32.0,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: leading!,
+                ),
+              ),
+              const SizedBox(width: 12.0),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
