@@ -45,6 +45,9 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
   late DateTime _selectedDate;
   late String _selectedMealType;
   late Map<String, TextEditingController> _qtyCtrls;
+  late final TextEditingController _totalQtyCtrl;
+  late final int _recipeTotalGrams;
+  bool _syncingQuantities = false;
 
   final List<String> _internalTypes = const [
     'mealtypeBreakfast',
@@ -70,14 +73,47 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           text: '${it['quantity_in_grams']}',
         ),
     };
+    _recipeTotalGrams = widget.rawItems.fold<int>(
+      0,
+      (sum, it) => sum + ((it['quantity_in_grams'] as num?)?.round() ?? 0),
+    );
+    _totalQtyCtrl = TextEditingController(text: '$_recipeTotalGrams')
+      ..addListener(_scaleIngredientsFromTotal);
   }
 
   @override
   void dispose() {
+    _totalQtyCtrl.dispose();
     for (final ctrl in _qtyCtrls.values) {
       ctrl.dispose();
     }
     super.dispose();
+  }
+
+  void _scaleIngredientsFromTotal() {
+    if (_syncingQuantities || _recipeTotalGrams <= 0) return;
+    final requested = int.tryParse(_totalQtyCtrl.text.trim());
+    if (requested == null || requested <= 0) return;
+    _syncingQuantities = true;
+    final largestItemIndex = widget.rawItems.indexOf(
+      widget.rawItems.reduce((largest, item) =>
+          (item['quantity_in_grams'] as num) >
+                  (largest['quantity_in_grams'] as num)
+              ? item
+              : largest),
+    );
+    var assigned = 0;
+    for (var i = 0; i < widget.rawItems.length; i++) {
+      final item = widget.rawItems[i];
+      final barcode = item['barcode'] as String;
+      final original = (item['quantity_in_grams'] as num).round();
+      final scaled = i == largestItemIndex
+          ? requested - assigned
+          : (original * requested / _recipeTotalGrams).floor();
+      assigned += scaled;
+      _qtyCtrls[barcode]?.text = '$scaled';
+    }
+    _syncingQuantities = false;
   }
 
   @override
@@ -154,6 +190,19 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           ],
         ),
         const SizedBox(height: DesignConstants.spacingS),
+
+        TextFormField(
+          controller: _totalQtyCtrl,
+          keyboardType: const TextInputType.numberWithOptions(decimal: false),
+          decoration: InputDecoration(
+            labelText: l10n.mealTotalAmountLabel,
+            suffixText: l10n.unit_grams,
+            helperText: l10n.mealTotalAmountHint(_recipeTotalGrams),
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
 
         PlatformAdaptiveDropdownFormField<String>(
           initialValue: _selectedMealType,
@@ -267,8 +316,10 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                   for (final it in widget.rawItems) {
                     final bc = it['barcode'] as String;
                     final ctrl = _qtyCtrls[bc]!;
-                    final qty = int.tryParse(ctrl.text.trim()) ??
-                        (it['quantity_in_grams'] as int);
+                    final parsed = int.tryParse(ctrl.text.trim());
+                    final qty = (parsed == null || parsed < 1)
+                        ? (it['quantity_in_grams'] as int)
+                        : parsed;
                     finalQuantities[bc] = qty;
                   }
 

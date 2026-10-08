@@ -2372,6 +2372,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mealIngredientAmountLabel => 'Quantità';
 
   @override
+  String get mealTotalAmountLabel => 'Quantità totale della ricetta';
+
+  @override
+  String mealTotalAmountHint(int grams) {
+    return 'Ricetta completa: $grams g. Gli ingredienti vengono ridimensionati proporzionalmente.';
+  }
+
+  @override
   String get mealDeleteConfirmTitle => 'Elimina ricetta';
 
   @override

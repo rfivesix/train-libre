@@ -4286,6 +4286,18 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get mealIngredientAmountLabel;
 
+  /// No description provided for @mealTotalAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total recipe amount'**
+  String get mealTotalAmountLabel;
+
+  /// No description provided for @mealTotalAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full recipe: {grams} g. Ingredients scale proportionally.'**
+  String mealTotalAmountHint(int grams);
+
   /// No description provided for @mealDeleteConfirmTitle.
   ///
   /// In en, this message translates to:

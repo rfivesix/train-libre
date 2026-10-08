@@ -2307,6 +2307,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealIngredientAmountLabel => '額';
 
   @override
+  String get mealTotalAmountLabel => 'レシピ全体の量';
+
+  @override
+  String mealTotalAmountHint(int grams) {
+    return 'レシピ全体: $grams g。材料は比例して調整されます。';
+  }
+
+  @override
   String get mealDeleteConfirmTitle => 'レシピを削除する';
 
   @override
