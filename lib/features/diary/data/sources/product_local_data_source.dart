@@ -26,12 +26,14 @@ class AiCatalogSearchSession {
 
   AiCatalogSearchSession(this._source);
 
-  Future<List<FoodItem>> search(String term) => _terms.putIfAbsent(
-        term.trim().toLowerCase(),
-        () => _runBounded(term),
+  Future<List<FoodItem>> search(String term, {bool includeOff = true}) =>
+      _terms.putIfAbsent(
+        '${includeOff ? 'all' : 'base'}:${term.trim().toLowerCase()}',
+        () => _runBounded(term, includeOff: includeOff),
       );
 
-  Future<List<FoodItem>> _runBounded(String term) async {
+  Future<List<FoodItem>> _runBounded(String term,
+      {required bool includeOff}) async {
     if (_active >= 4) {
       final ready = Completer<void>();
       _waiting.add(ready);
@@ -40,7 +42,11 @@ class AiCatalogSearchSession {
       _active++;
     }
     try {
-      return await _source.searchProducts(term, aiSession: this);
+      return await _source.searchProducts(
+        term,
+        aiSession: this,
+        includeOff: includeOff,
+      );
     } finally {
       if (_waiting.isNotEmpty) {
         _waiting.removeFirst().complete();
@@ -616,12 +622,13 @@ class ProductLocalDataSource {
 
   /// Performs a global search across user-created, base, and Open Food Facts products.
   Future<List<FoodItem>> searchProducts(String keyword,
-      {AiCatalogSearchSession? aiSession}) async {
+      {AiCatalogSearchSession? aiSession, bool includeOff = true}) async {
     final tokens = _tokenizeAndClean(keyword);
     if (tokens.isEmpty) return [];
 
     final dbInstance = await database;
     const int limit = 50;
+    final preferBaseSource = aiSession != null && !includeOff;
 
     final variables = <Variable>[];
 
@@ -655,7 +662,11 @@ class ProductLocalDataSource {
     variables.add(
         Variable.withString('$rawSearchLower%')); // Prefix match (Name + Brand)
 
-    final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
+    final whereClauses = <String>[
+      includeOff
+          ? "p.source IN ('user', 'base', 'off')"
+          : "p.source IN ('user', 'base')",
+    ];
     for (final token in tokens) {
       // German plural stemming fallback:
       // If token ends with "er" (e.g. "eier"), allow matching on the stem ("ei") as well.
@@ -726,9 +737,9 @@ class ProductLocalDataSource {
       -- Manual search keeps exact names first. AI matching sees canonical
       -- base foods first so generic ingredients are not crowded out by OFF.
       ORDER BY 
-        ${aiSession == null ? '' : 'is_base_food DESC,'}
+        ${preferBaseSource ? 'is_base_food DESC,' : ''}
         is_exact_match DESC, 
-        ${aiSession == null ? 'is_base_food DESC,' : ''}
+        ${preferBaseSource ? '' : 'is_base_food DESC,'}
         history_priority_score DESC, 
         is_prefix_match DESC, 
         LENGTH(p.name) ASC,
@@ -782,14 +793,19 @@ class ProductLocalDataSource {
     String? catalogSearchTerm,
     Iterable<String> searchTerms = const [],
     AiCatalogSearchSession? aiSession,
+    bool includeOff = false,
   }) async {
+    final searchOff =
+        includeOff || (catalogSearchTerm?.trim().isNotEmpty ?? false);
     final terms = <String>{
       aiName.trim(),
       ...searchTerms.map((term) => term.trim()),
       if (catalogSearchTerm != null) catalogSearchTerm.trim(),
     }..removeWhere((term) => term.isEmpty);
     final resultSets = await Future.wait(
-      terms.map((term) => aiSession?.search(term) ?? searchProducts(term)),
+      terms.map((term) =>
+          aiSession?.search(term, includeOff: searchOff) ??
+          searchProducts(term, includeOff: searchOff)),
     );
     final candidates = <FoodItem>[];
     for (final results in resultSets) {

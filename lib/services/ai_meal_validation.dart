@@ -10,30 +10,62 @@ part 'ai/validation/matching_logic.dart';
 part 'ai/validation/rules_logic.dart';
 
 class AiMealValidationEngine {
-  final AiFoodMatchLoader _matchLoader;
+  late final AiFoodMatchLoader _matchLoader;
   final Map<String, Future<List<FoodItem>>> _matchCache = {};
+  bool _includeOffCatalog = false;
+  final Set<String> _offCatalogItemKeys = {};
 
   AiMealValidationEngine({
     AiFoodMatchLoader? matchLoader,
-  }) : _matchLoader = matchLoader ?? _createDefaultMatchLoader();
-
-  static AiFoodMatchLoader _createDefaultMatchLoader() {
+  }) {
     final session = ProductLocalDataSource.instance.createAiSearchSession();
-    return (item) => defaultMatchLoader(item, aiSession: session);
+    _matchLoader = matchLoader ??
+        (item) => defaultMatchLoader(
+              item,
+              aiSession: session,
+              includeOff: _includeOffCatalog ||
+                  _offCatalogItemKeys.contains(_itemCacheKey(item)),
+            );
+  }
+
+  String _itemCacheKey(AiMealCandidateItem item) => jsonEncode([
+        item.name,
+        item.matchedBarcode,
+        item.catalogSearchTerm,
+        item.searchTerms,
+      ]);
+
+  /// Tries Open Food Facts only for items whose base-food match needs repair.
+  void enableOffCatalogFallbackFor(Iterable<AiMealCandidateItem> items) {
+    for (final item in items) {
+      _offCatalogItemKeys.add(_itemCacheKey(item));
+    }
+    _matchCache.clear();
+  }
+
+  /// Widens matching to Open Food Facts after base-food matching needs repair.
+  /// The per-item cache must be cleared because it contains base-only results.
+  void enableOffCatalogFallback() {
+    if (_includeOffCatalog) return;
+    _includeOffCatalog = true;
+    _matchCache.clear();
   }
 
   static Future<List<FoodItem>> defaultMatchLoader(AiMealCandidateItem item,
-      {AiCatalogSearchSession? aiSession}) async {
+      {AiCatalogSearchSession? aiSession, bool includeOff = false}) async {
     final helper = ProductLocalDataSource.instance;
     final matches = <FoodItem>[];
     final barcode = item.matchedBarcode?.trim();
+    final searchOff =
+        includeOff || (item.catalogSearchTerm?.trim().isNotEmpty ?? false);
     final fuzzyFuture = helper.fuzzyMatchForAi(
       item.name,
       catalogSearchTerm: item.catalogSearchTerm,
       searchTerms: item.searchTerms,
       aiSession: aiSession,
+      includeOff: searchOff,
     );
-    if (barcode != null && barcode.isNotEmpty) {
+    if (searchOff && barcode != null && barcode.isNotEmpty) {
       final selected = await helper.getProductByBarcode(barcode);
       if (selected != null) {
         matches.add(selected);
@@ -64,12 +96,7 @@ class AiMealValidationEngine {
       final matchesByItem = await Future.wait([
         for (var i = start; i < end; i++)
           _matchCache.putIfAbsent(
-            jsonEncode([
-              items[i].name,
-              items[i].matchedBarcode,
-              items[i].catalogSearchTerm,
-              items[i].searchTerms,
-            ]),
+            _itemCacheKey(items[i]),
             () => _matchLoader(items[i]),
           ),
       ]);
@@ -319,8 +346,28 @@ class AiRepairOrchestrator {
 
     while ((!validation.passed || validation.needsSemanticSelection) &&
         repairPasses < maxPasses) {
+      final fallbackItems = validation.items
+          .where((item) =>
+              !item.isMatched ||
+              item.match.quality == AiMatchQuality.weak ||
+              item.match.quality == AiMatchQuality.partial ||
+              item.match.isAmbiguous)
+          .map((item) => item.candidate)
+          .toList(growable: false);
+      if (fallbackItems.isNotEmpty) {
+        validationEngine.enableOffCatalogFallbackFor(fallbackItems);
+        validation = await validationEngine.validateMealCandidate(
+          candidate: candidate,
+          mode: mode,
+          targetContext: targetContext,
+        );
+        if (validation.passed && !validation.needsSemanticSelection) break;
+      }
       repairPasses += 1;
       candidate = await repairer(candidate, validation, repairPasses);
+      // Once a repair has started, subsequent validation can use OFF as a
+      // fallback for revised names and explicit product selections.
+      validationEngine.enableOffCatalogFallback();
       final validationWatch = Stopwatch()..start();
       validation = await validationEngine.validateMealCandidate(
         candidate: candidate,

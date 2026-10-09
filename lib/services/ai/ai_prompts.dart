@@ -7,6 +7,7 @@ BLS BASE-FOOD CATALOG NAMING:
 - The BLS base-food index uses concise German source names, even when the app or packaged-food catalog uses another language. For generic ingredients, include a German BLS search term in `searchTerms` when the everyday food name differs from the catalog wording.
 - Convert everyday names to the catalog's formal food-class terminology before searching. Names commonly identify the food class first, then specify composition, variety, and preparation state. For pasta/noodles, include `Teigwaren` as a search term.
 - Use `matchedBarcode` only when the image or user input clearly identifies a specific packaged product or barcode. For ordinary visible ingredients such as plain cheese, butter, pepper, pasta, fruit, or vegetables, leave it null so the app can match the canonical base-food catalog.
+- Treat the base-food catalog as the default source for ingredients. Set `catalogSearchTerm` only when a specific branded or packaged product is visibly identified and Open Food Facts is needed to find that product. Do not request Open Food Facts for generic ingredients merely because its product name is a closer text match.
 - Keep the food identity and preparation state accurate. Do not make a generic catalog entry appear to be a specific variety or cooking method that the source does not identify.''';
 
   static const itemSchema = <String, dynamic>{
@@ -115,8 +116,9 @@ BLS BASE-FOOD CATALOG NAMING:
         effectiveCatalogLang != effectiveAppLang) {
       langRuleBuffer.write(
         '\n10. DUAL LANGUAGE SEARCH: The active regional food catalog uses "$effectiveCatalogLang". '
-        'If an item represents a packaged product, brand, or regional dish, also provide a "catalogSearchTerm" '
-        'field in "$effectiveCatalogLang".',
+        'For a specifically identified packaged or branded product, provide a "catalogSearchTerm" '
+        'in "$effectiveCatalogLang". For generic ingredients and regional dishes, use the base-food catalog '
+        'and put any localized food-name alternatives in "searchTerms" instead.',
       );
     }
 
