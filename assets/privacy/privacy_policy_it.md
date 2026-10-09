@@ -95,6 +95,7 @@ L'app offre la possibilità di analizzare i pasti tramite foto o testo mediante 
 
 ### B. Aggiornamento dei cataloghi offline
 * **Funzionamento:** L'app controlla periodicamente la presenza di aggiornamenti dei cataloghi tramite HTTPS verso i server di hosting.
+* **Catalogo BLS:** Il catalogo alimentare BLS 4.0 del Max Rubner-Institut viene scaricato da GitHub e conservato localmente.
 * **Minimizzazione:** Vengono trasmessi solo i dati tecnici di connessione (IP, timestamp, user-agent) necessari per il download.
 * **Ricerca offline:** La ricerca di prodotti e la scansione dei codici a barre avvengono al 100% offline.
 

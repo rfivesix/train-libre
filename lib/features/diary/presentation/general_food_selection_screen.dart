@@ -138,7 +138,7 @@ class _GeneralFoodSelectionScreenState
     }
 
     setState(() => _isLoading = true);
-    final results = await ProductLocalDataSource.instance.searchProducts(
+    final results = await ProductLocalDataSource.instance.searchProductsForUser(
       enteredKeyword,
     );
     if (!mounted) return;

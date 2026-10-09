@@ -18,7 +18,11 @@ extension MatchingLogic on AiMealValidationEngine {
     }
 
     final selectedBarcode = item.matchedBarcode?.trim();
-    if (selectedBarcode != null && selectedBarcode.isNotEmpty) {
+    final hasExplicitPackagedProduct =
+        item.catalogSearchTerm?.trim().isNotEmpty ?? false;
+    if (selectedBarcode != null &&
+        selectedBarcode.isNotEmpty &&
+        hasExplicitPackagedProduct) {
       final selectedMatches = matches
           .where((food) => food.barcode == selectedBarcode)
           .toList(growable: false);
@@ -41,14 +45,34 @@ extension MatchingLogic on AiMealValidationEngine {
             score: _matchScore(item, food),
           ),
         )
-        .toList(growable: false)
-      ..sort((a, b) {
-        final scoreCompare = b.score.compareTo(a.score);
-        if (scoreCompare != 0) return scoreCompare;
-        return _sourcePriority(a.food.source).compareTo(
+        .toList(growable: false);
+    final highestScore = scored.fold<double>(
+      0,
+      (highest, item) => item.score > highest ? item.score : highest,
+    );
+    scored.sort((a, b) {
+      // For generic ingredients, prefer canonical base-food candidates that
+      // are close to the strongest text match. A weak base-food coincidence
+      // cannot displace a clearly better match.
+      final aIsNearBest =
+          !hasExplicitPackagedProduct && a.score >= highestScore - 0.18;
+      final bIsNearBest =
+          !hasExplicitPackagedProduct && b.score >= highestScore - 0.18;
+      if (aIsNearBest != bIsNearBest) {
+        return aIsNearBest ? -1 : 1;
+      }
+      if (aIsNearBest && bIsNearBest) {
+        final sourceCompare = _sourcePriority(a.food.source).compareTo(
           _sourcePriority(b.food.source),
         );
-      });
+        if (sourceCompare != 0) return sourceCompare;
+      }
+      final scoreCompare = b.score.compareTo(a.score);
+      if (scoreCompare != 0) return scoreCompare;
+      return _sourcePriority(a.food.source).compareTo(
+        _sourcePriority(b.food.source),
+      );
+    });
 
     final best = scored.first;
     final alternatives = scored.map((e) => e.food).toList(growable: false);

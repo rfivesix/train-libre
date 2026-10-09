@@ -720,6 +720,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             dividerColor: Colors.transparent,
                           ),
                           child: ExpansionTile(
+                            key: const PageStorageKey<String>(
+                              'ai_advanced_options_expansion',
+                            ),
                             tilePadding: EdgeInsets.zero,
                             childrenPadding:
                                 const EdgeInsets.only(top: 8, bottom: 4),

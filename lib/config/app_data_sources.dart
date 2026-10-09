@@ -15,16 +15,9 @@ class AppDataSources {
       'assets/db/$legacyTrainingDbFileName';
   static const String baseFoodsDbFileName = 'train_libre_base_foods.db';
   static const String legacyBaseFoodsDbFileName = 'hypertrack_base_foods.db';
-  static const String baseFoodsAssetDbPath = 'assets/db/$baseFoodsDbFileName';
-  static const String legacyBaseFoodsAssetDbPath =
-      'assets/db/$legacyBaseFoodsDbFileName';
   static const String offFoodsAssetDbPath = 'assets/db/train_libre_prep_de.db';
   static const String legacyOffFoodsAssetDbPath =
       'assets/db/hypertrack_prep_de.db';
-  static const String foodCategoriesAssetDbPath =
-      'assets/db/$baseFoodsDbFileName';
-  static const String legacyFoodCategoriesAssetDbPath =
-      'assets/db/$legacyBaseFoodsDbFileName';
 
   /// The catalog schema version this build of the app can consume.
   ///
@@ -39,6 +32,10 @@ class AppDataSources {
   /// schema, and only once that release is broadly installed. A device that
   /// raises it early accepts a catalog it then fails to read.
   static const int supportedCatalogSchemaVersion = 1;
+
+  static const String blsFoodCatalogReleaseBaseUrl =
+      'https://github.com/rfivesix/train-libre-bls-catalog/releases/download/bls-foods-stable/';
+  static const String blsFoodCatalogManifestFile = 'catalog_manifest.json';
 
   // Remote training-catalog source: the OpenExerciseDB stable channel.
   //

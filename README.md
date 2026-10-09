@@ -192,7 +192,8 @@ The long-term vision, future modules, and planned features are maintained in the
 
 ## Credits
 
-- **[Open Food Facts](https://openfoodfacts.org/)** for food database coverage.
+- **[Open Food Facts](https://openfoodfacts.org/)** for packaged-food and barcode coverage.
+- **[Bundeslebensmittelschlüssel (BLS) 4.0](https://doi.org/10.25826/Data20251217-134202-0)** from the Max Rubner-Institut for base-food nutrient data.
 - **[OpenExerciseDB](https://github.com/rfivesix/OpenExerciseDB)** for the exercise catalog.
 - **[wger](https://github.com/wger-project/wger)** for the upstream exercise data OpenExerciseDB was built from.
 
@@ -211,3 +212,6 @@ ShareAlike travels with the data, not with this repository's code: redistributin
 the catalog — or a database derived from it — means passing on the same licence
 and the same credit. Food data from Open Food Facts is separately licensed under
 the [ODbL](https://opendatacommons.org/licenses/odbl/).
+
+
+The BLS catalog is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Train Libre distributes the converted catalog with translated names, search aliases, and app categories. Attribution is also available in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and in the app About screen. The compressed catalog is downloaded from [the catalog release repository](https://github.com/rfivesix/train-libre-bls-catalog/releases); it is not bundled in the app binary.

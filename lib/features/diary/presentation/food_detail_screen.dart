@@ -17,6 +17,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
@@ -24,6 +25,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/bls_food_catalog_refresh_service.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -57,6 +59,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   bool _isFavorite = false;
   bool _showPer100g = false;
   bool _isLoading = false;
+  bool _isLoadingBlsNutrients = false;
+  List<BlsNutrientFact> _blsNutrients = const [];
+  String? _loadedBlsNutrientKey;
 
   late FoodItem _displayItem;
   int? _trackedQuantity;
@@ -102,6 +107,30 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       _showPer100g = _trackedQuantity == null || _trackedQuantity == 0;
     }
     _checkIfFavorite();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_displayItem.barcode.startsWith('bls:')) return;
+    final language = Localizations.localeOf(context).languageCode;
+    final loadKey = '${_displayItem.barcode}:$language';
+    if (_loadedBlsNutrientKey == loadKey) return;
+    _loadedBlsNutrientKey = loadKey;
+    unawaited(_loadBlsNutrients(language));
+  }
+
+  Future<void> _loadBlsNutrients(String language) async {
+    setState(() => _isLoadingBlsNutrients = true);
+    try {
+      final facts = await const BlsNutrientRepository()
+          .getFacts(_displayItem.barcode, language);
+      if (mounted) setState(() => _blsNutrients = facts);
+    } catch (error) {
+      debugPrint('[BLS food detail] Nutrient read failed: $error');
+    } finally {
+      if (mounted) setState(() => _isLoadingBlsNutrients = false);
+    }
   }
 
   @override
@@ -249,12 +278,37 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     _checkIfFavorite();
   }
 
-  double _getDisplayValue(double? valuePer100g) {
-    if (valuePer100g == null) return 0.0;
+  double? _getDisplayValue(double? valuePer100g) {
+    if (valuePer100g == null) return null;
     if (_showPer100g || !_hasPortionInfo) {
       return valuePer100g;
     }
     return (valuePer100g / 100 * _trackedQuantity!);
+  }
+
+  ({double? value, String? marker}) _getCoreNutrientDisplay(
+    String componentCode,
+    double fallbackValue,
+  ) {
+    if (!_displayItem.barcode.startsWith('bls:')) {
+      return (value: _getDisplayValue(fallbackValue), marker: null);
+    }
+    BlsNutrientFact? fact;
+    for (final candidate in _blsNutrients) {
+      if (candidate.code == componentCode) {
+        fact = candidate;
+        break;
+      }
+    }
+    if (fact == null) return (value: null, marker: '-');
+    if (fact.value != null) {
+      return (value: _getDisplayValue(fact.value), marker: null);
+    }
+    final marker = fact.valueText?.trim();
+    return (
+      value: null,
+      marker: marker == null || marker.isEmpty ? '-' : marker,
+    );
   }
 
   String _getCopyPrefix(String languageCode) {
@@ -519,6 +573,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final calories = _getCoreNutrientDisplay(
+      'ENERCC',
+      _displayItem.calories.toDouble(),
+    );
+    final protein = _getCoreNutrientDisplay('PROT625', _displayItem.protein);
+    final carbs = _getCoreNutrientDisplay('CHO', _displayItem.carbs);
+    final fat = _getCoreNutrientDisplay('FAT', _displayItem.fat);
 
     // Explicit top spacing avoids content colliding with status bar/app bar.
     final double topInset = MediaQuery.of(context).padding.top;
@@ -686,21 +747,25 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     children: [
                       _buildAnimatedNutrientRow(
                         l10n.calories,
-                        _getDisplayValue(_displayItem.calories.toDouble()),
+                        calories.value,
+                        missingValue: calories.marker,
                         unit: 'kcal',
                         isInt: true,
                       ),
                       _buildAnimatedNutrientRow(
                         l10n.protein,
-                        _getDisplayValue(_displayItem.protein),
+                        protein.value,
+                        missingValue: protein.marker,
                       ),
                       _buildAnimatedNutrientRow(
                         l10n.carbs,
-                        _getDisplayValue(_displayItem.carbs),
+                        carbs.value,
+                        missingValue: carbs.marker,
                       ),
                       _buildAnimatedNutrientRow(
                         l10n.fat,
-                        _getDisplayValue(_displayItem.fat),
+                        fat.value,
+                        missingValue: fat.marker,
                       ),
                     ],
                   ),
@@ -766,6 +831,26 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       ),
                     ),
                   ),
+                ],
+
+                if (_displayItem.barcode.startsWith('bls:')) ...[
+                  const SizedBox(height: DesignConstants.spacingM),
+                  SummaryCard(
+                    child: ExpansionTile(
+                      initiallyExpanded: true,
+                      shape: const Border(),
+                      collapsedShape: const Border(),
+                      title: Text(l10n.blsCompleteNutrientProfile),
+                      subtitle: Text(
+                        _isLoadingBlsNutrients
+                            ? l10n.initLoadingRemoteManifest
+                            : l10n.blsNutrientCount(_blsNutrients.length),
+                      ),
+                      children: _buildBlsNutrientGroups(),
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  _buildBlsSourceAttribution(),
                 ],
 
                 // ---------- DEV: Inline edit panel ----------
@@ -846,9 +931,175 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     );
   }
 
+  List<Widget> _buildBlsNutrientGroups() {
+    final groups = <String, List<BlsNutrientFact>>{};
+    for (final fact in _blsNutrients) {
+      groups.putIfAbsent(fact.group, () => []).add(fact);
+    }
+    if (groups.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
+          child: Text(AppLocalizations.of(context)!.blsNutrientsUnavailable),
+        ),
+      ];
+    }
+    final orderedGroups = groups.entries.toList()
+      ..sort((a, b) {
+        final rankA = _blsNutrientGroupRank(a.key);
+        final rankB = _blsNutrientGroupRank(b.key);
+        final rankOrder = rankA.compareTo(rankB);
+        return rankOrder != 0 ? rankOrder : a.key.compareTo(b.key);
+      });
+    return orderedGroups.indexed.map((groupEntry) {
+      final groupIndex = groupEntry.$1;
+      final entry = groupEntry.$2;
+      return ExpansionTile(
+        key: PageStorageKey<String>(
+          'bls-nutrients-${_displayItem.barcode}-${entry.key}',
+        ),
+        initiallyExpanded: groupIndex == 0,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        title: Text(entry.key),
+        children: entry.value.map((fact) {
+          final value = fact.value != null
+              ? '${fact.value!.toStringAsFixed(3)} ${fact.unit}'.trim()
+              : (fact.valueText?.isNotEmpty == true ? fact.valueText! : '-');
+          final provenance = [
+            if (fact.origin != null && fact.origin != '-') fact.origin!,
+            if (fact.reference != null && fact.reference != '-')
+              fact.reference!,
+          ].join(' · ');
+          return ListTile(
+            dense: true,
+            title: Text(fact.name),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(value),
+                if (provenance.isNotEmpty) ...[
+                  const SizedBox(width: DesignConstants.spacingXS),
+                  IconButton(
+                    tooltip: AppLocalizations.of(context)!.blsNutrientDetails,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.info_outline, size: 20),
+                    onPressed: () => _showBlsNutrientDetails(fact),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }).toList(growable: false),
+      );
+    }).toList(growable: false);
+  }
+
+  int _blsNutrientGroupRank(String group) {
+    final normalized = group.toLowerCase();
+    if (normalized.contains('vitamin')) {
+      return normalized.contains('fat-soluble') ||
+              normalized.contains('fettlöslich')
+          ? 0
+          : 1;
+    }
+    if (normalized.contains('element') || normalized.contains('mineral')) {
+      return 2;
+    }
+    if (normalized.contains('fatty acid') || normalized.contains('fettsäure')) {
+      return 3;
+    }
+    if (normalized.contains('amino')) return 4;
+    if (normalized.contains('carbohydrate') ||
+        normalized.contains('kohlenhydrat')) {
+      return 5;
+    }
+    if (normalized.contains('fiber') || normalized.contains('ballaststoff')) {
+      return 6;
+    }
+    if (normalized.contains('organic acid') ||
+        normalized.contains('organische säure')) {
+      return 7;
+    }
+    if (normalized.contains('sugar alcohol') ||
+        normalized.contains('zuckeralkohol')) {
+      return 8;
+    }
+    if (normalized.contains('macro') ||
+        normalized.contains('energy') ||
+        normalized.contains('energie')) {
+      return 9;
+    }
+    return 10;
+  }
+
+  Future<void> _showBlsNutrientDetails(BlsNutrientFact fact) async {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: fact.name,
+      contentBuilder: (context, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (fact.origin != null && fact.origin != '-') ...[
+            Text(l10n.blsNutrientOrigin, style: theme.textTheme.labelLarge),
+            const SizedBox(height: DesignConstants.spacingXS),
+            SelectableText(fact.origin!),
+          ],
+          if (fact.reference != null && fact.reference != '-') ...[
+            if (fact.origin != null && fact.origin != '-')
+              const SizedBox(height: DesignConstants.spacingM),
+            Text(l10n.blsNutrientReference, style: theme.textTheme.labelLarge),
+            const SizedBox(height: DesignConstants.spacingXS),
+            SelectableText(fact.reference!),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlsSourceAttribution() {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(AppLocalizations.of(context)!.blsFoodSourceLabel,
+              style: theme.textTheme.labelLarge),
+          const SizedBox(height: DesignConstants.spacingXS),
+          InkWell(
+            onTap: () => launchUrl(Uri.parse(
+              'https://doi.org/10.25826/Data20251217-134202-0',
+            )),
+            child: Text(
+              '${AppLocalizations.of(context)!.blsFoodSource} · DOI 10.25826/Data20251217-134202-0',
+              style: theme.textTheme.bodySmall?.copyWith(
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXS),
+          InkWell(
+            onTap: () => launchUrl(Uri.parse(
+              'https://creativecommons.org/licenses/by/4.0/',
+            )),
+            child: Text(
+              '${AppLocalizations.of(context)!.blsFoodLicense} · ${AppLocalizations.of(context)!.blsFoodModifications}',
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAnimatedNutrientRow(
     String label,
-    double value, {
+    double? value, {
+    String? missingValue,
     String unit = 'g',
     int decimals = 1,
     bool isInt = false,
@@ -856,20 +1107,25 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     return ListTile(
       dense: true,
       title: Text(label),
-      trailing: TweenAnimationBuilder<double>(
-        tween: Tween<double>(end: value),
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        builder: (context, val, _) {
-          final formatted = isInt
-              ? '${val.round()} $unit'
-              : '${val.toStringAsFixed(decimals)} $unit';
-          return Text(
-            formatted,
-            style: Theme.of(context).textTheme.labelLarge,
-          );
-        },
-      ),
+      trailing: value == null
+          ? Text(
+              missingValue ?? '-',
+              style: Theme.of(context).textTheme.labelLarge,
+            )
+          : TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: value),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, val, _) {
+                final formatted = isInt
+                    ? '${val.round()} $unit'
+                    : '${val.toStringAsFixed(decimals)} $unit';
+                return Text(
+                  formatted,
+                  style: Theme.of(context).textTheme.labelLarge,
+                );
+              },
+            ),
     );
   }
 

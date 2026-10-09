@@ -166,6 +166,7 @@ class ProductLocalDataSource {
     FoodItemSource source;
     switch (row.source) {
       case 'base':
+      case 'legacy':
         source = FoodItemSource.base;
         break;
       case 'off':
@@ -546,6 +547,73 @@ class ProductLocalDataSource {
     return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   }
 
+  /// Manual food search adds a small vocabulary bridge for common pasta names
+  /// that the German BLS catalog records under the broader food-science term
+  /// "Teigwaren". This is query expansion only; it does not alter catalog data.
+  Future<List<FoodItem>> searchProductsForUser(String keyword) async {
+    final expansionTerms = <String>{};
+    final tokens = _tokenizeAndClean(keyword);
+    const pastaTerms = {
+      'nudel',
+      'nudeln',
+      'pasta',
+      'pastas',
+      'noodle',
+      'noodles',
+      'fusilli',
+      'spaghetti',
+      'penne',
+      'macaroni',
+      'maccheroni',
+    };
+    if (tokens.isNotEmpty && tokens.every(pastaTerms.contains)) {
+      expansionTerms.add('Teigwaren');
+    }
+
+    final directResults = await searchProducts(keyword);
+    final expandedResultSets = await Future.wait(
+      expansionTerms.map(searchProducts),
+    );
+    final directByBarcode = <String, FoodItem>{};
+    final expandedByBarcode = <String, FoodItem>{};
+    for (final item in directResults) {
+      directByBarcode.putIfAbsent(item.barcode, () => item);
+    }
+    for (final resultSet in expandedResultSets) {
+      for (final item in resultSet) {
+        expandedByBarcode.putIfAbsent(item.barcode, () => item);
+      }
+    }
+
+    final baseFoods = <FoodItem>[];
+    final userFoods = <FoodItem>[];
+    final otherFoods = <FoodItem>[];
+    // Prefer the formal BLS category fallback within base foods, while keeping
+    // direct-query matches first for user-created and packaged products.
+    final ordered = [
+      ...expandedByBarcode.values
+          .where((item) => item.source == FoodItemSource.base),
+      ...directByBarcode.values,
+      ...expandedByBarcode.values,
+    ];
+    final seen = <String>{};
+    for (final item in ordered) {
+      if (!seen.add(item.barcode)) continue;
+      switch (item.source) {
+        case FoodItemSource.base:
+          baseFoods.add(item);
+          break;
+        case FoodItemSource.user:
+          userFoods.add(item);
+          break;
+        case FoodItemSource.off:
+          otherFoods.add(item);
+          break;
+      }
+    }
+    return [...baseFoods, ...userFoods, ...otherFoods].take(50).toList();
+  }
+
   /// Performs a global search across user-created, base, and Open Food Facts products.
   Future<List<FoodItem>> searchProducts(String keyword,
       {AiCatalogSearchSession? aiSession}) async {
@@ -655,15 +723,14 @@ class ProductLocalDataSource {
       LEFT JOIN RecentIdLogs ril ON ril.id = p.id
       WHERE $whereSection
       -- DIE NEUE PRIORISIERUNG:
-      -- 1. Exakte Namens- oder Marken-Treffer müssen IMMER ganz nach oben (z.B. wenn ein Produkt exakt "Eier" oder "Rewe Bio Magerquark" heißt)
-      -- 2. Wortanfang-Treffer (z.B. "Eiercreme" bei Suche nach "Eier") kommen als nächstes
-      -- 3. Erst danach greift die Unterscheidung zwischen Grundnahrungsmittel und OpenFoodFacts
-      -- 4. Innerhalb der Blöcke entscheidet deine Historie
+      -- Manual search keeps exact names first. AI matching sees canonical
+      -- base foods first so generic ingredients are not crowded out by OFF.
       ORDER BY 
+        ${aiSession == null ? '' : 'is_base_food DESC,'}
         is_exact_match DESC, 
+        ${aiSession == null ? 'is_base_food DESC,' : ''}
         history_priority_score DESC, 
         is_prefix_match DESC, 
-        is_base_food DESC, 
         LENGTH(p.name) ASC,
         p.name ASC
       LIMIT $limit

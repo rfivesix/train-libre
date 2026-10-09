@@ -3869,7 +3869,7 @@ abstract class AppLocalizations {
   /// No description provided for @attributionText.
   ///
   /// In en, this message translates to:
-  /// **'This app uses data from external sources:\n\n● Exercise data from OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), licensed under CC BY-SA 4.0, derived in part from the wger project (wger.de).\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).'**
+  /// **'This app uses data from external sources:\n\n● Exercise data from OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), licensed under CC BY-SA 4.0, derived in part from the wger project (wger.de).\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).\n\n● Base-food nutrient data from the Bundeslebensmittelschlüssel (BLS) 4.0, published by the Max Rubner-Institut, DOI 10.25826/Data20251217-134202-0, licensed under CC BY 4.0. Train Libre adds translations, search aliases, and categories.'**
   String get attributionText;
 
   /// No description provided for @errorRoutineNotFound.
@@ -11038,7 +11038,7 @@ abstract class AppLocalizations {
   /// No description provided for @offDownloadBody.
   ///
   /// In en, this message translates to:
-  /// **'To access full offline product search, barcode scanning, and AI features, please initialize the local catalogs. You will download the latest database releases from GitHub.'**
+  /// **'To use offline base foods, packaged-product search, barcode scanning, exercise lookup, and AI meal matching, download the local catalogs. The BLS 4.0 ingredient catalog is about 25.6 MB; food-product and exercise catalogs are separate downloads.'**
   String get offDownloadBody;
 
   /// No description provided for @offDownloadConfirm.
@@ -15140,6 +15140,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Call'**
   String get aiScanLogsCall;
+
+  /// No description provided for @blsModificationsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre additions: translations, search aliases, and categories.'**
+  String get blsModificationsDetail;
+
+  /// No description provided for @nutritionCatalogBls.
+  ///
+  /// In en, this message translates to:
+  /// **'Base food catalog (BLS)'**
+  String get nutritionCatalogBls;
+
+  /// No description provided for @blsCatalogManagementDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Download and update the offline BLS 4.0 ingredient catalog (25.6 MB).'**
+  String get blsCatalogManagementDescription;
+
+  /// No description provided for @blsCatalogRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for catalog updates'**
+  String get blsCatalogRefresh;
+
+  /// No description provided for @blsCatalogUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS catalog updated.'**
+  String get blsCatalogUpdated;
+
+  /// No description provided for @blsCatalogCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS catalog is up to date.'**
+  String get blsCatalogCurrent;
+
+  /// No description provided for @blsCatalogRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update BLS catalog. Try again later.'**
+  String get blsCatalogRefreshFailed;
+
+  /// No description provided for @blsCompleteNutrientProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete nutrient profile (BLS)'**
+  String get blsCompleteNutrientProfile;
+
+  /// No description provided for @blsNutrientCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} nutrient values per 100 g'**
+  String blsNutrientCount(int count);
+
+  /// No description provided for @blsNutrientsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrient details are unavailable until the BLS catalog is installed.'**
+  String get blsNutrientsUnavailable;
+
+  /// No description provided for @blsNutrientDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get blsNutrientDetails;
+
+  /// No description provided for @blsNutrientOrigin.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement or calculation'**
+  String get blsNutrientOrigin;
+
+  /// No description provided for @blsNutrientReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get blsNutrientReference;
+
+  /// No description provided for @blsFoodSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source and license'**
+  String get blsFoodSourceLabel;
+
+  /// No description provided for @blsFoodSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundeslebensmittelschlüssel (BLS) 4.0 — Max Rubner-Institut'**
+  String get blsFoodSource;
+
+  /// No description provided for @blsFoodLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS data: CC BY 4.0'**
+  String get blsFoodLicense;
+
+  /// No description provided for @blsFoodModifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre translations and categories'**
+  String get blsFoodModifications;
 }
 
 class _AppLocalizationsDelegate

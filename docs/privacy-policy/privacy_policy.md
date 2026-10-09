@@ -99,11 +99,11 @@ Train Libre bietet die Möglichkeit, Mahlzeiten über Fotos oder Freitextbeschre
 
 Bei Übertragungen an Cloud-Anbieter außerhalb der Europäischen Union (insbesondere in die USA) erfolgt dies auf Grundlage von Standardvertragsklauseln oder Angemessenheitsbeschlüssen, die Sie mit dem Anbieter vereinbart haben.
 
-### B. Offline-Katalog-Updates (Open Food Facts & Exercise Catalog)
+### B. Offline-Katalog-Updates (Open Food Facts, BLS & Exercise Catalog)
 
 Um Lebensmittel-Barcodes offline scannen und Übungen nachschlagen zu können, nutzt Train Libre lokale Produkt- und Übungskataloge. Diese Kataloge werden als vorkompilierte SQLite-Datenbankdateien direkt auf Ihr Gerät heruntergeladen.
 
-* **Funktionsweise:** Die App prüft in regelmäßigen Abständen, ob Aktualisierungen für den Lebensmittelkatalog (basierend auf Open Food Facts) oder den Übungskatalog (basierend auf wger/GitHub) vorliegen. Die Prüfung und der anschließende Download der komprimierten Katalogdatenbanken erfolgen über eine verschlüsselte HTTPS-Verbindung direkt zu den Servern des Hosting-Dienstleisters (z. B. GitHub Pages / GitHub Inc. bzw. Open Food Facts).
+* **Funktionsweise:** Train Libre prüft regelmäßig den Open-Food-Facts-Produktkatalog, den BLS-4.0-Basislebensmittelkatalog und den Übungskatalog auf Aktualisierungen. Die Katalogdatenbanken werden über HTTPS von ihren Hosts geladen, darunter GitHub und Open Food Facts.
 * **Datenminimierung:** Beim Herunterladen der Katalog-Updates werden systembedingt technische Verbindungsdaten (insbesondere Ihre IP-Adresse, Datum/Uhrzeit des Zugriffs und der User-Agent der App) an den Hoster übertragen. Es werden zu keinem Zeitpunkt nutzergenerierte Daten, gescannte Barcodes oder persönliche Profileigenschaften an die Katalog-Hoster gesendet.
 * **Lokale Barcode-Zuordnung:** Der Abgleich eines gescannten Barcodes oder die Suche nach Lebensmitteln und Übungen findet zu 100 Prozent offline auf Ihrem Gerät statt. Im Gegensatz zu herkömmlichen Ernährungs-Apps wird beim Scannen eines Produkts keine Anfrage mit dem Barcode an einen Cloud-Server gesendet.
 
@@ -306,11 +306,11 @@ Train Libre offers the option to analyze meals via photos or free-text descripti
 
 For transmissions to cloud providers outside the European Union (especially the USA), this occurs on the basis of standard contractual clauses or adequacy decisions that you have agreed with the provider.
 
-### B. Offline Catalog Updates (Open Food Facts & Exercise Catalog)
+### B. Offline Catalog Updates (Open Food Facts, BLS & Exercise Catalog)
 
 To scan food barcodes offline and look up exercises, Train Libre uses local product and exercise catalogs. These catalogs are downloaded directly to your device as precompiled SQLite database files.
 
-* **How it Works:** The app checks at regular intervals whether updates are available for the food catalog (based on Open Food Facts) or the exercise catalog (based on wger/GitHub). The check and subsequent download of the compressed catalog databases are performed via an encrypted HTTPS connection directly to the servers of the hosting service provider (e.g., GitHub Pages / GitHub Inc. or Open Food Facts).
+* **How it Works:** Train Libre periodically checks the Open Food Facts product catalog, the BLS 4.0 base-food catalog, and the exercise catalog for updates. Catalog databases are downloaded over HTTPS from their hosts, including GitHub and Open Food Facts.
 * **Data Minimization:** When downloading catalog updates, technical connection data (in particular your IP address, date/time of access, and the app's User-Agent) are transmitted to the host as a system requirement. No user-generated data, scanned barcodes, or personal profile characteristics are sent to the catalog hosts at any time.
 * **Local Barcode Mapping:** The matching of a scanned barcode or the search for food and exercises takes place 100 percent offline on your device. Unlike conventional nutrition apps, scanning a product does not send a request with the barcode to a cloud server.
 

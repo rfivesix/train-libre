@@ -171,7 +171,7 @@ void main() {
       await db.close();
     });
 
-    test('skips update entirely when build number matches cached value',
+    test('reports missing BLS foods and categories when build number matches',
         () async {
       await seedBundledCatalogData();
       await db.into(db.products).insert(const ProductsCompanion(
@@ -205,19 +205,22 @@ void main() {
         },
       );
 
-      // Verify that it skipped and reported completion immediately for all food areas
+      // Missing BLS rows must remain visible as awaiting their first download.
       expect(progressCalls, hasLength(3));
 
       expect(progressCalls[0]['task'], 'Basis-Produkte');
-      expect(progressCalls[0]['detail'], 'Basis-Produkte sind aktuell.');
+      expect(
+          progressCalls[0]['detail'], 'BLS-Katalog wartet auf den Download.');
       expect(progressCalls[0]['progress'], 1.0);
 
       expect(progressCalls[1]['task'], 'Kategorien');
-      expect(progressCalls[1]['detail'], 'Kategorien sind aktuell.');
+      expect(progressCalls[1]['detail'],
+          'BLS-Kategorien warten auf den Download.');
       expect(progressCalls[1]['progress'], 1.0);
 
       expect(progressCalls[2]['task'], startsWith('Produktdatenbank'));
-      expect(progressCalls[2]['detail'], contains('ist aktuell'));
+      expect(progressCalls[2]['detail'],
+          contains('Kein OFF-Bundle/Remote verfügbar'));
       expect(progressCalls[2]['progress'], 1.0);
     });
 

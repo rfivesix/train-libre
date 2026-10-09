@@ -641,11 +641,11 @@ Bitte prüfen Sie die Datenschutzrichtlinien Ihres Anbieters hier:
 
 Bei Übertragungen an Cloud-Anbieter außerhalb der Europäischen Union (insbesondere in die USA) erfolgt dies auf Grundlage von Standardvertragsklauseln oder Angemessenheitsbeschlüssen, die Sie mit dem Anbieter vereinbart haben.
 
-B. Offline-Katalog-Updates (Open Food Facts & Exercise Catalog)
+B. Offline-Katalog-Updates (Open Food Facts, BLS & Exercise Catalog)
 
 Um Lebensmittel-Barcodes offline scannen und Übungen nachschlagen zu können, nutzt Train Libre lokale Produkt- und Übungskataloge. Diese Kataloge werden als vorkompilierte SQLite-Datenbankdateien direkt auf Ihr Gerät heruntergeladen.
 
-- Funktionsweise: Die App prüft in regelmäßigen Abständen, ob Aktualisierungen für den Lebensmittelkatalog (basierend auf Open Food Facts) oder den Übungskatalog (basierend auf wger/GitHub) vorliegen. Die Prüfung und der anschließende Download der komprimierten Katalogdatenbanken erfolgen über eine verschlüsselte HTTPS-Verbindung direkt zu den Servern des Hosting-Dienstleisters (z. B. GitHub Pages / GitHub Inc. bzw. Open Food Facts).
+- Funktionsweise: Die App prüft in regelmäßigen Abständen, ob Aktualisierungen für den Open-Food-Facts-, BLS-4.0- oder Übungskatalog vorliegen. Der BLS-Zutatenkatalog des Max Rubner-Instituts wird komprimiert über HTTPS von GitHub geladen und lokal gespeichert. Dabei werden nur die für die Verbindung erforderlichen technischen Daten an den Hoster übertragen.
 - Datenminimierung: Beim Herunterladen der Katalog-Updates werden systembedingt technische Verbindungsdaten (insbesondere Ihre IP-Adresse, Datum/Uhrzeit des Zugriffs und der User-Agent der App) an den Hoster übertragen. Es werden zu keinem Zeitpunkt nutzergenerierte Daten, gescannte Barcodes oder persönliche Profileigenschaften an die Katalog-Hoster gesendet.
 - Lokale Barcode-Zuordnung: Der Abgleich eines gescannten Barcodes oder die Suche nach Lebensmitteln und Übungen findet zu 100 Prozent offline auf Ihrem Gerät. Im Gegensatz zu herkömmlichen Ernährungs-Apps wird beim Scannen eines Produkts keine Anfrage mit dem Barcode an einen Cloud-Server gesendet.
 ''',
@@ -881,11 +881,11 @@ Please check your provider's privacy policy here:
 
 For transmissions to cloud providers outside the European Union (especially the USA), this occurs on the basis of standard contractual clauses or adequacy decisions that you have agreed with the provider.
 
-B. Offline Catalog Updates (Open Food Facts & Exercise Catalog)
+B. Offline Catalog Updates (Open Food Facts, BLS & Exercise Catalog)
 
 To scan food barcodes offline and look up exercises, Train Libre uses local product and exercise catalogs. These catalogs are downloaded directly to your device as precompiled SQLite database files.
 
-- How it Works: The app checks at regular intervals whether updates are available for the food catalog (based on Open Food Facts) or the exercise catalog (based on wger/GitHub). The check and subsequent download of the compressed catalog databases are performed via an encrypted HTTPS connection directly to the servers of the hosting service provider (e.g., GitHub Pages / GitHub Inc. or Open Food Facts).
+- How it Works: The app checks periodically for updates to the Open Food Facts, BLS 4.0, and exercise catalogs. The compressed BLS base-food catalog from the Max Rubner-Institut is downloaded from GitHub over HTTPS and stored locally. The host receives only technical connection data required to serve the download.
 - Data Minimization: When downloading catalog updates, technical connection data (in particular your IP address, date/time of access, and the app's User-Agent) are transmitted to the host as a system requirement. No user-generated data, scanned barcodes, or personal profile characteristics are sent to the catalog hosts at any time.
 - Local Barcode Mapping: The matching of a scanned barcode or the search for food and exercises takes place 100 percent offline on your device. Unlike conventional nutrition apps, scanning a product does not send a request with the barcode to a cloud server.
 ''',

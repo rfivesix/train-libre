@@ -351,7 +351,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       _isLoadingSearch = true;
     });
 
-    final results = await ProductLocalDataSource.instance.searchProducts(
+    final results = await ProductLocalDataSource.instance.searchProductsForUser(
       enteredKeyword,
     );
 

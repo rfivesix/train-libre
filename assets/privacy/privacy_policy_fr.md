@@ -95,6 +95,7 @@ Train Libre vous permet d'analyser vos repas par photo ou texte au moyen de l'in
 
 ### B. Mises à jour des catalogues hors-ligne
 * **Fonctionnement :** L'application vérifie périodiquement la disponibilité de mises à jour des catalogues d'aliments (Open Food Facts) et d'exercices (wger) via HTTPS vers les serveurs d'hébergement.
+* **Catalogue BLS :** Le catalogue alimentaire BLS 4.0 du Max Rubner-Institut est téléchargé depuis GitHub et stocké localement.
 * **Minimisation :** Seules les données techniques de connexion (IP, horodatage, agent utilisateur) sont transmises pour le téléchargement. Aucun historique personnel n'est envoyé.
 * **Recherche hors-ligne :** La recherche d'aliments et le scan de code-barres s'effectuent entièrement hors-ligne sur votre appareil.
 

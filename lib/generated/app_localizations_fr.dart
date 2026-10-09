@@ -2167,7 +2167,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'Cette application utilise des données provenant de sources externes :\n\n● Données d\'exercice d\'OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), sous licence CC BY-SA 4.0, dérivées en partie du projet wger (wger.de).\n\n● Base de données alimentaire d\'Open Food Facts (openfoodfacts.org), disponible sous licence Open Database (ODbL).';
+      'Cette application utilise des données provenant de sources externes :\n\n● Données d\'exercice d\'OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), sous licence CC BY-SA 4.0, dérivées en partie du projet wger (wger.de).\n\n● Base de données alimentaire d\'Open Food Facts (openfoodfacts.org), disponible sous licence Open Database (ODbL).\n\n● Données nutritionnelles des aliments de base du Bundeslebensmittelschlüssel (BLS) 4.0, publié par le Max Rubner-Institut, DOI 10.25826/Data20251217-134202-0, sous licence CC BY 4.0. Train Libre ajoute des traductions, des alias de recherche et des catégories.';
 
   @override
   String get errorRoutineNotFound => 'Routine introuvable';
@@ -6416,7 +6416,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get offDownloadBody =>
-      'Pour accéder à la recherche complète de produits hors ligne, au scanner de codes-barres et aux fonctionnalités d\'IA, veuillez initialiser les catalogues locaux. Vous téléchargerez les dernières versions de la base de données depuis GitHub.';
+      'Téléchargez les catalogues locaux pour utiliser hors ligne les aliments de base, la recherche de produits, les codes-barres, les exercices et la reconnaissance des repas par IA. Le catalogue BLS 4.0 fait environ 25,6 Mo ; les catalogues de produits et d’exercices sont téléchargés séparément.';
 
   @override
   String get offDownloadConfirm => 'Télécharger maintenant';
@@ -8761,4 +8761,62 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiScanLogsCall => 'Appel';
+
+  @override
+  String get blsModificationsDetail =>
+      'Ajouts de Train Libre : traductions, alias de recherche et catégories.';
+
+  @override
+  String get nutritionCatalogBls => 'Catalogue des aliments de base (BLS)';
+
+  @override
+  String get blsCatalogManagementDescription =>
+      'Téléchargez et mettez à jour le catalogue hors ligne BLS 4.0 (25,6 Mo).';
+
+  @override
+  String get blsCatalogRefresh => 'Rechercher des mises à jour du catalogue';
+
+  @override
+  String get blsCatalogUpdated => 'Catalogue BLS mis à jour.';
+
+  @override
+  String get blsCatalogCurrent => 'Le catalogue BLS est à jour.';
+
+  @override
+  String get blsCatalogRefreshFailed =>
+      'Impossible de mettre à jour le catalogue BLS. Réessayez plus tard.';
+
+  @override
+  String get blsCompleteNutrientProfile => 'Profil nutritionnel complet (BLS)';
+
+  @override
+  String blsNutrientCount(int count) {
+    return '$count valeurs nutritionnelles pour 100 g';
+  }
+
+  @override
+  String get blsNutrientsUnavailable =>
+      'Les détails nutritionnels sont disponibles après l’installation du catalogue BLS.';
+
+  @override
+  String get blsNutrientDetails => 'Détails';
+
+  @override
+  String get blsNutrientOrigin => 'Mesure ou calcul';
+
+  @override
+  String get blsNutrientReference => 'Référence';
+
+  @override
+  String get blsFoodSourceLabel => 'Source et licence';
+
+  @override
+  String get blsFoodSource =>
+      'Bundeslebensmittelschlüssel (BLS) 4.0 — Max Rubner-Institut';
+
+  @override
+  String get blsFoodLicense => 'Données BLS : CC BY 4.0';
+
+  @override
+  String get blsFoodModifications => 'Traductions et catégories de Train Libre';
 }

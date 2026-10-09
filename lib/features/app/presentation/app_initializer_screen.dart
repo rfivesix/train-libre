@@ -163,6 +163,21 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') == true;
 
+    // Existing installations may predate the downloadable BLS catalog. Ask
+    // those users once the app is usable; a declined first install is prompted
+    // again on a later launch because the catalog is still missing.
+    final blsCatalogInstalled =
+        await BasisDataManager.instance.isBlsFoodCatalogInitialized();
+    if (!mounted) return;
+    if (hasSeenOnboarding && !blsCatalogInstalled) {
+      try {
+        await BasisDataManager.instance
+            .promptOffDatabaseDownloadIfFirstTime(context);
+      } catch (error) {
+        debugPrint('[BLS catalog] Startup prompt failed safely: $error');
+      }
+    }
+
     if (!mounted) return;
 
     // Like the AI meal flow, the living cloud first contracts into the calm

@@ -232,12 +232,12 @@
               </ul>
             </div>
             <div>
-              <h3 data-i18n="p_4_b_t" style="font-size: 1.1rem; margin-bottom: 0.5rem;">B. Offline Catalog Updates (Open Food Facts & Exercise Catalog)</h3>
+              <h3 data-i18n="p_4_b_t" style="font-size: 1.1rem; margin-bottom: 0.5rem;">B. Offline Catalog Updates (Open Food Facts, BLS & Exercise Catalog)</h3>
               <p data-i18n="p_4_b_c1">
                 To scan food barcodes offline and look up exercises, Train Libre uses local product and exercise catalogs. These catalogs are downloaded directly to your device as precompiled SQLite database files.
               </p>
               <ul>
-                <li data-i18n="p_4_b_l1"><strong>How it Works:</strong> The app checks at regular intervals whether updates are available for the food catalog (based on Open Food Facts) or the exercise catalog (based on wger/GitHub). The check and subsequent download of the compressed catalog databases are performed via an encrypted HTTPS connection directly to the servers of the hosting service provider (e.g., GitHub Pages / GitHub Inc. or Open Food Facts).</li>
+                <li data-i18n="p_4_b_l1"><strong>How it works:</strong> Train Libre periodically checks the Open Food Facts product catalog, the BLS 4.0 base-food catalog, and the exercise catalog for updates. Catalog databases are downloaded over HTTPS from their hosts, including GitHub and Open Food Facts.</li>
                 <li data-i18n="p_4_b_l2"><strong>Data Minimization:</strong> When downloading catalog updates, technical connection data (in particular your IP address, date/time of access, and the app's User-Agent) are transmitted to the host as a system requirement. No user-generated data, scanned barcodes, or personal profile characteristics are sent to the catalog hosts at any time.</li>
                 <li data-i18n="p_4_b_l3"><strong>Local Barcode Mapping:</strong> The matching of a scanned barcode or the search for food and exercises takes place 100 percent offline on your device. Unlike conventional nutrition apps, scanning a product does not send a request with the barcode to a cloud server.</li>
               </ul>

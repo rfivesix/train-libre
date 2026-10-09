@@ -2098,7 +2098,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'このアプリは外部ソースのデータを使用しています:\n\n● OpenExerciseDB (github.com/rfivesix/OpenExerciseDB) の運動データ。CC BY-SA 4.0 ライセンス。一部は wger プロジェクト (wger.de) に由来します。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) のもとで利用可能です。';
+      'このアプリは外部ソースのデータを使用しています:\n\n● OpenExerciseDB (github.com/rfivesix/OpenExerciseDB) の運動データ。CC BY-SA 4.0 ライセンス。一部は wger プロジェクト (wger.de) に由来します。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) のもとで利用可能です。\n\n● Max Rubner-Institut が公開する Bundeslebensmittelschlüssel（BLS）4.0 の基本食品栄養データ。DOI 10.25826/Data20251217-134202-0、CC BY 4.0 ライセンス。Train Libre は翻訳、検索エイリアス、カテゴリを追加しています。';
 
   @override
   String get errorRoutineNotFound => 'ルーチンが見つかりません';
@@ -6104,7 +6104,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get offDownloadBody =>
-      'オフラインでの食品検索、バーコードスキャン、およびAI機能を利用するには、ローカルカタログを初期化してください。GitHubから最新のデータベースリリースをダウンロードします。';
+      '基本食品、商品検索、バーコード、エクササイズ、AI 食事認識をオフラインで使うには、ローカルカタログをダウンロードしてください。BLS 4.0 カタログは約 25.6 MB です。商品とエクササイズのカタログは別途ダウンロードされます。';
 
   @override
   String get offDownloadConfirm => '今すぐダウンロード';
@@ -8310,4 +8310,59 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiScanLogsCall => 'リクエスト';
+
+  @override
+  String get blsModificationsDetail => 'Train Libre による追加：翻訳、検索エイリアス、カテゴリ。';
+
+  @override
+  String get nutritionCatalogBls => '基本食品カタログ（BLS）';
+
+  @override
+  String get blsCatalogManagementDescription =>
+      'オフライン食材カタログ BLS 4.0 をダウンロードして更新します（25.6 MB）。';
+
+  @override
+  String get blsCatalogRefresh => 'カタログの更新を確認';
+
+  @override
+  String get blsCatalogUpdated => 'BLS カタログを更新しました。';
+
+  @override
+  String get blsCatalogCurrent => 'BLS カタログは最新です。';
+
+  @override
+  String get blsCatalogRefreshFailed => 'BLS カタログを更新できませんでした。後でもう一度お試しください。';
+
+  @override
+  String get blsCompleteNutrientProfile => '完全な栄養素プロファイル（BLS）';
+
+  @override
+  String blsNutrientCount(int count) {
+    return '100 g あたりの栄養値：$count 件';
+  }
+
+  @override
+  String get blsNutrientsUnavailable => 'BLS カタログをインストールすると栄養の詳細を表示できます。';
+
+  @override
+  String get blsNutrientDetails => '詳細';
+
+  @override
+  String get blsNutrientOrigin => '測定または計算方法';
+
+  @override
+  String get blsNutrientReference => '出典情報';
+
+  @override
+  String get blsFoodSourceLabel => '出典とライセンス';
+
+  @override
+  String get blsFoodSource =>
+      'Bundeslebensmittelschlüssel（BLS）4.0 — Max Rubner-Institut';
+
+  @override
+  String get blsFoodLicense => 'BLS データ：CC BY 4.0';
+
+  @override
+  String get blsFoodModifications => 'Train Libre による翻訳とカテゴリ';
 }

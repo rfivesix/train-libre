@@ -159,6 +159,29 @@ class _AboutScreenState extends State<AboutScreen> {
                         trailingIcon: LucideIcons.external_link,
                         onTap: () => _launchURL('https://openfoodfacts.org/'),
                       ),
+                      AppLinkRow(
+                        title: l10n.blsFoodSource,
+                        subtitle: 'DOI: 10.25826/Data20251217-134202-0',
+                        trailingIcon: LucideIcons.external_link,
+                        onTap: () => _launchURL(
+                          'https://doi.org/10.25826/Data20251217-134202-0',
+                        ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.blsFoodLicense,
+                        subtitle: 'CC BY 4.0',
+                        trailingIcon: LucideIcons.external_link,
+                        onTap: () => _launchURL(
+                          'https://creativecommons.org/licenses/by/4.0/',
+                        ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.blsFoodModifications,
+                        subtitle: l10n.blsModificationsDetail,
+                        onTap: () => _launchURL(
+                          'https://github.com/rfivesix/train-libre-bls-catalog',
+                        ),
+                      ),
                     ],
                   ),
                 ],

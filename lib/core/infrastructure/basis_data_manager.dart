@@ -19,6 +19,7 @@ import '../../services/base_food_language_service.dart';
 import '../../services/exercise_catalog_refresh_service.dart';
 import '../../services/off_catalog_country_service.dart';
 import '../../services/off_catalog_refresh_service.dart';
+import '../../services/bls_food_catalog_refresh_service.dart';
 import '../../services/telemetry/telemetry_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../generated/app_localizations.dart';
@@ -121,12 +122,14 @@ class BasisDataManager {
   // [invalidateCatalogPresenceCache].
   bool _exerciseRowsVerified = false;
   bool _offRowsVerified = false;
+  bool _blsRowsVerified = false;
 
   /// Drops the memoized presence results, e.g. after a restore replaced the
   /// database underneath us.
   void invalidateCatalogPresenceCache() {
     _exerciseRowsVerified = false;
     _offRowsVerified = false;
+    _blsRowsVerified = false;
   }
 
   Future<bool> isExerciseCatalogInitialized() async {
@@ -179,6 +182,32 @@ class BasisDataManager {
     }
   }
 
+  Future<bool> isBlsFoodCatalogInitialized() async {
+    final service = BlsFoodCatalogRefreshService.instance;
+    if (_blsRowsVerified) {
+      final path = await service.installedDatabasePath();
+      if (File(path).existsSync()) return true;
+      _blsRowsVerified = false;
+    }
+    final installed = await service.isInstalled();
+    if (!installed) return false;
+    try {
+      final mainDb = await DatabaseHelper.instance.database;
+      final row = await mainDb.customSelect('''
+        SELECT 1
+        FROM products p
+        INNER JOIN food_categories c ON c.key = p.category
+        WHERE p.source = 'base' AND p.barcode LIKE 'bls:%'
+        LIMIT 1
+      ''').getSingleOrNull();
+      _blsRowsVerified = row != null;
+      return _blsRowsVerified;
+    } catch (error) {
+      debugPrint('[BLS catalog] App database check failed: $error');
+      return false;
+    }
+  }
+
   Future<int?> getRemoteFileSize(Uri uri) async {
     try {
       final client = http.Client();
@@ -212,11 +241,14 @@ class BasisDataManager {
     final prefs = await SharedPreferences.getInstance();
     final wgerInitialized = await isExerciseCatalogInitialized();
     final offInitialized = await isOffDatabaseInitialized();
+    final blsInitialized = await isBlsFoodCatalogInitialized();
 
     bool wgerUpdateAvailable = false;
     bool offUpdateAvailable = false;
     double? wgerSize;
     double? offSize;
+    bool blsUpdateAvailable = false;
+    double? blsSize;
 
     try {
       final wgerManifest =
@@ -267,8 +299,28 @@ class BasisDataManager {
       debugPrint('Error getting OFF manifest: $e');
     }
 
-    final isMissingEither = !wgerInitialized || !offInitialized;
-    final isUpdateAvailable = wgerUpdateAvailable || offUpdateAvailable;
+    try {
+      final blsManifest =
+          await BlsFoodCatalogRefreshService.instance.fetchManifestDirect();
+      final blsInstalled =
+          await BlsFoodCatalogRefreshService.instance.installedVersion() ?? '0';
+      blsUpdateAvailable = !blsInitialized ||
+          BlsFoodCatalogRefreshService.isRemoteVersionNewer(
+            remoteVersion: blsManifest.version,
+            installedVersion: blsInstalled,
+          );
+      await prefs.setString(
+          'bls_food_catalog_last_remote_version', blsManifest.version);
+      blsSize = blsManifest.downloadSizeBytes / (1024 * 1024);
+    } catch (e) {
+      debugPrint('Error getting BLS manifest: $e');
+      blsUpdateAvailable = !blsInitialized;
+    }
+
+    final isMissingEither =
+        !wgerInitialized || !offInitialized || !blsInitialized;
+    final isUpdateAvailable =
+        wgerUpdateAvailable || offUpdateAvailable || blsUpdateAvailable;
 
     if (!isMissingEither && !isUpdateAvailable) {
       return;
@@ -287,18 +339,24 @@ class BasisDataManager {
           prefs.getString('last_prompted_wger_version') ?? '';
       final lastPromptedOff =
           prefs.getString('last_prompted_off_version') ?? '';
+      final lastPromptedBls =
+          prefs.getString('last_prompted_bls_version') ?? '';
       final currentWgerRemote =
           prefs.getString('exercise_catalog_last_remote_version') ?? '';
       final currentOffRemote = prefs.getString(
               'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
           '';
+      final currentBlsRemote =
+          prefs.getString('bls_food_catalog_last_remote_version') ?? '';
 
       bool wgerMatch = !wgerUpdateAvailable ||
           (lastPromptedWger == currentWgerRemote &&
               currentWgerRemote.isNotEmpty);
       bool offMatch = !offUpdateAvailable ||
           (lastPromptedOff == currentOffRemote && currentOffRemote.isNotEmpty);
-      if (wgerMatch && offMatch) {
+      bool blsMatch = !blsUpdateAvailable ||
+          (lastPromptedBls == currentBlsRemote && currentBlsRemote.isNotEmpty);
+      if (wgerMatch && offMatch && blsMatch) {
         return;
       }
     }
@@ -313,6 +371,12 @@ class BasisDataManager {
           prefs.getString(
                   'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
               '');
+    }
+    if (blsUpdateAvailable) {
+      await prefs.setString(
+        'last_prompted_bls_version',
+        prefs.getString('bls_food_catalog_last_remote_version') ?? '',
+      );
     }
 
     if (!context.mounted) return;
@@ -335,11 +399,18 @@ class BasisDataManager {
                 ? l10n.updateAvailableTitle
                 : l10n.statusReady)
             : l10n.statusRequired;
+        final blsStatus = blsInitialized
+            ? (blsUpdateAvailable
+                ? l10n.updateAvailableTitle
+                : l10n.statusReady)
+            : l10n.statusRequired;
 
         final wgerSizeText =
             wgerSize != null ? '${wgerSize.toStringAsFixed(1)} MB' : '1.4 MB';
         final offSizeText =
             offSize != null ? '${offSize.toStringAsFixed(1)} MB' : '41.2 MB';
+        final blsSizeText =
+            blsSize != null ? '${blsSize.toStringAsFixed(1)} MB' : '25.6 MB';
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -365,6 +436,26 @@ class BasisDataManager {
                   "$wgerStatus ($wgerSizeText)",
                   style: TextStyle(
                     color: wgerStatus == l10n.statusReady
+                        ? Colors.green
+                        : Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+            Row(
+              children: [
+                const Icon(LucideIcons.database, size: 24),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
+                  child: Text(l10n.nutritionCatalogBls,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                Text(
+                  '$blsStatus ($blsSizeText)',
+                  style: TextStyle(
+                    color: blsStatus == l10n.statusReady
                         ? Colors.green
                         : Colors.orange,
                     fontWeight: FontWeight.bold,
@@ -573,6 +664,25 @@ class BasisDataManager {
       isRemoteSkipRequested: isRemoteSkipRequested,
     );
 
+    final blsWasInstalled = await isBlsFoodCatalogInitialized();
+    // A missing catalog is not fetched in the background before the user has
+    // accepted the first download prompt. Once installed, update checks run
+    // automatically at the service's interval. `force` is used by onboarding
+    // and the manual database refresh action after user intent.
+    if (force || blsWasInstalled) {
+      try {
+        await refreshBlsFoodCatalog(
+          forceCheck: force,
+          onProgress: onProgress,
+          onRemoteProgress: onRemoteProgress,
+        );
+      } catch (e) {
+        debugPrint('[BLS catalog] Remote update failed safely: $e');
+        // Keep a missing catalog marked as missing so the user is prompted
+        // again on the next launch, even if preferences were restored.
+      }
+    }
+
     final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
       prefs,
     );
@@ -622,8 +732,7 @@ class BasisDataManager {
     // build-bound gate below skip the bundled imports even though nothing is
     // on disk here. Verify the rows before trusting the gate, and clear the
     // installed-version keys so the importer does not skip a second time.
-    final bool hasBaseFoodData =
-        await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionFood);
+    final bool hasBaseFoodData = await isBlsFoodCatalogInitialized();
     final bool hasCategoryData =
         await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionCats);
     final bool bundledDataMissing = !hasBaseFoodData || !hasCategoryData;
@@ -698,34 +807,18 @@ class BasisDataManager {
       );
     }
 
-    // 2a. Base Foods
-    // Read the preferred display language once before import.
-    final baseFoodLang = await BaseFoodLanguageService.readChoice(prefs: prefs);
-    final baseFoodLangCode = _resolveBaseFoodLangCode(
-      choice: baseFoodLang,
-      offCountry: activeOffCountry,
-    );
-    await process(
-      'Basis-Produkte',
-      AppDataSources.baseFoodsAssetDbPath,
-      _keyVersionFood,
-      'products',
-      BatchImportType.productsBase,
-      preferredLanguage: baseFoodLangCode,
-      legacyAssetPath: AppDataSources.legacyBaseFoodsAssetDbPath,
-      forceImportOverride: force || forceEnrichment,
-    );
-
-    // 2b. Categories
-    await process(
-      'Kategorien',
-      AppDataSources.foodCategoriesAssetDbPath,
-      _keyVersionCats,
-      'categories',
-      BatchImportType.categories,
-      driftTable: 'food_categories',
-      legacyAssetPath: AppDataSources.legacyFoodCategoriesAssetDbPath,
-    );
+    // The old bundled base-food database is no longer the source of truth.
+    // BLS products and categories are installed together from its verified
+    // sidecar database; existing historical product rows stay addressable.
+    if (hasBaseFoodData) {
+      onProgress?.call('Basis-Produkte', 'BLS-Katalog ist aktuell.', 1.0);
+      onProgress?.call('Kategorien', 'BLS-Kategorien sind aktuell.', 1.0);
+    } else {
+      onProgress?.call(
+          'Basis-Produkte', 'BLS-Katalog wartet auf den Download.', 1.0);
+      onProgress?.call(
+          'Kategorien', 'BLS-Kategorien warten auf den Download.', 1.0);
+    }
 
     if (skipOffDatabase) {
       await prefs.setString('last_db_sync_app_version', currentAppBuild);
@@ -811,6 +904,50 @@ class BasisDataManager {
     );
   }
 
+  /// Checks and installs only the BLS base-food catalog, leaving the OFF and
+  /// exercise catalogs untouched. Used by the dedicated Data screen action.
+  Future<bool> refreshBlsFoodCatalog({
+    bool forceCheck = true,
+    ProgressCallback? onProgress,
+    RemoteCatalogProgressCallback? onRemoteProgress,
+  }) async {
+    final service = BlsFoodCatalogRefreshService.instance;
+    final candidate = await service.prepareUpdateCandidate(
+      installedVersion: await service.installedVersion() ?? '0',
+      force: forceCheck,
+      onProgress: (task, detail, progress) {
+        onProgress?.call(task, detail, progress);
+        onRemoteProgress?.call(task, detail, progress, canSkip: false);
+      },
+    );
+    if (candidate == null) {
+      if (!await isBlsFoodCatalogInitialized() && await service.isInstalled()) {
+        final path = await service.installedDatabasePath();
+        final version = await service.installedVersion();
+        if (version != null) {
+          await _importBlsFoodCatalog(
+            path,
+            version,
+            onProgress: onProgress,
+          );
+          return true;
+        }
+      }
+      onProgress?.call(
+        'BLS-Katalog aktuell',
+        'Kein neuerer Lebensmittelkatalog verfügbar.',
+        1.0,
+      );
+      return false;
+    }
+    await _importBlsFoodCatalog(
+      candidate.localDbPath,
+      candidate.version,
+      onProgress: onProgress,
+    );
+    return true;
+  }
+
   Future<void> _clearOffVersionPreferences(SharedPreferences prefs) async {
     await prefs.remove(OffCatalogCountryService.legacyInstalledVersionKey);
     final offVersionKeys = prefs
@@ -823,6 +960,104 @@ class BasisDataManager {
         .toList(growable: false);
     for (final key in offVersionKeys) {
       await prefs.remove(key);
+    }
+  }
+
+  Future<void> _importBlsFoodCatalog(
+    String sourcePath,
+    String catalogVersion, {
+    ProgressCallback? onProgress,
+  }) async {
+    final sourceDb = await sqflite.openDatabase(sourcePath, readOnly: true);
+    final mainDb = await DatabaseHelper.instance.database;
+    final prefs = await SharedPreferences.getInstance();
+    List<dynamic> previousBaseRows = [];
+    final languageChoice =
+        await BaseFoodLanguageService.readChoice(prefs: prefs);
+    final activeCountry =
+        OffCatalogCountryService.readActiveCountryFromPrefs(prefs);
+    final language = _resolveBaseFoodLangCode(
+      choice: languageChoice,
+      offCountry: activeCountry,
+    );
+    try {
+      final count = sqflite.Sqflite.firstIntValue(
+            await sourceDb.rawQuery('SELECT COUNT(*) FROM products'),
+          ) ??
+          0;
+      final facts = sqflite.Sqflite.firstIntValue(
+            await sourceDb.rawQuery('SELECT COUNT(*) FROM food_nutrients'),
+          ) ??
+          0;
+      if (count <= 0 || facts <= 0) {
+        throw StateError(
+            'BLS catalog is incomplete ($count foods, $facts nutrient facts).');
+      }
+
+      onProgress?.call(
+          'Basis-Produkte', 'Importiere BLS-Lebensmittel...', 0.03);
+      // Keep historical product rows and their foreign-key references. They
+      // remain available to old diary entries and saved meals, but disappear
+      // from current catalog search once their replacements are installed.
+      previousBaseRows = await mainDb
+          .customSelect(
+            "SELECT id FROM products WHERE source = 'base'",
+          )
+          .get();
+      await mainDb.customStatement(
+        "UPDATE products SET source = 'legacy' WHERE source = 'base'",
+      );
+      await _performBatchImport(
+        sourceDb,
+        'products',
+        BatchImportType.productsBase,
+        language,
+        onProgress,
+        'Basis-Produkte',
+        collectProductBarcodes: false,
+      );
+      await _performBatchImport(
+        sourceDb,
+        'categories',
+        BatchImportType.categories,
+        null,
+        onProgress,
+        'Kategorien',
+        collectProductBarcodes: false,
+      );
+      await mainDb.customStatement('''
+        DELETE FROM food_categories
+        WHERE key NOT IN (
+          SELECT DISTINCT category FROM products
+          WHERE source = 'base' AND category IS NOT NULL
+        )
+      ''');
+      await BlsFoodCatalogRefreshService.instance.markInstalled(catalogVersion);
+      await prefs.setString(_keyVersionFood, catalogVersion);
+      await prefs.setString(_keyVersionCats, catalogVersion);
+      await prefs.setBool(_keyVersionFoodEnrichment, true);
+      _blsRowsVerified = true;
+      onProgress?.call('Kategorien', 'BLS-Kategorien bereit.', 1.0);
+    } catch (error) {
+      // If importing either table failed, keep the pre-existing catalog
+      // visible. Successfully written BLS rows can safely be imported again.
+      for (var batchStart = 0;
+          batchStart < previousBaseRows.length;
+          batchStart += 500) {
+        final ids = previousBaseRows
+            .skip(batchStart)
+            .take(500)
+            .map((row) => row.read<String>('id'))
+            .toList(growable: false);
+        final placeholders = List.filled(ids.length, '?').join(',');
+        await mainDb.customStatement(
+          "UPDATE products SET source = 'base' WHERE id IN ($placeholders)",
+          ids,
+        );
+      }
+      rethrow;
+    } finally {
+      await sourceDb.close();
     }
   }
 

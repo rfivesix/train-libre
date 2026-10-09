@@ -2147,7 +2147,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'Diese App verwendet Daten von externen Quellen:\n\n● Übungsdaten von OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), lizenziert unter CC BY-SA 4.0, teilweise abgeleitet vom wger-Projekt (wger.de).\n\n● Lebensmittel-Datenbank von Open Food Facts (openfoodfacts.org), verfügbar unter der Open Database License (ODbL).';
+      'Diese App verwendet Daten von externen Quellen:\n\n● Übungsdaten von OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), lizenziert unter CC BY-SA 4.0, teilweise abgeleitet vom wger-Projekt (wger.de).\n\n● Lebensmittel-Datenbank von Open Food Facts (openfoodfacts.org), verfügbar unter der Open Database License (ODbL).\n\n● Nährstoffdaten für Basis-Lebensmittel aus dem Bundeslebensmittelschlüssel (BLS) 4.0 des Max Rubner-Instituts, DOI 10.25826/Data20251217-134202-0, lizenziert unter CC BY 4.0. Train Libre ergänzt Übersetzungen, Suchaliasnamen und Kategorien.';
 
   @override
   String get errorRoutineNotFound => 'Routine nicht gefunden';
@@ -6359,7 +6359,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get offDownloadBody =>
-      'Um auf die vollständige Offline-Produktsuche, den Barcodescanner und die KI-Funktionen zuzugreifen, initialisiere bitte die lokalen Kataloge. Sie werden die neuesten Datenbank-Releases von GitHub herunterladen.';
+      'Lade die lokalen Kataloge herunter, um Basis-Lebensmittel, verpackte Produkte, Barcodes, Übungen und KI-Mahlzeitenerkennung offline zu nutzen. Der BLS-4.0-Zutatenkatalog ist etwa 25,6 MB groß; Produkt- und Übungskataloge werden separat geladen.';
 
   @override
   String get offDownloadConfirm => 'Jetzt herunterladen';
@@ -8683,4 +8683,64 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiScanLogsCall => 'Anfrage';
+
+  @override
+  String get blsModificationsDetail =>
+      'Ergänzungen von Train Libre: Übersetzungen, Suchaliasnamen und Kategorien.';
+
+  @override
+  String get nutritionCatalogBls => 'Basis-Lebensmittelkatalog (BLS)';
+
+  @override
+  String get blsCatalogManagementDescription =>
+      'Lade den Offline-Zutatenkatalog BLS 4.0 herunter und aktualisiere ihn (25,6 MB).';
+
+  @override
+  String get blsCatalogRefresh => 'Katalog auf Aktualisierungen prüfen';
+
+  @override
+  String get blsCatalogUpdated => 'BLS-Katalog aktualisiert.';
+
+  @override
+  String get blsCatalogCurrent => 'Der BLS-Katalog ist aktuell.';
+
+  @override
+  String get blsCatalogRefreshFailed =>
+      'Der BLS-Katalog konnte nicht aktualisiert werden. Versuche es später erneut.';
+
+  @override
+  String get blsCompleteNutrientProfile =>
+      'Vollständiges Nährstoffprofil (BLS)';
+
+  @override
+  String blsNutrientCount(int count) {
+    return '$count Nährstoffwerte pro 100 g';
+  }
+
+  @override
+  String get blsNutrientsUnavailable =>
+      'Nährstoffdetails sind verfügbar, sobald der BLS-Katalog installiert ist.';
+
+  @override
+  String get blsNutrientDetails => 'Details';
+
+  @override
+  String get blsNutrientOrigin => 'Messung oder Berechnung';
+
+  @override
+  String get blsNutrientReference => 'Quellenangabe';
+
+  @override
+  String get blsFoodSourceLabel => 'Quelle und Lizenz';
+
+  @override
+  String get blsFoodSource =>
+      'Bundeslebensmittelschlüssel (BLS) 4.0 — Max Rubner-Institut';
+
+  @override
+  String get blsFoodLicense => 'BLS-Daten: CC BY 4.0';
+
+  @override
+  String get blsFoodModifications =>
+      'Übersetzungen und Kategorien von Train Libre';
 }

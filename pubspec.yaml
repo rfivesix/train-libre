@@ -114,7 +114,8 @@ flutter:
 
   assets:
     - assets/icon/train-libre_icon_dark_green_no_bg.svg
-    - assets/db/
+    - assets/db/catalog_manifest.json
+    - assets/db/train_libre_training.db
     - assets/privacy/
     - assets/legal/
     - assets/sounds/

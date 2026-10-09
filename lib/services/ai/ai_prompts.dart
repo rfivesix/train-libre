@@ -1,6 +1,14 @@
 part of '../ai_service.dart';
 
 abstract class _AiPrompts {
+  static const _blsNamingGuidance = '''
+
+BLS BASE-FOOD CATALOG NAMING:
+- The BLS base-food index uses concise German source names, even when the app or packaged-food catalog uses another language. For generic ingredients, include a German BLS search term in `searchTerms` when the everyday food name differs from the catalog wording.
+- Convert everyday names to the catalog's formal food-class terminology before searching. Names commonly identify the food class first, then specify composition, variety, and preparation state. For pasta/noodles, include `Teigwaren` as a search term.
+- Use `matchedBarcode` only when the image or user input clearly identifies a specific packaged product or barcode. For ordinary visible ingredients such as plain cheese, butter, pepper, pasta, fruit, or vegetables, leave it null so the app can match the canonical base-food catalog.
+- Keep the food identity and preparation state accurate. Do not make a generic catalog entry appear to be a specific variety or cooking method that the source does not identify.''';
+
   static const itemSchema = <String, dynamic>{
     'type': 'object',
     'additionalProperties': false,
@@ -130,6 +138,7 @@ DEPTH MAP IMAGE: The attached relief image indicates physical food height/volume
 
     final langRule = langRuleBuffer.toString();
     final depthBlock = depthBlockBuffer.toString();
+    final catalogNamingGuidance = _blsNamingGuidance;
 
     final outputRule = structuredOutput
         ? 'Output the mealContext and items structure matching the required schema.'
@@ -161,8 +170,10 @@ CRITICAL RULES:
 4. Estimate weights in grams realistically. Calibrate to the whole serving (a standard full main meal typically weighs 350–700g total).
 5. The database commonly stores nutrition for RAW or UNPREPARED food. Provide both "servedGrams" (visible cooked/eaten weight) and "estimatedGrams" (raw equivalent weight used for database lookup). For raw or non-swelling foods, both numbers are identical.
 6. Provide "stateHint" ("cooked", "raw", "fried", "baked", "boiled", "grilled") to resolve the correct database preparation state.
-7. Provide 1-2 specific "searchTerms" for each item using only synonyms of the ingredient itself. NEVER use broad category words like "fruit", "vegetable", "dairy", "starch", "topping", "snack" as search terms.
+7. Provide 1-2 specific "searchTerms" for each item using only synonyms of the ingredient itself. Include a canonical BLS term when its formal catalog wording differs from everyday wording. NEVER use broad category words like "fruit", "vegetable", "dairy", "starch", "topping", "snack" as search terms.
 8. Consolidate duplicate items into a single entry with total combined weight.$langRule
+
+$catalogNamingGuidance
 
 CRITICAL: Return ONLY valid JSON starting with "{" and ending with "}".
 Separate all items in the "items" array with commas (e.g. `[{"name": "..."}, {"name": "..."}]`).
@@ -213,6 +224,7 @@ Rules:
     DepthScaleFacts? depthFacts,
   }) {
     final effectiveLang = appLanguage ?? languageCode ?? 'de';
+    final catalogNamingGuidance = _blsNamingGuidance;
 
     final anchorBlock = mealContext != null
         ? '\n\nMEAL CONTEXT ANCHOR:\n'
@@ -233,11 +245,14 @@ Rules:
 You are repairing an AI meal candidate after deterministic local database validation.
 
 RULES:
-1. When CANDIDATES are listed for an item, pick the EXACT name string from the candidate list and include its `matchedBarcode`.
+1. When CANDIDATES are listed for an item, pick the EXACT name string from the candidate list. Include `matchedBarcode` only when the selected candidate is a clearly identified packaged product; for a generic ingredient leave it null, even if an OFF candidate is listed.
 2. If no candidates are listed, use simple, generic base food names in "$effectiveLang" that exist in standard nutrition tables.
 3. Adjust portion weights (`servedGrams` and `estimatedGrams`) so the overall meal calories align with the target meal context.
 4. Keep names simple and in the "$effectiveLang" language.
-5. Do NOT output calorie numbers in the JSON array.$anchorBlock$depthBlock
+5. For generic ingredient matching, include the German BLS food-class term in `searchTerms` when the everyday term differs from the source catalog wording. Preserve the correct composition and preparation state.
+6. Do NOT output calorie numbers in the JSON array.$anchorBlock$depthBlock
+
+$catalogNamingGuidance
 
 CRITICAL: Return ONLY a valid JSON array starting with "[" and ending with "]". Do NOT return comma-separated objects without outer array brackets.
 
