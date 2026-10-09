@@ -106,8 +106,8 @@ extension RulesLogic on AiMealValidationEngine {
     // radically different nutrition bases (for example dry vs. cooked rice).
     // Only flag ambiguous nutrition when there are genuinely competing ambiguous
     // matches with a material calorie spread.
-    final hasVerifiedCandidate = item.matchedBarcode != null &&
-        item.matchedBarcode == match.bestMatch?.barcode;
+    final hasVerifiedCandidate = item.selectedFood != null &&
+        item.selectedFood!.barcode == match.bestMatch?.barcode;
     if (!hasVerifiedCandidate &&
         match.bestMatch != null &&
         match.competingAlternatives.isNotEmpty &&

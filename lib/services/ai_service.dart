@@ -924,145 +924,116 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     final actionable = validation.allIssues
         .where((issue) => issue.severity != AiValidationSeverity.info)
         .toList(growable: false);
-    final affectedIndices = actionable
-        .map((issue) => issue.itemIndex)
-        .whereType<int>()
-        .where((index) => index >= 0 && index < candidate.items.length)
-        .toSet()
-        .toList()
-      ..sort();
+    final scoped = actionable.isNotEmpty &&
+        actionable.every((issue) => issue.itemIndex != null);
+    final affectedIndices = scoped
+        ? (actionable.map((issue) => issue.itemIndex!).toSet().toList()..sort())
+        : List<int>.generate(candidate.items.length, (index) => index);
     final semanticOnly = actionable.isNotEmpty &&
-        affectedIndices.isNotEmpty &&
+        scoped &&
         actionable.every((issue) =>
-            issue.code == 'ambiguous_nutrition_match' &&
-            issue.itemIndex != null);
-    final itemsForPrompt = semanticOnly
-        ? [for (final index in affectedIndices) candidate.items[index]]
-        : candidate.items;
+            issue.code == 'ambiguous_nutrition_match' ||
+            issue.code == 'ambiguous_db_match');
     final userContent = '''
-Previous meal capture candidate:
-${jsonEncode(itemsForPrompt.map((item) => {
-              'name': item.name,
-              if (item.servedGrams != null) 'servedGrams': item.servedGrams,
-              'estimatedGrams': item.grams,
-              if (item.confidence != null) 'confidence': item.confidence,
-              if (item.matchedBarcode != null)
-                'matchedBarcode': item.matchedBarcode,
-              if (item.stateHint != null) 'stateHint': item.stateHint,
-              if (item.catalogSearchTerm != null)
-                'catalogSearchTerm': item.catalogSearchTerm,
-              if (item.searchTerms.isNotEmpty) 'searchTerms': item.searchTerms,
-            }).toList())}
+Requested meal items (itemIndex is zero-based and must be returned unchanged):
+${jsonEncode([
+          for (final index in affectedIndices)
+            {
+              ...candidate.items[index].toJson(),
+              'estimatedGrams': candidate.items[index].grams,
+              'itemIndex': index,
+              'catalogLocked': !validation.items[index].needsCatalogRepair,
+            },
+        ])}
 
-Deterministic validation feedback:
-${validation.toRepairFeedback()}
+Deterministic validation feedback (totals include unchanged items):
+${validation.toRepairFeedback(itemIndices: affectedIndices.toSet())}
 
-${semanticOnly ? 'Return only the listed items in the same order. Select the exact catalog name and ID from the verified candidates. Preserve servedGrams and estimatedGrams.' : 'Repair the candidate. When database candidates are listed, pick the EXACT name from the list. Adjust grams to fit the meal context anchor.'}''';
+Return exactly these ${affectedIndices.length} items, identified by itemIndex.
+${semanticOnly ? 'Select only catalog entries; preserve quantities and preparation state.' : 'Repair only the requested items. For catalogLocked items adjust only quantities to fit the meal context; their food selection is fixed.'}
+Use only the candidate IDs supplied for that particular item. If none are supplied, return matchedBarcode: null. Return catalogSearchTerm: null when it is no longer relevant. Original packaged-product evidence cannot be added or changed by this repair.
+''';
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
-      // Catalog selection needs only the verified text candidates. Visual or
-      // quantity repairs still need the original evidence from the photo.
       images: semanticOnly ? null : images,
-      systemPrompt: semanticOnly
-          ? 'Resolve only catalog selection for the listed food items. Choose an exact verified candidate name and matchedBarcode for each item. Preserve quantities, food identity and order. Return only a JSON array of items with name, matchedBarcode, servedGrams, estimatedGrams, confidence, stateHint and searchTerms.'
-          : _AiPrompts.buildRepairPrompt(
-              languageCode: languageCode,
-              appLanguage: matchingContext?.appLanguage,
-              catalogLanguage: matchingContext?.catalogLanguage,
-              mealContext: mealContext,
-              depthFacts: depthFacts,
-            ),
+      systemPrompt: _AiPrompts.buildRepairPrompt(
+        languageCode: languageCode,
+        appLanguage: matchingContext?.appLanguage,
+        catalogLanguage: matchingContext?.catalogLanguage,
+        mealContext: mealContext,
+        depthFacts: depthFacts,
+      ),
       temperature: 0.1,
       usageCollector: usageCollector,
     );
     final repaired = await _parseItemsFromContent(raw);
+    final byIndex = {for (final item in repaired) item.repairItemIndex: item};
+    if (repaired.length != affectedIndices.length ||
+        byIndex.length != affectedIndices.length ||
+        !affectedIndices.every(byIndex.containsKey)) {
+      // Never guess a correspondence after an omitted or reordered response.
+      throw const AiParseException();
+    }
 
-    if (semanticOnly) {
-      if (repaired.length != affectedIndices.length) {
-        throw const AiParseException();
-      }
-      final updated = List<AiMealCandidateItem>.from(candidate.items);
-      for (var i = 0; i < affectedIndices.length; i++) {
-        final index = affectedIndices[i];
-        final selected = repaired[i];
-        final previous = updated[index];
+    final updated = List<AiMealCandidateItem>.from(candidate.items);
+    for (final index in affectedIndices) {
+      final previous = candidate.items[index];
+      final checked = validation.items[index];
+      final response = byIndex[index]!;
+      final grams = semanticOnly || response.estimatedGrams <= 0
+          ? previous.grams
+          : response.estimatedGrams;
+      final served = semanticOnly
+          ? previous.servedGrams
+          : response.servedGrams ?? previous.servedGrams;
+      if (!checked.needsCatalogRepair) {
+        // A meal-level calorie repair may change grams, never the food identity
+        // or source of a healthy item. This also preserves its BLS selection.
         updated[index] = previous.copyWith(
-          name: selected.name,
-          matchedBarcode: selected.matchedBarcode,
-          searchTerms: selected.searchTerms.isEmpty
-              ? previous.searchTerms
-              : selected.searchTerms,
+          grams: grams,
+          servedGrams: served,
+          selectedFood: checked.match.bestMatch,
         );
+        continue;
       }
-      return candidate.copyWith(items: updated);
+
+      final supplied = checked.repairFoods;
+      final requestedId = response.matchedBarcode?.trim();
+      final selections = requestedId != null && requestedId.isNotEmpty
+          ? supplied.where((food) => food.barcode == requestedId).toList()
+          : supplied
+              .where(
+                  (food) => food.getLocalizedName(null) == response.name.trim())
+              .toList();
+      if (requestedId != null &&
+          requestedId.isNotEmpty &&
+          selections.length != 1) {
+        // Reject the item's catalog change, including its new name, rather than
+        // letting an arbitrary/stale ID become a fresh unrestricted DB lookup.
+        updated[index] = previous.copyWith(
+          matchedBarcode: null,
+          selectedFood: null,
+          catalogSearchTerm: null,
+        );
+        continue;
+      }
+      final selected = selections.length == 1 ? selections.single : null;
+      updated[index] = previous.copyWith(
+        name: selected?.getLocalizedName(null) ?? response.name,
+        grams: grams,
+        servedGrams: served,
+        confidence: response.confidence,
+        stateHint: semanticOnly ? previous.stateHint : response.stateHint,
+        matchedBarcode: selected?.barcode,
+        selectedFood: selected,
+        catalogSearchTerm: response.catalogSearchTerm,
+        searchTerms: response.searchTerms,
+        // Retain only evidence and fallback permission established before
+        // repair. AI catalog selection cannot manufacture source eligibility.
+      );
     }
-
-    final mergedItems = <AiMealCandidateItem>[];
-    final repairedByName = <String, AiSuggestedItem>{
-      for (final r in repaired) r.name.toLowerCase().trim(): r,
-    };
-    final usedRepairs = <AiSuggestedItem>{};
-
-    for (var i = 0; i < candidate.items.length; i++) {
-      final prev = candidate.items[i];
-      final prevNameLower = prev.name.toLowerCase().trim();
-
-      // Priority 1: Match by index if repaired length matches candidate length
-      // Priority 2: Match by exact lowercase name
-      // Priority 3: Match by index if i < repaired.length and repair candidate isn't used
-      AiSuggestedItem? matchedRepair;
-      if (repaired.length == candidate.items.length) {
-        matchedRepair = repaired[i];
-      } else if (repairedByName.containsKey(prevNameLower)) {
-        matchedRepair = repairedByName[prevNameLower];
-      } else if (i < repaired.length && !usedRepairs.contains(repaired[i])) {
-        matchedRepair = repaired[i];
-      }
-
-      if (matchedRepair != null) {
-        usedRepairs.add(matchedRepair);
-        mergedItems.add(AiMealCandidateItem(
-          name: matchedRepair.name,
-          grams: matchedRepair.estimatedGrams > 0
-              ? matchedRepair.estimatedGrams
-              : prev.grams,
-          servedGrams: matchedRepair.servedGrams ?? prev.servedGrams,
-          confidence: matchedRepair.confidence,
-          matchedBarcode: matchedRepair.matchedBarcode ?? prev.matchedBarcode,
-          stateHint: matchedRepair.stateHint ?? prev.stateHint,
-          catalogSearchTerm:
-              matchedRepair.catalogSearchTerm ?? prev.catalogSearchTerm,
-          searchTerms: matchedRepair.searchTerms.isNotEmpty
-              ? matchedRepair.searchTerms
-              : prev.searchTerms,
-        ));
-      } else {
-        // Keep the unmentioned original item intact
-        mergedItems.add(prev);
-      }
-    }
-
-    // Append any extra repaired items that didn't match an existing candidate item
-    for (final item in repaired) {
-      if (!usedRepairs.contains(item)) {
-        mergedItems.add(AiMealCandidateItem(
-          name: item.name,
-          grams: item.estimatedGrams,
-          servedGrams: item.servedGrams,
-          confidence: item.confidence,
-          matchedBarcode: item.matchedBarcode,
-          stateHint: item.stateHint,
-          catalogSearchTerm: item.catalogSearchTerm,
-          searchTerms: item.searchTerms,
-        ));
-      }
-    }
-
-    return AiMealCandidate(
-      items: mergedItems,
-      context: candidate.context,
-    );
+    return candidate.copyWith(items: updated);
   }
 
   Future<String> _callSelectedProviderRaw({

@@ -10,6 +10,7 @@ import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../../config/app_data_sources.dart';
 import '../../domain/models/food_item.dart';
+import '../../domain/food_name_matching.dart';
 import '../../../../services/catalog_file_migration.dart';
 import '../../../../util/perf_debug_timer.dart';
 import '../../domain/use_cases/evaluate_food_source_use_case.dart';
@@ -26,14 +27,20 @@ class AiCatalogSearchSession {
 
   AiCatalogSearchSession(this._source);
 
-  Future<List<FoodItem>> search(String term, {bool includeOff = true}) =>
-      _terms.putIfAbsent(
-        '${includeOff ? 'all' : 'base'}:${term.trim().toLowerCase()}',
-        () => _runBounded(term, includeOff: includeOff),
-      );
+  Future<List<FoodItem>> search(String term, {bool includeOff = false}) async {
+    Future<List<FoodItem>> sourceSearch(bool offOnly) => _terms.putIfAbsent(
+          '${offOnly ? 'off' : 'base'}:${term.trim().toLowerCase()}',
+          () => _runBounded(term, offOnly: offOnly),
+        );
+    final results = await Future.wait([
+      sourceSearch(false),
+      if (includeOff) sourceSearch(true),
+    ]);
+    return results.expand((foods) => foods).toList(growable: false);
+  }
 
   Future<List<FoodItem>> _runBounded(String term,
-      {required bool includeOff}) async {
+      {required bool offOnly}) async {
     if (_active >= 4) {
       final ready = Completer<void>();
       _waiting.add(ready);
@@ -45,7 +52,8 @@ class AiCatalogSearchSession {
       return await _source.searchProducts(
         term,
         aiSession: this,
-        includeOff: includeOff,
+        includeOff: offOnly,
+        offOnly: offOnly,
       );
     } finally {
       if (_waiting.isNotEmpty) {
@@ -622,8 +630,15 @@ class ProductLocalDataSource {
 
   /// Performs a global search across user-created, base, and Open Food Facts products.
   Future<List<FoodItem>> searchProducts(String keyword,
-      {AiCatalogSearchSession? aiSession, bool includeOff = true}) async {
-    final tokens = _tokenizeAndClean(keyword);
+      {AiCatalogSearchSession? aiSession,
+      bool includeOff = true,
+      bool offOnly = false}) async {
+    final tokens = aiSession == null
+        ? _tokenizeAndClean(keyword)
+        : FoodNameMatching.normalize(keyword)
+            .split(' ')
+            .where((t) => t.isNotEmpty)
+            .toList();
     if (tokens.isEmpty) return [];
 
     final dbInstance = await database;
@@ -663,16 +678,19 @@ class ProductLocalDataSource {
         Variable.withString('$rawSearchLower%')); // Prefix match (Name + Brand)
 
     final whereClauses = <String>[
-      includeOff
-          ? "p.source IN ('user', 'base', 'off')"
-          : "p.source IN ('user', 'base')",
+      offOnly
+          ? "p.source = 'off'"
+          : includeOff
+              ? "p.source IN ('user', 'base', 'off')"
+              : "p.source IN ('user', 'base')",
     ];
+    final tokenClauses = <String>[];
     for (final token in tokens) {
       // German plural stemming fallback:
       // If token ends with "er" (e.g. "eier"), allow matching on the stem ("ei") as well.
       if (token.endsWith('er') && token.length > 3) {
         final stem = token.substring(0, token.length - 2);
-        whereClauses.add(
+        tokenClauses.add(
           '((p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)) OR '
           '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)))',
         );
@@ -681,12 +699,54 @@ class ProductLocalDataSource {
         variables.add(Variable.withString('%$stem%'));
         variables.add(Variable.withString('%$stem%'));
       } else {
-        whereClauses.add(
+        tokenClauses.add(
           '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?))',
         );
         variables.add(Variable.withString('%$token%'));
         variables.add(Variable.withString('%$token%'));
       }
+    }
+
+    if (aiSession != null && !offOnly) {
+      // BLS names already contain translations. Search each complete language
+      // variant, plus a compact prefix for joined/spaced compound spellings.
+      // Only base rows pay this cost; the large OFF catalog keeps its old query.
+      const columns = [
+        'name',
+        'name_de',
+        'name_en',
+        'name_fr',
+        'name_it',
+        'name_ja'
+      ];
+      final baseClauses = <String>[];
+      final compactQuery = FoodNameMatching.compact(keyword);
+      for (final column in columns) {
+        final tokenMatches = <String>[];
+        for (final token in tokens) {
+          final useStem = token.endsWith('er') && token.length > 3;
+          tokenMatches.add(useStem
+              ? '(p.$column LIKE ? OR p.$column LIKE ?)'
+              : 'p.$column LIKE ?');
+          variables.add(Variable.withString('%$token%'));
+          if (useStem) {
+            variables.add(Variable.withString(
+                '%${token.substring(0, token.length - 2)}%'));
+          }
+        }
+        var compactName = "LOWER(COALESCE(p.$column, ''))";
+        for (final separator in [' ', '-', ',', '.', '(', ')', '/']) {
+          compactName = "REPLACE($compactName, '$separator', '')";
+        }
+        baseClauses
+            .add('(${tokenMatches.join(' AND ')} OR $compactName LIKE ?)');
+        variables.add(Variable.withString('$compactQuery%'));
+      }
+      whereClauses
+          .add("((p.source != 'base' AND ${tokenClauses.join(' AND ')}) "
+              "OR (p.source = 'base' AND (${baseClauses.join(' OR ')})))");
+    } else {
+      whereClauses.addAll(tokenClauses);
     }
 
     final whereSection = whereClauses.join(' AND ');
@@ -795,17 +855,14 @@ class ProductLocalDataSource {
     AiCatalogSearchSession? aiSession,
     bool includeOff = false,
   }) async {
-    final searchOff =
-        includeOff || (catalogSearchTerm?.trim().isNotEmpty ?? false);
+    final session = aiSession ?? createAiSearchSession();
     final terms = <String>{
       aiName.trim(),
-      ...searchTerms.map((term) => term.trim()),
       if (catalogSearchTerm != null) catalogSearchTerm.trim(),
+      ...searchTerms.map((term) => term.trim()),
     }..removeWhere((term) => term.isEmpty);
     final resultSets = await Future.wait(
-      terms.map((term) =>
-          aiSession?.search(term, includeOff: searchOff) ??
-          searchProducts(term, includeOff: searchOff)),
+      terms.take(6).map((term) => session.search(term, includeOff: includeOff)),
     );
     final candidates = <FoodItem>[];
     for (final results in resultSets) {
@@ -825,6 +882,7 @@ class ProductLocalDataSource {
       searchTerm: aiName,
       searchTerms: terms,
       limit: returnLimit,
+      preserveSourceCandidates: true,
     );
   }
 

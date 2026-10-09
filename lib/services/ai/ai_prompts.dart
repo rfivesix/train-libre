@@ -6,8 +6,9 @@ abstract class _AiPrompts {
 BLS BASE-FOOD CATALOG NAMING:
 - The BLS base-food index uses concise German source names, even when the app or packaged-food catalog uses another language. For generic ingredients, include a German BLS search term in `searchTerms` when the everyday food name differs from the catalog wording.
 - Convert everyday names to the catalog's formal food-class terminology before searching. Names commonly identify the food class first, then specify composition, variety, and preparation state. For pasta/noodles, include `Teigwaren` as a search term.
-- Use `matchedBarcode` only when the image or user input clearly identifies a specific packaged product or barcode. For ordinary visible ingredients such as plain cheese, butter, pepper, pasta, fruit, or vegetables, leave it null so the app can match the canonical base-food catalog.
+- In the initial analysis use `matchedBarcode` only when the image or user input clearly identifies a specific packaged product or barcode. For ordinary visible ingredients leave it null. During repair, use only IDs supplied for that item, including BLS IDs; an ID does not establish packaged-product evidence.
 - Treat the base-food catalog as the default source for ingredients. Set `catalogSearchTerm` only when a specific branded or packaged product is visibly identified and Open Food Facts is needed to find that product. Do not request Open Food Facts for generic ingredients merely because its product name is a closer text match.
+- Set `packagedProductEvidence` to a short quote or description of the brand, product label or barcode explicitly visible in the original image or stated by the user. Otherwise return null. A catalog candidate, translation, search term or familiar product name is NOT evidence of packaging. Never invent this evidence during repair.
 - Keep the food identity and preparation state accurate. Do not make a generic catalog entry appear to be a specific variety or cooking method that the source does not identify.''';
 
   static const itemSchema = <String, dynamic>{
@@ -16,6 +17,9 @@ BLS BASE-FOOD CATALOG NAMING:
     'properties': {
       'name': {'type': 'string'},
       'catalogSearchTerm': {
+        'type': ['string', 'null']
+      },
+      'packagedProductEvidence': {
         'type': ['string', 'null']
       },
       'servedGrams': {'type': 'integer'},
@@ -35,6 +39,7 @@ BLS BASE-FOOD CATALOG NAMING:
     'required': [
       'name',
       'catalogSearchTerm',
+      'packagedProductEvidence',
       'servedGrams',
       'estimatedGrams',
       'confidence',
@@ -153,6 +158,7 @@ DEPTH MAP IMAGE: The attached relief image indicates physical food height/volume
     {
       "name": "Food component in $effectiveAppLang",
       "catalogSearchTerm": null,
+      "packagedProductEvidence": null,
       "servedGrams": 150,
       "estimatedGrams": 150,
       "confidence": 0.9,
@@ -247,12 +253,13 @@ Rules:
 You are repairing an AI meal candidate after deterministic local database validation.
 
 RULES:
-1. When CANDIDATES are listed for an item, pick the EXACT name string from the candidate list. Include `matchedBarcode` only when the selected candidate is a clearly identified packaged product; for a generic ingredient leave it null, even if an OFF candidate is listed.
+1. When CANDIDATES are listed for an item, pick the EXACT name and [id] from that item's list. Return the [id] as `matchedBarcode`, including for base foods. This selects a supplied catalog entry; it is not evidence of packaging. For generic ingredients prefer a suitable [base] candidate. Use [off] only when no suitable base candidate exists or original packaged-product evidence identifies that product.
 2. If no candidates are listed, use simple, generic base food names in "$effectiveLang" that exist in standard nutrition tables.
 3. Adjust portion weights (`servedGrams` and `estimatedGrams`) so the overall meal calories align with the target meal context.
 4. Keep names simple and in the "$effectiveLang" language.
 5. For generic ingredient matching, include the German BLS food-class term in `searchTerms` when the everyday term differs from the source catalog wording. Preserve the correct composition and preparation state.
 6. Do NOT output calorie numbers in the JSON array.$anchorBlock$depthBlock
+7. Return exactly the requested items with their original `itemIndex` values. Do not add, reorder, or omit items. For catalog-locked items change only quantities; preserve identity, preparation state and catalog selection.
 
 $catalogNamingGuidance
 
@@ -261,12 +268,14 @@ CRITICAL: Return ONLY a valid JSON array starting with "[" and ending with "]". 
 Return ONLY this format:
 [
   {
+    "itemIndex": 0,
     "name": "Food name in $effectiveLang",
     "servedGrams": 150,
     "estimatedGrams": 150,
     "confidence": 0.9,
     "stateHint": "cooked",
     "searchTerms": ["food name"],
+    "catalogSearchTerm": null,
     "matchedBarcode": null
   }
 ]

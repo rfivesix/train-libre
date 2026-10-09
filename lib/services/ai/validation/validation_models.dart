@@ -1,6 +1,7 @@
 part of '../../ai_meal_validation.dart';
 
 const int maxRepairPasses = 3;
+const _unchangedSelection = Object();
 
 enum AiValidationMode { capture }
 
@@ -71,6 +72,17 @@ class AiMealCandidateItem {
   final String? catalogSearchTerm;
   final List<String> searchTerms;
 
+  /// Evidence from the original input, never inferred from a catalog result.
+  final String? packagedProductEvidence;
+
+  /// Local policy state; neither this nor [selectedFood] is parsed from AI JSON.
+  final bool allowOffFallback;
+  final FoodItem? selectedFood;
+
+  bool get isPackagedProduct =>
+      packagedProductEvidence?.trim().isNotEmpty ?? false;
+  bool get canSearchOff => isPackagedProduct || allowOffFallback;
+
   const AiMealCandidateItem({
     required this.name,
     required this.grams,
@@ -80,6 +92,9 @@ class AiMealCandidateItem {
     this.stateHint,
     this.catalogSearchTerm,
     this.searchTerms = const [],
+    this.packagedProductEvidence,
+    this.allowOffFallback = false,
+    this.selectedFood,
   });
 
   AiMealCandidateItem copyWith({
@@ -87,20 +102,35 @@ class AiMealCandidateItem {
     int? grams,
     int? servedGrams,
     double? confidence,
-    String? matchedBarcode,
+    Object? matchedBarcode = _unchangedSelection,
     String? stateHint,
-    String? catalogSearchTerm,
+    Object? catalogSearchTerm = _unchangedSelection,
     List<String>? searchTerms,
+    Object? packagedProductEvidence = _unchangedSelection,
+    bool? allowOffFallback,
+    Object? selectedFood = _unchangedSelection,
   }) {
     return AiMealCandidateItem(
       name: name ?? this.name,
       grams: grams ?? this.grams,
       servedGrams: servedGrams ?? this.servedGrams,
       confidence: confidence ?? this.confidence,
-      matchedBarcode: matchedBarcode ?? this.matchedBarcode,
+      matchedBarcode: identical(matchedBarcode, _unchangedSelection)
+          ? this.matchedBarcode
+          : matchedBarcode as String?,
       stateHint: stateHint ?? this.stateHint,
-      catalogSearchTerm: catalogSearchTerm ?? this.catalogSearchTerm,
+      catalogSearchTerm: identical(catalogSearchTerm, _unchangedSelection)
+          ? this.catalogSearchTerm
+          : catalogSearchTerm as String?,
       searchTerms: searchTerms ?? this.searchTerms,
+      packagedProductEvidence:
+          identical(packagedProductEvidence, _unchangedSelection)
+              ? this.packagedProductEvidence
+              : packagedProductEvidence as String?,
+      allowOffFallback: allowOffFallback ?? this.allowOffFallback,
+      selectedFood: identical(selectedFood, _unchangedSelection)
+          ? this.selectedFood
+          : selectedFood as FoodItem?,
     );
   }
 
@@ -114,6 +144,8 @@ class AiMealCandidateItem {
       if (stateHint != null) 'stateHint': stateHint,
       if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
       if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
+      if (packagedProductEvidence != null)
+        'packagedProductEvidence': packagedProductEvidence,
     };
   }
 }
@@ -298,10 +330,28 @@ class AiValidatedMealItem {
   bool get hasError =>
       issues.any((issue) => issue.severity == AiValidationSeverity.error);
 
+  /// Quantity/meal-anchor issues alone must not reopen catalog selection.
+  bool get needsCatalogRepair =>
+      !isMatched ||
+      match.quality == AiMatchQuality.weak ||
+      match.quality == AiMatchQuality.partial ||
+      match.isAmbiguous ||
+      issues.any((issue) => const {
+            'state_mismatch',
+            'zero_nutrition_match',
+            'implausible_food_density',
+            'macro_energy_mismatch',
+          }.contains(issue.code));
+
+  /// Exactly the foods offered to the repair model for this item.
+  List<FoodItem> get repairFoods => needsCatalogRepair
+      ? match.alternatives.take(5).toList(growable: false)
+      : const [];
+
   /// Returns the top-N database alternatives as repair candidates.
   /// Used during Phase D to inject real DB entities into the repair prompt.
   List<AiRepairCandidate> getRepairCandidates({int limit = 5}) {
-    return match.alternatives
+    return repairFoods
         .take(limit)
         .map(AiRepairCandidate.fromFoodItem)
         .toList(growable: false);
@@ -376,7 +426,7 @@ class AiValidationResult {
     );
   }
 
-  String toRepairFeedback() {
+  String toRepairFeedback({Set<int>? itemIndices}) {
     final buffer = StringBuffer()
       ..writeln('Validation score: $score/100')
       ..writeln('Passed: $passed')
@@ -416,31 +466,32 @@ class AiValidationResult {
       for (final issue in actionable) {
         final prefix = issue.itemIndex == null
             ? '- meal'
-            : '- item ${issue.itemIndex! + 1}';
+            : '- itemIndex ${issue.itemIndex}';
         buffer.writeln('$prefix [${issue.code}]: ${issue.message}');
       }
     }
 
     // Per-item candidate injection
     for (var i = 0; i < items.length; i++) {
+      if (itemIndices != null && !itemIndices.contains(i)) continue;
       final item = items[i];
-      final actionableIssues = item.issues
-          .where((issue) => issue.severity != AiValidationSeverity.info);
-      if (actionableIssues.isEmpty) continue;
+      if (!item.needsCatalogRepair) continue;
 
       final candidates = item.getRepairCandidates(limit: 5);
       if (candidates.isEmpty) continue;
 
       buffer
         ..writeln('')
-        ..writeln('CANDIDATES for item ${i + 1} ("${item.candidate.name}"):')
+        ..writeln('CANDIDATES for itemIndex $i ("${item.candidate.name}"):')
         ..writeln(
             'Choose the EXACT name from one of these real database entries:');
       for (final candidate in candidates) {
         buffer.writeln(candidate.toPromptLine());
       }
       buffer.writeln(
-        'Pick the entry whose macro density best fits the meal context. '
+        'Preserve ingredient identity, composition and preparation state. '
+        'For generic ingredients prefer a suitable [base] entry; use [off] '
+        'only if no suitable base entry exists. Check macro density as supporting evidence. '
         'Use the EXACT name string as your "name" value.',
       );
     }

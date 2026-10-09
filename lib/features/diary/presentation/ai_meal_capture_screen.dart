@@ -865,6 +865,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     matchedBarcode: item.matchedBarcode,
                     stateHint: item.stateHint,
                     catalogSearchTerm: item.catalogSearchTerm,
+                    packagedProductEvidence: item.packagedProductEvidence,
                     searchTerms: item.searchTerms,
                   ),
                 )

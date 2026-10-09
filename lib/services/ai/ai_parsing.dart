@@ -39,6 +39,7 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
     matchedBarcode: e['matchedBarcode'] as String?,
     stateHint: e['stateHint'] as String?,
     catalogSearchTerm: catalogSearchTerm,
+    packagedProductEvidence: e['packagedProductEvidence'] as String?,
     searchTerms: _parseSearchTerms(e['searchTerms']),
   );
 }

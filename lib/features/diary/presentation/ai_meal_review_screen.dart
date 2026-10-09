@@ -413,6 +413,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   item.matchedFood?.barcode ?? item.suggestion.matchedBarcode,
               stateHint: item.suggestion.stateHint,
               catalogSearchTerm: item.suggestion.catalogSearchTerm,
+              packagedProductEvidence: item.suggestion.packagedProductEvidence,
+              selectedFood: item.matchedFood,
               searchTerms: item.suggestion.searchTerms,
             ),
           )
@@ -434,6 +436,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   item.candidate.matchedBarcode,
               stateHint: item.candidate.stateHint,
               catalogSearchTerm: item.candidate.catalogSearchTerm,
+              packagedProductEvidence: item.candidate.packagedProductEvidence,
               searchTerms: item.candidate.searchTerms,
             ),
             matchedFood: item.match.bestMatch,
@@ -542,6 +545,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       setState(() {
         _items[index].matchedFood = selectedItem;
         _items[index].suggestion.matchedBarcode = selectedItem.barcode;
+        _items[index].suggestion.catalogSearchTerm = null;
+        _items[index].suggestion.packagedProductEvidence = null;
+        _items[index].suggestion.searchTerms = const [];
         _items[index].suggestion.name = (() {
           final themeService =
               Provider.of<ThemeService>(context, listen: false);

@@ -17,12 +17,12 @@ extension MatchingLogic on AiMealValidationEngine {
       );
     }
 
-    final selectedBarcode = item.matchedBarcode?.trim();
-    final hasExplicitPackagedProduct =
-        item.catalogSearchTerm?.trim().isNotEmpty ?? false;
+    final selectedBarcode =
+        item.selectedFood?.barcode ?? item.matchedBarcode?.trim();
+    final hasExplicitPackagedProduct = item.isPackagedProduct;
     if (selectedBarcode != null &&
         selectedBarcode.isNotEmpty &&
-        hasExplicitPackagedProduct) {
+        (item.selectedFood != null || hasExplicitPackagedProduct)) {
       final selectedMatches = matches
           .where((food) => food.barcode == selectedBarcode)
           .toList(growable: false);
@@ -69,9 +69,14 @@ extension MatchingLogic on AiMealValidationEngine {
       }
       final scoreCompare = b.score.compareTo(a.score);
       if (scoreCompare != 0) return scoreCompare;
-      return _sourcePriority(a.food.source).compareTo(
+      final sourceCompare = _sourcePriority(a.food.source).compareTo(
         _sourcePriority(b.food.source),
       );
+      if (sourceCompare != 0) return sourceCompare;
+      final nameCompare = a.food.name.compareTo(b.food.name);
+      return nameCompare != 0
+          ? nameCompare
+          : a.food.barcode.compareTo(b.food.barcode);
     });
 
     final best = scored.first;
@@ -110,16 +115,23 @@ extension MatchingLogic on AiMealValidationEngine {
   }
 
   double _matchScore(AiMealCandidateItem item, FoodItem food) {
-    final queries = <String>{
-      item.name,
-      item.catalogSearchTerm ?? '',
-      ...item.searchTerms,
-    };
+    final productQuery = item.catalogSearchTerm?.trim();
+    // Once packaging is evidenced, a specific product query must not tie with
+    // an exact generic name merely because the ingredient label is shorter.
+    final queries = item.isPackagedProduct &&
+            productQuery != null &&
+            productQuery.isNotEmpty
+        ? <String>{productQuery}
+        : <String>{
+            item.name,
+            item.catalogSearchTerm ?? '',
+            ...item.searchTerms
+          };
     var bestScore = 0.0;
     for (final query in queries) {
       bestScore = AiMealValidationEngine._maxDouble(
         bestScore,
-        _matchScoreForQuery(query, food),
+        _matchScoreForQuery(query, food, includeBrand: item.isPackagedProduct),
       );
     }
 
@@ -151,14 +163,11 @@ extension MatchingLogic on AiMealValidationEngine {
     return bestScore;
   }
 
-  double _matchScoreForQuery(String query, FoodItem food) {
+  double _matchScoreForQuery(String query, FoodItem food,
+      {bool includeBrand = false}) {
     final normalizedQuery = AiMealValidationEngine._normalizeText(query);
     if (normalizedQuery.isEmpty) return 0;
-    final rawNames = {
-      food.name,
-      food.nameDe,
-      food.nameEn,
-    }.where((name) => name.trim().isNotEmpty).toSet();
+    final rawNames = FoodNameMatching.names(food, includeBrand: includeBrand);
 
     final names = rawNames.map(AiMealValidationEngine._normalizeText).toSet();
 
@@ -172,6 +181,14 @@ extension MatchingLogic on AiMealValidationEngine {
           .toSet();
       if (strippedNames.any((name) => name == normalizedQuery)) {
         return 1.0;
+      }
+      // Treat spacing/punctuation variants of the same BLS name alike.
+      // Prefixes stay below exact matches; this is not synonym expansion.
+      final compactQuery = FoodNameMatching.compact(query);
+      final compactNames = rawNames.map(FoodNameMatching.compact);
+      if (compactNames.any((name) => name == compactQuery)) return 1.0;
+      if (compactNames.any((name) => name.startsWith(compactQuery))) {
+        return 0.86;
       }
     }
 
