@@ -451,13 +451,27 @@ class _BodyNutritionNormalizedTrendChartState
       final xIndex = _xOf(point.day, firstDay).round();
       final y = point.value;
       if (!y.isFinite || xIndex < 0 || xIndex > maxXInt) continue;
-      groupedByX.putIfAbsent(xIndex, () => []).add(point);
+
+      // BOLT OPTIMIZATION: Avoid .putIfAbsent() to prevent closure allocation per point
+      var list = groupedByX[xIndex];
+      if (list == null) {
+        list = [];
+        groupedByX[xIndex] = list;
+      }
+      list.add(point);
     }
 
     final deduplicatedByX = <int, _ChartPoint>{};
     groupedByX.forEach((xIndex, points) {
       final day = points.first.day;
-      final sum = points.map((p) => p.value).reduce((a, b) => a + b);
+
+      // BOLT OPTIMIZATION: Replace .map().reduce() with a single-pass loop
+      // to eliminate intermediate array allocations
+      var sum = 0.0;
+      for (final p in points) {
+        sum += p.value;
+      }
+
       final accumulatedValue = (aggregationMethod == AggregationMethod.sum)
           ? sum
           : sum / points.length;
