@@ -24,6 +24,7 @@ class BlsFoodCatalogManifest {
     required this.downloadSizeBytes,
     required this.expectedFoodCount,
     required this.foodNutrientFactCount,
+    this.expectedAliasCount,
   });
 
   final String version;
@@ -37,6 +38,7 @@ class BlsFoodCatalogManifest {
   final int downloadSizeBytes;
   final int expectedFoodCount;
   final int foodNutrientFactCount;
+  final int? expectedAliasCount;
 
   factory BlsFoodCatalogManifest.parse(Map<String, dynamic> json, Uri baseUri) {
     if (json['source_id'] != 'bls_food_catalog' ||
@@ -90,6 +92,7 @@ class BlsFoodCatalogManifest {
       downloadSizeBytes: number('download_size_bytes'),
       expectedFoodCount: number('expected_food_count'),
       foodNutrientFactCount: number('food_nutrient_fact_count'),
+      expectedAliasCount: schema >= 2 ? number('food_alias_count') : null,
     );
   }
 }
@@ -306,7 +309,6 @@ class BlsFoodCatalogRefreshService {
         if (hadPrevious) await installedFile.rename(previousFile.path);
         try {
           await siblingStage.rename(installedPath);
-          if (await previousFile.exists()) await previousFile.delete();
         } catch (_) {
           if (hadPrevious && await previousFile.exists()) {
             await previousFile.rename(installedPath);
@@ -333,6 +335,17 @@ class BlsFoodCatalogRefreshService {
   Future<void> markInstalled(String version) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_versionKey, version);
+    final previous = File('${await installedDatabasePath()}.previous');
+    if (await previous.exists()) await previous.delete();
+  }
+
+  Future<void> restorePreviousDatabase() async {
+    final installedPath = await installedDatabasePath();
+    final previous = File('$installedPath.previous');
+    if (!await previous.exists()) return;
+    final current = File(installedPath);
+    if (await current.exists()) await current.delete();
+    await previous.rename(installedPath);
   }
 
   Future<String?> installedVersion() async {
@@ -350,11 +363,16 @@ class BlsFoodCatalogRefreshService {
       final facts = sqflite.Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM food_nutrients'),
       );
+      final aliases = manifest.expectedAliasCount == null
+          ? null
+          : sqflite.Sqflite.firstIntValue(
+              await db.rawQuery('SELECT COUNT(*) FROM food_aliases'),
+            );
       final sideTables = await db.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='table'",
       );
       final names = sideTables.map((row) => row['name']).toSet();
-      const required = {
+      final required = {
         'products',
         'categories',
         'metadata',
@@ -364,8 +382,21 @@ class BlsFoodCatalogRefreshService {
         'source_references',
         'legacy_food_mappings',
       };
+      if (manifest.schemaVersion >= 2) required.add('food_aliases');
+      final aliasColumns =
+          (await db.rawQuery('PRAGMA table_info(food_aliases)'))
+              .map((row) => row['name']?.toString())
+              .toSet();
       if (foods != manifest.expectedFoodCount ||
           facts != manifest.foodNutrientFactCount ||
+          (manifest.expectedAliasCount != null &&
+              aliases != manifest.expectedAliasCount) ||
+          (manifest.schemaVersion >= 2 &&
+              !aliasColumns.containsAll(const {
+                'normalized_alias',
+                'match_scope',
+                'review_status',
+              })) ||
           !names.containsAll(required)) {
         throw const FormatException(
             'BLS database structure or row counts are invalid.');
@@ -378,7 +409,10 @@ class BlsFoodCatalogRefreshService {
       if (metadata['version'] != 'bls-${manifest.catalogVersion}' ||
           metadata['source_license'] != 'CC-BY-4.0' ||
           metadata['source_doi'] != '10.25826/Data20251217-134202-0' ||
-          metadata['schema_version'] != manifest.schemaVersion.toString()) {
+          metadata['schema_version'] != manifest.schemaVersion.toString() ||
+          (manifest.schemaVersion >= 2 &&
+              metadata['curated_alias_count'] !=
+                  manifest.expectedAliasCount.toString())) {
         throw const FormatException(
             'BLS database metadata does not match its manifest.');
       }

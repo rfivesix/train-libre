@@ -82,6 +82,85 @@ class ProductLocalDataSource {
   AiCatalogSearchSession createAiSearchSession() =>
       AiCatalogSearchSession(this);
 
+  Future<List<FoodItem>> _searchBlsAliases(String keyword) async {
+    final normalized = FoodNameMatching.compact(keyword);
+    if (normalized.isEmpty) return const [];
+    final dbInstance = await database;
+    final matches = await dbInstance.customSelect(
+      '''SELECT a.barcode, a.alias, a.language_code, a.match_scope, a.review_status
+         FROM bls_food_alias_index a
+         JOIN products p ON p.barcode = a.barcode AND p.source = 'base'
+         WHERE a.normalized_alias = ? OR a.normalized_alias LIKE ?
+         ORDER BY CASE WHEN a.normalized_alias = ? THEN 0 ELSE 1 END,
+                  CASE WHEN a.match_scope = 'identity' AND a.review_status = 'approved' THEN 0 ELSE 1 END,
+                  a.barcode
+         LIMIT 30''',
+      variables: [
+        Variable.withString(normalized),
+        Variable.withString('$normalized%'),
+        Variable.withString(normalized),
+      ],
+      readsFrom: {dbInstance.products},
+    ).get();
+    if (matches.isEmpty) return const [];
+    final evidenceByBarcode = <String, QueryRow>{};
+    for (final match in matches) {
+      evidenceByBarcode.putIfAbsent(match.read<String>('barcode'), () => match);
+    }
+    final foods = await getProductsByBarcodes(evidenceByBarcode.keys.toList());
+    final foodByBarcode = {for (final food in foods) food.barcode: food};
+    return [
+      for (final barcode in evidenceByBarcode.keys)
+        if (foodByBarcode[barcode] case final food?)
+          _withCatalogMatchEvidence(
+            food,
+            evidenceByBarcode[barcode]!.read<String>('alias'),
+            evidenceByBarcode[barcode]!.read<String>('language_code'),
+            evidenceByBarcode[barcode]!.read<String>('match_scope'),
+            evidenceByBarcode[barcode]!.read<String>('review_status'),
+          ),
+    ];
+  }
+
+  FoodItem _withCatalogMatchEvidence(FoodItem food, String alias,
+          String language, String scope, String status) =>
+      FoodItem(
+        id: food.id,
+        barcode: food.barcode,
+        name: food.name,
+        nameDe: food.nameDe,
+        nameEn: food.nameEn,
+        nameFr: food.nameFr,
+        nameIt: food.nameIt,
+        nameJa: food.nameJa,
+        brand: food.brand,
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        source: food.source,
+        category: food.category,
+        kj: food.kj,
+        fiber: food.fiber,
+        sugar: food.sugar,
+        salt: food.salt,
+        sodium: food.sodium,
+        calcium: food.calcium,
+        isLiquid: food.isLiquid,
+        isFluid: food.isFluid,
+        caffeineMgPer100ml: food.caffeineMgPer100ml,
+        caffeineMgPer100g: food.caffeineMgPer100g,
+        ingredientsText: food.ingredientsText,
+        ingredientsAnalysisTags: food.ingredientsAnalysisTags,
+        additivesTags: food.additivesTags,
+        productQuantity: food.productQuantity,
+        productQuantityUnit: food.productQuantityUnit,
+        catalogMatchAlias: alias,
+        catalogMatchLanguage: language,
+        catalogMatchScope: scope,
+        catalogMatchReviewStatus: status,
+      );
+
   Future<({String barcodes, String ids})> _loadRecentAiScores() async {
     final dbInstance = await database;
     final cutoff = DateTime.now().subtract(const Duration(days: 30));
@@ -561,55 +640,19 @@ class ProductLocalDataSource {
     return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   }
 
-  /// Manual food search adds a small vocabulary bridge for common pasta names
-  /// that the German BLS catalog records under the broader food-science term
-  /// "Teigwaren". This is query expansion only; it does not alter catalog data.
+  /// Manual food search keeps the canonical catalog name while using aliases
+  /// from the imported Train Libre curation index for candidate retrieval.
   Future<List<FoodItem>> searchProductsForUser(String keyword) async {
-    final expansionTerms = <String>{};
-    final tokens = _tokenizeAndClean(keyword);
-    const pastaTerms = {
-      'nudel',
-      'nudeln',
-      'pasta',
-      'pastas',
-      'noodle',
-      'noodles',
-      'fusilli',
-      'spaghetti',
-      'penne',
-      'macaroni',
-      'maccheroni',
-    };
-    if (tokens.isNotEmpty && tokens.every(pastaTerms.contains)) {
-      expansionTerms.add('Teigwaren');
-    }
-
     final directResults = await searchProducts(keyword);
-    final expandedResultSets = await Future.wait(
-      expansionTerms.map(searchProducts),
-    );
     final directByBarcode = <String, FoodItem>{};
-    final expandedByBarcode = <String, FoodItem>{};
     for (final item in directResults) {
       directByBarcode.putIfAbsent(item.barcode, () => item);
-    }
-    for (final resultSet in expandedResultSets) {
-      for (final item in resultSet) {
-        expandedByBarcode.putIfAbsent(item.barcode, () => item);
-      }
     }
 
     final baseFoods = <FoodItem>[];
     final userFoods = <FoodItem>[];
     final otherFoods = <FoodItem>[];
-    // Prefer the formal BLS category fallback within base foods, while keeping
-    // direct-query matches first for user-created and packaged products.
-    final ordered = [
-      ...expandedByBarcode.values
-          .where((item) => item.source == FoodItemSource.base),
-      ...directByBarcode.values,
-      ...expandedByBarcode.values,
-    ];
+    final ordered = directByBarcode.values;
     final seen = <String>{};
     for (final item in ordered) {
       if (!seen.add(item.barcode)) continue;
@@ -815,7 +858,25 @@ class ProductLocalDataSource {
 
     final dbProducts =
         rows.map((row) => dbInstance.products.map(row.data)).toList();
-    return _enrichProductsWithOverrides(dbProducts);
+    final canonical = await _enrichProductsWithOverrides(dbProducts);
+    if (offOnly) return canonical;
+    final aliases = await _searchBlsAliases(keyword);
+    final aliasByBarcode = {for (final food in aliases) food.barcode: food};
+    final byBarcode = <String, FoodItem>{};
+    // Reserve room for alias candidates when a broad canonical query fills
+    // the SQL limit. Canonical ordering still leads the shortlist.
+    for (final food in canonical.take(limit - 15)) {
+      byBarcode[food.barcode] = aliasByBarcode[food.barcode] ?? food;
+    }
+    for (final food in aliases) {
+      if (byBarcode.length >= limit) break;
+      byBarcode.putIfAbsent(food.barcode, () => food);
+    }
+    for (final food in canonical) {
+      if (byBarcode.length >= limit) break;
+      byBarcode.putIfAbsent(food.barcode, () => food);
+    }
+    return byBarcode.values.take(limit).toList();
   }
 
   /// Retrieves a single product by its [barcode].

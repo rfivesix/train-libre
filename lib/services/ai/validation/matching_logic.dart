@@ -80,6 +80,22 @@ extension MatchingLogic on AiMealValidationEngine {
     });
 
     final best = scored.first;
+    final bestAliasIsUnreviewed = best.food.catalogMatchAlias != null &&
+        best.food.catalogMatchReviewStatus != 'approved';
+    if (bestAliasIsUnreviewed && best.score <= 0.54) {
+      // An unreviewed/broad alias is retrieval evidence only. Keep every
+      // candidate available to the repair/clarification flow without silently
+      // assigning nutrients to one preparation or variant.
+      return AiMatchResult(
+        query: query,
+        bestMatch: null,
+        alternatives: scored.map((entry) => entry.food).toList(growable: false),
+        quality: AiMatchQuality.unmatched,
+        isAmbiguous: scored.length > 1,
+        score: 0,
+      );
+    }
+
     final alternatives = scored.map((e) => e.food).toList(growable: false);
     final secondScore = scored.length > 1 ? scored[1].score : 0.0;
     final isAmbiguous = scored.length > 1 &&
@@ -211,6 +227,14 @@ extension MatchingLogic on AiMealValidationEngine {
             : (overlap / queryTokens.length * 0.65);
         best = AiMealValidationEngine._maxDouble(best, score);
       }
+    }
+    if (food.catalogMatchAlias != null &&
+        FoodNameMatching.compact(food.catalogMatchAlias!) ==
+            FoodNameMatching.compact(query)) {
+      final approvedIdentity = food.catalogMatchScope == 'identity' &&
+          food.catalogMatchReviewStatus == 'approved';
+      return AiMealValidationEngine._maxDouble(
+          best, approvedIdentity ? 1.0 : 0.50);
     }
     return best;
   }

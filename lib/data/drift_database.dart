@@ -1056,6 +1056,30 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('PRAGMA busy_timeout = 30000;');
           await customStatement('PRAGMA foreign_keys = ON;');
           await reconcileSchema();
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS bls_food_alias_index (
+              barcode TEXT NOT NULL,
+              language_code TEXT NOT NULL,
+              alias TEXT NOT NULL,
+              normalized_alias TEXT NOT NULL,
+              kind TEXT NOT NULL,
+              method TEXT NOT NULL,
+              match_scope TEXT NOT NULL,
+              review_status TEXT NOT NULL,
+              PRIMARY KEY (barcode, language_code, alias)
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS bls_food_alias_index_state (
+              id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+              catalog_version TEXT NOT NULL,
+              alias_count INTEGER NOT NULL
+            )
+          ''');
+          await customStatement(
+              'CREATE INDEX IF NOT EXISTS bls_alias_lookup_idx ON bls_food_alias_index(language_code, normalized_alias)');
+          await customStatement(
+              'CREATE INDEX IF NOT EXISTS bls_alias_normalized_lookup_idx ON bls_food_alias_index(normalized_alias, language_code)');
         },
         onCreate: (Migrator m) async {
           await m.createAll();

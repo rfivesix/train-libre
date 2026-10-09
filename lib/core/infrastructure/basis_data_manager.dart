@@ -201,6 +201,51 @@ class BasisDataManager {
         LIMIT 1
       ''').getSingleOrNull();
       _blsRowsVerified = row != null;
+      if (_blsRowsVerified) {
+        final catalogPath = await service.installedDatabasePath();
+        final catalogDb =
+            await sqflite.openDatabase(catalogPath, readOnly: true);
+        try {
+          final aliasTable = await catalogDb.rawQuery(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_aliases'",
+          );
+          final catalogCount = aliasTable.isEmpty
+              ? 0
+              : sqflite.Sqflite.firstIntValue(await catalogDb
+                      .rawQuery('SELECT COUNT(*) FROM food_aliases')) ??
+                  0;
+          final localCount = (await mainDb
+                  .customSelect(
+                    'SELECT COUNT(*) AS count FROM bls_food_alias_index',
+                  )
+                  .getSingle())
+              .read<int>('count');
+          if (catalogCount != localCount) _blsRowsVerified = false;
+          final catalogVersionRows = await catalogDb.query(
+            'metadata',
+            columns: ['value'],
+            where: 'key = ?',
+            whereArgs: ['version'],
+          );
+          final catalogVersion = catalogVersionRows.isEmpty
+              ? null
+              : catalogVersionRows.first['value']?.toString();
+          final aliasIndexState = await mainDb
+              .customSelect(
+                'SELECT catalog_version, alias_count '
+                'FROM bls_food_alias_index_state WHERE id = 1',
+              )
+              .getSingleOrNull();
+          if (aliasIndexState == null ||
+              aliasIndexState.read<String>('catalog_version') !=
+                  catalogVersion ||
+              aliasIndexState.read<int>('alias_count') != catalogCount) {
+            _blsRowsVerified = false;
+          }
+        } finally {
+          await catalogDb.close();
+        }
+      }
       return _blsRowsVerified;
     } catch (error) {
       debugPrint('[BLS catalog] App database check failed: $error');
@@ -912,14 +957,45 @@ class BasisDataManager {
     RemoteCatalogProgressCallback? onRemoteProgress,
   }) async {
     final service = BlsFoodCatalogRefreshService.instance;
-    final candidate = await service.prepareUpdateCandidate(
-      installedVersion: await service.installedVersion() ?? '0',
-      force: forceCheck,
-      onProgress: (task, detail, progress) {
-        onProgress?.call(task, detail, progress);
-        onRemoteProgress?.call(task, detail, progress, canSkip: false);
-      },
-    );
+    var repairedLocal = false;
+    if (!await isBlsFoodCatalogInitialized()) {
+      final localPath = await service.installedDatabasePath();
+      if (File(localPath).existsSync()) {
+        final localDb = await sqflite.openDatabase(localPath, readOnly: true);
+        String? sourceVersion;
+        try {
+          final metadata = await localDb.query('metadata',
+              columns: ['value'], where: 'key = ?', whereArgs: ['version']);
+          sourceVersion =
+              metadata.isEmpty ? null : metadata.first['value']?.toString();
+        } finally {
+          await localDb.close();
+        }
+        if (sourceVersion != null && sourceVersion.startsWith('bls-')) {
+          await _importBlsFoodCatalog(
+            localPath,
+            await service.installedVersion() ??
+                sourceVersion.substring('bls-'.length),
+            onProgress: onProgress,
+          );
+          repairedLocal = true;
+        }
+      }
+    }
+    final BlsFoodCatalogUpdateCandidate? candidate;
+    try {
+      candidate = await service.prepareUpdateCandidate(
+        installedVersion: await service.installedVersion() ?? '0',
+        force: forceCheck,
+        onProgress: (task, detail, progress) {
+          onProgress?.call(task, detail, progress);
+          onRemoteProgress?.call(task, detail, progress, canSkip: false);
+        },
+      );
+    } catch (_) {
+      if (repairedLocal) return true;
+      rethrow;
+    }
     if (candidate == null) {
       if (!await isBlsFoodCatalogInitialized() && await service.isInstalled()) {
         final path = await service.installedDatabasePath();
@@ -938,13 +1014,19 @@ class BasisDataManager {
         'Kein neuerer Lebensmittelkatalog verfügbar.',
         1.0,
       );
-      return false;
+      return repairedLocal;
     }
-    await _importBlsFoodCatalog(
-      candidate.localDbPath,
-      candidate.version,
-      onProgress: onProgress,
-    );
+    _blsRowsVerified = false;
+    try {
+      await _importBlsFoodCatalog(
+        candidate.localDbPath,
+        candidate.version,
+        onProgress: onProgress,
+      );
+    } catch (_) {
+      if (!_blsRowsVerified) await service.restorePreviousDatabase();
+      rethrow;
+    }
     return true;
   }
 
@@ -971,7 +1053,6 @@ class BasisDataManager {
     final sourceDb = await sqflite.openDatabase(sourcePath, readOnly: true);
     final mainDb = await DatabaseHelper.instance.database;
     final prefs = await SharedPreferences.getInstance();
-    List<dynamic> previousBaseRows = [];
     final languageChoice =
         await BaseFoodLanguageService.readChoice(prefs: prefs);
     final activeCountry =
@@ -999,62 +1080,97 @@ class BasisDataManager {
       // Keep historical product rows and their foreign-key references. They
       // remain available to old diary entries and saved meals, but disappear
       // from current catalog search once their replacements are installed.
-      previousBaseRows = await mainDb
-          .customSelect(
-            "SELECT id FROM products WHERE source = 'base'",
-          )
-          .get();
-      await mainDb.customStatement(
-        "UPDATE products SET source = 'legacy' WHERE source = 'base'",
+      final aliasTable = await sourceDb.rawQuery(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_aliases'",
       );
-      await _performBatchImport(
-        sourceDb,
-        'products',
-        BatchImportType.productsBase,
-        language,
-        onProgress,
-        'Basis-Produkte',
-        collectProductBarcodes: false,
-      );
-      await _performBatchImport(
-        sourceDb,
-        'categories',
-        BatchImportType.categories,
-        null,
-        onProgress,
-        'Kategorien',
-        collectProductBarcodes: false,
-      );
-      await mainDb.customStatement('''
+      final aliases = aliasTable.isEmpty
+          ? <Map<String, Object?>>[]
+          : await sourceDb.query('food_aliases');
+      final metadataRows = await sourceDb.query('metadata');
+      final metadata = {
+        for (final row in metadataRows)
+          row['key']?.toString() ?? '': row['value']?.toString() ?? '',
+      };
+      final sourceVersion = metadata['version'];
+      if (sourceVersion == null || !sourceVersion.startsWith('bls-')) {
+        throw StateError('BLS catalog has invalid version metadata.');
+      }
+      final sourceSchema = int.tryParse(metadata['schema_version'] ?? '');
+      if (sourceSchema == null ||
+          sourceSchema > AppDataSources.supportedCatalogSchemaVersion ||
+          (sourceSchema >= 2 &&
+              (aliasTable.isEmpty ||
+                  int.tryParse(metadata['curated_alias_count'] ?? '') !=
+                      aliases.length))) {
+        throw StateError('BLS alias data does not match catalog metadata.');
+      }
+      await mainDb.transaction(() async {
+        await mainDb.customStatement(
+          "UPDATE products SET source = 'legacy' WHERE source = 'base'",
+        );
+        await _performBatchImport(
+          sourceDb,
+          'products',
+          BatchImportType.productsBase,
+          language,
+          onProgress,
+          'Basis-Produkte',
+          collectProductBarcodes: false,
+          withinCatalogTransaction: true,
+        );
+        await _performBatchImport(
+          sourceDb,
+          'categories',
+          BatchImportType.categories,
+          null,
+          onProgress,
+          'Kategorien',
+          collectProductBarcodes: false,
+          withinCatalogTransaction: true,
+        );
+        await mainDb.customStatement('DELETE FROM bls_food_alias_index');
+        for (final alias in aliases) {
+          await mainDb.customStatement(
+            'INSERT OR REPLACE INTO bls_food_alias_index '
+            '(barcode, language_code, alias, normalized_alias, kind, method, match_scope, review_status) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+              for (final value in [
+                alias['barcode'],
+                alias['language_code'],
+                alias['alias'],
+                alias['normalized_alias'],
+                alias['kind'],
+                alias['method'],
+                alias['match_scope'],
+                alias['review_status'],
+              ])
+                drift.Variable.withString(value?.toString() ?? ''),
+            ],
+          );
+        }
+        await mainDb.customStatement(
+          'INSERT OR REPLACE INTO bls_food_alias_index_state '
+          '(id, catalog_version, alias_count) VALUES (1, ?, '
+          '(SELECT COUNT(*) FROM bls_food_alias_index))',
+          [drift.Variable.withString(sourceVersion)],
+        );
+        await mainDb.customStatement('''
         DELETE FROM food_categories
         WHERE key NOT IN (
           SELECT DISTINCT category FROM products
           WHERE source = 'base' AND category IS NOT NULL
         )
       ''');
+      });
+      _blsRowsVerified = true;
       await BlsFoodCatalogRefreshService.instance.markInstalled(catalogVersion);
       await prefs.setString(_keyVersionFood, catalogVersion);
       await prefs.setString(_keyVersionCats, catalogVersion);
       await prefs.setBool(_keyVersionFoodEnrichment, true);
-      _blsRowsVerified = true;
       onProgress?.call('Kategorien', 'BLS-Kategorien bereit.', 1.0);
     } catch (error) {
-      // If importing either table failed, keep the pre-existing catalog
-      // visible. Successfully written BLS rows can safely be imported again.
-      for (var batchStart = 0;
-          batchStart < previousBaseRows.length;
-          batchStart += 500) {
-        final ids = previousBaseRows
-            .skip(batchStart)
-            .take(500)
-            .map((row) => row.read<String>('id'))
-            .toList(growable: false);
-        final placeholders = List.filled(ids.length, '?').join(',');
-        await mainDb.customStatement(
-          "UPDATE products SET source = 'base' WHERE id IN ($placeholders)",
-          ids,
-        );
-      }
+      // The local catalog and alias index roll back together.
       rethrow;
     } finally {
       await sourceDb.close();
@@ -1367,6 +1483,7 @@ class BasisDataManager {
     ProgressCallback? onProgress,
     String taskLabel, {
     required bool collectProductBarcodes,
+    bool withinCatalogTransaction = false,
   }) async {
     final mainDb = await DatabaseHelper.instance.database;
     const int batchSize = 5000;
@@ -1395,29 +1512,33 @@ class BasisDataManager {
     String originalJournalMode = 'WAL';
     int originalSynchronous = 1; // NORMAL
     int originalForeignKeys = 1; // ON
-    try {
-      final journalModeRow =
-          await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
-      originalJournalMode = journalModeRow.read<String>('journal_mode');
-      final syncRow =
-          await mainDb.customSelect('PRAGMA synchronous;').getSingle();
-      originalSynchronous = syncRow.read<int>('synchronous');
-      final fkRow =
-          await mainDb.customSelect('PRAGMA foreign_keys;').getSingle();
-      originalForeignKeys = fkRow.read<int>('foreign_keys');
-    } catch (e) {
-      debugPrint(
-          '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
+    if (!withinCatalogTransaction) {
+      try {
+        final journalModeRow =
+            await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
+        originalJournalMode = journalModeRow.read<String>('journal_mode');
+        final syncRow =
+            await mainDb.customSelect('PRAGMA synchronous;').getSingle();
+        originalSynchronous = syncRow.read<int>('synchronous');
+        final fkRow =
+            await mainDb.customSelect('PRAGMA foreign_keys;').getSingle();
+        originalForeignKeys = fkRow.read<int>('foreign_keys');
+      } catch (e) {
+        debugPrint(
+            '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
+      }
     }
 
     // Configure performance PRAGMAs before transaction
-    try {
-      await mainDb.customStatement('PRAGMA synchronous = OFF;');
-      await mainDb.customStatement('PRAGMA journal_mode = MEMORY;');
-      await mainDb.customStatement('PRAGMA foreign_keys = OFF;');
-    } catch (e) {
-      debugPrint(
-          '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
+    if (!withinCatalogTransaction) {
+      try {
+        await mainDb.customStatement('PRAGMA synchronous = OFF;');
+        await mainDb.customStatement('PRAGMA journal_mode = MEMORY;');
+        await mainDb.customStatement('PRAGMA foreign_keys = OFF;');
+      } catch (e) {
+        debugPrint(
+            '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
+      }
     }
 
     int processed = 0;
@@ -1426,7 +1547,7 @@ class BasisDataManager {
     int batchNumber = 0;
 
     try {
-      await mainDb.transaction(() async {
+      Future<void> importRows() async {
         while (true) {
           final rows = await assetDb.query(
             tableName,
@@ -1715,7 +1836,13 @@ class BasisDataManager {
           // release — the pass is idempotent by construction.
           await const ExerciseAliasMigration().run(mainDb);
         }
-      });
+      }
+
+      if (withinCatalogTransaction) {
+        await importRows();
+      } else {
+        await mainDb.transaction(importRows);
+      }
 
       if (importType == BatchImportType.exercises) {
         debugPrint(
@@ -1740,17 +1867,19 @@ class BasisDataManager {
       }
     } finally {
       // Restore original PRAGMAs
-      debugPrint(
-          '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys');
-      try {
-        await mainDb
-            .customStatement('PRAGMA synchronous = $originalSynchronous;');
-        await mainDb
-            .customStatement('PRAGMA journal_mode = $originalJournalMode;');
-        await mainDb
-            .customStatement('PRAGMA foreign_keys = $originalForeignKeys;');
-      } catch (e) {
-        debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
+      if (!withinCatalogTransaction) {
+        debugPrint(
+            '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys');
+        try {
+          await mainDb
+              .customStatement('PRAGMA synchronous = $originalSynchronous;');
+          await mainDb
+              .customStatement('PRAGMA journal_mode = $originalJournalMode;');
+          await mainDb
+              .customStatement('PRAGMA foreign_keys = $originalForeignKeys;');
+        } catch (e) {
+          debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
+        }
       }
     }
 

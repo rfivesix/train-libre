@@ -31,7 +31,7 @@ class AppDataSources {
   /// Raise this only together with an importer that understands the new
   /// schema, and only once that release is broadly installed. A device that
   /// raises it early accepts a catalog it then fails to read.
-  static const int supportedCatalogSchemaVersion = 1;
+  static const int supportedCatalogSchemaVersion = 2;
 
   static const String blsFoodCatalogReleaseBaseUrl =
       'https://github.com/rfivesix/train-libre-bls-catalog/releases/download/bls-foods-stable/';

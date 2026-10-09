@@ -7,7 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.6.0] - 2026-10-07
 
 ### Added
+- **Curated BLS food aliases:** Imported the catalog repository's reviewed and candidate-only aliases into a replaceable local search index. Manual and AI food retrieval now return canonical BLS foods with alias language and match-scope evidence; broad aliases remain candidate evidence and never become exact identity matches.
 - **Automated iOS Internal Testing deployment (`script/deploy_ios_internal.sh`):** Added one command to generate the Flutter iOS configuration, build and archive the current version, upload it to TestFlight, and advance the pubspec build number after a successful upload.
+
 - **Contextual JSON import for saved content:** Routines, training plans, and recipes can now be imported from pasted JSON or a file from their overview or editor. Imports are validated and previewed before confirmation; replacing a saved item leaves completed workout history intact. Recipe actions are grouped in the overflow menu, and text-pasted JSON now enables the import action as expected.
 - **Scoped Exercise Notes (Issue #710):** Added pinned exercise notes, pinned notes per routine exercise, and workout-only notes per exercise instance. Pinned notes prefill the live workout; note scopes are editable from the workout and exercise detail screens. Existing workout notes migrate without losing their text, and the new note data is preserved through backups, imports, exports, and workout sharing.
 - **Recipe Portions & Diary Grouping (Issue #686):** Saved recipes now log as one expandable diary meal with the recipe title and linked ingredients. Recipes can store their serving count and cooked finished weight; logging lets you scale by grams or fractional servings, and saved recipes can be duplicated.

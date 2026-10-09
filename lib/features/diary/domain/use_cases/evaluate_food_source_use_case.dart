@@ -43,6 +43,13 @@ class EvaluateFoodSourceUseCase {
                     FoodNameMatching.compact(name).startsWith(compactTerm)))) {
           return 1;
         }
+        if (item.catalogMatchAlias != null &&
+            FoodNameMatching.compact(item.catalogMatchAlias!) == compactTerm) {
+          return item.catalogMatchScope == 'identity' &&
+                  item.catalogMatchReviewStatus == 'approved'
+              ? 0
+              : 1;
+        }
         return 2;
       }).reduce((a, b) => a < b ? a : b);
     }
@@ -67,6 +74,18 @@ class EvaluateFoodSourceUseCase {
       final spa = srcPri(a.source);
       final spb = srcPri(b.source);
       if (spa != spb) return spa.compareTo(spb);
+
+      // An exact alias can surface several BLS variants. This affects only
+      // retrieval order; validation still treats unreviewed aliases as weak.
+      final aAlias = a.catalogMatchAlias != null &&
+          searchLowers.any((term) =>
+              FoodNameMatching.compact(a.catalogMatchAlias!) ==
+              FoodNameMatching.compact(term));
+      final bAlias = b.catalogMatchAlias != null &&
+          searchLowers.any((term) =>
+              FoodNameMatching.compact(b.catalogMatchAlias!) ==
+              FoodNameMatching.compact(term));
+      if (sa == 1 && aAlias != bAlias) return aAlias ? -1 : 1;
 
       final lengthCompare = a.name.length.compareTo(b.name.length);
       if (lengthCompare != 0) return lengthCompare;

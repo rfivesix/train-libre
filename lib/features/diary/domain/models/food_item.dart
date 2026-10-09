@@ -103,6 +103,13 @@ class FoodItem {
   /// Unit of the quantity (e.g., 'g', 'ml').
   final String? productQuantityUnit;
 
+  /// Alias that retrieved this candidate, with its catalog language and scope.
+  /// This is search evidence only; canonical display names remain unchanged.
+  final String? catalogMatchAlias;
+  final String? catalogMatchLanguage;
+  final String? catalogMatchScope;
+  final String? catalogMatchReviewStatus;
+
   /// Dynamic getter to determine if the food item is user-created/custom.
   bool get isCustom => source == FoodItemSource.user;
 
@@ -138,6 +145,10 @@ class FoodItem {
     this.additivesTags,
     this.productQuantity,
     this.productQuantityUnit,
+    this.catalogMatchAlias,
+    this.catalogMatchLanguage,
+    this.catalogMatchScope,
+    this.catalogMatchReviewStatus,
   });
 
   /// Returns the name of the food item localized to the user's language.
@@ -214,6 +225,10 @@ class FoodItem {
       additivesTags: _toStringList(map['additives_tags']),
       productQuantity: _toDoubleOrNull(map['product_quantity']),
       productQuantityUnit: map['product_quantity_unit'],
+      catalogMatchAlias: map['catalog_match_alias']?.toString(),
+      catalogMatchLanguage: map['catalog_match_language']?.toString(),
+      catalogMatchScope: map['catalog_match_scope']?.toString(),
+      catalogMatchReviewStatus: map['catalog_match_review_status']?.toString(),
     );
 
     return item;
