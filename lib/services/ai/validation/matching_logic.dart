@@ -189,44 +189,26 @@ extension MatchingLogic on AiMealValidationEngine {
 
     if (names.any((name) => name == normalizedQuery)) return 1.0;
 
-    // Check stripped parenthetical stem for base foods (e.g. "Reis (weiß, gekocht)" -> "reis")
-    if (food.source == FoodItemSource.base) {
-      final strippedNames = rawNames
-          .map((n) => n.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim())
-          .map(AiMealValidationEngine._normalizeText)
-          .toSet();
-      if (strippedNames.any((name) => name == normalizedQuery)) {
-        return 1.0;
-      }
-      // Treat spacing/punctuation variants of the same BLS name alike.
-      // Prefixes stay below exact matches; this is not synonym expansion.
-      final compactQuery = FoodNameMatching.compact(query);
-      final compactNames = rawNames.map(FoodNameMatching.compact);
-      if (compactNames.any((name) => name == compactQuery)) return 1.0;
-      if (compactNames.any((name) => name.startsWith(compactQuery))) {
-        return 0.86;
-      }
+    // Preparation qualifiers remain meaningful to the AI validation rules.
+    // Only that domain treats a base food's parenthetical stem as identity.
+    if (food.source == FoodItemSource.base &&
+        rawNames.any((name) =>
+            FoodNameMatching.normalize(
+                name.replaceAll(RegExp(r'\s*\([^)]*\)'), '')) ==
+            normalizedQuery)) {
+      return 1.0;
     }
-
-    if (names.any((name) => name.startsWith(normalizedQuery))) return 0.86;
-    if (names.any((name) => normalizedQuery.startsWith(name))) return 0.78;
-
-    final queryTokens =
-        normalizedQuery.split(' ').where((t) => t.length > 1).toList();
     var best = 0.0;
-    for (final name in names) {
-      if (name.contains(normalizedQuery)) {
-        best = AiMealValidationEngine._maxDouble(best, 0.70);
-      }
-      final nameTokens = name.split(' ').where((t) => t.length > 1).toSet();
-      if (nameTokens.isEmpty) continue;
-      final overlap = queryTokens.where(nameTokens.contains).length;
-      if (overlap > 0) {
-        final score = (queryTokens.isNotEmpty && overlap == queryTokens.length)
-            ? (food.source == FoodItemSource.base ? 0.88 : 0.82)
-            : (overlap / queryTokens.length * 0.65);
-        best = AiMealValidationEngine._maxDouble(best, score);
-      }
+    for (final name in rawNames) {
+      final rank = FoodNameMatching.textRank(query, name,
+          compactNames: food.source == FoodItemSource.base);
+      final score = switch (rank) {
+        0 => 1.0,
+        1 => food.source == FoodItemSource.base ? 0.88 : 0.82,
+        2 || 3 => 0.70,
+        _ => 0.0,
+      };
+      best = AiMealValidationEngine._maxDouble(best, score);
     }
     if (food.catalogMatchAlias != null &&
         FoodNameMatching.compact(food.catalogMatchAlias!) ==

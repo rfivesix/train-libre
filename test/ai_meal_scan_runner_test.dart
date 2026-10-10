@@ -136,23 +136,27 @@ void main() {
         return accepted;
       },
     );
+    // Base lookup, explicit OFF fallback, then validation after model repair.
     expect(repairs, 1);
-    expect(preliminary.map((result) => result.passed), [false, true]);
+    expect(preliminary[1].candidate.items.single.allowOffFallback, isTrue);
+    expect(preliminary.map((result) => result.passed), [false, false, true]);
     expect(preliminary.first.totals.kcalRounded, 0);
     expect(preliminary.last.totals.kcalRounded, 130);
     expect(await result.primaryFirstPassAccepted, isFalse);
-    expect(result.outcome.validationRunsCount, 2);
-    expect(await result.validationRunsTotalCount, 2);
+    expect(result.outcome.validationRunsCount, 3);
+    expect(await result.validationRunsTotalCount, 3);
     expect(stages, [
       AiMealScanLogStage.primaryStarted,
       AiMealScanLogStage.providerFinished,
       AiMealScanLogStage.validationFinished,
       AiMealScanLogStage.candidateSelected,
+      AiMealScanLogStage.validationFinished,
       AiMealScanLogStage.repairStarted,
       AiMealScanLogStage.repairFinished,
       AiMealScanLogStage.validationFinished,
     ]);
     expect(validationResults, [
+      AiMealScanLogResult.needsRepair,
       AiMealScanLogResult.needsRepair,
       AiMealScanLogResult.accepted,
     ]);

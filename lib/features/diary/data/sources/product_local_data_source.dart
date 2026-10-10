@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart';
 import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
+import '../../../../data/food_search_index.dart';
 import '../../../../config/app_data_sources.dart';
 import '../../domain/models/food_item.dart';
 import '../../domain/food_name_matching.dart';
@@ -29,7 +30,7 @@ class AiCatalogSearchSession {
 
   Future<List<FoodItem>> search(String term, {bool includeOff = false}) async {
     Future<List<FoodItem>> sourceSearch(bool offOnly) => _terms.putIfAbsent(
-          '${offOnly ? 'off' : 'base'}:${term.trim().toLowerCase()}',
+          '${offOnly ? 'off' : 'base'}:${FoodNameMatching.normalize(term)}',
           () => _runBounded(term, offOnly: offOnly),
         );
     final results = await Future.wait([
@@ -81,46 +82,6 @@ class ProductLocalDataSource {
 
   AiCatalogSearchSession createAiSearchSession() =>
       AiCatalogSearchSession(this);
-
-  Future<List<FoodItem>> _searchBlsAliases(String keyword) async {
-    final normalized = FoodNameMatching.compact(keyword);
-    if (normalized.isEmpty) return const [];
-    final dbInstance = await database;
-    final matches = await dbInstance.customSelect(
-      '''SELECT a.barcode, a.alias, a.language_code, a.match_scope, a.review_status
-         FROM bls_food_alias_index a
-         JOIN products p ON p.barcode = a.barcode AND p.source = 'base'
-         WHERE a.normalized_alias = ? OR a.normalized_alias LIKE ?
-         ORDER BY CASE WHEN a.normalized_alias = ? THEN 0 ELSE 1 END,
-                  CASE WHEN a.match_scope = 'identity' AND a.review_status = 'approved' THEN 0 ELSE 1 END,
-                  a.barcode
-         LIMIT 30''',
-      variables: [
-        Variable.withString(normalized),
-        Variable.withString('$normalized%'),
-        Variable.withString(normalized),
-      ],
-      readsFrom: {dbInstance.products},
-    ).get();
-    if (matches.isEmpty) return const [];
-    final evidenceByBarcode = <String, QueryRow>{};
-    for (final match in matches) {
-      evidenceByBarcode.putIfAbsent(match.read<String>('barcode'), () => match);
-    }
-    final foods = await getProductsByBarcodes(evidenceByBarcode.keys.toList());
-    final foodByBarcode = {for (final food in foods) food.barcode: food};
-    return [
-      for (final barcode in evidenceByBarcode.keys)
-        if (foodByBarcode[barcode] case final food?)
-          _withCatalogMatchEvidence(
-            food,
-            evidenceByBarcode[barcode]!.read<String>('alias'),
-            evidenceByBarcode[barcode]!.read<String>('language_code'),
-            evidenceByBarcode[barcode]!.read<String>('match_scope'),
-            evidenceByBarcode[barcode]!.read<String>('review_status'),
-          ),
-    ];
-  }
 
   FoodItem _withCatalogMatchEvidence(FoodItem food, String alias,
           String language, String scope, String status) =>
@@ -574,309 +535,192 @@ class ProductLocalDataSource {
       query = query..where((t) => t.category.equals(categoryKey));
     }
 
-    if (search != null && search.isNotEmpty) {
-      final term = search.trim();
-      query = query
-        ..where(
-          (t) =>
-              t.name.like('%$term%') |
-              t.nameDe.like('%$term%') |
-              t.nameEn.like('%$term%') |
-              t.nameFr.like('%$term%') |
-              t.nameIt.like('%$term%') |
-              t.nameJa.like('%$term%') |
-              t.brand.like('%$term%'),
-        );
-
-      query = query
-        ..orderBy([
-          (t) => OrderingTerm(
-                expression: CaseWhenExpression<int>(
-                  cases: [
-                    CaseWhen(
-                        t.name.equals(term) |
-                            t.nameDe.equals(term) |
-                            t.nameEn.equals(term) |
-                            t.nameFr.equals(term) |
-                            t.nameIt.equals(term) |
-                            t.nameJa.equals(term),
-                        then: const Constant(0)),
-                    CaseWhen(
-                        t.name.like('$term%') |
-                            t.nameDe.like('$term%') |
-                            t.nameEn.like('$term%') |
-                            t.nameFr.like('$term%') |
-                            t.nameIt.like('$term%') |
-                            t.nameJa.like('$term%'),
-                        then: const Constant(1)),
-                  ],
-                  orElse: const Constant(2),
-                ),
-                mode: OrderingMode.asc,
-              ),
-          (t) =>
-              OrderingTerm(expression: t.usageCount, mode: OrderingMode.desc),
-          (t) =>
-              OrderingTerm(expression: t.name.length, mode: OrderingMode.asc),
-        ]);
-    } else {
-      query = query
-        ..orderBy([
-          (t) =>
-              OrderingTerm(expression: t.usageCount, mode: OrderingMode.desc),
-          (t) =>
-              OrderingTerm(expression: t.name.length, mode: OrderingMode.asc),
-        ]);
+    if (search != null && search.trim().isNotEmpty) {
+      return _searchCatalog(search,
+          baseOnly: true, categoryKey: categoryKey, limit: limit);
     }
+    query = query
+      ..orderBy([
+        (t) => OrderingTerm(expression: t.usageCount, mode: OrderingMode.desc),
+        (t) => OrderingTerm(expression: t.name.length),
+        (t) => OrderingTerm(expression: t.name),
+      ]);
 
     final rows = await query.get();
     return _enrichProductsWithOverrides(rows);
   }
 
-  List<String> _tokenizeAndClean(String input) {
-    final sanitized = input
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9äöüß ]', unicode: true), ' ');
-    return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+  Future<bool> hasSearchableProducts() async {
+    final result = await _dbInstance.customSelect(
+      "SELECT 1 FROM products WHERE source IN ('base', 'user', 'off') "
+      'AND deleted_at IS NULL LIMIT 1',
+      readsFrom: {_dbInstance.products},
+    ).get();
+    return result.isNotEmpty;
   }
 
-  /// Manual food search keeps the canonical catalog name while using aliases
-  /// from the imported Train Libre curation index for candidate retrieval.
-  Future<List<FoodItem>> searchProductsForUser(String keyword) async {
-    final directResults = await searchProducts(keyword);
-    final directByBarcode = <String, FoodItem>{};
-    for (final item in directResults) {
-      directByBarcode.putIfAbsent(item.barcode, () => item);
-    }
+  /// Manual search presents base, user and OFF sections, each with its own
+  /// relevance-ranked allowance. Other sources cannot consume BLS slots.
+  Future<List<FoodItem>> searchProductsForUser(String keyword) =>
+      searchProducts(keyword);
 
-    final baseFoods = <FoodItem>[];
-    final userFoods = <FoodItem>[];
-    final otherFoods = <FoodItem>[];
-    final ordered = directByBarcode.values;
-    final seen = <String>{};
-    for (final item in ordered) {
-      if (!seen.add(item.barcode)) continue;
-      switch (item.source) {
-        case FoodItemSource.base:
-          baseFoods.add(item);
-          break;
-        case FoodItemSource.user:
-          userFoods.add(item);
-          break;
-        case FoodItemSource.off:
-          otherFoods.add(item);
-          break;
-      }
-    }
-    return [...baseFoods, ...userFoods, ...otherFoods].take(50).toList();
-  }
-
-  /// Performs a global search across user-created, base, and Open Food Facts products.
   Future<List<FoodItem>> searchProducts(String keyword,
-      {AiCatalogSearchSession? aiSession,
-      bool includeOff = true,
-      bool offOnly = false}) async {
-    final tokens = aiSession == null
-        ? _tokenizeAndClean(keyword)
-        : FoodNameMatching.normalize(keyword)
-            .split(' ')
-            .where((t) => t.isNotEmpty)
-            .toList();
-    if (tokens.isEmpty) return [];
+          {AiCatalogSearchSession? aiSession,
+          bool includeOff = true,
+          bool offOnly = false}) =>
+      _searchCatalog(keyword,
+          aiSession: aiSession, includeOff: includeOff, offOnly: offOnly,
+          groupBySource: aiSession == null);
+
+  Future<List<FoodItem>> _searchCatalog(
+    String keyword, {
+    AiCatalogSearchSession? aiSession,
+    bool includeOff = true,
+    bool offOnly = false,
+    bool baseOnly = false,
+    bool groupBySource = false,
+    String? categoryKey,
+    int limit = 50,
+  }) async {
+    final tokens = FoodNameMatching.tokens(keyword);
+    if (tokens.isEmpty || limit <= 0) return [];
+    final normalized = FoodNameMatching.normalize(keyword);
+    final compact = FoodNameMatching.compact(keyword);
+    // Tokens contain letters/numbers only. Always quote FTS terms so input
+    // such as OR, quotes, %, _ and punctuation cannot change query syntax.
+    final tokenQuery = tokens.map((token) => '"$token"*').join(' AND ');
+    final nameQuery = FoodSearchIndex.names
+        .map((name) => '{$name brand} : ($tokenQuery)')
+        .join(' OR ');
+    final variables = <Variable>[];
+    String bind(String value) {
+      variables.add(Variable.withString(value));
+      return '?';
+    }
+
+    String rankName(
+      String expression, {
+      List<String> otherExactNames = const [],
+      String? compactName,
+    }) {
+      final exact = [expression, ...otherExactNames]
+          .map((name) => '$name = ${bind(normalized)}')
+          .join(' OR ');
+      final compactExact =
+          compactName == null ? '' : ' OR $compactName = ${bind(compact)}';
+      final words = tokens
+          .map((token) =>
+              "(' ' || $expression || ' ') LIKE ${bind('% $token %')}")
+          .join(' AND ');
+      final prefixes = tokens
+          .map((token) => "(' ' || $expression) LIKE ${bind('% $token%')}")
+          .join(' AND ');
+      final compactPrefix = compactName == null
+          ? ''
+          : "WHEN $compactName LIKE ${bind('$compact%')} THEN 3";
+      return '(CASE WHEN $exact$compactExact THEN 0 '
+          'WHEN $words THEN 1 WHEN $prefixes THEN 2 $compactPrefix ELSE 4 END)';
+    }
 
     final dbInstance = await database;
-    const int limit = 50;
-    final preferBaseSource = aiSession != null && !includeOff;
-
-    final variables = <Variable>[];
-
-    // Calculate frequency score in SQL using CTEs to avoid O(NxM) correlated subqueries
-    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-    final String historyScoreExpr =
-        'COALESCE(rbl.score, 0) + COALESCE(ril.score, 0) AS history_priority_score';
-    // Must be the first variables because they match the FIRST two `?` in the CTEs!
-    if (aiSession == null) {
-      variables.add(Variable.withDateTime(thirtyDaysAgo));
-      variables.add(Variable.withDateTime(thirtyDaysAgo));
-    } else {
-      final scores = await aiSession.scores;
-      variables.add(Variable.withString(scores.barcodes));
-      variables.add(Variable.withString(scores.ids));
-    }
-
-    // Pass raw search term for relevance scoring in ORDER BY
-    final rawSearchLower = keyword.trim().toLowerCase();
-    variables.add(Variable.withString(rawSearchLower)); // Exact match (Name)
-    variables
-        .add(Variable.withString(rawSearchLower)); // Exact match (Brand + Name)
-    variables
-        .add(Variable.withString(rawSearchLower)); // Exact match (Name + Brand)
-    variables.add(Variable.withString(
-        '$rawSearchLower (%')); // Exact match (Base Food parenthetical stem: e.g. "Reis (weiß, gekocht)")
-    variables
-        .add(Variable.withString('$rawSearchLower%')); // Prefix match (Name)
-    variables.add(
-        Variable.withString('$rawSearchLower%')); // Prefix match (Brand + Name)
-    variables.add(
-        Variable.withString('$rawSearchLower%')); // Prefix match (Name + Brand)
-
-    final whereClauses = <String>[
-      offOnly
-          ? "p.source = 'off'"
-          : includeOff
-              ? "p.source IN ('user', 'base', 'off')"
-              : "p.source IN ('user', 'base')",
+    final sourceFilter = baseOnly
+        ? "p.source = 'base'"
+        : offOnly
+            ? "p.source = 'off'"
+            : includeOff
+                ? "p.source IN ('base', 'user', 'off')"
+                : "p.source IN ('base', 'user')";
+    final categoryFilter = categoryKey == null
+        ? ''
+        : ' AND p.category = ${FoodSearchIndex.literal(categoryKey)}';
+    final ranks = [
+      for (final name in FoodSearchIndex.names)
+        rankName("TRIM(f.$name || ' ' || f.brand)",
+            otherExactNames: ['f.$name', "TRIM(f.brand || ' ' || f.$name)"],
+            compactName:
+                "CASE WHEN p.source = 'base' THEN REPLACE(f.$name, ' ', '') ELSE '' END"),
     ];
-    final tokenClauses = <String>[];
-    for (final token in tokens) {
-      // German plural stemming fallback:
-      // If token ends with "er" (e.g. "eier"), allow matching on the stem ("ei") as well.
-      if (token.endsWith('er') && token.length > 3) {
-        final stem = token.substring(0, token.length - 2);
-        tokenClauses.add(
-          '((p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)) OR '
-          '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)))',
-        );
-        variables.add(Variable.withString('%$token%'));
-        variables.add(Variable.withString('%$token%'));
-        variables.add(Variable.withString('%$stem%'));
-        variables.add(Variable.withString('%$stem%'));
-      } else {
-        tokenClauses.add(
-          '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?))',
-        );
-        variables.add(Variable.withString('%$token%'));
-        variables.add(Variable.withString('%$token%'));
-      }
+    final canonicalSql =
+        'SELECT p.local_id, MIN(${ranks.join(', ')}) AS relevance, '
+        'NULL AS alias_id FROM ${FoodSearchIndex.products} f '
+        'JOIN products p ON p.local_id = f.rowid '
+        'WHERE ${FoodSearchIndex.products} MATCH ${bind('($nameQuery) OR compact : "$compact"*')} '
+        'AND $sourceFilter$categoryFilter AND p.deleted_at IS NULL';
+    var aliasesSql = '';
+    if (!offOnly) {
+      final aliasRank =
+          rankName('f.name', compactName: "REPLACE(f.name, ' ', '')");
+      aliasesSql = ' UNION ALL SELECT p.local_id, $aliasRank + '
+          "CASE WHEN a.match_scope = 'identity' AND a.review_status = 'approved' THEN 0 ELSE 1 END, "
+          'a.rowid FROM ${FoodSearchIndex.aliases} f '
+          'JOIN bls_food_alias_index a ON a.rowid = f.rowid '
+          "JOIN products p ON p.barcode = a.barcode AND p.source = 'base' "
+          'WHERE ${FoodSearchIndex.aliases} MATCH ${bind('name : ($tokenQuery) OR compact : "$compact"*')}'
+          '$categoryFilter AND p.deleted_at IS NULL';
     }
-
-    if (aiSession != null && !offOnly) {
-      // BLS names already contain translations. Search each complete language
-      // variant, plus a compact prefix for joined/spaced compound spellings.
-      // Only base rows pay this cost; the large OFF catalog keeps its old query.
-      const columns = [
-        'name',
-        'name_de',
-        'name_en',
-        'name_fr',
-        'name_it',
-        'name_ja'
-      ];
-      final baseClauses = <String>[];
-      final compactQuery = FoodNameMatching.compact(keyword);
-      for (final column in columns) {
-        final tokenMatches = <String>[];
-        for (final token in tokens) {
-          final useStem = token.endsWith('er') && token.length > 3;
-          tokenMatches.add(useStem
-              ? '(p.$column LIKE ? OR p.$column LIKE ?)'
-              : 'p.$column LIKE ?');
-          variables.add(Variable.withString('%$token%'));
-          if (useStem) {
-            variables.add(Variable.withString(
-                '%${token.substring(0, token.length - 2)}%'));
-          }
-        }
-        var compactName = "LOWER(COALESCE(p.$column, ''))";
-        for (final separator in [' ', '-', ',', '.', '(', ')', '/']) {
-          compactName = "REPLACE($compactName, '$separator', '')";
-        }
-        baseClauses
-            .add('(${tokenMatches.join(' AND ')} OR $compactName LIKE ?)');
-        variables.add(Variable.withString('$compactQuery%'));
-      }
-      whereClauses
-          .add("((p.source != 'base' AND ${tokenClauses.join(' AND ')}) "
-              "OR (p.source = 'base' AND (${baseClauses.join(' OR ')})))");
-    } else {
-      whereClauses.addAll(tokenClauses);
-    }
-
-    final whereSection = whereClauses.join(' AND ');
-
-    final query = '''
-      WITH RecentBarcodeLogs AS (
-          ${aiSession == null ? '''
-          SELECT legacy_barcode AS barcode, COUNT(*) * 10 AS score
-          FROM nutrition_logs
-          WHERE consumed_at >= ? AND legacy_barcode IS NOT NULL AND legacy_barcode != ''
-          GROUP BY legacy_barcode
-          ''' : '''
-          SELECT key AS barcode, CAST(value AS INTEGER) AS score FROM json_each(?)
-          '''}
+    final recentScores = aiSession == null
+        ? await _loadRecentAiScores()
+        : await aiSession.scores;
+    final barcodeScores = bind(recentScores.barcodes);
+    final idScores = bind(recentScores.ids);
+    // Deduplicate and rank every indexed hit before the PER-SOURCE limit.
+    // This applies to AI's base/user pass too: many custom exact names must
+    // not crowd out a relevant BLS variant before final AI validation.
+    final rows = await dbInstance
+        .customSelect(
+          '''
+      WITH hits AS ($canonicalSql$aliasesSql),
+      ranked AS (
+        SELECT *, ROW_NUMBER() OVER (
+          PARTITION BY local_id ORDER BY relevance, alias_id NULLS LAST
+        ) AS position FROM hits WHERE relevance < 4
       ),
-      RecentIdLogs AS (
-          ${aiSession == null ? '''
-          SELECT product_id AS id, COUNT(*) * 10 AS score
-          FROM nutrition_logs
-          WHERE consumed_at >= ? AND product_id IS NOT NULL AND product_id != ''
-          GROUP BY product_id
-          ''' : '''
-          SELECT key AS id, CAST(value AS INTEGER) AS score FROM json_each(?)
-          '''}
+      recent_barcodes AS (SELECT key, value FROM json_each($barcodeScores)),
+      recent_ids AS (SELECT key, value FROM json_each($idScores))
+      , candidates AS (
+        SELECT p.*, r.relevance,
+               CASE p.source WHEN 'base' THEN 0 WHEN 'user' THEN 1 ELSE 2 END AS source_priority,
+               (COALESCE(rb.value, 0) + COALESCE(ri.value, 0)) AS history_priority,
+               a.alias AS match_alias, a.language_code AS match_language,
+               a.match_scope AS match_scope, a.review_status AS match_review_status
+        FROM ranked r JOIN products p ON p.local_id = r.local_id
+        LEFT JOIN bls_food_alias_index a ON a.rowid = r.alias_id
+        LEFT JOIN recent_barcodes rb ON rb.key = p.barcode
+        LEFT JOIN recent_ids ri ON ri.key = p.id
+        WHERE r.position = 1
+      ), source_ranked AS (
+        SELECT *, ROW_NUMBER() OVER (
+          PARTITION BY source
+          ORDER BY relevance, history_priority DESC, LENGTH(name), name, barcode
+        ) AS source_position
+        FROM candidates
       )
-      SELECT p.*,
-             $historyScoreExpr,
-             (CASE WHEN p.source = 'base' THEN 1 ELSE 0 END) AS is_base_food,
-             -- Text-Relevanz-Scores berechnen (Name oder Marke + Name Kombinationen):
-             (CASE 
-               WHEN LOWER(p.name) = ? 
-                 OR LOWER(COALESCE(p.brand, '') || ' ' || p.name) = ? 
-                 OR LOWER(p.name || ' ' || COALESCE(p.brand, '')) = ? 
-                 OR (p.source = 'base' AND LOWER(p.name) LIKE ?)
-               THEN 1 ELSE 0 
-              END) AS is_exact_match,
-             (CASE 
-               WHEN LOWER(p.name) LIKE ? 
-                 OR LOWER(COALESCE(p.brand, '') || ' ' || p.name) LIKE ? 
-                 OR LOWER(p.name || ' ' || COALESCE(p.brand, '')) LIKE ? 
-               THEN 1 ELSE 0 
-              END) AS is_prefix_match
-      FROM products p
-      LEFT JOIN RecentBarcodeLogs rbl ON rbl.barcode = p.barcode
-      LEFT JOIN RecentIdLogs ril ON ril.id = p.id
-      WHERE $whereSection
-      -- DIE NEUE PRIORISIERUNG:
-      -- Manual search keeps exact names first. AI matching sees canonical
-      -- base foods first so generic ingredients are not crowded out by OFF.
-      ORDER BY 
-        ${preferBaseSource ? 'is_base_food DESC,' : ''}
-        is_exact_match DESC, 
-        ${preferBaseSource ? '' : 'is_base_food DESC,'}
-        history_priority_score DESC, 
-        is_prefix_match DESC, 
-        LENGTH(p.name) ASC,
-        p.name ASC
-      LIMIT $limit
-    ''';
-
-    final rows = await dbInstance.customSelect(
-      query,
-      variables: variables,
-      readsFrom: {dbInstance.products, dbInstance.nutritionLogs},
-    ).get();
-
-    final dbProducts =
-        rows.map((row) => dbInstance.products.map(row.data)).toList();
-    final canonical = await _enrichProductsWithOverrides(dbProducts);
-    if (offOnly) return canonical;
-    final aliases = await _searchBlsAliases(keyword);
-    final aliasByBarcode = {for (final food in aliases) food.barcode: food};
-    final byBarcode = <String, FoodItem>{};
-    // Reserve room for alias candidates when a broad canonical query fills
-    // the SQL limit. Canonical ordering still leads the shortlist.
-    for (final food in canonical.take(limit - 15)) {
-      byBarcode[food.barcode] = aliasByBarcode[food.barcode] ?? food;
-    }
-    for (final food in aliases) {
-      if (byBarcode.length >= limit) break;
-      byBarcode.putIfAbsent(food.barcode, () => food);
-    }
-    for (final food in canonical) {
-      if (byBarcode.length >= limit) break;
-      byBarcode.putIfAbsent(food.barcode, () => food);
-    }
-    return byBarcode.values.take(limit).toList();
+      SELECT * FROM source_ranked WHERE source_position <= $limit
+      ORDER BY ${groupBySource ? 'source_priority, relevance' : 'relevance, source_priority'},
+               history_priority DESC, LENGTH(name), name, barcode
+    ''',
+          variables: variables,
+          readsFrom: {
+            dbInstance.products,
+            dbInstance.userFoodOverrides,
+            dbInstance.nutritionLogs
+          },
+        )
+        .get();
+    final foods = await _enrichProductsWithOverrides(
+        rows.map((row) => dbInstance.products.map(row.data)).toList());
+    return [
+      for (var i = 0; i < foods.length; i++)
+        if (rows[i].readNullable<String>('match_alias') case final alias?)
+          _withCatalogMatchEvidence(
+              foods[i],
+              alias,
+              rows[i].read<String>('match_language'),
+              rows[i].read<String>('match_scope'),
+              rows[i].read<String>('match_review_status'))
+        else
+          foods[i],
+    ];
   }
 
   /// Retrieves a single product by its [barcode].
@@ -907,8 +751,8 @@ class ProductLocalDataSource {
     return _enrichProductsWithOverrides(products);
   }
 
-  /// Fuzzy-matches an AI-detected food name against the products table,
-  /// with optional [catalogSearchTerm] for multi-lingual catalog lookups.
+  /// Retrieves and ranks bounded per-source AI candidates using the same
+  /// names, translations and aliases as manual search. OFF requires opt-in.
   Future<List<FoodItem>> fuzzyMatchForAi(
     String aiName, {
     String? catalogSearchTerm,
@@ -925,15 +769,20 @@ class ProductLocalDataSource {
     final resultSets = await Future.wait(
       terms.take(6).map((term) => session.search(term, includeOff: includeOff)),
     );
-    final candidates = <FoodItem>[];
+    final byBarcode = <String, FoodItem>{};
+    int rank(FoodItem food) => terms
+        .map((term) => FoodNameMatching.rank(term, food))
+        .reduce((a, b) => a < b ? a : b);
     for (final results in resultSets) {
       for (final food in results) {
-        if (!candidates.any((existing) =>
-            existing.barcode == food.barcode && existing.id == food.id)) {
-          candidates.add(food);
+        final previous = byBarcode[food.barcode];
+        // A later synonym may carry stronger, reviewed alias evidence.
+        if (previous == null || rank(food) < rank(previous)) {
+          byBarcode[food.barcode] = food;
         }
       }
     }
+    final candidates = byBarcode.values.toList();
 
     if (candidates.isEmpty) return [];
 
@@ -950,15 +799,13 @@ class ProductLocalDataSource {
   /// Returns up to [limit] fuzzy-match candidates for an AI-identified food name,
   /// enriched with macro density profiles for injection into repair prompts.
   ///
-  /// Unlike [fuzzyMatchForAi] which returns the single best match for initial
-  /// validation, this method returns a broader set of plausible alternatives
-  /// sorted by a composite score of text similarity + macro plausibility.
+  /// Applies preparation-state preference to the shared catalog shortlist.
   Future<List<FoodItem>> fuzzyMatchCandidatesForRepair(
     String aiName, {
     String? stateHint,
     int limit = 5,
   }) async {
-    final candidates = await searchProducts(aiName);
+    final candidates = await fuzzyMatchForAi(aiName);
     if (candidates.isEmpty) return [];
 
     // Re-rank items incorporating stateHint
@@ -998,35 +845,8 @@ class ProductLocalDataSource {
       final scoreB = stateBoost(bName);
       if (scoreA != scoreB) return scoreA.compareTo(scoreB);
 
-      // Fallback to text matching
-      final searchLower = aiName.trim().toLowerCase();
-      int textScore(FoodItem item) {
-        final name = item.getLocalizedName(null).toLowerCase();
-        final strippedName =
-            name.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
-        final brand = item.brand.toLowerCase();
-        final fullName1 = brand.isEmpty ? name : '$brand $name';
-        final fullName2 = brand.isEmpty ? name : '$name $brand';
-
-        if (name == searchLower ||
-            (item.source == FoodItemSource.base &&
-                strippedName == searchLower) ||
-            fullName1 == searchLower ||
-            fullName2 == searchLower) {
-          return 0;
-        }
-        if (name.startsWith(searchLower) ||
-            (item.source == FoodItemSource.base &&
-                strippedName.startsWith(searchLower)) ||
-            fullName1.startsWith(searchLower) ||
-            fullName2.startsWith(searchLower)) {
-          return 1;
-        }
-        return 2;
-      }
-
-      final sa = textScore(a);
-      final sb = textScore(b);
+      final sa = FoodNameMatching.rank(aiName, a);
+      final sb = FoodNameMatching.rank(aiName, b);
       if (sa != sb) return sa.compareTo(sb);
 
       int srcPri(FoodItemSource s) {

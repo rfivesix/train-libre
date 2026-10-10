@@ -1,3 +1,4 @@
+import 'widgets/food_search_sections.dart';
 // ignore_for_file: curly_braces_in_flow_control_structures
 
 import 'dart:async';
@@ -13,7 +14,6 @@ import 'scanner_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/app_section_header.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
@@ -35,6 +35,7 @@ class _GeneralFoodSelectionScreenState
     extends State<GeneralFoodSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  int _searchGeneration = 0;
   List<FoodItem> _results = [];
   bool _isLoading = false;
   String _searchInitialText = '';
@@ -44,14 +45,14 @@ class _GeneralFoodSelectionScreenState
   List<FoodItem> _customFoodItems = [];
   bool _isLoadingCustomFoods = false;
 
-  bool _isOffDbInitialized = false;
+  bool _hasSearchableFoods = false;
 
   Future<void> _checkDbStatus() async {
     final initialized =
-        await BasisDataManager.instance.isOffDatabaseInitialized();
+        await ProductLocalDataSource.instance.hasSearchableProducts();
     if (mounted) {
       setState(() {
-        _isOffDbInitialized = initialized;
+        _hasSearchableFoods = initialized;
       });
     }
   }
@@ -94,6 +95,7 @@ class _GeneralFoodSelectionScreenState
   }
 
   void _onSearchChanged(String query) {
+    _searchGeneration++;
     if (_searchDebounce?.isActive ?? false) _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
       _runFilter(query);
@@ -126,8 +128,10 @@ class _GeneralFoodSelectionScreenState
   }
 
   Future<void> _runFilter(String enteredKeyword) async {
+    _searchDebounce?.cancel();
+    final generation = ++_searchGeneration;
     final l10n = AppLocalizations.of(context)!;
-    if (enteredKeyword.isEmpty) {
+    if (enteredKeyword.trim().isEmpty) {
       if (!mounted) return;
       setState(() {
         _results = [];
@@ -141,7 +145,7 @@ class _GeneralFoodSelectionScreenState
     final results = await ProductLocalDataSource.instance.searchProductsForUser(
       enteredKeyword,
     );
-    if (!mounted) return;
+    if (!mounted || generation != _searchGeneration) return;
 
     setState(() {
       _results = results;
@@ -231,7 +235,7 @@ class _GeneralFoodSelectionScreenState
 
     return Scaffold(
       appBar: GlobalAppBar(title: l10n.addFoodTitle),
-      body: !_isOffDbInitialized
+      body: !_hasSearchableFoods
           ? DatabasePlaceholderWidget(
               title: l10n.offDownloadTitle,
               body: l10n.offPlaceholderText,
@@ -476,49 +480,16 @@ class _GeneralFoodSelectionScreenState
                                   ),
                                 ),
                                 child: () {
-                                  final baseHits = _results
-                                      .where((it) =>
-                                          it.source == FoodItemSource.base)
-                                      .toList();
-                                  final offHits = _results
-                                      .where((it) =>
-                                          it.source == FoodItemSource.off)
-                                      .toList();
-                                  final customHits = _results
-                                      .where((it) =>
-                                          it.source == FoodItemSource.user)
-                                      .toList();
-
-                                  final listItems = <dynamic>[];
-                                  if (customHits.isNotEmpty) {
-                                    listItems.add(l10n.customFoodsTitle);
-                                    listItems.addAll(customHits);
-                                  }
-                                  if (baseHits.isNotEmpty) {
-                                    listItems.add(l10n.searchSectionBase);
-                                    listItems.addAll(baseHits);
-                                  }
-                                  if (offHits.isNotEmpty) {
-                                    listItems.add(l10n.searchSectionOther);
-                                    listItems.addAll(offHits);
-                                  }
-
+                                  final sections = FoodSearchSections(_results);
                                   return ListView.builder(
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     padding:
                                         const EdgeInsets.only(bottom: 56.0),
-                                    itemCount: listItems.length,
+                                    itemCount: sections.length,
                                     itemBuilder: (context, index) {
-                                      final item = listItems[index];
-                                      if (item is String) {
-                                        return AppSectionHeader(title: item);
-                                      } else if (item is FoodItem) {
-                                        return _buildFoodListItem(item, l10n);
-                                      } else if (item is Widget) {
-                                        return item;
-                                      }
-                                      return const SizedBox.shrink();
+                                      return sections.buildRow(index, l10n,
+                                          (item) => _buildFoodListItem(item, l10n));
                                     },
                                   );
                                 }());

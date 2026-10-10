@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'food_search_index.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
@@ -1055,6 +1056,8 @@ class AppDatabase extends _$AppDatabase {
           // must not depend on how the executor was constructed.
           await customStatement('PRAGMA busy_timeout = 30000;');
           await customStatement('PRAGMA foreign_keys = ON;');
+          // Keep derived search indexes correct for INSERT OR REPLACE deletes.
+          await customStatement('PRAGMA recursive_triggers = ON;');
           await reconcileSchema();
           await customStatement('''
             CREATE TABLE IF NOT EXISTS bls_food_alias_index (
@@ -1080,6 +1083,7 @@ class AppDatabase extends _$AppDatabase {
               'CREATE INDEX IF NOT EXISTS bls_alias_lookup_idx ON bls_food_alias_index(language_code, normalized_alias)');
           await customStatement(
               'CREATE INDEX IF NOT EXISTS bls_alias_normalized_lookup_idx ON bls_food_alias_index(normalized_alias, language_code)');
+          await FoodSearchIndex.ensure(this);
         },
         onCreate: (Migrator m) async {
           await m.createAll();

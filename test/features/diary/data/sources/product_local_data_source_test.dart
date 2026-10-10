@@ -391,22 +391,18 @@ void main() {
             ),
           );
 
-      // Now, search again. "Apfelmus ungezuckert" should be prioritized above "Apfel Elstar"
-      // because its history score is 10, while "Apfel Elstar" history score is 0.
+      // History cannot promote a compound prefix above a complete word.
       final searchAfterLog = await dataSource.searchProducts('Apfel');
-      expect(searchAfterLog.length, 2);
-      expect(searchAfterLog[0].barcode,
-          '555555'); // Apfelmus ungezuckert (now first!)
-      expect(searchAfterLog[1].barcode, '444444'); // Apfel Elstar
+      expect(searchAfterLog.map((item) => item.barcode), ['444444', '555555']);
       final scanSession = dataSource.createAiSearchSession();
       final cached = await scanSession.search('Apfel');
-      expect(cached.map((item) => item.barcode).toList(),
-          searchAfterLog.map((item) => item.barcode).toList());
-      expect(identical(cached, await scanSession.search('apfel')), isTrue);
+      expect(cached.map((item) => item.barcode), ['444444']);
+      expect((await scanSession.search('apfel')).map((item) => item.barcode),
+          cached.map((item) => item.barcode));
     });
 
     test(
-        'searchProducts implements exact/prefix match boosting and German plural stem fallback',
+        'searchProducts uses explicit plural aliases instead of arbitrary stems',
         () async {
       await dataSource.insertProduct(FoodItem(
         barcode: '888888',
@@ -439,26 +435,14 @@ void main() {
         source: FoodItemSource.base,
       ));
 
-      // Query for "Eier".
-      // German plural check should map "eier" -> "ei" as a stem.
-      // - "Ei" matches "%ei%" (exact match on LOWER(p.name) = "eier" is FALSE)
-      // - "Eiercreme" starts with "eier", so LOWER(p.name) LIKE "eier%" is TRUE.
-      // - "Hühnerei" is substring matched but has prefix = 0.
+      await database.customStatement("INSERT INTO bls_food_alias_index "
+          "(barcode, language_code, alias, normalized_alias, kind, method, match_scope, review_status) "
+          "VALUES ('999999', 'de', 'Eier', 'eier', 'synonym', 'curated', 'identity', 'approved')");
       final eierResults = await dataSource.searchProducts('Eier');
-      expect(eierResults.length, 3);
-      expect(eierResults[0].barcode, '888888'); // Eiercreme (prefix match)
-      expect(eierResults[1].barcode, '999999'); // Ei
-      expect(eierResults[2].barcode, '101010'); // Hühnerei
-
-      // Query for "Ei".
-      // - "Ei" is exact match, so it must be FIRST.
-      // - "Eiercreme" is prefix match, so it must be SECOND.
-      // - "Hühnerei" is substring match, so it must be THIRD.
+      expect(eierResults.map((item) => item.barcode), ['999999', '888888']);
+      // No arbitrary interior-substring match: Hühnerei needs its own alias.
       final eiResults = await dataSource.searchProducts('Ei');
-      expect(eiResults.length, 3);
-      expect(eiResults[0].barcode, '999999'); // Ei (exact match)
-      expect(eiResults[1].barcode, '888888'); // Eiercreme (prefix match)
-      expect(eiResults[2].barcode, '101010'); // Hühnerei (substring match)
+      expect(eiResults.map((item) => item.barcode), ['999999', '888888']);
     });
 
     test(
@@ -489,7 +473,7 @@ void main() {
     });
 
     test(
-        'searchProducts and fuzzyMatchForAi prioritize base food parenthetical stem matches over generic off matches (e.g. Reis)',
+        'manual search prefers matching BLS base foods while AI keeps base preparation candidates',
         () async {
       // 1. OFF product with exact name "Reis" (raw, dry rice)
       await dataSource.insertProduct(FoodItem(
@@ -520,8 +504,9 @@ void main() {
       // Search for 'Reis'
       final searchResults = await dataSource.searchProducts('Reis');
       expect(searchResults, isNotEmpty);
-      // Base food with parenthetical stem should rank first over unverified OFF product
+      // Matching BLS base foods lead over OFF products in manual search.
       expect(searchResults[0].barcode, 'base_food_rice_white_cooked');
+      expect(searchResults[1].barcode, 'off_rice_123');
 
       // AI fuzzy match for 'Reis'
       final aiResults = await dataSource.fuzzyMatchForAi('Reis');

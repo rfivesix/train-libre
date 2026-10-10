@@ -89,45 +89,6 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     });
   }
 
-  Future<void> _refreshBlsCatalog() async {
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    var installedUpdate = false;
-    var failed = false;
-    try {
-      await LongRunningOperationOverlay.run(
-        context: context,
-        title: l10n.blsCatalogRefresh,
-        initialStatus: l10n.blsCatalogRefresh,
-        icon: LucideIcons.database,
-        operation: (token, updateProgress) async {
-          installedUpdate =
-              await BasisDataManager.instance.refreshBlsFoodCatalog(
-            forceCheck: true,
-            onProgress: (task, detail, progress) {
-              updateProgress(detail, progress);
-            },
-          );
-        },
-      );
-    } catch (error) {
-      debugPrint('[BLS catalog] Manual refresh failed: $error');
-      failed = true;
-    }
-    if (!mounted) return;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          failed
-              ? l10n.blsCatalogRefreshFailed
-              : installedUpdate
-                  ? l10n.blsCatalogUpdated
-                  : l10n.blsCatalogCurrent,
-        ),
-      ),
-    );
-  }
-
   // --- Unchanged: full-backup logic ---
   void _performFullExport() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -481,22 +442,6 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              l10n.nutritionCatalogBls,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(l10n.blsCatalogManagementDescription),
-            const SizedBox(height: DesignConstants.spacingM),
-            AppButton.secondary(
-              onPressed: _refreshBlsCatalog,
-              label: l10n.blsCatalogRefresh,
-              icon: LucideIcons.refresh_cw,
-              tooltip: l10n.blsCatalogRefresh,
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Column(

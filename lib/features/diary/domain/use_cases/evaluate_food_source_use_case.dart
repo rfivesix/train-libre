@@ -21,40 +21,12 @@ class EvaluateFoodSourceUseCase {
     if (searchLowers.isEmpty) return [];
     final items = List<FoodItem>.from(candidates);
 
-    int score(FoodItem item) {
-      final rawNames = FoodNameMatching.names(item, includeBrand: true);
-      final names = rawNames.map(FoodNameMatching.normalize).toSet();
-      if (item.source == FoodItemSource.base) {
-        names.addAll(rawNames.map((name) => FoodNameMatching.normalize(
-            name.replaceAll(RegExp(r'\s*\([^)]*\)'), ''))));
-      }
-
-      return searchLowers.map((term) {
-        final compactTerm = FoodNameMatching.compact(term);
-        if (names.contains(term) ||
-            (item.source == FoodItemSource.base &&
-                names.any(
-                    (name) => FoodNameMatching.compact(name) == compactTerm))) {
-          return 0;
-        }
-        if (names.any((name) => name.startsWith(term)) ||
-            (item.source == FoodItemSource.base &&
-                names.any((name) =>
-                    FoodNameMatching.compact(name).startsWith(compactTerm)))) {
-          return 1;
-        }
-        if (item.catalogMatchAlias != null &&
-            FoodNameMatching.compact(item.catalogMatchAlias!) == compactTerm) {
-          return item.catalogMatchScope == 'identity' &&
-                  item.catalogMatchReviewStatus == 'approved'
-              ? 0
-              : 1;
-        }
-        return 2;
-      }).reduce((a, b) => a < b ? a : b);
-    }
+    int score(FoodItem item) => searchLowers
+        .map((term) => FoodNameMatching.rank(term, item))
+        .reduce((a, b) => a < b ? a : b);
 
     final scores = {for (final item in items) item: score(item)};
+    items.removeWhere((item) => scores[item]! >= 4);
     items.sort((a, b) {
       final sa = scores[a]!;
       final sb = scores[b]!;
