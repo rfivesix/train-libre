@@ -12175,6 +12175,48 @@ abstract class AppLocalizations {
   /// **'Sides'**
   String get catalogFilterLaterality;
 
+  /// No description provided for @catalogFilterAlreadyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Previously performed'**
+  String get catalogFilterAlreadyDone;
+
+  /// No description provided for @catalogTrainedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained'**
+  String get catalogTrainedBadge;
+
+  /// No description provided for @catalogLastTrainedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained today'**
+  String get catalogLastTrainedToday;
+
+  /// No description provided for @catalogLastTrainedYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained yesterday'**
+  String get catalogLastTrainedYesterday;
+
+  /// No description provided for @catalogLastTrainedDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String catalogLastTrainedDaysAgo(int days);
+
+  /// No description provided for @catalogLastTrainedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained on {date}'**
+  String catalogLastTrainedOn(String date);
+
+  /// No description provided for @noTrainedExercisesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No previously performed exercises found.'**
+  String get noTrainedExercisesFound;
+
   /// No description provided for @exerciseDifficultyBeginner.
   ///
   /// In en, this message translates to:

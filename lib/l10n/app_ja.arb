@@ -3019,6 +3019,27 @@
   "catalogFilterDifficulty": "難易度",
   "catalogFilterMechanic": "動作の種類",
   "catalogFilterLaterality": "左右",
+  "catalogFilterAlreadyDone": "実施済み",
+  "catalogTrainedBadge": "履歴あり",
+  "catalogLastTrainedToday": "今日実施",
+  "catalogLastTrainedYesterday": "昨日実施",
+  "catalogLastTrainedDaysAgo": "{days}日前",
+  "@catalogLastTrainedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogLastTrainedOn": "{date}に実施",
+  "@catalogLastTrainedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noTrainedExercisesFound": "実施済みの種目が見つかりません。",
   "exerciseDifficultyBeginner": "初級",
   "exerciseDifficultyIntermediate": "中級",
   "exerciseDifficultyAdvanced": "上級",

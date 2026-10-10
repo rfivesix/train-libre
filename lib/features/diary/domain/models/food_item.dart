@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart'; // Added for BuildContext
+import '../../../../core/infrastructure/caffeine_catalog_resolver.dart';
 
 enum FoodItemSource {
   off, // Open Food Facts
@@ -113,6 +114,45 @@ class FoodItem {
   /// Dynamic getter to determine if the food item is user-created/custom.
   bool get isCustom => source == FoodItemSource.user;
 
+  /// Whether this item represents a beverage/liquid.
+  bool get isFluidOrLiquid => isFluid || (isLiquid ?? false);
+
+  /// Effective caffeine content in mg per 100ml (or 100g if specified per 100g).
+  double? get effectiveCaffeinePer100ml {
+    if (caffeineMgPer100ml != null && caffeineMgPer100ml! > 0) {
+      return caffeineMgPer100ml;
+    }
+    if (caffeineMgPer100g != null && caffeineMgPer100g! > 0) {
+      return caffeineMgPer100g;
+    }
+    final fallback = CaffeineCatalogResolver.lookupCaffeine(
+      barcode,
+      nameDe.isNotEmpty ? nameDe : name,
+    );
+    if (fallback != null && fallback > 0) {
+      return fallback;
+    }
+    return caffeineMgPer100ml ?? caffeineMgPer100g;
+  }
+
+  /// Effective caffeine content in mg per 100g (or 100ml).
+  double? get effectiveCaffeinePer100g {
+    if (caffeineMgPer100g != null && caffeineMgPer100g! > 0) {
+      return caffeineMgPer100g;
+    }
+    if (caffeineMgPer100ml != null && caffeineMgPer100ml! > 0) {
+      return caffeineMgPer100ml;
+    }
+    final fallback = CaffeineCatalogResolver.lookupCaffeine(
+      barcode,
+      nameDe.isNotEmpty ? nameDe : name,
+    );
+    if (fallback != null && fallback > 0) {
+      return fallback;
+    }
+    return caffeineMgPer100g ?? caffeineMgPer100ml;
+  }
+
   /// Creates a new [FoodItem] instance.
   FoodItem({
     this.id,
@@ -190,6 +230,26 @@ class FoodItem {
     Map<String, dynamic> map, {
     required FoodItemSource source,
   }) {
+    final rawCaffeine100ml = _toDoubleOrNull(map['caffeine_mg_per_100ml']) ??
+        _toDoubleOrNull(map['caffeine']);
+    final rawCaffeine100g = _toDoubleOrNull(map['caffeine_mg_per_100g']) ??
+        _toDoubleOrNull(map['caffeine_mg_per100g']);
+    final parsedIsFluid = _readBool(map['is_fluid']) ?? false;
+    final parsedIsLiquid = _readBool(map['is_liquid']);
+    final isDrink = parsedIsFluid || (parsedIsLiquid ?? false);
+
+    final resolvedFallback = CaffeineCatalogResolver.lookupCaffeine(
+      map['barcode']?.toString(),
+      (map['name_de'] ?? map['name'])?.toString(),
+    );
+    final finalCaffeine100ml = rawCaffeine100ml ??
+        (isDrink ? rawCaffeine100g : null) ??
+        rawCaffeine100g ??
+        resolvedFallback;
+    final finalCaffeine100g = rawCaffeine100g ??
+        rawCaffeine100ml ??
+        resolvedFallback;
+
     final item = FoodItem(
       id: map['id']?.toString(),
       barcode: map['barcode'] ?? '',
@@ -212,13 +272,11 @@ class FoodItem {
       salt: (map['salt_100g'] as num?)?.toDouble(),
       sodium: (map['sodium_100g'] as num?)?.toDouble(),
       calcium: (map['calcium_100g'] as num?)?.toDouble(),
-      isLiquid: _readBool(map['is_liquid']),
-      isFluid: _readBool(map['is_fluid']) ?? false,
-      caffeineMgPer100ml: _toDoubleOrNull(map['caffeine_mg_per_100ml']) ??
-          _toDoubleOrNull(map['caffeine']),
+      isLiquid: parsedIsLiquid,
+      isFluid: parsedIsFluid,
+      caffeineMgPer100ml: finalCaffeine100ml,
       // Robust naming: check both caffeine_mg_per_100g (Python/Asset) and caffeine_mg_per100g (Drift default)
-      caffeineMgPer100g: _toDoubleOrNull(map['caffeine_mg_per_100g']) ??
-          _toDoubleOrNull(map['caffeine_mg_per100g']),
+      caffeineMgPer100g: finalCaffeine100g,
       ingredientsText: map['ingredients_text'],
 
       ingredientsAnalysisTags: _toStringList(map['ingredients_analysis_tags']),

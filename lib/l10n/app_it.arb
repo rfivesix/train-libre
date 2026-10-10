@@ -3019,6 +3019,27 @@
   "catalogFilterDifficulty": "Difficoltà",
   "catalogFilterMechanic": "Meccanica",
   "catalogFilterLaterality": "Lati",
+  "catalogFilterAlreadyDone": "Già eseguito",
+  "catalogTrainedBadge": "Eseguito",
+  "catalogLastTrainedToday": "Eseguito oggi",
+  "catalogLastTrainedYesterday": "Eseguito ieri",
+  "catalogLastTrainedDaysAgo": "{days} giorni fa",
+  "@catalogLastTrainedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogLastTrainedOn": "Il {date}",
+  "@catalogLastTrainedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noTrainedExercisesFound": "Nessun esercizio già eseguito trovato.",
   "exerciseDifficultyBeginner": "Principiante",
   "exerciseDifficultyIntermediate": "Intermedio",
   "exerciseDifficultyAdvanced": "Avanzato",

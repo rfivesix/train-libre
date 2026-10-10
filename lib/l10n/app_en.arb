@@ -3213,6 +3213,27 @@
   "catalogFilterDifficulty": "Difficulty",
   "catalogFilterMechanic": "Mechanic",
   "catalogFilterLaterality": "Sides",
+  "catalogFilterAlreadyDone": "Previously performed",
+  "catalogTrainedBadge": "Trained",
+  "catalogLastTrainedToday": "Trained today",
+  "catalogLastTrainedYesterday": "Trained yesterday",
+  "catalogLastTrainedDaysAgo": "{days}d ago",
+  "@catalogLastTrainedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogLastTrainedOn": "Trained on {date}",
+  "@catalogLastTrainedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noTrainedExercisesFound": "No previously performed exercises found.",
   "exerciseDifficultyBeginner": "Beginner",
   "exerciseDifficultyIntermediate": "Intermediate",
   "exerciseDifficultyAdvanced": "Advanced",

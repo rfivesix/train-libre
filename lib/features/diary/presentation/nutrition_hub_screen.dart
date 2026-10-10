@@ -171,8 +171,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             final barcode = foodEntries[i].barcode;
             final quantity = foodEntries[i].quantityInGrams;
             final product = products[barcode];
-            final caffeinePer100ml = product?.caffeineMgPer100ml;
-            if (product?.isLiquid == true &&
+            final caffeinePer100ml = product?.effectiveCaffeinePer100ml;
+            if (product?.isFluidOrLiquid == true &&
                 caffeinePer100ml != null &&
                 caffeinePer100ml > 0) {
               await _logCaffeineDose(

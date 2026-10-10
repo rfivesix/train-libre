@@ -15,6 +15,7 @@ import '../../domain/food_name_matching.dart';
 import '../../../../services/catalog_file_migration.dart';
 import '../../../../util/perf_debug_timer.dart';
 import '../../domain/use_cases/evaluate_food_source_use_case.dart';
+import '../../../../core/infrastructure/caffeine_catalog_resolver.dart';
 
 /// One scan shares recent-use weights and in-flight catalog searches across
 /// all ingredients and repair rounds. Both values stay on-device.
@@ -257,9 +258,13 @@ class ProductLocalDataSource {
       calcium: null,
       isLiquid: overrideRow?.isLiquid ?? row.isLiquid,
       isFluid: overrideRow?.isFluid ?? row.isFluid,
-      caffeineMgPer100ml: overrideRow?.caffeine ?? row.caffeine,
+      caffeineMgPer100ml: (overrideRow?.caffeine ?? row.caffeine) ??
+          (overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g) ??
+          CaffeineCatalogResolver.lookupCaffeine(row.barcode, row.nameDe ?? row.name),
       caffeineMgPer100g:
-          overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g,
+          (overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g) ??
+              (overrideRow?.caffeine ?? row.caffeine) ??
+              CaffeineCatalogResolver.lookupCaffeine(row.barcode, row.nameDe ?? row.name),
       ingredientsText: overrideRow?.ingredientsText ?? row.ingredientsText,
       ingredientsAnalysisTags: _parseJsonList(
           overrideRow?.ingredientsAnalysisTags ?? row.ingredientsAnalysisTags),
@@ -283,6 +288,10 @@ class ProductLocalDataSource {
       default:
         source = FoodItemSource.user;
     }
+
+    final archiveCaffeine = row.caffeine ??
+        row.caffeineMgPer100g ??
+        CaffeineCatalogResolver.lookupCaffeine(row.barcode, row.productName);
 
     return FoodItem(
       id: row.id,
@@ -308,8 +317,8 @@ class ProductLocalDataSource {
       calcium: null,
       isLiquid: row.isLiquid,
       isFluid: row.isFluid,
-      caffeineMgPer100ml: row.caffeine,
-      caffeineMgPer100g: row.caffeineMgPer100g,
+      caffeineMgPer100ml: archiveCaffeine,
+      caffeineMgPer100g: archiveCaffeine,
       ingredientsText: null,
       ingredientsAnalysisTags: const [],
       additivesTags: const [],

@@ -52,6 +52,8 @@ class ExerciseFilterSection {
 /// pump is a filter nobody tests.
 class ExerciseFilterSheet extends StatefulWidget {
   final List<ExerciseFilterSection> sections;
+  final bool onlyPerformed;
+  final ValueChanged<bool>? onOnlyPerformedChanged;
 
   /// Called after every change, so the list behind the sheet updates live.
   final VoidCallback onChanged;
@@ -60,6 +62,8 @@ class ExerciseFilterSheet extends StatefulWidget {
     super.key,
     required this.sections,
     required this.onChanged,
+    this.onlyPerformed = false,
+    this.onOnlyPerformedChanged,
   });
 
   @override
@@ -67,7 +71,10 @@ class ExerciseFilterSheet extends StatefulWidget {
 }
 
 class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
+  late bool _onlyPerformed = widget.onlyPerformed;
+
   bool get _hasSelection =>
+      _onlyPerformed ||
       widget.sections.any((section) => section.selection.isNotEmpty);
 
   void _apply(VoidCallback change) {
@@ -86,6 +93,24 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        SwitchListTile.adaptive(
+          title: Text(
+            l10n.catalogFilterAlreadyDone,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          value: _onlyPerformed,
+          activeTrackColor: theme.colorScheme.primary,
+          contentPadding: EdgeInsets.zero,
+          onChanged: (val) {
+            _apply(() {
+              _onlyPerformed = val;
+              widget.onOnlyPerformedChanged?.call(val);
+            });
+          },
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
         for (final section in visible) ...[
           PlatformAdaptiveMultiSelectField<String>(
             label: section.title,
@@ -116,14 +141,15 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
         const SizedBox(height: DesignConstants.spacingS),
         Align(
           alignment: Alignment.centerLeft,
-          // Always present, disabled when there is nothing to reset. Appearing
-          // on first selection moved everything above it, so the menu shifted
-          // under the finger that had just tapped a chip.
           child: TextButton(
             onPressed: _hasSelection
                 ? () => _apply(() {
                       for (final section in widget.sections) {
                         section.selection.clear();
+                      }
+                      if (_onlyPerformed) {
+                        _onlyPerformed = false;
+                        widget.onOnlyPerformedChanged?.call(false);
                       }
                     })
                 : null,

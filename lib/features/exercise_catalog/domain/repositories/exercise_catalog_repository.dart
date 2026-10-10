@@ -18,6 +18,7 @@ abstract class IExerciseCatalogRepository {
     List<String> mechanics = const [],
     List<String> lateralities = const [],
     String languageCode = 'en',
+    bool onlyPerformed = false,
   });
 
   /// Equipment that is the load-bearing implement of at least one live

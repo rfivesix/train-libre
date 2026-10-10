@@ -1180,8 +1180,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               final bc = foodEntries[i].barcode;
               final qty = foodEntries[i].quantityInGrams;
               final fi = products[bc];
-              final c100 = fi?.caffeineMgPer100ml;
-              if (fi?.isLiquid == true && c100 != null && c100 > 0) {
+              final c100 = fi?.effectiveCaffeinePer100ml;
+              if (fi?.isFluidOrLiquid == true && c100 != null && c100 > 0) {
                 await _logCaffeineDose(
                   c100 * (qty / 100.0),
                   date,

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/core/infrastructure/basis_data_manager.dart';
+import 'package:train_libre/core/infrastructure/caffeine_catalog_resolver.dart';
 import 'package:train_libre/data/drift_database.dart' as db;
 import 'package:train_libre/features/diary/data/sources/product_local_data_source.dart';
 import 'package:train_libre/features/diary/domain/models/food_item.dart';
@@ -106,6 +107,33 @@ void main() {
       };
       final db.ProductsCompanion companion3 = mapProductRowHelper(row3, 'off');
       expect(companion3.isFluid.value, isTrue);
+    });
+
+    test(
+        'caffeine falls back to caffeine_mg_per_100g when caffeine/caffeine_mg_per_100ml is absent in catalog row',
+        () {
+      final coffeeRow = {
+        'barcode': 'base_food_coffee_black',
+        'name': 'Kaffee (schwarz, ungesüßt)',
+        'calories': 2,
+        'protein': 0.1,
+        'carbs': 0.3,
+        'fat': 0.0,
+        'caffeine_mg_per_100g': 40.0,
+        'category': 'en:coffees',
+        'is_fluid': 1,
+      };
+      final db.ProductsCompanion companion =
+          mapProductRowHelper(coffeeRow, 'base');
+      expect(companion.caffeine.value, 40.0);
+      expect(companion.caffeineMgPer100g.value, 40.0);
+      expect(companion.isFluid.value, isTrue);
+
+      final foodItem = FoodItem.fromMap(coffeeRow, source: FoodItemSource.base);
+      expect(foodItem.caffeineMgPer100g, 40.0);
+      expect(foodItem.caffeineMgPer100ml, 40.0);
+      expect(foodItem.effectiveCaffeinePer100ml, 40.0);
+      expect(foodItem.isFluidOrLiquid, isTrue);
     });
   });
 
@@ -231,6 +259,49 @@ void main() {
       expect(fetched, isNotNull);
       expect(fetched!.name, 'Second Version');
       expect(fetched.calories, 120);
+    });
+
+    test('CaffeineCatalogResolver resolves caffeine for BLS beverages and by name heuristic', () {
+      expect(CaffeineCatalogResolver.lookupCaffeine('bls:N330000', 'Colagetränk koffeinhaltig'), 10.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine('bls:N331000', 'Colagetränk koffeinhaltig, mit Süßungsmitteln'), 10.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine('bls:N340000', 'Colagetränk koffeinfrei'), 0.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine('bls:N410100', 'Kaffee (Getränk)'), 40.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine('bls:N411100', 'Espresso'), 212.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine(null, 'Monster Energy Drink'), 32.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine(null, 'Kaffee entkoffeiniert'), 0.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine(null, 'Kaffeeersatz (Getränk)'), 0.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine(null, 'Club Mate'), 35.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine(null, 'Schwarztee (ungesüßt)'), 20.0);
+      expect(CaffeineCatalogResolver.lookupCaffeine(null, 'Grüner Tee'), 15.0);
+    });
+
+    test('FoodItem effectiveCaffeinePer100ml falls back to CaffeineCatalogResolver when raw fields are null', () {
+      final cola = FoodItem(
+        barcode: 'bls:N330000',
+        name: 'Colagetränk koffeinhaltig',
+        nameDe: 'Colagetränk koffeinhaltig',
+        calories: 41,
+        protein: 0.0,
+        carbs: 10.3,
+        fat: 0.0,
+        isFluid: true,
+      );
+      expect(cola.caffeineMgPer100g, isNull);
+      expect(cola.caffeineMgPer100ml, isNull);
+      expect(cola.effectiveCaffeinePer100ml, 10.0);
+      expect(cola.effectiveCaffeinePer100g, 10.0);
+
+      final coffee = FoodItem(
+        barcode: 'bls:N410100',
+        name: 'Kaffee (Getränk)',
+        nameDe: 'Kaffee (Getränk)',
+        calories: 2,
+        protein: 0.2,
+        carbs: 0.3,
+        fat: 0.0,
+        isFluid: true,
+      );
+      expect(coffee.effectiveCaffeinePer100ml, 40.0);
     });
   });
 }

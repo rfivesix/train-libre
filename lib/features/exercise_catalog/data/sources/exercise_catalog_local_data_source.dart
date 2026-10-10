@@ -23,6 +23,7 @@ class ExerciseCatalogLocalDataSource {
     List<String> mechanics = const [],
     List<String> lateralities = const [],
     String languageCode = 'en',
+    bool onlyPerformed = false,
   }) async {
     final list = await _workoutDbHelper.searchExercises(
       query: query,
@@ -33,6 +34,7 @@ class ExerciseCatalogLocalDataSource {
       mechanics: mechanics,
       lateralities: lateralities,
       languageCode: languageCode,
+      onlyPerformed: onlyPerformed,
     );
     return list.cast<Exercise>();
   }

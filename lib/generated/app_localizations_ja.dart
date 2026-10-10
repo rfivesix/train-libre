@@ -6742,6 +6742,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get catalogFilterLaterality => '左右';
 
   @override
+  String get catalogFilterAlreadyDone => '実施済み';
+
+  @override
+  String get catalogTrainedBadge => '履歴あり';
+
+  @override
+  String get catalogLastTrainedToday => '今日実施';
+
+  @override
+  String get catalogLastTrainedYesterday => '昨日実施';
+
+  @override
+  String catalogLastTrainedDaysAgo(int days) {
+    return '$days日前';
+  }
+
+  @override
+  String catalogLastTrainedOn(String date) {
+    return '$dateに実施';
+  }
+
+  @override
+  String get noTrainedExercisesFound => '実施済みの種目が見つかりません。';
+
+  @override
   String get exerciseDifficultyBeginner => '初級';
 
   @override

@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../generated/app_localizations.dart';
@@ -50,6 +51,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   bool _isLoading = true;
   bool _isFabHidden = false;
   final _searchController = TextEditingController();
+  int _searchGeneration = 0;
+  bool _onlyPerformed = false;
   List<String> _allCategories = [];
   final List<String> _selectedCategories = [];
 
@@ -141,6 +144,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   }
 
   void _runFilter(String enteredKeyword) async {
+    final generation = ++_searchGeneration;
     final results = await _repository.searchExercises(
       query: enteredKeyword,
       categories: _selectedCategories,
@@ -150,8 +154,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       mechanics: _selectedMechanics,
       lateralities: _selectedLateralities,
       languageCode: Localizations.localeOf(context).languageCode,
+      onlyPerformed: _onlyPerformed,
     );
-    if (mounted) {
+    if (mounted && generation == _searchGeneration) {
       setState(() {
         _foundExercises = results;
       });
@@ -242,6 +247,54 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                         _buildFilterButton(context, l10n),
                       ],
                     ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          FilterChip(
+                            selected: _onlyPerformed,
+                            showCheckmark: false,
+                            avatar: Icon(
+                              LucideIcons.rotate_ccw_clock,
+                              size: 15,
+                              color: _onlyPerformed
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            label: Text(l10n.catalogFilterAlreadyDone),
+                            labelStyle: TextStyle(
+                              color: _onlyPerformed
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onSurface,
+                              fontWeight: _onlyPerformed
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 13,
+                            ),
+                            selectedColor: colorScheme.primary,
+                            backgroundColor:
+                                Theme.of(context).inputDecorationTheme.fillColor ??
+                                    (Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF2C2C2E)
+                                        : const Color(0xFFF3F3F3)),
+                            side: BorderSide.none,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusL,
+                              ),
+                            ),
+                            onSelected: (selected) {
+                              setState(() {
+                                _onlyPerformed = selected;
+                              });
+                              _runFilter(_searchController.text);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -256,7 +309,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                     : _foundExercises.isEmpty
                         ? Center(
                             child: Text(
-                              l10n.noExercisesFound,
+                              _onlyPerformed
+                                  ? l10n.noTrainedExercisesFound
+                                  : l10n.noExercisesFound,
                               style: textTheme.titleMedium,
                             ),
                           )
@@ -288,6 +343,12 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                 ),
                                               ),
                                             ),
+                                            if (exercise.hasHistory) ...[
+                                              const SizedBox(
+                                                width: DesignConstants.spacingS,
+                                              ),
+                                              _buildTrainedBadge(context),
+                                            ],
                                             if (exercise.source == 'user') ...[
                                               const SizedBox(
                                                 width: DesignConstants.spacingS,
@@ -300,9 +361,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                           ],
                                         ),
                                         subtitle: Text(
-                                          BodySlugMapper.localize(
+                                          _buildSubtitleText(
                                             context,
-                                            exercise.categoryName,
+                                            exercise,
+                                            l10n,
                                           ),
                                         ),
                                         trailing: widget.isSelectionMode
@@ -427,7 +489,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         _selectedUsageTags.length +
         _selectedDifficulties.length +
         _selectedMechanics.length +
-        _selectedLateralities.length;
+        _selectedLateralities.length +
+        (_onlyPerformed ? 1 : 0);
     final hasFilter = activeCount > 0;
 
     final fillColor = hasFilter
@@ -483,6 +546,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       context: context,
       title: l10n.catalogFilterTitle,
       contentBuilder: (sheetContext, close) => ExerciseFilterSheet(
+        onlyPerformed: _onlyPerformed,
+        onOnlyPerformedChanged: (val) {
+          setState(() => _onlyPerformed = val);
+        },
         sections: [
           ExerciseFilterSection(
             title: l10n.catalogFilterBodyRegion,
@@ -612,5 +679,73 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildTrainedBadge(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final color = colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.rotate_ccw_clock,
+            size: 11,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            AppLocalizations.of(context)!.catalogTrainedBadge,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _buildSubtitleText(
+    BuildContext context,
+    Exercise exercise,
+    AppLocalizations l10n,
+  ) {
+    final category = BodySlugMapper.localize(context, exercise.categoryName);
+    if (exercise.lastPerformedAt != null) {
+      final now = DateTime.now();
+      final performed = exercise.lastPerformedAt!;
+      final diffDays = DateTime(now.year, now.month, now.day)
+          .difference(DateTime(performed.year, performed.month, performed.day))
+          .inDays;
+
+      final String timeText;
+      if (diffDays <= 0) {
+        timeText = l10n.catalogLastTrainedToday;
+      } else if (diffDays == 1) {
+        timeText = l10n.catalogLastTrainedYesterday;
+      } else if (diffDays < 30) {
+        timeText = l10n.catalogLastTrainedDaysAgo(diffDays);
+      } else {
+        final locale = Localizations.localeOf(context).toString();
+        final formattedDate = DateFormat.yMMMd(locale).format(performed);
+        timeText = l10n.catalogLastTrainedOn(formattedDate);
+      }
+      return '$category • $timeText';
+    } else if (exercise.totalLoggedSets > 0) {
+      return '$category • ${l10n.catalogTrainedBadge}';
+    }
+    return category;
   }
 }

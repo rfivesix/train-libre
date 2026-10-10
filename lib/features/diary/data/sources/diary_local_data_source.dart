@@ -352,9 +352,11 @@ class DiaryLocalDataSource {
       final pSugar = override?.sugar ?? product.sugar;
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
-      final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g =
+      final rawCaffeine = override?.caffeine ?? product.caffeine;
+      final rawCaffeineMgPer100g =
           override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pCaffeine = rawCaffeine ?? rawCaffeineMgPer100g;
+      final pCaffeineMgPer100g = rawCaffeineMgPer100g ?? rawCaffeine;
       final pProductQuantity =
           override?.productQuantity ?? product.productQuantity;
       final pProductQuantityUnit =
@@ -500,9 +502,11 @@ class DiaryLocalDataSource {
       final pSugar = override?.sugar ?? product.sugar;
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
-      final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g =
+      final rawCaffeine = override?.caffeine ?? product.caffeine;
+      final rawCaffeineMgPer100g =
           override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pCaffeine = rawCaffeine ?? rawCaffeineMgPer100g;
+      final pCaffeineMgPer100g = rawCaffeineMgPer100g ?? rawCaffeine;
       final pProductQuantity =
           override?.productQuantity ?? product.productQuantity;
       final pProductQuantityUnit =

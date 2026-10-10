@@ -7068,6 +7068,32 @@ class AppLocalizationsIt extends AppLocalizations {
   String get catalogFilterLaterality => 'Lati';
 
   @override
+  String get catalogFilterAlreadyDone => 'Già eseguito';
+
+  @override
+  String get catalogTrainedBadge => 'Eseguito';
+
+  @override
+  String get catalogLastTrainedToday => 'Eseguito oggi';
+
+  @override
+  String get catalogLastTrainedYesterday => 'Eseguito ieri';
+
+  @override
+  String catalogLastTrainedDaysAgo(int days) {
+    return '$days giorni fa';
+  }
+
+  @override
+  String catalogLastTrainedOn(String date) {
+    return 'Il $date';
+  }
+
+  @override
+  String get noTrainedExercisesFound =>
+      'Nessun esercizio già eseguito trovato.';
+
+  @override
   String get exerciseDifficultyBeginner => 'Principiante';
 
   @override

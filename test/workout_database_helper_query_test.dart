@@ -1019,6 +1019,277 @@ void main() {
         expect(results[1].uuid, 'dumbbell-bench-press-uuid');
         expect(results[2].uuid, 'incline-bench-press-uuid');
       });
+
+      test(
+          'searchExercises matches German umlaut transliterations (ae, oe, ue, ss)',
+          () async {
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'bankdruecken-uuid',
+            texts: {
+              'de': model.ExerciseText(name: 'Langhantel-Bankdrücken'),
+              'en': model.ExerciseText(name: 'Barbell Bench Press'),
+            },
+            categoryName: 'Chest',
+            primaryMuscles: ['chest'],
+            secondaryMuscles: [],
+          ),
+        );
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'ueberkopf-uuid',
+            texts: {
+              'de': model.ExerciseText(name: 'Überkopfdrücken'),
+              'en': model.ExerciseText(name: 'Overhead Press'),
+            },
+            categoryName: 'Shoulders',
+            primaryMuscles: ['shoulders'],
+            secondaryMuscles: [],
+          ),
+        );
+
+        final benchResults = await helper.searchExercises(
+          query: 'bankdruecken',
+          languageCode: 'de',
+        );
+        expect(benchResults.any((e) => e.uuid == 'bankdruecken-uuid'), isTrue);
+
+        final ohpResults = await helper.searchExercises(
+          query: 'ueberkopfdruecken',
+          languageCode: 'de',
+        );
+        expect(ohpResults.any((e) => e.uuid == 'ueberkopf-uuid'), isTrue);
+      });
+
+      test('searchExercises matches singular/plural and gym synonyms',
+          () async {
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'klimmzug-uuid',
+            texts: {
+              'de': model.ExerciseText(name: 'Klimmzug'),
+              'en': model.ExerciseText(name: 'Pull-Up'),
+            },
+            categoryName: 'Back',
+            primaryMuscles: ['lats'],
+            secondaryMuscles: [],
+          ),
+        );
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'pushup-uuid',
+            texts: {
+              'de': model.ExerciseText(name: 'Liegestütz'),
+              'en': model.ExerciseText(name: 'Push-Up'),
+            },
+            categoryName: 'Chest',
+            primaryMuscles: ['chest'],
+            secondaryMuscles: [],
+          ),
+        );
+
+        // German plural "Klimmzüge" finds singular "Klimmzug"
+        final pullupResults = await helper.searchExercises(
+          query: 'Klimmzüge',
+          languageCode: 'de',
+        );
+        expect(pullupResults.any((e) => e.uuid == 'klimmzug-uuid'), isTrue);
+
+        // German plural without umlauts "klimmzuege"
+        final pullupNoUmlaut = await helper.searchExercises(
+          query: 'klimmzuege',
+          languageCode: 'de',
+        );
+        expect(pullupNoUmlaut.any((e) => e.uuid == 'klimmzug-uuid'), isTrue);
+
+        // English plural "pushups" finds "Liegestütz"
+        final pushupResults = await helper.searchExercises(
+          query: 'pushups',
+          languageCode: 'de',
+        );
+        expect(pushupResults.any((e) => e.uuid == 'pushup-uuid'), isTrue);
+      });
+
+      test(
+          'searchExercises prioritizes cross-language exact match ahead of partial matches',
+          () async {
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'bench-press-canonical',
+            texts: {
+              'de': model.ExerciseText(name: 'Langhantel-Bankdrücken'),
+              'en': model.ExerciseText(name: 'Bench Press'),
+            },
+            categoryName: 'Chest',
+            primaryMuscles: ['chest'],
+            secondaryMuscles: [],
+          ),
+        );
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'incline-bench-press',
+            texts: {
+              'de': model.ExerciseText(name: 'Schrägbankdrücken'),
+              'en': model.ExerciseText(name: 'Incline Bench Press'),
+            },
+            categoryName: 'Chest',
+            primaryMuscles: ['chest'],
+            secondaryMuscles: [],
+          ),
+        );
+
+        // In German locale, user types English exact name "Bench Press"
+        final results = await helper.searchExercises(
+          query: 'Bench Press',
+          languageCode: 'de',
+        );
+        expect(results, isNotEmpty);
+        expect(results.first.uuid, 'bench-press-canonical');
+      });
+
+      test(
+          'searchExercises acronym search (RDL) avoids false-positive substrings',
+          () async {
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'rdl-uuid',
+            texts: {
+              'de': model.ExerciseText(name: 'Rumänisches Kreuzheben'),
+              'en': model.ExerciseText(name: 'Romanian Deadlift'),
+            },
+            categoryName: 'Legs',
+            primaryMuscles: ['hamstrings'],
+            secondaryMuscles: [],
+          ),
+        );
+        await helper.insertExercise(
+          const model.Exercise(
+            uuid: 'dutch-running-uuid',
+            texts: {
+              'de': model.ExerciseText(name: 'Rennen'),
+              'nl': model.ExerciseText(name: 'Hardlopen'),
+            },
+            categoryName: 'Cardio',
+            primaryMuscles: ['legs'],
+            secondaryMuscles: [],
+          ),
+        );
+
+        final results = await helper.searchExercises(
+          query: 'RDL',
+          languageCode: 'de',
+        );
+        expect(results.any((e) => e.uuid == 'rdl-uuid'), isTrue);
+        expect(results.any((e) => e.uuid == 'dutch-running-uuid'), isFalse);
+      });
+
+      test(
+          'searchExercises with onlyPerformed: true filters out unperformed exercises and populates history metadata',
+          () async {
+        final squatUuid = await _insertExercise(
+          database,
+          id: 'perf-squat-uuid',
+          name: 'Kniebeuge',
+          category: 'Strength',
+          primaryMuscles: '["quads"]',
+          insertTranslations: true,
+        );
+        final benchUuid = await _insertExercise(
+          database,
+          id: 'perf-bench-uuid',
+          name: 'Bankdrücken',
+          category: 'Strength',
+          primaryMuscles: '["chest"]',
+          insertTranslations: true,
+        );
+        final ohpUuid = await _insertExercise(
+          database,
+          id: 'perf-ohp-uuid',
+          name: 'Schulterdrücken',
+          category: 'Strength',
+          primaryMuscles: '["shoulders"]',
+          insertTranslations: true,
+        );
+
+        final workoutTime = DateTime.now().subtract(const Duration(days: 3));
+        final workoutId = await _insertWorkout(
+          database,
+          id: 'perf-workout-1',
+          startTime: workoutTime,
+        );
+
+        // 2 sets for Squat, 1 set for Bench, 0 for OHP
+        await _insertSet(database, workoutId: workoutId, exerciseId: squatUuid, exerciseName: 'Kniebeuge');
+        await _insertSet(database, workoutId: workoutId, exerciseId: squatUuid, exerciseName: 'Kniebeuge');
+        await _insertSet(database, workoutId: workoutId, exerciseId: benchUuid, exerciseName: 'Bankdrücken');
+
+        final allResults = await helper.searchExercises();
+        expect(allResults.any((e) => e.uuid == squatUuid), isTrue);
+        expect(allResults.any((e) => e.uuid == benchUuid), isTrue);
+        expect(allResults.any((e) => e.uuid == ohpUuid), isTrue);
+
+        final performedOnly = await helper.searchExercises(onlyPerformed: true);
+        expect(performedOnly.length, 2);
+        expect(performedOnly.any((e) => e.uuid == squatUuid), isTrue);
+        expect(performedOnly.any((e) => e.uuid == benchUuid), isTrue);
+        expect(performedOnly.any((e) => e.uuid == ohpUuid), isFalse);
+
+        final squat = performedOnly.firstWhere((e) => e.uuid == squatUuid);
+        expect(squat.hasHistory, isTrue);
+        expect(squat.totalLoggedSets, 2);
+        expect(squat.lastPerformedAt, isNotNull);
+
+        final ohpSearchPerformed = await helper.searchExercises(query: 'Schulter', onlyPerformed: true);
+        expect(ohpSearchPerformed, isEmpty);
+
+        final ohpSearchAll = await helper.searchExercises(query: 'Schulter', onlyPerformed: false);
+        expect(ohpSearchAll.any((e) => e.uuid == ohpUuid), isTrue);
+        final ohp = ohpSearchAll.firstWhere((e) => e.uuid == ohpUuid);
+        expect(ohp.hasHistory, isFalse);
+        expect(ohp.totalLoggedSets, 0);
+        expect(ohp.lastPerformedAt, isNull);
+      });
+
+      test(
+          'searchExercises ranks exercises performed >90 days ago ahead of never-performed catalog entries',
+          () async {
+        final alphaNeverUuid = await _insertExercise(
+          database,
+          id: 'alpha-never-performed',
+          name: 'Alpha Routine Press',
+          category: 'Strength',
+          primaryMuscles: '["chest"]',
+          insertTranslations: true,
+        );
+        final zetaOldUuid = await _insertExercise(
+          database,
+          id: 'zeta-old-performed',
+          name: 'Zeta Routine Press',
+          category: 'Strength',
+          primaryMuscles: '["chest"]',
+          insertTranslations: true,
+        );
+
+        final oldWorkoutTime = DateTime.now().subtract(const Duration(days: 150));
+        final oldWorkoutId = await _insertWorkout(
+          database,
+          id: 'old-workout-150d',
+          startTime: oldWorkoutTime,
+        );
+        await _insertSet(
+          database,
+          workoutId: oldWorkoutId,
+          exerciseId: zetaOldUuid,
+          exerciseName: 'Zeta Routine Press',
+        );
+
+        final results = await helper.searchExercises(query: 'Routine Press');
+        expect(results.length, 2);
+        // Zeta was performed (even >90d ago) so receives baseline history priority score (+25)
+        // Alpha was never performed (score 0), so Zeta ranks first despite Z > A alphabetical order
+        expect(results[0].uuid, zetaOldUuid);
+        expect(results[1].uuid, alphaNeverUuid);
+      });
     });
 
     test('getRecoveryAnalytics counts bodyweight and weighted strength only',
@@ -1499,6 +1770,7 @@ Future<String> _insertExercise(
   required String category,
   required String primaryMuscles,
   String secondaryMuscles = '[]',
+  bool insertTranslations = false,
 }) async {
   final row = await database.into(database.exercises).insertReturning(
         db.ExercisesCompanion(
@@ -1508,6 +1780,24 @@ Future<String> _insertExercise(
           musclesSecondary: drift.Value(secondaryMuscles),
         ),
       );
+  if (insertTranslations) {
+    await database.into(database.exerciseTranslations).insert(
+          db.ExerciseTranslationsCompanion.insert(
+            exerciseId: row.id,
+            languageCode: 'de',
+            name: name,
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+    await database.into(database.exerciseTranslations).insert(
+          db.ExerciseTranslationsCompanion.insert(
+            exerciseId: row.id,
+            languageCode: 'en',
+            name: name,
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+  }
   return row.id;
 }
 

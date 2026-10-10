@@ -21,6 +21,7 @@ import '../../services/off_catalog_country_service.dart';
 import '../../services/off_catalog_refresh_service.dart';
 import '../../services/bls_food_catalog_refresh_service.dart';
 import '../../services/telemetry/telemetry_service.dart';
+import 'caffeine_catalog_resolver.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
@@ -1166,6 +1167,50 @@ class BasisDataManager {
           WHERE source = 'base' AND category IS NOT NULL
         )
       ''');
+        // Backfill caffeine for base products from legacy mappings & known catalog values
+        final legacyMappingTable = await sourceDb.rawQuery(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'legacy_food_mappings'",
+        );
+        if (legacyMappingTable.isNotEmpty) {
+          final mappedRows = await sourceDb.rawQuery(
+            "SELECT legacy_product_id, target_barcode FROM legacy_food_mappings WHERE status = 'mapped' AND target_barcode IS NOT NULL",
+          );
+          for (final row in mappedRows) {
+            final targetBarcode = row['target_barcode']?.toString();
+            final legacyId = row['legacy_product_id']?.toString();
+            if (targetBarcode != null && legacyId != null) {
+              await mainDb.customStatement('''
+                UPDATE products
+                SET caffeine = (
+                  SELECT caffeine_mg_per_100g FROM products
+                  WHERE barcode = ? AND caffeine_mg_per_100g IS NOT NULL
+                  LIMIT 1
+                ),
+                caffeine_mg_per_100g = (
+                  SELECT caffeine_mg_per_100g FROM products
+                  WHERE barcode = ? AND caffeine_mg_per_100g IS NOT NULL
+                  LIMIT 1
+                )
+                WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
+              ''', [
+                drift.Variable.withString(legacyId),
+                drift.Variable.withString(legacyId),
+                drift.Variable.withString(targetBarcode),
+              ]);
+            }
+          }
+        }
+        for (final entry in CaffeineCatalogResolver.knownBlsCaffeineMap.entries) {
+          await mainDb.customStatement('''
+            UPDATE products
+            SET caffeine = ?, caffeine_mg_per_100g = ?
+            WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
+          ''', [
+            drift.Variable.withReal(entry.value),
+            drift.Variable.withReal(entry.value),
+            drift.Variable.withString(entry.key),
+          ]);
+        }
       });
       _blsRowsVerified = true;
       await BlsFoodCatalogRefreshService.instance.markInstalled(catalogVersion);
@@ -2576,9 +2621,14 @@ class BasisDataManager {
       sugar: drift.Value(_parseDouble(row['sugar'])),
       fiber: drift.Value(_parseDouble(row['fiber'])),
       salt: drift.Value(_parseDouble(row['salt'])),
-      caffeine: drift.Value(
-          _parseDouble(row['caffeine_mg_per_100ml'] ?? row['caffeine'])),
-      caffeineMgPer100g: drift.Value(_parseDouble(row['caffeine_mg_per_100g'])),
+      caffeine: drift.Value(_parseNullableDouble(row['caffeine_mg_per_100ml'] ??
+          row['caffeine'] ??
+          row['caffeine_mg_per_100g']) ??
+          CaffeineCatalogResolver.lookupCaffeine(barcode, rawNameDe ?? displayName)),
+      caffeineMgPer100g: drift.Value(_parseNullableDouble(row['caffeine_mg_per_100g'] ??
+          row['caffeine_mg_per_100ml'] ??
+          row['caffeine']) ??
+          CaffeineCatalogResolver.lookupCaffeine(barcode, rawNameDe ?? displayName)),
       ingredientsText: drift.Value(
           sourceLabel == 'base' ? null : row['ingredients_text']?.toString()),
       ingredientsAnalysisTags:

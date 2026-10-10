@@ -215,46 +215,294 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   }
 
+  static String _transliterateToUmlauts(String text) {
+    return text
+        .replaceAll('ae', 'ä')
+        .replaceAll('oe', 'ö')
+        .replaceAll('ue', 'ü')
+        .replaceAll('ss', 'ß');
+  }
+
+  static String _transliterateFromUmlauts(String text) {
+    return text
+        .replaceAll('ä', 'ae')
+        .replaceAll('ö', 'oe')
+        .replaceAll('ü', 'ue')
+        .replaceAll('ß', 'ss');
+  }
+
+  static bool _isShortAcronym(String term) {
+    return const {'rdl', 'ohp', 'kh', 'lh'}.contains(term);
+  }
+
   static String _stripParenthesesAndClean(String input) {
     if (input.isEmpty) return '';
     final stripped = input.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
     return stripped.isEmpty ? input.trim() : stripped;
   }
 
-  static List<String> _expandTokensWithSynonyms(List<String> tokens) {
-    final Map<String, List<String>> synonyms = {
-      'beinstrecken': ['beinstrecker', 'leg', 'extension'],
-      'beinstrecker': ['beinstrecken', 'leg', 'extension'],
-      'wadendrücken': ['wadenheben', 'calf', 'raise'],
-      'wadenheben': ['wadendrücken', 'calf', 'raise'],
-      'bizepscurl': ['bizeps', 'curl', 'curls'],
-      'bizepscurls': ['bizeps', 'curl', 'curls'],
-      'trizepsdrücken': ['trizeps', 'seildrücken', 'extension'],
-      'schulterpresse': ['schulterdrücken', 'press'],
-      'brustpresse': ['brustpresse', 'press'],
-      'dips': ['dip'],
-      'dip': ['dips'],
-      'squat': ['squats', 'kniebeuge', 'kniebeugen'],
-      'squats': ['squat', 'kniebeuge', 'kniebeugen'],
-      'kniebeuge': ['squat', 'kniebeugen'],
-      'kniebeugen': ['squat', 'kniebeuge'],
-      'radfahren': ['fahrrad', 'cycling'],
-      'latzug': ['lat', 'pulldown'],
-      'abduktion': ['abduktoren', 'abductor'],
-      'adduktion': ['adduktoren', 'adductor'],
-      'hüftabduktion': ['abduktoren', 'abduktion'],
-      'hüftadduktion': ['adduktoren', 'adduktion'],
-      'kurzhantel': ['kh', 'dumbbell'],
-      'langhantel': ['lh', 'barbell'],
-      'kabelzug': ['kabel', 'cable'],
-    };
+  static const Map<String, List<String>> _kExerciseSynonyms = {
+    // Squat variations
+    'squat': ['squats', 'kniebeuge', 'kniebeugen'],
+    'squats': ['squat', 'kniebeuge', 'kniebeugen'],
+    'kniebeuge': ['kniebeugen', 'squat', 'squats'],
+    'kniebeugen': ['kniebeuge', 'squat', 'squats'],
 
+    // Deadlift variations
+    'deadlift': ['deadlifts', 'kreuzheben'],
+    'deadlifts': ['deadlift', 'kreuzheben'],
+    'kreuzheben': ['deadlift', 'deadlifts'],
+    'rdl': ['romanian deadlift', 'rumänisches kreuzheben'],
+    'romanian': ['rumänisch', 'rumänisches', 'rdl'],
+    'rumänisch': ['romanian', 'rdl'],
+    'rumänisches': ['romanian', 'rdl'],
+
+    // Bench press variations
+    'bankdrücken': ['bankdruecken', 'bench press', 'benchpress'],
+    'bankdruecken': ['bankdrücken', 'bench press', 'benchpress'],
+    'benchpress': ['bench press', 'bankdrücken', 'bankdruecken'],
+
+    // Overhead / Shoulder press
+    'ohp': ['overhead press', 'military press', 'schulterdrücken'],
+    'overheadpress': ['overhead press', 'ohp', 'schulterdrücken'],
+    'schulterdrücken': [
+      'schulterdruecken',
+      'overhead press',
+      'military press',
+      'ohp'
+    ],
+    'schulterdruecken': [
+      'schulterdrücken',
+      'overhead press',
+      'military press',
+      'ohp'
+    ],
+    'ueberkopfdrücken': [
+      'überkopfdrücken',
+      'overhead press',
+      'schulterdrücken',
+      'ohp'
+    ],
+    'überkopfdrücken': [
+      'ueberkopfdrücken',
+      'overhead press',
+      'schulterdrücken',
+      'ohp'
+    ],
+    'ueberkopfdruecken': [
+      'überkopfdrücken',
+      'overhead press',
+      'schulterdrücken',
+      'ohp'
+    ],
+    'schulterpresse': ['schulterdrücken', 'overhead press'],
+    'brustpresse': ['chest press', 'bankdrücken'],
+
+    // Pull-up / Chin-up variations
+    'klimmzug': [
+      'klimmzüge',
+      'klimmzuege',
+      'pullup',
+      'pullups',
+      'pull-up',
+      'pull-ups',
+      'chinup',
+      'chinups'
+    ],
+    'klimmzüge': [
+      'klimmzug',
+      'klimmzuege',
+      'pullup',
+      'pullups',
+      'pull-up',
+      'pull-ups',
+      'chinup',
+      'chinups'
+    ],
+    'klimmzuege': [
+      'klimmzug',
+      'klimmzüge',
+      'pullup',
+      'pullups',
+      'pull-up',
+      'pull-ups',
+      'chinup',
+      'chinups'
+    ],
+    'pullup': ['pullups', 'pull-up', 'pull-ups', 'klimmzug', 'klimmzüge'],
+    'pullups': ['pullup', 'pull-up', 'pull-ups', 'klimmzug', 'klimmzüge'],
+    'chinup': ['chinups', 'chin-up', 'chin-ups', 'klimmzug', 'klimmzüge'],
+    'chinups': ['chinup', 'chin-up', 'chin-ups', 'klimmzug', 'klimmzüge'],
+
+    // Push-up variations
+    'pushup': ['pushups', 'push-up', 'push-ups', 'liegestütz', 'liegestütze'],
+    'pushups': ['pushup', 'push-up', 'push-ups', 'liegestütz', 'liegestütze'],
+    'liegestütz': [
+      'liegestütze',
+      'liegestuetze',
+      'pushup',
+      'pushups',
+      'push-up',
+      'push-ups'
+    ],
+    'liegestütze': [
+      'liegestütz',
+      'liegestuetze',
+      'pushup',
+      'pushups',
+      'push-up',
+      'push-ups'
+    ],
+    'liegestuetze': [
+      'liegestütz',
+      'liegestütze',
+      'pushup',
+      'pushups',
+      'push-up',
+      'push-ups'
+    ],
+
+    // Dips
+    'dips': ['dip'],
+    'dip': ['dips'],
+
+    // Lunges
+    'lunge': ['lunges', 'ausfallschritt', 'ausfallschritte'],
+    'lunges': ['lunge', 'ausfallschritt', 'ausfallschritte'],
+    'ausfallschritt': ['ausfallschritte', 'lunge', 'lunges'],
+    'ausfallschritte': ['ausfallschritt', 'lunge', 'lunges'],
+
+    // Rows
+    'rudern': ['row', 'rows', 'rowing'],
+    'row': ['rows', 'rudern'],
+    'rows': ['row', 'rudern'],
+    'rowing': ['rudern', 'row'],
+
+    // Curls
+    'curl': ['curls', 'beugen'],
+    'curls': ['curl'],
+    'bizepscurl': ['bizeps curl', 'bicep curl', 'biceps curl', 'curl'],
+    'bizepscurls': ['bizeps curls', 'bicep curls', 'biceps curls', 'curls'],
+    'bicep': ['bizeps', 'biceps'],
+    'biceps': ['bizeps', 'bicep'],
+    'bizeps': ['bicep', 'biceps'],
+
+    // Triceps
+    'tricep': ['trizeps', 'triceps'],
+    'triceps': ['trizeps', 'tricep'],
+    'trizeps': ['tricep', 'triceps'],
+    'trizepsdrücken': [
+      'trizepsdruecken',
+      'seildrücken',
+      'triceps extension',
+      'tricep extension'
+    ],
+    'trizepsdruecken': [
+      'trizepsdrücken',
+      'seildrücken',
+      'triceps extension',
+      'tricep extension'
+    ],
+
+    // Legs
+    'beinstrecken': ['beinstrecker', 'leg extension', 'leg extensions'],
+    'beinstrecker': ['beinstrecken', 'leg extension', 'leg extensions'],
+    'legextension': [
+      'leg extension',
+      'leg extensions',
+      'beinstrecker',
+      'beinstrecken'
+    ],
+    'legextensions': [
+      'leg extension',
+      'leg extensions',
+      'beinstrecker',
+      'beinstrecken'
+    ],
+    'beinbeugen': ['beinbeuger', 'leg curl', 'leg curls'],
+    'beinbeuger': ['beinbeugen', 'leg curl', 'leg curls'],
+    'legcurl': ['leg curl', 'leg curls', 'beinbeuger', 'beinbeugen'],
+    'legcurls': ['leg curl', 'leg curls', 'beinbeuger', 'beinbeugen'],
+
+    // Calves
+    'wadenheben': ['wadendrücken', 'wadendruecken', 'calf raise', 'calf raises'],
+    'wadendrücken': ['wadenheben', 'wadendruecken', 'calf raise', 'calf raises'],
+    'wadendruecken': ['wadenheben', 'wadendrücken', 'calf raise', 'calf raises'],
+    'calfraise': ['calf raise', 'calf raises', 'wadenheben', 'wadendrücken'],
+    'calfraises': ['calf raise', 'calf raises', 'wadenheben', 'wadendrücken'],
+    'calf': ['calves', 'waden'],
+    'calves': ['calf', 'waden'],
+    'waden': ['calf', 'calves'],
+
+    // Lateral raise / Face pull
+    'seitheben': ['seitenheben', 'lateral raise', 'lateral raises'],
+    'seitenheben': ['seitheben', 'lateral raise', 'lateral raises'],
+    'lateralraise': ['lateral raise', 'lateral raises', 'seitheben'],
+    'lateralraises': ['lateral raise', 'lateral raises', 'seitheben'],
+    'facepull': ['face pull', 'facepulls', 'face pulls'],
+    'facepulls': ['face pull', 'facepull', 'face pulls'],
+
+    // Lat pulldown
+    'latzug': ['lat', 'pulldown', 'lat pulldown', 'latzugmaschine'],
+    'latpulldown': ['lat pulldown', 'latzug'],
+
+    // Equipment abbreviations
+    'kurzhantel': ['kh', 'dumbbell'],
+    'kh': ['kurzhantel', 'dumbbell'],
+    'langhantel': ['lh', 'barbell'],
+    'lh': ['langhantel', 'barbell'],
+    'kabelzug': ['kabel', 'cable'],
+    'kabel': ['kabelzug', 'cable'],
+
+    // Hip abduction/adduction
+    'abduktion': ['abduktoren', 'abductor', 'abductors'],
+    'adduktion': ['adduktoren', 'adductor', 'adductors'],
+    'hüftabduktion': ['abduktoren', 'abduktion', 'abductor'],
+    'hüftadduktion': ['adduktoren', 'adduktion', 'adductor'],
+
+    // Cardio
+    'radfahren': ['fahrrad', 'cycling', 'bike'],
+    'fahrrad': ['radfahren', 'cycling', 'bike'],
+  };
+
+  static List<String> _expandTokenVariants(String token) {
+    final t = token.toLowerCase().trim();
+    if (t.isEmpty) return const [];
+    final variants = <String>{t};
+
+    final withUmlauts = _transliterateToUmlauts(t);
+    if (withUmlauts != t) variants.add(withUmlauts);
+    final withoutUmlauts = _transliterateFromUmlauts(t);
+    if (withoutUmlauts != t) variants.add(withoutUmlauts);
+
+    if (t.endsWith('e') && t.length > 3) {
+      variants.add(t.substring(0, t.length - 1));
+    }
+    if (t.endsWith('en') && t.length > 4) {
+      variants.add(t.substring(0, t.length - 2));
+      variants.add(t.substring(0, t.length - 1));
+    }
+    if (t.endsWith('s') && t.length > 3) {
+      variants.add(t.substring(0, t.length - 1));
+    }
+    if (t.endsWith('es') && t.length > 4) {
+      variants.add(t.substring(0, t.length - 2));
+    }
+
+    for (final v in [...variants]) {
+      final syns = _kExerciseSynonyms[v];
+      if (syns != null) {
+        variants.addAll(syns);
+      }
+    }
+
+    return variants.toList(growable: false);
+  }
+
+  static List<String> _expandTokensWithSynonyms(List<String> tokens) {
     final Set<String> expanded = {...tokens};
     for (final token in tokens) {
-      final t = token.toLowerCase();
-      if (synonyms.containsKey(t)) {
-        expanded.addAll(synonyms[t]!);
-      }
+      expanded.addAll(_expandTokenVariants(token));
     }
     return expanded.toList();
   }
@@ -268,6 +516,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     List<String> mechanics = const [],
     List<String> lateralities = const [],
     String languageCode = 'en',
+    bool onlyPerformed = false,
   }) async {
     final dbInstance = await database;
     final chain = await ExerciseLocaleChain.resolve(dbInstance, languageCode);
@@ -275,7 +524,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     if (rawQuery.isEmpty) {
       return _executeSearchSql(
         rawSearchQuery: '',
-        tokens: const [],
+        tokenGroups: const [],
         isOrSearch: false,
         selectedCategories: selectedCategories,
         equipmentIds: equipmentIds,
@@ -284,14 +533,20 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         mechanics: mechanics,
         lateralities: lateralities,
         chain: chain,
+        onlyPerformed: onlyPerformed,
       );
     }
 
-    // Pass 1: Strict all-token match with raw query
+    // Pass 1: Strict all-token match with raw query and per-token variants
     final pass1Tokens = _tokenizeAndClean(rawQuery);
+    final pass1Groups = pass1Tokens
+        .map((t) => _expandTokenVariants(t))
+        .where((g) => g.isNotEmpty)
+        .toList(growable: false);
+
     var results = await _executeSearchSql(
       rawSearchQuery: rawQuery,
-      tokens: pass1Tokens,
+      tokenGroups: pass1Groups,
       isOrSearch: false,
       selectedCategories: selectedCategories,
       equipmentIds: equipmentIds,
@@ -300,6 +555,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       mechanics: mechanics,
       lateralities: lateralities,
       chain: chain,
+      onlyPerformed: onlyPerformed,
     );
 
     if (results.isNotEmpty) return results;
@@ -308,9 +564,14 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     final cleanedQuery = _stripParenthesesAndClean(rawQuery);
     if (cleanedQuery != rawQuery) {
       final pass2Tokens = _tokenizeAndClean(cleanedQuery);
+      final pass2Groups = pass2Tokens
+          .map((t) => _expandTokenVariants(t))
+          .where((g) => g.isNotEmpty)
+          .toList(growable: false);
+
       results = await _executeSearchSql(
         rawSearchQuery: cleanedQuery,
-        tokens: pass2Tokens,
+        tokenGroups: pass2Groups,
         isOrSearch: false,
         selectedCategories: selectedCategories,
         equipmentIds: equipmentIds,
@@ -319,6 +580,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         mechanics: mechanics,
         lateralities: lateralities,
         chain: chain,
+        onlyPerformed: onlyPerformed,
       );
 
       if (results.isNotEmpty) return results;
@@ -326,9 +588,14 @@ extension ExercisesQueries on WorkoutLocalDataSource {
 
     // Pass 3: Flexible OR search across tokens with synonym expansion
     final pass3Tokens = _expandTokensWithSynonyms(pass1Tokens);
+    final pass3Groups = pass3Tokens
+        .map((t) => _expandTokenVariants(t))
+        .where((g) => g.isNotEmpty)
+        .toList(growable: false);
+
     results = await _executeSearchSql(
       rawSearchQuery: cleanedQuery,
-      tokens: pass3Tokens,
+      tokenGroups: pass3Groups,
       isOrSearch: true,
       selectedCategories: selectedCategories,
       equipmentIds: equipmentIds,
@@ -337,6 +604,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       mechanics: mechanics,
       lateralities: lateralities,
       chain: chain,
+      onlyPerformed: onlyPerformed,
     );
 
     return results;
@@ -344,7 +612,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
 
   Future<List<Exercise>> _executeSearchSql({
     required String rawSearchQuery,
-    required List<String> tokens,
+    required List<List<String>> tokenGroups,
     required bool isOrSearch,
     required List<String> selectedCategories,
     required List<String> chain,
@@ -353,50 +621,124 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     List<String> difficulties = const [],
     List<String> mechanics = const [],
     List<String> lateralities = const [],
+    bool onlyPerformed = false,
   }) async {
     final dbInstance = await database;
     final rawSearchLower = rawSearchQuery.toLowerCase();
+    final umlautSearchLower = _transliterateToUmlauts(rawSearchLower);
+    final hasUmlautVariant =
+        umlautSearchLower.isNotEmpty && umlautSearchLower != rawSearchLower;
     final ninetyDaysAgo = DateTime.now()
-        .subtract(const Duration(days: 90))
-        .millisecondsSinceEpoch;
+        .subtract(const Duration(days: 90));
 
-    final String exactMatchExpr = tokens.isEmpty
-        ? '0 AS is_exact_match'
-        : '(CASE WHEN LOWER(t_best.name) = ? THEN 1 ELSE 0 END) '
-            'AS is_exact_match';
+    final String exactMatchExpr;
+    final exactMatchVars = <drift.Variable>[];
 
-    final String prefixMatchExpr = tokens.isEmpty
-        ? '0 AS is_prefix_match'
-        : '(CASE WHEN LOWER(t_best.name) LIKE ? THEN 1 ELSE 0 END) '
-            'AS is_prefix_match';
+    final String prefixMatchExpr;
+    final prefixMatchVars = <drift.Variable>[];
+
+    if (tokenGroups.isEmpty) {
+      exactMatchExpr = '0 AS is_exact_match';
+      prefixMatchExpr = '0 AS is_prefix_match';
+    } else {
+      final exactBuffer = StringBuffer();
+      exactBuffer.write('(CASE ');
+      exactBuffer.write('WHEN LOWER(t_best.name) = ? ');
+      exactMatchVars.add(drift.Variable.withString(rawSearchLower));
+      if (hasUmlautVariant) {
+        exactBuffer.write('OR LOWER(t_best.name) = ? ');
+        exactMatchVars.add(drift.Variable.withString(umlautSearchLower));
+      }
+      exactBuffer.write('THEN 3 ');
+
+      exactBuffer.write(
+          'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_exact '
+          'WHERE tt_exact.exercise_id = e.id AND (LOWER(tt_exact.name) = ? ');
+      exactMatchVars.add(drift.Variable.withString(rawSearchLower));
+      if (hasUmlautVariant) {
+        exactBuffer.write('OR LOWER(tt_exact.name) = ? ');
+        exactMatchVars.add(drift.Variable.withString(umlautSearchLower));
+      }
+      exactBuffer.write(')) THEN 2 ');
+
+      exactBuffer.write(
+          'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_term '
+          'WHERE tt_term.exercise_id = e.id AND (IFNULL(tt_term.search_terms, \'\') LIKE ? ');
+      exactMatchVars.add(drift.Variable.withString('%"$rawSearchLower"%'));
+      if (hasUmlautVariant) {
+        exactBuffer.write('OR IFNULL(tt_term.search_terms, \'\') LIKE ? ');
+        exactMatchVars.add(drift.Variable.withString('%"$umlautSearchLower"%'));
+      }
+      exactBuffer.write(')) THEN 1 ');
+      exactBuffer.write('ELSE 0 END) AS is_exact_match');
+      exactMatchExpr = exactBuffer.toString();
+
+      final prefixBuffer = StringBuffer();
+      prefixBuffer.write('(CASE ');
+      prefixBuffer.write('WHEN LOWER(t_best.name) LIKE ? ');
+      prefixMatchVars.add(drift.Variable.withString('$rawSearchLower%'));
+      if (hasUmlautVariant) {
+        prefixBuffer.write('OR LOWER(t_best.name) LIKE ? ');
+        prefixMatchVars.add(drift.Variable.withString('$umlautSearchLower%'));
+      }
+      prefixBuffer.write('THEN 2 ');
+
+      prefixBuffer.write(
+          'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_pref '
+          'WHERE tt_pref.exercise_id = e.id AND (LOWER(tt_pref.name) LIKE ? ');
+      prefixMatchVars.add(drift.Variable.withString('$rawSearchLower%'));
+      if (hasUmlautVariant) {
+        prefixBuffer.write('OR LOWER(tt_pref.name) LIKE ? ');
+        prefixMatchVars.add(drift.Variable.withString('$umlautSearchLower%'));
+      }
+      prefixBuffer.write(')) THEN 1 ');
+      prefixBuffer.write('ELSE 0 END) AS is_prefix_match');
+      prefixMatchExpr = prefixBuffer.toString();
+    }
 
     final whereClauses = <String>[
       "NOT (e.source = 'wger' AND "
           "EXISTS (SELECT 1 FROM exercises other_exercises "
           "WHERE other_exercises.replaces_exercise_id = e.id))",
-      // Without this the v2 catalog puts 41 rows back into search: 15 merged
-      // ones sitting next to the twin they were merged into, and 26 the data
-      // repo has retired.
       _kActiveExerciseSql,
     ];
 
-    if (tokens.isNotEmpty) {
-      final tokenClauses = <String>[];
-      for (final _ in tokens) {
-        // Matches every language the catalog carries, plus the search_terms
-        // the data repo ships for exactly this: synonyms and common
-        // misspellings, indexed but never displayed. A German user looking for
-        // "bench press" finds it; so does someone typing "kniebeuge".
-        tokenClauses.add(
+    final tokenVars = <drift.Variable>[];
+    if (tokenGroups.isNotEmpty) {
+      final groupClauses = <String>[];
+      for (final group in tokenGroups) {
+        if (group.isEmpty) continue;
+        final orParts = <String>[];
+        for (final variant in group) {
+          if (_isShortAcronym(variant)) {
+            orParts.add(
+              '(tt.name LIKE ? OR tt.name LIKE ? OR tt.name LIKE ? OR tt.name LIKE ? OR tt.name = ? OR IFNULL(tt.search_terms, \'\') LIKE ?)',
+            );
+            tokenVars.add(drift.Variable.withString('%($variant)%'));
+            tokenVars.add(drift.Variable.withString('%-$variant%'));
+            tokenVars.add(drift.Variable.withString('% $variant %'));
+            tokenVars.add(drift.Variable.withString('$variant %'));
+            tokenVars.add(drift.Variable.withString(variant));
+            tokenVars.add(drift.Variable.withString('%"$variant"%'));
+          } else {
+            orParts.add(
+              '(tt.name LIKE ? OR IFNULL(tt.search_terms, \'\') LIKE ?)',
+            );
+            tokenVars.add(drift.Variable.withString('%$variant%'));
+            tokenVars.add(drift.Variable.withString('%$variant%'));
+          }
+        }
+        groupClauses.add(
           '(EXISTS (SELECT 1 FROM exercise_translations tt '
-          'WHERE tt.exercise_id = e.id '
-          'AND (tt.name LIKE ? OR IFNULL(tt.search_terms, \'\') LIKE ?)))',
+          'WHERE tt.exercise_id = e.id AND (${orParts.join(' OR ')})))',
         );
       }
-      if (isOrSearch) {
-        whereClauses.add('(${tokenClauses.join(' OR ')})');
-      } else {
-        whereClauses.addAll(tokenClauses);
+      if (groupClauses.isNotEmpty) {
+        if (isOrSearch) {
+          whereClauses.add('(${groupClauses.join(' OR ')})');
+        } else {
+          whereClauses.addAll(groupClauses);
+        }
       }
     }
 
@@ -406,9 +748,6 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       whereClauses.add('e.category_name IN ($placeholders)');
     }
 
-    // The load-bearing implement only. `setup` is furniture — a bench, a mat —
-    // and filtering on it would answer a different question than the one the
-    // user is asking when they pick "dumbbell".
     if (equipmentIds.isNotEmpty) {
       final placeholders = List.filled(equipmentIds.length, '?').join(', ');
       whereClauses.add(
@@ -426,12 +765,6 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       );
     }
 
-    // The three annotation axes. Plain columns on `exercises`, so unlike
-    // equipment and tags these need no EXISTS — but they are nullable for the
-    // 32 rows the catalog leaves unclassified and for everything the user
-    // created, and `IN` never matches NULL. Picking a difficulty therefore
-    // hides user-created exercises, which is the honest answer: the app does
-    // not know how hard they are.
     for (final axis in [
       (column: 'difficulty', values: difficulties),
       (column: 'mechanic', values: mechanics),
@@ -442,39 +775,40 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       whereClauses.add('e.${axis.column} IN ($placeholders)');
     }
 
+    if (onlyPerformed) {
+      whereClauses.add(
+        'EXISTS (SELECT 1 FROM set_logs s '
+        'JOIN workout_logs w ON s.workout_log_id = w.id '
+        'WHERE (s.exercise_id = e.id '
+        'OR s.exercise_id = e.replaces_exercise_id '
+        'OR (s.exercise_name_snapshot IS NOT NULL AND LOWER(s.exercise_name_snapshot) = LOWER(IFNULL(t_best.name, \'\')))))',
+      );
+    }
+
     final whereSection = whereClauses.join(' AND ');
     final vars = <drift.Variable>[];
 
     // 1. history subquery
-    vars.add(drift.Variable.withInt(ninetyDaysAgo));
+    vars.add(drift.Variable.withDateTime(ninetyDaysAgo));
 
     // 2. exactMatchExpr
-    if (tokens.isNotEmpty) {
-      vars.add(drift.Variable.withString(rawSearchLower));
-    }
+    vars.addAll(exactMatchVars);
 
     // 3. prefixMatchExpr
-    if (tokens.isNotEmpty) {
-      vars.add(drift.Variable.withString('$rawSearchLower%'));
-    }
+    vars.addAll(prefixMatchVars);
 
-    // 4. the language-preference join, which sits after the SELECT list and
-    //    before the WHERE clause in the SQL text — placeholders bind by
-    //    position, so this order is not cosmetic.
+    // 4. the language-preference join
     vars.addAll(_bestTranslationVars(chain));
 
-    // 5. WHERE token clauses: name and search_terms, per token
-    for (final token in tokens) {
-      vars.add(drift.Variable.withString('%$token%'));
-      vars.add(drift.Variable.withString('%$token%'));
-    }
+    // 5. WHERE token clauses
+    vars.addAll(tokenVars);
 
     // 6. WHERE category IN placeholders
     for (final cat in selectedCategories) {
       vars.add(drift.Variable.withString(cat));
     }
 
-    // 7. equipment, then 8. usage tags — same order as the clauses above.
+    // 7. equipment, then 8. usage tags
     for (final id in equipmentIds) {
       vars.add(drift.Variable.withString(id));
     }
@@ -482,7 +816,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       vars.add(drift.Variable.withString(tag));
     }
 
-    // 9. the annotation axes, in the same order the clauses were appended.
+    // 9. the annotation axes
     for (final value in [...difficulties, ...mechanics, ...lateralities]) {
       vars.add(drift.Variable.withString(value));
     }
@@ -495,12 +829,29 @@ extension ExercisesQueries on WorkoutLocalDataSource {
              (SELECT pn.notes FROM pinned_exercise_notes pn
                WHERE pn.exercise_id = e.id LIMIT 1) AS pinned_note,
              (
-               SELECT COUNT(*) * 15
+               SELECT (CASE WHEN COUNT(*) > 0 THEN 25 ELSE 0 END) +
+                      IFNULL(SUM(CASE WHEN w.start_time >= ? THEN 15 ELSE 0 END), 0)
                FROM set_logs s
                JOIN workout_logs w ON s.workout_log_id = w.id
-               WHERE s.exercise_id = e.id
-                 AND w.start_time >= ?
+               WHERE (s.exercise_id = e.id
+                  OR s.exercise_id = e.replaces_exercise_id
+                  OR (s.exercise_name_snapshot IS NOT NULL AND LOWER(s.exercise_name_snapshot) = LOWER(IFNULL(t_best.name, ''))))
              ) AS history_priority_score,
+             (
+               SELECT COUNT(*)
+               FROM set_logs s
+               WHERE (s.exercise_id = e.id
+                  OR s.exercise_id = e.replaces_exercise_id
+                  OR (s.exercise_name_snapshot IS NOT NULL AND LOWER(s.exercise_name_snapshot) = LOWER(IFNULL(t_best.name, ''))))
+             ) AS total_logged_sets,
+             (
+               SELECT MAX(w.start_time)
+               FROM set_logs s
+               JOIN workout_logs w ON s.workout_log_id = w.id
+               WHERE (s.exercise_id = e.id
+                  OR s.exercise_id = e.replaces_exercise_id
+                  OR (s.exercise_name_snapshot IS NOT NULL AND LOWER(s.exercise_name_snapshot) = LOWER(IFNULL(t_best.name, ''))))
+             ) AS last_logged_timestamp,
              $exactMatchExpr,
              (CASE WHEN e.is_custom = 1 OR e.source = 'user'
               THEN 1 ELSE 0 END) AS is_custom_exercise,
@@ -564,14 +915,22 @@ $_kBestTranslationJoinSql
   /// taking the first row would otherwise pick whichever the planner emitted.
   Future<Exercise?> _resolveByNames(List<String> names) async {
     final dbInstance = await database;
-    final candidates = names
+    final rawCandidates = names
         .map((n) => n.trim())
         .where((n) => n.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
+        .toSet();
+    final candidates = <String>{...rawCandidates};
+    for (final c in rawCandidates) {
+      final withUmlauts = _transliterateToUmlauts(c);
+      if (withUmlauts != c) candidates.add(withUmlauts);
+      final withoutUmlauts = _transliterateFromUmlauts(c);
+      if (withoutUmlauts != c) candidates.add(withoutUmlauts);
+    }
     if (candidates.isEmpty) return null;
 
-    final placeholders = List.filled(candidates.length, 'LOWER(?)').join(', ');
+    final candidateList = candidates.toList(growable: false);
+    final placeholders =
+        List.filled(candidateList.length, 'LOWER(?)').join(', ');
     final sql = '''
       SELECT e.*
       FROM exercises e
@@ -959,6 +1318,16 @@ $_kBestTranslationJoinSql
     final displayLanguage =
         row.readNullable<String>('display_language') ?? 'en';
 
+    final totalLoggedSets = row.readNullable<int>('total_logged_sets') ?? 0;
+    final lastLoggedRaw = row.data['last_logged_timestamp'];
+    final DateTime? lastPerformedAt = switch (lastLoggedRaw) {
+      int s when s > 10000000000 => DateTime.fromMillisecondsSinceEpoch(s),
+      int s => DateTime.fromMillisecondsSinceEpoch(s * 1000),
+      DateTime d => d,
+      String str => DateTime.tryParse(str),
+      _ => null,
+    };
+
     return Exercise(
       id: rawExercise.localId,
       uuid: rawExercise.id,
@@ -988,6 +1357,8 @@ $_kBestTranslationJoinSql
       movementPattern: rawExercise.movementPattern,
       forceVector: rawExercise.forceVector,
       pinnedNote: row.readNullable<String>('pinned_note'),
+      lastPerformedAt: lastPerformedAt,
+      totalLoggedSets: totalLoggedSets,
     );
   }
 

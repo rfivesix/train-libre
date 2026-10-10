@@ -104,6 +104,15 @@ class Exercise {
   /// default.
   final String? difficulty;
 
+  /// When this exercise was last logged in a workout, if ever.
+  final DateTime? lastPerformedAt;
+
+  /// Total number of sets ever logged for this exercise.
+  final int totalLoggedSets;
+
+  /// Whether this exercise has ever been completed in a workout log.
+  bool get hasHistory => (totalLoggedSets > 0) || (lastPerformedAt != null);
+
   /// Whether this exercise is categorized as Cardio.
   ///
   /// Kept as a name because a lot of call sites ask this question, but it is
@@ -221,6 +230,8 @@ class Exercise {
     this.forceVector,
     this.imagePath,
     this.pinnedNote,
+    this.lastPerformedAt,
+    this.totalLoggedSets = 0,
   });
 
   /// An exercise whose text exists in exactly one language.
@@ -250,6 +261,8 @@ class Exercise {
     this.forceVector,
     this.imagePath,
     this.pinnedNote,
+    this.lastPerformedAt,
+    this.totalLoggedSets = 0,
   }) : texts = {
           languageCode: ExerciseText(name: name, description: description),
         };
@@ -308,6 +321,12 @@ class Exercise {
       pinnedNote: (m['pinned_note'] ?? m['pinnedNote']) as String?,
       primaryMuscles: _parseMuscleList(primRaw),
       secondaryMuscles: _parseMuscleList(secRaw),
+      lastPerformedAt: m['last_performed_at'] != null
+          ? DateTime.tryParse(m['last_performed_at'].toString())
+          : null,
+      totalLoggedSets: (m['total_logged_sets'] is num)
+          ? (m['total_logged_sets'] as num).toInt()
+          : 0,
     );
   }
 
@@ -365,6 +384,9 @@ class Exercise {
       if (pinnedNote != null) 'pinned_note': pinnedNote,
       'primaryMuscles': jsonEncode(primaryMuscles),
       'secondaryMuscles': jsonEncode(secondaryMuscles),
+      if (lastPerformedAt != null)
+        'last_performed_at': lastPerformedAt!.toIso8601String(),
+      'total_logged_sets': totalLoggedSets,
     };
   }
 
@@ -393,6 +415,8 @@ class Exercise {
     String? difficulty,
     String? movementPattern,
     String? forceVector,
+    DateTime? lastPerformedAt,
+    int? totalLoggedSets,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -416,6 +440,8 @@ class Exercise {
       difficulty: difficulty ?? this.difficulty,
       movementPattern: movementPattern ?? this.movementPattern,
       forceVector: forceVector ?? this.forceVector,
+      lastPerformedAt: lastPerformedAt ?? this.lastPerformedAt,
+      totalLoggedSets: totalLoggedSets ?? this.totalLoggedSets,
     );
   }
 
@@ -447,6 +473,8 @@ class Exercise {
       difficulty: original.difficulty,
       movementPattern: original.movementPattern,
       forceVector: original.forceVector,
+      lastPerformedAt: original.lastPerformedAt,
+      totalLoggedSets: original.totalLoggedSets,
     );
   }
 

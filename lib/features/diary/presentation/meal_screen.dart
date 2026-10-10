@@ -764,8 +764,8 @@ class _MealScreenState extends State<MealScreen> {
             final entryId = entryIds[i];
             final qty = entry.quantityInGrams;
             final product = products[entry.barcode];
-            final caffeinePer100ml = product?.caffeineMgPer100ml;
-            if (product?.isLiquid == true &&
+            final caffeinePer100ml = product?.effectiveCaffeinePer100ml;
+            if (product?.isFluidOrLiquid == true &&
                 caffeinePer100ml != null &&
                 caffeinePer100ml > 0) {
               await _logCaffeineDose(

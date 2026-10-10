@@ -24,6 +24,7 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
     List<String> mechanics = const [],
     List<String> lateralities = const [],
     String languageCode = 'en',
+    bool onlyPerformed = false,
   }) {
     return _localDataSource.searchExercises(
       query: query,
@@ -34,6 +35,7 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
       mechanics: mechanics,
       lateralities: lateralities,
       languageCode: languageCode,
+      onlyPerformed: onlyPerformed,
     );
   }
 
