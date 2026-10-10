@@ -26,7 +26,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double? titleSpacing;
 
   /// Optional content painted as an extension of the same frosted app bar.
-  /// It does not change the app bar's layout size.
+  /// Its height is included in the app bar's layout and hit-test area.
   final Widget? bottom;
 
   final double bottomHeight;
@@ -47,7 +47,8 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
         );
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom == null ? 0 : bottomHeight));
 
   @override
   Widget build(BuildContext context) {

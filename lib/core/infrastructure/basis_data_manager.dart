@@ -201,54 +201,57 @@ class BasisDataManager {
         LIMIT 1
       ''').getSingleOrNull();
       _blsRowsVerified = row != null;
-      if (_blsRowsVerified) {
-        final catalogPath = await service.installedDatabasePath();
-        final catalogDb =
-            await sqflite.openDatabase(catalogPath, readOnly: true);
-        try {
-          final aliasTable = await catalogDb.rawQuery(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_aliases'",
-          );
-          final catalogCount = aliasTable.isEmpty
-              ? 0
-              : sqflite.Sqflite.firstIntValue(await catalogDb
-                      .rawQuery('SELECT COUNT(*) FROM food_aliases')) ??
-                  0;
-          final localCount = (await mainDb
-                  .customSelect(
-                    'SELECT COUNT(*) AS count FROM bls_food_alias_index',
-                  )
-                  .getSingle())
-              .read<int>('count');
-          if (catalogCount != localCount) _blsRowsVerified = false;
-          final catalogVersionRows = await catalogDb.query(
-            'metadata',
-            columns: ['value'],
-            where: 'key = ?',
-            whereArgs: ['version'],
-          );
-          final catalogVersion = catalogVersionRows.isEmpty
-              ? null
-              : catalogVersionRows.first['value']?.toString();
-          final aliasIndexState = await mainDb
-              .customSelect(
-                'SELECT catalog_version, alias_count '
-                'FROM bls_food_alias_index_state WHERE id = 1',
-              )
-              .getSingleOrNull();
-          if (aliasIndexState == null ||
-              aliasIndexState.read<String>('catalog_version') !=
-                  catalogVersion ||
-              aliasIndexState.read<int>('alias_count') != catalogCount) {
-            _blsRowsVerified = false;
-          }
-        } finally {
-          await catalogDb.close();
-        }
-      }
       return _blsRowsVerified;
     } catch (error) {
       debugPrint('[BLS catalog] App database check failed: $error');
+      return false;
+    }
+  }
+
+  /// The search index can be rebuilt from the installed sidecar. A stale index
+  /// must not make the food catalog appear missing or trigger another download.
+  Future<bool> _isBlsAliasIndexCurrent() async {
+    final path =
+        await BlsFoodCatalogRefreshService.instance.installedDatabasePath();
+    if (!await File(path).exists()) return false;
+    try {
+      final catalogDb = await sqflite.openDatabase(path, readOnly: true);
+      try {
+        final aliasTable = await catalogDb.rawQuery(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_aliases'",
+        );
+        final catalogCount = aliasTable.isEmpty
+            ? 0
+            : sqflite.Sqflite.firstIntValue(await catalogDb
+                    .rawQuery('SELECT COUNT(*) FROM food_aliases')) ??
+                0;
+        final versionRows = await catalogDb.query('metadata',
+            columns: ['value'], where: 'key = ?', whereArgs: ['version']);
+        final catalogVersion =
+            versionRows.isEmpty ? null : versionRows.first['value']?.toString();
+        final mainDb = await DatabaseHelper.instance.database;
+        final localCount = (await mainDb
+                .customSelect(
+                  'SELECT COUNT(*) AS count FROM bls_food_alias_index',
+                )
+                .getSingle())
+            .read<int>('count');
+        final state = await mainDb
+            .customSelect(
+              'SELECT catalog_version, alias_count '
+              'FROM bls_food_alias_index_state WHERE id = 1',
+            )
+            .getSingleOrNull();
+        return catalogVersion != null &&
+            state != null &&
+            localCount == catalogCount &&
+            state.read<String>('catalog_version') == catalogVersion &&
+            state.read<int>('alias_count') == catalogCount;
+      } finally {
+        await catalogDb.close();
+      }
+    } catch (error) {
+      debugPrint('[BLS catalog] Alias index check failed: $error');
       return false;
     }
   }
@@ -958,7 +961,8 @@ class BasisDataManager {
   }) async {
     final service = BlsFoodCatalogRefreshService.instance;
     var repairedLocal = false;
-    if (!await isBlsFoodCatalogInitialized()) {
+    if (!await isBlsFoodCatalogInitialized() ||
+        !await _isBlsAliasIndexCurrent()) {
       final localPath = await service.installedDatabasePath();
       if (File(localPath).existsSync()) {
         final localDb = await sqflite.openDatabase(localPath, readOnly: true);
