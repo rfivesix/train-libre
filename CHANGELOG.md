@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.6.0] - 2026-10-07
 
 ### Added
+- **Live workout progression toggle:** Added the static Neural Cloud mark without its satellite dot to the live workout keyboard accessory, allowing automatic training suggestions to be enabled or disabled without leaving set entry. Tapping it no longer triggers the cloud's color animation. The crossed-out, muted cloud indicates the disabled state; the next-field chevron uses a matching circular button, and every accessory control has a localized tooltip.
 - **Curated BLS food aliases:** Imported the catalog repository's reviewed and candidate-only aliases into a replaceable local search index. Manual and AI food retrieval now return canonical BLS foods with alias language and match-scope evidence; broad aliases remain candidate evidence and never become exact identity matches.
 - **Automated iOS Internal Testing deployment (`script/deploy_ios_internal.sh`):** Added one command to generate the Flutter iOS configuration, build and archive the current version, upload it to TestFlight, and advance the pubspec build number after a successful upload.
 

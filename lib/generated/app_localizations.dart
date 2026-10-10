@@ -12739,6 +12739,36 @@ abstract class AppLocalizations {
   /// **'Set progression'**
   String get progressionPolicy;
 
+  /// No description provided for @progressionToggleEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic progression on'**
+  String get progressionToggleEnabled;
+
+  /// No description provided for @progressionToggleDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic progression off'**
+  String get progressionToggleDisabled;
+
+  /// No description provided for @workoutKeyboardInsertHyphen.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert minus sign'**
+  String get workoutKeyboardInsertHyphen;
+
+  /// No description provided for @workoutKeyboardNextField.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to next field'**
+  String get workoutKeyboardNextField;
+
+  /// No description provided for @workoutKeyboardClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close keyboard'**
+  String get workoutKeyboardClose;
+
   /// No description provided for @progressionSetOutcome.
   ///
   /// In en, this message translates to:

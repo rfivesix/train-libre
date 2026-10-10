@@ -7370,6 +7370,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get progressionPolicy => 'Progressione delle serie';
 
   @override
+  String get progressionToggleEnabled => 'Progressione automatica attiva';
+
+  @override
+  String get progressionToggleDisabled => 'Progressione automatica disattivata';
+
+  @override
+  String get workoutKeyboardInsertHyphen => 'Inserisci il segno meno';
+
+  @override
+  String get workoutKeyboardNextField => 'Vai al campo successivo';
+
+  @override
+  String get workoutKeyboardClose => 'Chiudi la tastiera';
+
+  @override
   String get progressionSetOutcome => 'Valuta la serie come';
 
   @override

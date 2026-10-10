@@ -7329,6 +7329,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get progressionPolicy => 'Satzprogression';
 
   @override
+  String get progressionToggleEnabled => 'Automatische Trainingsprogression an';
+
+  @override
+  String get progressionToggleDisabled =>
+      'Automatische Trainingsprogression aus';
+
+  @override
+  String get workoutKeyboardInsertHyphen => 'Minuszeichen einfügen';
+
+  @override
+  String get workoutKeyboardNextField => 'Zum nächsten Feld wechseln';
+
+  @override
+  String get workoutKeyboardClose => 'Tastatur schließen';
+
+  @override
   String get progressionSetOutcome => 'Satz gewertet als';
 
   @override

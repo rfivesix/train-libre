@@ -1971,7 +1971,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                     ),
 
                     // --- Keyboard Done Accessory Bar ---
-                    const WorkoutKeyboardAccessoryBar(),
+                    const WorkoutKeyboardAccessoryBar(
+                        showProgressionToggle: true),
                   ],
                 ),
         ),

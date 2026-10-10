@@ -69,6 +69,10 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   /// it consumes no per-frame ticker work while the progress is unchanged.
   final bool animate;
 
+  /// Whether taps may trigger the widget's own ripple and colour response.
+  /// Decorative uses can disable this when an ancestor handles interaction.
+  final bool enableInteraction;
+
   /// Drives the base-to-accent dye sweep from outside, 0 to 1.
   ///
   /// The scale is the same five dye steps the tap counter walks through, so
@@ -100,6 +104,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     this.energy = 0.0,
     this.flowSpeed = 1.0,
     this.animate = true,
+    this.enableInteraction = true,
     this.tint,
     this.tintEnergyGain = 0.0,
   });
@@ -263,6 +268,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
   }
 
   void _handleTap() {
+    if (!widget.enableInteraction) return;
     // The colour is the caller's business when it hands one in; charging on tap
     // as well would fight whatever it is trying to say.
     if (!_externallyTinted) {
@@ -284,7 +290,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: _handleTap,
+      onTap: widget.enableInteraction ? _handleTap : null,
       child: AnimatedBuilder(
         animation: Listenable.merge([
           _flow,

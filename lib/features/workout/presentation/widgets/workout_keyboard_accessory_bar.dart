@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../features/diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+import '../../../../features/workout/domain/models/prescription_enums.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
+import '../../../../services/telemetry/telemetry_service.dart';
+import '../../../../services/training_autonomy_service.dart';
 import '../../../../util/design_constants.dart';
 
 /// Glass accessory controls shown above the keyboard on workout screens.
 class WorkoutKeyboardAccessoryBar extends StatefulWidget {
-  const WorkoutKeyboardAccessoryBar({super.key});
+  const WorkoutKeyboardAccessoryBar(
+      {super.key, this.showProgressionToggle = false});
+
+  final bool showProgressionToggle;
 
   @override
   State<WorkoutKeyboardAccessoryBar> createState() =>
@@ -94,6 +102,10 @@ class _WorkoutKeyboardAccessoryBarState
     if (_keyboardHeight <= 0) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context)!;
+    final autonomyService = widget.showProgressionToggle
+        ? Provider.of<TrainingAutonomyService?>(context)
+        : null;
+    final progressionEnabled = autonomyService?.isSuggestEnabled ?? false;
     return Positioned(
       bottom: 8,
       left: 0,
@@ -103,8 +115,38 @@ class _WorkoutKeyboardAccessoryBarState
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            if (widget.showProgressionToggle && autonomyService != null) ...[
+              _KeyboardGlassButton(
+                label: '',
+                neuralCloud: true,
+                semanticLabel: progressionEnabled
+                    ? l10n.progressionToggleEnabled
+                    : l10n.progressionToggleDisabled,
+                tooltip: progressionEnabled
+                    ? l10n.progressionToggleEnabled
+                    : l10n.progressionToggleDisabled,
+                iconColor: progressionEnabled
+                    ? null
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                iconSlashed: !progressionEnabled,
+                onPressed: () {
+                  final next = progressionEnabled
+                      ? AutonomyLevel.off
+                      : AutonomyLevel.suggest;
+                  autonomyService.setLevel(next);
+                  TelemetryService.instance.trackSettingToggled(
+                    settingKey: 'training_autonomy_level',
+                    value: next.name,
+                  );
+                },
+                circular: true,
+              ),
+              const SizedBox(width: 8),
+            ],
             _KeyboardGlassButton(
               label: '-',
+              semanticLabel: l10n.workoutKeyboardInsertHyphen,
+              tooltip: l10n.workoutKeyboardInsertHyphen,
               onPressed: _insertHyphen,
               circular: true,
             ),
@@ -114,13 +156,17 @@ class _WorkoutKeyboardAccessoryBarState
                 label: '',
                 icon: LucideIcons.chevron_right,
                 semanticLabel: l10n.appTourNext,
+                tooltip: l10n.workoutKeyboardNextField,
                 onPressed: () =>
                     FocusManager.instance.primaryFocus?.nextFocus(),
+                circular: true,
               ),
               const SizedBox(width: 8),
             ],
             _KeyboardGlassButton(
               label: l10n.doneButtonLabel,
+              semanticLabel: l10n.workoutKeyboardClose,
+              tooltip: l10n.workoutKeyboardClose,
               onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
             ),
           ],
@@ -136,14 +182,22 @@ class _KeyboardGlassButton extends StatelessWidget {
     required this.onPressed,
     this.circular = false,
     this.icon,
+    this.neuralCloud = false,
     this.semanticLabel,
+    this.tooltip,
+    this.iconColor,
+    this.iconSlashed = false,
   });
 
   final String label;
   final VoidCallback onPressed;
   final bool circular;
   final IconData? icon;
+  final bool neuralCloud;
   final String? semanticLabel;
+  final String? tooltip;
+  final Color? iconColor;
+  final bool iconSlashed;
 
   @override
   Widget build(BuildContext context) {
@@ -154,14 +208,18 @@ class _KeyboardGlassButton extends StatelessWidget {
             width: 36,
             height: 36,
             child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: foreground,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: neuralCloud
+                  ? _buildIcon(foreground)
+                  : icon == null
+                      ? Text(
+                          label,
+                          style: TextStyle(
+                            color: foreground,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : _buildIcon(foreground),
             ),
           )
         : Padding(
@@ -169,46 +227,87 @@ class _KeyboardGlassButton extends StatelessWidget {
             child: SizedBox(
               height: 36,
               child: Center(
-                child: icon == null
-                    ? Text(
-                        label,
-                        style: TextStyle(
-                          color: foreground,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : Icon(icon, color: foreground, size: 18),
+                child: neuralCloud
+                    ? _buildIcon(foreground)
+                    : icon == null
+                        ? Text(
+                            label,
+                            style: TextStyle(
+                              color: foreground,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : _buildIcon(foreground),
               ),
             ),
           );
 
-    return Semantics(
-      button: true,
-      label: semanticLabel ?? (circular ? 'Insert hyphen' : label),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          HapticFeedbackService.instance.lightImpact();
-          onPressed();
-        },
-        child: GlassAdaptiveScope(
-          maxQuality: DesignConstants.defaultGlassQuality,
-          minQuality: DesignConstants.minGlassQuality,
-          child: RepaintBoundary(
-            child: GlassContainer(
-              useOwnLayer: true,
-              height: 36,
-              width: circular ? 36 : null,
-              shape: circular
-                  ? const LiquidOval()
-                  : const LiquidRoundedSuperellipse(borderRadius: 18),
-              quality: DesignConstants.defaultGlassQuality,
-              settings: DesignConstants.liquidGlassSettings(isDark),
-              child: content,
+    return Tooltip(
+      message: tooltip ?? semanticLabel ?? label,
+      child: Semantics(
+        button: true,
+        label: semanticLabel ?? (circular ? 'Insert hyphen' : label),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticFeedbackService.instance.lightImpact();
+            onPressed();
+          },
+          child: GlassAdaptiveScope(
+            maxQuality: DesignConstants.defaultGlassQuality,
+            minQuality: DesignConstants.minGlassQuality,
+            child: RepaintBoundary(
+              child: GlassContainer(
+                useOwnLayer: true,
+                height: 36,
+                width: circular ? 36 : null,
+                shape: circular
+                    ? const LiquidOval()
+                    : const LiquidRoundedSuperellipse(borderRadius: 18),
+                quality: DesignConstants.defaultGlassQuality,
+                settings: DesignConstants.liquidGlassSettings(isDark),
+                child: content,
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildIcon(Color foreground) {
+    final iconWidget = neuralCloud
+        ? AiNeuralCloudOrbWidget(
+            size: 36,
+            animate: false,
+            showAmbientGlow: false,
+            showDetachedSatellite: false,
+            enableInteraction: false,
+            baseColor: iconColor,
+            accentColor: iconColor,
+          )
+        : Icon(icon, color: iconColor ?? foreground, size: 18);
+    if (!iconSlashed) return iconWidget;
+    return SizedBox(
+      width: neuralCloud ? 36 : 20,
+      height: neuralCloud ? 36 : 20,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          iconWidget,
+          Transform.rotate(
+            angle: -0.785398,
+            child: Container(
+              width: 23,
+              height: 1.6,
+              decoration: BoxDecoration(
+                color: foreground,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

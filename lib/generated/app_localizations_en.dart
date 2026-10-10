@@ -7272,6 +7272,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressionPolicy => 'Set progression';
 
   @override
+  String get progressionToggleEnabled => 'Automatic progression on';
+
+  @override
+  String get progressionToggleDisabled => 'Automatic progression off';
+
+  @override
+  String get workoutKeyboardInsertHyphen => 'Insert minus sign';
+
+  @override
+  String get workoutKeyboardNextField => 'Move to next field';
+
+  @override
+  String get workoutKeyboardClose => 'Close keyboard';
+
+  @override
   String get progressionSetOutcome => 'Count set as';
 
   @override

@@ -7031,6 +7031,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get progressionPolicy => 'セットの進行方法';
 
   @override
+  String get progressionToggleEnabled => '自動進行をオン';
+
+  @override
+  String get progressionToggleDisabled => '自動進行をオフ';
+
+  @override
+  String get workoutKeyboardInsertHyphen => 'マイナス記号を挿入';
+
+  @override
+  String get workoutKeyboardNextField => '次の入力欄へ移動';
+
+  @override
+  String get workoutKeyboardClose => 'キーボードを閉じる';
+
+  @override
   String get progressionSetOutcome => 'セットの扱い';
 
   @override
