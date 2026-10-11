@@ -56,15 +56,15 @@ OPEN SOURCE & OFFENE DATEN:
 Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Ziele, die sich mit dir weiterentwickeln: Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.
+Schnellere und genauere KI-Mahlzeitenerfassung: Die KI erfasst Mahlzeiten jetzt schneller und genauer. Der neue Lebensmittelkatalog verbessert den Abgleich mit passenden Lebensmitteln. Auf unterstützten iPhones kannst du dafür auch Apple Intelligence direkt auf dem Gerät verwenden. Die bisherige Möglichkeit, einen KI-Anbieter mit eigenem API-Schlüssel zu verbinden, bleibt bestehen.
 
-Eigene Trainingspläne & flexible Sequenzen: Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.
+Ein übersetzter Lebensmittelkatalog mit mehr Nährwerten: Suche generische Lebensmittel im herunterladbaren deutschen BLS-4.0-Katalog. Die Lebensmittelnamen sind in alle unterstützten App-Sprachen übersetzt. Der Katalog bietet genauere Nährwerte einschließlich Mikronährstoffen und funktioniert nach dem Download auch offline. Markenprodukte findest du weiterhin über Open Food Facts.
 
-Dein Trainingslevel nach Maß: Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.
+Trainingsverlauf übernehmen: Importiere Workouts aus Hevy, Strong oder einer CSV-Datei. Prüfe den Import vorher und erkenne dabei mögliche Duplikate und ungültige Datumsangaben.
 
-Satz-Timer & aufgeräumter Workout-Tab: Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.
+Gespeicherte Inhalte teilen und übernehmen: Teile oder importiere Routinen, Trainingspläne, Rezepte und abgeschlossene Workouts per Link, Text oder JSON. Vor dem Übernehmen kannst du importierte Inhalte prüfen.
 
-Geglättete Gewichtstrends & neue Analysen: Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.
+Mehr Spielraum für Training und Mahlzeiten: Ergänze Notizen zu Übungen, Routinen oder einzelnen Workouts. Erfasse gespeicherte Rezepte nach Portionen oder gekochtem Gewicht und behalte Datumsfilter in der Statistik griffbereit.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

@@ -6,6 +6,18 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.6.0-beta.1 (2026-10-07)
+
+{camera} Acquisizione dei pasti con IA più rapida e precisa: L’acquisizione dei pasti con IA è ora più rapida e precisa, grazie a un migliore abbinamento agli alimenti del nuovo catalogo. Sugli iPhone supportati puoi anche usare Apple Intelligence direttamente sul dispositivo. Puoi continuare a collegare un provider IA usando la tua chiave API.
+
+{utensils} Un catalogo alimentare tradotto e più dettagliato: Cerca alimenti generici nel catalogo tedesco BLS 4.0, scaricabile, con nomi tradotti in tutte le lingue supportate dall’app. Offre valori nutrizionali più precisi, inclusi i micronutrienti, e funziona offline dopo il download. Open Food Facts resta disponibile per i prodotti di marca.
+
+{dumbbell} Importa la cronologia dei tuoi allenamenti: Importa le sessioni da Hevy, Strong o da un file CSV. Prima dell’importazione puoi controllare l’anteprima, con possibili duplicati e date non valide.
+
+{rocket} Condividi e trasferisci i tuoi contenuti: Condividi o importa routine, piani di allenamento, ricette e allenamenti completati tramite link, testo o JSON. Puoi verificare i contenuti importati prima di aggiungerli.
+
+{chart_line} Più flessibilità per allenamenti e pasti: Aggiungi note agli esercizi, alle routine o ai singoli allenamenti. Registra le ricette salvate in base alle porzioni o al peso cotto e tieni a portata di mano i filtri per data nelle statistiche.
+
 ## 1.5.0 (2026-10-07)
 
 {chart_line} Obiettivi che si adattano a te : Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.

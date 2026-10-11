@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.6.0-beta.1 (2026-10-07)
+
+{camera} Schnellere und genauere KI-Mahlzeitenerfassung: Die KI erfasst Mahlzeiten jetzt schneller und genauer. Der neue Lebensmittelkatalog verbessert den Abgleich mit passenden Lebensmitteln. Auf unterstützten iPhones kannst du dafür auch Apple Intelligence direkt auf dem Gerät verwenden. Die bisherige Möglichkeit, einen KI-Anbieter mit eigenem API-Schlüssel zu verbinden, bleibt bestehen.
+
+{utensils} Ein übersetzter Lebensmittelkatalog mit mehr Nährwerten: Suche generische Lebensmittel im herunterladbaren deutschen BLS-4.0-Katalog. Die Lebensmittelnamen sind in alle unterstützten App-Sprachen übersetzt. Der Katalog bietet genauere Nährwerte einschließlich Mikronährstoffen und funktioniert nach dem Download auch offline. Markenprodukte findest du weiterhin über Open Food Facts.
+
+{dumbbell} Trainingsverlauf übernehmen: Importiere Workouts aus Hevy, Strong oder einer CSV-Datei. Prüfe den Import vorher und erkenne dabei mögliche Duplikate und ungültige Datumsangaben.
+
+{rocket} Gespeicherte Inhalte teilen und übernehmen: Teile oder importiere Routinen, Trainingspläne, Rezepte und abgeschlossene Workouts per Link, Text oder JSON. Vor dem Übernehmen kannst du importierte Inhalte prüfen.
+
+{chart_line} Mehr Spielraum für Training und Mahlzeiten: Ergänze Notizen zu Übungen, Routinen oder einzelnen Workouts. Erfasse gespeicherte Rezepte nach Portionen oder gekochtem Gewicht und behalte Datumsfilter in der Statistik griffbereit.
+
 ## 1.5.0 (2026-10-07)
 
 {chart_line} Ziele, die sich mit dir weiterentwickeln: Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.

@@ -56,15 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Goals that adapt with you: Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.
+Faster, more accurate AI meal capture: AI meal capture is now faster and more accurate, with better food matching powered by the new food catalog. On supported iPhones, you can also use Apple Intelligence for on-device analysis. Your existing option to connect an AI provider with your own API key remains available.
 
-Custom workout plans & flexible sequences: Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.
+A translated, more detailed food catalog: Search generic foods in the downloadable German BLS 4.0 catalog, with food names translated into all supported app languages. It provides more precise nutrient values, including micronutrients, and works offline after download. Open Food Facts remains available for branded products.
 
-Tailored training experience levels: Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.
+Bring your workout history: Import workouts from Hevy, Strong, or a CSV file. Preview the import first, including entries that may be duplicates or have invalid dates.
 
-Set timer & redesigned Workout home: Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.
+Share and move your saved content: Share or import routines, training plans, recipes, and completed workouts using links, text, or JSON. Review imported content before adding it.
 
-Smoothed weight trends & new analytics: Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.
+More flexibility for workouts and meals: Add notes to exercises, routines, or individual workouts. Log saved recipes by serving or cooked weight, and keep date filters close at hand in Statistics.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

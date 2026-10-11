@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.6.0-beta.1 (2026-10-07)
+
+{camera} Capture de repas par IA plus rapide et plus précise : La capture de repas par IA est désormais plus rapide et plus précise, grâce à une meilleure correspondance avec les aliments du nouveau catalogue. Sur les iPhone compatibles, tu peux aussi utiliser Apple Intelligence directement sur l’appareil. La connexion à un fournisseur d’IA avec ta propre clé API reste disponible.
+
+{utensils} Un catalogue alimentaire traduit et plus détaillé : Recherche des aliments génériques dans le catalogue allemand BLS 4.0, téléchargeable, avec des noms traduits dans toutes les langues de l’app. Il fournit des valeurs nutritionnelles plus précises, notamment les micronutriments, et fonctionne hors ligne après téléchargement. Open Food Facts reste disponible pour les produits de marque.
+
+{dumbbell} Importe ton historique d’entraînement : Importe tes séances depuis Hevy, Strong ou un fichier CSV. Vérifie l’aperçu avant l’import, avec les doublons potentiels et les dates invalides.
+
+{rocket} Partage et récupère tes contenus : Partage ou importe tes routines, programmes, recettes et séances terminées par lien, texte ou JSON. Tu peux vérifier les éléments importés avant de les ajouter.
+
+{chart_line} Plus de liberté pour tes entraînements et tes repas : Ajoute des notes aux exercices, aux routines ou à une séance précise. Enregistre les recettes selon le nombre de portions ou le poids après cuisson, et garde les filtres de dates à portée de main dans les statistiques.
+
 ## 1.5.0 (2026-10-07)
 
 {chart_line} Des objectifs qui évoluent avec toi : Définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.

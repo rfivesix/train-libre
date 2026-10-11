@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.6.0-beta.1 (2026-10-07)
+
+{camera} Faster, more accurate AI meal capture: AI meal capture is now faster and more accurate, with better food matching powered by the new food catalogue. On supported iPhones, you can also use Apple Intelligence for on-device analysis. Your existing option to connect an AI provider with your own API key remains available.
+
+{utensils} A translated, more detailed food catalogue: Search generic foods in the downloadable German BLS 4.0 catalogue, with food names translated into all supported app languages. It provides more precise nutrient values, including micronutrients, and works offline after download. Open Food Facts remains available for branded products.
+
+{dumbbell} Bring your workout history: Import workouts from Hevy, Strong, or a CSV file. Preview the import first, including entries that may be duplicates or have invalid dates.
+
+{rocket} Share and move your saved content: Share or import routines, training plans, recipes, and completed workouts using links, text, or JSON. Review imported content before adding it.
+
+{chart_line} More flexibility for workouts and meals: Add notes to exercises, routines, or individual workouts. Log saved recipes by serving or cooked weight, and keep date filters close at hand in Statistics.
+
 ## 1.5.0 (2026-10-07)
 
 {chart_line} Goals that adapt with you: Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.
