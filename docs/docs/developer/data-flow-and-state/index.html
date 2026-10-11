@@ -6,8 +6,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="Reactive reads, imperative writes, drift streams, and lock states.">
-  <title>Data Flow &amp; State Lifecycle | Train Libre Documentation</title>
+  <meta name="description" content="Repository reads and commands, subscription ownership, and async UI state.">
+  <title>Data flow and state lifecycle | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/developer/data-flow-and-state/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -15,8 +15,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Data Flow &amp; State Lifecycle | Train Libre">
-  <meta property="og:description" content="Reactive reads, imperative writes, drift streams, and lock states.">
+  <meta property="og:title" content="Data flow and state lifecycle | Train Libre">
+  <meta property="og:description" content="Repository reads and commands, subscription ownership, and async UI state.">
   <meta property="og:url" content="https://trainlibre.com/docs/developer/data-flow-and-state/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -151,11 +151,12 @@
 <li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="../localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
 <li><a href="../ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -167,107 +168,42 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Data Flow & State Lifecycle</h1>
-<p>Train Libre utilizes a strict state management paradigm to ensure data consistency, rapid interface updates, and leak-free memory cycles. This paradigm is built around <strong>Reactive Reads / Imperative Writes</strong> and explicit stream subscription management.</p>
-<hr class="divider">
-<h2 id="the-reactive-reads-imperative-writes-paradigm" class="doc-h2">The "Reactive Reads / Imperative Writes" Paradigm<a href="#the-reactive-reads-imperative-writes-paradigm" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To avoid state synchronization bugs (where the UI and the database disagree on the current values), the system separates data reading from data writing into two distinct pipelines.</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>       +--------------------------------------------+
-       |                                            |
-       v                                            |
-[Drift Database] --(Reactive Stream Update)--&gt; [ViewModel] --&gt; [UI Screen]
-       ^                                                            |
-       |                                                            |
-       +--------------(Asynchronous Command)------------------------+</code></pre></div>
-<h3 id="1-reactive-reads-observer-pattern" class="doc-h3">1. Reactive Reads (Observer Pattern)<a href="#1-reactive-reads-observer-pattern" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The user interface never queries the database on-demand for a single snapshot of data during normal render cycles. Instead, it subscribes to active streams exposed by repositories, which in turn wrap Drift's query-watching capabilities:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// Establishing reactive stream listeners for a selected date
-_goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((goals) {
-  _activeGoals = goals;
-  _updateCalculatedState(); // Recalculates totals and triggers notifyListeners()
-});</code></pre></div>
-<p>When database records are inserted or deleted by <em>any</em> system thread, the underlying Drift engine detects which tables have changed, executes the query again under the hood, and pushes the new result list down the active Stream. The ViewModel receives the update, recalculates relevant macros, and dispatches <code>notifyListeners()</code> to rebuild the UI.</p>
-<h3 id="2-imperative-writes-action-pattern" class="doc-h3">2. Imperative Writes (Action Pattern)<a href="#2-imperative-writes-action-pattern" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>All database modifications—inserts, edits, deletes, and sync imports—are executed as one-off, imperative asynchronous commands. For example, deleting a food log or updating a fluid entry:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">Future&lt;void&gt; deleteFoodEntry(int id) async {
-  await _nutritionRepo.deleteFoodEntry(id);
-}</code></pre></div>
-<p>Writers do <strong>not</strong> return the updated state list to the UI, nor do they trigger manual UI refreshes. The write completes, the transaction is committed, and Drift’s reactive stream automatically dispatches the updated rows to all active observers.</p>
-<hr class="divider">
-<h2 id="subscription-lifecycles-teardown" class="doc-h2">Subscription Lifecycles & Teardown<a href="#subscription-lifecycles-teardown" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Because active streams run indefinitely, keeping subscriptions open when switching screens or moving between calendar days results in severe memory leaks, background CPU waste, and duplicate UI renderings.</p>
-<h3 id="date-switching-handlers" class="doc-h3">Date Switching Handlers<a href="#date-switching-handlers" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>When the user selects a new date inside the diary interface, the active subscriptions for the previous date must be cancelled immediately before establishing new ones. This is managed explicitly:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">void setSelectedDate(DateTime date) {
-  final diaryDate = normalizeDiaryDate(date);
-  selectedDateNotifier.value = diaryDate;
-
-  // Cancel all existing subscriptions
-  _goalsSubscription?.cancel();
-  _entriesSubscription?.cancel();
-  _fluidsSubscription?.cancel();
-  _supplementsSubscription?.cancel();
-  _supplementLogsSubscription?.cancel();
-  _workoutsSubscription?.cancel();
-
-  isLoading = true;
-  notifyListeners();
-
-  // Re-establish reactive stream listeners for the new selected date
-  _goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((goals) { ... });
-  // [Additional stream listeners mapped similarly...]
-}</code></pre></div>
-<h3 id="viewmodel-disposal" class="doc-h3">ViewModel Disposal<a href="#viewmodel-disposal" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>When a screen is popped or closed, its associated ViewModel is removed from the widget tree. The ViewModel must override the native <code>dispose()</code> method to cancel all remaining subscriptions and prevent context leaks:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">@override
-void dispose() {
-  _goalsSubscription?.cancel();
-  _entriesSubscription?.cancel();
-  _fluidsSubscription?.cancel();
-  _supplementsSubscription?.cancel();
-  _supplementLogsSubscription?.cancel();
-  _workoutsSubscription?.cancel();
-  
-  healthSyncCoordinator.removeListener(notifyListeners);
-  healthSyncCoordinator.dispose();
-  selectedDateNotifier.dispose();
-  super.dispose();
-}</code></pre></div>
-<hr class="divider">
-<h2 id="input-blocking-asynchronous-safety" class="doc-h2">Input Blocking & Asynchronous Safety<a href="#input-blocking-asynchronous-safety" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To prevent race conditions, duplicate writes, and double-taps during asynchronous processes (e.g., executing an AI meal capture query or running a health sync routine), ViewModels maintain strict interface-blocking flags.</p>
-<h3 id="concurrency-guards" class="doc-h3">Concurrency Guards<a href="#concurrency-guards" class="header-anchor" aria-label="Link to section">#</a></h3>
-<ol class="doc-list">
-<li><strong>State Flags</strong>: Variables such as <code>isLoading</code> or <code>isGenerating</code> are set to <code>true</code> immediately upon starting an asynchronous event.</li>
-<li><strong>UI Feedback</strong>: The presentation layer reads these flags to display localized progress indicators (spinners, skeleton loaders).</li>
-<li><strong>Interactive Blocking</strong>: Interactive elements (save buttons, text fields, checkboxes) are disabled programmatically if any blocking flag is active:</li>
-</ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// Example widget button disabling logic
-ElevatedButton(
-  onPressed: viewModel.isGenerating ? null : () =&gt; viewModel.startAiAnalysis(),
-  child: viewModel.isGenerating 
-      ? const CircularProgressIndicator() 
-      : const Text(&#x27;Analyze Meal&#x27;),
-)</code></pre></div>
-<p>By passing <code>null</code> to <code>onPressed</code>, the Flutter framework natively disables the button and blocks tap actions, guaranteeing that only one asynchronous request can occupy the execution pipeline at a time.</p>
+          <h1 class="doc-title">Data flow and state lifecycle</h1>
+<p>Many database-backed screens use reactive repository streams for reads and repository methods for commands. This is a common pattern, not a rule that every feature must use streams: some operations intentionally read a one-time snapshot, call a platform API, or use local widget state. Follow the feature's repository and view model implementation.</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code class="language-text">screen action → view model/use case → repository → data source / platform
+      ↑                                      │
+      └── state update ← watched query ← committed database change</code></pre></div>
+<h2 id="reads-and-writes" class="doc-h2">Reads and writes<a href="#reads-and-writes" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Drift query watches rerun when relevant database tables change. Repository watch methods expose those results to consumers; view models map them into presentation state and notify listeners. For a concrete example, follow diary watch methods from their repository/data source to the screen's view model.</p>
+<p>Writes are asynchronous commands through repository APIs. A command may return an identifier, status, or computed result, so do not assume every write is <code>void</code> or that all resulting UI state arrives via a stream. A database watch is useful when multiple screens or services can change the same records; a local form may instead retain draft state until save.</p>
+<h2 id="subscription-and-widget-lifetimes" class="doc-h2">Subscription and widget lifetimes<a href="#subscription-and-widget-lifetimes" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The owner of a <code>StreamSubscription</code> must cancel it when its inputs change or its owner is disposed. When replacing a date- or filter-scoped query, guard against late events from the previous query; cancellation is asynchronous for <code>StreamSubscription.cancel()</code>, so the exact sequence and any generation guards should match the implementation. On disposal, cancel owned subscriptions and dispose owned notifiers/controllers. Do not dispose dependencies merely borrowed from Provider.</p>
+<p>Provider ownership matters: <code>ChangeNotifierProvider(create: ...)</code> owns and disposes the created notifier; <code>.value</code> exposes an existing object whose owner is elsewhere. <code>HomeWidgetSyncService</code>, for example, is created by the root provider and its registered provider disposer calls <code>dispose()</code>.</p>
+<h2 id="async-ui-work" class="doc-h2">Async UI work<a href="#async-ui-work" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Use explicit loading/error/result state for operations that outlive a synchronous frame. A boolean guard can prevent duplicate submissions when the UI disables a control while work is active, but it is not itself cancellation and does not prevent stale results from replacing newer input. Search screens should invalidate or identify requests when queries change; cancellation support depends on the underlying operation.</p>
+<p>When implementing an async callback, consider: whether the widget/view model may have been disposed before completion; whether a newer request supersedes it; whether errors reach user-visible state; and whether platform calls can be interrupted. Check <code>mounted</code> before widget context/state updates after an await, and use a request generation/token when ordering matters.</p>
+<h2 id="where-to-trace-behavior" class="doc-h2">Where to trace behavior<a href="#where-to-trace-behavior" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li>Feature-specific repositories and data sources: <code>lib/features/*/data/</code>.</li>
+<li>View models and screens: <code>lib/features/*/application/</code> and <code>presentation/</code> (some features use different names/layouts).</li>
+<li>Shared database/watch implementation: <code>lib/data/drift_database.dart</code> and <code>lib/core/infrastructure/</code>.</li>
+<li>Root dependency ownership: <code>lib/main.dart</code>.</li>
+</ul>
+<p>The <a href="../ios-home-screen-widgets/index.html">Home-screen Widgets guide</a> describes the separate snapshot publication path. Product rules belong in <a href="../../features/overview/index.html">Feature Documentation</a>.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
-<a href="../architecture/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">System Architecture &amp; Wiring</span></a>
+<a href="../architecture/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">System Architecture &amp; Database Lifecycle</span></a>
 <a href="../localization-architecture/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Localization Architecture</span></a>
 </nav>
       </main>
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#the-reactive-reads-imperative-writes-paradigm">The &quot;Reactive Reads / Imperative Writes&quot; Paradigm</a></li>
-<li class="toc-item toc-item-l3"><a href="#1-reactive-reads-observer-pattern">1. Reactive Reads (Observer Pattern)</a></li>
-<li class="toc-item toc-item-l3"><a href="#2-imperative-writes-action-pattern">2. Imperative Writes (Action Pattern)</a></li>
-<li class="toc-item toc-item-l2"><a href="#subscription-lifecycles-teardown">Subscription Lifecycles &amp; Teardown</a></li>
-<li class="toc-item toc-item-l3"><a href="#date-switching-handlers">Date Switching Handlers</a></li>
-<li class="toc-item toc-item-l3"><a href="#viewmodel-disposal">ViewModel Disposal</a></li>
-<li class="toc-item toc-item-l2"><a href="#input-blocking-asynchronous-safety">Input Blocking &amp; Asynchronous Safety</a></li>
-<li class="toc-item toc-item-l3"><a href="#concurrency-guards">Concurrency Guards</a></li>
+<li class="toc-item toc-item-l2"><a href="#reads-and-writes">Reads and writes</a></li>
+<li class="toc-item toc-item-l2"><a href="#subscription-and-widget-lifetimes">Subscription and widget lifetimes</a></li>
+<li class="toc-item toc-item-l2"><a href="#async-ui-work">Async UI work</a></li>
+<li class="toc-item toc-item-l2"><a href="#where-to-trace-behavior">Where to trace behavior</a></li>
 </ul></div></aside>
     </div>
 

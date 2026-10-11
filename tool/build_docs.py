@@ -441,21 +441,21 @@ DOCS_STRUCTURE = [
         "items": [
             {
                 "id": "dev-overview",
-                "title": "Developer Overview & Tests",
+                "title": "Developer Documentation",
                 "slug": "overview",
                 "src_file": SRC_DOC_DIR / "developer" / "overview.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "overview",
                 "url": "/docs/developer/overview/",
-                "desc": "Architecture principles, testing tiers, and continuous integration strategy."
+                "desc": "Repository map, contributor checks, and links to implementation guides."
             },
             {
                 "id": "dev-arch",
-                "title": "System Architecture & Wiring",
+                "title": "System Architecture & Database Lifecycle",
                 "slug": "architecture",
                 "src_file": SRC_DOC_DIR / "developer" / "architecture.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "architecture",
                 "url": "/docs/developer/architecture/",
-                "desc": "Clean Architecture boundaries, Drift SQLite lifecycle, and DI provider graph."
+                "desc": "Startup wiring, database ownership, migrations, repair, and backup boundaries."
             },
             {
                 "id": "dev-flow",
@@ -464,7 +464,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "developer" / "data_flow_and_state.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "data-flow-and-state",
                 "url": "/docs/developer/data-flow-and-state/",
-                "desc": "Reactive reads, imperative writes, drift streams, and lock states."
+                "desc": "Repository reads and commands, subscription ownership, and async UI state."
             },
             {
                 "id": "dev-l10n",
@@ -473,7 +473,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "developer" / "localization_architecture.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "localization-architecture",
                 "url": "/docs/developer/localization-architecture/",
-                "desc": "Multi-locale catalog translation pipeline, relational tables, and fallback chains."
+                "desc": "Flutter ARB strings and separate food/exercise catalog localization systems."
             },
             {
                 "id": "dev-widgets",
@@ -482,7 +482,16 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "developer" / "ios_home_screen_widgets.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "ios-home-screen-widgets",
                 "url": "/docs/developer/ios-home-screen-widgets/",
-                "desc": "WidgetKit (iOS) and Glance/AppWidgetProvider (Android) background snapshots."
+                "desc": "Shared Dart snapshot format, native bridges, storage, refresh, and deep links."
+            },
+            {
+                "id": "dev-food-search",
+                "title": "Food Search: Data Flow & Ranking",
+                "slug": "food-search",
+                "src_file": SRC_DOC_DIR / "developer" / "food_search.md",
+                "out_dir": OUTPUT_DOCS_DIR / "developer" / "food-search",
+                "url": "/docs/developer/food-search/",
+                "desc": "Catalog indexing, query normalization, matching, aliases, and result ranking."
             }
         ]
     }

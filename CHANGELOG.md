@@ -86,6 +86,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Base Food Parenthetical Stem Prioritization in Search & AI Meal Recognition (`ProductLocalDataSource`, `EvaluateFoodSourceUseCase`, `MatchingLogic`):** Fixed an issue where generic exact name matches from Open Food Facts (e.g. unverified raw dry "Reis") took precedence over curated base foods with parenthetical descriptions (e.g. "Reis (weiß, gekocht)"). Added parenthetical qualifier stripping to exact match detection in SQL (`searchProducts`), candidate re-ranking (`EvaluateFoodSourceUseCase`), repair candidate selection, and deterministic AI scoring (`MatchingLogic._matchScoreForQuery`), ensuring staple foods and their cooked variants are accurately identified and prioritized over unverified third-party catalog entries.
 
 ### Changed
+- **Developer documentation audit:** Rewrote architecture, state lifecycle, localization, and widget guides against current Dart/native implementations; corrected the Drift schema version to 40 and widget snapshot version to 2. Registered and linked the existing food-search guide in the public developer navigation, and refreshed contributor overview links.
 - Updated all 15 Feature & Heuristics articles against the current implementation, including model formulas and gates, imported/exported data paths, provider-specific AI behavior, platform limits, persistence, telemetry, and non-clinical scope. Updated the documentation overview, public page list, registry metadata, and generated feature pages.
 
 ## [1.5.0] — 2026-10-07

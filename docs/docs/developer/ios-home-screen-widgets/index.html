@@ -6,8 +6,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="WidgetKit (iOS) and Glance/AppWidgetProvider (Android) background snapshots.">
-  <title>Home Screen Widgets (iOS &amp; Cross-Platform Architecture) | Train Libre Documentation</title>
+  <meta name="description" content="Shared Dart snapshot format, native bridges, storage, refresh, and deep links.">
+  <title>Home-screen widgets (iOS and Android) | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/developer/ios-home-screen-widgets/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -15,8 +15,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Home Screen Widgets (iOS &amp; Cross-Platform Architecture) | Train Libre">
-  <meta property="og:description" content="WidgetKit (iOS) and Glance/AppWidgetProvider (Android) background snapshots.">
+  <meta property="og:title" content="Home-screen widgets (iOS and Android) | Train Libre">
+  <meta property="og:description" content="Shared Dart snapshot format, native bridges, storage, refresh, and deep links.">
   <meta property="og:url" content="https://trainlibre.com/docs/developer/ios-home-screen-widgets/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -151,11 +151,12 @@
 <li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="../data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="../localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Home Screen Widgets</a></li>
+<li><a href="../food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -167,100 +168,47 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Home Screen Widgets (iOS & Cross-Platform Architecture)</h1>
-<p>Train Libre brings glanceable diary, activity, recovery, and workout metrics directly to the user's Home Screen without compromising offline autonomy or data privacy.</p>
-<p>The widget suite is driven by a shared, pure Dart snapshot architecture (<code>lib/features/home_widgets/</code>) that synchronizes state over the <code>trainlibre.widgets/home_screen</code> MethodChannel to native platforms: - <strong>iOS 18+</strong>: Native SwiftUI widgets via WidgetKit in <code>ios/TrainLibreLiveActivity/</code>, sharing data through an App Group container (<code>group.com.rfivesix.trainlibre</code>). - <strong>Android 12+</strong>: Native widgets via Jetpack Glance and custom canvas renderers in <code>android/app/src/main/kotlin/com/rfivesix/trainlibre/widgets/</code>, plus an Android Quick Settings Tile (<code>QuickActionTileService</code>).</p>
-<blockquote><p>Like everything else in Train Libre, widgets run entirely on the device. Widgets read a serialized JSON snapshot written directly by the app into local platform storage — no external server, no network connection, and no background fetch.</p></blockquote>
-<hr class="divider">
-<h2 id="the-widget-family" class="doc-h2">The Widget Family<a href="#the-widget-family" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The snapshot provides data for six distinct widget surfaces across both platforms:</p>
+          <h1 class="doc-title">Home-screen widgets (iOS and Android)</h1>
+<p>The Flutter app builds a <code>HomeWidgetSnapshot</code> in <code>lib/features/home_widgets/</code> and sends it over <code>trainlibre.widgets/home_screen</code>. Native code stores and renders that snapshot; widgets do not query the Drift database directly.</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code class="language-text">repositories / health aggregation
+       ↓
+HomeWidgetSyncService → snapshot builder → HomeWidgetChannel
+       ↓                                      ↓
+ iOS App Group bridge                  Android SharedPreferences bridge
+       ↓                                      ↓
+ WidgetKit timelines                  Glance / AppWidget refresh</code></pre></div>
+<h2 id="snapshot-and-refresh" class="doc-h2">Snapshot and refresh<a href="#snapshot-and-refresh" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p><code>HomeWidgetSnapshot.currentSchemaVersion</code> is <strong>2</strong>. The JSON contains the logical diary day and rollover hour, configured nutrition tiles, and optional recovery, steps, measurement, and last-workout sections. The model comments specify that nutrition payloads contain aggregate totals and targets rather than food names or entry-level records. The Dart model and native Swift/Kotlin readers must evolve together; preserve decoding of older payloads when changing the format.</p>
+<p><code>HomeWidgetSyncService</code> coalesces refresh requests with a 500 ms debounce and prevents overlapping refreshes by scheduling a rerun. It reads current diary values through repository watches, builds a snapshot, and writes it through <code>HomeWidgetChannel</code>. Statistics sections are cached for up to 15 minutes and can be invalidated when affected. The app/native bridge requests platform widget refreshes after writes. OS scheduling still controls when a widget is actually rendered; do not promise an exact refresh time.</p>
+<p>The diary logical-day rollover is 03:00 and is included in the snapshot so native code can apply the same boundary. Each widget provider defines its own timeline policy; inspect the relevant provider before asserting a shared polling interval or reload budget.</p>
+<h2 id="platform-bridge-and-storage" class="doc-h2">Platform bridge and storage<a href="#platform-bridge-and-storage" class="header-anchor" aria-label="Link to section">#</a></h2>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Platform</th><th>Bridge and storage</th><th>Rendering code</th></tr></thead><tbody><tr><td>iOS</td><td><code>ios/LiveActivity/HomeWidgetBridge.swift</code>; shared container access and decoding in <code>HomeWidgetShared.swift</code></td><td>WidgetKit extension in <code>ios/TrainLibreLiveActivity/</code></td></tr><tr><td>Android</td><td><code>android/app/src/main/kotlin/com/rfivesix/trainlibre/widgets/HomeWidgetBridge.kt</code>; snapshot store in <code>widgets/snapshot/</code></td><td>Glance/AppWidget providers, renderers, configuration activities, and <code>tiles/</code> in that package</td></tr></tbody></table></div>
+<p>The channel implementation also handles shared image files used by the last-workout presentation. Check <code>HomeWidgetChannel</code> and both native bridges for supported method names, error handling, and storage keys. Android's Quick Settings tile is a separate native surface and should not be described as an iOS feature.</p>
+<h2 id="deep-links-and-configuration" class="doc-h2">Deep links and configuration<a href="#deep-links-and-configuration" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Widget actions are parsed in <code>lib/features/home_widgets/home_widget_deep_link.dart</code> and routed by app navigation. Native widget configuration is platform-specific: iOS uses WidgetKit configuration intents, while Android uses configuration activities and widget preferences. When changing an action or configuration value, update the Dart parser, native producer/consumer, and focused routing tests together.</p>
+<h2 id="change-checklist" class="doc-h2">Change checklist<a href="#change-checklist" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ol class="doc-list">
-<li><strong>Heute im Blick / Today Glance</strong> (<code>.systemMedium</code> on iOS; 4x2 on Android): The diary's six-tile nutrition grid rendered 1:1 with <code>NutritionSummaryWidget</code> (Calories, Protein, Water, Carbohydrates, Extra Nutrient [fibre/sugar/salt], and Fat) including progress fills and targets. Tapping opens the diary.</li>
-<li><strong>Schnellzugriff / Quick Actions</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): Configurable action shortcuts (AI meal capture, barcode scanner, start workout, log measurement, log supplement, add fluid). Tapping directly deep-links to that specific flow. On Android, also available as a Quick Settings Tile.</li>
-<li><strong>Schritte / Steps</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): Current day's step count against the active daily goal, paired with an hourly/daily bar chart.</li>
-<li><strong>Messwerte / Measurements</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): User-selected body metric (weight, body fat, waist circumference, etc.) showing the latest reading, change over time, and a historical sparkline chart. Configured via native configuration intents/activities.</li>
-<li><strong>Muskel-Erholung / Muscle Recovery</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): Heuristic muscle readiness breakdown, showing percentages and counts for <em>Recovering</em>, <em>Ready</em>, and <em>Fresh</em> muscle groups. Tapping navigates to the Recovery Tracker.</li>
-<li><strong>Letztes Workout / Last Workout</strong> (<code>.systemMedium</code> / <code>.systemLarge</code> on iOS; 4x2 / 4x3 on Android): Summary of the most recently completed workout session (duration, tonnage, total reps, sets) alongside a rendered muscle heatmap image (<code>last_workout_heatmap_&lt;id&gt;.png</code>).</li>
+<li>Update the Dart snapshot model/builder and serialization tests.</li>
+<li>Update Swift and Kotlin decoding/rendering for the same field, with a safe default for older snapshots where appropriate.</li>
+<li>Check the method-channel method and file payload on both native bridges.</li>
+<li>Verify refresh invalidation paths, deep links, and each provider's timeline policy.</li>
+<li>Update platform localization resources if gallery/configuration text changes.</li>
 </ol>
-<hr class="divider">
-<h2 id="architecture-data-flow" class="doc-h2">Architecture & Data Flow<a href="#architecture-data-flow" class="header-anchor" aria-label="Link to section">#</a></h2>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>Flutter (Source of Truth)                       Native Platform Storage                  Native Widget Renderers
-─────────────────────────                       ───────────────────────                  ───────────────────────
-[Repositories: Diary, Workout, Profile]
-         │
-         ▼
-HomeWidgetSyncService                           iOS: App Group UserDefaults              iOS: WidgetKit Extension
-  (Listens to reactive repository changes,        (suiteName: group.com.rfivesix...)       (TimelineProvider -&gt; SwiftUI)
-   builds HomeWidgetSnapshot JSON)                        │
-         │                                                │
-         ├──MethodChannel (trainlibre.widgets/home_screen)┤
-         │                                                │
-         ▼                                                ▼
-HomeWidgetChannel                               Android: SharedPreferences               Android: Glance &amp; AppWidget
-  .writeSnapshot(json)                            (HomeWidgetStore)                        (HomeWidgetRefresher -&gt; Renderers)
-  .writeSharedFile(heatmapBytes)</code></pre></div>
-<h3 id="snapshot-payload-homewidgetsnapshot-schema-v2" class="doc-h3">Snapshot Payload (<code>HomeWidgetSnapshot</code> Schema v2)<a href="#snapshot-payload-homewidgetsnapshot-schema-v2" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The snapshot (<code>HomeWidgetSnapshot</code>) holds <strong>aggregate totals, targets, and presentation metrics only</strong>: - No food names, exact timestamps, or granular user log entries ever reach the shared container. - <code>schemaVersion: 2</code> supports nullable modular sections (<code>recovery</code>, <code>steps</code>, <code>measurements</code>, <code>lastWorkout</code>, <code>tiles</code>). Missing sections gracefully degrade to an empty state rather than causing decoding failures. - <code>rolloverHour</code>: Sent explicitly in the snapshot (default 3 AM) so native timeline providers know when to zero out the nutrition grid without duplicating Dart rollover rules.</p>
-<h3 id="push-based-updates-timeline-budgeting" class="doc-h3">Push-Based Updates & Timeline Budgeting<a href="#push-based-updates-timeline-budgeting" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Nutrition and workout data cannot change while the app is closed. A snapshot written on each mutation and on app backgrounding is exact. Polling data that provably did not change would exhaust OS widget reload budgets (WidgetKit budgets ~40–70 reloads per day).</p>
-<p>The synchronization uses <strong>push</strong>: - The app updates the snapshot and requests a timeline reload whenever relevant data changes. - Two timeline entries are scheduled on iOS: the current moment, and the next day rollover (<code>snapshot.zeroed(forDayKey:)</code>), ensuring the widget rolls over cleanly even if the app remains closed past 03:00.</p>
-<hr class="divider">
-<h2 id="where-the-code-lives" class="doc-h2">Where the Code Lives<a href="#where-the-code-lives" class="header-anchor" aria-label="Link to section">#</a></h2>
-<h3 id="cross-platform-dart-layer-libfeatureshomewidgets" class="doc-h3">Cross-Platform Dart Layer (<code>lib/features/home_widgets/</code>)<a href="#cross-platform-dart-layer-libfeatureshomewidgets" class="header-anchor" aria-label="Link to section">#</a></h3>
-<ul class="doc-list">
-<li><code>domain/models/home_widget_snapshot.dart</code>: Schema version 2 snapshot model, tiles, recovery, steps, measurements, and workout structures with JSON serialization.</li>
-<li><code>domain/build_home_widget_snapshot.dart</code>: Pure builder function transforming domain repository entities into the platform snapshot.</li>
-<li><code>data/home_widget_channel.dart</code>: Wraps the <code>trainlibre.widgets/home_screen</code> MethodChannel (writeSnapshot, writeSharedFile, sharedFileExists, clearSnapshot).</li>
-<li><code>application/home_widget_sync_service.dart</code>: Listens to diary, profile, supplement, and workout repositories, building and pushing snapshots.</li>
-<li><code>application/workout_heatmap_publisher.dart</code>: Renders muscle fatigue heatmaps into PNG byte buffers and publishes them to shared storage.</li>
-<li><code>home_widget_deep_link.dart</code>: Unified deep-link parser routing incoming <code>trainlibre://widget/&lt;action&gt;</code> URLs.</li>
-</ul>
-<h3 id="ios-implementation-ios" class="doc-h3">iOS Implementation (<code>ios/</code>)<a href="#ios-implementation-ios" class="header-anchor" aria-label="Link to section">#</a></h3>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>File</th><th>Role</th></tr></thead><tbody><tr><td><code>ios/LiveActivity/HomeWidgetShared.swift</code></td><td>Snapshot decoding, day maths, Dart-compatible number formatting</td></tr><tr><td><code>ios/LiveActivity/HomeWidgetBridge.swift</code></td><td><code>trainlibre.widgets/home_screen</code> MethodChannel implementation</td></tr><tr><td><code>ios/TrainLibreLiveActivity/TodayGlanceWidget.swift</code></td><td>Nutrition grid widget, configuration intent, timeline provider</td></tr><tr><td><code>ios/TrainLibreLiveActivity/TodayGlanceViews.swift</code></td><td>SwiftUI grid layout and progress bar rendering</td></tr><tr><td><code>ios/TrainLibreLiveActivity/QuickActionsWidget.swift</code></td><td>Quick action launcher widget, configuration intent, tiles</td></tr><tr><td><code>ios/TrainLibreLiveActivity/StepsWidget.swift</code></td><td>Steps counter and bar chart widget</td></tr><tr><td><code>ios/TrainLibreLiveActivity/MeasurementsWidget.swift</code></td><td>Metric tracking and trend line widget</td></tr><tr><td><code>ios/TrainLibreLiveActivity/RecoveryWidget.swift</code></td><td>Muscle readiness pills and breakdown widget</td></tr><tr><td><code>ios/TrainLibreLiveActivity/LastWorkoutWidget.swift</code></td><td>Workout recap and muscle heatmap viewer</td></tr><tr><td><code>ios/TrainLibreLiveActivity/Localizable.xcstrings</code></td><td>Native localization for widget gallery and configuration UI</td></tr></tbody></table></div>
-<h3 id="android-implementation-androidappwidgets" class="doc-h3">Android Implementation (<code>android/app/.../widgets/</code>)<a href="#android-implementation-androidappwidgets" class="header-anchor" aria-label="Link to section">#</a></h3>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>File</th><th>Role</th></tr></thead><tbody><tr><td><code>HomeWidgetBridge.kt</code></td><td>MethodChannel handling snapshot persistence and file writing</td></tr><tr><td><code>snapshot/HomeWidgetStore.kt</code></td><td>Stores and parses <code>HomeWidgetSnapshot</code> from SharedPreferences</td></tr><tr><td><code>HomeWidgetRefresher.kt</code></td><td>Broadcasts update intents to all active AppWidgets and tile services</td></tr><tr><td><code>TodayGlanceWidget.kt</code></td><td>Nutrition summary widget provider</td></tr><tr><td><code>QuickActionsWidget.kt</code></td><td>Quick action shortcut widget provider</td></tr><tr><td><code>StepsWidget.kt</code></td><td>Step counter widget provider with bar chart</td></tr><tr><td><code>MeasurementsWidget.kt</code></td><td>Measurement widget provider with trend chart</td></tr><tr><td><code>RecoveryWidget.kt</code></td><td>Muscle recovery widget provider</td></tr><tr><td><code>LastWorkoutWidget.kt</code></td><td>Last workout widget provider with heatmap display</td></tr><tr><td><code>charts/*</code></td><td>Custom Canvas chart renderers (<code>MeasurementChartRenderer</code>, <code>StepsBarChartRenderer</code>, etc.)</td></tr><tr><td><code>config/*Activity.kt</code></td><td>Interactive configuration activities for widget instances</td></tr><tr><td><code>tiles/QuickActionTileService.kt</code></td><td>Quick Settings tile for immediate action triggering</td></tr><tr><td><code>WidgetDeepLinks.kt</code></td><td>Native Android deep-link generator</td></tr></tbody></table></div>
-<hr class="divider">
-<h2 id="ios-implementation-details-lessons-learned" class="doc-h2">iOS Implementation Details & Lessons Learned<a href="#ios-implementation-details-lessons-learned" class="header-anchor" aria-label="Link to section">#</a></h2>
-<ol class="doc-list">
-<li><strong><code>Button(intent:)</code> does not work in these widgets</strong>: Tiles built with <code>Button(intent: OpenURLIntent(...))</code> render and accept taps, but <code>perform()</code> is not invoked reliably. Instead, SwiftUI <code>Link</code> is handled directly by SpringBoard and works reliably across <code>.systemSmall</code> and <code>.systemMedium</code> on iOS 18+.</li>
-<li><strong><code>GeometryReader</code> layout root constraints</strong>: <code>GeometryReader</code> has no intrinsic size. Stacking them in a <code>VStack</code> divides height unpredictably. Layouts use <code>ZStack</code> as the root, placing <code>GeometryReader</code> strictly inside fill masks where layout sizes are already settled.</li>
-<li><strong><code>String(format: &quot;%.1f&quot;)</code> vs Dart <code>toStringAsFixed(1)</code></strong>: C string formatting breaks exact ties to even numbers, whereas Dart breaks ties away from zero (e.g., 40.25 rounds to 40.2 in C, but 40.3 in Dart). <code>HomeWidgetTile.dartFixed(_:_:)</code> in <code>HomeWidgetShared.swift</code> parses the printed expansion of the double to match Dart's output exactly, verified by unit tests.</li>
-<li><strong>Configuration Intent Restoration</strong>: Each quick action slot on iOS uses a dedicated <code>AppEnum</code> (<code>QuickActionSlot1</code> through <code>QuickActionSlot4</code>). This prevents iOS 18 from resetting all parameters when sharing an identical enum type.</li>
-</ol>
-<hr class="divider">
-<h2 id="automated-verification-tests" class="doc-h2">Automated Verification & Tests<a href="#automated-verification-tests" class="header-anchor" aria-label="Link to section">#</a></h2>
-<ul class="doc-list">
-<li><code>test/features/home_widgets/build_home_widget_snapshot_test.dart</code>: Validates snapshot day rollover across 03:00, metric/imperial conversions, color hex mapping, and empty-state fallbacks.</li>
-<li><code>test/features/home_widgets/home_widget_deep_link_test.dart</code>: Validates routing for every action key, unknown keys, malformed URLs, and Live Activity URL isolation.</li>
-<li><code>test/features/home_widgets/workout_heatmap_publisher_test.dart</code>: Tests heatmap rendering and App Group image file writing.</li>
-<li><code>ios/RunnerTests/HomeWidgetSharedTests.swift</code>: Tests Swift snapshot decoding, next-rollover calculation, progress clamping, and Dart-identical number formatting tables.</li>
-</ul>
-<hr class="divider">
-<h2 id="design-considerations-future-refinements" class="doc-h2">Design Considerations & Future Refinements<a href="#design-considerations-future-refinements" class="header-anchor" aria-label="Link to section">#</a></h2>
-<ul class="doc-list">
-<li><strong>Tinted & Clear Home Screen Modes (iOS 18+)</strong>: High-saturation category colors may desaturate under tinted Home Screen settings. Reviewing <code>widgetAccentedRenderingMode</code> behavior on physical hardware remains an aesthetic consideration.</li>
-<li><strong>Direct Interactive Actions</strong>: Quick action shortcuts open the app immediately. Future inline completions (such as logging a fixed water amount without opening the app) can follow the Live Activity command-queue pattern (<code>pendingCommandsKey</code>).</li>
-</ul>
+<p>Useful coverage includes tests under <code>test/features/home_widgets/</code> and <code>ios/RunnerTests/</code>. These tests corroborate the implementation; the source and native project configuration remain authoritative.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
 <a href="../localization-architecture/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Localization Architecture</span></a>
+<a href="../food-search/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Food Search: Data Flow &amp; Ranking</span></a>
 </nav>
       </main>
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#the-widget-family">The Widget Family</a></li>
-<li class="toc-item toc-item-l2"><a href="#architecture-data-flow">Architecture &amp; Data Flow</a></li>
-<li class="toc-item toc-item-l3"><a href="#snapshot-payload-homewidgetsnapshot-schema-v2">Snapshot Payload (HomeWidgetSnapshot Schema v2)</a></li>
-<li class="toc-item toc-item-l3"><a href="#push-based-updates-timeline-budgeting">Push-Based Updates &amp; Timeline Budgeting</a></li>
-<li class="toc-item toc-item-l2"><a href="#where-the-code-lives">Where the Code Lives</a></li>
-<li class="toc-item toc-item-l3"><a href="#cross-platform-dart-layer-libfeatureshomewidgets">Cross-Platform Dart Layer (lib/features/homewidgets/)</a></li>
-<li class="toc-item toc-item-l3"><a href="#ios-implementation-ios">iOS Implementation (ios/)</a></li>
-<li class="toc-item toc-item-l3"><a href="#android-implementation-androidappwidgets">Android Implementation (android/app/.../widgets/)</a></li>
-<li class="toc-item toc-item-l2"><a href="#ios-implementation-details-lessons-learned">iOS Implementation Details &amp; Lessons Learned</a></li>
-<li class="toc-item toc-item-l2"><a href="#automated-verification-tests">Automated Verification &amp; Tests</a></li>
-<li class="toc-item toc-item-l2"><a href="#design-considerations-future-refinements">Design Considerations &amp; Future Refinements</a></li>
+<li class="toc-item toc-item-l2"><a href="#snapshot-and-refresh">Snapshot and refresh</a></li>
+<li class="toc-item toc-item-l2"><a href="#platform-bridge-and-storage">Platform bridge and storage</a></li>
+<li class="toc-item toc-item-l2"><a href="#deep-links-and-configuration">Deep links and configuration</a></li>
+<li class="toc-item toc-item-l2"><a href="#change-checklist">Change checklist</a></li>
 </ul></div></aside>
     </div>
 

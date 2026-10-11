@@ -153,11 +153,12 @@ Train Libre is built with Flutter and natively supports:
 This project features a comprehensive, modular documentation suite split by target audience and component. Use the links below to access the technical resources:
 
 ### Developer Resources
-*   [Developer Overview](documentation/developer/overview.md): Technical vision, key architectural pillars, technology stack, and testing philosophy.
-*   [Architecture & SQLite Lifecycle](documentation/developer/architecture.md): Clean Architecture layering and database connection lifecycle pattern.
-*   [Data Flow & State Lifecycle](documentation/developer/data_flow_and_state.md): Reactive reads, imperative writes, subscription cancellation, and UI concurrency guards.
-*   [Localization Architecture](documentation/developer/localization_architecture.md): Offline-first relational localization and the guide for adding a new locale.
-*   [iOS Home Screen Widgets](documentation/developer/ios_home_screen_widgets.md): The widget family, their configuration, data flow, and implementation notes.
+*   [Developer Documentation](documentation/developer/overview.md): Repository map, contributor checks, and implementation guides.
+*   [System Architecture & Database Lifecycle](documentation/developer/architecture.md): Startup wiring, database ownership, migrations, and backup boundaries.
+*   [Data Flow & State Lifecycle](documentation/developer/data_flow_and_state.md): Repository reads and commands, subscription ownership, and asynchronous UI state.
+*   [Localization Architecture](documentation/developer/localization_architecture.md): Flutter ARB strings and separate catalog localization systems.
+*   [Food Search](documentation/developer/food_search.md): Catalog indexing, matching, aliases, and ranking.
+*   [Home Screen Widgets](documentation/developer/ios_home_screen_widgets.md): Shared snapshots, native bridges, refresh, and deep links.
 
 ### Advanced Features & Algorithmic Transparency
 *   [Smart Features Overview](documentation/features/overview.md): Overview of algorithmic features and architectural privacy invariants.
