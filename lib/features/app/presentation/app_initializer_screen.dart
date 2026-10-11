@@ -216,6 +216,11 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   /// Converts each catalog's local 0–1 import progress into one continuous
   /// startup journey. A later stage never makes the cloud move backwards.
   double _screenProgressFor(String task, double progress) {
+    // Finalization can advance the progress while a coalesced catalog callback
+    // is still queued. Preserve that value instead of passing an invalid
+    // lower bound (> 0.94) to clamp below.
+    if (_progress >= 0.94) return _progress;
+
     final normalized = progress.clamp(0.0, 1.0);
     final (start, end) = switch (task) {
       final value when value.contains('Übungen') => (0.12, 0.40),
@@ -224,7 +229,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       final value when value.contains('Produktdatenbank') => (0.76, 0.94),
       _ => (0.12, 0.94),
     };
-    return (start + (end - start) * normalized).clamp(_progress, 0.94);
+    return (start + (end - start) * normalized)
+        .clamp(_progress, 0.94)
+        .toDouble();
   }
 
   /// Importers can report many batches per second. Retaining only the newest
