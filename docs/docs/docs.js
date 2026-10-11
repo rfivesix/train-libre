@@ -24,18 +24,20 @@ document.addEventListener("DOMContentLoaded", () => {
     mermaid.initialize({
       startOnLoad: true,
       theme: isDark ? "dark" : "default",
-      themeVariables: isDark
-        ? {
-            darkMode: true,
-            background: "#151815",
-            primaryColor: "#1b1f1b",
-            primaryTextColor: "#f4f6f4",
-            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
-            lineColor: "#ddff00",
-            secondaryColor: "#151815",
-            tertiaryColor: "#0e100e",
-          }
-        : {},
+      themeVariables: {
+        primaryBorderColor: getComputedStyle(document.documentElement).getPropertyValue("--accent-text").trim(),
+        lineColor: getComputedStyle(document.documentElement).getPropertyValue("--accent-text").trim(),
+        ...(isDark
+          ? {
+              darkMode: true,
+              background: "#151815",
+              primaryColor: "#1b1f1b",
+              primaryTextColor: "#f4f6f4",
+              secondaryColor: "#151815",
+              tertiaryColor: "#0e100e",
+            }
+          : {}),
+      },
     });
   }
 
@@ -58,6 +60,10 @@ document.addEventListener("DOMContentLoaded", () => {
           mermaid.initialize({
             startOnLoad: false,
             theme: current === "light" ? "default" : "dark",
+            themeVariables: {
+              primaryBorderColor: getComputedStyle(document.documentElement).getPropertyValue("--accent-text").trim(),
+              lineColor: getComputedStyle(document.documentElement).getPropertyValue("--accent-text").trim(),
+            },
           });
           mermaid.run();
         }

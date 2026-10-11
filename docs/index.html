@@ -74,7 +74,16 @@
         ],
         "sameAs": [
           "https://github.com/rfivesix/train-libre"
-        ]
+        ],
+        "creator": { "@id": "https://trainlibre.com/about.html#creator" }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://trainlibre.com/about.html#creator",
+        "name": "Richard Georg Schotte",
+        "url": "https://github.com/rfivesix",
+        "sameAs": ["https://github.com/rfivesix"],
+        "jobTitle": "Creator and product lead of Train Libre"
       }
     ]
   }
@@ -259,7 +268,7 @@
             <small data-i18n="f4_small">Training guidance, not diagnosis</small>
           </article>
 
-          <article class="feature-card reveal delay-2" style="--feature: var(--accent); --feature-rgb: 221, 255, 0;">
+          <article class="feature-card reveal delay-2" style="--feature: var(--accent); --feature-rgb: var(--accent-rgb);">
             <h3 data-i18n="f5_title">Backups, export, and ownership.</h3>
             <p data-i18n="f5_copy">Create local backups, import and export your data, and use one-way health export
               without making the
@@ -323,7 +332,7 @@
             </div>
           </article>
 
-          <article class="intelligence-card reveal delay-2" style="--intel: var(--accent); --intel-rgb: 221, 255, 0;">
+          <article class="intelligence-card reveal delay-2" style="--intel: var(--accent); --intel-rgb: var(--accent-rgb);">
             <span class="intelligence-label" data-i18n="intel_c2_label">Calorie estimation</span>
             <h3 data-i18n="intel_c2_title">Diet targets that adapt to your real trend.</h3>
             <p data-i18n="intel_c2_copy">Train Libre estimates maintenance calories from your profile, logged intake,
@@ -576,6 +585,7 @@
           </article>
         </div>
       </section>
+
     </main>
 
     <footer class="site-footer">
@@ -592,6 +602,7 @@
         <p class="fine-print" data-i18n="footer_medical">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
       </div>
       <div class="footer-links">
+        <a href="./about.html" data-i18n="nav_about">About</a>
         <a href="./docs/">Documentation</a>
         <a href="./privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
         <a href="./terms.html" data-i18n="footer_terms">Terms of Service</a>
