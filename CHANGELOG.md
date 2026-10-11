@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.6.0] - 2026-10-07
 
+### Fixed
+- Fixed KaTeX rendering for bracketed LaTeX formulas in feature documentation and restored sticky docs navigation by removing the clipping scroll container; left navigation and the right table of contents now scroll independently from article content.
+
 ### Added
 - Added persistent right-side scroll indicators to workout history, body measurements, and nutrition statistics.
 - Added an English User Guide section to the public documentation structure, with a task-based topic map for workouts, plans, nutrition, statistics, notifications, and data import/export.

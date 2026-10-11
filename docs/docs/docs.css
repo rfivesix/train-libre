@@ -68,6 +68,13 @@ body.docs-body {
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  /* `hidden` creates a scroll container that prevents sticky docs chrome. */
+  overflow-x: clip;
+}
+
+/* The shared marketing layout clips its page wrapper; docs needs viewport sticky. */
+.docs-body .page {
+  overflow: visible;
 }
 
 /* ─── Header ──────────────────────────────────────────────────────────── */
@@ -239,8 +246,9 @@ body.docs-body {
 /* ─── Left Sidebar ────────────────────────────────────────────────────── */
 .docs-sidebar {
   position: sticky;
-  top: 92px;
-  height: calc(100vh - 110px);
+  top: 88px;
+  height: calc(100vh - 88px);
+  min-height: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--line);
@@ -729,7 +737,9 @@ pre code {
 .docs-toc {
   position: sticky;
   top: 92px;
-  height: calc(100vh - 110px);
+  height: calc(100vh - 108px);
+  align-self: start;
+  min-height: 0;
   padding-left: 12px;
   overflow-y: auto;
 }
