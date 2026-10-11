@@ -45,20 +45,8 @@ Future<void> _advanceToMeasurements(WidgetTester tester) async {
   await tester.tap(startButton);
   await tester.pumpAndSettle();
 
-  // Page 1: Optional workout-history import prompt. Skip for this helper.
-  expect(
-    find.byKey(const Key('onboarding_workout_import_page')),
-    findsOneWidget,
-  );
-  expect(
-    find.byKey(const Key('onboarding_import_workouts_button')),
-    findsOneWidget,
-  );
+  // Page 1: Unit system - select metric.
   final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
-  await tester.tap(nextButton);
-  await tester.pumpAndSettle();
-
-  // Page 2: Unit system - select metric
   await tester.tap(find.byIcon(LucideIcons.ruler));
   await tester.pumpAndSettle();
   await tester.tap(nextButton);

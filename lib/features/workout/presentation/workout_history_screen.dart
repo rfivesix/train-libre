@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +31,7 @@ class WorkoutHistoryScreen extends StatefulWidget {
 }
 
 class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
+  final ScrollController _scrollController = ScrollController();
   late final Stream<List<WorkoutLog>> _logsStream;
 
   @override
@@ -43,6 +45,12 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
 
   Future<void> _deleteLog(int logId) async {
     await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -91,128 +99,142 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
             );
           }
 
-          return ListView.builder(
-            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
-            padding: DesignConstants.cardPadding.copyWith(
-              top: DesignConstants.cardPadding.top + topPadding,
+          return ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              scrollbars: false,
             ),
-            itemCount: logs.length,
-            itemBuilder: (context, index) {
-              final log = logs[index];
-              final duration = log.endTime?.difference(log.startTime);
+            child: CupertinoScrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              thickness: 4,
+              thicknessWhileDragging: 8,
+              mainAxisMargin: 0,
+              child: ListView.builder(
+                controller: _scrollController,
+                scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
+                padding: DesignConstants.cardPadding.copyWith(
+                  top: DesignConstants.cardPadding.top + topPadding,
+                ),
+                itemCount: logs.length,
+                itemBuilder: (context, index) {
+                  final log = logs[index];
+                  final duration = log.endTime?.difference(log.startTime);
 
-              // New: calculate volume and sets for this log.
-              final totalSets = log.sets.length;
-              final totalVolume = log.sets.fold<double>(
-                0,
-                (sum, set) => sum + (set.weightKg ?? 0) * (set.reps ?? 0),
-              );
+                  // New: calculate volume and sets for this log.
+                  final totalSets = log.sets.length;
+                  final totalVolume = log.sets.fold<double>(
+                    0,
+                    (sum, set) => sum + (set.weightKg ?? 0) * (set.reps ?? 0),
+                  );
 
-              return MorphSourceScope(
-                builder: (context, setHidden) => Builder(
-                  builder: (cardCtx) {
-                    // The card the container grows out of has to be drawn
-                    // inside it as well, or the detail screen is all there
-                    // is to see from the first frame of the morph.
-                    late final Widget card;
-                    card = GlassActionableCard(
-                      dismissibleKey: Key('log_${log.id}'),
-                      confirmDelete: () async {
-                        return await showDeleteConfirmation(
-                          context,
-                          content: l10n.deleteWorkoutConfirmContent,
-                        );
-                      },
-                      onDelete: () => _deleteLog(log.id!),
-                      onTap: () => Navigator.of(context).push(
-                        CardMorphRoute(
-                          sourceContext: cardCtx,
-                          sourceBuilder: (_) => card,
-                          onSourceVisibilityChanged: setHidden,
-                          builder: (context) =>
-                              WorkoutLogDetailScreen(logId: log.id!),
-                        ),
-                      ),
-                      child: SummaryCard(
-                        child: ListTile(
-                          title: Text(
-                            log.routineName ?? l10n.freeWorkoutTitle,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                  return MorphSourceScope(
+                    builder: (context, setHidden) => Builder(
+                      builder: (cardCtx) {
+                        // The card the container grows out of has to be drawn
+                        // inside it as well, or the detail screen is all there
+                        // is to see from the first frame of the morph.
+                        late final Widget card;
+                        card = GlassActionableCard(
+                          dismissibleKey: Key('log_${log.id}'),
+                          confirmDelete: () async {
+                            return await showDeleteConfirmation(
+                              context,
+                              content: l10n.deleteWorkoutConfirmContent,
+                            );
+                          },
+                          onDelete: () => _deleteLog(log.id!),
+                          onTap: () => Navigator.of(context).push(
+                            CardMorphRoute(
+                              sourceContext: cardCtx,
+                              sourceBuilder: (_) => card,
+                              onSourceVisibilityChanged: setHidden,
+                              builder: (context) =>
+                                  WorkoutLogDetailScreen(logId: log.id!),
+                            ),
                           ),
-                          // FIX: Subtitle is now a Column with more information.
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4),
-                              Text(
-                                DateFormat.yMMMMd(
-                                  locale,
-                                ).add_Hm().format(log.startTime),
+                          child: SummaryCard(
+                            child: ListTile(
+                              title: Text(
+                                log.routineName ?? l10n.freeWorkoutTitle,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(height: 8),
-                              Row(
+                              // FIX: Subtitle is now a Column with more information.
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    LucideIcons.scale,
-                                    size: 14,
-                                    color: Colors.grey[600],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat.yMMMMd(
+                                      locale,
+                                    ).add_Hm().format(log.startTime),
                                   ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      '${context.read<UnitService>().convertDisplayValue(totalVolume, UnitDimension.weight).toStringAsFixed(0)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        LucideIcons.scale,
+                                        size: 14,
                                         color: Colors.grey[600],
-                                        fontSize: 12,
                                       ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                      width: DesignConstants.spacingM),
-                                  Icon(
-                                    LucideIcons.rotate_ccw,
-                                    size: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      l10n.setCount(
-                                        totalSets,
-                                      ), // Uses the plural function
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          '${context.read<UnitService>().convertDisplayValue(totalVolume, UnitDimension.weight).toStringAsFixed(0)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                          width: DesignConstants.spacingM),
+                                      Icon(
+                                        LucideIcons.rotate_ccw,
+                                        size: 14,
                                         color: Colors.grey[600],
-                                        fontSize: 12,
                                       ),
-                                    ),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          l10n.setCount(
+                                            totalSets,
+                                          ), // Uses the plural function
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
+                              trailing: duration != null
+                                  ? Text(
+                                      formatDuration(duration),
+                                      style: TextStyle(
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    )
+                                  : null,
+                            ),
                           ),
-                          trailing: duration != null
-                              ? Text(
-                                  formatDuration(duration),
-                                  style: TextStyle(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                    );
-                    return card;
-                  },
-                ),
-              );
-            },
+                        );
+                        return card;
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),

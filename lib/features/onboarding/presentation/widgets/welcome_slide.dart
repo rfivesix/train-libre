@@ -101,14 +101,6 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: DesignConstants.spacingM),
-            Text(
-              l10n.onboardingWorkoutImportHint,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
             const SizedBox(height: 36),
             // Primary CTA — continue with profile setup
             SizedBox(

@@ -1331,7 +1331,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune donnée graphique pour cette période';
 
   @override
-  String get amount_in_milliliters => 'Quantité en millilitres';
+  String get amount_in_milliliters => 'Quantité';
 
   @override
   String get amount_in_grams => 'Quantité en grammes';

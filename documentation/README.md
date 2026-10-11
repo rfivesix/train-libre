@@ -1,6 +1,6 @@
 # Train Libre: Modular Documentation Suite
 
-Welcome to the technical documentation suite for **Train Libre**, a highly performant, offline-first, and privacy-centric wellness, sleep, and nutrition tracking application. This suite provides detailed architecture specifications, state management paradigms, and mathematical descriptions of the core algorithmic features of the application.
+Welcome to the documentation suite for **Train Libre**, a highly performant, offline-first, and privacy-centric wellness, sleep, and nutrition tracking application. It includes practical user instructions, transparent descriptions of smart features, and technical documentation for contributors.
 
 ## Project Vision
 
@@ -10,9 +10,19 @@ Train Libre is designed around the core principles of user autonomy, offline cap
 
 ## Documentation Directory Map
 
-This documentation suite is split into highly modular, focused files categorised by audience and purpose. Use the links below to navigate the suite.
+This documentation suite is split into focused sections for different audiences. Use the links below to navigate the suite.
 
-### 1. Developer Documentation (`documentation/developer/`)
+### 1. User Guide (`documentation/user_guide/`)
+For app users who want practical, step-by-step instructions. This guide is currently in English; translations can be added later.
+
+*   [**User Guide Overview**](user_guide/overview.md): Contents and editorial structure for getting started, workouts, plans, nutrition, statistics, notifications, and data import/export.
+
+### 2. Feature Transparency & Algorithmic Logic (`documentation/features/`)
+For advanced users, evaluators, and privacy auditors who want to understand the logic and limitations behind Train Libre's smart features.
+
+*   [**Capabilities & Privacy Overview**](features/overview.md): Summary of the app's smart capabilities, local processing model, native secure storage, and opt-in zero-profiling telemetry boundaries.
+
+### 3. Developer Documentation (`documentation/developer/`)
 For software engineers, system architects, and technical contributors.
 
 *   [**System Overview & Testing Philosophy**](developer/overview.md): High-level system purpose, tech stack, and automated testing strategy spanning unit, integration, and database migration tests.
@@ -21,10 +31,6 @@ For software engineers, system architects, and technical contributors.
 *   [**Localization Architecture**](developer/localization_architecture.md): Offline-first relational localization strategy for catalogs and UI strings across 5 supported locales, schema migration to normalized translation tables, and guide for adding locales.
 *   [**Home Screen Widgets (iOS & Android)**](developer/ios_home_screen_widgets.md): Cross-platform snapshot architecture and native widget families for both iOS (WidgetKit) and Android (Glance/AppWidgetProvider), their configuration, and deep links.
 
-### 2. Feature Transparency & Algorithmic Logic (`documentation/features/`)
-For advanced users, mathematical evaluators, and privacy auditors who seek complete transparency into our smart processing engines.
-
-*   [**Capabilities & Privacy Overview**](features/overview.md): Summary of the app's smart capabilities, local processing model, native secure storage, and opt-in zero-profiling telemetry boundaries.
 *   [**Bayesian TDEE Estimator & Calorie Controller**](features/bayesian_tdee_estimator.md): Full mathematical and algorithmic analysis of the recursive TDEE estimate, observation uncertainty, and bounded goal-rate correction loop.
 *   [**Macronutrient Distribution**](features/macro_distribution.md): How the estimator's calorie target becomes protein, carbohydrate, and fat — the per-kilogram anchors, the fat floor, the order in which the distribution gives way on a constrained budget, and worked examples.
 *   [**BYOK AI Meal Capture & Validation**](features/byok_ai_validation.md): Core detail on the local BYOK API integration, system prompts restricting LLM calculations, fuzzy string matching, target-fit verification, and the 3-pass self-repair verification loop.

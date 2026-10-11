@@ -951,7 +951,7 @@ class _MainScreenState extends State<MainScreen>
                     onPressed: () async {
                       final state = key.currentState;
                       if (state == null) return;
-                      final quantity = int.tryParse(state.quantityText);
+                      final quantity = state.quantityInMl;
                       if (quantity == null || quantity <= 0) return;
 
                       final name = state.nameText;

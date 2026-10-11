@@ -523,7 +523,7 @@
   },
   "snackbar_could_not_open_open_link": "リンクを開けませんでした",
   "chart_no_data_for_period": "この期間のチャート データはありません",
-  "amount_in_milliliters": "ミリリットル単位の量",
+  "amount_in_milliliters": "量",
   "amount_in_grams": "グラム単位の量",
   "meal_label": "食事",
   "add_to_water_intake": "水分摂取量に加える",

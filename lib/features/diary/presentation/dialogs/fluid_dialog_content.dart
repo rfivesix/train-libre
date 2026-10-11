@@ -39,9 +39,22 @@ class FluidDialogContentState extends State<FluidDialogContent> {
   late final TextEditingController _sugarController;
   late DateTime _selectedDateTime;
   bool _hasSetLocalizedDefaultName = false;
+  UnitSystem? _quantityDisplayUnitSystem;
 
   String get nameText => _nameController.text;
   String get quantityText => _quantityController.text;
+  int? get quantityInMl {
+    final enteredAmount =
+        double.tryParse(quantityText.trim().replaceAll(',', '.'));
+    if (enteredAmount == null || enteredAmount <= 0) return null;
+    final amountInMl = context.read<UnitService>().convertToMetric(
+          enteredAmount,
+          UnitDimension.liquid,
+        );
+    final roundedAmount = amountInMl.round();
+    return roundedAmount > 0 ? roundedAmount : null;
+  }
+
   String get caffeineText => _caffeineController.text;
   String get sugarText => _sugarController.text;
   DateTime get selectedDateTime => _selectedDateTime;
@@ -68,11 +81,40 @@ class FluidDialogContentState extends State<FluidDialogContent> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final unitService = context.read<UnitService>();
+    final previousUnitSystem = _quantityDisplayUnitSystem;
+    if (previousUnitSystem == null) {
+      final initialQuantity = widget.initialQuantity;
+      if (initialQuantity != null) {
+        final displayAmount = unitService.convertDisplayValue(
+          initialQuantity.toDouble(),
+          UnitDimension.liquid,
+        );
+        _quantityController.text = _formatAmount(displayAmount);
+      }
+      _quantityDisplayUnitSystem = unitService.unitSystem;
+    } else if (previousUnitSystem != unitService.unitSystem) {
+      final enteredAmount =
+          double.tryParse(quantityText.trim().replaceAll(',', '.'));
+      if (enteredAmount != null) {
+        final amountInMl = previousUnitSystem == UnitSystem.metric
+            ? enteredAmount
+            : UnitService.fluidOuncesToMl(enteredAmount);
+        final displayAmount = unitService.unitSystem == UnitSystem.metric
+            ? amountInMl
+            : UnitService.mlToFluidOunces(amountInMl);
+        _quantityController.text = _formatAmount(displayAmount);
+      }
+      _quantityDisplayUnitSystem = unitService.unitSystem;
+    }
     if (!_hasSetLocalizedDefaultName && _nameController.text.trim().isEmpty) {
       _nameController.text = AppLocalizations.of(context)!.water;
       _hasSetLocalizedDefaultName = true;
     }
   }
+
+  String _formatAmount(double amount) =>
+      amount.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
 
   @override
   void dispose() {
@@ -143,7 +185,7 @@ class FluidDialogContentState extends State<FluidDialogContent> {
         const SizedBox(height: DesignConstants.spacingL),
         TextField(
           controller: _quantityController,
-          keyboardType: TextInputType.number,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: l10n.amount_in_milliliters,
             suffixText: unitService.suffixFor(UnitDimension.liquid),

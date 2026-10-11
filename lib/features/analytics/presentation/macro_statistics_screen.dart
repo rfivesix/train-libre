@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -37,6 +38,7 @@ class MacroStatisticsScreen extends StatefulWidget {
 }
 
 class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
+  final ScrollController _scrollController = ScrollController();
   final MacroAnalyticsDataAdapter _adapter = const MacroAnalyticsDataAdapter();
 
   TimeframeBlock _activeBlock = TimeframeBlock.week;
@@ -56,6 +58,12 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
   MacroPeriodSummary? _summary;
   bool _isLoading = true;
   int _loadEpoch = 0;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -221,70 +229,83 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: EdgeInsets.only(
-              top: DesignConstants.screenPadding.top + topPadding,
-              bottom: DesignConstants.bottomContentSpacer,
+          ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              scrollbars: false,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: DesignConstants.spacingL),
-
-                // 4-Metric Average Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingL,
-                  ),
-                  child: _buildMetricsHeader(
-                    context,
-                    calColor: calColor,
-                    proteinColor: proteinColor,
-                    fatColor: fatColor,
-                    carbsColor: carbsColor,
-                  ),
+            child: CupertinoScrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              thickness: 4,
+              thicknessWhileDragging: 8,
+              mainAxisMargin: 0,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                padding: EdgeInsets.only(
+                  top: DesignConstants.screenPadding.top + topPadding,
+                  bottom: DesignConstants.bottomContentSpacer,
                 ),
-                // Main Stacked Bar Chart (starts from very left edge of screen)
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 0,
-                    right: DesignConstants.spacingM,
-                  ),
-                  child: _summary != null
-                      ? MacroHistoryStackedBarChart(
-                          dailyIntakes: _summary!.dailyIntakes,
-                          range: _summary!.range,
-                          is7Days: _activeBlock == TimeframeBlock.week,
-                          selectedDay: _selectedDay,
-                          onDaySelected: (day) =>
-                              setState(() => _selectedDay = day),
-                        )
-                      : const SizedBox(
-                          height: 220,
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                ),
-                const SizedBox(height: DesignConstants.spacingM),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: DesignConstants.spacingL),
 
-                // Legend
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingL,
-                  ),
-                  child: _buildLegend(
-                    context,
-                    proteinColor: proteinColor,
-                    fatColor: fatColor,
-                    carbsColor: carbsColor,
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
+                    // 4-Metric Average Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingL,
+                      ),
+                      child: _buildMetricsHeader(
+                        context,
+                        calColor: calColor,
+                        proteinColor: proteinColor,
+                        fatColor: fatColor,
+                        carbsColor: carbsColor,
+                      ),
+                    ),
+                    // Main Stacked Bar Chart (starts from very left edge of screen)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 0,
+                        right: DesignConstants.spacingM,
+                      ),
+                      child: _summary != null
+                          ? MacroHistoryStackedBarChart(
+                              dailyIntakes: _summary!.dailyIntakes,
+                              range: _summary!.range,
+                              is7Days: _activeBlock == TimeframeBlock.week,
+                              selectedDay: _selectedDay,
+                              onDaySelected: (day) =>
+                                  setState(() => _selectedDay = day),
+                            )
+                          : const SizedBox(
+                              height: 220,
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
 
-                // Daily Breakdown List
-                _buildDailyBreakdown(context),
-              ],
+                    // Legend
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingL,
+                      ),
+                      child: _buildLegend(
+                        context,
+                        proteinColor: proteinColor,
+                        fatColor: fatColor,
+                        carbsColor: carbsColor,
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingL),
+
+                    // Daily Breakdown List
+                    _buildDailyBreakdown(context),
+                  ],
+                ),
+              ),
             ),
           ),
           if (_isLoading)

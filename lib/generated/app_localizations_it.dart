@@ -1325,7 +1325,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato grafico per questo periodo';
 
   @override
-  String get amount_in_milliliters => 'Quantità in millilitri';
+  String get amount_in_milliliters => 'Quantità';
 
   @override
   String get amount_in_grams => 'Quantità in grammi';

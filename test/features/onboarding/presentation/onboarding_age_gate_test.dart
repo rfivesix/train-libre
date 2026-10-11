@@ -43,15 +43,7 @@ void main() {
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
 
-    // Skip the optional workout-history import prompt.
-    expect(
-      find.byKey(const Key('onboarding_workout_import_page')),
-      findsOneWidget,
-    );
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-
-    // Page 2: Unit system
+    // Page 1: Unit system.
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 

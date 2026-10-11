@@ -1,5 +1,6 @@
 // lib/features/exercise_catalog/presentation/exercise_mapping_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../generated/app_localizations.dart';
@@ -30,12 +31,22 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
       widget.repository ?? context.read<IExerciseCatalogRepository>();
   final Map<String, Exercise> _selection = {};
   final Map<String, List<Exercise>> _suggestions = {};
+  // This is a one-off import flow: reopening it should always start at the
+  // first exercise instead of restoring a previous list offset.
+  final ScrollController _scrollController =
+      ScrollController(keepScrollOffset: false);
   bool _applying = false;
 
   @override
   void initState() {
     super.initState();
     _loadSuggestions();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   /// Read once: this runs in a loop over every unknown name.
@@ -173,153 +184,154 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.mapExercisesTitle),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(
-          DesignConstants.screenPaddingHorizontal,
-          DesignConstants.cardPaddingInternal + topPadding,
-          DesignConstants.screenPaddingHorizontal,
-          0,
+      body: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          scrollbars: false,
         ),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.only(
-                  top: DesignConstants.spacingS,
-                  bottom: DesignConstants.spacingL,
-                ),
-                itemCount: widget.unknownNames.length,
-                itemBuilder: (context, index) {
-                  final src = widget.unknownNames[index];
-                  final picked = _selection[src];
-                  final suggestions = _suggestions[src] ?? [];
+        child: CupertinoScrollbar(
+          controller: _scrollController,
+          thumbVisibility: true,
+          thickness: 4,
+          thicknessWhileDragging: 8,
+          mainAxisMargin: 0,
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: EdgeInsets.only(
+              left: DesignConstants.screenPaddingHorizontal,
+              right: DesignConstants.screenPaddingHorizontal,
+              top: DesignConstants.cardPaddingInternal + topPadding,
+              bottom: DesignConstants.spacingL,
+            ),
+            itemCount: widget.unknownNames.length,
+            itemBuilder: (context, index) {
+              final src = widget.unknownNames[index];
+              final picked = _selection[src];
+              final suggestions = _suggestions[src] ?? [];
 
-                  return SummaryCard(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.spacingM,
-                      vertical: DesignConstants.spacingXS,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          dense: true,
-                          visualDensity: VisualDensity.compact,
-                          minVerticalPadding: 0,
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            src,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: picked == null
-                              ? Text(
-                                  l10n.noSelection,
-                                  style: TextStyle(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                )
-                              : Text(
-                                  '→ ${picked.getLocalizedName(context)}',
-                                  style: TextStyle(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                          trailing: IconButton(
-                            icon: const Icon(LucideIcons.search),
-                            onPressed: () => _pickTarget(src),
-                            tooltip: l10n.selectButton,
-                          ),
-                        ),
-                        if (suggestions.isNotEmpty) ...[
-                          const Divider(height: 16),
-                          Text(
-                            l10n.mappingSuggestions,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          Wrap(
-                            spacing: DesignConstants.spacingS,
-                            runSpacing: DesignConstants.spacingS,
-                            children: suggestions.map((s) {
-                              final isSelected = picked?.uuid == s.uuid;
-                              return GlassPillButton(
-                                height: 32,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: DesignConstants.spacingM,
-                                ),
-                                onTap: () {
-                                  setState(() => _selection[src] = s);
-                                },
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (isSelected) ...[
-                                      Icon(
-                                        LucideIcons.check,
-                                        size: 14,
-                                        color: colorScheme.primary,
-                                      ),
-                                      const SizedBox(width: 4),
-                                    ],
-                                    Text(
-                                      s.getLocalizedName(context),
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: isSelected
-                                            ? colorScheme.primary
-                                            : null,
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                        ] else if (picked != null)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {
-                                setState(() => _selection.remove(src));
-                              },
-                              child: Text(l10n.cancel),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            SafeArea(
-              top: false,
-              child: Padding(
+              return SummaryCard(
                 padding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingM,
+                  horizontal: DesignConstants.spacingM,
+                  vertical: DesignConstants.spacingXS,
                 ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: AppButton.primary(
-                    onPressed: _applying ? null : _apply,
-                    label: _applying ? l10n.applyingChanges : l10n.applyMapping,
-                    tooltip:
-                        _applying ? l10n.applyingChanges : l10n.applyMapping,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      dense: true,
+                      visualDensity: VisualDensity.compact,
+                      minVerticalPadding: 0,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        src,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: picked == null
+                          ? Text(
+                              l10n.noSelection,
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            )
+                          : Text(
+                              '→ ${picked.getLocalizedName(context)}',
+                              style: TextStyle(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                      trailing: IconButton(
+                        icon: const Icon(LucideIcons.search),
+                        onPressed: () => _pickTarget(src),
+                        tooltip: l10n.selectButton,
+                      ),
+                    ),
+                    if (suggestions.isNotEmpty) ...[
+                      const Divider(height: 16),
+                      Text(
+                        l10n.mappingSuggestions,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                      Wrap(
+                        spacing: DesignConstants.spacingS,
+                        runSpacing: DesignConstants.spacingS,
+                        children: suggestions.map((s) {
+                          final isSelected = picked?.uuid == s.uuid;
+                          return GlassPillButton(
+                            height: 32,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.spacingM,
+                            ),
+                            onTap: () {
+                              setState(() => _selection[src] = s);
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isSelected) ...[
+                                  Icon(
+                                    LucideIcons.check,
+                                    size: 14,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  s.getLocalizedName(context),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color:
+                                        isSelected ? colorScheme.primary : null,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                    ] else if (picked != null)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() => _selection.remove(src));
+                          },
+                          child: Text(l10n.cancel),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
+              );
+            },
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            DesignConstants.screenPaddingHorizontal,
+            DesignConstants.spacingM,
+            DesignConstants.screenPaddingHorizontal,
+            DesignConstants.spacingM,
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: AppButton.primary(
+              onPressed: _applying ? null : _apply,
+              label: _applying ? l10n.applyingChanges : l10n.applyMapping,
+              tooltip: _applying ? l10n.applyingChanges : l10n.applyMapping,
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import 'package:intl/intl.dart';
@@ -67,6 +68,7 @@ class MeasurementsScreen extends StatefulWidget {
 }
 
 class _MeasurementsScreenState extends State<MeasurementsScreen> {
+  final ScrollController _scrollController = ScrollController();
   late final IProfileRepository _repository =
       widget.repository ?? context.read<IProfileRepository>();
 
@@ -183,6 +185,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         _loadMeasurements();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadMeasurements() async {
@@ -329,68 +337,86 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         isLoading: _isLoading,
         isEmpty: false, // Handle empty state at timeframe/content level
         extendBodyBehindAppBar: true,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.only(
-                top: topPadding + DesignConstants.spacingM,
-                left: 0,
-                right: 0,
-                bottom: DesignConstants.spacingS,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: DesignConstants.spacingL),
-                    // ── Chart (follows same date range) ──
-                    _buildChartSection(l10n, colorScheme, textTheme),
-                    const SizedBox(height: DesignConstants.spacingXL),
-                    // ── Session list header ──
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DesignConstants.screenPaddingHorizontal,
-                      ),
-                      child: AppSectionHeader(title: l10n.all_measurements),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                  ],
-                ),
-              ),
-            ),
-            if (hasNoData)
-              SliverToBoxAdapter(
-                child: ActiveGapOverlay(
-                  message: l10n.emptyStateActiveGapOverlay,
-                  background: Skeletonizer(
-                    enabled: true,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            scrollbars: false,
+          ),
+          child: CupertinoScrollbar(
+            controller: _scrollController,
+            thumbVisibility: true,
+            thickness: 4,
+            thicknessWhileDragging: 8,
+            mainAxisMargin: 0,
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.only(
+                    top: topPadding + DesignConstants.spacingM,
+                    left: 0,
+                    right: 0,
+                    bottom: DesignConstants.spacingS,
+                  ),
+                  sliver: SliverToBoxAdapter(
                     child: Column(
-                      children: displaySessions
-                          .map((session) => _buildSessionCard(l10n, colorScheme,
-                              textTheme, unitService, dateFormat, session))
-                          .toList(),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: DesignConstants.spacingL),
+                        // ── Chart (follows same date range) ──
+                        _buildChartSection(l10n, colorScheme, textTheme),
+                        const SizedBox(height: DesignConstants.spacingXL),
+                        // ── Session list header ──
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.screenPaddingHorizontal,
+                          ),
+                          child: AppSectionHeader(title: l10n.all_measurements),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingS),
+                      ],
                     ),
                   ),
                 ),
-              )
-            else
-              SliverList.builder(
-                itemCount: displaySessions.length,
-                itemBuilder: (context, index) {
-                  return _buildSessionCard(
-                    l10n,
-                    colorScheme,
-                    textTheme,
-                    unitService,
-                    dateFormat,
-                    displaySessions[index],
-                  );
-                },
-              ),
-            const SliverToBoxAdapter(
-              child: BottomContentSpacer(),
+                if (hasNoData)
+                  SliverToBoxAdapter(
+                    child: ActiveGapOverlay(
+                      message: l10n.emptyStateActiveGapOverlay,
+                      background: Skeletonizer(
+                        enabled: true,
+                        child: Column(
+                          children: displaySessions
+                              .map((session) => _buildSessionCard(
+                                  l10n,
+                                  colorScheme,
+                                  textTheme,
+                                  unitService,
+                                  dateFormat,
+                                  session))
+                              .toList(),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverList.builder(
+                    itemCount: displaySessions.length,
+                    itemBuilder: (context, index) {
+                      return _buildSessionCard(
+                        l10n,
+                        colorScheme,
+                        textTheme,
+                        unitService,
+                        dateFormat,
+                        displaySessions[index],
+                      );
+                    },
+                  ),
+                const SliverToBoxAdapter(
+                  child: BottomContentSpacer(),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: GlassFab(

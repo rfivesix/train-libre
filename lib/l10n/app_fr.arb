@@ -523,7 +523,7 @@
   },
   "snackbar_could_not_open_open_link": "Impossible d'ouvrir le lien",
   "chart_no_data_for_period": "Aucune donnée graphique pour cette période",
-  "amount_in_milliliters": "Quantité en millilitres",
+  "amount_in_milliliters": "Quantité",
   "amount_in_grams": "Quantité en grammes",
   "meal_label": "Repas",
   "add_to_water_intake": "Ajouter à la prise d'eau",

@@ -1318,7 +1318,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chart_no_data_for_period => 'No chart data for this period';
 
   @override
-  String get amount_in_milliliters => 'Amount in milliliters';
+  String get amount_in_milliliters => 'Amount';
 
   @override
   String get amount_in_grams => 'Amount in grams';

@@ -2333,7 +2333,7 @@ abstract class AppLocalizations {
   /// No description provided for @amount_in_milliliters.
   ///
   /// In en, this message translates to:
-  /// **'Amount in milliliters'**
+  /// **'Amount'**
   String get amount_in_milliliters;
 
   /// No description provided for @amount_in_grams.

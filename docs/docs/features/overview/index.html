@@ -109,6 +109,9 @@
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
 <li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
@@ -116,6 +119,36 @@
 <li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
 <li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
 <li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
 <li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
@@ -158,8 +191,8 @@
 <p>A mathematical engine utilizing a recursive Kalman filter. It combines a recent 14-day bodyweight trend with logged calorie intake to estimate Total Daily Energy Expenditure (TDEE), increases observation uncertainty around diet-phase transitions, and uses a separate bounded controller for persistent goal-rate divergence. Poor-quality or sparse data reduces trust and suppresses trajectory corrections. <em>   </em>Learn more in the <a href="../bayesian-tdee-estimator/index.html"><strong>Bayesian TDEE Estimator Documentation</strong></a>.*</p>
 <h3 id="2-macronutrient-distribution" class="doc-h3">2. Macronutrient Distribution<a href="#2-macronutrient-distribution" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>The deterministic second stage of the nutrition recommendation. It turns the estimator's calorie target into protein, carbohydrate, and fat figures: protein and fat are anchored per kilogram of body weight and scaled with the goal, carbohydrates take the remainder, and a fat floor bounds how far the distribution may give way on a budget too small to carry both targets. <em>   </em>Learn more in the <a href="../macro-distribution/index.html"><strong>Macronutrient Distribution Documentation</strong></a>.*</p>
-<h3 id="3-byok-ai-meal-capture-validation" class="doc-h3">3. BYOK AI Meal Capture & Validation<a href="#3-byok-ai-meal-capture-validation" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates under a <strong>Bring Your Own Key (BYOK)</strong> security structure, communicating directly with provider endpoints (OpenAI, Gemini, Anthropic, Mistral, xAI, Ollama, or custom OpenAI-compatible servers). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving. <em>   </em>Learn more in the <a href="../byok-ai-validation/index.html"><strong>BYOK AI Captured Meal Validation Documentation</strong></a>.*</p>
+<h3 id="3-on-device-byok-ai-meal-capture" class="doc-h3">3. On-Device & BYOK AI Meal Capture<a href="#3-on-device-byok-ai-meal-capture" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates either <strong>100% on-device</strong> using Apple's native <code>FoundationModels</code> framework (iOS 26+) on the Neural Engine with zero data leaving the device, or under a <strong>Bring Your Own Key (BYOK)</strong> security structure directly communicating with configured provider endpoints (OpenAI, Gemini, Anthropic, Mistral, xAI, Ollama, or custom OpenAI-compatible servers). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving. <em>   </em>Learn more in the <a href="../byok-ai-validation/index.html"><strong>AI Captured Meal Validation Documentation</strong></a>.*</p>
 <h3 id="4-native-health-sync-export" class="doc-h3">4. Native Health Sync & Export<a href="#4-native-health-sync-export" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>A local synchronization pipe bridging local wellness records with native platform health frameworks (Apple HealthKit on iOS and Google Health Connect on Android). The architecture is bidirectional: <em>   <strong>Import</strong>: Ingests passive vitals (step segments, sleep stage intervals, and heart rate samples) into local SQLite tables, using configurable hourly step segment merging policies (<code>auto_dominant</code> and <code>max_per_hour</code>). </em>   <strong>Export</strong>: Pushes user logs (body measurements, nutrition & hydration totals, and workout sessions) to the platform health store using a hash-based idempotency table (<code>health_export_records</code>) and incremental domain checkpoints to guarantee zero duplicate writes. <em>   </em>Learn more in the <a href="../health-sync-export/index.html"><strong>Native Health Sync & Export Documentation</strong></a>.*</p>
 <h3 id="5-sleep-health-score-engine-shs-v35" class="doc-h3">5. Sleep Health Score Engine (SHS v3.5)<a href="#5-sleep-health-score-engine-shs-v35" class="header-anchor" aria-label="Link to section">#</a></h3>
@@ -174,11 +207,11 @@
 <h3 id="9-live-activity-cross-platform-widgets" class="doc-h3">9. Live Activity & Cross-Platform Widgets<a href="#9-live-activity-cross-platform-widgets" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>Real-time glanceable surfaces mirroring active workouts and daily wellness metrics: <em>   <strong>Workout Live Activity</strong>: iOS Lock Screen and Dynamic Island card displaying live set targets, active rest timers, and exercise navigation without background network polling. </em>   <strong>Home Screen Widgets</strong>: Shared Dart snapshot engine delivering six glanceable widgets (Today Glance, Quick Actions, Steps, Measurements, Muscle Recovery, Last Workout) on both iOS 18+ and Android 12+. <em>   </em>Learn more in the <a href="../live-activity-workout/index.html"><strong>Live Activity Documentation</strong></a> and <a href="../../developer/ios-home-screen-widgets/index.html"><strong>Home Screen Widgets Guide</strong></a>.*</p>
 <h3 id="10-adaptive-nutrition-goals" class="doc-h3">10. Adaptive Nutrition Goals<a href="#10-adaptive-nutrition-goals" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Users can set a long-term weight goal from a recorded baseline and review its trajectory over time. Weekly reviews require sufficient weigh-ins and food logs before proposing calorie and macro changes. Recommendations remain proposals until the user applies them. <em>   </em>Learn more in the <a href="adaptive-nutrition-goals/"><strong>Adaptive Nutrition Goals Documentation</strong></a>.*</p>
+<p>Users can set a long-term weight goal from a recorded baseline and review its trajectory over time. Weekly reviews require sufficient weigh-ins and food logs before proposing calorie and macro changes. Recommendations remain proposals until the user applies them. <em>   </em>Learn more in the <a href="../adaptive-nutrition-goals/index.html"><strong>Adaptive Nutrition Goals Documentation</strong></a>.*</p>
 <h3 id="11-manual-workout-plans" class="doc-h3">11. Manual Workout Plans<a href="#11-manual-workout-plans" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Saved routines can be arranged as a fixed weekly schedule or a repeating 1–14 day sequence with rest days. Plans track completed, partial, and skipped sessions. Missed sequence sessions remain next until completed or skipped; optional local reminders open the active plan. <em>   </em>Learn more in the <a href="manual-workout-plans/"><strong>Manual Workout Plans Documentation</strong></a>.*</p>
+<p>Saved routines can be arranged as a fixed weekly schedule or a repeating 1–14 day sequence with rest days. Plans track completed, partial, and skipped sessions. Missed sequence sessions remain next until completed or skipped; optional local reminders open the active plan. <em>   </em>Learn more in the <a href="../manual-workout-plans/index.html"><strong>Manual Workout Plans Documentation</strong></a>.*</p>
 <h3 id="12-macronutrient-analytics" class="doc-h3">12. Macronutrient Analytics<a href="#12-macronutrient-analytics" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The Statistics hub carries its selected date range into macro analytics, with period navigation, daily intake detail, and a rolling seven-day intake-versus-target comparison in Nutrition. <em>   </em>Learn more in the <a href="macro-analytics/"><strong>Macronutrient Analytics Documentation</strong></a>.*</p>
+<p>The Statistics hub carries its selected date range into macro analytics, with period navigation, daily intake detail, and a rolling seven-day intake-versus-target comparison in Nutrition. <em>   </em>Learn more in the <a href="../macro-analytics/index.html"><strong>Macronutrient Analytics Documentation</strong></a>.*</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -193,7 +226,7 @@
 <li class="toc-item toc-item-l2"><a href="#smart-capabilities-overview">Smart Capabilities Overview</a></li>
 <li class="toc-item toc-item-l3"><a href="#1-bayesian-tdee-estimator">1. Bayesian TDEE Estimator</a></li>
 <li class="toc-item toc-item-l3"><a href="#2-macronutrient-distribution">2. Macronutrient Distribution</a></li>
-<li class="toc-item toc-item-l3"><a href="#3-byok-ai-meal-capture-validation">3. BYOK AI Meal Capture &amp; Validation</a></li>
+<li class="toc-item toc-item-l3"><a href="#3-on-device-byok-ai-meal-capture">3. On-Device &amp; BYOK AI Meal Capture</a></li>
 <li class="toc-item toc-item-l3"><a href="#4-native-health-sync-export">4. Native Health Sync &amp; Export</a></li>
 <li class="toc-item toc-item-l3"><a href="#5-sleep-health-score-engine-shs-v35">5. Sleep Health Score Engine (SHS v3.5)</a></li>
 <li class="toc-item toc-item-l3"><a href="#6-muscle-recovery-model">6. Muscle Recovery Model</a></li>

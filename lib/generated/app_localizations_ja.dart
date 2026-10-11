@@ -1307,7 +1307,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chart_no_data_for_period => 'この期間のチャート データはありません';
 
   @override
-  String get amount_in_milliliters => 'ミリリットル単位の量';
+  String get amount_in_milliliters => '量';
 
   @override
   String get amount_in_grams => 'グラム単位の量';
