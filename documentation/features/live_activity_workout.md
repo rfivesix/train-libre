@@ -1,171 +1,126 @@
 # Workout Live Activity
 
-The **Workout Live Activity** puts the current workout on the Lock Screen and in the Dynamic
-Island for as long as a session is running. It answers one question at a glance — *what am I
-lifting next, and how much rest is left* — so the phone can stay in a pocket, on a bench, or on
-a music screen without the workout disappearing from view.
+The Workout Live Activity keeps a compact view of an active workout on iOS. It can show the
+current exercise and set, a rest or duration timer, and controls supported by the OS. Android
+uses an ongoing workout notification; on Android 16 (API 36) the app asks the system to promote
+that notification to a Live Update. Promotion and the exact presentation are controlled by
+Android and device policy.
 
-Available on iOS 16.2 and newer. The Dynamic Island presentations require an iPhone 14 Pro or
-newer; every device gets the Lock Screen card. Interactive buttons require iOS 17.
+> Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.
 
-> Like everything else in Train Libre, this runs entirely on the device. Live Activities are
-> commonly driven by remote push notifications; this one never is. There is no server, no APNs
-> certificate and no network round-trip — the app updates the card directly, and the system
-> animates the timers on its own.
-
----
+On iOS, ActivityKit support starts at iOS 16.2. Interactive App Intent buttons require iOS 17;
+on iOS 16.2–16, the activity still displays but those controls are unavailable. Android displays
+the ongoing notification when notifications are enabled. Its Live Update promotion is requested
+only on API 36 or newer and is not guaranteed. The app does not request remote ActivityKit pushes:
+it starts the iOS activity with `pushType: nil` and updates it from the app or its local intents.
 
 ## What it shows
 
-The card always carries the same four pieces of information:
+The view depends on workout state and platform surface. During a set or rest, the iOS Lock Screen
+card shows the routine title and elapsed workout time, exercise and set position, metrics, and a
+checkmark when the displayed values are sufficient to complete the set. While resting, iOS 17+
+also shows rest controls. An empty workout and a workout with no remaining sets have separate
+states. Compact and minimal Dynamic Island layouts omit or rearrange details to fit.
 
-```
-[icon]  Push Day                                          17:06
-        Bench Press                                 Set 3 of 5
-        W  72.5 kg  ×  8 reps  (RIR 2)                     [✓]
-```
+Android uses a notification title and text instead of duplicating the iOS card. The title is the
+exercise name when present, otherwise the workout title. During rest or a running duration timer,
+the notification uses the system chronometer. It exposes the relevant timer/rest controls and a
+complete-set action only when the set is eligible. Its exact display depends on the notification
+shade, device, and—on API 36+—whether Android promotes it to a Live Update.
 
-- **Header** — routine name and the elapsed workout duration, counting up on its own.
-- **Exercise and position** — which exercise, and where in it you are.
-- **The set** — set type, weight, reps and RIR, led by a coloured set-type badge.
-- **The checkmark** — completes the set with the values shown.
+### Set values and timer behavior
 
-The **set-type badge** uses the same letters and colours as the app's own set rows: `W` warm-up
-in orange, `F` failure in red, `D` drop set in blue, `S` superset and `O` other in neutral grey.
-Normal working sets show `N` — the position is already spelled out as "Set 3 of 5" beside it, so
-repeating the number would add nothing.
+For strength sets, entered values take precedence over the routine's planned weight, reps, and
+RIR. Missing required values are displayed as a dash; the feature does not invent values. The
+completion action is disabled or omitted until the required fields are available. On iOS, tapping
+the activity outside an enabled button opens the workout through its deep link.
 
-While a rest timer runs, a control row appears beneath the set:
+Duration-tracked exercises (which can include exercises other than catalogued cardio) use the
+duration metrics path. Depending on the exercise's logging fields, the card may show duration,
+distance, weight, and RPE. Routine set templates do not currently provide planned duration or
+distance, so those values appear only after they have been logged. Whether the set can be
+completed depends on the fields required by that exercise's logging mask; it is not universally
+blocked until both duration and distance are present.
 
-```
-        [ −15s ]        1:07        [ +15s ]        [ Skip ]
-```
+For a duration-based set, the timer starts at zero and counts up. Starting, stopping, and
+completing it from the activity records commands; the app applies those commands to the workout
+when it next runs. On iOS the App Intent updates the visible activity immediately and queues the
+database command in the shared App Group. On Android a `BroadcastReceiver` queues the command,
+updates its stored notification content, and redraws the notification. These actions do not
+themselves open the workout screen.
 
-For a duration-based exercise, the set also carries its own timer controls. It
-starts at zero and counts up. Stop pauses the elapsed time, and Play resumes it;
-completing the set stores the accumulated duration. Start and stop are also
-available from the iOS Live Activity (interactive on iOS 17+) and Android
-workout Live Update. Those controls update the activity without foregrounding
-the app; their database commands are applied when the app next resumes.
+## Interactions and state updates
 
-When there are no sets left the card offers **Add exercise**; if a workout is running with no
-exercises at all, it offers **Open app**. The workout is never finished from the card — that
-stays a deliberate action inside the app.
-
-### Cardio
-
-Cardio sets use the same card with different numbers: duration, distance and RPE instead of
-weight, reps and RIR, separated by `·` instead of `×`, and without a set-type badge.
-
-```
-        Treadmill                                   Set 1 of 1
-        20:00  ·  5.00 km  (RPE 7)                         [✓]
-```
-
-Routines currently store no target duration or distance for cardio, so a cardio set shows values
-only once they have been entered. Until then the line reads `–` and the set cannot be completed
-from the card.
-
----
-
-## The four surfaces
-
-| Surface | What it shows |
+| Action | Behavior |
 |---|---|
-| **Lock Screen / banner** | The full card described above |
-| **Dynamic Island, expanded** | The same content, laid out for the narrower island |
-| **Dynamic Island, compact** | Rest timer on the left, `72.5 kg / × 8` on the right |
-| **Dynamic Island, minimal** | One element: the rest timer, or `115×9`, or the app icon |
+| Tap the iOS activity or Android notification | Opens the active workout using its deep link. |
+| `−15s` / `+15s` on iOS 17+ and Android | Adjusts the displayed rest end time and queues an adjustment for the app. |
+| Skip rest | Clears the displayed countdown and queues the skip. The app resolves the next workout state when it applies the command. |
+| Complete set | Queues completion with the current displayed values/timer state and advances the locally displayed snapshot when a following set is available. |
+| Start/stop a duration timer | Updates the visible timer and queues the corresponding timer change for the app. |
+| Add exercise / Open app on iOS | Opens the app by deep link; these are links, not database actions performed by the widget. |
 
-Which of the compact and minimal forms you see is decided by iOS, not by the app. When a second
-Live Activity is on screen — a music player, a timer — both are reduced to their minimal circle.
-Because that circle is then the only place the set appears at all, it shows the numbers rather
-than the app icon.
+The iOS App Intent controls are available from iOS 17. On earlier supported iOS versions, the
+activity remains visible but the interactive rest and set-timer controls are not shown. Android
+actions are notification actions handled by the receiver. On both platforms, a button can update
+the lightweight activity/notification state before the app has applied the queued command, so the
+app is the source of truth when it resumes.
 
----
+The iOS widget uses a `widgetURL` for tapping the activity. An enabled checkmark is an App Intent
+and queues completion without forcing the app to foreground. A checkmark with missing required
+values is rendered as a disabled image; tapping the surrounding activity opens the app. Android
+does not offer the complete-set action when its `canCompleteSet` state is false; a separate
+notification action opens the app when available.
 
-## Interactions
+## Rest timer and notification sound
 
-| Element | Effect |
-|---|---|
-| Tapping the card | Opens the running workout. Never stacks a second copy of the screen. |
-| `−15s` / `+15s` | Extends or shortens the running pause |
-| `Skip` | Ends the pause immediately |
-| `✓` | Completes the set with the values shown and starts the next pause |
-| **Add exercise** | Opens the exercise picker |
+The displayed countdown is based on an absolute end time. iOS renders it with a system timer, and
+Android renders it with a notification chronometer; neither requires a Dart update every second.
+On iOS, the countdown continues past zero and the view uses a timed progress fill for its overdue
+background. `staleDate` is also set to the rest end as a fallback for ActivityKit state refresh.
+On Android, the implementation configures a countdown chronometer; the code does not promise a
+particular overdue presentation after zero.
 
-The buttons work while the app is closed. They run in the widget's own process, which has no
-access to the app's database — so a completed set is recorded as a pending command in the shared
-App Group and applied by the app the next time it runs. Because of that, the checkmark also
-brings the app to the foreground; the timer buttons do not need to.
+The rest alert is scheduled separately from the Live Activity/notification. On iOS, a native
+`UNUserNotificationCenter` request with the default sound is scheduled at the rest end and
+rescheduled or canceled when the user changes/skips the rest. That request may also present a
+notification banner according to system notification settings; it is not suppressed just because
+the Live Activity is visible. While the app is foregrounded, the workout screen plays its own
+sound and haptic, and suppresses its additional foreground completion notification when a Live
+Activity is running. On Android, the app's local notification service schedules the rest alert;
+the workout notification itself is configured as low-importance and non-interrupting. Delivery,
+sound, and banner timing remain subject to OS notification settings and scheduling behavior.
 
-**A set with missing values cannot be completed from the card.** If weight or reps are unknown,
-the checkmark is grey and inert, and tapping it opens the app instead. Missing numbers are shown
-as `–`; nothing is ever filled in from the plan or guessed.
+## Lifecycle and limits
 
----
+The app starts the activity/notification for an active workout, updates it when visible workout
+content changes, and ends or hides it when the workout is ended. The iOS bridge also ends stale
+activities before starting a new one. This does not document an independent crash-recovery
+guarantee for every possible OS termination path.
 
-## The rest timer
+The activity content is a snapshot prepared by Dart: localized labels, converted units, and
+formatted metric strings are sent to the native UI. Timers are sent as dates so the platform can
+render them. iOS bounds the number of future set snapshots to fit ActivityKit's content-state
+size; after the included snapshots are exhausted, the app must resume to provide fresh state.
+Android persists the workout activity/notification attributes and content locally for its
+receiver to update. On either platform, notifications/activities can be unavailable when the
+user or OS disables them, and the native surfaces may truncate or rearrange content.
 
-The rest countdown is the part of the card people look at most, and the part with the most
-subtlety behind it.
-
-**It never stops.** The number counts down to zero and then keeps counting *up*, so an overdue
-pause shows how long it has been overdue rather than sitting frozen at `0:00`.
-
-**The field turns red the moment the pause ends** — not a second later. This matters more than it
-sounds: a Live Activity cannot change its own layout, text or colour while the app is asleep.
-Only a handful of system-drawn views update on their own, and the red backdrop is built from one
-of them, so it flips exactly on time without the app being woken at all.
-
-**The sound is what actually reaches you** when the phone is in a pocket and music is playing.
-It is scheduled ahead of time and moves along when the pause is changed from the card, so `+15s`
-really does mean fifteen seconds more. While the card is visible, the app does not additionally
-post a banner — the card already says it.
-
----
-
-## Behaviour worth knowing
-
-- The Live Activity ends when the workout is finished or discarded. A workout left over from a
-  crash or force quit is cleaned up when the next one starts.
-- iOS ends Live Activities after about eight hours and removes them from the Lock Screen after
-  twelve. A very long session will lose the card before the workout ends.
-- If Live Activities are switched off in Settings, the workout is unaffected; the card simply
-  never appears.
-- Editing the workout in the app — adding, removing or reordering sets and exercises — is
-  reflected on the card immediately.
-- Text is fully localized (DE, EN, FR, IT, JA) and follows the chosen unit system, including
-  lbs and miles.
-
----
-
-## How it fits together
-
-Everything the card displays is prepared in Dart and handed over ready to draw: numbers already
-formatted, units already converted, words already translated, badge colours already resolved. The
-Swift side formats nothing — it lays out strings it does not interpret. That keeps a single source
-of truth for how a set is written, shared with the rest of the app.
-
-Times are the exception, and deliberately so: they cross over as absolute dates rather than
-counters, which lets the system animate them without an update every second. A running workout
-needs roughly one update per set.
+## Implementation map
 
 | Path | Role |
 |---|---|
-| `lib/features/workout/domain/live_activity/` | Builds the card's content from the session |
-| `lib/features/workout/data/live_activity/` | Channel to the platform |
-| `ios/LiveActivity/` | Shared model, bridge, rest-sound scheduler |
-| `ios/TrainLibreLiveActivity/` | The widget extension: views, App Intents, theme |
-| `test/features/workout/live_activity_content_test.dart` | Content, badges, cardio, guard rails |
-
----
+| `lib/features/workout/domain/live_activity/` | Builds display content, state, and localized strings from the workout. |
+| `lib/features/workout/data/live_activity/` | Sends updates and consumes queued commands through the platform channel. |
+| `lib/features/workout/presentation/live_workout_view_model.dart` | Starts, updates, ends, and reconciles the activity with workout state and rest alerts. |
+| `ios/LiveActivity/` | ActivityKit bridge, shared state, queued intents, and rest-sound notification. |
+| `ios/TrainLibreLiveActivity/` | Lock Screen and Dynamic Island views and iOS App Intents. |
+| `android/app/src/main/kotlin/com/rfivesix/trainlibre/liveupdate/` | Ongoing notification, API 36 promotion request, and action receiver. |
 
 ## Known limits
 
-- **Android uses its workout Live Update notification.** Its set timer runs in the notification
-  chronometer; system promotion to the Live Update surface depends on Android 16 and device policy.
-- **Cardio targets do not exist yet.** Routines store no planned duration or distance, so cardio
-  sets stay empty until values are entered.
-- **The numbers cannot be edited from the card.** Weight and reps are shown as planned; changing
-  them means opening the app.
+- iOS 16.2 is the ActivityKit minimum; interactive controls require iOS 17.
+- Android's Live Update is an API 36+ promotion request. The ordinary ongoing notification is the fallback, and the system decides whether to promote it.
+- Dynamic Island and notification surfaces do not show identical content. The available space, OS version, and device presentation affect what is visible.
+- Planned routine targets for duration and distance are not currently supplied by set templates; values are shown after they are logged.
+- The activity is not an editor for set metrics. To change weight, reps, or other logged values, open the workout in the app.

@@ -1,218 +1,123 @@
-# Fitness-Oriented Sleep Health Score (SHS v3.5) Heuristic
+# Sleep Health Score (SHS v3)
 
-> **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking recovery, performance, and general well-being. It is not a diagnostic tool and does not apply to clinical sleep disorders (such as insomnia, sleep apnea, or other sleep pathologies). All scoring weights, optimal targets (e.g. 90 minutes deep sleep), and threshold boundaries are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or diagnostic criteria.
+> Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.
 
-This document defines the mathematical architecture of the fitness-oriented **Sleep Health Score v3.5 (SHS v3.5)** engine. Moving away from rigid, binary hard-cap cutoffs (SHS v3), version 3.5 implements a continuous, multi-domain soft-cap multiplier system that dynamically degrades the composite sleep score based on the single worst-performing biological bottleneck.
+Train Libre calculates a 0–100 sleep score from available duration, continuity, stage architecture, timing, and regularity inputs. The weights, curves, targets, and penalty thresholds below are product heuristics. The score is not a validated clinical instrument, and the cited sleep research does not validate these formulas or cutoffs.
 
----
+## Version and persistence
 
-## 1. Engine Overview
+The current analysis version is `sleep-health-score-v3`. The import pipeline passes that version to the scorer and saves it with each nightly analysis. It is version metadata: the scorer does not select a different formula based on the version string. Reimports can recompute and replace analyses.
 
-The Sleep Health Score (*SHS*) is constructed in two sequential phases:
-1. **Weighted Base Aggregation**: A top-level normalized weighted average of 5 primary clinical domains.
-2. **Dynamic Soft-Cap Penalty**: Multiplicative scaling using the single most severe biological penalty (bottleneck).
+## Inputs and imported data
 
-### Top-Level Weighted Aggregation
+The import pipeline repairs each imported stage timeline, calculates nightly metrics, combines sessions for a night, and scores the resulting inputs. It calculates sleep duration, time in bed, efficiency, and wake after sleep onset from the imported session and stage timeline. It derives stage percentages only for stages present in the timeline. An absent stage remains unknown; it is not inferred from another stage.
 
-The base score *SHS_base* ∈ [0, 100] aggregates 5 dimensions according to specific fitness-oriented weight allocations. These relative weights and mathematical curves are engineering design choices tuned for sports recovery and performance tracking, using consensus guidelines and sleep quality indicators as qualitative anchors rather than prescriptive clinical thresholds:
+Apple Health `core`/`asleep_core` maps to light sleep; `deep` and `rem` map to their corresponding stages. Health Connect `light`, `deep`, and `rem` map to those stages. Generic `asleep` or `asleep_unspecified` maps to an unspecified-asleep stage, not light, deep, or REM. Unspecified sleep contributes to total sleep time, but does not supply the deep or REM percentages required for architecture scoring.
 
-*   **Sleep Duration (*D*)** - **30%**: Evaluates overall sleep volume against homeostatic sleep need.
-*   **Sleep Continuity (*C*)** - **20%**: Assesses fragmentation, divided equally (50/50) between Sleep Efficiency (*C_SE*) and Wake After Sleep Onset (*C_WASO*).
-*   **Sleep Stage Depth / Architecture (*A*)** - **25%**: Sleep architecture quality, evaluating absolute minutes of Deep (N3) and REM sleep, with Light-stage (N1+N2) percentage penalties.
-*   **Circadian Timing (*T_circ*)** - **15%**: Synchronization of sleep onset/mid-point with the natural light-dark cycle.
-*   **Sleep Regularity (*R*)** - **10%**: Day-to-day stability of the sleep schedule using a rolling mid-sleep standard deviation.
+Consequently:
 
-The base aggregation is dynamically renormalized to handle missing or incomplete data streams, ensuring the score remains reliable:
+- Architecture scoring is unavailable unless duration, deep percentage, and REM percentage are present. If either deep or REM is missing, its architecture score and corresponding stage penalty cannot be calculated.
+- Missing light-stage percentage is treated as 0% by the architecture formula, so it does not incur a light-stage penalty. In the continuity fallback it also means no light-stage penalty.
+- A night with only unspecified-asleep stages can still have duration, continuity, and timing inputs, but no architecture score or deep/REM penalty.
+- If a repaired timeline is empty, the metric calculator produces zero total sleep, zero efficiency, and zero WASO. This is a consequence of that import path, not evidence that the person slept zero minutes.
 
-$$SHS_{base} = \left( \frac{\sum_{i \in \mathcal{A}} w_i \cdot S_i}{\sum_{i \in \mathcal{A}} w_i} \right) \cdot 100$$
+The timing calculation uses the local start time of the selected core session, not a detected physiological sleep onset. It adds half the combined sleep duration to that start time to estimate mid-sleep. If sessions are fragmented or combined, this estimate need not be the midpoint of actual sleep episodes.
 
-Where:
-*   *A* is the set of actively available dimensions.
-*   *w_i* is the weight coefficient for domain *i* (e.g., *w_D* = 0.30, *w_C* = 0.20, ...).
-*   *S_i* ∈ [0, 1] is the continuous normalized score of domain *i*.
+## Base score
 
-### Final Score Degradation
+Each available domain has a score from 0 to 1. The weighted mean is renormalized over available domains, then scaled to 0–100:
 
-The final Sleep Health Score (*SHS_final*) applies the continuous `dynamicMultiplier` to the base score:
+\[
+S_{base}=100\,\frac{\sum_{i\in A} w_i S_i}{\sum_{i\in A} w_i}
+\]
 
-$$SHS_{final} = \text{clamp}\Big( SHS_{base} \cdot \text{dynamicMultiplier}, \; 0.0, \; 100.0 \Big)$$
+| Domain | Weight | Availability |
+|---|---:|---|
+| Duration | 0.30 | Duration is present |
+| Continuity | 0.20 | Always produced; see fallback below |
+| Architecture | 0.25 | Duration, deep %, and REM % are present |
+| Timing | 0.15 | Session start time and duration are present |
+| Regularity | 0.10 | Rolling mid-sleep SD is present and at least 5 valid days are available |
 
----
+The score’s completeness field is the sum of active domain weights, not a confidence or accuracy estimate. If no weighted component is available, the result is unavailable. The result is labeled `good` at 80 or above, `average` at 60 or above, and `poor` below 60; these are display bands, not clinical classifications.
 
-## 2. Dimension Specifications
+## Domain calculations
 
-### 2.1 Sleep Duration (*D*)
-Calculated from total sleep time in hours (*h* = durationMinutes / 60). It utilizes a Gaussian distribution centered around the 7.0–9.0 hours anabolic plateau. Severe short sleep has no hard limit, letting the Gaussian decay smoothly toward zero, while extreme hypersomnia (*h* > 10.5h) results in a score of 0.0.
+### Duration
 
-*   *S_D(h)* = 1.0 if *7.0 ≤ h ≤ 9.0*
-*   *S_D(h)* = 0.0 if *h > 10.5*
-*   For short sleep (*h < 7.0*):
-    $$S_D(h) = \exp\left( -\frac{(h - 7.0)^2}{2 \cdot 1.0^2} \right)$$
-*   For long sleep (*9.0 < h ≤ 10.5*):
-    $$S_D(h) = \exp\left( -\frac{(h - 9.0)^2}{2 \cdot 1.0^2} \right)$$
+Let `h` be total sleep time in hours. The score is 1.0 from 7 through 9 hours. Below 7 hours it decays from 7; above 9 it decays from 9. Both sides use a Gaussian with a one-hour spread. Above 10.5 hours the score is 0.
 
-### 2.2 Sleep Continuity (*C*)
-Composed of two complementary sub-metrics, combined as *S_C* = 0.5 · *S_SE* + 0.5 · *S_WASO* (renormalized if only one sub-metric is active).
+\[
+S_D(h)=\begin{cases}
+1 & 7\le h\le9\\
+0 & h>10.5\\
+\exp(-(h-7)^2/2) & h<7\\
+\exp(-(h-9)^2/2) & 9<h\le10.5
+\end{cases}
+\]
 
-#### Sleep Efficiency (*S_SE*)
-Uses a steep logistic sigmoid curve centered at a critical threshold of 90% efficiency.
+### Continuity
 
-$$S_{SE}(SE) = \frac{1}{1 + \exp\Big( -50.0 \cdot (SE - 0.90) \Big)}$$
+Sleep efficiency is mapped through a logistic curve centered at 90%. WASO has a 20-minute grace period, then a quadratic rational penalty with a 30-minute scale. If both are present, continuity is their equal-weight mean; if just one is present, that value is used.
 
-Where *SE* = sleepEfficiencyPct / 100.0.
+\[
+S_{SE}=\frac{1}{1+e^{-50(SE-0.90)}},\qquad
+S_{WASO}=\frac{1}{1+(\max(W-20,0)/30)^2}
+\]
 
-#### Wake After Sleep Onset (*S_WASO*)
-Calculated using a quadratic rational penalty decay function starting after a grace period of 20 minutes.
+Only when **both** efficiency and WASO inputs are null, the scorer uses this fallback:
 
-$$S_{WASO}(W) = \frac{1}{1 + \left( \frac{W_{pen}}{30} \right)^2}$$
+\[
+S_{C}=0.9P_{light}+0.1S_D
+\]
 
-Where *W_pen* = max(*W* - 20.0, 0.0) and *W* is the WASO duration in minutes.
+Here `P_light` is 1 through 65% light sleep and decays as a Gaussian penalty above 65%; if light percentage is absent, it defaults to 0%. If duration is absent, its fallback contribution is 0. This is a continuity proxy, not a measurement of fragmentation. The standard import pipeline calculates and supplies both efficiency and WASO, so this null-input fallback is not the usual imported-night path.
 
-#### On-Device Fallback for Missing Metrics
-If a connected smartwatch does not supply explicit Time-In-Bed or Awake-Minutes (rendering Efficiency and WASO unobservable), the engine automatically evaluates a robust fallback using sleep stage distribution and duration:
+### Stage architecture
 
-$$S_{C, fallback} = 0.9 \cdot (1.0 - \text{lightSleepPenalty}) + 0.1 \cdot \text{durationPenalty}$$
+The architecture formula estimates deep and REM subscores from their absolute minutes (`duration × stage percentage`). The deep curve rises toward 90 minutes and the REM curve toward 100 minutes, each with a 40-minute Gaussian spread. Light sleep is unpenalized through 65%; above that percentage, a 7-percentage-point Gaussian spread is used. The combined score is:
 
-Where:
-*   *lightSleepPenalty* = 1.0 - *P_light*(*p_light*) (based on the Light-stage (N1+N2) percentage penalty).
-*   *durationPenalty* = *S_D*(*h*) (the Sleep Duration subscore).
+\[
+S_A=\operatorname{clamp}((0.45A_{N3}+0.45A_{REM})P_{light}+0.10,0,1)
+\]
 
-This ensures commercial smartwatch summaries still generate a highly reliable continuity score.
+The 0.10 term is part of the implementation. When light percentage is absent it uses `P_light = 1`. Architecture scoring is omitted when duration, deep percentage, or REM percentage is missing.
 
-### 2.3 Sleep Stage Depth / Architecture (*A*)
-Evaluates the physiological structure of sleep stages based on absolute minutes of restorative stages, penalized by excessive light sleep.
+### Timing
 
-#### Deep Sleep / N3 (*A_N3*)
-A joint linear growth and Gaussian decay curve peaking at 90 minutes:
+The scorer estimates mid-sleep from the local core-session start time plus half the duration, normalizing across midnight. The timing score is a Gaussian centered at 03:30 with a one-hour spread; when mid-sleep is later than 05:30, an additional Gaussian penalty with a half-hour spread applies. These clock targets are model choices, not an assessment of a person’s circadian phase.
 
-$$A_{N3}(t_{N3}) = \min\left( 1.0, \; \frac{t_{N3}}{90.0} \right) \cdot \exp\left( -\frac{(t_{N3} - 90.0)^2}{2 \cdot 40.0^2} \right)$$
+### Regularity
 
-#### REM Sleep (*A_REM*)
-Similar joint linear-Gaussian curve optimized for a peak at 100 minutes:
+For each target night, the pipeline groups sessions by local wake date, keeps the longest session per date, and calculates the sample standard deviation of estimated mid-sleep times over the lookback window (from 14 days before the target date through that date). With fewer than two sessions, the pipeline supplies an SD of zero. The scorer uses regularity only when at least five valid regularity days are reported; it marks the input stable at seven or more days. Its score is:
 
-$$A_{REM}(t_{REM}) = \min\left( 1.0, \; \frac{t_{REM}}{100.0} \right) \cdot \exp\left( -\frac{(t_{REM} - 100.0)^2}{2 \cdot 40.0^2} \right)$$
+\[
+S_R=\frac{1}{1+(SD_{mid}/1.0)^2}
+\]
 
-#### Light-stage (N1+N2) Percentage Penalty (*P_light*)
-Triggers an exponential penalty decay when light sleep (which represents clinical stages N1 and N2 combined on consumer wearables) exceeds 65% of total sleep time.
+This is a schedule-variability heuristic. A zero SD supplied by the pipeline does not establish that a person has a regular sleep schedule when there are too few sessions to compare.
 
-*   *P_light*(*p_light*) = 1.0 if *p_light ≤ 65.0*
-*   For high light sleep percentage (*p_light > 65.0*):
-    $$P_{light}(p_{light}) = \exp\left( -\frac{(p_{light} - 65.0)^2}{2 \cdot 7.0^2} \right)$$
+## Final stage and timing penalties
 
-Where *p_light* is the percentage of light sleep.
+After calculating the weighted base score, the scorer computes available penalties and applies the smallest multiplier. This is a software rule, not a measured biological bottleneck:
 
-#### Combined Architecture Score
-$$S_A = \text{clamp}\Big( (0.45 \cdot A_{N3} + 0.45 \cdot A_{REM}) \cdot P_{light} + 0.10, \; 0.0, \; 1.0 \Big)$$
+| Input | Multiplier reaches 1.0 at | Lower endpoint | Multiplier at lower endpoint |
+|---|---:|---:|---:|
+| REM minutes | 60 min | 40 min | 0.65 |
+| Deep minutes | 70 min | 40 min | 0.60 |
+| Total sleep time | 6.5 h | 5.0 h | 0.50 |
+| Estimated mid-sleep | 05:30 | 07:30 | 0.55 |
 
-### 2.4 Circadian Timing (*T_circ*)
-Assesses circadian alignment using the mid-sleep clock hour (*MS*), computed to handle midnight crossings cleanly. The base score is a Gaussian curve centered at 03:30 (*MS* = 3.5). An exponential late-phase penalty applies if mid-sleep occurs past 05:30 (*MS* > 5.5).
+Each value is linearly interpolated and clamped between its endpoints. Values beyond the range retain the endpoint multiplier. Missing REM or deep-stage inputs omit their respective penalty. The final score is `clamp(base × minimum available multiplier, 0, 100)`; if no penalty input is present, the multiplier is 1.
 
-$$S_{circ, base}(MS) = \exp\left( -\frac{(MS - 3.5)^2}{2 \cdot 1.0^2} \right)$$
+## Scientific context and limitations
 
-*   *S_circ*(*MS*) = *S_circ,base*(*MS*) if *MS ≤ 5.5*
-*   For late phase delay (*MS > 5.5*):
-    $$S_{circ}(MS) = S_{circ, base}(MS) \cdot \exp\left( -\frac{(MS - 5.5)^2}{2 \cdot 0.5^2} \right)$$
+Sleep duration, efficiency, wake after sleep onset, timing, and other sleep dimensions appear in sleep-health recommendations and multidimensional sleep-health frameworks. Train Libre’s SHS is its own weighted and penalized heuristic; it is not the National Sleep Foundation recommendation, the AASM/SRS sleep-duration consensus, or RU-SATED, and none of those sources validate this implementation’s targets, weights, or score bands. Consumer-device stage labels are vendor classifications mapped into app categories; they are not equivalent to a polysomnography diagnosis.
 
-### 2.5 Sleep Regularity (*R*)
-Evaluates schedule stability using the standard deviation of mid-sleep clock hours (*SD_mid*) over a 7-14 day rolling window. Uses an inverse-quadratic decay function.
+The calculations depend on the source device’s session and stage data, the completeness of that data, and the app’s timeline repair and aggregation. A score can therefore change when imported data changes even if the person’s actual sleep did not. Use it as a descriptive trend within the app, not to make health decisions.
 
-$$S_R(SD_{mid}) = \frac{1}{1 + (SD_{mid} / 1.0)^2}$$
+## References
 
----
-
-## 3. Smartwatch Data Mapping Spec
-
-Scientific sleep studies (Polysomnography or PSG) differentiate between four distinct sleep stages: Wake, N1 (lightest), N2 (moderate light), and N3 (deep slow-wave sleep). However, commercial smartwatches and fitness trackers (Apple Watch, Garmin, Fitbit, Oura) compress these categories into a unified, consumer-friendly taxonomy. 
-
-To bridge the gap between academic sports science and commercial API constraints, the Sleep Health Scoring Engine maps wearable data streams to the mathematical models as follows:
-
-### 3.1 Parameter Translation Matrix
-
-| Wearable Stage Category | Engine Metric Symbol | Scientific PSG Translation | Description & Mapping Formula |
-| :--- | :--- | :--- | :--- |
-| **Deep Sleep** | *t_N3* | Stage N3 (Slow-Wave Sleep) | Absolute minutes spent in slow-wave sleep. Fed directly into deep sleep quality score (*A_N3*) and Deep Sleep Multiplier (*M_N3*). |
-| **REM Sleep** | *t_REM* | Stage REM (Rapid Eye Movement) | Absolute minutes spent in dream sleep. Fed directly into REM sleep quality score (*A_REM*) and REM Sleep Multiplier (*M_REM*). |
-| **Light Sleep** | *p_light* | Stage N1 + Stage N2 | Expressed as a percentage of Total Sleep Time (TST): <br> $$p_{light} = 100 \cdot \left( \frac{\text{Vendor Light Sleep Minutes}}{\text{Total Sleep Time Minutes}} \right)$$ <br> Fed into the Light-stage Percentage Penalty (*P_light*) curve. |
-
-### 3.2 Sports-Science Rationale for Smartwatch Mapping
-
-1. **Light Sleep Compression (*p_light*)**: Smartwatches are highly accurate at separating overall light sleep from deep/REM, but lack the EEG resolution to reliably differentiate PSG Stage N1 from Stage N2. In healthy PSG, N1 constitutes ~5% and N2 constitutes ~50% of sleep (totaling ~55%). To account for this wearable limitation, our engine establishes an optimal threshold for Light-stage sleep at ≤ 65%. This grants a generous 10% non-clinical buffer to prevent false penalties from tracking noise while strictly penalizing highly fragmented sleep (where light sleep exceeds 65% due to stage-regression).
-2. **Missing SE/WASO Continuity Fallback**: Classic sleep continuity metrics require explicit and highly accurate recognition of micro-arousals (WASO) and total sleep opportunity (Sleep Efficiency). Cheap trackers or restrictive API integrations often do not export total awake minutes or time-in-bed. When WASO/SE are missing:
-   - The engine falls back to an architecture-continuity proxy (*S_C, fallback*).
-   - The fallback is weighted 90% towards 1.0 - *lightSleepPenalty* and 10% towards the *S_D*(*h*) duration score.
-   - This prevents double-counting sleep duration in the final score while using excessive light sleep as an accurate physiological proxy for sleep fragmentation and light sleep regression caused by nocturnal awakenings.
-
----
-
-## 4. The Soft-Cap Multiplier Mechanics
-
-To prevent high scores when a critical physiological sleep domain is dangerously compromised, SHS v3.5 implements a dynamic, continuous soft-cap multiplier. 
-
-The engine computes 4 individual potential multiplier penalties and selects the single lowest (the bottleneck):
-
-$$\text{dynamicMultiplier} = \min\Big( M_{REM}, \; M_{N3}, \; M_{TST}, \; M_{circ} \Big)$$
-
-### Linear Mapping Function
-
-Each multiplier is mapped continuously using the bounded linear interpolation helper function:
-
-$$\_linear(v, x_{min}, x_{max}, y_{min}, y_{max}) = y_{min} + \left( \frac{\text{clamp}(v, x_{min}, x_{max}) - x_{min}}{x_{max} - x_{min}} \right) \cdot (y_{max} - y_{min})$$
-
-Where clamp(*v*, *x_min*, *x_max*) constrains the input parameter *v* to the range defined by [*x_min*, *x_max*].
-
-*Note: The function natively supports decreasing mappings where *x_min* > *x_max*, allowing higher input values to output lower multipliers.*
-
-### Multiplier Threshold Formulations
-
-#### 1. REM Sleep Multiplier (*M_REM*)
-
-Degrades score if REM duration (*t_REM*) falls below 60 minutes:
-
-$$M_{REM} = \_linear(t_{REM}, \; 40.0, \; 60.0, \; 0.65, \; 1.0)$$
-
-#### 2. Deep Sleep (N3) Multiplier (*M_N3*)
-
-Degrades score if N3 duration (*t_N3*) falls below 70 minutes:
-
-$$M_{N3} = \_linear(t_{N3}, \; 40.0, \; 70.0, \; 0.60, \; 1.0)$$
-
-#### 3. Total Sleep Time (TST) Multiplier (*M_TST*)
-
-Degrades score if sleep volume (*h* hours) falls below 6.5 hours:
-
-$$M_{TST} = \_linear(h, \; 5.0, \; 6.5, \; 0.50, \; 1.0)$$
-
-#### 4. Circadian Timing Multiplier (*M_circ*)
-
-Degrades score if the mid-sleep clock hour (*MS*) shifts later than 05:30 (5.5):
-
-$$M_{circ} = \_linear(MS, \; 7.5, \; 5.5, \; 0.55, \; 1.0)$$
-
----
-
-## 5. The Boundary Table
-
-The following table summarizes the boundary conditions of the continuous soft-cap multiplier system:
-
-| Affected Domain | Input Metric (*v*) | Optimal Zone (*M* = 1.0) | Pathological / Max Penalty Zone | Multiplier Range | Clinical biological rationale |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **REM Sleep (*M_REM*)** | REM Minutes (*t_REM*) | ≥ 60.0 min | ≤ 40.0 min | 1.0 → 0.65 | REM deficiency impairs emotional regulation, memory consolidation, and neuronal repair. |
-| **Deep Sleep (*M_N3*)** | N3 Minutes (*t_N3*) | ≥ 70.0 min | ≤ 40.0 min | 1.0 → 0.60 | Deep N3 slow-wave sleep is the primary driver of physical recovery, growth hormone release, and tissue repair. |
-| **Sleep Duration (*M_TST*)** | TST Hours (*h*) | ≥ 6.5 hours | ≤ 5.0 hours | 1.0 → 0.50 | Insufficient sleep duration restricts core metabolic recovery and disrupts homeostatic anabolic processes. |
-| **Circadian Timing (*M_circ*)** | Mid-Sleep Clock (*MS*) | ≤ 05:30 (5.5) | ≥ 07:30 (7.5) | 1.0 → 0.55 | Late phase delay (sleep against the circadian clock) severely reduces insulin sensitivity and sleep architecture quality. |
-
----
-
-## 6. Non-Clinical Heuristic Disclaimer
-The Sleep Health Score (SHS) is a fitness-oriented, non-clinical directional heuristic designed for sleep recovery tracking and educational purposes. It is not a diagnostic tool and does not identify or manage clinical sleep disorders (such as insomnia, sleep apnea, or other sleep pathologies). The accuracy of the score is dependent on the data quality and sampling frequency of the underlying wearable hardware. The mathematical curves and optimal targets are modeling choices designed for athletic recovery tracking in healthy individuals rather than medical thresholds.
-
----
-
-## 7. Scientific References & Sources
-- Ohayon et al. (2017) — *National Sleep Foundation's sleep quality recommendations: first report*. DOI: [10.1016/j.sleh.2016.11.002](https://doi.org/10.1016/j.sleh.2016.11.002)
-- Watson et al. (2015) — *Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society*. DOI: [10.5664/jcsm.9538](https://doi.org/10.5664/jcsm.9538)
-- AASM (2020) — *Consensus Statement on Sleep Duration for Healthy Adults*. DOI: [10.3389/fneur.2020.00762](https://doi.org/10.3389/fneur.2020.00762)
-- Buysse (2014) — *Sleep Health: Can We Define It? Does It Matter?*. DOI: [10.1093/sleep/zsu056](https://doi.org/10.1093/sleep/zsu056)
-- Ruhr-Universität Bochum (RU-SATED) — *Multi-domain continuous sleep tracking validation*. DOI: [10.1093/sleep/zsab134](https://doi.org/10.1093/sleep/zsab134)
-- SATED Index — *Quantifying Sleep Health Beyond Subjective Inventories*. DOI: [10.1016/j.physbeh.2018.11.032](https://doi.org/10.1016/j.physbeh.2018.11.032)
-
+- Ohayon et al. (2017), *National Sleep Foundation’s sleep quality recommendations: first report*. This consensus paper discusses sleep-quality indicators; it does not specify Train Libre’s formula. [PubMed](https://pubmed.ncbi.nlm.nih.gov/28346153/) · DOI: [10.1016/j.sleh.2016.11.006](https://doi.org/10.1016/j.sleh.2016.11.006)
+- Watson et al. (2015), *Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society*. This statement addresses recommended duration for healthy adults; it does not validate Train Libre’s scoring curve. [PubMed](https://pubmed.ncbi.nlm.nih.gov/26039963/) · DOI: [10.5665/sleep.4716](https://doi.org/10.5665/sleep.4716)
+- Buysse (2014), *Sleep Health: Can We Define It? Does It Matter?* A perspective on multidimensional sleep health, not a validation of this score. [Oxford Academic](https://academic.oup.com/sleep/article/37/1/9/2454038) · DOI: [10.5665/sleep.3298](https://doi.org/10.5665/sleep.3298)

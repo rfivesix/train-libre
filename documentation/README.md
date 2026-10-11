@@ -1,47 +1,30 @@
-# Train Libre: Modular Documentation Suite
+# Train Libre Documentation
 
-Welcome to the documentation suite for **Train Libre**, a highly performant, offline-first, and privacy-centric wellness, sleep, and nutrition tracking application. It includes practical user instructions, transparent descriptions of smart features, and technical documentation for contributors.
+This suite has three sections for different readers. Use the [public documentation site](https://trainlibre.com/docs/) to browse the generated pages.
 
-## Project Vision
+## User Guide
 
-Train Libre is designed around the core principles of user autonomy, offline capability, and algorithmic transparency. By avoiding any centralized backend, storing all user records in a local SQLite database (via Drift), and utilizing a Bring Your Own Key (BYOK) model for optional AI enhancements, the application guarantees absolute user privacy and data ownership.
+For people using the app who need task-based instructions, including workouts, plans, nutrition, statistics, notifications, health data, and backups, start with the [User Guide overview](user_guide/overview.md).
 
----
+## Features & Heuristics
 
-## Documentation Directory Map
+These pages explain how user-facing features work, what inputs and rules they use, and where their limitations are. They are not step-by-step user instructions or developer implementation guides. Start with [Feature Capabilities and Privacy Boundaries](features/overview.md), then choose a topic:
 
-This documentation suite is split into focused sections for different audiences. Use the links below to navigate the suite.
+- [Bayesian TDEE Estimate and Adaptive Calorie Target](features/bayesian_tdee_estimator.md)
+- [Macronutrient Distribution](features/macro_distribution.md)
+- [Adaptive Nutrition Goals](features/adaptive_nutrition_goals.md)
+- [Macronutrient Analytics](features/macro_analytics.md)
+- [Manual Workout Plans](features/manual_workout_plans.md)
+- [Workout Progression](features/workout_progression_engine.md)
+- [Estimated 1-Rep Max](features/intelligent_workouts.md)
+- [Muscle Recovery](features/muscle_recovery_model.md)
+- [Sleep Health Score](features/sleep_scoring_engine.md)
+- [Workout Live Activity](features/live_activity_workout.md)
+- [Meal Capture Pipeline](features/meal_capture_pipeline.md)
+- [BYOK AI Meal Capture and Validation](features/byok_ai_validation.md)
+- [Depth Scale Hint](features/depth_scale_hint.md)
+- [Health Sync and Export](features/health_sync_export.md)
 
-### 1. User Guide (`documentation/user_guide/`)
-For app users who want practical, step-by-step instructions. This guide is currently in English; translations can be added later.
+## Developer Documentation
 
-*   [**User Guide Overview**](user_guide/overview.md): Contents and editorial structure for getting started, workouts, plans, nutrition, statistics, notifications, and data import/export.
-
-### 2. Feature Transparency & Algorithmic Logic (`documentation/features/`)
-For advanced users, evaluators, and privacy auditors who want to understand the logic and limitations behind Train Libre's smart features.
-
-*   [**Capabilities & Privacy Overview**](features/overview.md): Summary of the app's smart capabilities, local processing model, native secure storage, and opt-in zero-profiling telemetry boundaries.
-
-### 3. Developer Documentation (`documentation/developer/`)
-For software engineers, system architects, and technical contributors.
-
-*   [**System Overview & Testing Philosophy**](developer/overview.md): High-level system purpose, tech stack, and automated testing strategy spanning unit, integration, and database migration tests.
-*   [**System Architecture & Runtime Wiring**](developer/architecture.md): Clean Architecture boundaries (Presentation $\rightarrow$ Domain $\leftarrow$ Data), application startup and Provider wiring in `main.dart`, Drift SQLite lifecycle at schema version 38, and background tasks.
-*   [**Data Flow & State Lifecycle**](developer/data_flow_and_state.md): Detail on our "Reactive Reads / Imperative Writes" paradigm, reactive Drift stream handlers, subscription lifecycles, and edit-mode user interface input blocking.
-*   [**Localization Architecture**](developer/localization_architecture.md): Offline-first relational localization strategy for catalogs and UI strings across 5 supported locales, schema migration to normalized translation tables, and guide for adding locales.
-*   [**Home Screen Widgets (iOS & Android)**](developer/ios_home_screen_widgets.md): Cross-platform snapshot architecture and native widget families for both iOS (WidgetKit) and Android (Glance/AppWidgetProvider), their configuration, and deep links.
-
-*   [**Bayesian TDEE Estimator & Calorie Controller**](features/bayesian_tdee_estimator.md): Full mathematical and algorithmic analysis of the recursive TDEE estimate, observation uncertainty, and bounded goal-rate correction loop.
-*   [**Macronutrient Distribution**](features/macro_distribution.md): How the estimator's calorie target becomes protein, carbohydrate, and fat — the per-kilogram anchors, the fat floor, the order in which the distribution gives way on a constrained budget, and worked examples.
-*   [**BYOK AI Meal Capture & Validation**](features/byok_ai_validation.md): Core detail on the local BYOK API integration, system prompts restricting LLM calculations, fuzzy string matching, target-fit verification, and the 3-pass self-repair verification loop.
-*   [**Meal Capture Pipeline**](features/meal_capture_pipeline.md): The capture paths around the analysis — unified camera with passive barcode detection, voice dictation, meals as logged events, photo storage, and what leaves the device on each path.
-*   [**Depth Scale Hint (LiDAR)**](features/depth_scale_hint.md): How measured scale facts and an optional false-colour depth image improve portion estimation on LiDAR devices, including the quality gate and the explicit non-goals.
-*   [**Native Health Sync & Export**](features/health_sync_export.md): Technical overview of the Apple HealthKit and Google Health Connect pipelines: passive vitals import (steps, sleep, pulse), outbound export (measurements, nutrition/hydration, workouts), step segment merging, and the SQLite-backed idempotency architecture.
-*   [**Sleep Health Score Engine (SHS v3.5)**](features/sleep_scoring_engine.md): Complete technical specification of our sleep scoring algorithms, including Gaussian, logistic, and quadratic curves for 5 domains and the continuous soft-cap multiplier penalty logic.
-*   [**Muscle Recovery & Readiness Model**](features/muscle_recovery_model.md): Log-based muscle readiness using per-set RIR, role-weighted exposure, different muscle decay profiles, and time-decaying residual load.
-*   [**Estimated 1-Rep Max Heuristic**](features/intelligent_workouts.md): The Brzycki-based submaximal strength estimation model behind personal records and strength progression, accounting for effective load across assisted, bodyweight, and loaded sets, and its non-medical scope.
-*   [**Workout progression**](features/workout_progression_engine.md): A first-working-set recommendation for eligible load-and-repetition exercises, with simple double progression and later-set e1RM back-offs.
-*   [**Live Activity & Workout Session**](features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout, and the state it mirrors.
-*   [**Adaptive Nutrition Goals**](features/adaptive_nutrition_goals.md): Goal setup, trajectory, weekly review gates, and user-controlled target changes.
-*   [**Manual Workout Plans**](features/manual_workout_plans.md): Weekly and repeating plans, rest days, session outcomes, reminders, and restore behavior.
-*   [**Macronutrient Analytics**](features/macro_analytics.md): Intake trends, time ranges, date navigation, and daily chart selection.
+For contributors who need architecture, data-flow, localization, and platform-widget implementation details, start with the [Developer Documentation overview](developer/overview.md). The developer section also includes [system architecture](developer/architecture.md), [data flow and state lifecycle](developer/data_flow_and_state.md), [localization architecture](developer/localization_architecture.md), and [home-screen widgets](developer/ios_home_screen_widgets.md).

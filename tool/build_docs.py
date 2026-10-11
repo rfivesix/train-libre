@@ -44,21 +44,21 @@ DOCS_STRUCTURE = [
         "items": [
             {
                 "id": "features-overview",
-                "title": "Capabilities & Privacy",
+                "title": "Feature Capabilities & Privacy",
                 "slug": "overview",
                 "src_file": SRC_DOC_DIR / "features" / "overview.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "overview",
                 "url": "/docs/features/overview/",
-                "desc": "Smart processing boundaries, native secure storage, and opt-in telemetry."
+                "desc": "Feature behavior, optional data flows, and app telemetry boundaries."
             },
             {
                 "id": "features-sleep",
-                "title": "Sleep Health Score (SHS v3.5)",
+                "title": "Sleep Health Score (SHS v3)",
                 "slug": "sleep-scoring-engine",
                 "src_file": SRC_DOC_DIR / "features" / "sleep_scoring_engine.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "sleep-scoring-engine",
                 "url": "/docs/features/sleep-scoring-engine/",
-                "desc": "Mathematical specification of the 5-domain continuous soft-cap multiplier sleep model."
+                "desc": "Five-domain sleep heuristic, imported inputs, score caps, and limitations."
             },
             {
                 "id": "features-recovery",
@@ -67,16 +67,16 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "muscle_recovery_model.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "muscle-recovery-model",
                 "url": "/docs/features/muscle-recovery-model/",
-                "desc": "Per-set, RIR-aware residual load with muscle-specific time decay and readiness."
+                "desc": "A log-based muscle recovery estimate with time-decaying residual load and input limits."
             },
             {
                 "id": "features-tdee",
-                "title": "Bayesian TDEE Estimator",
+                "title": "Bayesian TDEE Estimate & Adaptive Calorie Target",
                 "slug": "bayesian-tdee-estimator",
                 "src_file": SRC_DOC_DIR / "features" / "bayesian_tdee_estimator.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "bayesian-tdee-estimator",
                 "url": "/docs/features/bayesian-tdee-estimator/",
-                "desc": "Kalman filter and Bayesian recursive estimation for adaptive calorie targets."
+                "desc": "Logged intake and weight-trend estimation with a separately gated target controller."
             },
             {
                 "id": "features-macro",
@@ -121,7 +121,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "workout_progression_engine.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "workout-progression-engine",
                 "url": "/docs/features/workout-progression-engine/",
-                "desc": "First-working-set load recommendation, double progression, and e1RM back-offs."
+                "desc": "First-set and later-set recommendations for eligible load-and-repetition workouts."
             },
             {
                 "id": "features-e1rm",
@@ -130,7 +130,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "intelligent_workouts.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "intelligent-workouts",
                 "url": "/docs/features/intelligent-workouts/",
-                "desc": "Submaximal strength estimation heuristic, assisted & bodyweight load formulas."
+                "desc": "Brzycki estimated 1RM with effective-load rules for loaded and bodyweight exercises."
             },
             {
                 "id": "features-capture",
@@ -139,43 +139,43 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "meal_capture_pipeline.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "meal-capture-pipeline",
                 "url": "/docs/features/meal-capture-pipeline/",
-                "desc": "Unified camera, passive barcode detection, voice dictation, and privacy boundaries."
+                "desc": "Photo, text, voice, and barcode capture, provider routing, and diary persistence."
             },
             {
                 "id": "features-byok",
-                "title": "BYOK AI Meal Validation",
+                "title": "BYOK AI Meal Capture & Validation",
                 "slug": "byok-ai-validation",
                 "src_file": SRC_DOC_DIR / "features" / "byok_ai_validation.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "byok-ai-validation",
                 "url": "/docs/features/byok-ai-validation/",
-                "desc": "Local BYOK LLM integration, fuzzy matching, and 3-pass self-repair verification."
+                "desc": "Selected-provider requests, catalog matching, heuristic validation, and up to three repair requests."
             },
             {
                 "id": "features-depth",
-                "title": "Depth Scale Hint (LiDAR)",
+                "title": "Depth Scale Hint",
                 "slug": "depth-scale-hint",
                 "src_file": SRC_DOC_DIR / "features" / "depth_scale_hint.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "depth-scale-hint",
                 "url": "/docs/features/depth-scale-hint/",
-                "desc": "LiDAR metric scale facts and false-colour depth hints for portion guidance."
+                "desc": "Depth-derived scale facts and an optional camera-distance visualization for AI input."
             },
             {
                 "id": "features-health",
-                "title": "Native Health Sync & Export",
+                "title": "Health Sync & Export",
                 "slug": "health-sync-export",
                 "src_file": SRC_DOC_DIR / "features" / "health_sync_export.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "health-sync-export",
                 "url": "/docs/features/health-sync-export/",
-                "desc": "Apple HealthKit and Health Connect bidirectional sync & SQLite idempotency."
+                "desc": "Foreground health imports and exports, platform mappings, and retry limits."
             },
             {
                 "id": "features-live-act",
-                "title": "Live Activity & Workout Session",
+                "title": "Workout Live Activity & Android Notification",
                 "slug": "live-activity-workout",
                 "src_file": SRC_DOC_DIR / "features" / "live_activity_workout.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "live-activity-workout",
                 "url": "/docs/features/live-activity-workout/",
-                "desc": "iOS Live Activity, Dynamic Island, and workout session state synchronization."
+                "desc": "iOS ActivityKit and Android workout notifications with platform-specific actions."
             }
         ]
     },

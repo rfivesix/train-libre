@@ -1,229 +1,43 @@
-# Native Health Sync & Export Pipeline
+# Health Sync and Export
 
-Train Libre integrates directly with native system-level health frameworks: Apple HealthKit on iOS and Google Health Connect on Android. To preserve user privacy, maintain complete data ownership, and avoid cloud dependencies, all communication with platform health stores occurs directly on-device via native method channels.
+Train Libre can read selected records from Apple Health on iOS or Health Connect on Android, and can write selected Train Libre records back to the same platform. The app calls the platform APIs through native method channels. This page describes the records and behavior implemented in Train Libre; it does not promise that Apple or Google will not sync their own health-store data through account or device services.
 
-The integration operates with clear directional boundaries:
-- **Inbound Vitals Synchronization**: Passive sensor data (daily step segments, sleep stage sessions, and heart rate samples) are imported into Train Libre's local SQLite database.
-- **Outbound Health Export**: User-logged wellness activities (body measurements, nutrition and hydration intake, and completed workout sessions) are exported outward to the platform health store using a strictly idempotent tracking architecture.
+> Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.
 
----
+## Imported data
 
-## Architectural Principles
+Health imports are opt-in by feature in Health settings. The app requests the corresponding platform permissions and stores imported records or derived aggregates in its local database. Platform authorization can be partial or unavailable, and HealthKit does not reveal whether read access was denied; a query can return an error or no visible data even after its authorization request succeeds.
 
-The health synchronization engine operates under three core technical invariants:
+| Data | Platform input and local handling | Where Train Libre uses it |
+|---|---|---|
+| Steps | HealthKit step-count samples on iOS; Health Connect `StepsRecord` on Android. The app stores positive segments with start/end times, source ID, and a native ID when supplied. A normal refresh overlaps the last sync by 48 hours; first sync looks back 30 days. | The Diary and Statistics views aggregate local segments. The current default is `auto_dominant`: choose the source with the most steps for that day, then total that source. The legacy `max_per_hour` option exists in aggregation code, but the settings service currently always returns `auto_dominant`. |
+| Sleep | HealthKit sleep-analysis samples on iOS; Health Connect sleep sessions/stages on Android. The importer maps platform records into raw imports and canonical sessions/stage segments. Initial import looks back 90 days; later imports revisit 72 hours before the latest imported session end to catch changes. | The Sleep Health Score pipeline reads canonical sleep sessions/stages. Missing stage detail remains missing; an imported session does not imply all stages were measured. See [Sleep Health Score](sleep_scoring_engine.md). |
+| Heart rate | The app queries platform heart-rate samples when pulse analysis needs them. Valid finite positive BPM samples are grouped into local hourly aggregates; the app stores aggregate counts, min/max/sum, and first/last sample times rather than retaining a permanent raw-sample table for this feature. | Pulse summaries and charts use the local aggregates. Sleep imports may also carry heart-rate samples for the sleep pipeline; those are a separate sleep-import input. |
+| Weight and body fat | The separately enabled measurement importer reads HealthKit body mass, body-fat percentage, and waist circumference on iOS. Health Connect imports weight and body-fat records on Android. Imported records are associated with their platform identity in `health_import_records`; Health Connect updates a local measurement when its imported record changes, while the HealthKit importer skips identities already seen. Health Connect history can be limited to 30 days when permission is limited; otherwise its importer requests history from 1970. | Imported measurements appear in local measurement history and can be included in features that query measurement history, such as the TDEE estimator. This importer does not import Health Connect waist measurements. |
 
-1.  **On-Device Authority**: Train Libre's local SQLite database serves as the primary single source of truth (SSOT). While passive vitals are imported from HealthKit or Health Connect to populate activity, sleep, and cardiovascular history, user-authored logs and sessions remain strictly authoritative in Train Libre and are pushed outbound.
-2.  **Zero Cloud Intermediaries**: All communication with native health APIs occurs directly through OS-level platform channels and native bindings (`trainlibre.health/steps`, `trainlibre.health/sleep_healthkit`, `trainlibre.health/export_apple_health`, and Android Health Connect clients). No external servers, cloud synchronizers, or third-party telemetry systems handle or store these records.
-3.  **Strict Idempotency & Checkpointing**: Repeated synchronization runs must never create duplicate segments or write redundant entries into the platform health database, regardless of sync frequency, background launches, or app interruptions.
+The Diary starts step and sleep refreshes while loading its health widgets. Those refreshes are throttled to about six hours unless forced; they are foreground app work, not a scheduled background health-sync job. Sleep import also applies its own six-hour minimum interval. Weight import can run on app cold start only after its import setting is enabled, and users can request an import from Health settings.
 
----
+## Exported data
 
-## Idempotency Engine
+Export is separately enabled for Apple Health or Health Connect after availability and permission checks. In the current app flow, a foreground coordinator watches local measurement, nutrition, fluid, workout, and set-log table changes, debounces them for two seconds, and exports to the platform for the current operating system. It also schedules a run at startup. The user can trigger export from Health settings. The code does not install a background worker for health export.
 
-To guarantee that each record is exported exactly once, the platform implements a hash-based tracking registry.
+| Train Libre source | Exported platform record |
+|---|---|
+| Measurement sessions | Weight, body-fat percentage, and BMI. Values with unsupported types or units are skipped. Android Health Connect currently omits BMI in the export service. Waist measurements are not part of this export mapping. |
+| Nutrition diary entries | Calories, protein, carbohydrate, fat, and available fiber, sugar, and sodium, scaled by the logged quantity. Salt is converted to sodium by dividing by 2.5. Health Connect sanitizes fields and can retry a write without optional fiber, sugar, and sodium fields. |
+| Fluid entries | Logged volume as liters. |
+| Completed workout logs | Positive-duration sessions, mapped to running, walking, cycling, yoga, or strength. The title and notes are carried as platform metadata/fields where supported. Workout sets are not exported as individual records. |
 
-### SQLite Schema: `health_export_records`
+Only mapped, persisted source records are eligible. Nutrition export reads the food product values linked to the diary entry; entries without a resolvable product are skipped. Workout export maps type from routine name and notes using simple keywords and defaults to strength, so the platform category can be approximate. Platform permissions differ: Android requests Health Connect write access for weight, body fat, nutrition, hydration, and exercise sessions. iOS requests HealthKit share access for weight, body fat, BMI, active energy, nutrition, hydration, and workouts; the current Train Libre payload does not write active-energy records.
 
-Every successfully exported record is registered in a dedicated SQLite table managed via the Drift ORM:
+### Retries, edits, and checkpoints
 
-```sql
-CREATE TABLE IF NOT EXISTS health_export_records (
-    local_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    id TEXT NOT NULL UNIQUE,
-    platform TEXT NOT NULL,
-    domain TEXT NOT NULL,
-    idempotency_key TEXT NOT NULL,
-    exported_at INTEGER NOT NULL,
-    UNIQUE(platform, domain, idempotency_key)
-);
-```
+Exports run separately for measurement, nutrition/hydration, and workout domains, in batches of at most 1,000 records. Each source record has a stable source key and a fingerprint of its export payload. Before writing, Train Libre prepares a stable native record ID and next revision; after a successful native write, it commits that identity and fingerprint locally. An unchanged fingerprint is skipped. An edited record is exported as a later revision using the same external ID so the platform adapter can replace the earlier version. This is local retry/deduplication state, not a guarantee of exactly-once delivery if the platform write succeeds but the app stops before its local commit.
 
-#### Fields and Logic
-*   `id`: A unique 128-bit hexadecimal identifier generated deterministically on insertion using the SQLite function `lower(hex(randomblob(16)))`.
-*   `platform`: Identifies the target platform (`appleHealth` or `healthConnect`).
-*   `domain`: Categorizes the exported record type into one of three domains: `measurements`, `nutritionHydration`, or `workouts`.
-*   `idempotency_key`: A unique computed hash corresponding directly to the original record's identity, timestamp, and payload values.
-*   `exported_at`: A Unix timestamp (seconds since epoch) capturing when the export was registered locally.
+Successful domain timestamps are stored separately in local preferences. The first run for a domain loads its available history; later runs use the domain checkpoint with a one-second overlap. The fingerprint and stable native identity suppress redundant writes. A failed domain does not advance its success checkpoint, and a later run can retry it. Nutrition and hydration writes have per-record fallback after a batch failure; measurement and workout batches are retried on a later run if their batch write fails.
 
-### Upsert and Verification Mechanics
+## Privacy and limits
 
-When writing records, the local data source handles conflicts gracefully via SQL upsert. This is executed using the following statement in `StepsLocalDataSource.markHealthExported`:
+The repository implementation sends health records between the Flutter app and the operating system’s native health API through local method channels. The Health Export success event reports only the feature key (`apple_health_exported` or `health_connect_exported`) at this call site; record values, identifiers, and counts are not passed as event properties. The app does not send these health records to a Train Libre server in the inspected import/export paths. Apple Health or Health Connect may have their own account and device synchronization behavior, which Train Libre does not control.
 
-```sql
-INSERT INTO health_export_records (id, platform, domain, idempotency_key, exported_at)
-VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?)
-ON CONFLICT(platform, domain, idempotency_key) DO UPDATE SET
-  exported_at = excluded.exported_at;
-```
-
-Before passing payloads to the native adapter, the service queries the database to filter out already-exported items. The verification lookup matches keys in batches using `getExportedHealthKeys`:
-
-```sql
-SELECT idempotency_key
-FROM health_export_records
-WHERE platform = ?
-  AND domain = ?
-  AND idempotency_key IN (<idempotency_keys_placeholders>);
-```
-
-Only records whose `idempotency_key` is not returned by this query are forwarded to the native system APIs for writing.
-
----
-
-## Step Segment Hourly Merging
-
-Since step logs can be gathered concurrently by different sub-sensors (such as phone accelerometers, smartwatches, or manual inputs), the local database stores them as raw segments inside `health_step_segments`. When exporting or aggregating these segments for a given calendar day, overlapping data must be resolved. 
-
-Train Libre implements two configurable merging policies inside `StepsLocalDataSource.getHourlyStepsTotalsForDay`:
-
-### 1. Auto-Dominant Source Policy (`auto_dominant`)
-
-The `auto_dominant` policy is the default behavior. It identifies the single device or sensor that contributed the highest volume of steps for the target day and aggregates data *only* from that source, ignoring potential overlap from secondary sensors.
-
-#### SQL Execution Model:
-1.  **Calculate Total Steps per Source**:
-    ```sql
-    WITH source_totals AS (
-      SELECT
-        COALESCE(source_id, '') AS source_key,
-        SUM(step_count) AS source_total
-      FROM health_step_segments
-      WHERE start_at < ? AND end_at >= ?
-      GROUP BY source_key
-    )
-    ```
-2.  **Select Dominant Source**:
-    ```sql
-    dominant_source AS (
-      SELECT source_key
-      FROM source_totals
-      ORDER BY source_total DESC, source_key ASC
-      LIMIT 1
-    )
-    ```
-3.  **Aggregate Hourly for Dominant Source**:
-    ```sql
-    SELECT
-      CAST(strftime('%H', datetime(start_at, 'unixepoch', 'localtime')) AS INTEGER) AS hour_local,
-      SUM(step_count) AS total_steps
-    FROM health_step_segments
-    WHERE start_at < ? AND end_at >= ?
-      AND COALESCE(source_id, '') = (SELECT source_key FROM dominant_source)
-    GROUP BY hour_local
-    ORDER BY hour_local ASC;
-    ```
-
-### 2. Maximum Hourly Output Policy (`max_per_hour`)
-
-The `max_per_hour` policy is designed for users with multiple active tracking devices. It aggregates and sums steps per hour for each source independently, and then selects the maximum hourly total among all active sources for each hour segment.
-
-#### SQL Execution Model:
-1.  **Calculate Hourly Sums per Source**:
-    ```sql
-    WITH source_hour AS (
-      SELECT
-        CAST(strftime('%H', datetime(start_at, 'unixepoch', 'localtime')) AS INTEGER) AS hour_local,
-        COALESCE(source_id, '') AS source_key,
-        SUM(step_count) AS source_steps
-      FROM health_step_segments
-      WHERE start_at < ? AND end_at >= ?
-      GROUP BY hour_local, source_key
-    )
-    ```
-2.  **Select Max Source Volume per Hour**:
-    ```sql
-    SELECT hour_local, MAX(source_steps) AS total_steps
-    FROM source_hour
-    GROUP BY hour_local
-    ORDER BY hour_local ASC;
-    ```
-
----
-
-## Export Execution Lifecycle
-
-The export loop is orchestrated by `HealthExportService` and involves a highly defensive multi-stage execution pipeline:
-
-```
-[Request Export] 
-       │
-       ▼
-[Verify Platform Support & Permissions] ──(Not Configured)──► [Abort & Set Disabled]
-       │
-       ▼
-[Load Domain Checkpoints (Checkpoints Map)]
-       │
-       ▼
-[Load Payload for Domain since Checkpoint]
-       │
-       ▼
-[Filter out Already Exported Keys (via SQLite lookup)]
-       │
-       ▼
-[Chunk Pending Records (max 1000 per batch)]
-       │
-       ▼
-[Write Batch via Native OS Adapter]
-       │
-  ┌────┴────────────────────────┐
-  │                             │
-(Success)                    (Failure)
-  │                             │
-  ▼                             ▼
-[Mark Keys Exported in DB]   [Fall Back to Individual Writes]
-                                │
-                                ├─► (Success) ──► [Mark Key Exported in DB]
-                                │
-                                └─► (Failure) ──► [Log Error & Keep Key Pending]
-```
-
-### 1. Platform Validation & Permissions
-Before initiating any transaction, the service queries `HealthExportAdapter.getAvailability()`. If the platform is not installed or is marked as unavailable, the platform state is set to `disabled`. The service also checks and requests explicit user permissions before reading or writing any data.
-
-### 2. Incremental Domain Checkpoints
-To avoid loading the entire database history for every export, `HealthExportService` reads the platform's historical execution state from `SharedPreferences`. The system tracks a separate `lastSuccessfulExportAtUtc` timestamp for each independent domain (`measurements`, `nutritionHydration`, `workouts`).
-*   If a checkpoint exists for a domain, only logs added or updated *after* that timestamp are retrieved for export.
-*   If a checkpoint is null (e.g., first sync or state reset), a full historical backfill is scheduled *only* for that specific domain. This ensures that a failure in one domain does not force other healthy domains to re-export their entire histories.
-
-### 3. Record Batching (Chunking)
-Native OS APIs impose strict bounds on payload sizes to prevent memory spikes and thread starvation. `HealthExportService` partitions all outbound arrays into batches of up to `1000` records (`maxWriteBatchSize`):
-```dart
-List<List<T>> _chunkRecords<T>(List<T> records) {
-  if (records.isEmpty) return <List<T>>[];
-  final chunks = <List<T>>[];
-  for (var i = 0; i < records.length; i += maxWriteBatchSize) {
-    final end = (i + maxWriteBatchSize) > records.length
-        ? records.length
-        : (i + maxWriteBatchSize);
-    chunks.add(records.sublist(i, end));
-  }
-  return chunks;
-}
-```
-
-### 4. Fault Tolerance & Individual Fallback
-While measurements and workouts are exported in bulk, the `nutritionHydration` domain employs a defensive fallback mechanism. If a batch write to HealthKit or Health Connect fails, the system does not fail the entire sync. Instead, it enters a granular recovery mode:
-1.  **Batch Write Attempt**: The service attempts to write the entire chunk of nutrition or hydration records.
-2.  **Fallback Trigger**: If the batch throws an exception, the system catches the error and iterates over every record in that batch individually.
-3.  **Individual Writes**: The service invokes the single-record writer method (`adapter.writeNutrition` or `adapter.writeHydration`) for each record.
-4.  **Partial Completion**: Successful writes are recorded immediately in `health_export_records`, while failed records are logged individually and skipped. This prevents a single corrupt record (e.g., invalid timestamp or out-of-range value) from blocking the export of remaining healthy data.
-
----
-
-## Inbound Vitals Synchronization
-
-In addition to outbound export, Train Libre passively imports wellness vitals to provide rich local analytics without manual data entry. Inbound synchronization is coordinated by `DiaryHealthSyncCoordinator`:
-
-### 1. Steps Ingestion (`StepsSyncService`)
-*   Periodically queries `HealthPlatformSteps.readStepSegments` for new intervals since the last sync.
-*   Writes raw segments with source identifiers into `health_step_segments`.
-*   Resolves multi-device overlaps using either the `auto_dominant` or `max_per_hour` merging policies described above.
-
-### 2. Sleep Stages Ingestion (`SleepSyncService`)
-*   Uses `HealthKitSleepAdapter` (iOS) and `HealthConnectSleepAdapter` (Android) to retrieve recorded sleep intervals and sleep stages (awake, REM, core/light, deep/N3).
-*   Maps raw platform categories into canonical stages (`sleep_canonical_stage_segments`) and sessions (`sleep_canonical_sessions`).
-*   Serves as the raw biological input to the [Sleep Health Score Engine](sleep_scoring_engine.md).
-
-### 3. Heart Rate & Pulse Tracking (`HealthPulseAnalysisRepository`)
-*   `PulseTrackingService` manages the user's enablement setting and permission request. `HealthPulseAnalysisRepository` reads resting and active heart-rate samples via `HealthPlatformHeartRate` when analysis needs data.
-*   `PulseAggregateStore` converts those samples into hourly minimum, maximum, and average aggregates in `pulse_hourly_aggregates` for recovery and cardio trend visualisation.
+Imported and exported data remain subject to platform permission choices, platform availability, source-data completeness, and the mappings above. Revoking access, having no matching records, or a platform rejecting a data type can result in missing or partial local data/export. Step aggregation is a heuristic for overlap, and estimated workout categories are based on text matching. Health Sync itself does not validate the accuracy or clinical meaning of records supplied by a platform.

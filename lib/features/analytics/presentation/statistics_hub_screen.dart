@@ -227,13 +227,10 @@ class _StatisticsHubScreenView extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<StatisticsHubViewModel>();
     final l10n = AppLocalizations.of(context)!;
-    // The tab content already starts below the host toolbar. Reserve the
-    // safe-area inset and the painted filter extension without counting the
-    // toolbar a second time.
-    final filterTop = MediaQuery.paddingOf(context).top;
-    const filterRowHeight = 56.0;
+    // The pinned app bar extension is already accounted for in
+    // MediaQuery.paddingOf(context).top by the host Scaffold.
     final finalPadding = EdgeInsets.only(
-      top: filterTop + filterRowHeight,
+      top: MediaQuery.paddingOf(context).top + DesignConstants.cardPadding.top,
       left: 0,
       right: 0,
       bottom: DesignConstants.cardPadding.bottom,
@@ -260,38 +257,49 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   )
                 : SliverList(
                     delegate: SliverChildListDelegate([
-                      const SizedBox(height: DesignConstants.spacingL),
                       Builder(builder: (context) {
+                        final hasSteps = viewModel.stepsTrackingEnabled;
+                        final hasRecovery = viewModel.sleepTrackingEnabled ||
+                            viewModel.pulseTrackingEnabled;
                         Widget contentColumn = Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (viewModel.stepsTrackingEnabled) ...[
-                              AppSectionHeader(title: l10n.steps),
+                            if (hasSteps) ...[
+                              AppSectionHeader(
+                                title: l10n.steps,
+                                isFirst: true,
+                              ),
                               RepaintBoundary(
                                 child:
                                     _buildStepsCard(context, viewModel, l10n),
                               ),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
-                            if (viewModel.sleepTrackingEnabled ||
-                                viewModel.pulseTrackingEnabled)
-                              AppSectionHeader(title: l10n.sectionRecovery),
-                            if (viewModel.sleepTrackingEnabled) ...[
-                              const SizedBox(height: DesignConstants.spacingS),
-                              RepaintBoundary(
-                                child: _buildSleepSection(
-                                    context, viewModel, l10n),
+                            if (hasRecovery) ...[
+                              AppSectionHeader(
+                                title: l10n.sectionRecovery,
+                                isFirst: !hasSteps,
                               ),
+                              if (viewModel.sleepTrackingEnabled) ...[
+                                const SizedBox(height: DesignConstants.spacingS),
+                                RepaintBoundary(
+                                  child: _buildSleepSection(
+                                      context, viewModel, l10n),
+                                ),
+                              ],
+                              if (viewModel.pulseTrackingEnabled) ...[
+                                const SizedBox(height: DesignConstants.spacingS),
+                                RepaintBoundary(
+                                  child: _buildPulseSection(
+                                      context, viewModel, l10n),
+                                ),
+                              ],
+                              const SizedBox(height: DesignConstants.spacingL),
                             ],
-                            if (viewModel.pulseTrackingEnabled) ...[
-                              const SizedBox(height: DesignConstants.spacingS),
-                              RepaintBoundary(
-                                child: _buildPulseSection(
-                                    context, viewModel, l10n),
-                              ),
-                            ],
-                            const SizedBox(height: DesignConstants.spacingL),
-                            AppSectionHeader(title: l10n.statisticsSectionBody),
+                            AppSectionHeader(
+                              title: l10n.statisticsSectionBody,
+                              isFirst: !hasSteps && !hasRecovery,
+                            ),
                             RepaintBoundary(
                               child: _buildBodyMetricsSection(
                                   context, viewModel, l10n),

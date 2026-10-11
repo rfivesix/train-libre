@@ -104,10 +104,10 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
 <li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
 <li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
@@ -115,10 +115,10 @@
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
 <li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
@@ -168,16 +168,21 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Adaptive Nutrition Goals</h1>
-<p>Train Libre lets users track a long-term body-weight goal alongside daily calorie and macro targets. Goal progress and nutrition recommendations are calculated on device from the user's own logs.</p>
+<blockquote><p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p></blockquote>
+<p>Train Libre lets users track a body-weight goal alongside daily calorie and macro targets. Goal progress and adaptive nutrition recommendations are produced from measurements and diary data stored by the app.</p>
 <h2 id="goal-setup-and-trajectory" class="doc-h2">Goal setup and trajectory<a href="#goal-setup-and-trajectory" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The guided goal flow can use a real weight measurement as its baseline. Users choose a target weight and planned pace, then review the projected date and goal summary before saving. The app supports one active goal; a replacement goal is kept in the goal history rather than silently merged with the previous one. Users can adjust or retire an active goal later.</p>
-<p>The goal dashboard presents baseline, current, and target weight, remaining progress, pace, and a projected completion date. Recorded measurements appear against a date-based trajectory.</p>
-<h2 id="weekly-reviews-and-recommendations" class="doc-h2">Weekly reviews and recommendations<a href="#weekly-reviews-and-recommendations" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Reviews summarize recent weight and nutrition data. A review needs at least three weigh-ins and four logged calorie days in its seven-day window before it can make a data-backed recommendation. Sparse data is presented as calibration context rather than as a confident adjustment.</p>
-<p>When the observed rate differs enough from the planned rate, Train Libre can propose revised calorie and macro targets. The proposal does not change daily targets on its own: the user can apply it, adjust the goal trajectory, or keep current targets. Applying a target proposal updates the targets while preserving the goal and its progress history.</p>
-<p>Review cadence is anchored to the goal's start weekday. Optional local reminders can notify users when a review or other goal guidance is ready; notification preferences are managed in Settings.</p>
+<p>The guided goal flow records a baseline weight, target, planned pace, and (when selected) a projected date. A baseline may come from a saved measurement or a manually entered value. The app keeps one active body-composition goal; creating a replacement supersedes the previous goal and keeps its record in goal history. Users can revise or retire an active goal.</p>
+<p>The goal dashboard presents baseline, current, and target weight, remaining progress, pace, and projected completion information. Recorded measurements are compared with a date-based trajectory. These are tracking summaries, not assessments of health or a prediction guarantee.</p>
+<h2 id="weekly-reviews" class="doc-h2">Weekly reviews<a href="#weekly-reviews" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The review window is seven completed days and is aligned to the active goal's start weekday. It ends on the day before that check-in weekday. The app creates a review when its goal-review synchronizer runs (including at app startup); this is not a guaranteed notification at a particular time. It creates a review for the latest due window, rather than backfilling every past week.</p>
+<p>A review can still be created with sparse data, but it is marked as calibrating/insufficient. The review's basic data gate is at least three weight observations, at least four logged-intake days, and an available observed weight rate. Meeting that gate does not by itself authorize a nutrition adjustment: the review also evaluates trajectory status, difference from planned rate, whether logged intake differs from the current calorie target, and whether the required remaining rate passes the app's safety bound. The review may recommend keeping targets, collecting more data, changing the goal trajectory, or adjusting nutrition targets. These thresholds are product rules, not clinical standards.</p>
+<h2 id="applying-recommendations" class="doc-h2">Applying recommendations<a href="#applying-recommendations" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Generating a review does not automatically change active targets. The review screen's explicit apply action recalculates the current adaptive recommendation and applies its calorie and macro targets. If the goal is behind schedule or its target date needs review, the action can also propose a revised pace/date; a changed target date requires confirmation before it is saved.</p>
+<p>The screen's “keep current” action is not a promise to leave calorie and macro targets unchanged: its current implementation recalculates and applies the latest recommendation, then dismisses the review. The separate “continue logging” action defers a review without applying targets. From the review, users can also edit the goal plan; saving that edit triggers a recommendation recalculation and application.</p>
+<h2 id="reminders-and-stored-state" class="doc-h2">Reminders and stored state<a href="#reminders-and-stored-state" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Review records, goal records, and their status/history are stored in the local database. The adaptive recommendation snapshot and settings are stored separately in local preferences. Weekly review reminders are local notifications controlled by Settings (enabled by default); a due review is marked as notified after that synchronization pass even if reminders are disabled or notification permission is unavailable, so enabling them later affects future reviews.</p>
 <h2 id="privacy-and-scope" class="doc-h2">Privacy and scope<a href="#privacy-and-scope" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Goal calculations and records stay in the local app database. Optional usage telemetry reports only coarse event categories and does not include goal text, body-weight values, or calorie figures. Goal guidance is a tracking aid, not medical advice.</p>
+<p>Goal and recommendation values remain in local app storage. If the user has opted in to usage telemetry, review-completion events send trajectory status, confidence, decision, bucketed observation/intake counts, calorie-adjustment direction, and a macro-adjustment flag. Recommendation-generation events send counts, window length, sample-size/confidence indicators, warning level, and quality flags. These events do not include exact body-weight or calorie values. Telemetry is optional and is not needed to calculate or apply recommendations.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -189,7 +194,9 @@
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
 <li class="toc-item toc-item-l2"><a href="#goal-setup-and-trajectory">Goal setup and trajectory</a></li>
-<li class="toc-item toc-item-l2"><a href="#weekly-reviews-and-recommendations">Weekly reviews and recommendations</a></li>
+<li class="toc-item toc-item-l2"><a href="#weekly-reviews">Weekly reviews</a></li>
+<li class="toc-item toc-item-l2"><a href="#applying-recommendations">Applying recommendations</a></li>
+<li class="toc-item toc-item-l2"><a href="#reminders-and-stored-state">Reminders and stored state</a></li>
 <li class="toc-item toc-item-l2"><a href="#privacy-and-scope">Privacy and scope</a></li>
 </ul></div></aside>
     </div>

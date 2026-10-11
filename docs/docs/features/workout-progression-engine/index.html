@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="First-working-set load recommendation, double progression, and e1RM back-offs.">
+  <meta name="description" content="First-set and later-set recommendations for eligible load-and-repetition workouts.">
   <title>Workout progression | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/workout-progression-engine/">
 
@@ -16,7 +16,7 @@
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
   <meta property="og:title" content="Workout progression | Train Libre">
-  <meta property="og:description" content="First-working-set load recommendation, double progression, and e1RM back-offs.">
+  <meta property="og:description" content="First-set and later-set recommendations for eligible load-and-repetition workouts.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/workout-progression-engine/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -104,10 +104,10 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
 <li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
 <li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
@@ -115,10 +115,10 @@
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
 <li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
@@ -169,24 +169,24 @@
         <article class="docs-article">
           <h1 class="doc-title">Workout progression</h1>
 <p>The live workout offers a small, editable recommendation for eligible load-and-repetition exercises. Its purpose is to pre-fill ordinary weight and repetition fields at the useful moment; it is not a separate workout flow.</p>
+<p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p>
 <h2 id="what-the-user-sees" class="doc-h2">What the user sees<a href="#what-the-user-sees" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>With Training Autonomy set to <strong>Suggest</strong>, the app fills only the first open working set when comparable history is available. The user can overwrite either field and completes the set with the usual check action. There are no policy selectors, completion reasons, review cards, confirmation dialogs, equipment configuration controls, or progression-specific menus in a live workout.</p>
+<p>Training Autonomy defaults to <strong>Off</strong>. The Settings page offers <strong>Off</strong> and <strong>Suggest</strong>, and the live workout keyboard accessory has an on/off toggle. A one-time opt-in sheet can appear in a workout when eligible history exists and the setting is Off. With <strong>Suggest</strong>, the app fills only the first open working set when comparable history is available. The user can overwrite either field. Checking a suggested set records the visible values as a performed set; there is no additional per-set confirmation or review. The feature has no completion reason or review card, and it does not offer equipment configuration controls.</p>
 <p>After a working set is completed, only the directly following open working set gets its target. Its completed predecessor is the evidence for that one prescription. A value entered by the user always wins over a generated value, including if an asynchronous history lookup finishes afterwards.</p>
 <p>Cardio, duration, distance, variable-load and other exercises without a stable load-and-repetition axis continue to log normally, but receive no strength progression recommendation.</p>
 <h2 id="recommendation-rule" class="doc-h2">Recommendation rule<a href="#recommendation-rule" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Only the first working set of the most recent completed comparable workout is used to start the next one. Warm-up and drop sets are excluded. Exercise matching uses the canonical exercise UUID, with the existing legacy name fallback for old records.</p>
-<p>For a repetition range <code>[L, U]</code>, the next first set is simple double progression:</p>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>Previous first set</th><th>Suggested next first set</th></tr></thead><tbody><tr><td>Below <code>L</code> repetitions</td><td>Hold the load and target <code>L</code></td></tr><tr><td><code>L</code> through <code>U - 1</code> repetitions</td><td>Hold the load and add one repetition</td></tr><tr><td>At least <code>U</code> repetitions</td><td>Advance one standard equipment increment and target <code>L</code></td></tr></tbody></table></div>
-<p>For a fixed repetition target, the app projects a load capable of that target from the previous first set's estimated 1RM, while limiting an increase to one standard equipment increment. A recorded RIR contributes to that estimate as additional repetitions to failure; a missing RIR uses only the performed repetitions. Without a repetition target it repeats the prior load and leaves repetitions empty.</p>
-<p>For each later set, the app calculates a fresh Brzycki capacity from the immediately preceding real set. Missing RIR or RIR <code>0</code> retain 95% capacity for the next set; RIR <code>1</code> through <code>4+</code> retain 96% through 99%. The next test load is normally the previous real load. When routine weights deliberately define a different positive next-set weight, their ratio to the first template weight is applied to today's real first-set load and rounded to a usable increment before calculating repetitions.</p>
+<p>Only the first working set of the most recent completed comparable workout is used to start the next one. Warm-up and drop sets are excluded. Exercise matching uses the canonical exercise UUID, with a legacy name fallback when a history row has no exercise UUID.</p>
+<p>For a loaded exercise with a repetition range <code>[L, U]</code>, the next first set follows these rules:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Previous first set</th><th>Suggested next first set</th></tr></thead><tbody><tr><td>Below <code>L</code> repetitions</td><td>Estimate a load for <code>L</code> reps from the prior set; if that estimate is unavailable, hold the load</td></tr><tr><td><code>L</code> through <code>U - 1</code> repetitions</td><td>Hold the load and add one repetition</td></tr><tr><td>At least <code>U</code> repetitions</td><td>Move one increment harder for that load mode and target <code>L</code></td></tr></tbody></table></div>
+<p>For a fixed repetition target, when a valid estimate is available for up to 12 effective repetitions, the app projects a load capable of that target from the previous first set's estimated 1RM, while limiting a harder step to one standard equipment increment. A decrease can be larger when the estimate calls for it. A recorded RIR contributes to that estimate as additional repetitions to failure; a missing RIR uses only the performed repetitions. If the estimate is unavailable or the target exceeds 12 reps, it holds the prior load. Without a repetition target it repeats the prior load and leaves repetitions empty.</p>
+<p>For each later loaded set, the app estimates capacity from the immediately preceding completed set using the Brzycki equation, then multiplies it by a per-set retention factor. Missing RIR or RIR <code>0</code> retain 95% capacity; RIR <code>1</code> through <code>4+</code> retain 96% through 99% (values above 4 use the 99% cap). The next test load is normally the previous real load. For external and weighted-bodyweight modes, when routine weights define a different positive next-set weight at least one equipment increment away, their ratio to the first template weight is applied to today's real first-set load and rounded to a usable increment before calculating repetitions. Assisted mode uses the previous visible assistance amount instead.</p>
 <p>For a range <code>[L, U]</code>, the calculated repetitions determine the next target:</p>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>Projection at the rounded test load</th><th>Suggested next set</th></tr></thead><tbody><tr><td>Above <code>U</code></td><td>One normal increment harder, <code>U</code> reps</td></tr><tr><td><code>L</code> through <code>U</code></td><td>Hold the test load, projected reps</td></tr><tr><td>Below <code>L</code></td><td>Lower to the highest usable load capable of <code>L</code> reps, <code>L</code> reps</td></tr></tbody></table></div>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Projection at the rounded test load</th><th>Suggested next set</th></tr></thead><tbody><tr><td>Above <code>U</code></td><td>One normal increment harder for that load mode, <code>U</code> reps</td></tr><tr><td><code>L</code> through <code>U</code></td><td>Hold the test load, projected reps</td></tr><tr><td>Below <code>L</code></td><td>Lower to the highest usable load capable of <code>L</code> reps, <code>L</code> reps</td></tr></tbody></table></div>
 <p>The engine does not use Brzycki beyond 12 effective repetitions. In that case it holds the test load unless the actual result reached the range maximum, when it advances by exactly one increment. A result of at most three effective reps in a range beginning at six or more reps holds the test load and targets the lower bound, avoiding an implausible deload after insufficient evidence.</p>
-<p>Bodyweight exercises receive repetition targets only. Assisted and weighted-bodyweight exercises retain their own load semantics. Assisted work uses effective resistance when body weight is available. Without body weight, it uses a discrete rule: less assistance at the range maximum, more assistance below the range, and the same assistance with one more rep inside the range. Generic equipment floors prevent suggestions below an unloaded standard barbell, the smallest dumbbell, cable or machine increment. The database does not yet store a user's specific gym inventory, so these floors are deliberately conservative class defaults rather than claims about a particular facility.</p>
+<p>Bodyweight exercises receive repetition targets only. Assisted and weighted-bodyweight exercises retain their own load semantics. Assisted work uses effective resistance when body weight is available. Without body weight, it uses a discrete rule: less assistance at the range maximum, more assistance below the range, and the same assistance with one more rep inside the range. For external loads, generic equipment floors prevent suggestions below the configured minimum for a standard barbell, dumbbell, cable, or machine; unknown equipment uses the generic increment without a minimum. The database does not store a user's specific gym inventory, so these class defaults do not describe a particular facility.</p>
 <p>The recommendation is deliberately a starting point. It does not diagnose fatigue, pain, form, recovery or readiness, and it never changes the routine.</p>
 <h2 id="persistence-and-updates" class="doc-h2">Persistence and updates<a href="#persistence-and-updates" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Saving a workout writes every retained set and the completed workout record in one SQLite transaction, then verifies the retained rows. Untouched empty rows and unfinished generated placeholders are discarded, so workout history shows only used sets. Manually entered open sets and all completed sets are retained. This avoids the former delete-before-save path that could lose entered sets if finalization was interrupted.</p>
-<p>The simplification does not require a schema migration. Existing progression metadata remains readable for backup, restore and historical records, while new workouts use algorithm version <code>progression_v1.8_jit</code>.</p>
+<p>Each suggestion records its reason and algorithm version on the set row. The current engine version is <code>progression_v1.8_jit</code>. Suggested values are stored as ordinary set values; if the user changes them, the record marks the prescription overridden. The engine does not automatically complete a set or change a routine.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">

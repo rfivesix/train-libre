@@ -104,10 +104,10 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
 <li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Manual Workout Plans</a></li>
@@ -115,10 +115,10 @@
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
 <li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
@@ -168,17 +168,20 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Manual Workout Plans</h1>
-<p>Manual plans arrange saved routines into a schedule without creating workout debt or catch-up sessions.</p>
-<h2 id="plan-formats" class="doc-h2">Plan formats<a href="#plan-formats" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Manual plans place routines and rest days on a calendar. They do not generate workouts, create missed-session debt, or prescribe a catch-up session.</p>
+<p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p>
+<h2 id="plan-formats-and-revisions" class="doc-h2">Plan formats and revisions<a href="#plan-formats-and-revisions" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
-<li><strong>Weekly plan:</strong> Assign routines or rest days to weekdays. A missed weekday does not move the remaining schedule.</li>
-<li><strong>Training sequence:</strong> Arrange routines and rest days in a repeating sequence of 1–14 days. If a workout is missed, it remains next until it is completed or explicitly skipped.</li>
+<li><strong>Weekly plan:</strong> Assign a routine or rest day to each weekday. The seven weekday slots stay fixed; a missed workout does not shift the following weekdays.</li>
+<li><strong>Training sequence:</strong> Arrange routines and rest days into a repeating sequence of 1–14 days. Rest days advance the sequence automatically. A missed workout slot remains the current slot until that workout is completed, partially completed, or explicitly skipped. Future calendar dates are projections and assume each upcoming slot is resolved.</li>
 </ul>
-<p>Only one manual plan is active at a time. Plans retain routine snapshots and revisions so later routine edits do not rewrite the historical prescription. The plan overview shows the full schedule and the relevant current or next slot.</p>
-<h2 id="session-tracking" class="doc-h2">Session tracking<a href="#session-tracking" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Users can start a due planned session directly from the Diary or plan view. The plan records completed, partially completed, and skipped sessions. Completed and partial entries can open the saved workout details. A skipped session is explicit; the app does not add an extra workout to compensate for a missed day.</p>
-<h2 id="reminders-and-data-portability" class="doc-h2">Reminders and data portability<a href="#reminders-and-data-portability" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Optional workout reminders are scheduled locally for planned workout days at the time selected in Settings. Opening a reminder routes to the active plan. Updating, replacing, or retiring a plan reschedules or removes reminders tied to the previous plan. Plans are included in app backup and restore.</p>
+<p>Only one plan can be active at a time. A plan must include at least one workout, and each workout day must use a saved routine with at least one set. Plans store a routine snapshot in each revision, so later routine edits do not rewrite the plan’s saved prescription. An edit can take effect from today or at the next week/sequence cycle. Changing between weekly and sequence formats requires creating a new plan.</p>
+<h2 id="starting-and-resolving-sessions" class="doc-h2">Starting and resolving sessions<a href="#starting-and-resolving-sessions" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The active plan’s eligible workout can be started from the Diary card or plan calendar. Starting a past planned day from the calendar requires confirmation. An ongoing workout is linked to that planned occurrence. When the workout is completed, the app compares completed sets with the saved routine’s set requirements: meeting every requirement records <strong>completed</strong>; otherwise it records <strong>partial</strong>. The sequence advances after either outcome. Skipping is an explicit, separately confirmed action; a skipped slot also advances the sequence. A workout that is still ongoing does not resolve the slot.</p>
+<p>Completed and partially completed occurrences with a linked workout can open that workout’s saved details. Rest days have no session to start. The plan does not add a replacement workout for an uncompleted day.</p>
+<h2 id="reminders-and-portability" class="doc-h2">Reminders and portability<a href="#reminders-and-portability" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Workout plan reminders are optional and off until enabled in Settings. When enabled, the app schedules local reminders for unresolved workout days on the active plan from today through 28 days after today, at the selected local time (18:00 by default). Reminder times that have already passed are omitted. The notification scheduler requests exact Android delivery and falls back to inexact delivery if the platform rejects that request; actual delivery timing therefore depends on platform scheduling. Tapping a plan reminder opens the active plan, rather than a particular session. Editing, activating, deactivating, or resolving plan sessions triggers reminder synchronization.</p>
+<p>Backups include plan records, revisions, activations, occurrences, and routine/workout bindings; restore code remaps linked identifiers. The backup also includes user preference keys, which carry the plan reminder settings. Pending OS notification requests are not serialized as plan data.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -189,9 +192,9 @@
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#plan-formats">Plan formats</a></li>
-<li class="toc-item toc-item-l2"><a href="#session-tracking">Session tracking</a></li>
-<li class="toc-item toc-item-l2"><a href="#reminders-and-data-portability">Reminders and data portability</a></li>
+<li class="toc-item toc-item-l2"><a href="#plan-formats-and-revisions">Plan formats and revisions</a></li>
+<li class="toc-item toc-item-l2"><a href="#starting-and-resolving-sessions">Starting and resolving sessions</a></li>
+<li class="toc-item toc-item-l2"><a href="#reminders-and-portability">Reminders and portability</a></li>
 </ul></div></aside>
     </div>
 

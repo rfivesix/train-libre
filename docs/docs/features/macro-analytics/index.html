@@ -104,10 +104,10 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Macronutrient Analytics</a></li>
 <li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
@@ -115,10 +115,10 @@
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
 <li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
@@ -168,12 +168,15 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Macronutrient Analytics</h1>
-<p>The Statistics hub includes a Nutrition section for reviewing calorie and macro intake over time. The overview card follows the selected date range and period; opening it carries those filters into the dedicated macro statistics view.</p>
+<p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p>
+<p>The Statistics hub’s Nutrition card previews logged calorie and macronutrient intake for its selected time range. Opening the card passes the selected range, anchor date, and rolling-period setting to the detailed Nutrition statistics screen. This view reports diary data; it does not estimate unlogged intake.</p>
 <h2 id="time-ranges-and-navigation" class="doc-h2">Time ranges and navigation<a href="#time-ranges-and-navigation" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The chart supports 7-day, 1-month, 3-month, 6-month, 1-year, and maximum-history ranges. Previous and next period controls move within the selected range, and the date picker lets users choose an anchor period. The seven-day chart can select individual days; longer ranges summarize denser history for readability.</p>
-<h2 id="intake-detail" class="doc-h2">Intake detail<a href="#intake-detail" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The detail view summarizes calories, protein, fat, and carbohydrates and presents daily intake chronologically. In the seven-day chart, selecting a day's bar updates the selected-day values. In longer ranges, the chart prioritizes trend comparison over dense per-day labels.</p>
-<p>The Nutrition hub also shows a rolling seven-day comparison between logged intake and the current target. Recommendations remain separate from this history view and do not change targets unless the user applies them.</p>
+<p>The detailed view offers 7-day, 1-month, 3-month, 6-month, 1-year, and maximum-history ranges. Anchored ranges use calendar weeks (Monday through Sunday), months, quarters, half-years, or years. Maximum history begins at January 1, 2020. The rolling option uses a duration ending today; because both endpoints are normalized to calendar dates and included, it can return one more calendar-day row than the duration label suggests. Previous/next controls and the date picker navigate anchored periods; maximum history has no period navigation.</p>
+<p>The preview card groups daily values into averages when the selected range contains more than 31 days. The detailed chart keeps one bar per returned calendar date and provides a daily breakdown for dates with nonzero summary data. In the detailed chart, tap a bar to show that day’s values, or press and drag across bars to inspect days; the metric header otherwise shows period averages.</p>
+<h2 id="what-is-counted" class="doc-h2">What is counted<a href="#what-is-counted" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Food diary entries are joined to their local product records and scaled from each product’s per-100-gram nutrition values by the logged quantity. Entries without a matching product record do not contribute. Unlinked fluid entries contribute their recorded calories and their carbohydrate value scaled from grams per 100 ml; linked fluids and fluid entries duplicated by a fluid food entry are skipped. Fluids do not add protein or fat in this summary.</p>
+<p>Daily calories and macros are summed, then period averages are calculated over dates with any nonzero calorie or macro data. Dates without logged values are still represented as zero-valued chart rows but are omitted from the detailed breakdown list. If the whole range has no tracked dates, the displayed averages are zero. Calories are rounded to whole kcal in the daily summary; macro values are displayed rounded to whole grams in the header and daily list.</p>
+<p>The Nutrition hub also has a separate adaptive-recommendation card that can compare recent logged intake with a generated target. A generated recommendation does not change the active targets until the user applies it. See <a href="../adaptive-nutrition-goals/index.html">Adaptive Nutrition Goals</a> for that workflow.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -185,7 +188,7 @@
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
 <li class="toc-item toc-item-l2"><a href="#time-ranges-and-navigation">Time ranges and navigation</a></li>
-<li class="toc-item toc-item-l2"><a href="#intake-detail">Intake detail</a></li>
+<li class="toc-item toc-item-l2"><a href="#what-is-counted">What is counted</a></li>
 </ul></div></aside>
     </div>
 

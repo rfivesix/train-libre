@@ -1,98 +1,46 @@
-# Depth Scale Hint (LiDAR)
+# Depth Scale Hint
 
-The single largest error in estimating a portion from a photograph is not recognising the food — it is not knowing how big anything is. A plate assumed 1.5× too wide is a portion roughly 3× too large. On devices with a LiDAR sensor, Train Libre removes that unknown by measuring the scene and handing the model a few measured numbers.
+> Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.
 
-This is a **hint to the AI**, not a local computation of what is on the plate.
+Train Libre can pass depth-derived scale facts and, optionally, a rendered depth image with a meal photo to the configured AI provider. These are inputs for an estimate; the app does not calculate food mass or identify ingredients from depth.
 
----
+## Capture and availability
 
-## 1. Explicit Non-Goals
+The depth capture uses the iOS camera session. The native camera selection prefers LiDAR, then supported multi-camera devices, then the wide camera; devices without depth delivery continue with ordinary photo capture. Android does not provide this depth capture path. A depth map may also be available from a non-LiDAR iOS camera, but relative-accuracy data does not pass the scale-facts quality gate.
 
-The following are deliberately *not* built, because geometry sees height differences, not ingredients — rice and chicken side by side at the same height are one shape, and a heap of rice with a dent in it is two:
+The app receives a Float32 depth buffer in metres, the depth-map dimensions, the sensor accuracy mode, and camera intrinsics when available. It derives scale facts only when those inputs are present. The buffer is used in memory for facts and rendering; the meal record stores the derived facts, not the raw buffer.
 
-*   No local segmentation or mask generation (neither geometric nor via CoreML/Vision).
-*   No plate or plane detection, no clustering of points into ingredients.
-*   No local per-ingredient volume calculation.
-*   No point cloud in the prompt — it does not work and costs a great many tokens.
-*   No bundled model, no training, no new network or cloud dependency beyond the existing BYOK provider.
+## Scale facts and quality gate
 
-What *is* done: reading the depth buffer, elementary arithmetic on it (median, percentiles, camera intrinsics), and rendering an image.
+`DepthScaleCalculator` accepts finite depth values greater than 0.05 m and less than 5 m. It computes the valid-sample share across the frame. Subject distance is the median of valid samples in the central third of the depth map (falling back to all valid samples if that region has none); near and far values are the 5th and 95th percentile of valid samples. Frame width and height are estimated from that median distance and the camera intrinsics.
 
----
+The facts are marked valid only when the central subject distance is 15–120 cm inclusive, at least half of the frame’s samples are valid, and the sensor reports absolute accuracy. This is an input filter, not a measurement-accuracy guarantee. Invalid facts are omitted from the scale prompt. The optional depth image has a separate setting and is not gated by `DepthScaleFacts.isValid`, so a rendered map can still be attached when depth values exist even if scale facts fail the gate.
 
-## 2. Capture
+## What is sent to the provider
 
-Depth is delivered by the same native `AVCaptureSession` that provides the preview, the barcode stream and the photo (see [Meal Capture Pipeline](meal_capture_pipeline.md)). `DepthScanCapability` reports two independent things: whether the unified session can run at all (false on Android and in tests) and whether a depth map accompanies the photo. Everything below is skipped when depth is unavailable, and no user on a device without LiDAR is told that anything is missing.
+When enabled and valid, the scale facts add rounded distance, frame dimensions, and near/far distances to the system prompt. The prompt asks the model to use those values when estimating portion size. When the depth-image setting is enabled and rendering succeeds, the app adds a second image after the meal photos, with a legend describing the rendered camera-distance bands. The depth image is a visualization of distance from the camera, not height above a detected plate or table plane. Neither facts nor image segment the scene into foods, identify ingredients, or directly yield portion mass or volume.
 
-The raw depth buffer never leaves the device.
+The initial image-analysis request may include the scale facts and optional depth image. A validation repair request can include valid scale facts, but the repair path does not attach the depth image. Both the meal photo and any optional depth image are sent through the currently selected AI provider; the raw depth buffer is not part of that request. See [BYOK AI Meal Capture & Validation](byok_ai_validation.md) for provider behavior and [Meal Capture Pipeline](meal_capture_pipeline.md) for the surrounding capture flow.
 
----
+## Rendered depth image
 
-## 3. The Scale Facts
+`DepthMapRenderer` maps usable distances to a default 40-band Viridis palette; invalid pixels are gray. It uses the 2nd–98th percentile range when at least 32 usable depth samples exist. If that range is narrower than 4 cm it expands it to 4 cm. When fewer than 32 usable samples prevent an automatic range, it falls back to 0–80 cm. Distances outside the selected range are clamped to the end bands. These choices affect only the visualization, not the scale facts.
 
-`DepthScaleCalculator` reduces a Float32 depth buffer (metres) plus camera intrinsics to five numbers:
+The image is created on demand for review or analysis. If rendering or PNG encoding fails, the photo analysis can continue without it. Forty color bands are a display choice and do not establish corresponding physical precision.
 
-| Fact | Definition |
+## User controls
+
+The two switches appear in AI settings when AI is enabled and the iOS camera reports depth delivery support. Both default to on and are stored in local shared preferences.
+
+| Setting | Effect |
 |---|---|
-| `subjectDistanceCm` | median distance to the subject, measured over the centre third of the frame |
-| `frameWidthCm`, `frameHeightCm` | how much of the world the frame covers at that distance |
-| `nearCm`, `farCm` | 5th and 95th percentile distance — nearest and farthest surface |
-| `validSampleRatio` | share of usable, non-null depth samples across the frame |
+| `depth_scan_scale_hint_enabled` | Include valid scale facts in the prompt. |
+| `depth_scan_depth_image_enabled` | Render and allow the depth image as an additional provider image. |
 
-### Quality Gate
-A measurement is only used when it is trustworthy. It is discarded when:
-*   the subject distance falls outside **15–120 cm**,
-*   fewer than **50 %** of samples are valid, or
-*   the sensor reports `relative` rather than `absolute` accuracy.
+The controls are independent. Turning off scale facts does not itself disable depth-image rendering or attachment, and turning off the depth image does not itself suppress valid scale facts.
 
-Glass, liquids and reflective surfaces are the typical cause of a rejected measurement. A rejected measurement means the analysis proceeds exactly as it did before LiDAR existed — never with a wrong scale.
+## Persistence and telemetry
 
----
+When a meal is saved, available scale facts are serialized into the meal entry’s `captureMeta` JSON. The raw depth buffer and rendered depth image are not stored in that metadata. The depth capture and the user opening the depth visualization call `feature_used` telemetry with the feature keys `lidar_depth_captured` and `lidar_depth_visualized`; those calls add no depth measurements or image data. PostHog transmission is gated by telemetry opt-in, and telemetry can also be disabled at build time. See [TELEMETRY.md](../../TELEMETRY.md).
 
-## 4. What the Model Receives
-
-### The Numbers
-When the facts pass the gate, a block is prepended to the system prompt stating the distance, the physical frame size and the near/far range, marked explicitly as *measured, not estimated*, with the instruction to derive plate and portion dimensions from the frame size instead of from assumed cutlery sizes. The same summary is repeated in the repair prompt, so a correction pass cannot silently discard the measurement.
-
-### The Depth Image
-Optionally a second image is attached: a false-colour depth map rendered by `DepthMapRenderer`.
-
-*   **Plain distance from the camera**, not height above a reference plane. An earlier version derived a plane from the frame; point the camera at a room and that "reference" lands on a wall metres away, and the picture stops meaning anything.
-*   **The ramp is fitted to what the frame actually contains** — the 2nd to 98th percentile of valid readings, with a minimum span of 4 cm and a 0–80 cm fallback when there is too little to measure. A fixed 0–80 cm scale would paint a plate sitting between 24 and 31 cm in a single colour.
-*   **40 bands.** Eight was far too coarse: across an 8 cm plate each band covered a full centimetre, and rice heaped in the middle looked the same as rice spread flat. Forty puts the steps at about two millimetres, finer than the sensor's own noise — deliberately, because at that density the image stops reading as bands and becomes a smooth relief, and the dithering along an edge is a fairer picture of an uncertain measurement than a hard line.
-*   **Viridis**, sampled from anchor points so the band count can change without hand-picking colours. Missing readings are neutral gray.
-
-A generated legend tells the model what the bands mean in centimetres, together with the instruction that the photo identifies the food while the depth map gives its shape.
-
-The depth image is what distinguishes a heaped portion from a flat one: both cover the same area in a photo.
-
----
-
-## 5. User Control
-
-Both halves are separately switchable, because they cost different things and their value is a genuinely open question:
-
-| Setting key | Default | Effect |
-|---|---|---|
-| `depth_scan_scale_hint_enabled` | on | the measured numbers in the prompt |
-| `depth_scan_depth_image_enabled` | on | the false-colour depth map as a second image |
-
-The numbers are cheap and certain; the picture costs a second image per analysis. Switching them lets the same meal be photographed twice, with and without, which is the only honest way to judge the effect on real food.
-
----
-
-## 6. Storage and Telemetry
-
-The scale facts of a capture are persisted in `MealEntries.captureMeta` alongside the provider and model used, so a logged meal records how it was measured. Two telemetry events (`lidar_depth_captured`, `lidar_depth_visualized`) record only *that* a measurement or visualisation happened — see [TELEMETRY.md](../../TELEMETRY.md).
-
----
-
-## 7. Privacy
-
-The photo already goes to the BYOK provider the user configured. What is added is a handful of centimetre figures and, optionally, an abstract depth image — both carrying less personal information than the photograph itself. The raw depth buffer never leaves the device, and without a configured AI provider nothing is transmitted at all.
-
----
-
-## 8. Accuracy Expectations
-
-Published laboratory baselines for image-plus-depth food mass estimation sit around 15–25 % error; pure image estimation typically lands at 40–50 %. A scale hint therefore aims to make a rough estimate less rough — it does not make it a measurement. The clinical disclaimer in [BYOK AI Meal Capture & Validation](byok_ai_validation.md) applies unchanged.
+The scale facts and rendered image can be shared with the configured AI provider as described above. The repository does not establish that depth improves estimate accuracy, and it does not provide a validated food-mass accuracy range. Treat the result as an AI-assisted estimate that should be reviewed before saving.

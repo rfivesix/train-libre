@@ -1,91 +1,63 @@
-# Fitness-Oriented Bayesian TDEE Estimator & Adaptive Calorie Controller
+# Bayesian TDEE Estimate and Adaptive Calorie Target
 
-> **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic for healthy individuals tracking performance and dietary habits. It is not intended for diagnosis, treatment, eating-disorder management, or endocrine and metabolic conditions. Users should consult a qualified healthcare professional before making medically significant dietary changes.
+> **Scope and limits:** Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.
 
-Train Libre separates two related jobs:
+Train Libre separates two related calculations:
 
-1. A one-dimensional recursive Kalman filter estimates latent Total Daily Energy Expenditure (TDEE).
-2. A bounded trajectory controller may temporarily adjust the calorie target when measured bodyweight change persistently differs from the selected goal rate.
+1. A recursive Bayesian filter estimates maintenance calories (TDEE) from logged intake and bodyweight trend, starting from a profile-based prior.
+2. A bounded controller may adjust the recommended calorie target when recent weight change persistently differs from the selected goal rate.
 
-The controller never changes the displayed maintenance estimate or its uncertainty range. All calculations run locally on the device.
+The controller does not change the displayed maintenance estimate or its uncertainty. These are estimates from user-entered and imported records, not measurements of energy expenditure.
 
----
+## 1. Inputs and evaluation window
 
-## 1. Input Window and Weight Trend
+The adaptive input window contains 14 calendar days. Its end is anchored to the completed day before the check-in weekday: the active goal's start weekday, or Monday when no goal is active. This keeps repeated refreshes within one due week on the same input window.
 
-Weekly recommendations use the latest **14 days** of available intake and bodyweight logs. Daily weights are smoothed with an exponentially weighted moving average:
+The adapter uses:
 
-$$S_d = 0.35W_d + 0.65S_{d-1}$$
+- The latest logged weight on each day in the window. It smooths those available daily values with an EWMA using $\alpha=0.35$, then fits a linear regression against their actual day offsets to estimate kg/week. Missing days are not filled with estimated weights.
+- Logged food calories and unlinked fluid-entry calories. Intake is averaged over days with a positive calorie total; days without logged calories are not treated as zero-intake days. Unresolved food calories are flagged.
+- A profile-based maintenance prior using current or recent weight, body-fat percentage when available, profile details, declared activity, workouts, steps, and the user's extra-cardio setting. When there is no weight in the window, the adapter may use the latest prior measurement or the active goal's baseline; if no positive weight is available, generation fails.
 
-A linear regression over the smoothed series produces the weekly bodyweight slope. Logged calories are averaged over logged intake days in the same window. Sparse logs remain usable, but receive larger observation variance and may suppress trajectory correction.
+The profile prior bootstraps the filter; subsequent eligible estimates chain from the saved posterior. A missing weight trend or missing logged intake prevents an observation update, but the filter can still return a prediction from its prior.
 
-Because weekly evaluations use overlapping 14-day windows, adjacent observations are correlated. The estimator therefore uses conservative uncertainty, bounded gain, and target-adjustment limits rather than treating each result as an independent laboratory measurement.
+## 2. Maintenance observation
 
----
+When both a weight slope and at least one positive-calorie intake day are available, the observation is:
 
-## 2. Maintenance Observation Model
+$$M_t = \text{averageLoggedCalories}_t - \left(\text{smoothedWeightSlopeKgPerWeek}_t \cdot \frac{7700}{7}\right)$$
 
-For week $t$, observed maintenance is:
+The conversion coefficient is fixed at **7,700 kcal/kg** in the current model. It is an engineering approximation for translating weekly mass change into a daily energy-balance signal; it does not establish the tissue composition of short-term scale changes. If either input is missing, no maintenance observation is formed for that refresh.
 
-$$M_t = \text{avgLoggedCalories}_t - \left(\text{smoothedWeightSlopeKgPerWeek}_t \cdot \frac{7700}{7}\right)$$
+## 3. Observation uncertainty
 
-The conversion coefficient is fixed at **7,700 kcal/kg**. This is a population-level engineering approximation, not a claim that every kilogram of short-term scale change represents identical tissue composition.
+The model combines a baseline variance, intake-day variability, and weight-slope uncertainty:
 
-Earlier versions changed this coefficient from 3,000 to 7,700 during the first nine phase weeks. That approach biased the observation itself. The current model keeps the observation equation stable and represents early water-weight uncertainty through observation variance instead.
+$$V_{ref} = V_{base} + V_{intake} + V_{slope}$$
 
----
+$$V_{base}=120^2$$
 
-## 3. Observation Variance
+$$V_{intake}=\left(\frac{320}{\sqrt{\max(\text{intakeLoggedDays},1)}}\right)^2$$
 
-The reference variance combines independent heuristic uncertainty sources:
+$$V_{slope}=\left(\frac{0.55\cdot(7700/7)}{\sqrt{\max(\text{weightLogCount}-1,1)}}\right)^2$$
 
-$$V_{\text{ref}} = V_{\text{base}} + V_{\text{intake}} + V_{\text{slope}}$$
+The reference variance is multiplied by a phase factor: 2.25 for confirmed phase days 1–7, 1.50 for days 8–14, and 1.00 after day 14. This changes uncertainty, not the observation coefficient or its direction.
 
-$$V_{\text{base}} = 120^2$$
+Completeness and quality add further penalties. For a window of $D$ days, with $I$ logged intake days and $W$ logged weight days:
 
-$$V_{\text{intake}} = \left(\frac{320}{\sqrt{\text{intakeLoggedDays}}}\right)^2$$
+$$C=\frac{1}{\sqrt{\operatorname{clamp}(I/D,0.05,1)\cdot\operatorname{clamp}((W-1)/(D-1),0.05,1)}}$$
 
-$$V_{\text{slope}} = \left(\frac{0.55 \cdot \frac{7700}{7}}{\sqrt{\max(\text{weightLogCount}-1,1)}}\right)^2$$
+The observation variance is $R=V_{ref}\cdot C^2\cdot M_{qual}^2$, where $M_{qual}$ starts at 1.12 when fewer than five intake days are logged, 1.10 when fewer than five weight logs are present, and 1.30 when unresolved food calories are flagged; applicable penalties multiply. History-based calibration may then scale observation variance and process variance, within configured bounds. These constants and multipliers are model choices, not validated measures of an individual's true error.
 
-With complete daily logging, the unpenalized reference variance is approximately:
+## 4. Recursive estimate
 
-| Window | Approximate variance | Standard deviation |
-|---:|---:|---:|
-| 7 days | 90,000 kcal²/day² | 300 kcal/day |
-| 14 days | 50,000 kcal²/day² | 224 kcal/day |
-| 21 days | 38,000 kcal²/day² | 194 kcal/day |
+The latent state is maintenance calories per day. The default weekly process standard deviation is 60 kcal/day, giving baseline process variance $Q_{process}=60^2=3600$. Recent posterior movement can adjust this process variance. The implementation advances the variance once per elapsed due week and caps variance relative to the reference observation variance.
 
-Completeness and quality penalties remain multiplicative:
-
-$$M_{\text{comp}} = \frac{1}{\sqrt{\text{intakeCompleteness}\cdot\text{weightCompleteness}}}$$
-
-$$R_t = V_{\text{ref}}\cdot M_{\text{phase}}\cdot M_{\text{comp}}^2\cdot M_{\text{qual}}^2$$
-
-Phase-transition uncertainty is:
-
-| Confirmed phase age | $M_{\text{phase}}$ |
-|---|---:|
-| Days 1–7 | 2.25 |
-| Days 8–14 | 1.50 |
-| Day 15+ | 1.00 |
-
-This lowers trust in early phase observations without changing their direction or implied maintenance value.
-
----
-
-## 4. Recursive Kalman Filter
-
-The latent state $X_t$ is maintenance calories in kcal/day. The default weekly process standard deviation is 60 kcal/day, so:
-
-$$Q = 60^2 = 3600$$
-
-Prediction:
+For each eligible observation, the filter predicts from the prior and updates with the standard scalar Kalman equations:
 
 $$X_{t|t-1}=X_{t-1}$$
 
-$$P_{t|t-1}=\min(P_{t-1}+Q\Delta t,V_{\text{cap}})$$
-
-Correction:
+$$P_{t|t-1}=\min(P_{t-1}+Q_{process}\Delta t, P_{cap})$$
 
 $$K_t=\frac{P_{t|t-1}}{P_{t|t-1}+R_t}$$
 
@@ -93,73 +65,38 @@ $$X_t=X_{t|t-1}+K_t(M_t-X_{t|t-1})$$
 
 $$P_t=(1-K_t)P_{t|t-1}$$
 
-For typical dense-data observation variance, the steady-state gain is approximately 0.24–0.28. This allows meaningful adaptation while keeping isolated water-weight changes from directly controlling the estimate. Maintenance remains clamped between 1,200 and 5,000 kcal/day.
+Without an observation, the filter makes a prediction-only step: the mean is not updated by intake/weight data, while uncertainty can grow with elapsed due weeks. The posterior mean is clamped to 1,200–5,000 kcal/day. There is no separate gain limiter in the filter. Adjacent rolling windows can overlap; the implementation does not explicitly model their covariance, so the result should not be read as if each weekly observation were independent evidence.
 
----
+The interface displays the maintenance estimate and a range calculated as the posterior mean plus or minus **one posterior standard deviation**. This is an uncertainty display, not a 95% interval or a calibrated probability statement. Confidence labels are separate heuristic categories based on data sufficiency and filter state.
 
-## 5. History-Based Noise Calibration
+## 5. History-based noise calibration
 
-Train Libre retains up to eight weekly posterior, residual, and implied-maintenance values. Residual variance can scale $R$, while posterior movement can scale $Q$, within conservative bounds.
+The model retains up to eight recent posterior means and observation residuals. After at least four history samples, residual variability can adjust observation variance ($R$), and root-mean-square changes in posterior means can adjust process variance ($Q$). Both adjustments are blended with their defaults and clamped to configured ranges.
 
-This calibration models changing signal quality. It is not driven by target-rate error: being behind a goal does not itself prove that latent TDEE became more volatile.
+When the recommendation algorithm version changes, the next service refresh recomputes the recommendation. The stored posterior mean and variance are retained, while the histories used for noise calibration are cleared before the new model runs. This avoids mixing residual history from the prior observation model with the fixed-coefficient model.
 
-After an algorithm upgrade that changes the observation equation, the current posterior and covariance are retained, but old calibration histories are cleared so incompatible residual regimes are not mixed.
+## 6. Bounded trajectory controller
 
----
+The base calorie target is the estimated maintenance plus a rounded goal-rate adjustment:
 
-## 6. Bounded Trajectory Controller
+$$C_{base}=X_t+\operatorname{round}\left(\text{targetRateKgPerWeek}\cdot\frac{7700}{7}\right)$$
 
-The calorie target begins with the posterior maintenance estimate plus the selected goal-rate adjustment:
+The controller compares the selected target rate with the observed smoothed weight slope:
 
-$$C_{\text{base}} = X_t + \text{targetRate}\cdot\frac{7700}{7}$$
+$$e_t=\text{targetRateKgPerWeek}-\text{observedRateKgPerWeek}$$
 
-When two consecutive eligible observations show rate error beyond the deadband and in the same direction, the controller calculates:
+It only calculates a correction when both the current and previous recommendations have compatible algorithm versions, the same goal and target rate, sufficient data, and errors beyond the 0.05 kg/week deadband in the same direction. The current window must be at least 14 days and contain at least 10 logged intake days and 7 weight logs, with no unresolved-food-calorie flag. A pending phase change or a confirmed phase younger than 15 days also disables correction.
 
-$$e_t=\text{targetRate}-\text{observedRate}$$
+For eligible observations, the controller rounds $0.65\cdot(7700/7)\cdot e_t$ to whole kcal/day, clamps it to $[-150,150]$, then limits its change from the previous correction to at most 100 kcal/day. With no compatible previous recommendation, correction is zero. The final calorie target adds the correction to the base target and applies a 1,200 kcal/day floor. This controller does not adjust the maintenance estimate.
 
-$$C_{\text{trajectory}}=\operatorname{clip}\left(0.65\cdot1100\cdot e_t,-150,150\right)$$
+## 7. Persistence, application, and telemetry
 
-The correction may change by at most 100 kcal/day between weekly recommendations. The final target is:
+The latest generated recommendation snapshot and recursive estimator state are saved in local app preferences. The snapshot includes its due-week key and algorithm version. Within the same due week, a refresh reuses the stored pre-update prior so it does not apply the same due-week observation repeatedly. When a new due week is processed, the prior posterior is advanced by the elapsed due weeks.
 
-$$C_t=C_{\text{base}}+C_{\text{trajectory}}$$
+Generating or refreshing a recommendation does not by itself replace active calorie or macro targets. The app applies a generated recommendation only through an explicit apply action; a separate workflow may also recalculate and apply after the user chooses that action.
 
-The controller is disabled when:
+Recommendation generation calls the optional telemetry service with counts of weight logs and intake days, window length, effective sample size, confidence category, warning level, quality flags, and presence indicators for slope/intake. Telemetry transmission is governed by the app's telemetry opt-in. These properties are not the underlying daily calorie or bodyweight series.
 
-- the rate error is within ±0.05 kg/week;
-- fewer than 14 usable days, 10 intake days, or 7 weights are present;
-- food calories are unresolved;
-- a phase change is pending or the confirmed phase is younger than 15 days;
-- the goal or target rate changed;
-- no compatible prior recommendation exists.
+## 8. Interpretation and limitations
 
-Onboarding and profile-prior-only recommendations always use zero trajectory correction.
-
----
-
-## 7. Persistence and Existing Users
-
-Recommendations are versioned. When the algorithm version changes, an existing user receives one deterministic recalculation, including during the same due week. The estimator replays the stored pre-update prior so the same observation is not applied twice.
-
-Generated recommendations never overwrite active calorie and macro goals by themselves. Existing active targets remain unchanged until the user explicitly applies the new recommendation, except in workflows where the user has already chosen a recalculate-and-apply action.
-
-Legacy recommendation JSON remains readable. Missing controller fields decode as an inactive zero-calorie correction.
-
----
-
-## 8. Confidence and Safety Interpretation
-
-Confidence labels describe the strength of the recent data basis, not a clinical probability. Sparse observations increase variance and can prevent controller activation. The interface keeps estimated maintenance, its likely range, and the final recommended target visually distinct.
-
-The estimator cannot distinguish all causes of weight change. Sodium, glycogen, hydration, creatine, gastrointestinal contents, menstrual-cycle effects, logging bias, and tissue composition can all affect short-term inference.
-
----
-
-## 9. Scientific References & Sources
-
-- Hall, K. D. (2008) — *The dynamics of human body weight change*. DOI: [10.1371/journal.pcbi.1000045](https://doi.org/10.1371/journal.pcbi.1000045)
-- Hall et al. (2011) — *Quantification of the effect of energy imbalance on bodyweight*. DOI: [10.1016/S0140-6736(11)60812-X](https://doi.org/10.1016/S0140-6736(11)60812-X)
-- Mifflin et al. (1990) — *A new predictive equation for resting energy expenditure in healthy individuals*. DOI: [10.1016/0002-8223(05)80008-1](https://doi.org/10.1016/0002-8223(05)80008-1)
-- Müller & Bosy-Westphal (2013) — *Adaptive thermogenesis with weight loss in humans*. DOI: [10.1111/j.1467-789X.2012.01045.x](https://doi.org/10.1111/j.1467-789X.2012.01045.x)
-- Frankenfield et al. (2005) — *Comparison of predictive equations for resting metabolic rate*. DOI: [10.1249/MSS.0b013e3181aff2ab](https://doi.org/10.1249/MSS.0b013e3181aff2ab)
-- Hall & Chow (2011) — *Estimating changes in free-living energy intake and its confidence interval*. DOI: [10.3945/ajcn.111.014399](https://doi.org/10.3945/ajcn.111.014399)
-- Westerterp (2004) — *Diet induced thermogenesis*. DOI: [10.1007/s00421-003-0988-y](https://doi.org/10.1007/s00421-003-0988-y)
+The estimate cannot identify why bodyweight changed. Hydration, sodium, glycogen, gastrointestinal contents, menstrual-cycle effects, logging omissions, and tissue composition can all affect short-term trends. A smooth estimate or high interface confidence does not remove those limitations, and the model is not evidence that a particular calorie target is medically appropriate.
