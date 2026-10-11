@@ -1273,6 +1273,12 @@ h1 {
   line-height: 1.45;
 }
 
+@media (max-width: 1280px) {
+  .phone-row {
+    grid-auto-columns: clamp(300px, 38vw, 390px);
+  }
+}
+
 /* Open Section */
 .open-section {
   position: relative;
@@ -1659,10 +1665,12 @@ h1 {
   .phone-caption { min-height: 78px; padding: 13px 5px 2px; }
   .phone-caption strong { font-size: 1rem; }
   .phone-caption span { font-size: 0.9rem; line-height: 1.42; }
-  .nutrition-preview-grid { gap: 10px; }
+  .nutrition-preview-grid { grid-template-columns: 1fr; gap: 16px; }
   .nutrition-preview { padding: 5px; border-radius: 21px; }
   .nutrition-preview .screen { border-radius: 16px; }
-  .nutrition-preview figcaption { font-size: 0.72rem; }
+  .nutrition-preview figcaption { font-size: 0.8rem; }
+  .nutrition-preview-link { width: auto; }
+  .showcase .section-heading { font-size: clamp(26px, 7vw, 32px); }
   .site-footer { grid-template-columns: 1fr; }
   .footer-links { justify-content: start; }
 }
