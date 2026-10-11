@@ -43,21 +43,93 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
       Localizations.localeOf(context).languageCode;
 
   Future<void> _loadSuggestions() async {
-    for (final name in widget.unknownNames) {
-      final matches = await _repository.searchExercises(
-        query: name,
-        languageCode: _languageCode,
-      );
-      if (matches.isNotEmpty && mounted) {
-        setState(() {
-          _suggestions[name] = matches.take(4).toList();
-          // Auto pre-select top match if user hasn't manually chosen target yet
-          if (!_selection.containsKey(name)) {
-            _selection[name] = matches.first;
-          }
-        });
+    for (var offset = 0; offset < widget.unknownNames.length; offset += 8) {
+      final batch = widget.unknownNames.skip(offset).take(8);
+      await Future.wait(batch.map(_loadSuggestionsForName));
+    }
+  }
+
+  Future<void> _loadSuggestionsForName(String name) async {
+    final candidates = <String, Exercise>{};
+    final cleanedName = name.replaceAll(RegExp(r'\([^)]*\)'), ' ').trim();
+    for (final exactName in {name, cleanedName}) {
+      if (exactName.isEmpty) continue;
+      final exact = await _repository.getExerciseByName(exactName);
+      if (exact != null) {
+        candidates[exact.uuid ?? exact.localizedNameFor(_languageCode)] = exact;
       }
     }
+    final tokens = cleanedName
+        .split(RegExp(r'[^\p{L}\p{N}]+', unicode: true))
+        .where((token) => token.length >= 3)
+        .toList();
+    final queries = <String>{name, cleanedName};
+    if (tokens.isNotEmpty) {
+      queries.add(tokens.first);
+      queries.add(tokens.last);
+      final longest = tokens.reduce((a, b) => a.length >= b.length ? a : b);
+      if (longest.length >= 5) queries.add(longest.substring(0, 4));
+    }
+    final results = await Future.wait(
+      queries
+          .where((query) => query.isNotEmpty)
+          .map((query) => _repository.searchExercises(
+                query: query,
+                languageCode: _languageCode,
+              )),
+    );
+    for (final result in results) {
+      for (final exercise in result) {
+        candidates[exercise.uuid ?? exercise.localizedNameFor(_languageCode)] =
+            exercise;
+      }
+    }
+
+    final normalizedSource = _normalize(name);
+    final matches = candidates.values.toList()
+      ..sort((a, b) => _similarity(
+              normalizedSource, _normalize(a.localizedNameFor(_languageCode)))
+          .compareTo(_similarity(normalizedSource,
+              _normalize(b.localizedNameFor(_languageCode)))));
+    if (matches.isNotEmpty && mounted) {
+      setState(() {
+        _suggestions[name] = matches.take(4).toList();
+        if (!_selection.containsKey(name)) _selection[name] = matches.first;
+      });
+    }
+  }
+
+  String _normalize(String value) => value
+      .toLowerCase()
+      .replaceAll(RegExp(r'\([^)]*\)'), ' ')
+      .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
+      .trim();
+
+  double _similarity(String source, String candidate) {
+    if (source == candidate) return 0;
+    if (source.isEmpty || candidate.isEmpty) return 1;
+    final sourceTokens = source.split(' ').toSet();
+    final candidateTokens = candidate.split(' ').toSet();
+    final overlap = sourceTokens.intersection(candidateTokens).length;
+    final tokenScore = 1 - overlap / sourceTokens.length;
+    final distance = List<int>.generate(candidate.length + 1, (i) => i);
+    for (var i = 1; i <= source.length; i++) {
+      var previousDiagonal = distance[0];
+      distance[0] = i;
+      for (var j = 1; j <= candidate.length; j++) {
+        final old = distance[j];
+        distance[j] = (source.codeUnitAt(i - 1) == candidate.codeUnitAt(j - 1))
+            ? previousDiagonal
+            : 1 +
+                [distance[j], distance[j - 1], previousDiagonal].reduce(
+                  (a, b) => a < b ? a : b,
+                );
+        previousDiagonal = old;
+      }
+    }
+    final characterScore = distance[candidate.length] /
+        (source.length > candidate.length ? source.length : candidate.length);
+    return tokenScore < characterScore ? tokenScore : characterScore;
   }
 
   Future<void> _pickTarget(String sourceName) async {
@@ -123,10 +195,17 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                   final suggestions = _suggestions[src] ?? [];
 
                   return SummaryCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingM,
+                      vertical: DesignConstants.spacingXS,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ListTile(
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                          minVerticalPadding: 0,
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             src,

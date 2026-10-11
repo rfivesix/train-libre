@@ -22,6 +22,8 @@ class WorkoutImportData {
   final DateTime? endTime;
   final List<SetLog> sets;
   final Map<int, String> exerciseNotesByBlock;
+  final WorkoutImportProfile sourceProfile;
+  final int skippedInvalidRows;
 
   WorkoutImportData({
     required this.title,
@@ -30,8 +32,12 @@ class WorkoutImportData {
     this.endTime,
     required this.sets,
     this.exerciseNotesByBlock = const {},
+    this.sourceProfile = WorkoutImportProfile.generic,
+    this.skippedInvalidRows = 0,
   });
 }
+
+enum WorkoutImportProfile { hevy, strong, generic }
 
 class ImportBackgroundTaskParams {
   final Uint8List fileBytes;
@@ -58,6 +64,8 @@ class ImportManager {
     required bool isImperial,
     String? defaultWorkoutTitle,
     String? defaultExerciseName,
+    Future<bool> Function(List<WorkoutImportData> workouts, int duplicateCount)?
+        confirmImport,
   }) async {
     try {
       // 1. Select file
@@ -66,7 +74,7 @@ class ImportManager {
         allowedExtensions: ['csv', 'xlsx'],
       );
 
-      if (result.isEmpty || result.single.path == null) return 0;
+      if (result.isEmpty || result.single.path == null) return -2;
 
       final filePath = result.single.path!;
       final extension = result.single.extension?.toLowerCase() ?? '';
@@ -84,7 +92,7 @@ class ImportManager {
         ),
       );
 
-      if (workoutGroups.isEmpty) return 0;
+      if (workoutGroups.isEmpty) return -1;
 
       // 3. Query existing completed workouts for deduplication
       final workoutHelper = WorkoutLocalDataSource.instance;
@@ -96,16 +104,23 @@ class ImportManager {
 
       final existingSignatures = <String>{
         for (final log in existingLogs)
-          "${log.startTime.millisecondsSinceEpoch}",
+          '${log.startTime.millisecondsSinceEpoch}_${log.routineNameSnapshot}',
       };
 
       // Filter out duplicate workouts that already exist
       final newWorkoutGroups = workoutGroups.where((group) {
-        final sig = "${group.startTime.millisecondsSinceEpoch}";
+        final sig = '${group.startTime.millisecondsSinceEpoch}_${group.title}';
         return !existingSignatures.contains(sig);
       }).toList();
 
       if (newWorkoutGroups.isEmpty) return 0;
+      if (confirmImport != null &&
+          !await confirmImport(
+            newWorkoutGroups,
+            workoutGroups.length - newWorkoutGroups.length,
+          )) {
+        return -2;
+      }
 
       int importedWorkouts = 0;
       final exerciseCache = <String, Exercise?>{};
@@ -250,16 +265,27 @@ class ImportManager {
     if (rows.length < 2) return [];
 
     // Map header and normalize
-    final rawHeader =
-        rows.first.map((e) => e.toString().trim().toLowerCase()).toList();
-    final headerMap = _mapHeader(rawHeader);
+    final rawHeader = rows.first
+        .map((e) => e
+            .toString()
+            .replaceFirst('\uFEFF', '')
+            .trim()
+            .toLowerCase()
+            .replaceAll(RegExp(r'[ -]+'), '_'))
+        .toList();
+    final sourceProfile = _detectProfile(rawHeader);
+    final headerMap = _mapHeader(rawHeader, sourceProfile);
 
     // Group rows (one workout has multiple sets across multiple rows).
     final workoutGroupsMap = <String, List<Map<String, dynamic>>>{};
+    var skippedInvalidRows = 0;
 
     for (var i = 1; i < rows.length; i++) {
       final row = rows[i];
-      if (row.length < rawHeader.length) continue;
+      if (row.length < rawHeader.length) {
+        skippedInvalidRows++;
+        continue;
+      }
 
       final rowData = <String, dynamic>{};
       for (var entry in headerMap.entries) {
@@ -268,13 +294,23 @@ class ImportManager {
           rowData[entry.key] = row[index];
         }
       }
+      rowData['weight_is_lbs'] = headerMap.containsKey('weight_is_lbs');
+      rowData['weight_has_explicit_unit'] =
+          headerMap.containsKey('weight_is_lbs') ||
+              headerMap.containsKey('weight_is_kg');
+      rowData['distance_is_miles'] = headerMap.containsKey('distance_is_miles');
+      rowData['distance_is_meters'] =
+          headerMap.containsKey('distance_is_meters');
 
       final title = rowData['title']?.toString() ?? params.defaultWorkoutTitle;
       final startTimeRaw = rowData['start_time']?.toString() ?? '';
 
-      if (startTimeRaw.trim().isEmpty) continue;
+      if (startTimeRaw.trim().isEmpty || _parseDate(startTimeRaw) == null) {
+        skippedInvalidRows++;
+        continue;
+      }
 
-      final key = "${title}_$startTimeRaw";
+      final key = '${title}_${_parseDate(startTimeRaw)!.toIso8601String()}';
       workoutGroupsMap.putIfAbsent(key, () => []).add(rowData);
     }
 
@@ -285,7 +321,13 @@ class ImportManager {
       final title = firstRow['title']?.toString() ?? params.defaultWorkoutTitle;
       final notes = firstRow['description']?.toString();
       final startTime = _parseDate(firstRow['start_time']);
-      final endTime = _parseDate(firstRow['end_time']);
+      if (startTime == null) continue;
+      final exportedWorkoutDuration =
+          _parseDurationSeconds(firstRow['workout_duration']);
+      final endTime = _parseDate(firstRow['end_time']) ??
+          (exportedWorkoutDuration == null
+              ? null
+              : startTime.add(Duration(seconds: exportedWorkoutDuration)));
 
       final List<SetLog> sets = [];
       final exerciseNotesByBlock = <int, String>{};
@@ -294,6 +336,16 @@ class ImportManager {
       String? previousExercise;
       int? contiguousBlock;
       for (var row in group) {
+        final rawSetType = row['set_type']?.toString().trim().toLowerCase();
+        if (rawSetType == 'rest' || rawSetType == 'ruhezeit') {
+          final restTimeSeconds = _parseDurationSeconds(row['duration']);
+          if (sets.isNotEmpty && restTimeSeconds != null) {
+            sets[sets.length - 1] =
+                sets.last.copyWith(restTimeSeconds: restTimeSeconds);
+          }
+          continue;
+        }
+
         final rawExerciseName =
             row['exercise']?.toString() ?? params.defaultExerciseName;
         final explicitBlock =
@@ -311,20 +363,60 @@ class ImportManager {
           exerciseNotesByBlock[exerciseBlock] = note;
         }
 
-        double? weight = double.tryParse(row['weight']?.toString() ?? '');
-        if (weight != null && isImperial) {
+        double? weight = _parseNumber(row['weight']);
+        final explicitWeightUnit =
+            row['weight_unit']?.toString().trim().toLowerCase();
+        final hasWeightUnit = explicitWeightUnit != null &&
+            explicitWeightUnit.isNotEmpty &&
+            (explicitWeightUnit == 'lb' ||
+                explicitWeightUnit == 'lbs' ||
+                explicitWeightUnit == 'pound' ||
+                explicitWeightUnit == 'pounds' ||
+                explicitWeightUnit == 'kg' ||
+                explicitWeightUnit == 'kgs' ||
+                explicitWeightUnit == 'kilogram' ||
+                explicitWeightUnit == 'kilograms');
+        final weightIsImperial = row['weight_is_lbs'] == true ||
+            explicitWeightUnit == 'lb' ||
+            explicitWeightUnit == 'lbs' ||
+            explicitWeightUnit == 'pound' ||
+            explicitWeightUnit == 'pounds' ||
+            (!hasWeightUnit &&
+                row['weight_has_explicit_unit'] != true &&
+                isImperial);
+        if (weight != null && weightIsImperial) {
           weight = UnitService.lbsToKg(weight);
         }
+
+        var distance = _parseNumber(row['distance']);
+        final explicitDistanceUnit =
+            row['distance_unit']?.toString().toLowerCase();
+        final distanceIsMiles = row['distance_is_miles'] == true ||
+            explicitDistanceUnit == 'mi' ||
+            explicitDistanceUnit == 'mile' ||
+            explicitDistanceUnit == 'miles';
+        final distanceIsMeters = row['distance_is_meters'] == true ||
+            explicitDistanceUnit == 'm' ||
+            explicitDistanceUnit == 'meter' ||
+            explicitDistanceUnit == 'meters';
+        if (distance != null && distanceIsMiles) {
+          distance *= 1.609344;
+        } else if (distance != null && distanceIsMeters) {
+          distance /= 1000;
+        }
+
+        final duration = _parseDurationSeconds(row['duration']);
 
         sets.add(SetLog(
           workoutLogId: 0,
           exerciseName: rawExerciseName,
           setType: _mapSetType(row['set_type']),
           weightKg: weight,
-          reps: int.tryParse(row['reps']?.toString() ?? ''),
-          distanceKm: double.tryParse(row['distance']?.toString() ?? ''),
-          durationSeconds: int.tryParse(row['duration']?.toString() ?? ''),
-          rpe: int.tryParse(row['rpe']?.toString() ?? ''),
+          reps: _parseNumber(row['reps'])?.round(),
+          distanceKm: distance,
+          durationSeconds: duration,
+          rpe: _parseNumber(row['rpe'])?.round(),
+          rir: _parseNumber(row['rir'])?.round(),
           logOrder: setOrder++,
           exerciseBlock: exerciseBlock,
           notes: row['set_notes']?.toString(),
@@ -339,6 +431,8 @@ class ImportManager {
         endTime: endTime,
         sets: sets,
         exerciseNotesByBlock: exerciseNotesByBlock,
+        sourceProfile: sourceProfile,
+        skippedInvalidRows: skippedInvalidRows,
       ));
     }
 
@@ -346,48 +440,96 @@ class ImportManager {
   }
 
   /// Maps generic headers to normalized internal keys.
-  static Map<String, int> _mapHeader(List<String> header) {
+  static Map<String, int> _mapHeader(
+    List<String> header,
+    WorkoutImportProfile profile,
+  ) {
     final map = <String, int>{};
 
     for (var i = 0; i < header.length; i++) {
       final h = header[i];
 
       // Workout Meta
-      if (['title', 'routine', 'workout', 'name'].contains(h)) {
+      if (['title', 'routine', 'workout', 'name', 'workout_name'].contains(h)) {
         map['title'] = i;
-      } else if (['start_time', 'start', 'datum', 'date'].contains(h)) {
+      } else if (['start_time', 'start', 'datum', 'date', 'workout_date']
+          .contains(h)) {
         map['start_time'] = i;
       } else if (['end_time', 'end'].contains(h)) {
         map['end_time'] = i;
-      } else if (['description', 'notes', 'notiz'].contains(h)) {
+      } else if (['description', 'notiz', 'workout_notizen'].contains(h)) {
         map['description'] = i;
       } else if (['workout_notes', 'workout_comments'].contains(h)) {
         map['description'] = i;
       }
       // Exercise & Set
-      else if (['exercise_title', 'exercise', 'übung', 'exercise_name']
-          .contains(h)) {
+      else if ([
+        'exercise_title',
+        'exercise',
+        'übung',
+        'exercise_name',
+        'name_der_übung'
+      ].contains(h)) {
         map['exercise'] = i;
-      } else if (['set_type', 'type', 'typ'].contains(h)) {
+      } else if (['set_type', 'type', 'typ', 'reihenfolge_festlegen']
+          .contains(h)) {
         map['set_type'] = i;
-      } else if (['weight_kg', 'weight', 'gewicht', 'mass', 'lbs']
+      } else if (['weight_kg', 'weight_lbs', 'weight', 'gewicht', 'mass', 'lbs']
           .contains(h)) {
         map['weight'] = i;
-      } else if (['reps', 'wiederholungen', 'repetitionen', 'repetition']
-          .contains(h)) {
+        if (h == 'weight_lbs' || h == 'lbs') map['weight_is_lbs'] = i;
+        if (h == 'weight_kg') map['weight_is_kg'] = i;
+      } else if (['weight_unit', 'unit'].contains(h)) {
+        map['weight_unit'] = i;
+      } else if ([
+        'reps',
+        'wiederholungen',
+        'wiederholungen.',
+        'wiederh.',
+        'repetitionen',
+        'repetition'
+      ].contains(h)) {
         map['reps'] = i;
-      } else if (['distance_km', 'distance', 'distanz', 'entfernung']
-          .contains(h)) {
+      } else if ([
+        'distance_km',
+        'distance_miles',
+        'distance_mi',
+        'distance_meters',
+        'distance_m',
+        'distance',
+        'distanz',
+        'entfernung'
+      ].contains(h)) {
         map['distance'] = i;
-      } else if (['duration_seconds', 'duration', 'dauer', 'zeit']
-          .contains(h)) {
+        if (h == 'distance_miles' || h == 'distance_mi') {
+          map['distance_is_miles'] = i;
+        }
+        if (h == 'distance_meters' || h == 'distance_m') {
+          map['distance_is_meters'] = i;
+        }
+      } else if (['distance_unit'].contains(h)) {
+        map['distance_unit'] = i;
+      } else if (profile == WorkoutImportProfile.strong &&
+          ['duration', 'dauer'].contains(h)) {
+        map['workout_duration'] = i;
+      } else if ([
+        'duration_seconds',
+        'seconds',
+        'sekunden',
+        'duration',
+        'dauer',
+        'zeit'
+      ].contains(h)) {
         map['duration'] = i;
       } else if (['rpe'].contains(h)) {
         map['rpe'] = i;
-      } else if (['exercise_notes', 'set_notes'].contains(h)) {
+      } else if (['rir', 'reps_in_reserve'].contains(h)) {
+        map['rir'] = i;
+      } else if (['exercise_notes', 'workout_exercise_note'].contains(h)) {
+        map['workout_exercise_note'] = i;
+      } else if (['set_notes', 'notes', 'notizen'].contains(h)) {
         map['set_notes'] = i;
-      } else if (['workout_exercise_note', 'exercise_workout_note']
-          .contains(h)) {
+      } else if (['exercise_workout_note'].contains(h)) {
         map['workout_exercise_note'] = i;
       } else if (['exercise_block'].contains(h)) {
         map['exercise_block'] = i;
@@ -397,7 +539,11 @@ class ImportManager {
   }
 
   static String _mapSetType(dynamic rawType) {
-    final t = rawType?.toString().toLowerCase() ?? '';
+    final t = rawType?.toString().toLowerCase().replaceAll(
+              RegExp(r'[ _-]'),
+              '',
+            ) ??
+        '';
     if (t.contains('warmup') || t == 'w') return 'warmup';
     if (t.contains('failure') || t == 'f') return 'failure';
     if (t.contains('dropset') || t.contains('drop_set') || t == 'd') {
@@ -406,11 +552,26 @@ class ImportManager {
     return 'normal';
   }
 
-  static DateTime _parseDate(dynamic rawDateString) {
-    final dateString = rawDateString?.toString().trim();
-    if (dateString == null || dateString.isEmpty) {
-      return DateTime.now();
+  static WorkoutImportProfile _detectProfile(List<String> headers) {
+    final names = headers.toSet();
+    if (names.contains('exercise_title') && names.contains('start_time')) {
+      return WorkoutImportProfile.hevy;
     }
+    if (names.contains('workout_name') &&
+        (names.contains('exercise_name') || names.contains('name_der_übung')) &&
+        (names.contains('date') || names.contains('datum'))) {
+      return WorkoutImportProfile.strong;
+    }
+    return WorkoutImportProfile.generic;
+  }
+
+  static DateTime? _parseDate(dynamic rawDateString) {
+    final dateString = rawDateString?.toString().trim();
+    if (dateString == null || dateString.isEmpty) return null;
+    final normalizedDateString = dateString.replaceAll(
+      RegExp(r'(?<=[A-Za-zÄÖÜäöü])\.(?=\s|,)'),
+      '',
+    );
 
     final patterns = [
       'dd MMMM yyyy, HH:mm',
@@ -442,10 +603,48 @@ class ImportManager {
       for (final locale in locales) {
         try {
           final format = DateFormat(pattern, locale);
-          return format.parse(dateString);
+          return format.parse(normalizedDateString);
         } catch (_) {
           continue;
         }
+      }
+    }
+
+    // Hevy's German export uses abbreviated month names with a trailing dot
+    // (for example, "14 Okt. 2025, 07:25"), which intl's German parser does
+    // not accept consistently across SDK versions.
+    final germanMonthDate = RegExp(
+      r'^(\d{1,2})\s+([A-Za-zÄÖÜäöü]+)\.?\s+(\d{4}),?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$',
+      caseSensitive: false,
+    ).firstMatch(dateString);
+    if (germanMonthDate != null) {
+      const germanMonths = {
+        'jan': 1,
+        'feb': 2,
+        'mär': 3,
+        'märz': 3,
+        'mrz': 3,
+        'apr': 4,
+        'mai': 5,
+        'jun': 6,
+        'jul': 7,
+        'aug': 8,
+        'sep': 9,
+        'sept': 9,
+        'okt': 10,
+        'nov': 11,
+        'dez': 12,
+      };
+      final month = germanMonths[germanMonthDate.group(2)!.toLowerCase()];
+      if (month != null) {
+        return DateTime(
+          int.parse(germanMonthDate.group(3)!),
+          month,
+          int.parse(germanMonthDate.group(1)!),
+          int.parse(germanMonthDate.group(4)!),
+          int.parse(germanMonthDate.group(5)!),
+          int.tryParse(germanMonthDate.group(6) ?? '') ?? 0,
+        );
       }
     }
 
@@ -454,6 +653,41 @@ class ImportManager {
       return DateTime.parse(dateString);
     } catch (_) {}
 
-    return DateTime.now();
+    return null;
+  }
+
+  static double? _parseNumber(dynamic raw) {
+    if (raw == null) return null;
+    final value = raw.toString().trim().replaceAll(',', '.');
+    if (value.isEmpty) return null;
+    return double.tryParse(value);
+  }
+
+  static int? _parseDurationSeconds(dynamic raw) {
+    final value = raw?.toString().trim();
+    if (value == null || value.isEmpty) return null;
+    final seconds = int.tryParse(value);
+    if (seconds != null) return seconds;
+    final numericSeconds = _parseNumber(value);
+    if (numericSeconds != null) return numericSeconds.round();
+    final parts = value.split(':');
+    if (parts.length == 2 || parts.length == 3) {
+      final numbers = parts.map(int.tryParse).toList();
+      if (numbers.any((part) => part == null)) return null;
+      if (parts.length == 2) return numbers[0]! * 60 + numbers[1]!;
+      return numbers[0]! * 3600 + numbers[1]! * 60 + numbers[2]!;
+    }
+    final hours =
+        RegExp(r'(\d+)\s*h', caseSensitive: false).firstMatch(value)?.group(1);
+    final minutes =
+        RegExp(r'(\d+)\s*m', caseSensitive: false).firstMatch(value)?.group(1);
+    final remainingSeconds =
+        RegExp(r'(\d+)\s*s', caseSensitive: false).firstMatch(value)?.group(1);
+    if (hours != null || minutes != null || remainingSeconds != null) {
+      return (int.tryParse(hours ?? '') ?? 0) * 3600 +
+          (int.tryParse(minutes ?? '') ?? 0) * 60 +
+          (int.tryParse(remainingSeconds ?? '') ?? 0);
+    }
+    return null;
   }
 }

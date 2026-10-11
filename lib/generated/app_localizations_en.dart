@@ -589,6 +589,50 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import your training history from a CSV or Excel export file.';
 
   @override
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates) {
+    return '$workouts workouts and $sets sets are ready. $duplicates existing workouts will be skipped.';
+  }
+
+  @override
+  String get workoutImportHevyInstructions =>
+      'Hevy export detected. Export from Profile > Settings > Export & Import Data > Export Data > Export Workouts.';
+
+  @override
+  String get workoutImportStrongInstructions =>
+      'Strong export detected. In Settings, choose Export Strong Data on iOS or Export Data on Android.';
+
+  @override
+  String get workoutImportGenericInstructions =>
+      'Generic CSV or Excel file detected. Confirm the weight unit before importing.';
+
+  @override
+  String workoutImportPreviewInvalidRows(int count) {
+    return '$count rows with missing or invalid dates will be skipped.';
+  }
+
+  @override
+  String get onboardingWorkoutImportHint =>
+      'Already tracking workouts elsewhere? Import your history in the next step or later from Settings > Data & Backup.';
+
+  @override
+  String get onboardingWorkoutImportTitle =>
+      'Bring your workout history with you?';
+
+  @override
+  String get onboardingWorkoutImportDescription =>
+      'Import your training history from Hevy, Strong, or a CSV file. You can review a preview before anything is added.';
+
+  @override
+  String get onboardingWorkoutImportButton => 'Choose export file';
+
+  @override
+  String get onboardingWorkoutImportLater => 'I’ll do this later';
+
+  @override
+  String get onboardingWorkoutImportPrivacy =>
+      'Your export is processed on this device. If anonymous analytics is enabled, we record whether you start, skip, or complete an import, never workout details.';
+
+  @override
   String get workoutImportButton => 'Import Workout Data';
 
   @override

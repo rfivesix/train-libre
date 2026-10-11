@@ -584,6 +584,49 @@ class AppLocalizationsJa extends AppLocalizations {
       'CSV または Excel エクスポート ファイルからトレーニング履歴をインポートします。';
 
   @override
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates) {
+    return '$workouts 件のワークアウト、$sets セットを読み込みます。既存の $duplicates 件はスキップします。';
+  }
+
+  @override
+  String get workoutImportHevyInstructions =>
+      'Hevy のエクスポートを検出しました。プロフィール > 設定 > Export & Import Data > Export Data > Export Workouts から書き出してください。';
+
+  @override
+  String get workoutImportStrongInstructions =>
+      'Strong のエクスポートを検出しました。設定から iOS は Export Strong Data、Android は Export Data を選択してください。';
+
+  @override
+  String get workoutImportGenericInstructions =>
+      'CSV または Excel ファイルを検出しました。インポート前に重量単位を確認してください。';
+
+  @override
+  String workoutImportPreviewInvalidRows(int count) {
+    return '日付がない、または無効な $count 行をスキップします。';
+  }
+
+  @override
+  String get onboardingWorkoutImportHint =>
+      '別のアプリで記録した履歴は、次のステップまたは後から設定 > データとバックアップでインポートできます。';
+
+  @override
+  String get onboardingWorkoutImportTitle => 'ワークアウト履歴を引き継ぎますか？';
+
+  @override
+  String get onboardingWorkoutImportDescription =>
+      'Hevy、Strong、または CSV ファイルから履歴をインポートできます。追加する前にプレビューを確認できます。';
+
+  @override
+  String get onboardingWorkoutImportButton => 'エクスポートファイルを選択';
+
+  @override
+  String get onboardingWorkoutImportLater => '後で行う';
+
+  @override
+  String get onboardingWorkoutImportPrivacy =>
+      'ファイルはこの端末上で処理されます。匿名分析が有効な場合、インポートの開始・スキップ・完了のみを記録し、ワークアウトの詳細は送信しません。';
+
+  @override
   String get workoutImportButton => 'ワークアウトデータのインポート';
 
   @override

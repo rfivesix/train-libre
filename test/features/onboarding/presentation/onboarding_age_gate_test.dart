@@ -37,12 +37,21 @@ void main() {
     // Page 0: Welcome
     final startButton =
         find.byKey(const Key('onboarding_continue_setup_button'));
+    await tester.ensureVisible(startButton);
     await tester.tap(startButton);
     await tester.pumpAndSettle();
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
 
-    // Page 1: Unit system
+    // Skip the optional workout-history import prompt.
+    expect(
+      find.byKey(const Key('onboarding_workout_import_page')),
+      findsOneWidget,
+    );
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    // Page 2: Unit system
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 

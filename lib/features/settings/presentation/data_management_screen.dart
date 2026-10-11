@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../core/infrastructure/export_manager.dart';
-import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
@@ -38,6 +37,7 @@ import '../../sharing/share_link_codec.dart';
 import '../../sharing/share_link_preview_screen.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../workout/presentation/workout_import_flow.dart';
 import '../../../widgets/common/app_restart.dart';
 
 /// A screen for managing application data and backups.
@@ -281,105 +281,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
   }
 
   // --- Externer Workout-Import (neutral) ---
-  void _performWorkoutImport() async {
-    final l10n = AppLocalizations.of(context)!;
-
-    // 1. Ask for unit
-    final bool? isImperial = await showGlassBottomMenu<bool>(
-      context: context,
-      title: l10n.importUnitSelectionTitle,
-      contentBuilder: (ctx, close) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(l10n.importUnitSelectionDescription),
-          const SizedBox(height: DesignConstants.spacingL),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  label: l10n.unitMetricLabel,
-                  tooltip: l10n.unitMetricLabel,
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  label: l10n.unitImperialLabel,
-                  tooltip: l10n.unitImperialLabel,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-
-    if (isImperial == null) return;
-
-    int count = 0;
-    bool wasCanceled = false;
-
-    if (!mounted) return;
-    try {
-      final success = await LongRunningOperationOverlay.run(
-        context: context,
-        title: l10n.workoutImportButton,
-        initialStatus: l10n.workoutImportButton,
-        icon: LucideIcons.download,
-        operation: (token, updateProgress) async {
-          updateProgress(l10n.workoutImportButton, 0.2);
-          count = await ImportManager().importWorkoutFile(
-            isImperial: isImperial,
-            defaultWorkoutTitle: l10n.importedWorkout,
-            defaultExerciseName: l10n.unknownExercise,
-          );
-          if (count > 0) {
-            unawaited(TelemetryService.instance
-                .trackFeatureUsed(featureKey: FeatureKey.workoutImported));
-          }
-          updateProgress(l10n.workoutImportButton, 1.0);
-        },
-      );
-      if (!success) wasCanceled = true;
-    } catch (e) {
-      count = -1;
-    }
-
-    if (!mounted || wasCanceled) return;
-
-    final unknown =
-        await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
-
-    if (mounted && unknown.isNotEmpty) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ExerciseMappingScreen(unknownNames: unknown),
-        ),
-      );
-    }
-
-    if (!mounted) return;
-
-    if (count > 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.workoutImportSuccess(count))));
-    } else if (count == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.workoutImportZeroNew),
-        ),
-      );
-    } else if (count == -1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.workoutImportFailed),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
+  void _performWorkoutImport() {
+    unawaited(performWorkoutImport(context));
   }
 
   void _performExcelExport() async {

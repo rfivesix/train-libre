@@ -72,6 +72,10 @@ abstract class FeatureKey {
   /// in [ShareService], so the key reflects what actually happens.
   static const String routineShared = 'routine_shared';
   static const String workoutImported = 'workout_imported';
+  static const String workoutImportPromptStarted =
+      'workout_import_prompt_started';
+  static const String workoutImportPromptSkipped =
+      'workout_import_prompt_skipped';
   static const String customExerciseCreated = 'custom_exercise_created';
 
   // Nutrition & AI
@@ -127,6 +131,8 @@ abstract class FeatureKey {
     routineStarted,
     routineShared,
     workoutImported,
+    workoutImportPromptStarted,
+    workoutImportPromptSkipped,
     customExerciseCreated,
     barcodeScanned,
     customFoodCreated,

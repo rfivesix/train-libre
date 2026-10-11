@@ -596,6 +596,50 @@ class AppLocalizationsFr extends AppLocalizations {
       'Importez votre historique de formation à partir d’un fichier d’export CSV ou Excel.';
 
   @override
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates) {
+    return '$workouts entraînements et $sets séries sont prêts. $duplicates entraînements existants seront ignorés.';
+  }
+
+  @override
+  String get workoutImportHevyInstructions =>
+      'Export Hevy détecté. Exportez depuis Profil > Paramètres > Export & Import Data > Export Data > Export Workouts.';
+
+  @override
+  String get workoutImportStrongInstructions =>
+      'Export Strong détecté. Dans les paramètres, choisissez Export Strong Data sur iOS ou Export Data sur Android.';
+
+  @override
+  String get workoutImportGenericInstructions =>
+      'Fichier CSV ou Excel détecté. Vérifiez l’unité de poids avant l’import.';
+
+  @override
+  String workoutImportPreviewInvalidRows(int count) {
+    return '$count lignes sans date valide seront ignorées.';
+  }
+
+  @override
+  String get onboardingWorkoutImportHint =>
+      'Vous suivez déjà vos entraînements ailleurs ? Importez votre historique à l’étape suivante ou plus tard dans Paramètres > Données et sauvegarde.';
+
+  @override
+  String get onboardingWorkoutImportTitle =>
+      'Importer votre historique d’entraînement ?';
+
+  @override
+  String get onboardingWorkoutImportDescription =>
+      'Importez votre historique depuis Hevy, Strong ou un fichier CSV. Vous pourrez vérifier un aperçu avant l’ajout.';
+
+  @override
+  String get onboardingWorkoutImportButton => 'Choisir un fichier d’export';
+
+  @override
+  String get onboardingWorkoutImportLater => 'Je le ferai plus tard';
+
+  @override
+  String get onboardingWorkoutImportPrivacy =>
+      'Votre export est traité sur cet appareil. Si l’analyse anonyme est activée, nous enregistrons uniquement si vous démarrez, ignorez ou terminez un import, jamais les détails des entraînements.';
+
+  @override
   String get workoutImportButton => 'Importer des données d\'entraînement';
 
   @override

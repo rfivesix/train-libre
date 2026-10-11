@@ -1178,6 +1178,72 @@ abstract class AppLocalizations {
   /// **'Import your training history from a CSV or Excel export file.'**
   String get workoutImportDescription;
 
+  /// No description provided for @workoutImportPreviewSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{workouts} workouts and {sets} sets are ready. {duplicates} existing workouts will be skipped.'**
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates);
+
+  /// No description provided for @workoutImportHevyInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Hevy export detected. Export from Profile > Settings > Export & Import Data > Export Data > Export Workouts.'**
+  String get workoutImportHevyInstructions;
+
+  /// No description provided for @workoutImportStrongInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong export detected. In Settings, choose Export Strong Data on iOS or Export Data on Android.'**
+  String get workoutImportStrongInstructions;
+
+  /// No description provided for @workoutImportGenericInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic CSV or Excel file detected. Confirm the weight unit before importing.'**
+  String get workoutImportGenericInstructions;
+
+  /// No description provided for @workoutImportPreviewInvalidRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rows with missing or invalid dates will be skipped.'**
+  String workoutImportPreviewInvalidRows(int count);
+
+  /// No description provided for @onboardingWorkoutImportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Already tracking workouts elsewhere? Import your history in the next step or later from Settings > Data & Backup.'**
+  String get onboardingWorkoutImportHint;
+
+  /// No description provided for @onboardingWorkoutImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring your workout history with you?'**
+  String get onboardingWorkoutImportTitle;
+
+  /// No description provided for @onboardingWorkoutImportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your training history from Hevy, Strong, or a CSV file. You can review a preview before anything is added.'**
+  String get onboardingWorkoutImportDescription;
+
+  /// No description provided for @onboardingWorkoutImportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose export file'**
+  String get onboardingWorkoutImportButton;
+
+  /// No description provided for @onboardingWorkoutImportLater.
+  ///
+  /// In en, this message translates to:
+  /// **'I’ll do this later'**
+  String get onboardingWorkoutImportLater;
+
+  /// No description provided for @onboardingWorkoutImportPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your export is processed on this device. If anonymous analytics is enabled, we record whether you start, skip, or complete an import, never workout details.'**
+  String get onboardingWorkoutImportPrivacy;
+
   /// No description provided for @workoutImportButton.
   ///
   /// In en, this message translates to:

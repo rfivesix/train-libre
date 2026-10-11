@@ -247,54 +247,6 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                         _buildFilterButton(context, l10n),
                       ],
                     ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          FilterChip(
-                            selected: _onlyPerformed,
-                            showCheckmark: false,
-                            avatar: Icon(
-                              LucideIcons.rotate_ccw_clock,
-                              size: 15,
-                              color: _onlyPerformed
-                                  ? colorScheme.onPrimary
-                                  : colorScheme.onSurfaceVariant,
-                            ),
-                            label: Text(l10n.catalogFilterAlreadyDone),
-                            labelStyle: TextStyle(
-                              color: _onlyPerformed
-                                  ? colorScheme.onPrimary
-                                  : colorScheme.onSurface,
-                              fontWeight: _onlyPerformed
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              fontSize: 13,
-                            ),
-                            selectedColor: colorScheme.primary,
-                            backgroundColor:
-                                Theme.of(context).inputDecorationTheme.fillColor ??
-                                    (Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? const Color(0xFF2C2C2E)
-                                        : const Color(0xFFF3F3F3)),
-                            side: BorderSide.none,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusL,
-                              ),
-                            ),
-                            onSelected: (selected) {
-                              setState(() {
-                                _onlyPerformed = selected;
-                              });
-                              _runFilter(_searchController.text);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -332,23 +284,19 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                     late final Widget card;
                                     card = SummaryCard(
                                       child: ListTile(
+                                        contentPadding: EdgeInsets.zero,
                                         title: Row(
                                           children: [
                                             Expanded(
                                               child: Text(
                                                 exercise
                                                     .getLocalizedName(context),
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
+                                                style: textTheme.titleMedium
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
                                                 ),
                                               ),
                                             ),
-                                            if (exercise.hasHistory) ...[
-                                              const SizedBox(
-                                                width: DesignConstants.spacingS,
-                                              ),
-                                              _buildTrainedBadge(context),
-                                            ],
                                             if (exercise.source == 'user') ...[
                                               const SizedBox(
                                                 width: DesignConstants.spacingS,
@@ -366,6 +314,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                             exercise,
                                             l10n,
                                           ),
+                                          style: textTheme.bodyMedium,
                                         ),
                                         trailing: widget.isSelectionMode
                                             ? IconButton(
@@ -439,44 +388,48 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           ),
         ],
       ),
-      floatingActionButton: Opacity(
-        opacity: _isFabHidden ? 0.0 : 1.0,
-        child: IgnorePointer(
-          ignoring: _isFabHidden,
-          child: Builder(
-            builder: (fabCtx) {
-              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
-                    label: l10n.create_exercise_screen_title,
-                    onPressed: onPressed ?? () {},
-                  );
+      floatingActionButton: widget.isSelectionMode
+          ? null
+          : Opacity(
+              opacity: _isFabHidden ? 0.0 : 1.0,
+              child: IgnorePointer(
+                ignoring: _isFabHidden,
+                child: Builder(
+                  builder: (fabCtx) {
+                    Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                          label: l10n.create_exercise_screen_title,
+                          onPressed: onPressed ?? () {},
+                        );
 
-              return GlassFab(
-                label: l10n.create_exercise_screen_title,
-                onPressed: () {
-                  Navigator.of(context)
-                      .push(
-                    CardMorphRoute(
-                      sourceContext: fabCtx,
-                      sourceBorderRadius: 28.0,
-                      sourceBuilder: (_) => buildFab(),
-                      onSourceVisibilityChanged: (hidden) {
-                        if (mounted) setState(() => _isFabHidden = hidden);
+                    return GlassFab(
+                      label: l10n.create_exercise_screen_title,
+                      onPressed: () {
+                        Navigator.of(context)
+                            .push(
+                          CardMorphRoute(
+                            sourceContext: fabCtx,
+                            sourceBorderRadius: 28.0,
+                            sourceBuilder: (_) => buildFab(),
+                            onSourceVisibilityChanged: (hidden) {
+                              if (mounted) {
+                                setState(() => _isFabHidden = hidden);
+                              }
+                            },
+                            builder: (context) =>
+                                CreateExerciseScreen(repository: _repository),
+                          ),
+                        )
+                            .then((wasCreated) {
+                          if (wasCreated == true) {
+                            _runFilter(_searchController.text);
+                          }
+                        });
                       },
-                      builder: (context) =>
-                          CreateExerciseScreen(repository: _repository),
-                    ),
-                  )
-                      .then((wasCreated) {
-                    if (wasCreated == true) {
-                      _runFilter(_searchController.text);
-                    }
-                  });
-                },
-              );
-            },
-          ),
-        ),
-      ),
+                    );
+                  },
+                ),
+              ),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
@@ -677,42 +630,6 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           color: color,
           fontWeight: FontWeight.bold,
         ),
-      ),
-    );
-  }
-
-  Widget _buildTrainedBadge(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final color = colorScheme.primary;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
-        vertical: 3,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            LucideIcons.rotate_ccw_clock,
-            size: 11,
-            color: color,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            AppLocalizations.of(context)!.catalogTrainedBadge,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }

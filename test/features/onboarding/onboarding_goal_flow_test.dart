@@ -41,13 +41,26 @@ Future<void> _advanceToMeasurements(WidgetTester tester) async {
   // Page 0: Welcome
   final startButton = find.byKey(const Key('onboarding_continue_setup_button'));
   expect(startButton, findsOneWidget);
+  await tester.ensureVisible(startButton);
   await tester.tap(startButton);
   await tester.pumpAndSettle();
 
-  // Page 1: Unit system - select metric
+  // Page 1: Optional workout-history import prompt. Skip for this helper.
+  expect(
+    find.byKey(const Key('onboarding_workout_import_page')),
+    findsOneWidget,
+  );
+  expect(
+    find.byKey(const Key('onboarding_import_workouts_button')),
+    findsOneWidget,
+  );
+  final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
+  await tester.tap(nextButton);
+  await tester.pumpAndSettle();
+
+  // Page 2: Unit system - select metric
   await tester.tap(find.byIcon(LucideIcons.ruler));
   await tester.pumpAndSettle();
-  final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
   await tester.tap(nextButton);
   await tester.pumpAndSettle();
 
@@ -381,7 +394,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Advance to Page 12: Permissions (AI Health)
+    // Advance to permissions (the optional import prompt was skipped above).
     await tester.tap(nextButton);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));

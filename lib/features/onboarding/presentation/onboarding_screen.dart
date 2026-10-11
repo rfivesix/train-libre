@@ -27,7 +27,9 @@ import '../../settings/presentation/ai_settings_screen.dart';
 import '../../settings/presentation/pulse_settings_screen.dart';
 import '../../settings/presentation/sleep_settings_screen.dart';
 import '../../settings/presentation/steps_settings_screen.dart';
+import '../../workout/presentation/workout_import_flow.dart';
 import 'widgets/welcome_slide.dart';
+import 'widgets/workout_import_slide.dart';
 import 'widgets/unit_system_slide.dart';
 import 'widgets/profile_slide.dart';
 import 'widgets/region_selection_slide.dart';
@@ -94,22 +96,23 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const int _unitSystemPageIndex = 1;
-  static const int _regionSelectionPageIndex = 2;
-  static const int _experienceLevelPageIndex = 3;
-  static const int _namePageIndex = 4;
-  static const int _bioDataPageIndex = 5;
-  static const int _heightPageIndex = 6;
-  static const int _measurementsPageIndex = 7;
-  static const int _activityPageIndex = 8;
-  static const int _goalDecisionPageIndex = 9;
-  static const int _goalPresetPageIndex = 10;
-  static const int _goalTargetPageIndex = 11;
-  static const int _goalPaceTimelinePageIndex = 12;
-  static const int _goalMotivationPageIndex = 13;
-  static const int _nutritionPageIndex = 14;
-  static const int _permissionsPageIndex = 15;
-  static const int _totalPageCount = 16;
+  static const int _workoutImportPageIndex = 1;
+  static const int _unitSystemPageIndex = 2;
+  static const int _regionSelectionPageIndex = 3;
+  static const int _experienceLevelPageIndex = 4;
+  static const int _namePageIndex = 5;
+  static const int _bioDataPageIndex = 6;
+  static const int _heightPageIndex = 7;
+  static const int _measurementsPageIndex = 8;
+  static const int _activityPageIndex = 9;
+  static const int _goalDecisionPageIndex = 10;
+  static const int _goalPresetPageIndex = 11;
+  static const int _goalTargetPageIndex = 12;
+  static const int _goalPaceTimelinePageIndex = 13;
+  static const int _goalMotivationPageIndex = 14;
+  static const int _nutritionPageIndex = 15;
+  static const int _permissionsPageIndex = 16;
+  static const int _totalPageCount = 17;
   static const int _lastPageIndex = _permissionsPageIndex;
 
   bool _isImportedMode = false;
@@ -134,6 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const List<String> _stepNames = [
     'welcome',
+    'workout_import_prompt',
     'unit_system',
     'region_selection',
     'experience_level',
@@ -914,6 +918,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _nextPage() async {
     final l10n = AppLocalizations.of(context)!;
+    if (_currentPage == _workoutImportPageIndex) {
+      unawaited(TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.workoutImportPromptSkipped,
+      ));
+    }
     if (_currentPage == _regionSelectionPageIndex) {
       await OffCatalogCountryService.writeActiveCountry(_selectedOffCountry);
       if (mounted) {
@@ -1329,6 +1338,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onRestoreICloud: _restoreFromICloud,
                       hasICloudBackup: _hasICloudBackup,
                     ),
+                    WorkoutImportSlide(
+                      onImport: () {
+                        unawaited(TelemetryService.instance.trackFeatureUsed(
+                          featureKey: FeatureKey.workoutImportPromptStarted,
+                        ));
+                        unawaited(performWorkoutImport(context));
+                      },
+                    ),
                     UnitSystemSlide(
                       selectedSystem: _unitService.unitSystem,
                       onSelectSystem: (system) async {
@@ -1497,10 +1514,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             : _nextPage,
                         label: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
-                            : l10n.onboardingNext.toUpperCase(),
+                            : _currentPage == _workoutImportPageIndex
+                                ? l10n.onboardingWorkoutImportLater
+                                    .toUpperCase()
+                                : l10n.onboardingNext.toUpperCase(),
                         tooltip: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
-                            : l10n.onboardingNext.toUpperCase(),
+                            : _currentPage == _workoutImportPageIndex
+                                ? l10n.onboardingWorkoutImportLater
+                                    .toUpperCase()
+                                : l10n.onboardingNext.toUpperCase(),
                         isLoading: (_isGeneratingOnboardingRecommendation &&
                                 _currentPage == _nutritionPageIndex) ||
                             _isCheckingDatabase,

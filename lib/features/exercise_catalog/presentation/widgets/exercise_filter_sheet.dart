@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
+import '../../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 
 /// One selectable option in a filter section.
 @immutable
@@ -93,7 +94,7 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        SwitchListTile.adaptive(
+        PlatformAdaptiveSwitchListTile(
           title: Text(
             l10n.catalogFilterAlreadyDone,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -101,7 +102,6 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
             ),
           ),
           value: _onlyPerformed,
-          activeTrackColor: theme.colorScheme.primary,
           contentPadding: EdgeInsets.zero,
           onChanged: (val) {
             _apply(() {

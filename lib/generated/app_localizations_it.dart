@@ -592,6 +592,50 @@ class AppLocalizationsIt extends AppLocalizations {
       'Importa la cronologia dei tuoi allenamenti da un file di esportazione CSV o Excel.';
 
   @override
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates) {
+    return '$workouts allenamenti e $sets serie sono pronti. $duplicates allenamenti già presenti verranno ignorati.';
+  }
+
+  @override
+  String get workoutImportHevyInstructions =>
+      'Rilevato export Hevy. Esportalo da Profilo > Impostazioni > Export & Import Data > Export Data > Export Workouts.';
+
+  @override
+  String get workoutImportStrongInstructions =>
+      'Rilevato export Strong. In Impostazioni scegli Export Strong Data su iOS o Export Data su Android.';
+
+  @override
+  String get workoutImportGenericInstructions =>
+      'Rilevato file CSV o Excel. Controlla l’unità di peso prima dell’importazione.';
+
+  @override
+  String workoutImportPreviewInvalidRows(int count) {
+    return 'Verranno ignorate $count righe senza una data valida.';
+  }
+
+  @override
+  String get onboardingWorkoutImportHint =>
+      'Registri già gli allenamenti in un’altra app? Importa la cronologia al prossimo passaggio oppure in seguito da Impostazioni > Dati e backup.';
+
+  @override
+  String get onboardingWorkoutImportTitle =>
+      'Vuoi portare con te la cronologia degli allenamenti?';
+
+  @override
+  String get onboardingWorkoutImportDescription =>
+      'Importa la cronologia da Hevy, Strong o da un file CSV. Potrai controllare un’anteprima prima di aggiungere i dati.';
+
+  @override
+  String get onboardingWorkoutImportButton => 'Scegli file di esportazione';
+
+  @override
+  String get onboardingWorkoutImportLater => 'Lo farò più tardi';
+
+  @override
+  String get onboardingWorkoutImportPrivacy =>
+      'Il file viene elaborato su questo dispositivo. Se l’analisi anonima è attiva, registriamo solo se avvii, salti o completi un’importazione, mai i dettagli degli allenamenti.';
+
+  @override
   String get workoutImportButton => 'Importa dati di allenamento';
 
   @override
