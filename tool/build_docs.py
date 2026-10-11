@@ -1132,6 +1132,7 @@ def write_sitemap(all_items: list[dict]) -> None:
     """Publish only canonical, indexable pages; redirects are intentionally excluded."""
     canonical_paths = [
         "/",
+        "/about.html",
         "/privacy.html",
         "/terms.html",
         "/support.html",

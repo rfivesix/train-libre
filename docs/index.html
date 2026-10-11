@@ -8,7 +8,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description"
-    content="Plan training, log workouts, and track nutrition and recovery with an open-source, offline-first app. No ads, mandatory account, or cloud dependency.">
+    content="Plan training, log workouts, and track nutrition, weight goals, and recovery with Train Libre, an open-source, offline-first app. Reviewable AI meal capture. No ads or mandatory account.">
 
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -23,7 +23,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://trainlibre.com/">
   <meta property="og:title" content="Train Libre — Private, offline-first fitness tracking">
-  <meta property="og:description" content="Plan training, log workouts, and track nutrition with an open-source, offline-first app. No ads or mandatory account.">
+  <meta property="og:description" content="Plan training, log workouts, and track nutrition, weight goals, and recovery with Train Libre. Reviewable AI meal capture. No ads or mandatory account.">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Train Libre — Private, offline-first fitness tracking">
-  <meta name="twitter:description" content="Plan training, log workouts, and track nutrition with an open-source, offline-first app. No ads or mandatory account.">
+  <meta name="twitter:description" content="Plan training, log workouts, and track nutrition, weight goals, and recovery with Train Libre. Reviewable AI meal capture. No ads or mandatory account.">
   <meta name="twitter:image" content="https://trainlibre.com/assets/og-image.png">
   <meta name="twitter:image:alt" content="Train Libre — private workout and nutrition tracking">
 
@@ -290,23 +290,18 @@
       <section class="intelligence-section" id="intelligence" aria-labelledby="intelligence-title">
         <div class="intelligence-header reveal">
           <div>
-            <span class="section-kicker" data-i18n="intel_kicker">AI &amp; Diet Guidance</span>
-            <h2 class="section-heading" id="intelligence-title" data-i18n="intel_heading">Helpful intelligence, kept
-              accountable.</h2>
+            <span class="section-kicker" data-i18n="intel_kicker">AI, nutrition &amp; training models</span>
+            <h2 class="section-heading" id="intelligence-title" data-i18n="intel_heading">Useful estimates, with clear limits.</h2>
           </div>
-          <p class="intelligence-intro" data-i18n="intel_intro">Train Libre uses AI where it removes friction, then
-            brings the result back into
-            the app's local data model with review, validation, confidence, and explicit user control.</p>
+          <p class="intelligence-intro" data-i18n="intel_intro">AI capture and training or nutrition estimates solve different problems. Each has its own inputs, limits, and review flow.</p>
         </div>
 
         <div class="intelligence-grid">
           <article class="intelligence-card reveal delay-1" style="--intel: var(--orange); --intel-rgb: 255, 155, 5;">
             <span class="intelligence-label" data-i18n="intel_c1_label">AI meal recognition</span>
             <h3 data-i18n="intel_c1_title">From plate to log, with a checkpoint.</h3>
-            <p data-i18n="intel_c1_copy">Snap photos or describe a meal. Train Libre asks your chosen AI provider for
-              food names and gram
-              estimates, then matches them against the local food database and rebuilds calories and macros inside the
-              app.</p>
+            <p data-i18n="intel_c1_copy">Describe or photograph a meal. Your selected AI provider proposes foods and portions; Train Libre matches them to catalog foods so you can review and edit the result before saving.</p>
+            <span class="macro-example-label" data-i18n="meal_example">Example nutrition totals</span>
             <div class="macro-badges">
               <span class="macro-badge kcal">800 kcal</span>
               <span class="macro-badge pro">P 40g</span>
@@ -314,152 +309,98 @@
               <span class="macro-badge fat">F 20g</span>
             </div>
             <div class="intelligence-points" aria-label="AI meal recognition details">
-
               <span data-i18n="intel_c1_p1">Photo and text capture</span>
-              <span data-i18n="intel_c1_p2">Gram estimates</span>
-              <span data-i18n="intel_c1_p3">Local nutrition totals</span>
-              <span data-i18n="intel_c1_p4">Editable review</span>
+              <span data-i18n="intel_c1_p2">Suggested portions</span>
+              <span data-i18n="intel_c1_p3">Catalog-based nutrition</span>
+              <span data-i18n="intel_c1_p4">Review before saving</span>
             </div>
             <div style="margin-top: 24px;">
-              <a href="./docs/features/meal-capture-pipeline/" class="button button-secondary button-small" data-i18n="learn_more">Learn
-                more</a>
+              <a href="./docs/features/meal-capture-pipeline/" class="button button-secondary button-small" data-i18n="learn_more">Learn more</a>
             </div>
             <div class="ai-phone-preview">
               <div class="screen">
-                <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.webp"
-                  alt="Train Libre AI Meal Capture screen with meal photos, text input, and an Analyze button.">
+                <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.webp" alt="Train Libre AI Meal Capture screen with meal photos, text input, and an Analyze button.">
               </div>
             </div>
           </article>
 
           <article class="intelligence-card reveal delay-2" style="--intel: var(--accent); --intel-rgb: var(--accent-rgb);">
-            <span class="intelligence-label" data-i18n="intel_c2_label">Calorie estimation</span>
-            <h3 data-i18n="intel_c2_title">Diet targets that adapt to your real trend.</h3>
-            <p data-i18n="intel_c2_copy">Train Libre estimates maintenance calories from your profile, logged intake,
-              and smoothed bodyweight
-              trend, then turns that estimate into weekly calorie and macro targets you can apply when ready.</p>
-            <div class="intelligence-points" aria-label="Adaptive calorie guidance details">
-              <span data-i18n="intel_c2_p1">Weekly recommendation</span>
-              <span data-i18n="intel_c2_p2">Confidence range</span>
-              <span data-i18n="intel_c2_p3">Quality warnings</span>
-              <span data-i18n="intel_c2_p4">Manual apply</span>
-            </div>
-            <div style="margin-top: 24px;">
-              <a href="./docs/features/bayesian-tdee-estimator/" class="button button-secondary button-small" data-i18n="learn_more">Learn
-                more</a>
-            </div>
-
-            <div class="guidance-dashboard" aria-label="Illustrative adaptive calorie guidance preview">
-              <div class="guidance-topline">
-                <div>
-                  <strong data-i18n="dash_maintenance">Estimated maintenance</strong><br>
-                  <span data-i18n="dash_maintenance_copy">Profile prior + recent logs</span>
+            <span class="intelligence-label" data-i18n="intel_c2_label">Nutrition estimates and goals</span>
+            <h3 data-i18n="intel_c2_title">A trend-informed estimate. Targets stay yours.</h3>
+            <p data-i18n="intel_c2_copy">The nutrition overview keeps daily intake in view. A separate weekly review shows goal progress and lets you decide whether to apply a suggested target change.</p>
+            <div class="nutrition-preview-grid">
+              <figure class="nutrition-preview">
+                <div class="screen">
+                  <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_nutrition.webp" alt="Train Libre nutrition overview showing daily intake, hydration, supplements, and meals." data-i18n-alt="nutrition_hub_alt">
                 </div>
-                <div data-i18n="dash_fresh">Fresh this week</div>
-              </div>
-              <div class="guidance-value">2640 <span data-i18n="dash_kcal">kcal/day</span></div>
-              <div class="guidance-range">
-                <span data-i18n="dash_range">Likely range 2480-2800</span>
-                <span data-i18n="dash_confidence">Medium confidence</span>
-              </div>
-              <div class="guidance-meter" aria-hidden="true"><span></span></div>
-              <div class="guidance-macros">
-                <div class="guidance-macro">
-                  <strong>2320</strong>
-                  <span data-i18n="macro_kcal">target kcal</span>
+                <figcaption data-i18n="nutrition_hub_caption">Nutrition overview</figcaption>
+              </figure>
+              <figure class="nutrition-preview">
+                <div class="screen">
+                  <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_weekly_goal_review.webp" alt="Train Libre weekly nutrition goal review showing progress and suggested targets." data-i18n-alt="nutrition_review_alt">
                 </div>
-                <div class="guidance-macro">
-                  <strong>164g</strong>
-                  <span data-i18n="macro_protein">protein</span>
-                </div>
-                <div class="guidance-macro">
-                  <strong>275g</strong>
-                  <span data-i18n="macro_carbs">carbs</span>
-                </div>
-              </div>
+                <figcaption data-i18n="nutrition_review_caption">Weekly goal review</figcaption>
+              </figure>
             </div>
-
-            <div class="guidance-logic">
-              <div class="guidance-step">
-                <b>1</b>
-                <span data-i18n="step1">Smoothed weight trends reduce day-to-day scale noise before calories are
-                  adjusted.</span>
-              </div>
-              <div class="guidance-step">
-                <b>2</b>
-                <span data-i18n="step2">Sparse logs, unresolved foods, and early diet-phase swings widen uncertainty
-                  instead of
-                  oversteering.</span>
-              </div>
-              <div class="guidance-step">
-                <b>3</b>
-                <span data-i18n="step3">Recommendations show warnings and never replace your active goals until you
-                  apply them.</span>
-              </div>
-            </div>
+            <a href="./docs/features/bayesian-tdee-estimator/" class="button button-secondary button-small nutrition-preview-link" data-i18n="learn_more">How the estimate works</a>
           </article>
         </div>
 
         <div class="deep-dive-section reveal">
           <div class="transparency-header">
-            <span class="section-kicker" data-i18n="transparency_kicker">Deep Technical Disclosure</span>
-            <h2 class="section-heading" data-i18n="transparency_title">Algorithmic Transparency</h2>
+            <span class="section-kicker" data-i18n="transparency_kicker">How the models work</span>
+            <h2 class="section-heading" data-i18n="transparency_title">Algorithmic transparency</h2>
+            <p class="section-copy" data-i18n="transparency_intro">These summaries describe what each feature uses and returns. The linked articles document implementation details and limits.</p>
           </div>
           <div class="deep-dive-grid">
-            <div class="deep-dive-card">
-              <h3 data-i18n="ai_meal_deep_t">Algorithmic Details</h3>
-              <p class="deep-dive-intro" data-i18n="ai_meal_deep_c">Algorithmic Invariants & Local Matching Pipeline</p>
-              <ul class="deep-dive-features">
-                <li data-i18n="ai_meal_privacy_t">BYOK Privacy Invariant</li>
-                <li data-i18n="ai_meal_matching_t">Local Deterministic Matching</li>
-                <li data-i18n="ai_meal_retry_t">3-Pass Self-Repair Retry Loop</li>
-                <li data-i18n="ai_meal_ban_t">Strict Nutrient Computation Ban</li>
-              </ul>
-              <div class="deep-dive-link-container">
-                <a href="./docs/features/byok-ai-validation/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
-              </div>
-            </div>
-
-            <div class="deep-dive-card">
-              <h3 data-i18n="tdee_deep_t">Mathematical Deep-Dive</h3>
-              <p class="deep-dive-intro" data-i18n="tdee_deep_c">Recursive Estimation & Metabolic Smoothing Mechanics
-              </p>
-              <ul class="deep-dive-features">
-                <li data-i18n="tdee_kalman_t">Recursive Kalman Filtering</li>
-                <li data-i18n="tdee_math_t">Observed Maintenance Equation</li>
-                <li data-i18n="tdee_ramp_t">9-Week Linear Energetic Ramp</li>
-                <li data-i18n="tdee_noise_t">Handling Missing Data (Q = 40)</li>
-              </ul>
-              <div class="deep-dive-link-container">
-                <a href="./docs/features/bayesian-tdee-estimator/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
-              </div>
-            </div>
-
-            <div class="deep-dive-card">
-              <h3 data-i18n="rec_deep_t">Analytical Infrastructure</h3>
-              <p class="deep-dive-intro" data-i18n="rec_deep_c">Three-Layer Architecture & Composite Indices</p>
-              <ul class="deep-dive-features">
-                <li data-i18n="rec_schema_t">Three-Layer Sleep Schema</li>
-                <li data-i18n="rec_score_t">Sleep Health Score V2</li>
-                <li data-i18n="rec_pulse_t">Hourly Pulse Aggregation</li>
-              </ul>
-              <div class="deep-dive-link-container">
-                <a href="./docs/features/muscle-recovery-model/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
-              </div>
-            </div>
-
-            <div class="deep-dive-card">
-              <h3 data-i18n="sleep_score_hero_t">Sleep Health Score v3.5</h3>
-              <p class="deep-dive-intro" data-i18n="sleep_score_hero_c">Continuous Multi-Domain Soft-Cap Evaluation Model</p>
-              <ul class="deep-dive-features">
-                <li data-i18n="sleep_math_base_t">Top-Level Weighted Aggregation</li>
-                <li data-i18n="sleep_math_mult_t">Continuous Soft-Cap Degradation</li>
-                <li data-i18n="sleep_math_lin_t">Linear Bounded Interpolation</li>
-              </ul>
-              <div class="deep-dive-link-container">
-                <a href="./docs/features/sleep-scoring-engine/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
-              </div>
-            </div>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_ai_title">AI meal capture</h3>
+              <p class="deep-dive-intro" data-i18n="deep_ai_copy">AI proposes foods and portions; the app matches them to catalog foods for your review.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_ai_b1">Nutrition totals use matched food data.</li><li data-i18n="deep_ai_b2">Review and edit suggestions before saving.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/byok-ai-validation/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_tdee_title">Maintenance estimate</h3>
+              <p class="deep-dive-intro" data-i18n="deep_tdee_copy">A recursive estimate combines logged intake with a smoothed weight trend and a profile-based starting prior.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_tdee_b1">Uses a 14-day input window.</li><li data-i18n="deep_tdee_b2">Sparse data can prevent an observation update.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/bayesian-tdee-estimator/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_goals_title">Weekly nutrition goal review</h3>
+              <p class="deep-dive-intro" data-i18n="deep_goals_copy">A review compares logged progress with the active weight goal and may propose next steps.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_goals_b1">Data and compatibility checks gate adjustments.</li><li data-i18n="deep_goals_b2">Applying a recommendation requires user action.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/adaptive-nutrition-goals/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_macros_title">Macronutrient targets</h3>
+              <p class="deep-dive-intro" data-i18n="deep_macros_copy">A deterministic allocator divides a calorie target into protein, fat, and carbohydrate targets.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_macros_b1">Uses body weight and the selected goal.</li><li data-i18n="deep_macros_b2">Fixed app rules, not an individualized prescription.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/macro-distribution/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_progress_title">Workout progression</h3>
+              <p class="deep-dive-intro" data-i18n="deep_progress_copy">When enabled, the workout can suggest a starting target from the latest comparable session.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_progress_b1">Off by default; suggestions can be edited.</li><li data-i18n="deep_progress_b2">Only eligible load-and-repetition sets receive targets.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/workout-progression-engine/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_1rm_title">Estimated one-rep max</h3>
+              <p class="deep-dive-intro" data-i18n="deep_1rm_copy">A logged load and repetition count produce a formula-based strength estimate.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_1rm_b1">Uses the Brzycki equation within its valid repetition range.</li><li data-i18n="deep_1rm_b2">An estimate, not a measured maximum or safety assessment.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/intelligent-workouts/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_recovery_title">Muscle recovery estimate</h3>
+              <p class="deep-dive-intro" data-i18n="deep_recovery_copy">Eligible completed sets contribute to a time-decaying load estimate for mapped muscles.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_recovery_b1">Uses set details and exercise-to-muscle mappings.</li><li data-i18n="deep_recovery_b2">A training-load heuristic, not a measure of whole-body recovery.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/muscle-recovery-model/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
+            <article class="deep-dive-card">
+              <h3 data-i18n="deep_sleep_title">Sleep Health Score (SHS v3)</h3>
+              <p class="deep-dive-intro" data-i18n="deep_sleep_copy">A 0–100 heuristic combines available sleep duration, continuity, stages, timing, and regularity.</p>
+              <ul class="deep-dive-features"><li data-i18n="deep_sleep_b1">Missing inputs affect score completeness.</li><li data-i18n="deep_sleep_b2">Not a validated clinical score or diagnosis.</li></ul>
+              <div class="deep-dive-link-container"><a href="./docs/features/sleep-scoring-engine/" class="deep-dive-link" data-i18n="learn_more">Learn more</a></div>
+            </article>
           </div>
         </div>
       </section>
@@ -518,7 +459,7 @@
             the same visual language from logging to AI capture to training review.</p>
         </div>
 
-        <div class="phone-row reveal delay-1">
+        <div class="phone-row reveal delay-1" tabindex="0" role="region" aria-label="App screen previews. Scroll horizontally." data-i18n-aria-label="showcase_scroll_label">
           <figure class="showcase-phone">
             <div class="screen">
               <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_diary.webp"
@@ -551,6 +492,17 @@
               <strong data-i18n="show_c3_title">AI meal capture</strong>
               <span data-i18n="show_c3_copy">Photo or text input becomes reviewable food entries, not a black-box
                 save.</span>
+            </figcaption>
+          </figure>
+
+          <figure class="showcase-phone">
+            <div class="screen">
+              <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_weekly_goal_review.webp"
+                alt="Train Libre weekly nutrition goal review showing progress and a reviewable target recommendation." data-i18n-alt="show_c4_alt">
+            </div>
+            <figcaption class="phone-caption">
+              <strong data-i18n="show_c4_title">Weekly goal review</strong>
+              <span data-i18n="show_c4_copy">Review weight-goal progress and nutrition recommendations before applying a change.</span>
             </figcaption>
           </figure>
         </div>
