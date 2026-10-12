@@ -6,8 +6,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="Multi-locale catalog translation pipeline, relational tables, and fallback chains.">
-  <title>Offline-First Relational Localization Architecture | Train Libre Documentation</title>
+  <meta name="description" content="Flutter ARB strings and separate food/exercise catalog localization systems.">
+  <title>Localization architecture | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/developer/localization-architecture/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -15,8 +15,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Offline-First Relational Localization Architecture | Train Libre">
-  <meta property="og:description" content="Multi-locale catalog translation pipeline, relational tables, and fallback chains.">
+  <meta property="og:title" content="Localization architecture | Train Libre">
+  <meta property="og:description" content="Flutter ARB strings and separate food/exercise catalog localization systems.">
   <meta property="og:url" content="https://trainlibre.com/docs/developer/localization-architecture/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -104,25 +104,60 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../../features/overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../../features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../../features/overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../../features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../../features/muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../../features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../../features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../../features/macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../../features/macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../../features/manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../../features/adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
 <li><a href="../../features/workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../../features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../../features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="../data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Localization Architecture</a></li>
 <li><a href="../ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -134,555 +169,32 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Offline-First Relational Localization Architecture</h1>
-<p>This document defines the architecture and integration strategy for supporting multi-language settings in Train Libre. It provides the implementation blueprint for supporting Japanese (<code>ja</code>), French (<code>fr</code>), and Italian (<code>it</code>), and serves as a step-by-step guide to adding any future locale in under 15 minutes.</p>
-<hr class="divider">
-<h2 id="1-architectural-audit-discovery-normalization" class="doc-h2">1. Architectural Audit: Discovery & Normalization<a href="#1-architectural-audit-discovery-normalization" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The legacy system utilized hardcoded columns (e.g., <code>name_de</code>, <code>name_en</code>, <code>description_de</code>, <code>description_en</code>) directly in primary entities: - <strong><code>exercises</code></strong>: <code>nameDe</code>, <code>nameEn</code>, <code>descriptionDe</code>, <code>descriptionEn</code> - <strong><code>products</code></strong>: <code>name</code>, <code>nameDe</code>, <code>nameEn</code> - <strong><code>food_categories</code></strong>: <code>nameDe</code>, <code>nameEn</code> - <strong><code>user_food_overrides</code></strong>: <code>nameDe</code>, <code>nameEn</code></p>
-<p>This approach is <strong>not scalable</strong>; adding support for new languages requires modifying table schemas, running database migrations, and updating entity objects.</p>
-<h3 id="relational-schema-transformation-modular-1n" class="doc-h3">Relational Schema Transformation (Modular 1:N)<a href="#relational-schema-transformation-modular-1n" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>To make the system infinitely scalable, all language-specific fields are factored out into dedicated 1:N translation tables. The main entities now store only non-localizable structural data, referencing translation tables keyed by language code.</p>
-<div class="mermaid-container"><pre class="mermaid" data-mermaid="erDiagram
-    EXERCISES {
-        text id PK
-        text category_name
-        text muscles_primary
-        text muscles_secondary
-        text image_path
-        boolean is_custom
-        text source
-        integer usage_count
-    }
-    EXERCISE_TRANSLATIONS {
-        integer local_id PK
-        text id UNIQUE
-        text exercise_id FK
-        text language_code
-        text name
-        text description
-    }
-    PRODUCTS {
-        text id PK
-        text barcode UNIQUE
-        text brand
-        integer calories
-        real protein
-        real carbs
-        real fat
-        real sugar
-        real fiber
-        real salt
-        real caffeine
-        boolean is_fluid
-        boolean is_liquid
-        text source
-        integer usage_count
-    }
-    PRODUCT_TRANSLATIONS {
-        integer local_id PK
-        text id UNIQUE
-        text product_id FK
-        text language_code
-        text name
-    }
-    EXERCISES ||--o{ EXERCISE_TRANSLATIONS : &quot;has&quot;
-    PRODUCTS ||--o{ PRODUCT_TRANSLATIONS : &quot;has&quot;">erDiagram
-    EXERCISES {
-        text id PK
-        text category_name
-        text muscles_primary
-        text muscles_secondary
-        text image_path
-        boolean is_custom
-        text source
-        integer usage_count
-    }
-    EXERCISE_TRANSLATIONS {
-        integer local_id PK
-        text id UNIQUE
-        text exercise_id FK
-        text language_code
-        text name
-        text description
-    }
-    PRODUCTS {
-        text id PK
-        text barcode UNIQUE
-        text brand
-        integer calories
-        real protein
-        real carbs
-        real fat
-        real sugar
-        real fiber
-        real salt
-        real caffeine
-        boolean is_fluid
-        boolean is_liquid
-        text source
-        integer usage_count
-    }
-    PRODUCT_TRANSLATIONS {
-        integer local_id PK
-        text id UNIQUE
-        text product_id FK
-        text language_code
-        text name
-    }
-    EXERCISES ||--o{ EXERCISE_TRANSLATIONS : &quot;has&quot;
-    PRODUCTS ||--o{ PRODUCT_TRANSLATIONS : &quot;has&quot;</pre></div>
-<h3 id="drift-tables-mapping" class="doc-h3">Drift Tables Mapping<a href="#drift-tables-mapping" class="header-anchor" aria-label="Link to section">#</a></h3>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// lib/data/drift_database.dart
-
-// Normalized Exercises Table (No localization columns)
-class Exercises extends Table with HybridId, MetaColumns {
-  TextColumn get createdBy =&gt; text().nullable()();
-  TextColumn get categoryName =&gt; text().nullable()();
-  TextColumn get imagePath =&gt; text().nullable()();
-  TextColumn get musclesPrimary =&gt; text().nullable()();
-  TextColumn get musclesSecondary =&gt; text().nullable()();
-  BoolColumn get isCustom =&gt; boolean().withDefault(const Constant(false))();
-  TextColumn get source =&gt; text().withDefault(const Constant(&#x27;user&#x27;))();
-  IntColumn get usageCount =&gt; integer().withDefault(const Constant(0))();
-  TextColumn get replacesExerciseId =&gt;
-      text().nullable().references(Exercises, #id)();
-}
-
-// 1:N Translation Table for Exercises
-class ExerciseTranslations extends Table with HybridId, MetaColumns {
-  TextColumn get exerciseId =&gt;
-      text().references(Exercises, #id, onDelete: KeyAction.cascade)();
-  TextColumn get languageCode =&gt; text()(); // &#x27;en&#x27;, &#x27;de&#x27;, &#x27;ja&#x27;, &#x27;fr&#x27;, &#x27;it&#x27;
-  TextColumn get name =&gt; text()();
-  TextColumn get description =&gt; text().nullable()();
-
-  @override
-  List&lt;Set&lt;Column&gt;&gt; get uniqueKeys =&gt; [
-        {exerciseId, languageCode}
-      ];
-}
-
-// Normalized Products Table
-class Products extends Table with HybridId, MetaColumns {
-  TextColumn get barcode =&gt; text().unique()();
-  TextColumn get brand =&gt; text().nullable()();
-  IntColumn get calories =&gt; integer()();
-  RealColumn get protein =&gt; real()();
-  RealColumn get carbs =&gt; real()();
-  RealColumn get fat =&gt; real()();
-  RealColumn get sugar =&gt; real().nullable()();
-  RealColumn get fiber =&gt; real().nullable()();
-  RealColumn get salt =&gt; real().nullable()();
-  RealColumn get caffeine =&gt; real().nullable()();
-  RealColumn get caffeineMgPer100g =&gt; real().named(&#x27;caffeine_mg_per_100g&#x27;).nullable()();
-  TextColumn get ingredientsText =&gt; text().nullable()();
-  TextColumn get ingredientsAnalysisTags =&gt; text().nullable()();
-  TextColumn get additivesTags =&gt; text().nullable()();
-  RealColumn get productQuantity =&gt; real().nullable()();
-  TextColumn get productQuantityUnit =&gt; text().nullable()();
-  BoolColumn get isFluid =&gt; boolean().withDefault(const Constant(false))();
-  BoolColumn get isLiquid =&gt; boolean().withDefault(const Constant(false))();
-  TextColumn get source =&gt; text().withDefault(const Constant(&#x27;user&#x27;))();
-  TextColumn get category =&gt; text().nullable()();
-  IntColumn get usageCount =&gt; integer().withDefault(const Constant(0))();
-}
-
-// 1:N Translation Table for Products
-class ProductTranslations extends Table with HybridId, MetaColumns {
-  TextColumn get productId =&gt;
-      text().references(Products, #id, onDelete: KeyAction.cascade)();
-  TextColumn get languageCode =&gt; text()(); // &#x27;en&#x27;, &#x27;de&#x27;, &#x27;ja&#x27;, &#x27;fr&#x27;, &#x27;it&#x27;
-  TextColumn get name =&gt; text()();
-
-  @override
-  List&lt;Set&lt;Column&gt;&gt; get uniqueKeys =&gt; [
-        {productId, languageCode}
-      ];
-}</code></pre></div>
-<h3 id="drift-database-migration-historical-migration-version-22-to-23" class="doc-h3">Drift Database Migration (Historical Migration: Version 22 to 23)<a href="#drift-database-migration-historical-migration-version-22-to-23" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>While <code>AppDatabase</code> currently operates at <strong>schema version 38</strong>, the transition from version 22 to 23 is the foundational migration that introduced normalized 1:N translation tables. The migration logic in <code>AppDatabase.migration.onUpgrade</code> created the translation tables, copied legacy column values to the normalized tables, and dropped obsolete columns using standard SQLite schema-altering syntax:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// lib/data/drift_database.dart
-// (Current schemaVersion is 38; historical migration block shown below)
-
-// In MigrationStrategy onUpgrade:
-if (from &lt; 23) {
-  // 1. Create translation tables
-  await m.createTable(exerciseTranslations);
-  await m.createTable(productTranslations);
-  await m.createTable(foodCategoryTranslations);
-  await m.createTable(userFoodOverrideTranslations);
-
-  // 2. Backfill exercise translations
-  await customStatement(&#x27;&#x27;&#x27;
-    INSERT INTO exercise_translations (id, created_at, updated_at, exercise_id, language_code, name, description)
-    SELECT lower(hex(randomblob(16))), strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, id, &#x27;de&#x27;, name_de, description_de
-    FROM exercises WHERE name_de IS NOT NULL AND name_de != &#x27;&#x27;;
-  &#x27;&#x27;&#x27;);
-  await customStatement(&#x27;&#x27;&#x27;
-    INSERT INTO exercise_translations (id, created_at, updated_at, exercise_id, language_code, name, description)
-    SELECT lower(hex(randomblob(16))), strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, id, &#x27;en&#x27;, name_en, description_en
-    FROM exercises WHERE name_en IS NOT NULL AND name_en != &#x27;&#x27;;
-  &#x27;&#x27;&#x27;);
-
-  // 3. Backfill product translations
-  await customStatement(&#x27;&#x27;&#x27;
-    INSERT INTO product_translations (id, created_at, updated_at, product_id, language_code, name)
-    SELECT lower(hex(randomblob(16))), strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, id, &#x27;de&#x27;, name_de
-    FROM products WHERE name_de IS NOT NULL AND name_de != &#x27;&#x27;;
-  &#x27;&#x27;&#x27;);
-  await customStatement(&#x27;&#x27;&#x27;
-    INSERT INTO product_translations (id, created_at, updated_at, product_id, language_code, name)
-    SELECT lower(hex(randomblob(16))), strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, strftime(&#x27;%s&#x27;,&#x27;now&#x27;)*1000, id, &#x27;en&#x27;, name_en
-    FROM products WHERE name_en IS NOT NULL AND name_en != &#x27;&#x27;;
-  &#x27;&#x27;&#x27;);
-
-  // 4. Clean up legacy tables (Recreate or Drop Columns)
-  // SQLite 3.35.0+ supports ALTER TABLE DROP COLUMN
-  await customStatement(&#x27;ALTER TABLE exercises DROP COLUMN name_de;&#x27;);
-  await customStatement(&#x27;ALTER TABLE exercises DROP COLUMN name_en;&#x27;);
-  await customStatement(&#x27;ALTER TABLE exercises DROP COLUMN description_de;&#x27;);
-  await customStatement(&#x27;ALTER TABLE exercises DROP COLUMN description_en;&#x27;);
-
-  await customStatement(&#x27;ALTER TABLE products DROP COLUMN name_de;&#x27;);
-  await customStatement(&#x27;ALTER TABLE products DROP COLUMN name_en;&#x27;);
-}</code></pre></div>
-<hr class="divider">
-<h2 id="2-multi-module-localization-blueprint" class="doc-h2">2. Multi-Module Localization Blueprint<a href="#2-multi-module-localization-blueprint" class="header-anchor" aria-label="Link to section">#</a></h2>
-<h3 id="database-layer-drift-queries-with-fallback" class="doc-h3">Database Layer (Drift Queries with Fallback)<a href="#database-layer-drift-queries-with-fallback" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>To fetch translated values, queries join the main table on the translation table using the target locale (e.g., Japanese <code>ja</code>). In case a specific language record is missing, the query must fall back: 1. Target Locale (e.g., <code>ja</code>) 2. Default Fallback Locale (<code>en</code>) 3. Primary fallback (<code>de</code>) 4. Any available localized name in the translations table</p>
-<h4 id="drift-query-implementation-exercises" class="doc-h4">Drift Query Implementation (Exercises)<a href="#drift-query-implementation-exercises" class="header-anchor" aria-label="Link to section">#</a></h4>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// lib/features/workout/data/sources/parts/exercises_queries.dart
-
-Future&lt;List&lt;Exercise&gt;&gt; searchExercises({
-  required String query,
-  required String languageCode, // User&#x27;s active database language setting
-  List&lt;String&gt; selectedCategories = const [],
-}) async {
-  final dbInstance = await database;
-  final tokens = _tokenizeAndClean(query);
-
-  // We write a robust SQLite query using COALESCE to resolve the translations
-  final sql = &#x27;&#x27;&#x27;
-    SELECT e.*,
-           COALESCE(t_target.name, t_en.name, t_de.name, t_any.name) AS display_name,
-           COALESCE(t_target.description, t_en.description, t_de.description, t_any.description) AS display_description
-    FROM exercises e
-    
-    -- 1. Left join target locale translation
-    LEFT JOIN exercise_translations t_target 
-      ON e.id = t_target.exercise_id AND t_target.language_code = ?
-      
-    -- 2. Left join &#x27;en&#x27; fallback translation
-    LEFT JOIN exercise_translations t_en 
-      ON e.id = t_en.exercise_id AND t_en.language_code = &#x27;en&#x27;
-      
-    -- 3. Left join &#x27;de&#x27; fallback translation
-    LEFT JOIN exercise_translations t_de 
-      ON e.id = t_de.exercise_id AND t_de.language_code = &#x27;de&#x27;
-
-    -- 4. Left join first available translation as ultimate safety
-    LEFT JOIN (
-      SELECT exercise_id, name, description, MIN(language_code) 
-      FROM exercise_translations 
-      GROUP BY exercise_id
-    ) t_any ON e.id = t_any.exercise_id
-
-    WHERE (
-      t_target.name LIKE ? OR t_en.name LIKE ? OR t_de.name LIKE ?
-    )
-    LIMIT 50;
-  &#x27;&#x27;&#x27;;
-
-  final variables = [
-    drift.Variable.withString(languageCode),
-    drift.Variable.withString(&#x27;%$query%&#x27;),
-    drift.Variable.withString(&#x27;%$query%&#x27;),
-    drift.Variable.withString(&#x27;%$query%&#x27;),
-  ];
-
-  final rows = await dbInstance.customSelect(
-    sql,
-    variables: variables,
-    readsFrom: {dbInstance.exercises, dbInstance.exerciseTranslations},
-  ).get();
-
-  return rows.map((row) {
-    final rawExercise = dbInstance.exercises.map(row.data);
-    final displayName = row.read&lt;String&gt;(&#x27;display_name&#x27;);
-    final displayDescription = row.read&lt;String&gt;(&#x27;display_description&#x27;);
-
-    return Exercise(
-      id: rawExercise.localId,
-      uuid: rawExercise.id,
-      source: rawExercise.source,
-      replacesExerciseId: rawExercise.replacesExerciseId,
-      nameDe: rawExercise.source == &#x27;user&#x27; ? displayName : &#x27;&#x27;, 
-      nameEn: displayName, // Unified display name
-      descriptionDe: &#x27;&#x27;,
-      descriptionEn: displayDescription ?? &#x27;&#x27;,
-      categoryName: rawExercise.categoryName ?? &#x27;Other&#x27;,
-      imagePath: rawExercise.imagePath,
-      primaryMuscles: _parseMuscleList(rawExercise.musclesPrimary),
-      secondaryMuscles: _parseMuscleList(rawExercise.musclesSecondary),
-    );
-  }).toList();
-}</code></pre></div>
-<h3 id="ui-text-layer-arb" class="doc-h3">UI Text Layer (<code>.arb</code>)<a href="#ui-text-layer-arb" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The application leverages standard <code>flutter_localizations</code> configured via <code>l10n.yaml</code>. To register Japanese, French, and Italian:</p>
+          <h1 class="doc-title">Localization architecture</h1>
+<p>Train Libre has separate localization systems for app UI strings and catalog content. Adding a language to one does not automatically translate the other.</p>
+<h2 id="app-ui-strings" class="doc-h2">App UI strings<a href="#app-ui-strings" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The canonical message catalogs are <code>lib/l10n/app_en.arb</code>, <code>app_de.arb</code>, <code>app_fr.arb</code>, <code>app_it.arb</code>, and <code>app_ja.arb</code>. Flutter's generated localization output is under <code>lib/generated/</code>; edit the ARB sources, not generated Dart. <code>lib/main.dart</code> configures the generated delegates and <code>AppLocalizations.supportedLocales</code> on the app's <code>MaterialApp</code>.</p>
+<p>To add or change UI translations:</p>
 <ol class="doc-list">
-<li><strong>Add ARB Files</strong>:</li>
-<li><code>lib/l10n/app_ja.arb</code></li>
-<li><code>lib/l10n/app_fr.arb</code></li>
-<li><code>lib/l10n/app_it.arb</code></li>
+<li>Add the locale's ARB catalog and keep its message keys and placeholder metadata aligned with the other catalogs (English is the reference catalog).</li>
+<li>Update locale-specific UI choices or formatters if the feature explicitly enumerates languages; the Flutter locale list alone does not update those controls.</li>
+<li>Run the localization generator configured by the Flutter project (<code>flutter gen-l10n</code>) and review generated changes.</li>
+<li>Search native UI resources separately when the text belongs to an iOS widget/extension or Android resource rather than Flutter.</li>
 </ol>
-<p>Each file contains JSON matching the keys of <code>lib/l10n/app_en.arb</code>. Example (<code>app_ja.arb</code>):</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">json</span><button class="copy-btn">Copy</button></div><pre><code class="language-json">   {
-     &quot;@@locale&quot;: &quot;ja&quot;,
-     &quot;appTitle&quot;: &quot;トレイン・リブレ&quot;,
-     &quot;settingsBaseFoodLanguageTitle&quot;: &quot;食品データベースの言語&quot;,
-     &quot;settingsBaseFoodLanguageEnglish&quot;: &quot;英語 (English)&quot;,
-     &quot;settingsBaseFoodLanguageGerman&quot;: &quot;ドイツ語 (Deutsch)&quot;,
-     &quot;settingsBaseFoodLanguageJapanese&quot;: &quot;日本語 (Japanese)&quot;,
-     &quot;settingsBaseFoodLanguageFrench&quot;: &quot;フランス語 (French)&quot;,
-     &quot;settingsBaseFoodLanguageItalian&quot;: &quot;イタリア語 (Italian)&quot;
-   }
-   </code></pre></div>
-<ol class="doc-list">
-<li><strong>Run Generator</strong>:</li>
-</ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div><pre><code class="language-bash">   flutter gen-l10n
-   </code></pre></div>
-<p>This compiles classes in <code>lib/generated/app_localizations.dart</code> and automatically populates <code>AppLocalizations.supportedLocales</code> with <code>Locale(&#x27;ja&#x27;)</code>, <code>Locale(&#x27;fr&#x27;)</code>, and <code>Locale(&#x27;it&#x27;)</code>. No routing configuration updates are required since <code>lib/main.dart</code> binds directly to <code>AppLocalizations.supportedLocales</code>.</p>
-<ol class="doc-list">
-<li><strong>Expand Locale Picker</strong>: Update <code>lib/services/base_food_language_service.dart</code> and <code>lib/services/ai_matching_language_service.dart</code> enums to register the new languages:</li>
-</ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">   enum BaseFoodLanguage { auto, en, de, ja, fr, it }
-   </code></pre></div>
-<hr class="divider">
-<h2 id="3-data-processing-pipelines" class="doc-h2">3. Data Processing Pipelines<a href="#3-data-processing-pipelines" class="header-anchor" aria-label="Link to section">#</a></h2>
-<h3 id="wger-catalog-fetch-pipeline" class="doc-h3">wger Catalog Fetch Pipeline<a href="#wger-catalog-fetch-pipeline" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The python script <code>script/create_wger_exercise_db.py</code> queries the wger API and generates the SQLite database <code>train_libre_training.db</code> deployed as a release asset.</p>
-<p><strong>Required Updates for Multi-Language Relational Model</strong>: 1. <strong>API Language Fetching</strong>: Map standard wger language IDs (<code>1: de</code>, <code>2: en</code>, <code>3: ja</code>, <code>4: fr</code>, <code>5: it</code>, etc.). 2. <strong>Normalized DB Output</strong>: Alter tables created in SQLite output.</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn">Copy</button></div><pre><code class="language-python"># script/create_wger_exercise_db.py
-
-# Map wger API language IDs to ISO 639-1 language codes
-LANGUAGE_ID_MAP = {
-    1: &quot;de&quot;,
-    2: &quot;en&quot;,
-    # Add newly fetched wger translation language IDs
-    4: &quot;fr&quot;,
-    5: &quot;it&quot;,
-    8: &quot;ja&quot;
-}
-
-def process_and_create_db(db_out=&quot;train_libre_training.db&quot;, ...):
-    # Setup connection
-    conn = sqlite3.connect(db_out)
-    cursor = conn.cursor()
-
-    # Create Normalized Table and translations
-    cursor.execute(&quot;&quot;&quot;
-      CREATE TABLE exercises (
-        id TEXT PRIMARY KEY,
-        category_name TEXT,
-        muscles_primary TEXT,
-        muscles_secondary TEXT,
-        image_path TEXT,
-        is_custom INTEGER DEFAULT 0,
-        created_by TEXT DEFAULT &#x27;system&#x27;,
-        source TEXT DEFAULT &#x27;base&#x27;
-      )&quot;&quot;&quot;)
-      
-    cursor.execute(&quot;&quot;&quot;
-      CREATE TABLE exercise_translations (
-        id TEXT PRIMARY KEY,
-        exercise_id TEXT,
-        language_code TEXT,
-        name TEXT,
-        description TEXT,
-        FOREIGN KEY(exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
-      )&quot;&quot;&quot;)
-
-    # Populate Exercise records
-    for item in exercises_info_data:
-        ex_id = str(item[&quot;id&quot;])
-        # Insert structural exercise properties...
-        cursor.execute(&quot;INSERT INTO exercises (...) VALUES (...)&quot;, (...))
-        
-        # Populate translations dynamically
-        for translation in item.get(&quot;translations&quot;, []):
-            wger_lang_id = translation.get(&quot;language&quot;)
-            lang_code = LANGUAGE_ID_MAP.get(wger_lang_id)
-            if not lang_code:
-                continue # Skip unsupported languages
-            
-            t_id = f&quot;{ex_id}_{lang_code}&quot;
-            name = translation.get(&quot;name&quot;, &quot;&quot;).strip()
-            desc = clean_html(translation.get(&quot;description&quot;))
-            
-            if name:
-                cursor.execute(&quot;&quot;&quot;
-                    INSERT OR REPLACE INTO exercise_translations (id, exercise_id, language_code, name, description)
-                    VALUES (?, ?, ?, ?, ?)
-                &quot;&quot;&quot;, (t_id, ex_id, lang_code, name, desc))</code></pre></div>
-<h3 id="open-food-facts-parquet-pipeline" class="doc-h3">Open Food Facts Parquet Pipeline<a href="#open-food-facts-parquet-pipeline" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The python script <code>script/create_off_food_db.py</code> filters Open Food Facts parquet exports to compile country-specific SQLite databases.</p>
-<p><strong>Required Updates</strong>: Register configuration objects for Japan (<code>jp</code>), France (<code>fr</code>), and Italy (<code>it</code>) in the country map to support parquet-to-SQLite filtering, correctly prioritizing respective local language tags (<code>ja</code>, <code>fr</code>, <code>it</code>) during extraction.</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn">Copy</button></div><pre><code class="language-python"># script/create_off_food_db.py
-
-COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
-    &quot;de&quot;: {
-        &quot;preferred_languages&quot;: (&quot;de&quot;, &quot;en&quot;),
-        &quot;country_tags&quot;: (&quot;en:germany&quot;,),
-    },
-    &quot;us&quot;: {
-        &quot;preferred_languages&quot;: (&quot;en&quot;,),
-        &quot;country_tags&quot;: (&quot;en:united-states&quot;, &quot;en:united-states-of-america&quot;, &quot;en:usa&quot;),
-    },
-    &quot;uk&quot;: {
-        &quot;preferred_languages&quot;: (&quot;en&quot;,),
-        &quot;country_tags&quot;: (&quot;en:united-kingdom&quot;, &quot;en:uk&quot;, &quot;en:great-britain&quot;),
-    },
-    &quot;ch&quot;: {
-        &quot;preferred_languages&quot;: (&quot;de&quot;, &quot;fr&quot;, &quot;it&quot;, &quot;en&quot;),
-        &quot;country_tags&quot;: (&quot;en:switzerland&quot;, &quot;en:ch&quot;, &quot;en:suisse&quot;, &quot;en:schweiz&quot;),
-    },
-    # --- ADDED TARGET COUNTRIES ---
-    &quot;fr&quot;: {
-        &quot;preferred_languages&quot;: (&quot;fr&quot;, &quot;en&quot;),
-        &quot;country_tags&quot;: (&quot;en:france&quot;, &quot;en:fr&quot;),
-    },
-    &quot;it&quot;: {
-        &quot;preferred_languages&quot;: (&quot;it&quot;, &quot;en&quot;),
-        &quot;country_tags&quot;: (&quot;en:italy&quot;, &quot;en:it&quot;),
-    },
-    &quot;jp&quot;: {
-        &quot;preferred_languages&quot;: (&quot;ja&quot;, &quot;en&quot;),
-        &quot;country_tags&quot;: (&quot;en:japan&quot;, &quot;en:jp&quot;),
-    }
-}</code></pre></div>
-<h3 id="base-food-database-pipeline-user-generated" class="doc-h3">Base Food Database Pipeline (User-Generated)<a href="#base-food-database-pipeline-user-generated" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The base food SQLite database <code>train_libre_base_foods.db</code> is manually compiled and managed. Rather than using relational translation tables, it uses a flat-column schema to store translations for target languages.</p>
-<p><strong>Required Base Food Updates & Verified Schema</strong>: The physical schema in <code>train_libre_base_foods.db</code> contains flat column names matching the newly integrated French, Italian, and Japanese locales:</p>
-<h4 id="categories-table-schema" class="doc-h4"><code>categories</code> table schema<a href="#categories-table-schema" class="header-anchor" aria-label="Link to section">#</a></h4>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">CREATE TABLE categories (
-  key      TEXT PRIMARY KEY,
-  name_de  TEXT NOT NULL,
-  name_en  TEXT NOT NULL,
-  emoji    TEXT,
-  name_fr  TEXT,
-  name_it  TEXT,
-  name_ja  TEXT
-);</code></pre></div>
-<h4 id="products-table-schema" class="doc-h4"><code>products</code> table schema<a href="#products-table-schema" class="header-anchor" aria-label="Link to section">#</a></h4>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">CREATE TABLE products (
-  barcode                      TEXT PRIMARY KEY,
-  name                         TEXT NOT NULL,
-  name_de                      TEXT NOT NULL,
-  name_en                      TEXT NOT NULL,
-  category                     TEXT NOT NULL REFERENCES categories(key),
-  category_de                  TEXT NOT NULL,
-  category_en                  TEXT NOT NULL,
-  calories                     INTEGER,
-  protein                      REAL,
-  carbs                        REAL,
-  fat                          REAL,
-  kj_100g                      INTEGER,
-  fiber                        REAL,
-  sugar                        REAL,
-  salt                         REAL,
-  sodium_100g                  REAL,
-  calcium_100g                 REAL,
-  caffeine_mg_per_100g         REAL,
-  ingredients_analysis_tags    TEXT,
-  additives_tags               TEXT,
-  product_quantity             REAL,
-  product_quantity_unit        TEXT,
-  is_fluid                     INTEGER,
-  name_fr                      TEXT,
-  category_fr                  TEXT,
-  name_it                      TEXT,
-  category_it                  TEXT,
-  name_ja                      TEXT,
-  category_ja                  TEXT
-);</code></pre></div>
-<p>During database v23 migration, <code>BasisDataManager._performBatchImport</code> reads these exact columns from <code>train_libre_base_foods.db</code> and copies them directly into the app's localized Drift database schemas.</p>
-<hr class="divider">
-<h2 id="4-legal-compliance-localization-web-app-stores" class="doc-h2">4. Legal & Compliance Localization (Web & App Stores)<a href="#4-legal-compliance-localization-web-app-stores" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To deploy Train Libre updates in the French, Italian, and Japanese App Stores and Google Play Stores, all legally required user-facing compliance documentation must be translated and served directly on the official website.</p>
-<h3 id="dynamic-client-side-i18n-architecture" class="doc-h3">Dynamic Client-Side i18n Architecture<a href="#dynamic-client-side-i18n-architecture" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Unlike static sites that generate separate HTML files for each language version, the Train Libre website uses a single-page localized template system driven by client-side Javascript.</p>
-<ol class="doc-list">
-<li><strong>Static Templates</strong>: All compliance pages (<code>docs/privacy.html</code>, <code>docs/terms.html</code>, <code>docs/impressum.html</code>, and <code>docs/privacy-policy/index.html</code>) write structural nodes once, embedding descriptive <code>data-i18n</code> translation keys on all translatable elements.</li>
-<li><strong>Translation Registry</strong>: A central dictionary (<code>TRANSLATIONS</code> inside <a href="https://github.com/rfivesix/train-libre/blob/main/docs/script.js" target="_blank" rel="noopener noreferrer">script.js <span class="ext-icon">↗</span></a>) stores translation strings nested under each locale key (<code>en</code>, <code>de</code>, <code>fr</code>, <code>it</code>, <code>ja</code>).</li>
-<li><strong>Dropdown Menu Navigation</strong>: Each compliance page hosts a language selection dropdown. To support new locales, dropdown items must be appended to the menu list:</li>
-</ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">html</span><button class="copy-btn">Copy</button></div><pre><code class="language-html">   &lt;!-- Example: French language selector added to all docs/*.html pages --&gt;
-   &lt;button class=&quot;dropdown-item&quot; data-lang=&quot;fr&quot;&gt;
-     &lt;span&gt;Français&lt;/span&gt;
-     &lt;svg class=&quot;check-icon&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;
-       &lt;polyline points=&quot;20 6 9 17 4 12&quot;&gt;&lt;/polyline&gt;
-     &lt;/svg&gt;
-   &lt;/button&gt;
-   </code></pre></div>
-<ol class="doc-list">
-<li><strong>Active State & Screenshot Mapping</strong>: Upon selecting a language, <code>script.js</code> updates translation elements, caches the choice in <code>localStorage</code>, and maps localized screenshot directory paths (<code>assets/screenshots/iOS/fr-FR/</code>, etc.) dynamically.</li>
-</ol>
-<h3 id="privacy-hardened-offline-first-philosophies" class="doc-h3">Privacy-Hardened & Offline-First Philosophies<a href="#privacy-hardened-offline-first-philosophies" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Train Libre enforces sandboxed local storage. The translated Privacy Policy and ToS documents must unmissably convey to international users that: 1. <strong>Local Sandbox</strong>: All calorie logs, consumed food entries, workout notes, routine templates, and physiological measurements are stored exclusively inside the local, sandboxed SQLite database on the device. 2. <strong>No Cloud Synchronization</strong>: There is no mandatory cloud backend. Data is never uploaded to Train Libre servers or third-party cloud aggregators unless explicitly exported manually by the user via file backup. 3. <strong>Hardware Isolation</strong>: The architecture relies completely on local execution, aligning perfectly with security-hardened OS setups (like GrapheneOS) that isolate process network scopes.</p>
-<hr class="divider">
-<h2 id="5-the-infinite-localization-master-checklist" class="doc-h2">5. The "Infinite Localization" Master Checklist<a href="#5-the-infinite-localization-master-checklist" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p><em>How to add a new language (e.g., Spanish <code>es</code>) in under 15 minutes.</em></p>
-<h3 id="step-1-add-app-ui-string-translations" class="doc-h3">Step 1: Add App UI String Translations<a href="#step-1-add-app-ui-string-translations" class="header-anchor" aria-label="Link to section">#</a></h3>
-<ol class="doc-list">
-<li>Create <code>lib/l10n/app_es.arb</code>. Copy the JSON structure from <code>lib/l10n/app_en.arb</code> and replace values with Spanish translations.</li>
-<li>Ensure the first key is the locale code: <code>&quot;@@locale&quot;: &quot;es&quot;</code>.</li>
-</ol>
-<h3 id="step-2-register-language-in-app-settings" class="doc-h3">Step 2: Register Language in App Settings<a href="#step-2-register-language-in-app-settings" class="header-anchor" aria-label="Link to section">#</a></h3>
-<ol class="doc-list">
-<li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/lib/services/base_food_language_service.dart" target="_blank" rel="noopener noreferrer">base_food_language_service.dart <span class="ext-icon">↗</span></a>. Add <code>es</code> to <code>BaseFoodLanguage</code> enum.</li>
-<li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/lib/services/ai_matching_language_service.dart" target="_blank" rel="noopener noreferrer">ai_matching_language_service.dart <span class="ext-icon">↗</span></a>. Add <code>es</code> to <code>AiMatchingLanguage</code> enum.</li>
-<li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/lib/features/settings/presentation/settings_screen.dart" target="_blank" rel="noopener noreferrer">settings_screen.dart <span class="ext-icon">↗</span></a>.</li>
-<li>In <code>_baseFoodLanguageLabel</code> function, add a mapper case returning your newly added ARB string label: <code>BaseFoodLanguage.es =&gt; l10n.settingsBaseFoodLanguageSpanish,</code></li>
-<li>Register the new UI label key in both <code>app_en.arb</code> and the new <code>app_es.arb</code> (e.g. <code>&quot;settingsBaseFoodLanguageSpanish&quot;: &quot;Spanish (Español)&quot;</code>).</li>
-</ol>
-<h3 id="step-3-map-data-pipelines" class="doc-h3">Step 3: Map Data Pipelines<a href="#step-3-map-data-pipelines" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Fallback behavior for Flutter-generated messages follows the configured Flutter localization delegates and supported locale list. A missing translation in an individual ARB should be fixed in the catalog; do not infer fallback behavior for product/catalog data from Flutter's UI fallback.</p>
+<h2 id="food-catalog-display-languages" class="doc-h2">Food catalog display languages<a href="#food-catalog-display-languages" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p><code>BaseFoodLanguageService</code> (<code>lib/services/base_food_language_service.dart</code>) persists a separate food display preference (<code>auto</code>, <code>en</code>, <code>de</code>, <code>fr</code>, <code>it</code>, <code>ja</code>) in SharedPreferences. In automatic mode it considers the app language and active OFF catalog country, then falls back to English. It returns a language code used by catalog lookup; it does not control the app's UI locale.</p>
+<p>The base-food import and product schema are implemented in <code>lib/data/</code> and catalog tooling. Current data uses localized fields for supported languages, while exercise catalog translations use their own catalog schema and locale-selection logic. Check the actual importer, catalog manifest, and schema before adding a translation column or claiming an exercise fallback chain. Food search/index behavior is described in <a href="../food-search/index.html">Food search</a>.</p>
+<h2 id="adding-locale-support-safely" class="doc-h2">Adding locale support safely<a href="#adding-locale-support-safely" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>For a new locale, inspect each independent surface that needs it:</p>
 <ul class="doc-list">
-<li><strong>For wger (exercises)</strong>:</li>
-<li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/script/create_wger_exercise_db.py" target="_blank" rel="noopener noreferrer">create_wger_exercise_db.py <span class="ext-icon">↗</span></a>.</li>
-<li>Locate the <code>LANGUAGE_ID_MAP</code>. Look up wger's API language ID for Spanish (which is <code>3</code>) and add it to the map: <code>3: &quot;es&quot;</code></li>
-<li><strong>For Open Food Facts (food)</strong>:</li>
-<li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/script/create_off_food_db.py" target="_blank" rel="noopener noreferrer">create_off_food_db.py <span class="ext-icon">↗</span></a>.</li>
-<li>Add <code>es</code> to the <code>COUNTRY_CONFIG</code> map under country key <code>es</code> (Spain) or <code>mx</code> (Mexico) containing preferred languages list and country tags:</li>
+<li>Flutter ARB strings, generated localization, and any explicit settings labels.</li>
+<li>Base-food display preference enum/resolution and available catalog columns/data.</li>
+<li>Exercise catalog translations and language selection/fallback code.</li>
+<li>Food-search normalization and alias data where language-specific matching is intended.</li>
+<li>Native iOS/Android widget and configuration strings.</li>
+<li>Website/legal and store metadata, which are separate assets and release workflows.</li>
 </ul>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn">Copy</button></div><pre><code class="language-python">     &quot;es&quot;: {
-         &quot;preferred_languages&quot;: (&quot;es&quot;, &quot;en&quot;),
-         &quot;country_tags&quot;: (&quot;en:spain&quot;, &quot;en:es&quot;),
-     }
-     </code></pre></div>
-<ul class="doc-list">
-<li><strong>For Base Foods (user-generated)</strong>:</li>
-<li>Update the flat columns (<code>name_es</code>, <code>category_es</code>) directly in the <code>products</code> and <code>categories</code> tables of <code>train_libre_base_foods.db</code>.</li>
-</ul>
-<h3 id="step-4-localize-web-compliance-pages-scriptjs-html" class="doc-h3">Step 4: Localize Web Compliance Pages (script.js & HTML)<a href="#step-4-localize-web-compliance-pages-scriptjs-html" class="header-anchor" aria-label="Link to section">#</a></h3>
-<ol class="doc-list">
-<li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/docs/script.js" target="_blank" rel="noopener noreferrer">script.js <span class="ext-icon">↗</span></a>.</li>
-<li>Append <code>es: { ... }</code> block containing all translated keys for ToS, Privacy Policy, and landing strings.</li>
-<li>Open all compliance templates in <code>docs/</code> (<code>index.html</code>, <code>privacy.html</code>, <code>terms.html</code>, etc.) and append the Spanish <code>&lt;button class=&quot;dropdown-item&quot; data-lang=&quot;es&quot;&gt;</code> item inside the <code>.dropdown-menu</code> container.</li>
-<li>Add the Spanish code to the <code>langFolder</code> mapping in <code>script.js</code> (e.g. <code>es: &quot;es-ES&quot;</code>).</li>
-</ol>
-<h3 id="step-5-recompile-and-run" class="doc-h3">Step 5: Recompile and Run<a href="#step-5-recompile-and-run" class="header-anchor" aria-label="Link to section">#</a></h3>
-<ol class="doc-list">
-<li>Run local translation compilation:</li>
-</ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div><pre><code class="language-bash">   flutter gen-l10n
-   </code></pre></div>
-<ol class="doc-list">
-<li>Build and run app:</li>
-</ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div><pre><code class="language-bash">   flutter run
-   </code></pre></div>
-<p>The UI setting, the database queries, and the import scripts will now fully support Spanish.</p>
+<p>Only list a locale as supported on a surface after its data and fallback behavior are present. Catalog generation scripts and source datasets are not interchangeable with the app's UI localization pipeline.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -693,26 +205,9 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#1-architectural-audit-discovery-normalization">1. Architectural Audit: Discovery &amp; Normalization</a></li>
-<li class="toc-item toc-item-l3"><a href="#relational-schema-transformation-modular-1n">Relational Schema Transformation (Modular 1:N)</a></li>
-<li class="toc-item toc-item-l3"><a href="#drift-tables-mapping">Drift Tables Mapping</a></li>
-<li class="toc-item toc-item-l3"><a href="#drift-database-migration-historical-migration-version-22-to-23">Drift Database Migration (Historical Migration: Version 22 to 23)</a></li>
-<li class="toc-item toc-item-l2"><a href="#2-multi-module-localization-blueprint">2. Multi-Module Localization Blueprint</a></li>
-<li class="toc-item toc-item-l3"><a href="#database-layer-drift-queries-with-fallback">Database Layer (Drift Queries with Fallback)</a></li>
-<li class="toc-item toc-item-l3"><a href="#ui-text-layer-arb">UI Text Layer (.arb)</a></li>
-<li class="toc-item toc-item-l2"><a href="#3-data-processing-pipelines">3. Data Processing Pipelines</a></li>
-<li class="toc-item toc-item-l3"><a href="#wger-catalog-fetch-pipeline">wger Catalog Fetch Pipeline</a></li>
-<li class="toc-item toc-item-l3"><a href="#open-food-facts-parquet-pipeline">Open Food Facts Parquet Pipeline</a></li>
-<li class="toc-item toc-item-l3"><a href="#base-food-database-pipeline-user-generated">Base Food Database Pipeline (User-Generated)</a></li>
-<li class="toc-item toc-item-l2"><a href="#4-legal-compliance-localization-web-app-stores">4. Legal &amp; Compliance Localization (Web &amp; App Stores)</a></li>
-<li class="toc-item toc-item-l3"><a href="#dynamic-client-side-i18n-architecture">Dynamic Client-Side i18n Architecture</a></li>
-<li class="toc-item toc-item-l3"><a href="#privacy-hardened-offline-first-philosophies">Privacy-Hardened &amp; Offline-First Philosophies</a></li>
-<li class="toc-item toc-item-l2"><a href="#5-the-infinite-localization-master-checklist">5. The &quot;Infinite Localization&quot; Master Checklist</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-1-add-app-ui-string-translations">Step 1: Add App UI String Translations</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-2-register-language-in-app-settings">Step 2: Register Language in App Settings</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-3-map-data-pipelines">Step 3: Map Data Pipelines</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-4-localize-web-compliance-pages-scriptjs-html">Step 4: Localize Web Compliance Pages (script.js &amp; HTML)</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-5-recompile-and-run">Step 5: Recompile and Run</a></li>
+<li class="toc-item toc-item-l2"><a href="#app-ui-strings">App UI strings</a></li>
+<li class="toc-item toc-item-l2"><a href="#food-catalog-display-languages">Food catalog display languages</a></li>
+<li class="toc-item toc-item-l2"><a href="#adding-locale-support-safely">Adding locale support safely</a></li>
 </ul></div></aside>
     </div>
 

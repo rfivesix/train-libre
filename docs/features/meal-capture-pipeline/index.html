@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="Unified camera, passive barcode detection, voice dictation, and privacy boundaries.">
+  <meta name="description" content="Photo, text, voice, and barcode capture, provider routing, and diary persistence.">
   <title>Meal Capture Pipeline | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/meal-capture-pipeline/">
 
@@ -16,7 +16,7 @@
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
   <meta property="og:title" content="Meal Capture Pipeline | Train Libre">
-  <meta property="og:description" content="Unified camera, passive barcode detection, voice dictation, and privacy boundaries.">
+  <meta property="og:description" content="Photo, text, voice, and barcode capture, provider routing, and diary persistence.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/meal-capture-pipeline/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -104,25 +104,60 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
 <li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../../developer/food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -135,71 +170,45 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Meal Capture Pipeline</h1>
-<p>Logging a meal is one action with several entrances: a barcode, a photo, spoken words, a catalog search or a saved template. This document describes how those entrances work, what they have in common, and how the result is stored. The analysis and validation that happens <em>inside</em> an AI capture is described separately in <a href="../byok-ai-validation/index.html">BYOK AI Meal Capture & Validation</a>; the LiDAR measurement that can accompany a photo is described in <a href="../depth-scale-hint/index.html">Depth Scale Hint</a>.</p>
-<hr class="divider">
-<h2 id="1-a-meal-as-a-logged-event" class="doc-h2">1. A Meal as a Logged Event<a href="#1-a-meal-as-a-logged-event" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>A single AI scan of a plate produces several ingredients. Historically each one was an independent row in <code>NutritionLogs</code> that shared nothing but the string <code>&#x27;Lunch&#x27;</code> — so there was no object the photo, the meal name or a re-analysis could hang on.</p>
-<p><code>MealEntries</code> is that object. It records what happened, not what may be reused:</p>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>Column</th><th>Meaning</th></tr></thead><tbody><tr><td><code>consumedAt</code>, <code>mealType</code></td><td>when it was eaten and under which meal slot</td></tr><tr><td><code>title</code></td><td>the meal's name, e.g. "Chicken with rice"</td></tr><tr><td><code>source</code></td><td>how it was captured: <code>aiPhoto</code>, <code>aiVoice</code>, <code>aiText</code>, <code>barcode</code>, <code>manual</code>, <code>template</code></td></tr><tr><td><code>photoPath</code>, <code>photoThumbPath</code></td><td>the photo and its preview, <strong>relative</strong> to the application support directory</td></tr><tr><td><code>voiceTranscript</code></td><td>the dictated text, when there was one</td></tr><tr><td><code>captureMeta</code></td><td>JSON side-car: LiDAR scale facts, AI provider and model, additional photos</td></tr></tbody></table></div>
-<p><code>NutritionLogs.mealEntryId</code> is the one column that connects the two. It is <strong>nullable</strong> and cleared rather than cascaded (<code>onDelete: setNull</code>), which is what keeps the change additive: every entry logged before this existed, and every entry logged without a group today, behaves exactly as before.</p>
-<blockquote><p><strong>Naming caveat.</strong> <code>Meals</code> / <code>MealItems</code> are <em>templates</em> to reuse. <code>MealEntries</code> are <em>events</em> that happened. The similar names are historical and are a known wart.</p></blockquote>
-<p><code>captureMeta</code> is deliberately schemaless — a nullable text column costs nothing while the shape of the feature is still moving, and malformed or outdated metadata degrades to "no extras" rather than breaking the meal it belongs to.</p>
-<hr class="divider">
-<h2 id="2-the-unified-camera" class="doc-h2">2. The Unified Camera<a href="#2-the-unified-camera" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>On iOS a single <code>AVCaptureSession</code> can deliver a preview, barcode metadata, still photos and depth at the same time. <code>AiMealCaptureScreen</code> uses exactly that: one native session that runs preview, passive barcode detection, photo capture and (where available) LiDAR depth together.</p>
-<h3 id="passive-barcode-detection" class="doc-h3">Passive Barcode Detection<a href="#passive-barcode-detection" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Barcode detection runs continuously while the meal camera is open and is on by default — most packaged foods are logged by barcode, and requiring the user to decide <em>in advance</em> whether the thing in front of them is a barcode or a plate is a decision the app can make itself. A detected code opens the normal quantity-logging flow for that product.</p>
-<h3 id="fallbacks" class="doc-h3">Fallbacks<a href="#fallbacks" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Nothing depends on the unified session succeeding: <em>   If the native session cannot start, the screen falls back silently to the <code>qr_code_scanner_plus</code> preview. </em>   <code>ScannerScreen</code> remains as a standalone barcode entrance. *   <code>image_picker</code> remains the path for photos from the gallery.</p>
-<p>Camera hardware is suspended and resumed with the route lifecycle, so a backgrounded or covered screen holds no camera or depth sensor.</p>
-<hr class="divider">
-<h2 id="3-voice-dictation" class="doc-h2">3. Voice Dictation<a href="#3-voice-dictation" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Dictation is available both on its own ("describe your meal") and as an addition to a photo, where the transcript is passed to the analysis as a text hint.</p>
+<blockquote><p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p></blockquote>
+<p>Train Libre can create a diary entry from a barcode, a photo, typed meal text, or dictated text. The paths have different network and storage behavior. This page follows the capture into the diary; <a href="../byok-ai-validation/index.html">BYOK AI Meal Capture & Validation</a> explains AI matching and validation, and <a href="../depth-scale-hint/index.html">Depth Scale Hint</a> explains the optional camera depth input.</p>
+<h2 id="capture-paths" class="doc-h2">Capture paths<a href="#capture-paths" class="header-anchor" aria-label="Link to section">#</a></h2>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Input</th><th>What happens</th></tr></thead><tbody><tr><td>Barcode</td><td>The camera detects a code and looks up a product in the local product data source. The user opens its quantity flow and confirms logging. If the product is missing locally, the screen reports that it was not found.</td></tr><tr><td>Photo</td><td>The camera captures a photo where a native capture session is available; otherwise the system camera picker is used. Gallery selection is also available. Up to four images can be added to one AI scan.</td></tr><tr><td>Typed text</td><td>The text is sent to the selected AI provider for a suggested meal.</td></tr><tr><td>Dictated text</td><td>Speech recognition produces editable text. Local cleanup runs first. If AI tidy-up is enabled, that transcript is also sent to the selected AI provider for optional restructuring; the locally cleaned transcript remains available if the request fails or times out.</td></tr><tr><td>Search, manual entry, template</td><td>These are separate diary-entry flows and do not require AI meal analysis.</td></tr></tbody></table></div>
+<p>The active AI capture writer labels an image-less result <code>aiText</code>, including a voice-only capture; with images it uses <code>aiPhoto</code>. Although the database schema recognizes <code>aiVoice</code>, this writer does not currently set that source value. It stores dictated content in <code>voiceTranscript</code> when present.</p>
+<h2 id="what-leaves-the-device" class="doc-h2">What leaves the device<a href="#what-leaves-the-device" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>An AI scan uses the provider selected in settings. The app constructs the meal request with its prompt, typed or dictated text, and any captured photos, then dispatches it to that provider. Cloud providers send the request to their service. The custom provider sends it to the configured URL; Ollama is addressed at <code>http://localhost:11434/v1</code>. Apple Foundation Models uses a separate native service path, so the app’s code does not send that request through the cloud-provider HTTP branches. The platform and model requirements for Apple’s local path are described in the BYOK page; this distinction does not establish a Neural Engine guarantee.</p>
+<p>For photo analysis, the app prepares and encodes the images before building the provider request. If scale hints are enabled and a depth attachment is available, the request can also include scale facts and a rendered depth-map image. See <a href="../depth-scale-hint/index.html">Depth Scale Hint</a> for its limits. No photos or meal text are included in the AI scan telemetry described below.</p>
+<p>Dictation is a separate boundary from meal analysis. The speech recognizer is asked to run on-device when the service reports that this is supported; on iOS this is checked for the selected locale. If it cannot start locally, the service tries the platform recognizer without the on-device option and the UI displays a network notice for that run. The resulting transcript may then go to the selected AI provider for tidy-up and/or meal analysis. A local text-cleanup pass runs before optional AI tidy-up.</p>
+<p>Barcode detection itself performs a local product lookup. After the user confirms the quantity, the product and amount are logged in the diary. This article makes no claim that unrelated app telemetry or operating-system services are disabled during these flows; see <a href="../../developer/overview/index.html">Capabilities & Privacy</a> for app telemetry controls and boundaries.</p>
+<h2 id="diary-records-and-photos" class="doc-h2">Diary records and photos<a href="#diary-records-and-photos" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>An AI review save creates a <code>MealEntries</code> row for the meal and links each matched food log to it through <code>mealEntryId</code>. The link is nullable, so older or ungrouped food logs remain valid. The entry records its time, meal slot, title, capture source, optional transcript, and photo paths. The current save path writes depth facts and additional photo paths to <code>captureMeta</code>; although the metadata type can represent a provider and model, this save path does not populate those fields.</p>
+<p>Captured photos begin as temporary camera or picker files. On save, the app copies each photo to the app’s media directory under application support, stores relative paths, and creates a smaller preview when image processing succeeds. If storing a photo fails, its path is omitted. The first photo and preview use the entry’s photo columns; additional photo paths are kept in <code>captureMeta</code>. Images sent for AI analysis are separately prepared for provider requests, so the persisted photo is not necessarily the same encoded image payload used for analysis.</p>
+<p><code>MealEntries</code> are meal events. <code>Meals</code> and <code>MealItems</code> are reusable templates. Their names are similar, but they serve different purposes.</p>
+<h2 id="capture-telemetry-and-local-diagnostics" class="doc-h2">Capture telemetry and local diagnostics<a href="#capture-telemetry-and-local-diagnostics" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>When telemetry is enabled by the user, meal-scan events report fields such as provider, input mode, photo count, whether text, voice, or LiDAR was present, duration, validation outcome, and token usage. The event properties do not include meal text or image contents. Barcode logging and depth captures with valid scale facts or a depth buffer also have feature-use events.</p>
+<p>Separately, AI scan diagnostics are stored on-device in a bounded history (up to 20 scans). The diagnostic export includes provider/model where available, input mode, counts, timing, validation outcomes, and usage totals; it excludes prompts, meal contents, photos, file paths, API keys, and raw error messages. The diagnostics are distinct from network telemetry.</p>
+<h2 id="related-documentation" class="doc-h2">Related documentation<a href="#related-documentation" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
-<li><strong>On-device first.</strong> <code>VoiceDictationService</code> prefers on-device recognition and reports up front whether the device can do it, so the consent copy is accurate <em>before</em> the user speaks rather than after.</li>
-<li><strong>Network disclosure.</strong> When the platform has no local recognizer, recognition falls back to the platform's network recognizer (Apple or Google). <code>lastRunUsedNetwork</code> reports this so the interface can disclose it. This is a platform service, not a Train Libre endpoint, and it carries audio for the duration of the dictation only.</li>
-<li><strong>Permissions.</strong> Microphone and speech recognition are requested at the point of use (<code>NSMicrophoneUsageDescription</code>, <code>NSSpeechRecognitionUsageDescription</code>); the microphone is live only while the dictation control is held.</li>
-<li><strong>Tidy pass.</strong> The raw transcript is restructured by a small AI prompt that fixes misheard food names and drops filler, without inventing foods, amounts or preparation. Without a configured AI provider, dictation is simply not offered.</li>
-</ul>
-<hr class="divider">
-<h2 id="4-photo-storage" class="doc-h2">4. Photo Storage<a href="#4-photo-storage" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Meal photos are the first thing in the app that can grow without bound, so they are handled by shared infrastructure rather than by the diary itself.</p>
-<ul class="doc-list">
-<li><code>AppMediaStore</code> owns the files for every feature under one set of rules; <code>MealPhotoStore</code> is the meal-shaped face of it.</li>
-<li>Every save writes a full-size photo and a downscaled preview, both stored <strong>relative</strong> to the application support directory — absolute paths would break on the next app update.</li>
-<li>If a copy fails, no path is stored at all rather than a path into a temporary file that will vanish.</li>
-<li><code>pruneOrphans</code> removes files that no database row references any more, which is what keeps the folder from growing forever.</li>
-</ul>
-<p>Photos are local files, not database blobs; treat them accordingly when reasoning about backup size and export contents.</p>
-<hr class="divider">
-<h2 id="5-what-is-sent-where" class="doc-h2">5. What Is Sent Where<a href="#5-what-is-sent-where" class="header-anchor" aria-label="Link to section">#</a></h2>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>Capture path</th><th>Leaves the device?</th></tr></thead><tbody><tr><td>Catalog search, template, manual entry</td><td>No</td></tr><tr><td>Barcode</td><td>No — matched against the locally installed Open Food Facts catalog</td></tr><tr><td>AI photo / text</td><td>Photo and text go to the user's own configured BYOK provider only</td></tr><tr><td>AI photo with depth</td><td>Additionally a few centimetre measurements and, if enabled, a false-colour depth image</td></tr><tr><td>Voice dictation</td><td>Audio to the platform recognizer only when the device has no on-device recognizer; the resulting text then follows the AI text path</td></tr></tbody></table></div>
-<p>Without a configured AI provider, none of the AI paths exist and nothing is transmitted.</p>
-<hr class="divider">
-<h2 id="6-related-documentation" class="doc-h2">6. Related Documentation<a href="#6-related-documentation" class="header-anchor" aria-label="Link to section">#</a></h2>
-<ul class="doc-list">
-<li><a href="../byok-ai-validation/index.html">BYOK AI Meal Capture & Validation</a> — prompts, matching and the self-repair loop.</li>
-<li><a href="../depth-scale-hint/index.html">Depth Scale Hint</a> — the LiDAR measurement attached to a photo.</li>
-<li><a href="../../developer/localization-architecture/index.html">Localization Architecture</a> — the Open Food Facts catalogs that barcode and search resolve against.</li>
+<li><a href="../byok-ai-validation/index.html">BYOK AI Meal Capture & Validation</a> — provider-specific request and response behavior, matching, and repair.</li>
+<li><a href="../depth-scale-hint/index.html">Depth Scale Hint</a> — camera depth facts and the optional image attachment.</li>
+<li><a href="../../developer/overview/index.html">Capabilities & Privacy</a> — app-wide telemetry controls and privacy boundaries.</li>
+<li><a href="../../developer/localization-architecture/index.html">Localization Architecture</a> — local product catalogs used by barcode and search flows.</li>
 </ul>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
 <a href="../intelligent-workouts/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Estimated 1-Rep Max (e1RM)</span></a>
-<a href="../byok-ai-validation/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">BYOK AI Meal Validation</span></a>
+<a href="../byok-ai-validation/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">BYOK AI Meal Capture &amp; Validation</span></a>
 </nav>
       </main>
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#1-a-meal-as-a-logged-event">1. A Meal as a Logged Event</a></li>
-<li class="toc-item toc-item-l2"><a href="#2-the-unified-camera">2. The Unified Camera</a></li>
-<li class="toc-item toc-item-l3"><a href="#passive-barcode-detection">Passive Barcode Detection</a></li>
-<li class="toc-item toc-item-l3"><a href="#fallbacks">Fallbacks</a></li>
-<li class="toc-item toc-item-l2"><a href="#3-voice-dictation">3. Voice Dictation</a></li>
-<li class="toc-item toc-item-l2"><a href="#4-photo-storage">4. Photo Storage</a></li>
-<li class="toc-item toc-item-l2"><a href="#5-what-is-sent-where">5. What Is Sent Where</a></li>
-<li class="toc-item toc-item-l2"><a href="#6-related-documentation">6. Related Documentation</a></li>
+<li class="toc-item toc-item-l2"><a href="#capture-paths">Capture paths</a></li>
+<li class="toc-item toc-item-l2"><a href="#what-leaves-the-device">What leaves the device</a></li>
+<li class="toc-item toc-item-l2"><a href="#diary-records-and-photos">Diary records and photos</a></li>
+<li class="toc-item toc-item-l2"><a href="#capture-telemetry-and-local-diagnostics">Capture telemetry and local diagnostics</a></li>
+<li class="toc-item toc-item-l2"><a href="#related-documentation">Related documentation</a></li>
 </ul></div></aside>
     </div>
 

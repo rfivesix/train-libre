@@ -6,8 +6,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="Local BYOK LLM integration, fuzzy matching, and 3-pass self-repair verification.">
-  <title>BYOK AI Meal Capture &amp; Deterministic Validation Engine | Train Libre Documentation</title>
+  <meta name="description" content="Selected-provider requests, catalog matching, heuristic validation, and up to three repair requests.">
+  <title>AI Meal Capture &amp; Deterministic Validation Engine | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/byok-ai-validation/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -15,8 +15,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="BYOK AI Meal Capture &amp; Deterministic Validation Engine | Train Libre">
-  <meta property="og:description" content="Local BYOK LLM integration, fuzzy matching, and 3-pass self-repair verification.">
+  <meta property="og:title" content="AI Meal Capture &amp; Deterministic Validation Engine | Train Libre">
+  <meta property="og:description" content="Selected-provider requests, catalog matching, heuristic validation, and up to three repair requests.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/byok-ai-validation/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -104,25 +104,60 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="index.html" class="sidebar-link active" aria-current="page">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
 <li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../../developer/food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -134,48 +169,52 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">BYOK AI Meal Capture & Deterministic Validation Engine</h1>
-<p>Train Libre translates food descriptions, dictated speech or meal photos into precise, loggable items. The language model is the only part that leaves the device, and only to the provider the user configured themselves: the feature operates on a <strong>Bring Your Own Key (BYOK)</strong> model, and every model output is verified on-device by a deterministic validation pipeline before it can be saved. All nutritional numbers come from the local database, never from the model.</p>
-<p>This document describes the analysis and validation engine. The surrounding capture flow — the unified camera, barcode detection, dictation, meal grouping and photo storage — is described in <a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a>.</p>
+          <h1 class="doc-title">AI Meal Capture & Deterministic Validation Engine</h1>
+<p>Train Libre sends a meal description or prepared image to the selected AI provider, then matches the returned food suggestions against the local food catalog and checks the resulting candidate before diary save. The selected provider may be an online service, a user-configured OpenAI-compatible endpoint, Ollama at <code>localhost</code>, or Apple Foundation Models when available. The app computes matched-item nutrition from catalog data and proposed grams; some response shapes also contain model-proposed meal-level calorie and macro ranges for heuristic validation, not verified nutrition facts.</p>
+<p>This document describes the analysis and validation engine. The surrounding photo, text, voice, barcode, meal grouping, and photo-storage flows are described in <a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a>.</p>
 <hr class="divider">
-<h2 id="1-bring-your-own-key-byok-security-architecture" class="doc-h2">1. Bring Your Own Key (BYOK) Security Architecture<a href="#1-bring-your-own-key-byok-security-architecture" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Train Libre does not deploy intermediate servers to handle AI requests. All calls are dispatched directly from the user's mobile device to the selected AI provider.</p>
-<h3 id="encrypted-key-storage" class="doc-h3">Encrypted Key Storage<a href="#encrypted-key-storage" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>User-configured API keys are stored directly inside native system secure vaults (iOS Keychain and Android Keystore) via <code>FlutterSecureStorage</code>, using device-only accessibility so they are never carried into an iCloud Keychain backup. The key for each provider is stored under <code>ai_api_key_&lt;provider&gt;</code>:</p>
+<h2 id="1-provider-routes-and-key-storage" class="doc-h2">1. Provider routes and key storage<a href="#1-provider-routes-and-key-storage" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The request path is selected in the app; there is no Train Libre AI proxy in these call sites. For online providers, the app posts prompt content and prepared JPEG data from the device to the provider endpoint. Requests are provider-specific:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Selection</th><th>Request path in the app</th></tr></thead><tbody><tr><td>OpenAI</td><td><code>https://api.openai.com/v1/chat/completions</code></td></tr><tr><td>Gemini</td><td><code>https://generativelanguage.googleapis.com/{v1beta or v1}/models/{model}:generateContent</code>; API key is a query parameter, and the client can try alternate model/version routes after model/version errors.</td></tr><tr><td>Anthropic</td><td><code>https://api.anthropic.com/v1/messages</code></td></tr><tr><td>Mistral</td><td><code>https://api.mistral.ai/v1/chat/completions</code></td></tr><tr><td>xAI</td><td><code>https://api.x.ai/v1/chat/completions</code></td></tr><tr><td>Ollama</td><td><code>http://localhost:11434/v1/chat/completions</code></td></tr><tr><td>Custom</td><td>The configured base URL with <code>/chat/completions</code> appended.</td></tr><tr><td>Apple Foundation Models</td><td>Native iOS method-channel call; availability and image support are gated by iOS/framework versions below.</td></tr></tbody></table></div>
+<p>The OpenAI-compatible request builders attach image data as <code>data:image/jpeg;base64,...</code> with low detail; Gemini and Anthropic use their own inline/base64 image formats. The app's image processor prepares/resizes images before these requests. Which endpoint actually stores or processes submitted data is governed by that provider or configured server.</p>
+<h3 id="apple-foundation-models-applefoundation" class="doc-h3">Apple Foundation Models (<code>appleFoundation</code>)<a href="#apple-foundation-models-applefoundation" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The Apple provider is offered only on iOS and the native plugin reports it available only when <code>SystemLanguageModel.default</code> is available on iOS 26 or later. Train Libre passes the prompt and any prepared image bytes to a Swift <code>LanguageModelSession</code>; image attachments are used only on iOS 27 or later in builds with the required compiler support. The app can prewarm a session with the system instructions. This repository does not establish that Apple processing uses a particular chip, has zero storage/network activity, or is available on every iOS 26 device; the framework availability result is the runtime gate. Although the Flutter layer can pass image bytes, iOS 26's code path calls the text-only <code>respond(to:)</code> overload, so photo understanding through this provider is not available there.</p>
+<h3 id="encrypted-key-storage-byok-providers" class="doc-h3">Encrypted Key Storage (BYOK Providers)<a href="#encrypted-key-storage-byok-providers" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>For providers that require a key, Train Libre reads and writes a per-provider key using <code>FlutterSecureStorage</code> under <code>ai_api_key_&lt;provider&gt;</code>. The source explicitly configures device-only accessibility for iOS and macOS. It does not specify Android storage options here, so this page does not make a platform-specific Android Keystore or backup claim. The selected provider and model identifiers are also stored; selected-provider state has a SharedPreferences fallback.</p>
 <ul class="doc-list">
 <li><code>ai_api_key_openai</code>: Secure key for OpenAI.</li>
 <li><code>ai_api_key_gemini</code>: Secure key for Google Gemini.</li>
 <li><code>ai_api_key_anthropic</code>: Secure key for Anthropic Claude.</li>
 <li><code>ai_api_key_mistral</code>: Secure key for Mistral.</li>
 <li><code>ai_api_key_xai</code>: Secure key for xAI Grok.</li>
-<li><code>ai_api_key_ollama</code>: Optional — Ollama normally needs no key.</li>
+<li><code>ai_api_key_ollama</code>: Optional — the app does not attach an API key to its Ollama request.</li>
 <li><code>ai_api_key_custom</code>: Optional key for any OpenAI-compatible endpoint.</li>
 </ul>
-<p>The active provider (<code>ai_selected_provider</code>) and the selected model (<code>ai_selected_model_&lt;provider&gt;</code>) are saved in the same secure store, isolating all credentials from external developers.</p>
+<p>The selected provider is stored under <code>ai_selected_provider</code> in secure storage and mirrored to SharedPreferences. Most selected model IDs use <code>ai_selected_model_&lt;provider&gt;</code>; Ollama and Custom share <code>ai_custom_model</code>, and Custom also stores <code>ai_custom_base_url</code>.</p>
 <h3 id="self-hosted-and-custom-endpoints" class="doc-h3">Self-Hosted and Custom Endpoints<a href="#self-hosted-and-custom-endpoints" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Two of the seven providers do not imply a third party at all:</p>
+<p>Two additional choices use OpenAI-compatible request construction:</p>
 <ul class="doc-list">
-<li><strong>Ollama</strong>: points at a local or home-network Ollama server; the meal photo never leaves the user's own machines.</li>
-<li><strong>Custom OpenAI Compatible</strong>: any endpoint the user enters under <code>ai_custom_base_url</code>, with an optional key and model name.</li>
+<li><strong>Ollama</strong>: the app sends requests to <code>http://localhost:11434/v1</code>. That is the device's loopback address; the code does not configure a home-network server address.</li>
+<li><strong>Custom OpenAI Compatible</strong>: sends the request to the configured base URL with an optional key and model. The destination and its network/privacy behavior depend on the value entered by the user.</li>
 </ul>
-<p>Both support vision, so the full photo pipeline works without any commercial provider involved. The request timeout is user-configurable (<code>ai_timeout_seconds</code>).</p>
+<p>The client includes images for these request paths, but whether a given endpoint/model accepts or processes vision depends on that endpoint. Cloud providers receive the text and image data included in their request. The configurable request timeout defaults to 60 seconds; code stores the supplied value without enforcing a range here.</p>
 <hr class="divider">
 <h2 id="2-system-prompt-llm-boundaries" class="doc-h2">2. System Prompt & LLM Boundaries<a href="#2-system-prompt-llm-boundaries" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To maintain data integrity and prevent AI hallucination of nutritional values, the system prompt strictly restricts the AI's responsibilities:</p>
+<p>The prompt requests food names and portion estimates. The structured schema excludes per-item calorie and macro fields, but provider/schema enforcement varies; treat all model output as a suggestion:</p>
 <ol class="doc-list">
-<li><strong>Macro/Calorie Ban</strong>: The AI is strictly prohibited from estimating, guessing, or returning any nutritional numbers (calories, protein, carbs, fat). Nutritional calculations are resolved deterministically by Train Libre using its local database.</li>
-<li><strong>Decomposition Rule</strong>: The AI must break down every composite meal into its basic, atomic components. For example, "Spaghetti Bolognese" must be decomposed into: <em>spaghetti, beef mince, tomatoes, onions, garlic, olive oil, parmesan cheese</em>.</li>
-<li><strong>Short Base Names with Retrieval Variants</strong>: Ingredient names remain simple and generic (e.g., "Apfel" instead of "Grüner Apfel"), but every item also carries one to three concise <code>searchTerms</code>. Those variants can name a variety, a raw-form synonym, or another useful catalog spelling without making the user-facing name noisy.</li>
-<li><strong>Consolidation</strong>: Duplicate items must be consolidated before returning (e.g., if the user describes eating 3 eggs, the AI must return a single entry for "Egg" with a combined weight).</li>
-<li><strong>Holistic Context Anchor (<code>mealContext</code>)</strong>: The system requests and structures a <code>mealContext</code> block, establishing a culinary baseline for validation:</li>
+<li><strong>Food-level nutrition</strong>: The item schema has no calorie or macro fields, and matched-item nutrition used by validation comes from catalog entries multiplied by suggested grams. The model may propose <code>expectedKcalRange</code> and <code>expectedMacroProfile</code> as whole-meal context when those fields are requested; these are estimates, not verified nutrition facts. When the parser receives a legacy top-level <code>dishType</code> without a context, or a context with a malformed range, it can use <code>[0, 9999]</code> as a broad calorie fallback, which effectively weakens the range check.</li>
+<li><strong>Decomposition request</strong>: The prompt asks the model to split composite meals into ingredient items. This instruction does not guarantee complete or correct decomposition.</li>
+<li><strong>Names and retrieval variants</strong>: The prompt requests concise names and 1–2 ingredient-specific <code>searchTerms</code>, including a German BLS search term when needed. It also has an exception for specifically identified branded/packaged foods, which may use <code>catalogSearchTerm</code> and provide <code>packagedProductEvidence</code> based on the image or user input.</li>
+<li><strong>Consolidation</strong>: The prompt asks the model to combine duplicates. Independently, the local validator merges duplicate normalized names with the same barcode by summing grams and keeping the higher confidence.</li>
+<li><strong>Model-proposed meal context (<code>mealContext</code>)</strong>: The structured schema requests a <code>mealContext</code> block used as a heuristic cross-check. The non-schema prompt uses a different top-level example and does not request a macro profile; the parser accepts multiple shapes and supplies fallback context when needed:</li>
 <li><code>dishType</code>: Name of the identified dish.</li>
-<li><code>expectedKcalRange</code>: Estimated total calorie boundaries <code>[low, high]</code>.</li>
-<li><code>expectedMacroProfile</code>: Expected macronutrient percentage ranges (<code>proteinPercent</code>, <code>carbsPercent</code>, <code>fatPercent</code>), each as <code>[low, high]</code>.</li>
+<li><code>expectedKcalRange</code>: Model-proposed total calorie boundaries <code>[low, high]</code>.</li>
+<li><code>expectedMacroProfile</code>: When present, model-proposed macronutrient percentage ranges (<code>proteinPercent</code>, <code>carbsPercent</code>, <code>fatPercent</code>), each as <code>[low, high]</code>.</li>
 <li><code>cookingMethod</code>: Overall preparation method of the dish.</li>
-<li><code>contextNotes</code>: Free-text culinary details.</li>
-<li><strong>Dual-Language Catalog Search</strong>: The app language and the installed food catalog's language are not always the same (a German UI on a French Open Food Facts catalog). When they differ, each item may additionally carry a <code>catalogSearchTerm</code> in the catalog language, so the local matcher can search the catalog in its own language while the user still reads the item in theirs.</li>
-<li><strong>Raw-Equivalent Nutrition Amounts</strong>: The local catalog often supplies nutrition for raw or unprepared ingredients. For a photographed prepared food, the model returns both <code>servedGrams</code> (the visible/eaten portion) and <code>estimatedGrams</code> (its estimated raw equivalent). Train Libre uses only <code>estimatedGrams</code> for the local nutrition calculation. The model never supplies calories or macros.</li>
-<li><strong>Output Constancy</strong>: The output format is restricted to a structured JSON object with exactly two fields:</li>
+<li><code>contextNotes</code>: Free-text culinary details. These fields are model output and are not independently established facts.</li>
+<li><strong>Catalog search terms</strong>: The prompt gives separate handling to generic ingredients and identified packaged products. Generic terms are searched against local base-food data; <code>catalogSearchTerm</code> is intended for a specific packaged product in its catalog language, not a general translation field.</li>
+<li><strong>Two portion values</strong>: The prompt asks for <code>servedGrams</code> and <code>estimatedGrams</code>; the parser uses <code>estimatedGrams</code> as the item grams used in catalog nutrition calculations, falling back to other gram fields if omitted. For prepared food, the prompt describes <code>estimatedGrams</code> as a raw equivalent. The app does not independently verify that conversion.</li>
+<li><strong>Requested output shape</strong>: The structured schema requests a JSON object with <code>mealContext</code> and <code>items</code>; the non-schema prompt shows a different object shape. Provider schema enforcement is conditional: the app enables structured output only for selected provider/model families, and retries some schema-rejection responses without the provider schema. The parser also accepts several alternate JSON wrappers, so the exact shape is not guaranteed by the runtime for every provider.</li>
 <li><code>mealContext</code>: The holistic culinary anchors described above.</li>
 <li><code>items</code>: A list of food components, each with <code>name</code>, optional <code>catalogSearchTerm</code>, <code>searchTerms</code>, <code>servedGrams</code>, raw-equivalent <code>estimatedGrams</code>, <code>confidence</code> and <code>stateHint</code>.</li>
 </ol>
@@ -183,45 +222,45 @@
 <p>Two blocks are prepended to the system prompt only when the corresponding data exists:</p>
 <ul class="doc-list">
 <li><strong>LiDAR scale measurement</strong>: measured distance and visible frame size in centimetres, marked explicitly as measured rather than estimated. See <a href="../depth-scale-hint/index.html">Depth Scale Hint</a>.</li>
-<li><strong>Depth map legend</strong>: an explanation of the false-colour depth image attached as the last picture, again only on capable devices with the setting enabled.</li>
+<li><strong>Depth map legend</strong>: when both a depth image and non-empty legend are supplied, the image is appended after meal photos and the legend is included in the prompt.</li>
 </ul>
 <h3 id="voice-transcript-tidy-pass" class="doc-h3">Voice Transcript Tidy Pass<a href="#voice-transcript-tidy-pass" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Dictated meal descriptions run through a separate, small prompt (<code>buildVoiceTidyPrompt</code>) before analysis. It only restructures what was said — one bullet per food, qualifiers preserved as notes, obvious speech-recognition mishearings of food names corrected — and is explicitly forbidden from inventing foods, amounts or preparation. Nutrition is never touched here; the tidied text then enters the normal text analysis path. See <a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a>.</p>
+<p>Dictation can use a separate tidy request before meal analysis. It asks the model to return food bullets and context while preserving what was said; this is a prompt instruction, not a guarantee that the model cannot alter or omit content. The request is capped at 15 seconds and a failed/empty tidy response returns <code>null</code>, allowing the caller to keep its locally cleaned transcript. See <a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a>.</p>
 <hr class="divider">
 <h2 id="3-deterministic-validation-engine" class="doc-h2">3. Deterministic Validation Engine<a href="#3-deterministic-validation-engine" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>Once the AI returns its JSON list, the raw suggestions are processed by the local <code>AiMealValidationEngine</code>. This engine applies a series of rigid checks:</p>
 <h3 id="merge-heuristics-normalization" class="doc-h3">Merge Heuristics & Normalization<a href="#merge-heuristics-normalization" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>Before evaluating database matches, the engine normalizes all text tokens and checks for duplicates. If duplicate ingredients are detected, they are automatically merged: the weights are summed, and the maximum confidence is retained.</p>
 <h3 id="database-matching-quality-classification" class="doc-h3">Database Matching & Quality Classification<a href="#database-matching-quality-classification" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The engine matches ingredients against the local SQLite database using barcodes and a union of local queries: the canonical name, optional catalog-language term, and the model-provided <code>searchTerms</code>. This broadens recall without another provider request or any additional BYOK token use. Candidate ranking rewards the best textual match from any of those terms; it does not treat the first returned database row as authoritative. <em>   <strong>Exact Match (Score ≥ 0.95)</strong>: Perfect textual alignment or matching barcode. </em>   <strong>Strong Match (Score ≥ 0.78)</strong>: Excellent alignment (e.g., token overlaps). <em>   <strong>Partial Match (Score ≥ 0.55)</strong>: Moderate overlap (triggers an information warning). </em>   <strong>Weak Match (Score < 0.55)</strong>: Lower overlap or questionable semantic alignment. *   <strong>Unmatched</strong>: Results in an <code>unmatched_item</code> error for that item. Triggered only when no database candidates are found at all; it is not bound to a specific score threshold.</p>
-<p>Match quality itself is also reported: <code>weak_db_match</code> and <code>partial_db_match</code> raise a warning and an info issue respectively, and <code>ambiguous_db_match</code> warns when the two best candidates are within 0.08 of each other, i.e. when the engine cannot meaningfully tell them apart.</p>
+<p>The engine searches local catalog data using the item name, optional <code>catalogSearchTerm</code>, and <code>searchTerms</code> (up to six distinct query strings). Open Food Facts fallback is gated by packaged-product evidence/user permission. Candidate ranking uses the strongest textual score from the permitted query terms and then source/name tie-breakers; it does not treat the first returned database row as authoritative. This lookup itself is local; semantic repair, when needed, makes another selected-provider request. <em>   <strong>Exact Match (Score ≥ 0.95)</strong>: Perfect textual alignment or matching barcode. </em>   <strong>Strong Match (Score ≥ 0.78)</strong>: Excellent alignment (e.g., token overlaps). <em>   <strong>Partial Match (Score ≥ 0.55)</strong>: Triggers an informational issue. </em>   <strong>Weak Match (Score < 0.55)</strong>: The result is still a weak match in ordinary cases; an unreviewed broad alias at or below 0.54 is instead left unmatched for clarification. *   <strong>Unmatched</strong>: No usable selected candidate, including when search returns no candidates or the engine rejects weak unreviewed alias evidence. It is not a single numeric score threshold.</p>
+<p>Match quality is reported as validation issues: a weak match raises a warning, a partial match is informational, and lexical ambiguity is considered when the top scores are within 0.08 and the best score is below 0.95. These are software review signals, not measures of food identity certainty.</p>
 <h3 id="item-level-validation-rules" class="doc-h3">Item-Level Validation Rules<a href="#item-level-validation-rules" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The engine raises warnings or errors if a suggested portion violates physiological plausibility: <em>   <strong>Grams ≤ 0</strong>: Triggers a critical <code>invalid_quantity</code> error. </em>   <strong>Grams > 3000g</strong>: Triggers a critical <code>extreme_quantity</code> error. <em>   <strong>Grams ≤ 5g</strong>: Triggers a <code>tiny_quantity</code> warning. </em>   <strong>Grams > 1200g</strong>: Triggers a <code>large_quantity</code> warning. *   <strong>Confidence < 0.5</strong>: Triggers a <code>low_ai_confidence</code> warning.</p>
-<p>Once an item is matched, the matched database entry is checked as well: <em>   <code>zero_nutrition_match</code>: the matched entry carries no usable nutrition data. </em>   <code>implausible_food_density</code>: the matched entry exceeds 950 kcal per 100 g. <em>   <code>macro_energy_mismatch</code>: the entry's macros imply more than 180 kcal above its stated calories. </em>   <code>implausible_item_nutrition</code>: this portion alone exceeds 2500 kcal, 250 g protein, 500 g carbs or 220 g fat. *   <code>ambiguous_nutrition_match</code>: plausible local candidates differ by at least 75% in kcal per 100 g and no verified candidate barcode has been selected. This triggers semantic candidate selection in the repair loop even when the lexical match itself looks strong.</p>
+<p>The engine applies fixed review thresholds to suggested portions. These are heuristic guardrails, not clinically validated physiological limits: <em>   <strong>Grams ≤ 0</strong>: Triggers an <code>invalid_quantity</code> error. </em>   <strong>Grams > 3000g</strong>: Triggers an <code>extreme_quantity</code> error. <em>   <strong>0 < grams ≤ 5g</strong>: Triggers a <code>tiny_quantity</code> informational issue. </em>   <strong>Grams > 1200g</strong>: Triggers a <code>large_quantity</code> warning. *   <strong>Confidence < 0.5</strong>: Triggers a <code>low_ai_confidence</code> informational issue.</p>
+<p>Once an item is matched, the matched database entry is checked as well: <em>   <code>zero_nutrition_match</code>: the matched entry carries no usable nutrition data. </em>   <code>implausible_food_density</code>: the matched entry exceeds 950 kcal per 100 g. <em>   <code>macro_energy_mismatch</code>: the entry's macros imply more than 180 kcal above its stated calories. </em>   <code>implausible_item_nutrition</code>: this portion alone exceeds 2500 kcal, 250 g protein, 500 g carbs or 220 g fat. *   <code>ambiguous_nutrition_match</code>: plausible local candidates differ by at least 75% in kcal per 100 g and the best match has not already been explicitly selected and verified. This triggers semantic candidate selection in the repair loop even when the lexical match itself looks strong.</p>
 <h3 id="meal-level-validation-rules" class="doc-h3">Meal-Level Validation Rules<a href="#meal-level-validation-rules" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Beyond the individual items, the assembled meal is checked as a whole: <em>   <code>empty_meal</code> (error): the AI returned no items. </em>   <code>all_items_unmatched</code> (error): not a single item could be matched to the local database. <em>   <code>partial_unmatched_items</code> (warning): some items remain unmatched and cannot be saved until resolved. </em>   <code>zero_total_kcal</code> (warning): matched items sum to 0 kcal. <em>   <code>capture_total_kcal_extreme</code> (error) / <code>capture_total_kcal_high</code> (warning): above 5000 / 3500 kcal for a single captured meal. </em>   <code>macro_total_extreme</code> (error) / <code>macro_total_high</code> (warning): totals above 350/700/300 g or 250/550/220 g of protein/carbs/fat.</p>
+<p>Beyond the individual items, the assembled meal is checked as a whole: <em>   <code>empty_meal</code> (error): the AI returned no items. </em>   <code>all_items_unmatched</code> (error): not a single item could be matched to the local database. <em>   <code>partial_unmatched_items</code> (warning): some items remain unmatched. The review flow can save matched entries only after the user confirms a partial save; unmatched suggestions are not saved as food entries. </em>   <code>zero_total_kcal</code> (warning): matched items sum to 0 kcal. <em>   <code>capture_total_kcal_extreme</code> (error) / <code>capture_total_kcal_high</code> (warning): above 5000 / 3500 kcal for a single captured meal. </em>   <code>macro_total_extreme</code> (error) / <code>macro_total_high</code> (warning): totals above 350/700/300 g or 250/550/220 g of protein/carbs/fat.</p>
 <hr class="divider">
 <h2 id="4-multi-dimensional-cross-check-validation-rules" class="doc-h2">4. Multi-Dimensional Cross-Check Validation Rules<a href="#4-multi-dimensional-cross-check-validation-rules" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To prevent erroneous database matching and portion estimation, Train Libre implements four strict multi-dimensional cross-check rules connecting matched database entities with the holistic culinary anchors:</p>
+<p>Train Libre applies additional heuristic cross-checks between catalog-derived totals and any supplied meal-context anchors:</p>
 <h3 id="c1-expected-kcal-range-check" class="doc-h3">C1: expected Kcal Range Check<a href="#c1-expected-kcal-range-check" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>Verifies whether the sum of the calories of all matched database ingredients is within the expected total meal calorie range from the culinary anchor: <em>   <strong>Warning (<code>anchor_kcal_deviation</code>)</strong>: Raised if the total matched calories deviate by > 25% from the nearest boundary of the expected range. </em>   <strong>Error (<code>anchor_kcal_extreme</code>)</strong>: Raised if the total matched calories deviate by > 50% from the nearest boundary, escalating to a hard validation failure.</p>
 <h3 id="c2-expected-macro-profile-check" class="doc-h3">C2: Expected Macro Profile Check<a href="#c2-expected-macro-profile-check" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Compares the matched database macronutrient distribution against the expected macro percentage profile in the culinary anchor: *   <strong>Warning (<code>anchor_macro_profile_deviation</code>)</strong>: Raised if the actual protein, carbs, or fat percentage deviates by > 15% from the anchor profile.</p>
+<p>Compares the matched database macronutrient distribution against the expected macro percentage profile in the culinary anchor: *   <strong>Warning (<code>anchor_macro_profile_deviation</code>)</strong>: Raised if an actual protein, carbohydrate, or fat energy percentage falls more than 15 percentage points outside the model-proposed range.</p>
 <h3 id="c3-cooking-state-mismatch-check" class="doc-h3">C3: Cooking State Mismatch Check<a href="#c3-cooking-state-mismatch-check" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Detects preparation state discrepancies between the AI's parsed item and the matched database entry (e.g., a "raw chicken breast" matched to "cooked chicken breast"). Both sides are read for raw and cooked markers in German and English (<code>raw</code>/<code>roh</code>, <code>cooked</code>/<code>gekocht</code>, <code>fried</code>/<code>gebraten</code>, <code>baked</code>/<code>gebacken</code>, <code>boiled</code>, <code>zubereitet</code>): <em>   <strong>Warning (<code>state_mismatch</code>)</strong>: Raised when the state hint and the matched entry do not clearly agree. </em>   <strong>Error (same <code>state_mismatch</code> code, escalated severity)</strong>: Raised when the two directly contradict each other — a raw hint on a cooked database entry or vice versa — because that is the case where the caloric density is systematically wrong. A prepared visible portion with a distinct <code>estimatedGrams</code> raw equivalent is an intentional conversion, not a mismatch.</p>
+<p>Detects preparation state discrepancies between the AI's parsed item and the matched database entry (e.g., a "raw chicken breast" matched to "cooked chicken breast"). Both sides are read for raw and cooked markers in German and English (<code>raw</code>/<code>roh</code>, <code>cooked</code>/<code>gekocht</code>, <code>fried</code>/<code>gebraten</code>, <code>baked</code>/<code>gebacken</code>, <code>boiled</code>, <code>zubereitet</code>): <em>   <strong>Warning (<code>state_mismatch</code>)</strong>: Raised when the state hint and the matched entry do not clearly agree. </em>   <strong>Error (same <code>state_mismatch</code> code, escalated severity)</strong>: Raised for some detected direct raw/cooked contradictions. A prepared visible portion with a distinct <code>estimatedGrams</code> value is treated as an intentional conversion and bypasses this state-mismatch check.</p>
 <h3 id="c4-prepared-portion-versus-raw-database-basis" class="doc-h3">C4: Prepared Portion versus Raw Database Basis<a href="#c4-prepared-portion-versus-raw-database-basis" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p><code>servedGrams</code> and <code>estimatedGrams</code> are deliberately distinct. A plate photo of cooked rice may show 180 g while the selected raw-rice entry must be calculated from an AI-estimated 65 g raw equivalent. The model is responsible for estimating that conversion from the image and meal context; Train Libre verifies the resulting nutrition only against real local candidate data. No fixed yield table is imposed, because preparation can vary materially between meals.</p>
+<p><code>servedGrams</code> and <code>estimatedGrams</code> can differ. For example, the prompt may ask the model to estimate a raw equivalent for a cooked portion. The app uses <code>estimatedGrams</code> for catalog nutrition and does not apply a fixed yield table or independently verify the conversion.</p>
 <hr class="divider">
 <h2 id="5-multi-query-candidate-selection-and-semantic-repair" class="doc-h2">5. Multi-Query Candidate Selection and Semantic Repair<a href="#5-multi-query-candidate-selection-and-semantic-repair" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>When a validation issue or match anomaly occurs, Train Libre does not let the LLM blindly guess replacements. Instead, the local Dart engine uses a <strong>Candidate Selection</strong> model:</p>
+<p>When a validation issue or match anomaly occurs, the repair flow can ask the selected model to choose among catalog alternatives:</p>
 <ol class="doc-list">
-<li><strong>Local Multi-Query Retrieval</strong>: <code>ProductLocalDataSource</code> queries the canonical name, catalog-language term and <code>searchTerms</code>, merges duplicates, and retains the top local alternatives.</li>
+<li><strong>Local Multi-Query Retrieval</strong>: <code>ProductLocalDataSource</code> queries the item name, optional <code>catalogSearchTerm</code>, and <code>searchTerms</code> (up to six distinct terms), merges duplicate rows, and ranks the returned local alternatives.</li>
 <li><strong>Nutrition-Spread Gate</strong>: If candidates have materially different kcal per 100 g, a textually plausible result is not accepted merely because its name is close.</li>
-<li><strong>Prompt Menu Injection</strong>: The repair prompt receives real candidate names, calories, macros and a stable candidate barcode.</li>
-<li><strong>Semantic Selection with a Real ID</strong>: The LLM chooses a candidate barcode from that menu and may revise the raw-equivalent grams. The parser preserves the served amount, preparation state and search variants across every repair pass. An unknown or invented barcode cannot become a verified match.</li>
+<li><strong>Prompt Menu Injection</strong>: The repair prompt receives locally retrieved candidate names, nutrition values, and candidate IDs.</li>
+<li><strong>Semantic Selection by Candidate ID</strong>: The model may return a candidate ID in <code>matchedBarcode</code>; the app keeps the selection only if that ID matches one of the alternatives supplied for that item. The field can identify a base-food catalog row and should not be read as proof of a packaged barcode. In semantic-only repairs, the app keeps the previous quantities and state; other repair types may revise permitted grams and fields.</li>
 </ol>
 <hr class="divider">
-<h2 id="6-the-3-pass-self-repair-loop" class="doc-h2">6. The 3-Pass Self-Repair Loop<a href="#6-the-3-pass-self-repair-loop" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h2 id="6-repair-requests-and-revalidation" class="doc-h2">6. Repair Requests and Revalidation<a href="#6-repair-requests-and-revalidation" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>To recover from invalid JSON formats, incorrect ingredient portions, or missing database matches, Train Libre runs a closed feedback loop managed by <code>AiRepairOrchestrator</code>:</p>
 <div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>               [LLM Candidate Output]
                          |
@@ -234,7 +273,7 @@
            /                           \
 [Pass Validation]            [Format Feedback Log]
                                         |
-                            Has Loop Run &lt; 3 Times?
+                       Has repair request count &lt; 3?
                               /                 \
                            (Yes)                (No)
                             /                     \
@@ -242,17 +281,22 @@
                (Injects real candidates, their IDs,
                 nutrition data &amp; mealContext Anchor)</code></pre></div>
 <h3 id="1-scoring-formula" class="doc-h3">1. Scoring Formula<a href="#1-scoring-formula" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The engine computes an overall quality score starting at 100, subtracting points based on issue severity: <em>   <strong>Info Issue</strong>: -2 points. </em>   <strong>Warning Issue</strong>: -8 points. <em>   <strong>Error Issue</strong>: -24 points. </em>   <strong>Missed macro target fit</strong>: -12 points, applied once when an explicit macro target was given (recipe target-fit mode) and the result does not meet it.</p>
+<p>The engine computes an overall quality score starting at 100, subtracting points based on issue severity: <em>   <strong>Info Issue</strong>: -2 points. </em>   <strong>Warning Issue</strong>: -8 points. <em>   <strong>Error Issue</strong>: -24 points. </em>   <strong>Missed macro target fit</strong>: -12 points when a macro target context is supplied and the result does not meet it.</p>
 <p>The result is clamped to the 0–100 range.</p>
 <h3 id="2-validation-threshold" class="doc-h3">2. Validation Threshold<a href="#2-validation-threshold" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>A candidate only passes validation if: <em>   The overall score is <strong>≥ 70</strong>. </em>   There are <strong>zero critical errors</strong> (e.g., no <code>all_items_unmatched</code>, no <code>anchor_kcal_extreme</code>, no <code>invalid_quantity</code>). *   Materially different nutrition candidates have been resolved to a verified local barcode.</p>
+<p>A candidate only passes validation if: <em>   The overall score is <strong>≥ 70</strong>. </em>   There are <strong>no error-severity issues</strong> (including <code>all_items_unmatched</code>, <code>anchor_kcal_extreme</code>, or <code>invalid_quantity</code>). *   Materially different nutrition candidates have been resolved to a selected catalog candidate; the selection is not proof that the AI identified the food correctly.</p>
 <h3 id="3-repair-feedback-generation" class="doc-h3">3. Repair Feedback Generation<a href="#3-repair-feedback-generation" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>If the candidate fails <strong>or requires semantic selection because candidate nutrition differs materially</strong>, the engine generates a structured feedback block detailing the precise index of the offending items and the error codes (e.g., <code>state_mismatch</code>, <code>ambiguous_nutrition_match</code>, <code>anchor_kcal_extreme</code>). The orchestrator submits this log alongside verified local candidates, their stable IDs, and the <code>mealContext</code> back to the LLM. Every repaired response enters the same local validation again. The loop runs for a maximum of <strong>3 passes</strong> before returning the latest validated result.</p>
+<p>If the candidate fails <strong>or requires semantic selection because candidate nutrition differs materially</strong>, the engine generates structured feedback with the affected item indices and issue details. The orchestrator supplies that feedback and relevant local alternatives to the selected model. Every repaired response enters the same local validation again. The loop runs for a maximum of <strong>3 repair requests</strong> before returning its latest result.</p>
+<h2 id="7-review-and-diary-save" class="doc-h2">7. Review and diary save<a href="#7-review-and-diary-save" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The repair result is presented in the meal review screen. At save time, the screen validates again when it has no current validation result, requires the result to pass, and builds a save plan from matched items. If the plan is partial, the user must confirm saving only the matched entries. The app saves a meal entry and corresponding food rows for matched catalog items; it does not save unmatched suggestions as food entries. The user can edit suggestions before saving.</p>
 <hr class="divider">
-<h2 id="7-clinical-disclaimer" class="doc-h2">7. Clinical Disclaimer<a href="#7-clinical-disclaimer" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The AI Meal Capture system is an estimation tool designed to simplify dietary logging. Portion sizes and ingredient weights are heuristic estimates and may deviate from actual values. Users should manually verify all structural components and weights before finalizing their logs, especially when managing medical conditions like diabetes.</p>
+<h2 id="8-privacy-telemetry-and-limitations" class="doc-h2">8. Privacy, telemetry, and limitations<a href="#8-privacy-telemetry-and-limitations" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>For cloud providers, text and prepared image data included in the request are sent directly to the selected provider endpoint; the repository does not route those requests through a Train Libre server. Ollama uses the device's <code>localhost</code> endpoint, while a custom provider sends data to the configured URL. Apple Foundation Models receives the prompt through the native iOS framework path and can receive image attachments on the supported iOS 27+ path; this repository alone cannot substantiate claims about all operating-system network or storage behavior.</p>
+<p>When telemetry is enabled, scan events can include provider, input mode, photo count, whether voice/text/LiDAR were used, outcome, elapsed times, validation/repair counts, issue categories, and provider-reported token counts. The app also keeps a separate bounded local diagnostic history in SharedPreferences, including provider/model (except custom/Ollama model names), timing, outcomes, and token totals. Its allowlisted log/export excludes prompts, meal contents, images, paths, API keys, and error messages. Local diagnostics are not the same as telemetry consent.</p>
+<p>Model-generated food identity, portions, meal context, and raw-equivalent weights can be wrong. Catalog matching and validation provide review signals; they do not guarantee that a suggested food or quantity is correct. Review the items and portions before saving.</p>
+<p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p>
 <hr class="divider">
-<h2 id="8-related-documentation" class="doc-h2">8. Related Documentation<a href="#8-related-documentation" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h2 id="9-related-documentation" class="doc-h2">9. Related Documentation<a href="#9-related-documentation" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
 <li><a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a> — the capture paths that feed this engine and how a meal is stored afterwards.</li>
 <li><a href="../depth-scale-hint/index.html">Depth Scale Hint</a> — the LiDAR measurement and depth image that extend the prompt on capable devices.</li>
@@ -261,14 +305,15 @@
 
         <nav class="docs-pager" aria-label="Documentation navigation">
 <a href="../meal-capture-pipeline/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Meal Capture Pipeline</span></a>
-<a href="../depth-scale-hint/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Depth Scale Hint (LiDAR)</span></a>
+<a href="../depth-scale-hint/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Depth Scale Hint</span></a>
 </nav>
       </main>
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#1-bring-your-own-key-byok-security-architecture">1. Bring Your Own Key (BYOK) Security Architecture</a></li>
-<li class="toc-item toc-item-l3"><a href="#encrypted-key-storage">Encrypted Key Storage</a></li>
+<li class="toc-item toc-item-l2"><a href="#1-provider-routes-and-key-storage">1. Provider routes and key storage</a></li>
+<li class="toc-item toc-item-l3"><a href="#apple-foundation-models-applefoundation">Apple Foundation Models (appleFoundation)</a></li>
+<li class="toc-item toc-item-l3"><a href="#encrypted-key-storage-byok-providers">Encrypted Key Storage (BYOK Providers)</a></li>
 <li class="toc-item toc-item-l3"><a href="#self-hosted-and-custom-endpoints">Self-Hosted and Custom Endpoints</a></li>
 <li class="toc-item toc-item-l2"><a href="#2-system-prompt-llm-boundaries">2. System Prompt &amp; LLM Boundaries</a></li>
 <li class="toc-item toc-item-l3"><a href="#optional-prompt-blocks">Optional Prompt Blocks</a></li>
@@ -284,12 +329,13 @@
 <li class="toc-item toc-item-l3"><a href="#c3-cooking-state-mismatch-check">C3: Cooking State Mismatch Check</a></li>
 <li class="toc-item toc-item-l3"><a href="#c4-prepared-portion-versus-raw-database-basis">C4: Prepared Portion versus Raw Database Basis</a></li>
 <li class="toc-item toc-item-l2"><a href="#5-multi-query-candidate-selection-and-semantic-repair">5. Multi-Query Candidate Selection and Semantic Repair</a></li>
-<li class="toc-item toc-item-l2"><a href="#6-the-3-pass-self-repair-loop">6. The 3-Pass Self-Repair Loop</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-repair-requests-and-revalidation">6. Repair Requests and Revalidation</a></li>
 <li class="toc-item toc-item-l3"><a href="#1-scoring-formula">1. Scoring Formula</a></li>
 <li class="toc-item toc-item-l3"><a href="#2-validation-threshold">2. Validation Threshold</a></li>
 <li class="toc-item toc-item-l3"><a href="#3-repair-feedback-generation">3. Repair Feedback Generation</a></li>
-<li class="toc-item toc-item-l2"><a href="#7-clinical-disclaimer">7. Clinical Disclaimer</a></li>
-<li class="toc-item toc-item-l2"><a href="#8-related-documentation">8. Related Documentation</a></li>
+<li class="toc-item toc-item-l2"><a href="#7-review-and-diary-save">7. Review and diary save</a></li>
+<li class="toc-item toc-item-l2"><a href="#8-privacy-telemetry-and-limitations">8. Privacy, telemetry, and limitations</a></li>
+<li class="toc-item toc-item-l2"><a href="#9-related-documentation">9. Related Documentation</a></li>
 </ul></div></aside>
     </div>
 

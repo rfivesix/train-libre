@@ -17,18 +17,31 @@ repository's [`documentation/`](../documentation/README.md) directory:
 The public website should expose both areas under one documentation experience.
 The source folders above remain the canonical organisation of their content.
 
-## Public feature pages
+## Public documentation pages
 
-The currently published feature explainers are:
+The documentation site publishes the suite overview, user guide, developer
+documentation, and 15 Feature & Heuristics pages under [`docs/`](docs/). Start
+with the [Feature Capabilities & Privacy overview](docs/features/overview/),
+then browse:
 
-- [Adaptive Nutrition](adaptive-nutrition/)
-- [AI Meal Recognition](ai-nutrition/)
-- [Recovery Tracker](recovery/)
-- [Sleep Health Score](sleep-score/)
-- [Estimated 1RM](intelligent-workouts/)
+- [Bayesian TDEE Estimate and Adaptive Calorie Target](docs/features/bayesian-tdee-estimator/)
+- [Macronutrient Distribution](docs/features/macro-distribution/)
+- [Macronutrient Analytics](docs/features/macro-analytics/)
+- [Manual Workout Plans](docs/features/manual-workout-plans/)
+- [Adaptive Nutrition Goals](docs/features/adaptive-nutrition-goals/)
+- [Workout Progression Engine](docs/features/workout-progression-engine/)
+- [Estimated 1-Rep Max](docs/features/intelligent-workouts/)
+- [Muscle Recovery](docs/features/muscle-recovery-model/)
+- [Sleep Health Score (SHS v3)](docs/features/sleep-scoring-engine/)
+- [Workout Live Activity](docs/features/live-activity-workout/)
+- [Meal Capture Pipeline](docs/features/meal-capture-pipeline/)
+- [BYOK AI Meal Capture & Validation](docs/features/byok-ai-validation/)
+- [Depth Scale Hint](docs/features/depth-scale-hint/)
+- [Health Sync & Export](docs/features/health-sync-export/)
 
-Do not add links here to planned or removed pages. Add a public page only once
-its corresponding files are present in `docs/`.
+The standalone [Adaptive Nutrition](adaptive-nutrition/) and other feature
+explainer paths remain as legacy redirects for compatibility; canonical feature
+documentation lives under `docs/features/`.
 
 ## Website and F-Droid publishing
 

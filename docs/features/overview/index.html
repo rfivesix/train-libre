@@ -6,8 +6,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="Smart processing boundaries, native secure storage, and opt-in telemetry.">
-  <title>Feature Transparency &amp; Privacy Architecture | Train Libre Documentation</title>
+  <meta name="description" content="Feature behavior, optional data flows, and app telemetry boundaries.">
+  <title>Feature Capabilities and Privacy Boundaries | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/overview/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -15,8 +15,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Feature Transparency &amp; Privacy Architecture | Train Libre">
-  <meta property="og:description" content="Smart processing boundaries, native secure storage, and opt-in telemetry.">
+  <meta property="og:title" content="Feature Capabilities and Privacy Boundaries | Train Libre">
+  <meta property="og:description" content="Feature behavior, optional data flows, and app telemetry boundaries.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/overview/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -104,25 +104,60 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="index.html" class="sidebar-link active" aria-current="page">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
 <li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../../developer/food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -134,72 +169,108 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Feature Transparency & Privacy Architecture</h1>
-<p>Train Libre provides adaptive nutrition goals and recommendations, manual workout plans, intelligent meal capture, workout progression, recovery analytics, and health metrics synchronization. All calculations and integrations are designed around strict <strong>local-first</strong> and <strong>privacy-first</strong> principles.</p>
-<hr class="divider">
-<h2 id="architectural-privacy-invariants" class="doc-h2">Architectural Privacy Invariants<a href="#architectural-privacy-invariants" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To achieve true user privacy and data ownership, the application enforces the following technical boundaries:</p>
-<ol class="doc-list">
-<li><strong>Zero Mandatory Cloud Intermediaries</strong>: The application does not require a custom backend server to function. There is no central user database, no mandatory registration, and no login wall. All diary, workout, sleep, and metric records reside in local SQLite storage.</li>
-<li><strong>On-Device Encryption & Security</strong>: Sensitive credentials, specifically the user-provided API keys required for Bring Your Own Key (BYOK) Large Language Models, are stored in hardware-backed system secure vaults (iOS Keychain and Android Keystore) via <code>FlutterSecureStorage</code> with device-only accessibility.</li>
-<li><strong>Local Algorithmic Execution</strong>: High-level statistical and physiological logic — including the Kalman filter for TDEE, macronutrient distributions, adaptive goal reviews, the Sleep Health Score engine, muscle recovery timelines, and Brzycki 1RM heuristics — executes entirely on-device. Personal logs, bodyweight measurements, and physical metrics are never transmitted to external servers for analytical evaluation.</li>
-<li><strong>Strictly Opt-In, Zero-Profiling Usage Telemetry</strong>:</li>
-<li>Disabled by default upon installation.</li>
-<li>No network connection or SDK initialization occurs before explicit consent.</li>
-<li>Consent is requested separately from mandatory terms, with at most one non-intrusive follow-up after 14 days and 5 app launches.</li>
-<li>When enabled, events (sent to PostHog EU) are decoupled from device identity via per-launch ID rotation. Personal profiles are suppressed (<code>personProfiles: never</code>, <code>$process_person_profile: false</code>), rageclicks/autocapture are disabled, and all metrics are grouped into coarse, anonymous buckets (<code>TelemetryBuckets</code>).</li>
-<li>Users can revoke consent or delete all server-side records with one tap in Settings.</li>
-<li>A build compiled with <code>--dart-define=DISABLE_TELEMETRY=true</code> selects the no-op telemetry implementation, so telemetry initialization and event dispatch do not run.</li>
-</ol>
-<hr class="divider">
-<h2 id="smart-capabilities-overview" class="doc-h2">Smart Capabilities Overview<a href="#smart-capabilities-overview" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The core computational modules of Train Libre are split into isolated, mathematically transparent features:</p>
-<h3 id="1-bayesian-tdee-estimator" class="doc-h3">1. Bayesian TDEE Estimator<a href="#1-bayesian-tdee-estimator" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>A mathematical engine utilizing a recursive Kalman filter. It combines a recent 14-day bodyweight trend with logged calorie intake to estimate Total Daily Energy Expenditure (TDEE), increases observation uncertainty around diet-phase transitions, and uses a separate bounded controller for persistent goal-rate divergence. Poor-quality or sparse data reduces trust and suppresses trajectory corrections. <em>   </em>Learn more in the <a href="../bayesian-tdee-estimator/index.html"><strong>Bayesian TDEE Estimator Documentation</strong></a>.*</p>
+          <h1 class="doc-title">Feature Capabilities and Privacy Boundaries</h1>
+<p>Train Libre is local-first: workout, diary, measurement, sleep, and other app records are stored in the app’s local database. Optional integrations can move selected data outside that database. In particular, network AI providers receive the meal input sent for analysis, HealthKit or Health Connect can exchange records when enabled, user-triggered exports and backups can create files, and optional telemetry sends usage events after consent. “Local-first” therefore does not mean that every operation is offline or that no data can leave the device.</p>
+<blockquote><p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p></blockquote>
+<h2 id="data-boundaries" class="doc-h2">Data boundaries<a href="#data-boundaries" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h3 id="local-calculations-and-records" class="doc-h3">Local calculations and records<a href="#local-calculations-and-records" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The TDEE estimator, macro allocator, adaptive-goal review logic, sleep score, muscle-recovery estimate, and estimated 1RM calculations run in the app. Their inputs come from app records and, where configured, imported health data. They do not require sending those records to a server for the calculation. Estimates and recommendations are heuristics; their presence in the app does not make them clinical assessments.</p>
+<p>The AI meal-capture path is different. The selected provider receives the prompt and, for image analysis, resized meal images. Providers include remote services and local/custom endpoints; the destination depends on the provider and its configuration. Apple Foundation Models is an on-device option when the native framework is available. The code does not establish that every provider is offline, that every supported device uses a Neural Engine, or that provider processing has the same privacy terms. Review the <a href="../byok-ai-validation/index.html">AI capture and validation documentation</a> before choosing a provider.</p>
+<h3 id="optional-connections" class="doc-h3">Optional connections<a href="#optional-connections" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>HealthKit on iOS and Health Connect on Android are separate platform integrations. Permissions and supported data types determine what can be imported or exported. The app also has user-triggered backup/export flows and optional iCloud sync. These paths are distinct from optional product telemetry; enabling one does not imply that health records are included in telemetry. See <a href="../health-sync-export/index.html">Health Sync & Export</a> for the supported data and platform limits.</p>
+<p>API credentials are stored through <code>FlutterSecureStorage</code>. The iOS and macOS configuration uses this-device-only Keychain accessibility; this Dart configuration does not establish the same platform-specific storage guarantee for Android. See the <a href="../byok-ai-validation/index.html">AI provider and validation page</a> for provider-specific request behavior.</p>
+<h3 id="optional-usage-telemetry" class="doc-h3">Optional usage telemetry<a href="#optional-usage-telemetry" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Telemetry is disabled unless the user opts in. Initialization reads the saved choice, and PostHog SDK setup is deferred until opt-in; setting <code>DISABLE_TELEMETRY=true</code> at build time selects a no-op implementation. Users can opt out in Settings. The app sends opted-in events to PostHog’s EU capture endpoint.</p>
+<p>The SDK configuration disables person profiles, lifecycle capture, surveys, replay, feature-flag events, push events, and rage-click capture, and filters selected event names. SDK events receive properties that disable PostHog person-profile processing and GeoIP lookup. In-app SDK identity is reset on SDK configuration to rotate its distinct ID. The separate <code>app_launched</code> event is sent directly over HTTP with a locally stored persistent install ID, so telemetry is pseudonymous rather than fully anonymous or identity-free.</p>
+<p>Event properties are not uniformly coarse buckets. Depending on the event, they include app/platform/OS version, locale, country, time zone, feature and screen keys, counts, durations, booleans, AI provider, and validation outcome metadata. The AI scan telemetry helpers report request metadata rather than the submitted meal text or images. The telemetry service uses closed values or sanitization for selected fields. This describes app-created telemetry payloads; it is not a guarantee about PostHog’s service-side retention or processing beyond the SDK configuration.</p>
+<h2 id="feature-directory" class="doc-h2">Feature directory<a href="#feature-directory" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>These articles explain feature logic and its limitations. Practical instructions belong in the <a href="../../user-guide/overview/index.html">User Guide</a>; implementation internals belong in <a href="../../developer/overview/index.html">Developer Documentation</a>.</p>
+<h3 id="1-bayesian-tdee-estimate-and-adaptive-calorie-target" class="doc-h3">1. Bayesian TDEE Estimate and Adaptive Calorie Target<a href="#1-bayesian-tdee-estimate-and-adaptive-calorie-target" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>A recursive Bayesian estimator combines logged intake and body-weight observations with a baseline prior. A separate controller can adjust an eligible calorie target after review. Both operate on local app data; sparse, incomplete, or incompatible data can prevent a target update.</p>
+<ul class="doc-list">
+<li><a href="../bayesian-tdee-estimator/index.html">Bayesian TDEE estimator</a></li>
+</ul>
 <h3 id="2-macronutrient-distribution" class="doc-h3">2. Macronutrient Distribution<a href="#2-macronutrient-distribution" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The deterministic second stage of the nutrition recommendation. It turns the estimator's calorie target into protein, carbohydrate, and fat figures: protein and fat are anchored per kilogram of body weight and scaled with the goal, carbohydrates take the remainder, and a fat floor bounds how far the distribution may give way on a budget too small to carry both targets. <em>   </em>Learn more in the <a href="../macro-distribution/index.html"><strong>Macronutrient Distribution Documentation</strong></a>.*</p>
-<h3 id="3-byok-ai-meal-capture-validation" class="doc-h3">3. BYOK AI Meal Capture & Validation<a href="#3-byok-ai-meal-capture-validation" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates under a <strong>Bring Your Own Key (BYOK)</strong> security structure, communicating directly with provider endpoints (OpenAI, Gemini, Anthropic, Mistral, xAI, Ollama, or custom OpenAI-compatible servers). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving. <em>   </em>Learn more in the <a href="../byok-ai-validation/index.html"><strong>BYOK AI Captured Meal Validation Documentation</strong></a>.*</p>
-<h3 id="4-native-health-sync-export" class="doc-h3">4. Native Health Sync & Export<a href="#4-native-health-sync-export" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>A local synchronization pipe bridging local wellness records with native platform health frameworks (Apple HealthKit on iOS and Google Health Connect on Android). The architecture is bidirectional: <em>   <strong>Import</strong>: Ingests passive vitals (step segments, sleep stage intervals, and heart rate samples) into local SQLite tables, using configurable hourly step segment merging policies (<code>auto_dominant</code> and <code>max_per_hour</code>). </em>   <strong>Export</strong>: Pushes user logs (body measurements, nutrition & hydration totals, and workout sessions) to the platform health store using a hash-based idempotency table (<code>health_export_records</code>) and incremental domain checkpoints to guarantee zero duplicate writes. <em>   </em>Learn more in the <a href="../health-sync-export/index.html"><strong>Native Health Sync & Export Documentation</strong></a>.*</p>
-<h3 id="5-sleep-health-score-engine-shs-v35" class="doc-h3">5. Sleep Health Score Engine (SHS v3.5)<a href="#5-sleep-health-score-engine-shs-v35" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>A sleep analysis engine evaluating overnight recovery across 5 domains (Sleep Duration, Sleep Continuity, Sleep Stage Depth / Architecture, Circadian Timing, and Sleep Regularity). Using a continuous soft-cap multiplier model, the engine dynamically applies penalty factors based on the single worst-performing biological bottleneck (such as severe REM or N3 deep sleep deprivation, insufficient TST, or late circadian mid-sleep delays) to guide users with precise, contextual feedback. <em>   </em>Learn more in the <a href="../sleep-scoring-engine/index.html"><strong>Sleep Health Score Engine Documentation</strong></a>.*</p>
-<h3 id="6-muscle-recovery-model" class="doc-h3">6. Muscle Recovery Model<a href="#6-muscle-recovery-model" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>A fitness-oriented, log-based readiness model that turns eligible completed sets into a per-muscle, time-decaying residual load. It applies bounded per-set RIR and repetition modifiers, role-weighted direct and indirect exposure, and distinct baseline decay profiles before deriving a continuous readiness score.</p>
-<p><em>Learn more in the <a href="../muscle-recovery-model/index.html"><strong>Muscle Recovery & Readiness Model Documentation</strong></a>.</em></p>
-<h3 id="7-estimated-1-rep-max-1rm-heuristics" class="doc-h3">7. Estimated 1-Rep Max (1RM) Heuristics<a href="#7-estimated-1-rep-max-1rm-heuristics" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>A physical capacity estimation model that computes estimated maximum strength capabilities from submaximal resistance training loads using the Brzycki formula. It accurately handles effective set loads for assisted exercises (subtracting machine assistance from bodyweight) and bodyweight movements (using historical bodyweight on the day the set was performed), capped within the safe <span class="math-inline">$1 \leq r \leq 12$</span> repetition window. <em>   </em>Learn more in the <a href="../intelligent-workouts/index.html"><strong>Estimated 1-Rep Max Documentation</strong></a>.*</p>
+<p>A deterministic allocator converts a calorie target and profile/goal inputs into protein, fat, and carbohydrate targets, subject to configured bounds and fallback behavior. The allocation is an app rule, not an individualized clinical prescription.</p>
+<ul class="doc-list">
+<li><a href="../macro-distribution/index.html">Macronutrient Distribution</a></li>
+</ul>
+<h3 id="3-meal-capture-and-byok-ai-validation" class="doc-h3">3. Meal Capture and BYOK AI Validation<a href="#3-meal-capture-and-byok-ai-validation" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Meal capture can use image, text, voice, or barcode workflows. AI analysis uses the selected provider; network providers receive the request content, while Apple Foundation Models can run on-device when available. Validation checks structured output against the local food catalog, but suggestions can remain ambiguous or require user correction.</p>
+<ul class="doc-list">
+<li><a href="../meal-capture-pipeline/index.html">Meal capture and AI validation</a></li>
+<li><a href="../byok-ai-validation/index.html">BYOK providers and validation</a></li>
+</ul>
+<h3 id="4-health-sync-and-export" class="doc-h3">4. Health Sync and Export<a href="#4-health-sync-and-export" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Platform adapters exchange supported records with HealthKit or Health Connect after the relevant permissions and settings are enabled. Import, export, and update behavior varies by data type and platform; the feature is not a guarantee of complete or background synchronization.</p>
+<ul class="doc-list">
+<li><a href="../health-sync-export/index.html">Health Sync & Export</a></li>
+</ul>
+<h3 id="5-sleep-health-score-shs-v3" class="doc-h3">5. Sleep Health Score (SHS v3)<a href="#5-sleep-health-score-shs-v3" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The score combines five sleep domains using the current v3 formulas and score caps. Imported records are mapped into the sleep inputs; missing or partial stage data can affect completeness and the result. The score is a software heuristic, not a diagnosis or a measure of medical sleep health.</p>
+<ul class="doc-list">
+<li><a href="../sleep-scoring-engine/index.html">Sleep Health Score engine</a></li>
+</ul>
+<h3 id="6-muscle-recovery-estimate" class="doc-h3">6. Muscle Recovery Estimate<a href="#6-muscle-recovery-estimate" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The model turns eligible logged sets into time-decaying, per-muscle residual load and maps that load to a continuous readiness estimate. Its inputs and coverage limits depend on workout logging and exercise metadata.</p>
+<ul class="doc-list">
+<li><a href="../muscle-recovery-model/index.html">Muscle Recovery model</a></li>
+</ul>
+<h3 id="7-estimated-1-rep-max" class="doc-h3">7. Estimated 1-Rep Max<a href="#7-estimated-1-rep-max" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The app estimates 1RM from eligible logged set loads and repetitions using its configured formula and valid repetition range. Bodyweight and assisted movements use effective-load rules; an estimate is not a guaranteed maximum or a safety assessment.</p>
+<ul class="doc-list">
+<li><a href="../intelligent-workouts/index.html">Estimated 1RM heuristics</a></li>
+</ul>
 <h3 id="8-workout-progression" class="doc-h3">8. Workout Progression<a href="#8-workout-progression" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The workout recommendation uses the most recent first working set to suggest the next first set, then derives later-set targets from the completed first set with a transparent fatigue back-off. The user can edit every generated value directly. <em>   </em>Learn more in the <a href="../workout-progression-engine/index.html"><strong>Workout Progression Documentation</strong></a>.*</p>
-<h3 id="9-live-activity-cross-platform-widgets" class="doc-h3">9. Live Activity & Cross-Platform Widgets<a href="#9-live-activity-cross-platform-widgets" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Real-time glanceable surfaces mirroring active workouts and daily wellness metrics: <em>   <strong>Workout Live Activity</strong>: iOS Lock Screen and Dynamic Island card displaying live set targets, active rest timers, and exercise navigation without background network polling. </em>   <strong>Home Screen Widgets</strong>: Shared Dart snapshot engine delivering six glanceable widgets (Today Glance, Quick Actions, Steps, Measurements, Muscle Recovery, Last Workout) on both iOS 18+ and Android 12+. <em>   </em>Learn more in the <a href="../live-activity-workout/index.html"><strong>Live Activity Documentation</strong></a> and <a href="../../developer/ios-home-screen-widgets/index.html"><strong>Home Screen Widgets Guide</strong></a>.*</p>
+<p>When enabled, the progression feature evaluates eligible recent performance and proposes set targets under the current simple progression policy. The user can review or edit the proposed values; eligibility and load mode affect the result.</p>
+<ul class="doc-list">
+<li><a href="../workout-progression-engine/index.html">Workout progression engine</a></li>
+</ul>
+<h3 id="9-live-activity-and-widgets" class="doc-h3">9. Live Activity and Widgets<a href="#9-live-activity-and-widgets" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>iOS provides a workout Live Activity; Android uses its workout notification surfaces and platform-supported live-update behavior. Home-screen widgets are a separate feature with platform-specific support and limits.</p>
+<ul class="doc-list">
+<li><a href="../live-activity-workout/index.html">Live Activity and workout notification behavior</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html">Home Screen Widgets</a></li>
+</ul>
 <h3 id="10-adaptive-nutrition-goals" class="doc-h3">10. Adaptive Nutrition Goals<a href="#10-adaptive-nutrition-goals" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Users can set a long-term weight goal from a recorded baseline and review its trajectory over time. Weekly reviews require sufficient weigh-ins and food logs before proposing calorie and macro changes. Recommendations remain proposals until the user applies them. <em>   </em>Learn more in the <a href="adaptive-nutrition-goals/"><strong>Adaptive Nutrition Goals Documentation</strong></a>.*</p>
+<p>Users set a goal and can receive periodic review proposals when the implementation’s data and compatibility gates pass. Proposals require user action before they change targets.</p>
+<ul class="doc-list">
+<li><a href="../adaptive-nutrition-goals/index.html">Adaptive Nutrition Goals</a></li>
+</ul>
 <h3 id="11-manual-workout-plans" class="doc-h3">11. Manual Workout Plans<a href="#11-manual-workout-plans" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Saved routines can be arranged as a fixed weekly schedule or a repeating 1–14 day sequence with rest days. Plans track completed, partial, and skipped sessions. Missed sequence sessions remain next until completed or skipped; optional local reminders open the active plan. <em>   </em>Learn more in the <a href="manual-workout-plans/"><strong>Manual Workout Plans Documentation</strong></a>.*</p>
+<p>Users can save routines as weekly schedules or repeating sequences, record session outcomes, and optionally schedule local reminders. Sequence advancement depends on the recorded outcome and plan rules.</p>
+<ul class="doc-list">
+<li><a href="../manual-workout-plans/index.html">Manual Workout Plans</a></li>
+</ul>
 <h3 id="12-macronutrient-analytics" class="doc-h3">12. Macronutrient Analytics<a href="#12-macronutrient-analytics" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The Statistics hub carries its selected date range into macro analytics, with period navigation, daily intake detail, and a rolling seven-day intake-versus-target comparison in Nutrition. <em>   </em>Learn more in the <a href="macro-analytics/"><strong>Macronutrient Analytics Documentation</strong></a>.*</p>
+<p>The Statistics hub passes a selected date range to macro analytics, which displays logged intake and comparison summaries. A displayed target can differ from the active diary target when a recommendation has not been applied.</p>
+<ul class="doc-list">
+<li><a href="../macro-analytics/index.html">Macronutrient Analytics</a></li>
+</ul>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
 <a href="../../index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Documentation Suite Overview</span></a>
-<a href="../sleep-scoring-engine/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Sleep Health Score (SHS v3.5)</span></a>
+<a href="../sleep-scoring-engine/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Sleep Health Score (SHS v3)</span></a>
 </nav>
       </main>
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#architectural-privacy-invariants">Architectural Privacy Invariants</a></li>
-<li class="toc-item toc-item-l2"><a href="#smart-capabilities-overview">Smart Capabilities Overview</a></li>
-<li class="toc-item toc-item-l3"><a href="#1-bayesian-tdee-estimator">1. Bayesian TDEE Estimator</a></li>
+<li class="toc-item toc-item-l2"><a href="#data-boundaries">Data boundaries</a></li>
+<li class="toc-item toc-item-l3"><a href="#local-calculations-and-records">Local calculations and records</a></li>
+<li class="toc-item toc-item-l3"><a href="#optional-connections">Optional connections</a></li>
+<li class="toc-item toc-item-l3"><a href="#optional-usage-telemetry">Optional usage telemetry</a></li>
+<li class="toc-item toc-item-l2"><a href="#feature-directory">Feature directory</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-bayesian-tdee-estimate-and-adaptive-calorie-target">1. Bayesian TDEE Estimate and Adaptive Calorie Target</a></li>
 <li class="toc-item toc-item-l3"><a href="#2-macronutrient-distribution">2. Macronutrient Distribution</a></li>
-<li class="toc-item toc-item-l3"><a href="#3-byok-ai-meal-capture-validation">3. BYOK AI Meal Capture &amp; Validation</a></li>
-<li class="toc-item toc-item-l3"><a href="#4-native-health-sync-export">4. Native Health Sync &amp; Export</a></li>
-<li class="toc-item toc-item-l3"><a href="#5-sleep-health-score-engine-shs-v35">5. Sleep Health Score Engine (SHS v3.5)</a></li>
-<li class="toc-item toc-item-l3"><a href="#6-muscle-recovery-model">6. Muscle Recovery Model</a></li>
-<li class="toc-item toc-item-l3"><a href="#7-estimated-1-rep-max-1rm-heuristics">7. Estimated 1-Rep Max (1RM) Heuristics</a></li>
+<li class="toc-item toc-item-l3"><a href="#3-meal-capture-and-byok-ai-validation">3. Meal Capture and BYOK AI Validation</a></li>
+<li class="toc-item toc-item-l3"><a href="#4-health-sync-and-export">4. Health Sync and Export</a></li>
+<li class="toc-item toc-item-l3"><a href="#5-sleep-health-score-shs-v3">5. Sleep Health Score (SHS v3)</a></li>
+<li class="toc-item toc-item-l3"><a href="#6-muscle-recovery-estimate">6. Muscle Recovery Estimate</a></li>
+<li class="toc-item toc-item-l3"><a href="#7-estimated-1-rep-max">7. Estimated 1-Rep Max</a></li>
 <li class="toc-item toc-item-l3"><a href="#8-workout-progression">8. Workout Progression</a></li>
-<li class="toc-item toc-item-l3"><a href="#9-live-activity-cross-platform-widgets">9. Live Activity &amp; Cross-Platform Widgets</a></li>
+<li class="toc-item toc-item-l3"><a href="#9-live-activity-and-widgets">9. Live Activity and Widgets</a></li>
 <li class="toc-item toc-item-l3"><a href="#10-adaptive-nutrition-goals">10. Adaptive Nutrition Goals</a></li>
 <li class="toc-item toc-item-l3"><a href="#11-manual-workout-plans">11. Manual Workout Plans</a></li>
 <li class="toc-item toc-item-l3"><a href="#12-macronutrient-analytics">12. Macronutrient Analytics</a></li>
