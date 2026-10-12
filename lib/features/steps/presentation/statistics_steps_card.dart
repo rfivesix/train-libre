@@ -37,6 +37,7 @@ class StatisticsStepsCard extends StatelessWidget {
     final numberFormat = NumberFormat.decimalPattern();
 
     return SummaryCard(
+      margin: EdgeInsets.zero,
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(DesignConstants.spacingL),

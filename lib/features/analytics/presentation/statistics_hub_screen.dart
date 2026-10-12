@@ -168,9 +168,6 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
       animation: _viewModel,
       builder: (context, _) {
         final l10n = AppLocalizations.of(context)!;
-        if (_viewModel.isColdStart && !_viewModel.isLoadingColdStart) {
-          return const SizedBox.shrink();
-        }
         return _StatisticsHubScreenView(
           showAllData: widget.showAllData,
           pinnedCards: _pinnedCards,
@@ -408,6 +405,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     return SummaryCard(
+      margin: EdgeInsets.zero,
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => StatisticsHubScreen(
@@ -869,6 +867,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => SummaryCard(
           key: const Key('statistics_measurements_link_card'),
+          margin: EdgeInsets.zero,
           onTap: () {
             Navigator.of(context).push(
               CardMorphRoute(

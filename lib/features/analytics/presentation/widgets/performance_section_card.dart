@@ -62,6 +62,7 @@ class PerformanceSectionCard extends StatelessWidget {
       context,
       state: state,
       child: SummaryCard(
+        margin: EdgeInsets.zero,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(DesignConstants.spacingL),
