@@ -2,6 +2,8 @@
 
 Create a reusable exercise template, set targets and rest times, then start a workout from it.
 
+You can also prepare a routine with an AI assistant using the [AI routine guide](ai_workout_routines.md). It uses the same JSON import format as shared routines and the [OpenExerciseDB exercise search](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and [machine-readable catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) for exact exercise IDs.
+
 ## Create a routine
 
 1. Open **Workout** and tap **New Routine**. If this is your first routine, you can also use **Create First Routine** in the empty state.

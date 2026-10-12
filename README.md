@@ -152,6 +152,8 @@ Train Libre is built with Flutter and natively supports:
 
 This project features a comprehensive, modular documentation suite split by target audience and component. Use the links below to access the technical resources:
 
+For AI-assisted routine creation, see the [public AI routine guide](https://trainlibre.com/docs/user-guide/ai-workout-routines/). It uses Train Libre’s existing JSON import format and the [OpenExerciseDB search page](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and [JSON catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) for exact exercise IDs.
+
 ### Developer Resources
 *   [Developer Documentation](documentation/developer/overview.md): Repository map, contributor checks, and implementation guides.
 *   [System Architecture & Database Lifecycle](documentation/developer/architecture.md): Startup wiring, database ownership, migrations, and backup boundaries.

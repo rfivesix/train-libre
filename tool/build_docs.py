@@ -237,6 +237,15 @@ DOCS_STRUCTURE = [
                 "desc": "Create reusable workout routines, organize exercises, and update saved templates."
             },
             {
+                "id": "user-guide-ai-workout-routines",
+                "title": "Create a workout routine with an AI assistant",
+                "slug": "ai-workout-routines",
+                "src_file": SRC_DOC_DIR / "user_guide" / "ai_workout_routines.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-workout-routines",
+                "url": "/docs/user-guide/ai-workout-routines/",
+                "desc": "Find matching catalog exercises and prepare importable routine JSON with an AI assistant."
+            },
+            {
                 "id": "user-guide-exercise-catalog",
                 "title": "Find and create exercises",
                 "slug": "exercise-catalog",

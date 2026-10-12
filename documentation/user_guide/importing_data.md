@@ -30,6 +30,8 @@ You can also choose **Restore from Backup** on the welcome screen during onboard
 
 The Data Hub can also import an individual routine, training plan, recipe, or workout from Train Libre JSON content.
 
+AI-generated routines use this same existing JSON import format; no special AI import is required. For exercise matching, the [OpenExerciseDB search page](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and [JSON catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) provide IDs to copy exactly into routine exercise `uuid` fields. Follow the [AI routine guide](ai_workout_routines.md) for the format, matching rules, and a valid example.
+
 1. In the Data Hub, choose **Import shared JSON file** to select a `.json` file, or choose **Paste JSON text** to paste the complete Train Libre JSON content.
 2. Review the preview and confirm with **Import to Train Libre**.
 

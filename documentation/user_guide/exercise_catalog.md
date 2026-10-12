@@ -2,6 +2,8 @@
 
 Use the Exercise Catalog to search and filter exercises, review their details, or create your own custom exercise.
 
+When preparing an AI-generated routine, use the external [OpenExerciseDB exercise search](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) or its [machine-readable JSON catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) to verify canonical names and IDs. See the [AI routine guide](ai_workout_routines.md) for how those IDs map to routine `uuid` fields; Train Libre’s in-app Exercise Catalog remains the place to browse exercises installed in the app.
+
 ## Find an exercise
 
 1. Open **Workout**, scroll past **All routines**, and tap **Exercise Catalog**. If the catalog is not available yet, follow the on-screen prompt to download its database.

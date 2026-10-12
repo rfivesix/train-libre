@@ -6,6 +6,8 @@ This suite has three sections for different readers. Use the [public documentati
 
 For people using the app who need task-based instructions, including workouts, plans, nutrition, statistics, notifications, health data, and backups, start with the [User Guide overview](user_guide/overview.md).
 
+For AI-assisted routines, see [Create a workout routine with an AI assistant](user_guide/ai_workout_routines.md) or its [public guide page](https://trainlibre.com/docs/user-guide/ai-workout-routines/). It uses the existing routine import format and the [OpenExerciseDB exercise search](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and [JSON catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) for exercise IDs.
+
 ## Features & Heuristics
 
 These pages explain how user-facing features work, what inputs and rules they use, and where their limitations are. They are not step-by-step user instructions or developer implementation guides. Start with [Feature Capabilities and Privacy Boundaries](features/overview.md), then choose a topic:
