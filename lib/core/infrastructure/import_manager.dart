@@ -71,7 +71,9 @@ class ImportManager {
       // 1. Select file
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['csv', 'xlsx'],
+        // Some share sheets / file providers expose Hevy's CSV export as .txt.
+        // Its contents are still CSV, so accept the alternate extension here.
+        allowedExtensions: ['csv', 'txt', 'xlsx'],
       );
 
       if (result.isEmpty || result.single.path == null) return -2;
@@ -243,7 +245,7 @@ class ImportManager {
     List<List<dynamic>> rows = [];
 
     try {
-      if (extension == 'csv') {
+      if (extension == 'csv' || extension == 'txt') {
         final content = utf8.decode(bytes);
         rows = csv.decode(content);
       } else if (extension == 'xlsx') {

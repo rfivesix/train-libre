@@ -3574,6 +3574,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statisticsSectionBody => 'Body';
 
   @override
+  String get statisticsEditCardsTitle => 'Edit Statistics';
+
+  @override
+  String get statisticsPinnedTitle => 'Pinned';
+
+  @override
+  String get statisticsAddCardsTitle => 'More Statistics';
+
+  @override
+  String get statisticsActivityCategory => 'Activity';
+
+  @override
+  String get statisticsPinnedEmptyHint =>
+      'Add statistics below to show them here.';
+
+  @override
+  String get statisticsAllDataTitle => 'All Data';
+
+  @override
+  String get statisticsAllDataAction => 'Show All Data';
+
+  @override
+  String get statisticsRemoveCard => 'Remove statistic';
+
+  @override
   String get statisticsEnableStepTrackingHint =>
       'Enable step tracking in Settings';
 

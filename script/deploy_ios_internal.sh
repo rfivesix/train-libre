@@ -43,7 +43,7 @@ echo "Uploading archive to App Store Connect / TestFlight..."
 (cd ios && bundle exec fastlane upload_beta)
 
 NEXT_BUILD_NUMBER=$((BUILD_NUMBER + 1))
-python3 - "$VERSION_NUMBER" "$NEXT_BUILD_NUMBER" <<'PY'
+python3 - "$IOS_BUILD_NAME" "$NEXT_BUILD_NUMBER" <<'PY'
 from pathlib import Path
 import re
 import sys

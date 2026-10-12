@@ -3617,6 +3617,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statisticsSectionBody => 'Corpo';
 
   @override
+  String get statisticsEditCardsTitle => 'Modifica statistiche';
+
+  @override
+  String get statisticsPinnedTitle => 'In evidenza';
+
+  @override
+  String get statisticsAddCardsTitle => 'Altre statistiche';
+
+  @override
+  String get statisticsActivityCategory => 'Attività';
+
+  @override
+  String get statisticsPinnedEmptyHint =>
+      'Aggiungi qui sotto le statistiche da visualizzare.';
+
+  @override
+  String get statisticsAllDataTitle => 'Tutti i dati';
+
+  @override
+  String get statisticsAllDataAction => 'Mostra tutti i dati';
+
+  @override
+  String get statisticsRemoveCard => 'Rimuovi statistica';
+
+  @override
   String get statisticsEnableStepTrackingHint =>
       'Abilita il monitoraggio dei passi nelle Impostazioni';
 

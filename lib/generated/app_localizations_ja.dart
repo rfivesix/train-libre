@@ -3475,6 +3475,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statisticsSectionBody => '体';
 
   @override
+  String get statisticsEditCardsTitle => '統計を編集';
+
+  @override
+  String get statisticsPinnedTitle => 'ピン留め済み';
+
+  @override
+  String get statisticsAddCardsTitle => 'その他の統計';
+
+  @override
+  String get statisticsActivityCategory => 'アクティビティ';
+
+  @override
+  String get statisticsPinnedEmptyHint => 'ここに表示する統計を下から追加してください。';
+
+  @override
+  String get statisticsAllDataTitle => 'すべてのデータ';
+
+  @override
+  String get statisticsAllDataAction => 'すべてのデータを表示';
+
+  @override
+  String get statisticsRemoveCard => '統計を削除';
+
+  @override
   String get statisticsEnableStepTrackingHint => '設定で歩数追跡を有効にする';
 
   @override

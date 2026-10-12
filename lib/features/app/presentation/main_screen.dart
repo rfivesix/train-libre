@@ -34,6 +34,7 @@ import '../../workout/presentation/workout_morph_route.dart';
 import '../../diary/presentation/nutrition_hub_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../analytics/presentation/statistics_hub_screen.dart';
+import '../../analytics/presentation/statistics_hub_edit_screen.dart';
 import '../../workout/presentation/workout_hub_screen.dart';
 import '../../workout/presentation/widgets/workout_history_app_bar_button.dart';
 import '../../../services/profile_service.dart';
@@ -1166,7 +1167,59 @@ class _MainScreenState extends State<MainScreen>
         }
         return GlobalAppBar(
           title: l10n.statistics,
-          actions: [_profileAppBarButton(context)],
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(
+                right: DesignConstants.spacingS,
+              ),
+              child: Center(
+                child: Tooltip(
+                  excludeFromSemantics: true,
+                  message: l10n.statisticsEditCardsTitle,
+                  child: Semantics(
+                    label: l10n.statisticsEditCardsTitle,
+                    button: true,
+                    child: SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: Material(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          splashColor: Theme.of(context)
+                              .colorScheme
+                              .surface
+                              .withValues(alpha: 0.15),
+                          highlightColor: Theme.of(context)
+                              .colorScheme
+                              .surface
+                              .withValues(alpha: 0.08),
+                          onTap: () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const StatisticsHubEditScreen(),
+                              ),
+                            );
+                            await _statsKey.currentState?.reloadPinnedCards();
+                          },
+                          child: Center(
+                            child: Icon(
+                              LucideIcons.sliders_horizontal,
+                              size: 20,
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            _profileAppBarButton(context),
+          ],
           bottom: _statsKey.currentState?.buildPinnedTimeframeFilter(context),
         );
       case 3: // Nutrition Hub

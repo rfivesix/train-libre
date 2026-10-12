@@ -105,7 +105,6 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
     if (matches.isNotEmpty && mounted) {
       setState(() {
         _suggestions[name] = matches.take(4).toList();
-        if (!_selection.containsKey(name)) _selection[name] = matches.first;
       });
     }
   }

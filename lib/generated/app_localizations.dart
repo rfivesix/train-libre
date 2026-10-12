@@ -6347,6 +6347,54 @@ abstract class AppLocalizations {
   /// **'Body'**
   String get statisticsSectionBody;
 
+  /// No description provided for @statisticsEditCardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Statistics'**
+  String get statisticsEditCardsTitle;
+
+  /// No description provided for @statisticsPinnedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get statisticsPinnedTitle;
+
+  /// No description provided for @statisticsAddCardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More Statistics'**
+  String get statisticsAddCardsTitle;
+
+  /// No description provided for @statisticsActivityCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get statisticsActivityCategory;
+
+  /// No description provided for @statisticsPinnedEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add statistics below to show them here.'**
+  String get statisticsPinnedEmptyHint;
+
+  /// No description provided for @statisticsAllDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All Data'**
+  String get statisticsAllDataTitle;
+
+  /// No description provided for @statisticsAllDataAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show All Data'**
+  String get statisticsAllDataAction;
+
+  /// No description provided for @statisticsRemoveCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove statistic'**
+  String get statisticsRemoveCard;
+
   /// No description provided for @statisticsEnableStepTrackingHint.
   ///
   /// In en, this message translates to:
