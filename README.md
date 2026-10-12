@@ -148,6 +148,13 @@ Train Libre is built with Flutter and natively supports:
 - **Open-Source Transparency:** Trust through public code and understandable data flows.
 - **On-Device & User-Controlled AI:** On-device Apple Foundation Models run 100% locally on your Neural Engine with zero network requests. Optional cloud AI features require your own API key (BYOK); no data is sent to external providers without explicit configuration and opt-in.
 
+## Feedback & Community
+
+- **Found a bug?** [Open a bug report](https://github.com/rfivesix/train-libre/issues/new?template=bug_report.yml) with the steps to reproduce it. Please remove API keys, personal information, and private health data from screenshots or logs.
+- **Have an idea?** Start a [Discussion](https://github.com/rfivesix/train-libre/discussions/categories/ideas) first so the community can shape it before it becomes implementation work.
+- **Have a question or want to share how you use Train Libre?** Visit [Discussions](https://github.com/rfivesix/train-libre/discussions).
+- **Ready to propose a well-defined feature?** Use the [feature request form](https://github.com/rfivesix/train-libre/issues/new?template=feature_request.yml).
+
 ## Documentation
 
 This project features a comprehensive, modular documentation suite split by target audience and component. Use the links below to access the technical resources:

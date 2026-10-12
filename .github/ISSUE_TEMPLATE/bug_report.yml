@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible problem in Train Libre.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Please search existing issues before submitting. Never include API keys,
+        passwords, personal information, or private health data in an issue,
+        screenshot, or log.
+  - type: input
+    id: app-version
+    attributes:
+      label: Train Libre version
+      description: Find this in the app's About screen.
+      placeholder: e.g. 1.6.0-beta.1
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android
+        - iOS
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected to happen.
+      placeholder: Tell us what you saw and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: List the steps that reliably trigger the problem.
+      placeholder: |
+        1. Open …
+        2. Tap …
+        3. Observe …
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or logs
+      description: Optional. Remove personal or sensitive information before posting.
+    validations:
+      required: false
