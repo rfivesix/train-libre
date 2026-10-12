@@ -197,18 +197,24 @@ class WorkoutProgressionService {
     }
     if (sessions.isEmpty) return null;
 
-    final latest = sessions.values.reduce((left, right) {
-      final leftDate = left
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      final rightDate = right
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      return leftDate.isAfter(rightDate) ? left : right;
-    });
-    latest.sort((left, right) {
+    // BOLT OPTIMIZATION: Track the latest session in a single pass without map allocations or redundant reduce loops.
+    List<SetLog>? latest;
+    DateTime maxGlobalDate = DateTime.fromMillisecondsSinceEpoch(0);
+
+    for (final session in sessions.values) {
+      DateTime latestSessionDate = DateTime.fromMillisecondsSinceEpoch(0);
+      for (final set in session) {
+        final date = set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        if (date.isAfter(latestSessionDate)) {
+          latestSessionDate = date;
+        }
+      }
+      if (latest == null || latestSessionDate.isAfter(maxGlobalDate)) {
+        maxGlobalDate = latestSessionDate;
+        latest = session;
+      }
+    }
+    latest!.sort((left, right) {
       final order = (left.logOrder ?? 0).compareTo(right.logOrder ?? 0);
       return order != 0 ? order : (left.id ?? 0).compareTo(right.id ?? 0);
     });
