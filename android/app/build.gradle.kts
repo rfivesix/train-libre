@@ -88,7 +88,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     // 1.16 is the first release carrying setRequestPromotedOngoing, which the
     // workout Live Update needs on Android 16.
-    implementation("androidx.core:core-ktx:1.18.0")
+    implementation("androidx.core:core-ktx:1.19.1")
 
     // Compose, for the three widget configuration Activities only.
     // Pinned rather than tracking the newest BOM: Compose 1.12 wants AGP 9.1 and
