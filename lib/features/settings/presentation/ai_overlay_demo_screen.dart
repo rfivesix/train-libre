@@ -23,6 +23,7 @@ class AiOverlayDemoScreen extends StatefulWidget {
 
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   bool? _accessApproved;
+  double _cloudLiveliness = 0.275;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +65,9 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
           DraggableAiCloud(
             semanticLabel: l10n.developerAiOverlayDemoTitle,
             semanticHint: l10n.aiOverlayDemoCloudHint,
+            liveliness: _cloudLiveliness,
+            onLivelinessChanged: (value) =>
+                setState(() => _cloudLiveliness = value),
           ),
         ],
       ),

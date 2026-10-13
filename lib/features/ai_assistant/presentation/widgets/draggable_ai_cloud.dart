@@ -12,11 +12,15 @@ import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 class DraggableAiCloud extends StatefulWidget {
   final String semanticLabel;
   final String semanticHint;
+  final double liveliness;
+  final ValueChanged<double> onLivelinessChanged;
 
   const DraggableAiCloud({
     super.key,
     required this.semanticLabel,
     required this.semanticHint,
+    required this.liveliness,
+    required this.onLivelinessChanged,
   });
 
   @override
@@ -234,6 +238,7 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
           panelRect.left + panelRect.width * _safeRight,
           panelRect.top + panelRect.height * _safeBottom,
         );
+        const handleOutset = 36.0;
         final cloudCenter = Offset(left + _cloudSize / 2, top + _cloudSize / 2);
         final morphAnimation = _morphAnimation;
         final theme = Theme.of(context);
@@ -255,7 +260,7 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
                   flowSpeed: _isDragging
                       ? 1.55
                       : _isExpanded
-                          ? 0.55
+                          ? 2.0 * widget.liveliness.clamp(0.0, 1.0)
                           : 0.24,
                   enableInteraction: false,
                 ),
@@ -317,27 +322,28 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
                 },
               ),
             ),
+            _buildLivelinessControl(safeRect, theme),
             _buildResizeHandle(
               _SafeSpaceCorner.topLeft,
-              safeRect.topLeft,
+              safeRect.topLeft + const Offset(-handleOutset, -handleOutset),
               panelRect.size,
               theme,
             ),
             _buildResizeHandle(
               _SafeSpaceCorner.topRight,
-              safeRect.topRight,
+              safeRect.topRight + const Offset(handleOutset, -handleOutset),
               panelRect.size,
               theme,
             ),
             _buildResizeHandle(
               _SafeSpaceCorner.bottomLeft,
-              safeRect.bottomLeft,
+              safeRect.bottomLeft + const Offset(-handleOutset, handleOutset),
               panelRect.size,
               theme,
             ),
             _buildResizeHandle(
               _SafeSpaceCorner.bottomRight,
-              safeRect.bottomRight,
+              safeRect.bottomRight + const Offset(handleOutset, handleOutset),
               panelRect.size,
               theme,
             ),
@@ -377,6 +383,64 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLivelinessControl(Rect safeRect, ThemeData theme) {
+    final contrastColor =
+        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+
+    return Positioned(
+      left: safeRect.left + DesignConstants.spacingS,
+      right: MediaQuery.sizeOf(context).width -
+          safeRect.right +
+          DesignConstants.spacingS,
+      top: safeRect.bottom - 88,
+      child: IgnorePointer(
+        ignoring: !_isExpanded,
+        child: FadeTransition(
+          opacity: _morphAnimation,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Wolken-Lebhaftigkeit',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: contrastColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${(widget.liveliness * 100).round()}%',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: contrastColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: contrastColor,
+                  inactiveTrackColor: contrastColor.withValues(alpha: 0.28),
+                  thumbColor: contrastColor,
+                  overlayColor: contrastColor.withValues(alpha: 0.12),
+                  trackHeight: 2.5,
+                ),
+                child: Slider(
+                  value: widget.liveliness.clamp(0.0, 1.0).toDouble(),
+                  onChanged: widget.onLivelinessChanged,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
