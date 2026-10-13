@@ -23,7 +23,8 @@ class DraggableAiCloud extends StatefulWidget {
   State<DraggableAiCloud> createState() => _DraggableAiCloudState();
 }
 
-class _DraggableAiCloudState extends State<DraggableAiCloud> {
+class _DraggableAiCloudState extends State<DraggableAiCloud>
+    with TickerProviderStateMixin {
   static const _horizontalInset = DesignConstants.spacingL;
   static const _cloudSize = 160.0;
   static const _visibleEdge = 64.0;
@@ -37,6 +38,83 @@ class _DraggableAiCloudState extends State<DraggableAiCloud> {
   double _rotationRadians = 0;
   double _scale = 1;
   bool _isDragging = false;
+  bool _isExpanded = false;
+  double _safeLeft = 0.14;
+  double _safeTop = 0.10;
+  double _safeRight = 0.86;
+  double _safeBottom = 0.90;
+  AnimationController? _morphController;
+
+  AnimationController get _morphAnimation =>
+      _morphController ??= AnimationController(
+          vsync: this, duration: const Duration(milliseconds: 760));
+
+  @override
+  void dispose() {
+    _morphController?.dispose();
+    super.dispose();
+  }
+
+  void _toggleExpanded() {
+    final expanding = !_isExpanded;
+    setState(() {
+      _isExpanded = expanding;
+      _isDragging = false;
+      _rotationRadians = 0;
+      _scale = 1;
+    });
+    if (expanding) {
+      _morphAnimation.forward();
+    } else {
+      _morphAnimation.reverse();
+    }
+  }
+
+  void _resizeSafeSpace(
+    _SafeSpaceCorner corner,
+    DragUpdateDetails details,
+    Size size,
+  ) {
+    if (size.width <= 0 || size.height <= 0) return;
+    final dx = details.delta.dx / size.width;
+    final dy = details.delta.dy / size.height;
+    const minWidth = 0.34;
+    const minHeight = 0.42;
+    const edgeInset = 0.04;
+
+    setState(() {
+      switch (corner) {
+        case _SafeSpaceCorner.topLeft:
+          _safeLeft = (_safeLeft + dx)
+              .clamp(edgeInset, _safeRight - minWidth)
+              .toDouble();
+          _safeTop = (_safeTop + dy)
+              .clamp(edgeInset, _safeBottom - minHeight)
+              .toDouble();
+        case _SafeSpaceCorner.topRight:
+          _safeRight = (_safeRight + dx)
+              .clamp(_safeLeft + minWidth, 1 - edgeInset)
+              .toDouble();
+          _safeTop = (_safeTop + dy)
+              .clamp(edgeInset, _safeBottom - minHeight)
+              .toDouble();
+        case _SafeSpaceCorner.bottomLeft:
+          _safeLeft = (_safeLeft + dx)
+              .clamp(edgeInset, _safeRight - minWidth)
+              .toDouble();
+          _safeBottom = (_safeBottom + dy)
+              .clamp(_safeTop + minHeight, 1 - edgeInset)
+              .toDouble();
+        case _SafeSpaceCorner.bottomRight:
+          _safeRight = (_safeRight + dx)
+              .clamp(_safeLeft + minWidth, 1 - edgeInset)
+              .toDouble();
+          _safeBottom = (_safeBottom + dy)
+              .clamp(_safeTop + minHeight, 1 - edgeInset)
+              .toDouble();
+      }
+    });
+  }
 
   void _handleDragStart({
     required double initialHorizontalPosition,
@@ -84,6 +162,8 @@ class _DraggableAiCloudState extends State<DraggableAiCloud> {
   }
 
   void _handleDragEnd({required double minLeft, required double maxLeft}) {
+    if (_isExpanded) return;
+
     setState(() {
       final position = _horizontalPosition;
       if (position != null) {
@@ -105,6 +185,8 @@ class _DraggableAiCloudState extends State<DraggableAiCloud> {
     final mediaQuery = MediaQuery.of(context);
     final bottomInset = mediaQuery.padding.bottom + DesignConstants.spacingL;
     final topBoundary = mediaQuery.padding.top + kToolbarHeight + _topGap;
+    final panelTop =
+        mediaQuery.padding.top + kToolbarHeight + DesignConstants.spacingS;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -137,10 +219,48 @@ class _DraggableAiCloudState extends State<DraggableAiCloud> {
         final verticalPosition =
             (_verticalPosition ?? 1.0).clamp(0.0, 1.0).toDouble();
         final top = maxTop - verticalPosition * verticalTravelDistance;
+        final viewportSize = Size(width, constraints.maxHeight);
+        final panelRect = Rect.fromLTRB(
+          DesignConstants.spacingS,
+          panelTop,
+          width - DesignConstants.spacingS,
+          constraints.maxHeight -
+              mediaQuery.padding.bottom -
+              DesignConstants.spacingS,
+        );
+        final safeRect = Rect.fromLTRB(
+          panelRect.left + panelRect.width * _safeLeft,
+          panelRect.top + panelRect.height * _safeTop,
+          panelRect.left + panelRect.width * _safeRight,
+          panelRect.top + panelRect.height * _safeBottom,
+        );
+        final cloudCenter = Offset(left + _cloudSize / 2, top + _cloudSize / 2);
+        final morphAnimation = _morphAnimation;
+        final theme = Theme.of(context);
 
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            _buildExpandedBackdrop(panelRect, theme),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AiNeuralCloudOrbWidget(
+                  size: _cloudSize * _scale,
+                  rotation: _rotationRadians,
+                  canvasSize: viewportSize,
+                  cloudCenter: cloudCenter,
+                  frameRect: safeRect,
+                  frameMorphAnimation: morphAnimation,
+                  showDetachedSatellite: false,
+                  flowSpeed: _isDragging
+                      ? 1.55
+                      : _isExpanded
+                          ? 0.55
+                          : 0.24,
+                  enableInteraction: false,
+                ),
+              ),
+            ),
             AnimatedPositioned(
               duration: _isDragging
                   ? Duration.zero
@@ -148,46 +268,172 @@ class _DraggableAiCloudState extends State<DraggableAiCloud> {
               curve: Curves.easeOutCubic,
               left: left,
               top: top,
-              child: Semantics(
-                label: widget.semanticLabel,
-                hint: widget.semanticHint,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onPanStart: (_) => _handleDragStart(
-                    initialHorizontalPosition: defaultPosition,
-                    initialVerticalPosition: verticalPosition,
-                  ),
-                  onPanUpdate: (details) => _handleDragUpdate(
-                    details,
-                    horizontalTravelDistance: travelDistance,
-                    verticalTravelDistance: verticalTravelDistance,
-                  ),
-                  onPanEnd: (_) =>
-                      _handleDragEnd(minLeft: minLeft, maxLeft: maxLeft),
-                  onPanCancel: () =>
-                      _handleDragEnd(minLeft: minLeft, maxLeft: maxLeft),
-                  child: AnimatedRotation(
-                    turns: _rotationRadians / (2 * math.pi),
-                    duration: const Duration(milliseconds: 110),
-                    curve: Curves.easeOut,
-                    child: AnimatedScale(
-                      scale: _scale,
-                      duration: const Duration(milliseconds: 130),
-                      curve: Curves.easeOutBack,
-                      child: AiNeuralCloudOrbWidget(
-                        size: _cloudSize,
-                        showDetachedSatellite: false,
-                        flowSpeed: _isDragging ? 1.55 : 0.24,
-                        enableInteraction: false,
+              child: AnimatedBuilder(
+                animation: morphAnimation,
+                builder: (context, child) {
+                  return IgnorePointer(
+                    ignoring: morphAnimation.value > 0.001,
+                    child: Semantics(
+                      label: widget.semanticLabel,
+                      hint: widget.semanticHint,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: morphAnimation.value > 0.001
+                            ? null
+                            : _toggleExpanded,
+                        onPanStart: morphAnimation.value > 0.001
+                            ? null
+                            : (_) => _handleDragStart(
+                                  initialHorizontalPosition: defaultPosition,
+                                  initialVerticalPosition: verticalPosition,
+                                ),
+                        onPanUpdate: morphAnimation.value > 0.001
+                            ? null
+                            : (details) => _handleDragUpdate(
+                                  details,
+                                  horizontalTravelDistance: travelDistance,
+                                  verticalTravelDistance:
+                                      verticalTravelDistance,
+                                ),
+                        onPanEnd: morphAnimation.value > 0.001
+                            ? null
+                            : (_) => _handleDragEnd(
+                                  minLeft: minLeft,
+                                  maxLeft: maxLeft,
+                                ),
+                        onPanCancel: morphAnimation.value > 0.001
+                            ? null
+                            : () => _handleDragEnd(
+                                  minLeft: minLeft,
+                                  maxLeft: maxLeft,
+                                ),
+                        child: const SizedBox(
+                          width: _cloudSize,
+                          height: _cloudSize,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
+            ),
+            _buildResizeHandle(
+              _SafeSpaceCorner.topLeft,
+              safeRect.topLeft,
+              panelRect.size,
+              theme,
+            ),
+            _buildResizeHandle(
+              _SafeSpaceCorner.topRight,
+              safeRect.topRight,
+              panelRect.size,
+              theme,
+            ),
+            _buildResizeHandle(
+              _SafeSpaceCorner.bottomLeft,
+              safeRect.bottomLeft,
+              panelRect.size,
+              theme,
+            ),
+            _buildResizeHandle(
+              _SafeSpaceCorner.bottomRight,
+              safeRect.bottomRight,
+              panelRect.size,
+              theme,
             ),
           ],
         );
       },
     );
   }
+
+  Widget _buildExpandedBackdrop(Rect panelRect, ThemeData theme) {
+    final scrimColor =
+        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+
+    return Positioned.fill(
+      child: AnimatedBuilder(
+        animation: _morphAnimation,
+        builder: (context, _) {
+          final progress = _morphAnimation.value;
+          return IgnorePointer(
+            ignoring: progress <= 0.001,
+            child: Stack(
+              children: [
+                Positioned.fromRect(
+                  rect: panelRect,
+                  child: ColoredBox(
+                    color: scrimColor.withValues(alpha: 0.42 * progress),
+                  ),
+                ),
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _toggleExpanded,
+                    child: const ColoredBox(color: Colors.transparent),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildResizeHandle(
+    _SafeSpaceCorner corner,
+    Offset position,
+    Size size,
+    ThemeData theme,
+  ) {
+    const hitTargetSize = 40.0;
+    final handleColor = theme.colorScheme.primary;
+
+    return Positioned(
+      left: position.dx - hitTargetSize / 2,
+      top: position.dy - hitTargetSize / 2,
+      width: hitTargetSize,
+      height: hitTargetSize,
+      child: IgnorePointer(
+        ignoring: !_isExpanded,
+        child: FadeTransition(
+          opacity: _morphAnimation,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {},
+            onPanUpdate: (details) => _resizeSafeSpace(corner, details, size),
+            child: Center(
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: handleColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: theme.colorScheme.surface,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.28),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.open_in_full,
+                  size: 10,
+                  color: theme.colorScheme.onPrimary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+enum _SafeSpaceCorner { topLeft, topRight, bottomLeft, bottomRight }
