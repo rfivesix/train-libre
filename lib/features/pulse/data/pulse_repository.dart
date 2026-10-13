@@ -379,7 +379,12 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
       for (final bucket in buckets) {
         final localDate = bucket.bucketStartUtc.toLocal();
         final dayKey = DateTime(localDate.year, localDate.month, localDate.day);
-        bucketsByDay.putIfAbsent(dayKey, () => []).add(bucket);
+        var dayBuckets = bucketsByDay[dayKey];
+        if (dayBuckets == null) {
+          dayBuckets = [];
+          bucketsByDay[dayKey] = dayBuckets;
+        }
+        dayBuckets.add(bucket);
       }
 
       final sortedDays = bucketsByDay.keys.toList()..sort();
