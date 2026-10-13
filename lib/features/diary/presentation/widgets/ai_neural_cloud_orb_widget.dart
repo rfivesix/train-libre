@@ -635,7 +635,9 @@ class _OrganicLivingCloudPainter extends CustomPainter {
       frameBounds.bottomLeft,
     ];
     for (var index = 0; index < corners.length; index++) {
-      final sizeVariation = 1.08 + 0.09 * math.sin(index * 1.8 + 0.4);
+      // Slightly smaller corner lobes keep the expanded silhouette rounded
+      // instead of forming four oversized bumps.
+      final sizeVariation = 0.72 + 0.05 * math.sin(index * 1.8 + 0.4);
       _drawOrganicCloudPuff(
         canvas: canvas,
         paint: paint,

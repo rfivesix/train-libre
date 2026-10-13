@@ -238,15 +238,26 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
           panelRect.left + panelRect.width * _safeRight,
           panelRect.top + panelRect.height * _safeBottom,
         );
-        const handleOutset = 36.0;
+        const handleOutset = 44.0;
         final cloudCenter = Offset(left + _cloudSize / 2, top + _cloudSize / 2);
         final morphAnimation = _morphAnimation;
         final theme = Theme.of(context);
+        Offset handlePosition(Offset corner, Offset direction) => Offset(
+              (corner.dx + direction.dx * handleOutset)
+                  .clamp(28.0, width - 28.0)
+                  .toDouble(),
+              (corner.dy + direction.dy * handleOutset)
+                  .clamp(
+                    mediaQuery.padding.top + 28.0,
+                    constraints.maxHeight - mediaQuery.padding.bottom - 28.0,
+                  )
+                  .toDouble(),
+            );
 
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            _buildExpandedBackdrop(panelRect, theme),
+            _buildExpandedBackdrop(theme),
             Positioned.fill(
               child: IgnorePointer(
                 child: AiNeuralCloudOrbWidget(
@@ -325,25 +336,25 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
             _buildLivelinessControl(safeRect, theme),
             _buildResizeHandle(
               _SafeSpaceCorner.topLeft,
-              safeRect.topLeft + const Offset(-handleOutset, -handleOutset),
+              handlePosition(safeRect.topLeft, const Offset(-1, -1)),
               panelRect.size,
               theme,
             ),
             _buildResizeHandle(
               _SafeSpaceCorner.topRight,
-              safeRect.topRight + const Offset(handleOutset, -handleOutset),
+              handlePosition(safeRect.topRight, const Offset(1, -1)),
               panelRect.size,
               theme,
             ),
             _buildResizeHandle(
               _SafeSpaceCorner.bottomLeft,
-              safeRect.bottomLeft + const Offset(-handleOutset, handleOutset),
+              handlePosition(safeRect.bottomLeft, const Offset(-1, 1)),
               panelRect.size,
               theme,
             ),
             _buildResizeHandle(
               _SafeSpaceCorner.bottomRight,
-              safeRect.bottomRight + const Offset(handleOutset, handleOutset),
+              handlePosition(safeRect.bottomRight, const Offset(1, 1)),
               panelRect.size,
               theme,
             ),
@@ -353,7 +364,7 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
     );
   }
 
-  Widget _buildExpandedBackdrop(Rect panelRect, ThemeData theme) {
+  Widget _buildExpandedBackdrop(ThemeData theme) {
     final scrimColor =
         theme.brightness == Brightness.dark ? Colors.black : Colors.white;
 
@@ -366,10 +377,9 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
             ignoring: progress <= 0.001,
             child: Stack(
               children: [
-                Positioned.fromRect(
-                  rect: panelRect,
+                Positioned.fill(
                   child: ColoredBox(
-                    color: scrimColor.withValues(alpha: 0.42 * progress),
+                    color: scrimColor.withValues(alpha: 0.30 * progress),
                   ),
                 ),
                 Positioned.fill(
