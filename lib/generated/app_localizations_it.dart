@@ -661,7 +661,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get unitImperialLabel => 'Imperiale (libbre)';
 
   @override
-  String get excelExportButton => 'Esportazione in Excel (.xlsx)';
+  String get excelExportButton => 'Esportazione completa dei dati (.xlsx)';
 
   @override
   String get exportWorkoutHistory => 'Cronologia degli allenamenti';
@@ -2005,7 +2005,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dataManagementBackupDescription =>
-      'Esegui il backup o ripristina tutti i dati dell\'app. Ideale per cambiare dispositivo.';
+      'Esegui il backup o ripristina i dati Train Libre e le immagini di anteprima. Le foto originali restano su questo dispositivo.';
 
   @override
   String get exportEncrypted => 'Esporta crittografato';
@@ -2021,11 +2021,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get exportFailed => 'Esportazione non riuscita.';
 
   @override
-  String get csvExportTitle => 'Esportazione dati (CSV)';
+  String get csvExportTitle => 'Esportazione dati';
 
   @override
   String get csvExportDescription =>
-      'Esporta parti dei tuoi dati come file CSV per l\'analisi in altri programmi.';
+      'Esporta dati selezionati in file CSV oppure tutti i dati personali tabellari in una cartella di lavoro Excel. Per ripristinare i dati, usa un backup.';
 
   @override
   String get snackbarSharingNutrition => 'Condivido il diario nutrizionale...';

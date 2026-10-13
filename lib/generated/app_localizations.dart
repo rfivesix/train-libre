@@ -1289,7 +1289,7 @@ abstract class AppLocalizations {
   /// No description provided for @excelExportButton.
   ///
   /// In en, this message translates to:
-  /// **'Excel Export (.xlsx)'**
+  /// **'Complete Data Export (.xlsx)'**
   String get excelExportButton;
 
   /// No description provided for @exportWorkoutHistory.
@@ -3587,7 +3587,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataManagementBackupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Back up or restore all your app data. Ideal for changing devices.'**
+  /// **'Back up or restore your Train Libre records and preview images. Original photos stay on this device.'**
   String get dataManagementBackupDescription;
 
   /// No description provided for @exportEncrypted.
@@ -3617,13 +3617,13 @@ abstract class AppLocalizations {
   /// No description provided for @csvExportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Data Export (CSV)'**
+  /// **'Data Export'**
   String get csvExportTitle;
 
   /// No description provided for @csvExportDescription.
   ///
   /// In en, this message translates to:
-  /// **'Export parts of your data as a CSV file for analysis in other programs.'**
+  /// **'Export selected records as CSV files, or export all personal tabular data in one Excel workbook. Use a backup to restore data.'**
   String get csvExportDescription;
 
   /// No description provided for @snackbarSharingNutrition.

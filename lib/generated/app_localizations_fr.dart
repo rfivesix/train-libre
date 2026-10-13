@@ -665,7 +665,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unitImperialLabel => 'Impérial (lbs)';
 
   @override
-  String get excelExportButton => 'Exportation Excel (.xlsx)';
+  String get excelExportButton => 'Export complet des données (.xlsx)';
 
   @override
   String get exportWorkoutHistory => 'Historique d\'entraînement';
@@ -2016,7 +2016,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataManagementBackupDescription =>
-      'Sauvegardez ou restaurez toutes les données de votre application. Idéal pour changer d\'appareil.';
+      'Sauvegardez ou restaurez vos données Train Libre et leurs aperçus. Les photos originales restent sur cet appareil.';
 
   @override
   String get exportEncrypted => 'Exporter crypté';
@@ -2032,11 +2032,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get exportFailed => 'L\'exportation a échoué.';
 
   @override
-  String get csvExportTitle => 'Exportation de données (CSV)';
+  String get csvExportTitle => 'Exportation de données';
 
   @override
   String get csvExportDescription =>
-      'Exportez des parties de vos données sous forme de fichier CSV pour les analyser dans d\'autres programmes.';
+      'Exportez des données sélectionnées en fichiers CSV, ou toutes vos données personnelles tabulaires dans un classeur Excel. Utilisez une sauvegarde pour restaurer vos données.';
 
   @override
   String get snackbarSharingNutrition => 'Partager le journal nutritionnel...';

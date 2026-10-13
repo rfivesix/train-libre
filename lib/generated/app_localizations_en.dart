@@ -657,7 +657,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unitImperialLabel => 'Imperial (lbs)';
 
   @override
-  String get excelExportButton => 'Excel Export (.xlsx)';
+  String get excelExportButton => 'Complete Data Export (.xlsx)';
 
   @override
   String get exportWorkoutHistory => 'Workout History';
@@ -1993,7 +1993,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataManagementBackupDescription =>
-      'Back up or restore all your app data. Ideal for changing devices.';
+      'Back up or restore your Train Libre records and preview images. Original photos stay on this device.';
 
   @override
   String get exportEncrypted => 'Export Encrypted';
@@ -2008,11 +2008,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFailed => 'Export failed.';
 
   @override
-  String get csvExportTitle => 'Data Export (CSV)';
+  String get csvExportTitle => 'Data Export';
 
   @override
   String get csvExportDescription =>
-      'Export parts of your data as a CSV file for analysis in other programs.';
+      'Export selected records as CSV files, or export all personal tabular data in one Excel workbook. Use a backup to restore data.';
 
   @override
   String get snackbarSharingNutrition => 'Sharing nutrition diary...';

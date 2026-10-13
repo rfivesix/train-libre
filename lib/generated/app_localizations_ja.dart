@@ -650,7 +650,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get unitImperialLabel => 'インペリアル (ポンド)';
 
   @override
-  String get excelExportButton => 'Excel エクスポート (.xlsx)';
+  String get excelExportButton => 'すべてのデータをエクスポート (.xlsx)';
 
   @override
   String get exportWorkoutHistory => 'トレーニング履歴';
@@ -1958,7 +1958,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get dataManagementBackupDescription =>
-      'すべてのアプリデータをバックアップまたは復元します。機種変更に最適です。';
+      'Train Libreの記録とプレビュー画像をバックアップまたは復元します。元の写真はこの端末に残ります。';
 
   @override
   String get exportEncrypted => '暗号化してエクスポート';
@@ -1973,11 +1973,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exportFailed => 'エクスポートに失敗しました。';
 
   @override
-  String get csvExportTitle => 'データエクスポート(CSV)';
+  String get csvExportTitle => 'データエクスポート';
 
   @override
   String get csvExportDescription =>
-      '他のプログラムで分析できるように、データの一部を CSV ファイルとしてエクスポートします。';
+      '選択したデータをCSVファイルで、または個人の表形式データすべてを1つのExcelブックでエクスポートできます。データの復元にはバックアップを使用してください。';
 
   @override
   String get snackbarSharingNutrition => '栄養日記を共有...';

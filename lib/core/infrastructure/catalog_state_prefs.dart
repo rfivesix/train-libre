@@ -1,8 +1,8 @@
 // lib/core/infrastructure/catalog_state_prefs.dart
 
 /// Preference keys that describe which catalog databases (wger exercises, OFF
-/// products, base foods, food categories) are physically installed on *this*
-/// device.
+/// products, BLS nutrients, base foods, and food categories) are physically
+/// installed on *this* device.
 ///
 /// These keys are device-local bookkeeping, not user data. A backup taken on
 /// device A says nothing about what is on disk on device B, so restoring them
@@ -23,6 +23,7 @@ class CatalogStatePrefs {
     'installed_food_version',
     'installed_cats_version',
     'installed_food_enrichment_v1',
+    'installed_bls_food_version',
     'is_exercise_catalog_initialized',
     'last_db_sync_app_version',
     // Remote-update bookkeeping (last seen / last prompted / snooze).
@@ -32,13 +33,15 @@ class CatalogStatePrefs {
     'db_update_snoozed_until',
   };
 
-  /// Keys matched by prefix — the OFF catalog keys are country-scoped
-  /// (`installed_off_version_de`, `off_catalog_last_remote_version_fr`, …).
+  /// Keys matched by prefix — OFF versions are country-scoped
+  /// (`installed_off_version_de`, `off_catalog_last_remote_version_fr`, …),
+  /// while BLS keys track this device's local catalog installation/checks.
   /// `installed_off_version` (no suffix) is the legacy key and is covered by
   /// the same prefix.
   static const List<String> keyPrefixes = [
     'installed_off_version',
     'off_catalog_last_remote_version_',
+    'bls_food_catalog_',
   ];
 
   static bool isCatalogStateKey(String key) {

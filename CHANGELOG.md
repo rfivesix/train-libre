@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.6.0-beta.1] - 2026-10-13
 
 ### Added
+- Added a complete tabular Excel export with linked personal-data sheets and BLS micronutrient facts, while retaining focused CSV exports and the restorable backup format.
 - Added a customizable Statistics Hub with reorderable pinned cards, category-based card selection, and an all-data view that keeps empty statistics visible.
 - Added optional recovery readiness, hydration, and BLS-based micronutrient cards to the Statistics Hub. Micronutrient summaries clearly restrict calculations to logged BLS foods.
 - Added an AI workout-routine guide with the verified OpenExerciseDB ID-to-`uuid` contract, import field constraints, and a confirmed catalog-backed JSON example, linked from the routine, exercise-catalog, import, and documentation entry points.
@@ -38,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Optimized chart point aggregation to reduce work during rendering.
 
 ### Fixed
+- Fixed backups carrying the BLS catalog's installed version and update-check state to another device.
 - Fixed excessive spacing on the Statistics Hub and restored tapping and horizontal scrolling for pinned date filters.
 - Fixed fluid logging and display in Imperial units, and corrected the exercise-mapping scrollbar range and layout.
 - Fixed first-set weight recommendations when the previous performance is below the next workout's minimum target reps.
