@@ -143,32 +143,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: InkWell(
-                        onTap: () async {
-                          final picked = await showAdaptiveDatePicker(
-                            context: context,
-                            initialDate: selectedDate ?? DateTime(2000),
-                            firstDate: DateTime(1900),
-                            lastDate: DateTime.now(),
-                            initialView: AdaptiveDatePickerView.wheel,
-                          );
-                          if (picked != null) {
-                            setModalState(() => selectedDate = picked);
-                          }
-                        },
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            labelText: l10n.onboardingDobLabel,
-                            prefixIcon: const Icon(LucideIcons.cake),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusM,
+                      child: Semantics(
+                        button: true,
+                        label: l10n.onboardingDobLabel,
+                        value: dateText,
+                        excludeSemantics: true,
+                        child: InkWell(
+                          onTap: () async {
+                            final picked = await showAdaptiveDatePicker(
+                              context: context,
+                              initialDate: selectedDate ?? DateTime(2000),
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime.now(),
+                              initialView: AdaptiveDatePickerView.wheel,
+                            );
+                            if (picked != null) {
+                              setModalState(() => selectedDate = picked);
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: l10n.onboardingDobLabel,
+                              prefixIcon: const Icon(LucideIcons.cake),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusM,
+                                ),
                               ),
                             ),
-                          ),
-                          child: Text(
-                            dateText,
-                            style: const TextStyle(fontSize: 14),
+                            child: Text(
+                              dateText,
+                              style: const TextStyle(fontSize: 14),
+                            ),
                           ),
                         ),
                       ),
