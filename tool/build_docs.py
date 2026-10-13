@@ -360,7 +360,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "user_guide" / "statistics.md",
                 "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "statistics",
                 "url": "/docs/user-guide/statistics/",
-                "desc": "Navigate the Statistics hub and understand its sections and date ranges."
+                "desc": "Customize pinned statistics cards, compare periods, and understand the hub's available metrics."
             },
             {
                 "id": "user-guide-training-statistics",
@@ -442,6 +442,15 @@ DOCS_STRUCTURE = [
                 "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "exporting-and-backing-up",
                 "url": "/docs/user-guide/exporting-and-backing-up/",
                 "desc": "Create full backups, export selected records, and use automatic or health-store backups."
+            },
+            {
+                "id": "user-guide-sharing-ai",
+                "title": "Share Train Libre data with an AI assistant",
+                "slug": "sharing-and-ai",
+                "src_file": SRC_DOC_DIR / "user_guide" / "sharing_and_ai.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "sharing-and-ai",
+                "url": "/docs/user-guide/sharing-and-ai/",
+                "desc": "Share selected workouts, statistics, or exports with another app or an AI assistant, and import supported items."
             }
         ]
     },

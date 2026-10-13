@@ -154,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     'permissions_consent',
   ];
 
-  ExperienceLevel _selectedExperienceLevel = ExperienceLevel.pro;
+  ExperienceLevel _selectedExperienceLevel = ExperienceLevel.beginner;
   OffCatalogCountry _selectedOffCountry = OffCatalogCountry.de;
   final PageController _pageController = PageController();
   int _currentPage = 0;

@@ -1,6 +1,6 @@
 # Import workout history and other data
 
-Bring workout history from another tracking app into Train Libre, or restore a Train Libre backup and import shared items.
+Bring workout history from another tracking app into Train Libre, restore a Train Libre backup, or import a shared routine, training plan, recipe, or workout. For sharing selected Train Libre information with another app or an AI assistant, see [Share Train Libre data with an AI assistant](sharing_and_ai.md).
 
 ## Import workout history
 

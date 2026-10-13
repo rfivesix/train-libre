@@ -1,6 +1,6 @@
 # Configure and use AI Meal Capture
 
-Set up an AI provider, describe or photograph a meal, review the matched foods, and save the meal to your Diary.
+Set up an AI provider, photograph a meal or describe it by typing or voice dictation, review the matched foods, and save the meal to your Diary. Photo and voice input are part of **AI Meal Capture**; they do not send your entire Diary or other app screens to the AI.
 
 ## Set up AI Meal Capture
 

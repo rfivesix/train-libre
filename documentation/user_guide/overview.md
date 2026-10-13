@@ -49,6 +49,7 @@ Use this guide when you want to know how to complete a task in the app. For deta
 ## Import, Export, and Your Data
 
 - [Import workout history and other data](importing_data.md): Import workout files, health data, shared items, or restore a backup.
+- [Share Train Libre data with an AI assistant](sharing_and_ai.md): Share selected summaries or exports with an AI, and understand how to import supported shared items.
 - [Prepare a compatible workout CSV](prepare_csv_files.md): Choose accepted headers, units, and date formats and troubleshoot imports.
 - [Exporting and backing up data](exporting_and_backing_up.md): Create restorable backups or export selected history for analysis.
 

@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added an automated iOS internal-testing deployment script for building and uploading to TestFlight.
 
 ### Changed
+- Expanded the User Guide with customizable Statistics Hub cards, micronutrient coverage and limitations, clearer training experience levels and AI photo/voice capture, and workflows for sharing selected data with an AI assistant and importing shared items.
 - Consolidated steps, sleep, pulse, measurement import, and health export options in a unified Apple Health / Health Connect settings screen.
 - Refreshed settings screens with consistent rows, spacing, icons, controls, and a cleaner unboxed layout; removed row dividers and standardized selection and popup controls.
 - Reworked the workout keyboard accessory as floating glass controls, including rep-range input and conditional next-field navigation. Expanded button hit areas and fixed focus handling as fields are removed.
