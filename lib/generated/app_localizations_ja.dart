@@ -8546,4 +8546,81 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get blsFoodModifications => 'Train Libre による翻訳とカテゴリ';
+
+  @override
+  String get developerAiOverlayDemoTitle => 'AI Overlay';
+
+  @override
+  String get developerAiOverlayDemoSubtitle => 'サンプルカードを使ったスクロール可能なUIプレビュー';
+
+  @override
+  String get aiOverlayDemoScreenTitle => 'AI Overlay UIデモ';
+
+  @override
+  String get aiOverlayDemoIntroTitle => 'アシスタントのプレビュー';
+
+  @override
+  String get aiOverlayDemoIntroBody => 'アプリ風のサンプルをスクロールして、アクセス許可のプレビューを試せます。';
+
+  @override
+  String get aiOverlayDemoPreviewNote =>
+      'サンプルデータのみを使用します。AIへの接続や実際のトレーニング・栄養データへのアクセスはありません。';
+
+  @override
+  String get aiOverlayDemoTodaySection => '今日の概要';
+
+  @override
+  String get aiOverlayDemoNutritionSection => '栄養';
+
+  @override
+  String get aiOverlayDemoActivitySection => 'アクティビティ';
+
+  @override
+  String get aiOverlayDemoWorkoutTitle => '筋力トレーニング';
+
+  @override
+  String get aiOverlayDemoWorkoutSubtitle => '上半身 A · 2時間前';
+
+  @override
+  String get aiOverlayDemoWorkoutMeta => '47分 · 6種目 · 12セット';
+
+  @override
+  String get aiOverlayDemoExerciseOne => 'ベンチプレス';
+
+  @override
+  String get aiOverlayDemoExerciseTwo => 'ケーブルロー';
+
+  @override
+  String get aiOverlayDemoStepsValue => '7,842 / 10,000 歩';
+
+  @override
+  String get aiOverlayDemoWaterValue => '1.6 / 2.5 L';
+
+  @override
+  String get aiOverlayDemoAssistantSection => '確認が必要な操作';
+
+  @override
+  String get aiOverlayDemoAssistantMessage =>
+      '今週は3回トレーニングしました。トレーニング負荷を比較しますか？';
+
+  @override
+  String get aiOverlayDemoRequestLabel => '必要なデータ';
+
+  @override
+  String get aiOverlayDemoScope => '過去7日間のトレーニング';
+
+  @override
+  String get aiOverlayDemoPurpose => '目的：トレーニング負荷の比較';
+
+  @override
+  String get aiOverlayDemoDeny => '拒否';
+
+  @override
+  String get aiOverlayDemoAllowOnce => '今回のみ許可';
+
+  @override
+  String get aiOverlayDemoApprovedFeedback => 'このデモでは許可をシミュレートします。';
+
+  @override
+  String get aiOverlayDemoDeniedFeedback => 'このデモではリクエストを拒否しました。';
 }

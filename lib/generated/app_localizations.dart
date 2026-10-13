@@ -15566,6 +15566,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Train Libre translations and categories'**
   String get blsFoodModifications;
+
+  /// No description provided for @developerAiOverlayDemoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Overlay'**
+  String get developerAiOverlayDemoTitle;
+
+  /// No description provided for @developerAiOverlayDemoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrollable UI preview with sample cards'**
+  String get developerAiOverlayDemoSubtitle;
+
+  /// No description provided for @aiOverlayDemoScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Overlay UI Demo'**
+  String get aiOverlayDemoScreenTitle;
+
+  /// No description provided for @aiOverlayDemoIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A preview of the assistant'**
+  String get aiOverlayDemoIntroTitle;
+
+  /// No description provided for @aiOverlayDemoIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll through sample content styled like the app and try the access preview.'**
+  String get aiOverlayDemoIntroBody;
+
+  /// No description provided for @aiOverlayDemoPreviewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample data only. No AI calls and no access to real workout or nutrition data.'**
+  String get aiOverlayDemoPreviewNote;
+
+  /// No description provided for @aiOverlayDemoTodaySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Your day'**
+  String get aiOverlayDemoTodaySection;
+
+  /// No description provided for @aiOverlayDemoNutritionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition'**
+  String get aiOverlayDemoNutritionSection;
+
+  /// No description provided for @aiOverlayDemoActivitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get aiOverlayDemoActivitySection;
+
+  /// No description provided for @aiOverlayDemoWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength training'**
+  String get aiOverlayDemoWorkoutTitle;
+
+  /// No description provided for @aiOverlayDemoWorkoutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper Body A · 2 hours ago'**
+  String get aiOverlayDemoWorkoutSubtitle;
+
+  /// No description provided for @aiOverlayDemoWorkoutMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'47 min · 6 exercises · 12 sets'**
+  String get aiOverlayDemoWorkoutMeta;
+
+  /// No description provided for @aiOverlayDemoExerciseOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Bench press'**
+  String get aiOverlayDemoExerciseOne;
+
+  /// No description provided for @aiOverlayDemoExerciseTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Seated cable row'**
+  String get aiOverlayDemoExerciseTwo;
+
+  /// No description provided for @aiOverlayDemoStepsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'7,842 of 10,000 steps'**
+  String get aiOverlayDemoStepsValue;
+
+  /// No description provided for @aiOverlayDemoWaterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'1.6 of 2.5 L'**
+  String get aiOverlayDemoWaterValue;
+
+  /// No description provided for @aiOverlayDemoAssistantSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Action with approval'**
+  String get aiOverlayDemoAssistantSection;
+
+  /// No description provided for @aiOverlayDemoAssistantMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You trained three times this week. Would you like me to compare your training load?'**
+  String get aiOverlayDemoAssistantMessage;
+
+  /// No description provided for @aiOverlayDemoRequestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Data needed'**
+  String get aiOverlayDemoRequestLabel;
+
+  /// No description provided for @aiOverlayDemoScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts from the past 7 days'**
+  String get aiOverlayDemoScope;
+
+  /// No description provided for @aiOverlayDemoPurpose.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose: compare training load'**
+  String get aiOverlayDemoPurpose;
+
+  /// No description provided for @aiOverlayDemoDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get aiOverlayDemoDeny;
+
+  /// No description provided for @aiOverlayDemoAllowOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow once'**
+  String get aiOverlayDemoAllowOnce;
+
+  /// No description provided for @aiOverlayDemoApprovedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval simulated in this demo.'**
+  String get aiOverlayDemoApprovedFeedback;
+
+  /// No description provided for @aiOverlayDemoDeniedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Request declined in this demo.'**
+  String get aiOverlayDemoDeniedFeedback;
 }
 
 class _AppLocalizationsDelegate

@@ -8863,4 +8863,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get blsFoodModifications => 'Train Libre translations and categories';
+
+  @override
+  String get developerAiOverlayDemoTitle => 'AI Overlay';
+
+  @override
+  String get developerAiOverlayDemoSubtitle =>
+      'Scrollable UI preview with sample cards';
+
+  @override
+  String get aiOverlayDemoScreenTitle => 'AI Overlay UI Demo';
+
+  @override
+  String get aiOverlayDemoIntroTitle => 'A preview of the assistant';
+
+  @override
+  String get aiOverlayDemoIntroBody =>
+      'Scroll through sample content styled like the app and try the access preview.';
+
+  @override
+  String get aiOverlayDemoPreviewNote =>
+      'Sample data only. No AI calls and no access to real workout or nutrition data.';
+
+  @override
+  String get aiOverlayDemoTodaySection => 'Your day';
+
+  @override
+  String get aiOverlayDemoNutritionSection => 'Nutrition';
+
+  @override
+  String get aiOverlayDemoActivitySection => 'Activity';
+
+  @override
+  String get aiOverlayDemoWorkoutTitle => 'Strength training';
+
+  @override
+  String get aiOverlayDemoWorkoutSubtitle => 'Upper Body A · 2 hours ago';
+
+  @override
+  String get aiOverlayDemoWorkoutMeta => '47 min · 6 exercises · 12 sets';
+
+  @override
+  String get aiOverlayDemoExerciseOne => 'Bench press';
+
+  @override
+  String get aiOverlayDemoExerciseTwo => 'Seated cable row';
+
+  @override
+  String get aiOverlayDemoStepsValue => '7,842 of 10,000 steps';
+
+  @override
+  String get aiOverlayDemoWaterValue => '1.6 of 2.5 L';
+
+  @override
+  String get aiOverlayDemoAssistantSection => 'Action with approval';
+
+  @override
+  String get aiOverlayDemoAssistantMessage =>
+      'You trained three times this week. Would you like me to compare your training load?';
+
+  @override
+  String get aiOverlayDemoRequestLabel => 'Data needed';
+
+  @override
+  String get aiOverlayDemoScope => 'Workouts from the past 7 days';
+
+  @override
+  String get aiOverlayDemoPurpose => 'Purpose: compare training load';
+
+  @override
+  String get aiOverlayDemoDeny => 'Decline';
+
+  @override
+  String get aiOverlayDemoAllowOnce => 'Allow once';
+
+  @override
+  String get aiOverlayDemoApprovedFeedback =>
+      'Approval simulated in this demo.';
+
+  @override
+  String get aiOverlayDemoDeniedFeedback => 'Request declined in this demo.';
 }

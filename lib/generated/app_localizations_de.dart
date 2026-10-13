@@ -8932,4 +8932,85 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get blsFoodModifications =>
       'Übersetzungen und Kategorien von Train Libre';
+
+  @override
+  String get developerAiOverlayDemoTitle => 'AI Overlay';
+
+  @override
+  String get developerAiOverlayDemoSubtitle =>
+      'Scrollbare UI-Vorschau mit Beispielkarten';
+
+  @override
+  String get aiOverlayDemoScreenTitle => 'AI Overlay – UI-Demo';
+
+  @override
+  String get aiOverlayDemoIntroTitle => 'So könnte der Assistent aussehen';
+
+  @override
+  String get aiOverlayDemoIntroBody =>
+      'Scrolle durch Beispielinhalte im Stil der App und probiere die Freigabe-Vorschau aus.';
+
+  @override
+  String get aiOverlayDemoPreviewNote =>
+      'Nur Beispieldaten. Keine KI-Aufrufe und kein Zugriff auf echte Trainings- oder Ernährungsdaten.';
+
+  @override
+  String get aiOverlayDemoTodaySection => 'Dein Tag';
+
+  @override
+  String get aiOverlayDemoNutritionSection => 'Ernährung';
+
+  @override
+  String get aiOverlayDemoActivitySection => 'Aktivität';
+
+  @override
+  String get aiOverlayDemoWorkoutTitle => 'Krafttraining';
+
+  @override
+  String get aiOverlayDemoWorkoutSubtitle => 'Oberkörper A · vor 2 Stunden';
+
+  @override
+  String get aiOverlayDemoWorkoutMeta => '47 Min. · 6 Übungen · 12 Sätze';
+
+  @override
+  String get aiOverlayDemoExerciseOne => 'Bankdrücken';
+
+  @override
+  String get aiOverlayDemoExerciseTwo => 'Rudern am Kabelzug';
+
+  @override
+  String get aiOverlayDemoStepsValue => '7.842 von 10.000 Schritten';
+
+  @override
+  String get aiOverlayDemoWaterValue => '1,6 von 2,5 l';
+
+  @override
+  String get aiOverlayDemoAssistantSection => 'Vorschlag mit Freigabe';
+
+  @override
+  String get aiOverlayDemoAssistantMessage =>
+      'Du hast diese Woche dreimal trainiert. Soll ich deine Trainingslast vergleichen?';
+
+  @override
+  String get aiOverlayDemoRequestLabel => 'Dafür benötigte Daten';
+
+  @override
+  String get aiOverlayDemoScope => 'Trainingseinheiten der letzten 7 Tage';
+
+  @override
+  String get aiOverlayDemoPurpose => 'Zweck: Trainingslast vergleichen';
+
+  @override
+  String get aiOverlayDemoDeny => 'Ablehnen';
+
+  @override
+  String get aiOverlayDemoAllowOnce => 'Einmal freigeben';
+
+  @override
+  String get aiOverlayDemoApprovedFeedback =>
+      'Freigabe in dieser Demo simuliert.';
+
+  @override
+  String get aiOverlayDemoDeniedFeedback =>
+      'Vorschlag in dieser Demo abgelehnt.';
 }

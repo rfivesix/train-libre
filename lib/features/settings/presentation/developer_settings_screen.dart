@@ -10,6 +10,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'ai_overlay_demo_screen.dart';
 import 'developer_lab/nutrition_developer_lab_view.dart';
 import 'widgets/ai_meal_scan_logs_section.dart';
 import 'performance_diagnostics_screen.dart';
@@ -116,6 +117,22 @@ class DeveloperSettingsScreen extends StatelessWidget {
       padding: DesignConstants.cardPadding,
       children: [
         AppSectionHeader(title: l10n.settingsDeveloperTitle),
+        AppSettingsRow.navigation(
+          key: const Key('developer_ai_overlay_demo'),
+          title: l10n.developerAiOverlayDemoTitle,
+          subtitle: l10n.developerAiOverlayDemoSubtitle,
+          leading: Icon(
+            LucideIcons.sparkles,
+            size: 24,
+            color: theme.colorScheme.primary,
+          ),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AiOverlayDemoScreen(),
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
         AppSettingsRow.navigation(
           key: const Key('developer_performance_log'),
           title: l10n.settingsPerformanceLogTitle,
