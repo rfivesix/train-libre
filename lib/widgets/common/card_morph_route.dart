@@ -1,5 +1,6 @@
 import 'dart:ui' show lerpDouble;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -299,6 +300,24 @@ class _CardMorphTransition extends StatefulWidget {
 
 class _CardMorphTransitionState extends State<_CardMorphTransition> {
   bool _isDragging = false;
+  late final HorizontalDragGestureRecognizer _backGestureRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _backGestureRecognizer = HorizontalDragGestureRecognizer(debugOwner: this)
+      ..onStart = _handleDragStart
+      ..onUpdate = _handleDragUpdate
+      ..onEnd = _handleDragEnd
+      ..onCancel = _handleDragCancel;
+  }
+
+  @override
+  void dispose() {
+    _backGestureRecognizer.dispose();
+    if (_isDragging) widget.route.navigator?.didStopUserGesture();
+    super.dispose();
+  }
 
   /// The copy of the source, built exactly once.
   ///
@@ -321,26 +340,44 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
   bool _sourceCopyBuilt = false;
 
   void _handleDragStart(DragStartDetails details) {
-    if (details.globalPosition.dx <= 40.0 && widget.animation.isCompleted) {
-      _isDragging = true;
-      widget.route.handleDragStart();
-    }
+    _isDragging = true;
+    widget.route.handleDragStart();
+    widget.route.navigator?.didStartUserGesture();
   }
 
-  void _handleDragUpdate(DragUpdateDetails details, double screenWidth) {
+  void _handleDragUpdate(DragUpdateDetails details) {
     if (!_isDragging) return;
-    final double delta = details.primaryDelta ?? 0.0;
-    widget.route.handleDragUpdate(delta / screenWidth);
+    final width = context.size?.width ?? MediaQuery.sizeOf(context).width;
+    if (width <= 0) return;
+    var delta = (details.primaryDelta ?? 0.0) / width;
+    if (Directionality.of(context) == TextDirection.rtl) delta = -delta;
+    widget.route.handleDragUpdate(delta);
   }
 
-  void _handleDragEnd(DragEndDetails details, double screenWidth) {
+  void _handleDragEnd(DragEndDetails details) {
     if (!_isDragging) return;
     _isDragging = false;
-    final double velocity = details.primaryVelocity ?? 0.0;
+    widget.route.navigator?.didStopUserGesture();
+    final width = context.size?.width ?? MediaQuery.sizeOf(context).width;
+    var velocity = width > 0 ? (details.primaryVelocity ?? 0.0) / width : 0.0;
+    if (Directionality.of(context) == TextDirection.rtl) velocity = -velocity;
     final double progress = widget.animation.value;
     final bool shouldPop =
-        velocity > 300.0 || (progress < 0.7 && velocity > -100.0);
+        velocity > 0.3 || (progress < 0.7 && velocity > -0.1);
     widget.route.handleDragEnd(shouldPop: shouldPop);
+  }
+
+  void _handleDragCancel() {
+    if (!_isDragging) return;
+    _isDragging = false;
+    widget.route.navigator?.didStopUserGesture();
+    widget.route.handleDragEnd(shouldPop: false);
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    if (widget.animation.isCompleted && widget.route.isCurrent) {
+      _backGestureRecognizer.addPointer(event);
+    }
   }
 
   @override
@@ -359,151 +396,160 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
     }
     final Widget? source = _sourceCopy;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onHorizontalDragStart: _handleDragStart,
-      onHorizontalDragUpdate: (d) =>
-          _handleDragUpdate(d, MediaQuery.sizeOf(context).width),
-      onHorizontalDragEnd: (d) =>
-          _handleDragEnd(d, MediaQuery.sizeOf(context).width),
-      child: AnimatedBuilder(
-        animation: widget.animation,
-        child: widget.child,
-        builder: (context, page) {
-          final double raw = widget.animation.value.clamp(0.0, 1.0);
-          if (raw >= 1.0) return page!;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        AnimatedBuilder(
+          animation: widget.animation,
+          child: widget.child,
+          builder: (context, page) {
+            final double raw = widget.animation.value.clamp(0.0, 1.0);
+            if (raw >= 1.0) return page!;
 
-          final Size screen = MediaQuery.sizeOf(context);
-          final Rect fullRect = Offset.zero & screen;
-          final double screenRadius =
-              MediaQuery.viewPaddingOf(context).bottom > 0 ? 44.0 : 0.0;
+            final Size screen = MediaQuery.sizeOf(context);
+            final Rect fullRect = Offset.zero & screen;
+            final double screenRadius =
+                MediaQuery.viewPaddingOf(context).bottom > 0 ? 44.0 : 0.0;
 
-          // If morphOnPop is false and we are popping (e.g. LiveWorkoutScreen minimizing to bottom bar),
-          // slide down off screen smoothly towards the bottom progress bar:
-          if (!widget.morphOnPop &&
-              widget.animation.status == AnimationStatus.reverse) {
-            final double popProgress = (1.0 - raw);
-            final double slideY =
-                Curves.easeInCubic.transform(popProgress) * screen.height;
-            final double scrimAlpha = raw * _kScrimOpacity;
+            // If morphOnPop is false and we are popping (e.g. LiveWorkoutScreen minimizing to bottom bar),
+            // slide down off screen smoothly towards the bottom progress bar:
+            if (!widget.morphOnPop &&
+                widget.animation.status == AnimationStatus.reverse) {
+              final double popProgress = (1.0 - raw);
+              final double slideY =
+                  Curves.easeInCubic.transform(popProgress) * screen.height;
+              final double scrimAlpha = raw * _kScrimOpacity;
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(color: Colors.black.withValues(alpha: scrimAlpha)),
+                  Transform.translate(
+                    offset: Offset(0.0, slideY),
+                    child: page,
+                  ),
+                ],
+              );
+            }
+
+            final Curve curve =
+                widget.animation.status == AnimationStatus.reverse
+                    ? _kCollapseCurve
+                    : _kExpandCurve;
+            final double t = curve.transform(raw);
+
+            final Rect rect = Rect.lerp(widget.sourceRect, fullRect, t)!;
+            final double radius = lerpDouble(
+              widget.sourceBorderRadius,
+              screenRadius,
+              (t * _kRadiusLead).clamp(0.0, 1.0),
+            )!;
+
+            final double scale = rect.width / screen.width;
+            final double sourceScale = rect.width / widget.sourceRect.width;
+
+            // Content fade: the destination page and its background dissolve
+            // across the hand-over band. On the way back that is what reveals
+            // the source copy underneath — gradually, instead of switching it on
+            // at full density once the container has shrunk far enough.
+            final double pageOpacity = (t / _kHandoverBand).clamp(0.0, 1.0);
+
             return Stack(
               fit: StackFit.expand,
               children: [
-                ColoredBox(color: Colors.black.withValues(alpha: scrimAlpha)),
-                Transform.translate(
-                  offset: Offset(0.0, slideY),
-                  child: page,
+                // Background scrim
+                ColoredBox(
+                  color: Colors.black.withValues(alpha: t * _kScrimOpacity),
                 ),
-              ],
-            );
-          }
-
-          final Curve curve = widget.animation.status == AnimationStatus.reverse
-              ? _kCollapseCurve
-              : _kExpandCurve;
-          final double t = curve.transform(raw);
-
-          final Rect rect = Rect.lerp(widget.sourceRect, fullRect, t)!;
-          final double radius = lerpDouble(
-            widget.sourceBorderRadius,
-            screenRadius,
-            (t * _kRadiusLead).clamp(0.0, 1.0),
-          )!;
-
-          final double scale = rect.width / screen.width;
-          final double sourceScale = rect.width / widget.sourceRect.width;
-
-          // Content fade: the destination page and its background dissolve
-          // across the hand-over band. On the way back that is what reveals
-          // the source copy underneath — gradually, instead of switching it on
-          // at full density once the container has shrunk far enough.
-          final double pageOpacity = (t / _kHandoverBand).clamp(0.0, 1.0);
-
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // Background scrim
-              ColoredBox(
-                color: Colors.black.withValues(alpha: t * _kScrimOpacity),
-              ),
-              // The expanding card body
-              ClipRRect(
-                clipper: _CardMorphClipper(rect: rect, radius: radius),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Full scaffold background fading in sync with the page
-                    if (pageOpacity > 0.0)
-                      Positioned.fromRect(
-                        rect: rect,
-                        child: ColoredBox(
-                          color: theme.scaffoldBackgroundColor
-                              .withValues(alpha: pageOpacity),
+                // The expanding card body
+                ClipRRect(
+                  clipper: _CardMorphClipper(rect: rect, radius: radius),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Full scaffold background fading in sync with the page
+                      if (pageOpacity > 0.0)
+                        Positioned.fromRect(
+                          rect: rect,
+                          child: ColoredBox(
+                            color: theme.scaffoldBackgroundColor
+                                .withValues(alpha: pageOpacity),
+                          ),
                         ),
-                      ),
 
-                    // Source element (e.g. GlassFab or card copy), pinned to
-                    // the same corner of the container and scaled by the same
-                    // rule as the page. Both occupy the same box and sweep
-                    // together, so what the eye sees is one turning into the
-                    // other rather than one being swapped for the other.
-                    //
-                    // Never wrapped in anything that pushes a save layer — see
-                    // the note on [CardMorphRoute]. It is drawn at full
-                    // opacity for the whole hand-over band and simply stops
-                    // being built once the page has finished covering it.
-                    if (source != null && pageOpacity < 1.0)
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        child: Transform(
-                          transform: Matrix4.identity()
-                            ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
-                            ..scaleByDouble(sourceScale, sourceScale, 1.0, 1.0),
-                          child: SizedBox(
-                            width: widget.sourceRect.width,
-                            height: widget.sourceRect.height,
-                            child: Material(
-                              type: MaterialType.transparency,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                    widget.sourceBorderRadius),
-                                child: OverflowBox(
-                                  alignment: Alignment.topLeft,
-                                  minWidth: widget.sourceRect.width,
-                                  maxWidth: widget.sourceRect.width,
-                                  minHeight: widget.sourceRect.height,
-                                  maxHeight: widget.sourceRect.height,
-                                  child: source,
+                      // Source element (e.g. GlassFab or card copy), pinned to
+                      // the same corner of the container and scaled by the same
+                      // rule as the page. Both occupy the same box and sweep
+                      // together, so what the eye sees is one turning into the
+                      // other rather than one being swapped for the other.
+                      //
+                      // Never wrapped in anything that pushes a save layer — see
+                      // the note on [CardMorphRoute]. It is drawn at full
+                      // opacity for the whole hand-over band and simply stops
+                      // being built once the page has finished covering it.
+                      if (source != null && pageOpacity < 1.0)
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: Transform(
+                            transform: Matrix4.identity()
+                              ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
+                              ..scaleByDouble(
+                                  sourceScale, sourceScale, 1.0, 1.0),
+                            child: SizedBox(
+                              width: widget.sourceRect.width,
+                              height: widget.sourceRect.height,
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      widget.sourceBorderRadius),
+                                  child: OverflowBox(
+                                    alignment: Alignment.topLeft,
+                                    minWidth: widget.sourceRect.width,
+                                    maxWidth: widget.sourceRect.width,
+                                    minHeight: widget.sourceRect.height,
+                                    maxHeight: widget.sourceRect.height,
+                                    child: source,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
 
-                    // Destination page, dissolving in over the source copy on
-                    // the way out and back off it on the way in. The only
-                    // layer this transition pushes, and it sits *inside* the
-                    // clip, so its `saveLayer` is bounded by the card rather
-                    // than by the screen.
-                    if (pageOpacity > 0.0)
-                      Opacity(
-                        opacity: pageOpacity,
-                        child: Transform(
-                          transform: Matrix4.identity()
-                            ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
-                            ..scaleByDouble(scale, scale, 1.0, 1.0),
-                          child: page,
+                      // Destination page, dissolving in over the source copy on
+                      // the way out and back off it on the way in. The only
+                      // layer this transition pushes, and it sits *inside* the
+                      // clip, so its `saveLayer` is bounded by the card rather
+                      // than by the screen.
+                      if (pageOpacity > 0.0)
+                        Opacity(
+                          opacity: pageOpacity,
+                          child: Transform(
+                            transform: Matrix4.identity()
+                              ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
+                              ..scaleByDouble(scale, scale, 1.0, 1.0),
+                            child: page,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
+              ],
+            );
+          },
+        ),
+        PositionedDirectional(
+          start: 0,
+          top: 0,
+          bottom: 0,
+          width: 24,
+          child: Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: _handlePointerDown,
+          ),
+        ),
+      ],
     );
   }
 }

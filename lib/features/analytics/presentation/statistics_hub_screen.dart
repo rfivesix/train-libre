@@ -29,6 +29,7 @@ import 'body_nutrition_correlation_screen.dart';
 import 'consistency_tracker_screen.dart';
 import 'muscle_group_analytics_screen.dart';
 import 'pr_dashboard_screen.dart';
+import 'recovery_tracker_screen.dart';
 import '../../profile/presentation/measurements_screen.dart';
 import '../../steps/presentation/statistics_steps_card.dart';
 import '../../steps/domain/steps_models.dart';
@@ -46,7 +47,10 @@ import 'widgets/muscle_volume_section_card.dart';
 import 'widgets/performance_section_card.dart';
 import 'widgets/pulse_section_card.dart';
 import 'widgets/macro_section_card.dart';
+import 'widgets/micronutrient_section_card.dart';
+import 'widgets/recovery_section_card.dart';
 import 'widgets/sleep_section_card.dart';
+import 'widgets/water_section_card.dart';
 import 'macro_statistics_screen.dart';
 
 class StatisticsHubScreen extends StatefulWidget {
@@ -384,6 +388,30 @@ class _StatisticsHubScreenView extends StatelessWidget {
         return _buildSleepSection(context, viewModel, l10n);
       case StatisticsHubCardId.pulse:
         return _buildPulseSection(context, viewModel, l10n);
+      case StatisticsHubCardId.recoveryReadiness:
+        final chipText = _unifiedRangeLabel(viewModel, l10n);
+        return MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (cardContext) => RecoverySectionCard(
+              state: viewModel.recoveryState,
+              chipText: chipText,
+              onRetry: () => viewModel.loadHubAnalytics(),
+              onTap: () => Navigator.of(context).push(
+                CardMorphRoute<void>(
+                  sourceContext: cardContext,
+                  sourceBuilder: (_) => RecoverySectionCard(
+                    state: viewModel.recoveryState,
+                    chipText: chipText,
+                    onRetry: () {},
+                    onTap: () {},
+                  ),
+                  onSourceVisibilityChanged: setHidden,
+                  builder: (_) => const RecoveryTrackerScreen(),
+                ),
+              ),
+            ),
+          ),
+        );
       case StatisticsHubCardId.bodyNutrition:
         return _buildBodyMetricsSection(context, viewModel, l10n);
       case StatisticsHubCardId.bodyMeasurements:
@@ -396,6 +424,18 @@ class _StatisticsHubScreenView extends StatelessWidget {
         return _buildMuscleVolumeSection(context, viewModel, l10n);
       case StatisticsHubCardId.macros:
         return _buildMacroSection(context, viewModel, l10n);
+      case StatisticsHubCardId.water:
+        return WaterSectionCard(
+          block: viewModel.activeBlockType,
+          anchor: viewModel.anchorDate,
+          isRolling: viewModel.isRolling,
+        );
+      case StatisticsHubCardId.micronutrients:
+        return MicronutrientSectionCard(
+          block: viewModel.activeBlockType,
+          anchor: viewModel.anchorDate,
+          isRolling: viewModel.isRolling,
+        );
     }
   }
 

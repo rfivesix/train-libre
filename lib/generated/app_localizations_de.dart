@@ -697,6 +697,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get filter180DaysShort => '180T';
 
   @override
+  String get filter1DayShort => '1T';
+
+  @override
   String get filter7DaysShort => '7T';
 
   @override
@@ -3494,6 +3497,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get recoveryDetailLastSession => 'Letzte Session';
 
   @override
+  String get recoveryNoRecentLoad => 'Keine erfasste signifikante Belastung';
+
+  @override
+  String get recoveryDetailEquivalentSets => 'äquivalente Sätze';
+
+  @override
+  String get recoveryDataConfidence => 'Datenvertrauen';
+
+  @override
+  String get recoveryDetailEligibleSets => 'berücksichtigte Sätze';
+
+  @override
+  String get recoveryDetailResidualLoad => 'Restlast';
+
+  @override
+  String get recoveryDetailDirectLoad => 'direkte Last';
+
+  @override
+  String get recoveryDetailIndirectLoad => 'indirekte Last';
+
+  @override
+  String get recoveryDetailAverageRir => 'mittleres RIR';
+
+  @override
+  String get recoveryDetailAverageRpe => 'mittleres RPE';
+
+  @override
+  String get recoveryMovementPatterns => 'Bewegungsmuster';
+
+  @override
   String get recoveryDetailForecast => 'Prognose';
 
   @override
@@ -3606,6 +3639,47 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statisticsAddCardsTitle => 'Weitere Statistiken';
+
+  @override
+  String get statisticsMicronutrientsTitle => 'Mikronährstoffe';
+
+  @override
+  String get statisticsMicronutrientsCoverage =>
+      'Nur für protokollierte BLS-Lebensmittel';
+
+  @override
+  String get statisticsMicronutrientsPreviewSubtitle =>
+      'Vitamine, Mineralstoffe und weitere Nährstoffe';
+
+  @override
+  String get statisticsMicronutrientsNoData =>
+      'Noch keine BLS-Lebensmittel protokolliert';
+
+  @override
+  String get statisticsAveragePerLoggedDay => 'Ø pro protokolliertem Tag';
+
+  @override
+  String get statisticsMicronutrientsLoggedDays => 'protokollierte Tage';
+
+  @override
+  String statisticsMicronutrientsNutrientCoverage(int count) {
+    return 'Wert an $count Tagen erfasst';
+  }
+
+  @override
+  String get diaryMicronutrientsAction =>
+      'Mikronährstoffe dieses Tages ansehen';
+
+  @override
+  String get statisticsWaterDailyAverage => 'Tagesdurchschnitt';
+
+  @override
+  String get statisticsWaterNoData => 'Noch keine Getränke protokolliert';
+
+  @override
+  String statisticsWaterGoalProgress(int percent) {
+    return '$percent% des Tagesziels';
+  }
 
   @override
   String get statisticsActivityCategory => 'Aktivität';

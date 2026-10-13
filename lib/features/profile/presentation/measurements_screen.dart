@@ -16,7 +16,6 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import 'widgets/measurement_chart_widget.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../../util/l10n_ext.dart';
 import '../../../services/unit_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -164,7 +163,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     return _sessions
         .where((s) =>
             s.timestamp.isAfter(range.start) &&
-            s.timestamp.isBefore(range.end.add(const Duration(seconds: 1))))
+            s.timestamp.isBefore(range.end.add(const Duration(seconds: 1))) &&
+            s.measurements
+                .any((measurement) => measurement.type == _displayChartType))
         .toList();
   }
 
@@ -272,8 +273,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
     final hasNoData = _filteredSessions.isEmpty;
-    final displaySessions =
-        hasNoData ? getMockSessions(_activeDateRange) : _filteredSessions;
+    final displaySessions = hasNoData
+        ? getMockSessions(_activeDateRange)
+            .where((session) => session.measurements
+                .any((measurement) => measurement.type == _displayChartType))
+            .toList()
+        : _filteredSessions;
 
     final timeframeFilter = TimeRangeFilter(
       ranges: _timeRangeLabels(l10n),
@@ -386,12 +391,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                         child: Column(
                           children: displaySessions
                               .map((session) => _buildSessionCard(
-                                  l10n,
-                                  colorScheme,
-                                  textTheme,
-                                  unitService,
-                                  dateFormat,
-                                  session))
+                                  unitService, dateFormat, session))
                               .toList(),
                         ),
                       ),
@@ -402,9 +402,6 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                     itemCount: displaySessions.length,
                     itemBuilder: (context, index) {
                       return _buildSessionCard(
-                        l10n,
-                        colorScheme,
-                        textTheme,
                         unitService,
                         dateFormat,
                         displaySessions[index],
@@ -484,21 +481,27 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   }
 
   Widget _buildSessionCard(
-    AppLocalizations l10n,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
     UnitService unitService,
     DateFormat dateFormat,
     MeasurementSession session,
   ) {
-    final sortedMeasurements = session.measurements.toList()
-      ..sort((a, b) => a.type.compareTo(b.type));
+    final measurement = session.measurements.firstWhere(
+      (item) => item.type == _displayChartType,
+    );
+    final value = _displayMeasurementValue(
+      measurement.type,
+      measurement.value,
+      unitService,
+    ).toStringAsFixed(1);
+    final unit = _getMeasurementUnit(measurement.type, unitService);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.screenPaddingHorizontal,
+        vertical: DesignConstants.spacingS,
       ),
       child: GlassActionableCard(
+        margin: EdgeInsets.zero,
         dismissibleKey: Key(
             'session_${session.id}_${session.timestamp.millisecondsSinceEpoch}'),
         onEdit: () => _showMeasurementBottomMenu(existingSession: session),
@@ -511,53 +514,26 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
           _deleteMeasurementSession(session);
         },
         onTap: () => _showMeasurementBottomMenu(existingSession: session),
-        child: SummaryCard(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  dateFormat.format(session.timestamp),
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...sortedMeasurements.map((m) {
-                  final value =
-                      _displayMeasurementValue(m.type, m.value, unitService)
-                          .toStringAsFixed(1);
-                  final unit = _getMeasurementUnit(m.type, unitService);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _getMeasurementIconData(m.type),
-                          size: 14,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            l10n.getLocalizedMeasurementName(m.type),
-                            style: textTheme.bodyMedium,
-                          ),
-                        ),
-                        Text(
-                          '$value $unit'.trim(),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                dateFormat.format(session.timestamp),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
-          ),
+            const SizedBox(width: DesignConstants.spacingM),
+            Text(
+              '$value $unit'.trim(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+              textAlign: TextAlign.end,
+            ),
+          ],
         ),
       ),
     );
@@ -611,17 +587,6 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         return unitService.suffixFor(UnitDimension.height);
       default:
         return '';
-    }
-  }
-
-  IconData _getMeasurementIconData(String type) {
-    switch (type) {
-      case 'weight':
-        return LucideIcons.scale;
-      case 'fat_percent':
-        return LucideIcons.dumbbell;
-      default:
-        return LucideIcons.ruler;
     }
   }
 

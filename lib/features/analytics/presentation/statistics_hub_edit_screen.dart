@@ -38,6 +38,8 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
         return l10n.sleepHubScoreLabel;
       case StatisticsHubCardId.pulse:
         return l10n.pulseTitle;
+      case StatisticsHubCardId.recoveryReadiness:
+        return l10n.metricsMuscleReadiness;
       case StatisticsHubCardId.bodyNutrition:
         return l10n.sectionBodyNutrition;
       case StatisticsHubCardId.bodyMeasurements:
@@ -50,6 +52,10 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
         return l10n.analyticsMuscleGroups;
       case StatisticsHubCardId.macros:
         return l10n.nutrition;
+      case StatisticsHubCardId.water:
+        return l10n.water;
+      case StatisticsHubCardId.micronutrients:
+        return l10n.statisticsMicronutrientsTitle;
     }
   }
 

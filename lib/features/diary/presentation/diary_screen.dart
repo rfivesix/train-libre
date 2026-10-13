@@ -1020,6 +1020,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 l10n: l10n,
                                 isExpandedView: false,
                                 extraNutrient: data.overviewExtraNutrient,
+                                selectedDate: data.selectedDate,
                               ),
                             ),
                         ],

@@ -448,6 +448,7 @@ class _DigestSink implements Sink<Digest> {
 
 class BlsNutrientFact {
   const BlsNutrientFact({
+    required this.barcode,
     required this.code,
     required this.name,
     required this.unit,
@@ -458,6 +459,7 @@ class BlsNutrientFact {
     required this.reference,
   });
 
+  final String barcode;
   final String code;
   final String name;
   final String unit;
@@ -473,7 +475,18 @@ class BlsNutrientRepository {
 
   Future<List<BlsNutrientFact>> getFacts(
       String barcode, String languageCode) async {
-    if (!barcode.startsWith('bls:')) return const [];
+    return getFactsForBarcodes([barcode], languageCode);
+  }
+
+  Future<List<BlsNutrientFact>> getFactsForBarcodes(
+    Iterable<String> barcodes,
+    String languageCode,
+  ) async {
+    final uniqueBarcodes = barcodes
+        .where((barcode) => barcode.startsWith('bls:'))
+        .toSet()
+        .toList(growable: false);
+    if (uniqueBarcodes.isEmpty) return const [];
     final path =
         await BlsFoodCatalogRefreshService.instance.installedDatabasePath();
     if (!await File(path).exists()) return const [];
@@ -485,8 +498,15 @@ class BlsNutrientRepository {
           languageCode == 'ja';
       final nameColumn = english ? 'name_en' : 'name_de';
       final groupColumn = english ? 'group_en' : 'group_de';
-      final rows = await db.rawQuery('''
-        SELECT n.component_code, c.$nameColumn AS component_name,
+      final facts = <BlsNutrientFact>[];
+      const chunkSize = 300;
+      for (var offset = 0;
+          offset < uniqueBarcodes.length;
+          offset += chunkSize) {
+        final chunk = uniqueBarcodes.skip(offset).take(chunkSize).toList();
+        final placeholders = List.filled(chunk.length, '?').join(', ');
+        final rows = await db.rawQuery('''
+        SELECT n.barcode, n.component_code, c.$nameColumn AS component_name,
                c.unit, c.$groupColumn AS component_group,
                n.value_numeric, n.value_text, o.label AS origin,
                r.citation AS reference
@@ -494,23 +514,24 @@ class BlsNutrientRepository {
         JOIN nutrient_components c ON c.component_code = n.component_code
         LEFT JOIN data_origins o ON o.origin_id = n.origin_id
         LEFT JOIN source_references r ON r.reference_id = n.reference_id
-        WHERE n.barcode = ?
+        WHERE n.barcode IN ($placeholders)
         ORDER BY c.group_de, c.component_code
-      ''', [barcode]);
-      return rows
-          .map((row) => BlsNutrientFact(
-                code: row['component_code']?.toString() ?? '',
-                name: row['component_name']?.toString() ??
-                    row['component_code']?.toString() ??
-                    '',
-                unit: row['unit']?.toString() ?? '',
-                group: row['component_group']?.toString() ?? '',
-                value: (row['value_numeric'] as num?)?.toDouble(),
-                valueText: row['value_text']?.toString(),
-                origin: row['origin']?.toString(),
-                reference: row['reference']?.toString(),
-              ))
-          .toList(growable: false);
+      ''', chunk);
+        facts.addAll(rows.map((row) => BlsNutrientFact(
+              barcode: row['barcode']?.toString() ?? '',
+              code: row['component_code']?.toString() ?? '',
+              name: row['component_name']?.toString() ??
+                  row['component_code']?.toString() ??
+                  '',
+              unit: row['unit']?.toString() ?? '',
+              group: row['component_group']?.toString() ?? '',
+              value: (row['value_numeric'] as num?)?.toDouble(),
+              valueText: row['value_text']?.toString(),
+              origin: row['origin']?.toString(),
+              reference: row['reference']?.toString(),
+            )));
+      }
+      return facts;
     } finally {
       await db.close();
     }

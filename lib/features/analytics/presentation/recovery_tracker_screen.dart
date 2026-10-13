@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
@@ -114,6 +115,46 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       ..minimumFractionDigits = 1
       ..maximumFractionDigits = 1;
     return format.format(value);
+  }
+
+  Future<void> _shareRecovery(AppLocalizations l10n) async {
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+    final number = NumberFormat.decimalPattern(localeName)
+      ..minimumFractionDigits = 1
+      ..maximumFractionDigits = 1;
+    final date = DateFormat.yMMMd(localeName).add_Hm();
+    final muscles = _recovery.muscles
+        .where((muscle) => !_shouldHideMuscle(muscle.muscleGroup))
+        .toList(growable: false);
+    final lines = <String>[
+      l10n.recoveryTrackerTitle,
+      DateFormat.yMMMd(localeName).add_Hm().format(DateTime.now()),
+      _overallLabel(l10n, _recovery.overallState),
+      '',
+      for (final muscle in muscles) ...[
+        '${StatisticsPresentationFormatter.muscleGroupLabel(l10n, muscle.muscleGroup)} — ${_stateLabel(l10n, muscle.state)} · ${_readinessScore(muscle).toStringAsFixed(0)}%',
+        if (muscle.lastSignificantLoadAt != null)
+          '  ${l10n.recoveryDetailLastSession}: ${date.format(muscle.lastSignificantLoadAt!.toLocal())}; ${number.format(muscle.lastSessionLoad ?? muscle.lastEquivalentSets)} ${l10n.recoveryDetailEquivalentSets}; ${number.format(muscle.hoursSinceLastSignificantLoad)} h',
+        if (muscle.lastSignificantLoadAt == null)
+          '  ${l10n.recoveryDetailLastSession}: ${l10n.recoveryNoRecentLoad}',
+        '  ${l10n.recoveryDetailRirData}: ${l10n.recoveryRirCoverage(muscle.setsWithRir, muscle.eligibleSetCount)}; ${l10n.recoveryDataConfidence}: ${muscle.dataConfidence}',
+        '  ${l10n.recoveryDetailEligibleSets}: ${muscle.eligibleSetCount}; ${l10n.recoveryDetailResidualLoad}: ${number.format(muscle.residualLoad ?? 0)}; ${l10n.recoveryDetailDirectLoad}: ${number.format(muscle.lastSessionDirectLoad ?? 0)}; ${l10n.recoveryDetailIndirectLoad}: ${number.format(muscle.lastSessionIndirectLoad ?? 0)}',
+        '  ${l10n.recoveryDetailForecast}: ${l10n.recoveryReadyInHours(_hoursUntil(muscle, muscle.recoveringUpperHours))}; ${l10n.recoveryFreshInHours(_hoursUntil(muscle, muscle.readyUpperHours))} (Schwellen: ${muscle.recoveringUpperHours} h / ${muscle.readyUpperHours} h)',
+        if (muscle.avgRir != null)
+          '  ${l10n.recoveryDetailAverageRir}: ${number.format(muscle.avgRir!)}',
+        if (muscle.avgRpe != null)
+          '  ${l10n.recoveryDetailAverageRpe}: ${number.format(muscle.avgRpe!)}',
+        '  ${muscle.highSessionFatigue ? l10n.recoveryFatigueContextHigh : l10n.recoveryFatigueContextBaseline}',
+        if (muscle.movementPatterns.isNotEmpty)
+          '  ${l10n.recoveryMovementPatterns}: ${muscle.movementPatterns.join(', ')}',
+        '',
+      ],
+      l10n.infoRecoveryTechnicalTitle,
+      l10n.infoRecoveryTechnicalExplanation,
+    ];
+    await SharePlus.instance.share(
+      ShareParams(text: lines.join('\n'), subject: l10n.recoveryTrackerTitle),
+    );
   }
 
   int _hoursUntil(RecoveryMusclePayload muscle, int targetHour) {
@@ -807,6 +848,13 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       appBar: GlobalAppBar(
         title: l10n.recoveryTrackerTitle,
         actions: [
+          IconButton(
+            tooltip: l10n.share,
+            onPressed: !_isLoading && _recovery.hasData
+                ? () => _shareRecovery(l10n)
+                : null,
+            icon: Icon(DesignConstants.adaptiveShareIcon),
+          ),
           AlgorithmInfoButton(
             title: l10n.infoRecoveryTitle,
             explanation: l10n.infoRecoveryExplanation,

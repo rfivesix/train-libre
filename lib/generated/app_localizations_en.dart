@@ -693,6 +693,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filter180DaysShort => '180D';
 
   @override
+  String get filter1DayShort => '1D';
+
+  @override
   String get filter7DaysShort => '7D';
 
   @override
@@ -3469,6 +3472,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recoveryDetailLastSession => 'Last session';
 
   @override
+  String get recoveryNoRecentLoad => 'No recorded significant load';
+
+  @override
+  String get recoveryDetailEquivalentSets => 'equivalent sets';
+
+  @override
+  String get recoveryDataConfidence => 'Data confidence';
+
+  @override
+  String get recoveryDetailEligibleSets => 'included sets';
+
+  @override
+  String get recoveryDetailResidualLoad => 'residual load';
+
+  @override
+  String get recoveryDetailDirectLoad => 'direct load';
+
+  @override
+  String get recoveryDetailIndirectLoad => 'indirect load';
+
+  @override
+  String get recoveryDetailAverageRir => 'average RIR';
+
+  @override
+  String get recoveryDetailAverageRpe => 'average RPE';
+
+  @override
+  String get recoveryMovementPatterns => 'Movement patterns';
+
+  @override
   String get recoveryDetailForecast => 'Forecast';
 
   @override
@@ -3581,6 +3614,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statisticsAddCardsTitle => 'More Statistics';
+
+  @override
+  String get statisticsMicronutrientsTitle => 'Micronutrients';
+
+  @override
+  String get statisticsMicronutrientsCoverage =>
+      'BLS foods logged in the diary only';
+
+  @override
+  String get statisticsMicronutrientsPreviewSubtitle =>
+      'Vitamins, minerals and other nutrients';
+
+  @override
+  String get statisticsMicronutrientsNoData => 'No BLS foods logged yet';
+
+  @override
+  String get statisticsAveragePerLoggedDay => 'Average per logged day';
+
+  @override
+  String get statisticsMicronutrientsLoggedDays => 'logged days';
+
+  @override
+  String statisticsMicronutrientsNutrientCoverage(int count) {
+    return 'Value recorded on $count days';
+  }
+
+  @override
+  String get diaryMicronutrientsAction => 'View this day\'s micronutrients';
+
+  @override
+  String get statisticsWaterDailyAverage => 'Daily average';
+
+  @override
+  String get statisticsWaterNoData => 'No drinks logged yet';
+
+  @override
+  String statisticsWaterGoalProgress(int percent) {
+    return '$percent% of daily goal';
+  }
 
   @override
   String get statisticsActivityCategory => 'Activity';

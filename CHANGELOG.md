@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Added a customizable Statistics Hub with reorderable pinned cards, category-based card selection, and an all-data view that keeps empty statistics visible.
+- Added optional recovery readiness, hydration, and BLS-based micronutrient cards to the Statistics Hub. Micronutrient summaries clearly restrict calculations to logged BLS foods.
 - Added an AI workout-routine guide with the verified OpenExerciseDB ID-to-`uuid` contract, import field constraints, and a confirmed catalog-backed JSON example, linked from the routine, exercise-catalog, import, and documentation entry points.
 - Added a dedicated English/German About page with the project story, release timeline, and shared site navigation with theme and language controls.
 - Added an English User Guide with 13 practical articles for setup, workouts, plans, nutrition, measurements, statistics, notifications, and data import/export, then expanded it with topics such as routines, recipes, AI meal capture, health data, widgets, and privacy settings.

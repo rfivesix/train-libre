@@ -5,12 +5,15 @@ enum StatisticsHubCardId {
   steps('steps', 'activity'),
   sleep('sleep', 'recovery'),
   pulse('pulse', 'recovery'),
+  recoveryReadiness('recoveryReadiness', 'recovery'),
   bodyNutrition('bodyNutrition', 'body'),
   bodyMeasurements('bodyMeasurements', 'body'),
   consistency('consistency', 'training'),
   performance('performance', 'training'),
   muscleGroups('muscleGroups', 'training'),
-  macros('macros', 'nutrition');
+  macros('macros', 'nutrition'),
+  water('water', 'nutrition'),
+  micronutrients('micronutrients', 'nutrition');
 
   const StatisticsHubCardId(this.storageId, this.categoryId);
 

@@ -34,6 +34,8 @@ class MeasurementChartWidget extends StatefulWidget {
     this.valueFractionDigits = 1,
     this.valueLabelBuilder,
     this.selectedDateLabelBuilder,
+    this.idleValueLabel,
+    this.idleDateLabel,
     this.axisLabelBuilder,
     this.repository,
     this.edgeToEdge = false,
@@ -55,6 +57,8 @@ class MeasurementChartWidget extends StatefulWidget {
     this.valueFractionDigits = 1,
     this.valueLabelBuilder,
     this.selectedDateLabelBuilder,
+    this.idleValueLabel,
+    this.idleDateLabel,
     this.axisLabelBuilder,
     this.repository,
     this.edgeToEdge = false,
@@ -109,6 +113,10 @@ class MeasurementChartWidget extends StatefulWidget {
 
   /// Optional selected point date label formatter.
   final String Function(DateTime value)? selectedDateLabelBuilder;
+
+  /// Optional value and date labels shown until the user selects a point.
+  final String? idleValueLabel;
+  final String? idleDateLabel;
 
   /// Optional bottom axis label formatter.
   final String Function(DateTime value, int spanUnits)? axisLabelBuilder;
@@ -295,11 +303,15 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
 
     final ChartDataPoint displayPoint = _dataPoints[shownIdx];
     final double displayNumericValue = _displayValue(displayPoint.value);
-    final String displayValue = widget.valueLabelBuilder
-            ?.call(displayNumericValue, widget.unit) ??
-        '${displayNumericValue.toStringAsFixed(widget.valueFractionDigits)} ${widget.unit}';
-    final String displayDate =
-        widget.selectedDateLabelBuilder?.call(displayPoint.date) ??
+    final bool hasSelectedPoint = _touchedIndex != null;
+    final String displayValue = !hasSelectedPoint &&
+            widget.idleValueLabel != null
+        ? widget.idleValueLabel!
+        : widget.valueLabelBuilder?.call(displayNumericValue, widget.unit) ??
+            '${displayNumericValue.toStringAsFixed(widget.valueFractionDigits)} ${widget.unit}';
+    final String displayDate = !hasSelectedPoint && widget.idleDateLabel != null
+        ? widget.idleDateLabel!
+        : widget.selectedDateLabelBuilder?.call(displayPoint.date) ??
             _defaultSelectedDateLabel(context, displayPoint.date);
 
     final DateTime firstDate = widget.domainDateRange != null
@@ -598,8 +610,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                     // Raw measurement line: muted grey line matching the smoothed line's width, without distracting permanent dots
                     LineChartBarData(
                       spots: spots,
-                      isCurved: true,
-                      curveSmoothness: 0.05,
+                      isCurved: false,
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
@@ -652,8 +663,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                   ] else
                     LineChartBarData(
                       spots: spots,
-                      isCurved: true,
-                      curveSmoothness: 0.05,
+                      isCurved: false,
                       color: Theme.of(context).colorScheme.primary,
                       barWidth: widget.edgeToEdge ? 3.5 : 4.0,
                       isStrokeCapRound: true,

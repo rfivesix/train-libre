@@ -686,6 +686,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filter180DaysShort => '180日';
 
   @override
+  String get filter1DayShort => '1日';
+
+  @override
   String get filter7DaysShort => '7日';
 
   @override
@@ -3373,6 +3376,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recoveryDetailLastSession => '直近のセッション';
 
   @override
+  String get recoveryNoRecentLoad => '記録された有意な負荷はありません';
+
+  @override
+  String get recoveryDetailEquivalentSets => '相当セット';
+
+  @override
+  String get recoveryDataConfidence => 'データ信頼度';
+
+  @override
+  String get recoveryDetailEligibleSets => '対象セット';
+
+  @override
+  String get recoveryDetailResidualLoad => '残存負荷';
+
+  @override
+  String get recoveryDetailDirectLoad => '直接負荷';
+
+  @override
+  String get recoveryDetailIndirectLoad => '間接負荷';
+
+  @override
+  String get recoveryDetailAverageRir => '平均RIR';
+
+  @override
+  String get recoveryDetailAverageRpe => '平均RPE';
+
+  @override
+  String get recoveryMovementPatterns => '動作パターン';
+
+  @override
   String get recoveryDetailForecast => '見通し';
 
   @override
@@ -3482,6 +3515,43 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get statisticsAddCardsTitle => 'その他の統計';
+
+  @override
+  String get statisticsMicronutrientsTitle => '微量栄養素';
+
+  @override
+  String get statisticsMicronutrientsCoverage => 'BLS食品の記録のみが対象です';
+
+  @override
+  String get statisticsMicronutrientsPreviewSubtitle => 'ビタミン、ミネラルなどの栄養素';
+
+  @override
+  String get statisticsMicronutrientsNoData => 'BLS食品の記録はまだありません';
+
+  @override
+  String get statisticsAveragePerLoggedDay => '記録日の平均';
+
+  @override
+  String get statisticsMicronutrientsLoggedDays => '記録日';
+
+  @override
+  String statisticsMicronutrientsNutrientCoverage(int count) {
+    return '$count日分のデータ';
+  }
+
+  @override
+  String get diaryMicronutrientsAction => 'この日の微量栄養素を見る';
+
+  @override
+  String get statisticsWaterDailyAverage => '1日平均';
+
+  @override
+  String get statisticsWaterNoData => '飲み物の記録はまだありません';
+
+  @override
+  String statisticsWaterGoalProgress(int percent) {
+    return '1日の目標の$percent%';
+  }
 
   @override
   String get statisticsActivityCategory => 'アクティビティ';

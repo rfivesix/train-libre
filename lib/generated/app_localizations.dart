@@ -1358,6 +1358,12 @@ abstract class AppLocalizations {
   /// **'180D'**
   String get filter180DaysShort;
 
+  /// No description provided for @filter1DayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'1D'**
+  String get filter1DayShort;
+
   /// No description provided for @filter7DaysShort.
   ///
   /// In en, this message translates to:
@@ -6191,6 +6197,66 @@ abstract class AppLocalizations {
   /// **'Last session'**
   String get recoveryDetailLastSession;
 
+  /// No description provided for @recoveryNoRecentLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded significant load'**
+  String get recoveryNoRecentLoad;
+
+  /// No description provided for @recoveryDetailEquivalentSets.
+  ///
+  /// In en, this message translates to:
+  /// **'equivalent sets'**
+  String get recoveryDetailEquivalentSets;
+
+  /// No description provided for @recoveryDataConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Data confidence'**
+  String get recoveryDataConfidence;
+
+  /// No description provided for @recoveryDetailEligibleSets.
+  ///
+  /// In en, this message translates to:
+  /// **'included sets'**
+  String get recoveryDetailEligibleSets;
+
+  /// No description provided for @recoveryDetailResidualLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'residual load'**
+  String get recoveryDetailResidualLoad;
+
+  /// No description provided for @recoveryDetailDirectLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'direct load'**
+  String get recoveryDetailDirectLoad;
+
+  /// No description provided for @recoveryDetailIndirectLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'indirect load'**
+  String get recoveryDetailIndirectLoad;
+
+  /// No description provided for @recoveryDetailAverageRir.
+  ///
+  /// In en, this message translates to:
+  /// **'average RIR'**
+  String get recoveryDetailAverageRir;
+
+  /// No description provided for @recoveryDetailAverageRpe.
+  ///
+  /// In en, this message translates to:
+  /// **'average RPE'**
+  String get recoveryDetailAverageRpe;
+
+  /// No description provided for @recoveryMovementPatterns.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement patterns'**
+  String get recoveryMovementPatterns;
+
   /// No description provided for @recoveryDetailForecast.
   ///
   /// In en, this message translates to:
@@ -6364,6 +6430,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More Statistics'**
   String get statisticsAddCardsTitle;
+
+  /// No description provided for @statisticsMicronutrientsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Micronutrients'**
+  String get statisticsMicronutrientsTitle;
+
+  /// No description provided for @statisticsMicronutrientsCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS foods logged in the diary only'**
+  String get statisticsMicronutrientsCoverage;
+
+  /// No description provided for @statisticsMicronutrientsPreviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamins, minerals and other nutrients'**
+  String get statisticsMicronutrientsPreviewSubtitle;
+
+  /// No description provided for @statisticsMicronutrientsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No BLS foods logged yet'**
+  String get statisticsMicronutrientsNoData;
+
+  /// No description provided for @statisticsAveragePerLoggedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per logged day'**
+  String get statisticsAveragePerLoggedDay;
+
+  /// No description provided for @statisticsMicronutrientsLoggedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'logged days'**
+  String get statisticsMicronutrientsLoggedDays;
+
+  /// No description provided for @statisticsMicronutrientsNutrientCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Value recorded on {count} days'**
+  String statisticsMicronutrientsNutrientCoverage(int count);
+
+  /// No description provided for @diaryMicronutrientsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View this day\'s micronutrients'**
+  String get diaryMicronutrientsAction;
+
+  /// No description provided for @statisticsWaterDailyAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily average'**
+  String get statisticsWaterDailyAverage;
+
+  /// No description provided for @statisticsWaterNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No drinks logged yet'**
+  String get statisticsWaterNoData;
+
+  /// No description provided for @statisticsWaterGoalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of daily goal'**
+  String statisticsWaterGoalProgress(int percent);
 
   /// No description provided for @statisticsActivityCategory.
   ///
