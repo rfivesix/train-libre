@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -43,6 +44,11 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
   double _scale = 1;
   bool _isDragging = false;
   bool _isExpanded = false;
+  bool _showChatPreview = false;
+  final _chatInputController = TextEditingController();
+  Timer? _responseTimer;
+  String? _submittedPrompt;
+  String _visibleResponse = '';
   double _safeLeft = 0.14;
   double _safeTop = 0.10;
   double _safeRight = 0.86;
@@ -55,6 +61,8 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
 
   @override
   void dispose() {
+    _responseTimer?.cancel();
+    _chatInputController.dispose();
     _morphController?.dispose();
     super.dispose();
   }
@@ -66,6 +74,7 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
       _isDragging = false;
       _rotationRadians = 0;
       _scale = 1;
+      if (!expanding) _showChatPreview = false;
     });
     if (expanding) {
       _morphAnimation.forward();
@@ -334,6 +343,7 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
               ),
             ),
             _buildLivelinessControl(safeRect, theme),
+            _buildChatPreview(safeRect, theme),
             _buildResizeHandle(
               _SafeSpaceCorner.topLeft,
               handlePosition(safeRect.topLeft, const Offset(-1, -1)),
@@ -402,57 +412,277 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
         theme.brightness == Brightness.dark ? Colors.black : Colors.white;
 
     return Positioned(
-      left: safeRect.left + DesignConstants.spacingS,
-      right: MediaQuery.sizeOf(context).width -
-          safeRect.right +
-          DesignConstants.spacingS,
-      top: safeRect.bottom - 88,
+      left: safeRect.left + 20,
+      width: safeRect.width - 40,
+      bottom: MediaQuery.sizeOf(context).height - safeRect.bottom + 24,
       child: IgnorePointer(
-        ignoring: !_isExpanded,
+        ignoring: !_isExpanded || _showChatPreview,
         child: FadeTransition(
           opacity: _morphAnimation,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Wolken-Lebhaftigkeit',
+          child: AnimatedOpacity(
+            opacity: _showChatPreview ? 0 : 1,
+            duration: const Duration(milliseconds: 180),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Lebhaftigkeit · ${(widget.liveliness * 100).round()}%',
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: contrastColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  Text(
-                    '${(widget.liveliness * 100).round()}%',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: contrastColor,
-                      fontWeight: FontWeight.w600,
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: contrastColor,
+                          inactiveTrackColor: contrastColor.withValues(
+                            alpha: 0.42,
+                          ),
+                          thumbColor: contrastColor,
+                          overlayColor: contrastColor.withValues(alpha: 0.12),
+                          trackHeight: 4,
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 9,
+                          ),
+                        ),
+                        child: Slider(
+                          value: widget.liveliness.clamp(0.0, 1.0).toDouble(),
+                          onChanged: widget.onLivelinessChanged,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: contrastColor,
-                  inactiveTrackColor: contrastColor.withValues(alpha: 0.28),
-                  thumbColor: contrastColor,
-                  overlayColor: contrastColor.withValues(alpha: 0.12),
-                  trackHeight: 2.5,
+                    const SizedBox(width: 8),
+                    Material(
+                      color: contrastColor,
+                      shape: const CircleBorder(),
+                      child: IconButton(
+                        tooltip: 'Zur KI-Vorschau',
+                        onPressed: () =>
+                            setState(() => _showChatPreview = true),
+                        constraints: const BoxConstraints.tightFor(
+                          width: 42,
+                          height: 42,
+                        ),
+                        icon: Icon(
+                          Icons.chat_bubble_outline,
+                          size: 19,
+                          color: theme.colorScheme.surface,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: Slider(
-                  value: widget.liveliness.clamp(0.0, 1.0).toDouble(),
-                  onChanged: widget.onLivelinessChanged,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildChatPreview(Rect safeRect, ThemeData theme) {
+    final contrastColor =
+        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+    final softColor = contrastColor.withValues(alpha: 0.08);
+    const safeSpaceHandleOutset = 44.0;
+    const contentInset = 14.0;
+    final chatBounds = safeRect.inflate(safeSpaceHandleOutset);
+    final contentLeft = chatBounds.left + contentInset;
+    final contentRight =
+        MediaQuery.sizeOf(context).width - chatBounds.right + contentInset;
+
+    return Positioned.fill(
+      child: IgnorePointer(
+        ignoring: !_isExpanded || !_showChatPreview,
+        child: FadeTransition(
+          opacity: _morphAnimation,
+          child: AnimatedOpacity(
+            opacity: _showChatPreview ? 1 : 0,
+            duration: const Duration(milliseconds: 180),
+            child: Stack(
+              children: [
+                Positioned(
+                  left: contentLeft,
+                  right: contentRight,
+                  top: chatBounds.top + 18,
+                  bottom: MediaQuery.sizeOf(context).height -
+                      chatBounds.bottom +
+                      76,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'KI-Vorschau',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: contrastColor,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Zu den Wolkeneinstellungen',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () =>
+                                setState(() => _showChatPreview = false),
+                            style: IconButton.styleFrom(
+                              foregroundColor: contrastColor,
+                              backgroundColor: softColor,
+                            ),
+                            icon: const Icon(Icons.tune, size: 18),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (_submittedPrompt != null) ...[
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 9,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: softColor,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Text(
+                                      _submittedPrompt!,
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: contrastColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                              Text(
+                                _visibleResponse.isEmpty
+                                    ? 'Deine Beispielantwort erscheint hier.'
+                                    : _visibleResponse,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: contrastColor,
+                                  height: 1.4,
+                                ),
+                              ),
+                              if (_responseTimer?.isActive ?? false)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: contrastColor.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  left: contentLeft,
+                  right: contentRight,
+                  bottom: MediaQuery.sizeOf(context).height -
+                      chatBounds.bottom +
+                      contentInset,
+                  child: TextField(
+                    controller: _chatInputController,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _sendDemoPrompt(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: contrastColor,
+                    ),
+                    cursorColor: theme.colorScheme.primary,
+                    decoration: InputDecoration(
+                      hintText: 'Nachricht schreiben …',
+                      hintStyle: theme.textTheme.bodySmall?.copyWith(
+                        color: contrastColor.withValues(alpha: 0.52),
+                      ),
+                      filled: true,
+                      fillColor: softColor,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(22),
+                        borderSide: BorderSide.none,
+                      ),
+                      suffixIcon: IconButton(
+                        tooltip: 'Senden',
+                        onPressed: _sendDemoPrompt,
+                        style: IconButton.styleFrom(
+                          foregroundColor: contrastColor,
+                          backgroundColor: Colors.transparent,
+                          minimumSize: const Size(42, 42),
+                        ),
+                        icon: Icon(Icons.send, color: contrastColor, size: 19),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _sendDemoPrompt() {
+    final prompt = _chatInputController.text.trim();
+    if (prompt.isEmpty) return;
+
+    _responseTimer?.cancel();
+    final response =
+        'Das ist eine Demo-Antwort auf „$prompt“. Sie wird hier Zeichen für Zeichen eingeblendet.';
+    var visibleCharacters = 0;
+
+    setState(() {
+      _submittedPrompt = prompt;
+      _visibleResponse = '';
+      _chatInputController.clear();
+    });
+
+    _responseTimer = Timer.periodic(const Duration(milliseconds: 32), (timer) {
+      visibleCharacters = math.min(visibleCharacters + 1, response.length);
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _visibleResponse = response.substring(0, visibleCharacters);
+      });
+      if (visibleCharacters == response.length) timer.cancel();
+    });
   }
 
   Widget _buildResizeHandle(
