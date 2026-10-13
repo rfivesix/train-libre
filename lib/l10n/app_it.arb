@@ -2348,6 +2348,7 @@
   "settingsOverviewExtraNutrientSubtitle": "Aggiungi un terzo nutriente alla panoramica giornaliera",
   "settingsSectionHealthTracking": "Salute e monitoraggio",
   "healthSettingsTitle": "Salute",
+  "onboardingHealthSettingsDescription": "Gestisci passi, sonno, battito e Apple Salute o Health Connect",
   "healthSettingsStepActive": "Il monitoraggio dei passi è attivo",
   "healthSettingsStepAvailable": "I dati dei passi sono disponibili",
   "healthSettingsStepUnavailable": "I dati dei passi non sono disponibili",

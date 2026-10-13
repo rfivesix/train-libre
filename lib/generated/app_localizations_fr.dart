@@ -5362,6 +5362,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get healthSettingsTitle => 'Santé';
 
   @override
+  String get onboardingHealthSettingsDescription =>
+      'Gérez les pas, le sommeil, le pouls et Apple Santé ou Health Connect';
+
+  @override
   String get healthSettingsStepActive => 'Le suivi des pas est activé';
 
   @override

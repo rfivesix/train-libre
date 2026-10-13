@@ -9270,6 +9270,12 @@ abstract class AppLocalizations {
   /// **'Health'**
   String get healthSettingsTitle;
 
+  /// No description provided for @onboardingHealthSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage steps, sleep, pulse, and Apple Health or Health Connect'**
+  String get onboardingHealthSettingsDescription;
+
   /// No description provided for @healthSettingsStepActive.
   ///
   /// In en, this message translates to:

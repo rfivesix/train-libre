@@ -384,9 +384,21 @@ void main() {
 
     // Advance to permissions (the optional import prompt was skipped above).
     await tester.tap(nextButton);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    if (find
+        .byKey(const Key('onboarding_workout_import_page'))
+        .evaluate()
+        .isNotEmpty) {
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+    }
     expect(find.byKey(const Key('onboarding_ai_health_page')), findsOneWidget);
+    expect(find.byKey(const Key('onboarding_health_settings_link')),
+        findsOneWidget);
+    expect(find.text('Gesundheit'), findsOneWidget);
+    expect(find.text('Schritte'), findsNothing);
+    expect(find.text('Schlaf'), findsNothing);
+    expect(find.text('Puls'), findsNothing);
 
     // On Page 12: Tap "LOSLEGEN" (Finish)
     await tester.tap(nextButton);

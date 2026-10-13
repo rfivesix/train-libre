@@ -2355,6 +2355,7 @@
   "settingsOverviewExtraNutrientSubtitle": "Add a third nutrient tile to the daily overview section",
   "settingsSectionHealthTracking": "Health & Tracking",
   "healthSettingsTitle": "Health",
+  "onboardingHealthSettingsDescription": "Manage steps, sleep, pulse, and Apple Health or Health Connect",
   "healthSettingsStepActive": "Step tracking is on",
   "healthSettingsStepAvailable": "Step data is available",
   "healthSettingsStepUnavailable": "Step data is unavailable",

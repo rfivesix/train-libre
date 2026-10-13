@@ -5277,6 +5277,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthSettingsTitle => 'Health';
 
   @override
+  String get onboardingHealthSettingsDescription =>
+      'Manage steps, sleep, pulse, and Apple Health or Health Connect';
+
+  @override
   String get healthSettingsStepActive => 'Step tracking is on';
 
   @override

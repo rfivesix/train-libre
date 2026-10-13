@@ -4,6 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
@@ -18,6 +19,7 @@ import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../../analytics/domain/models/chart_data_point.dart';
 import '../../../profile/presentation/widgets/measurement_chart_widget.dart';
+import '../../../../services/unit_service.dart';
 import 'analytics_chart_defaults.dart';
 import '../../../statistics/data/water_analytics_data_adapter.dart';
 import '../../../statistics/domain/timeframe_block.dart';
@@ -76,6 +78,7 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
     return FutureBuilder<WaterPeriodSummary>(
       future: _summary,
       builder: (context, snapshot) {
+        final units = Provider.of<UnitService>(context);
         final data = snapshot.data;
         final average = data?.averageMilliliters ?? 0;
         final target = data?.targetMilliliters ?? 3000;
@@ -117,7 +120,7 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '${(average / 1000).toStringAsFixed(1)} L',
+                            '${_displayWaterValue(average, units).toStringAsFixed(1)} ${_waterUnit(units)}',
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -414,6 +417,7 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
       body: FutureBuilder<WaterPeriodSummary>(
         future: _future,
         builder: (context, snapshot) {
+          final units = Provider.of<UnitService>(context);
           final summary = snapshot.data;
           if (summary == null) {
             return const Center(child: CircularProgressIndicator());
@@ -449,18 +453,23 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
                                 if (day.isTracked)
                                   ChartDataPoint(
                                     date: day.date,
-                                    value: day.milliliters / 1000,
+                                    value: _displayWaterValue(
+                                      day.milliliters,
+                                      units,
+                                    ),
                                   ),
                             ],
                             axisMode: MeasurementChartAxisMode.day,
                             domainDateRange: summary.range,
-                            unit: 'L',
+                            unit: _waterUnit(units),
                             edgeToEdge: true,
                             smoothWeightTrend: false,
-                            referenceLineValue:
-                                summary.targetMilliliters / 1000,
+                            referenceLineValue: _displayWaterValue(
+                              summary.targetMilliliters,
+                              units,
+                            ),
                             idleValueLabel:
-                                '${(summary.averageMilliliters / 1000).toStringAsFixed(1)} L',
+                                '${_displayWaterValue(summary.averageMilliliters, units).toStringAsFixed(1)} ${_waterUnit(units)}',
                             idleDateLabel: l10n.statisticsWaterDailyAverage,
                             selectedDateLabelBuilder: (date) =>
                                 DateFormat.yMMMd(l10n.localeName).format(date),
@@ -508,7 +517,7 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
                               ),
                               const SizedBox(width: DesignConstants.spacingM),
                               Text(
-                                '${(day.milliliters / 1000).toStringAsFixed(1)} L',
+                                '${_displayWaterValue(day.milliliters, units).toStringAsFixed(1)} ${_waterUnit(units)}',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -533,6 +542,7 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
   Future<void> _share() async {
     final summary = await _future;
     if (!mounted) return;
+    final units = context.read<UnitService>();
     final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat.yMMMd(l10n.localeName);
     final rangeLabel = _rolling
@@ -541,14 +551,21 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
     final lines = <String>[
       l10n.water,
       rangeLabel,
-      '${l10n.statisticsWaterDailyAverage}: ${(summary.averageMilliliters / 1000).toStringAsFixed(1)} L',
+      '${l10n.statisticsWaterDailyAverage}: ${_displayWaterValue(summary.averageMilliliters, units).toStringAsFixed(1)} ${_waterUnit(units)}',
       '${summary.trackedDays} ${l10n.statisticsMicronutrientsLoggedDays}',
       '',
       for (final day in summary.dailyIntakes.where((day) => day.isTracked))
-        '${dateFormat.format(day.date)}: ${(day.milliliters / 1000).toStringAsFixed(2)} L',
+        '${dateFormat.format(day.date)}: ${_displayWaterValue(day.milliliters, units).toStringAsFixed(1)} ${_waterUnit(units)}',
     ];
     await SharePlus.instance.share(
       ShareParams(text: lines.join('\n'), subject: l10n.water),
     );
   }
 }
+
+double _displayWaterValue(int milliliters, UnitService units) => units.isMetric
+    ? milliliters / 1000
+    : units.convertDisplayValue(milliliters.toDouble(), UnitDimension.liquid);
+
+String _waterUnit(UnitService units) =>
+    units.isMetric ? 'L' : units.suffixFor(UnitDimension.liquid);

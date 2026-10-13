@@ -2348,6 +2348,7 @@
   "settingsOverviewExtraNutrientSubtitle": "毎日の概要に3つ目の栄養素を追加",
   "settingsSectionHealthTracking": "健康状態と追跡",
   "healthSettingsTitle": "ヘルスケア",
+  "onboardingHealthSettingsDescription": "歩数、睡眠、心拍数、AppleヘルスケアまたはHealth Connectを管理します",
   "healthSettingsStepActive": "歩数の記録はオンです",
   "healthSettingsStepAvailable": "歩数データを利用できます",
   "healthSettingsStepUnavailable": "歩数データを利用できません",

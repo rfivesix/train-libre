@@ -5110,6 +5110,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthSettingsTitle => 'ヘルスケア';
 
   @override
+  String get onboardingHealthSettingsDescription =>
+      '歩数、睡眠、心拍数、AppleヘルスケアまたはHealth Connectを管理します';
+
+  @override
   String get healthSettingsStepActive => '歩数の記録はオンです';
 
   @override

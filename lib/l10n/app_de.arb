@@ -2348,6 +2348,7 @@
   "settingsOverviewExtraNutrientSubtitle": "Füge ein drittes Nährstoff-Feld zur Tagesübersicht hinzu",
   "settingsSectionHealthTracking": "Gesundheit & Tracking",
   "healthSettingsTitle": "Gesundheit",
+  "onboardingHealthSettingsDescription": "Schritte, Schlaf, Puls und Apple Health oder Health Connect verwalten",
   "healthSettingsStepActive": "Schritt-Tracking ist aktiv",
   "healthSettingsStepAvailable": "Schrittdaten sind verfügbar",
   "healthSettingsStepUnavailable": "Schrittdaten sind nicht verfügbar",
