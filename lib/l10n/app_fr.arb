@@ -3690,5 +3690,6 @@
   "aiOverlayDemoAllowOnce": "Autoriser une fois",
   "aiOverlayDemoApprovedFeedback": "Autorisation simulée dans cette démo.",
   "aiOverlayDemoDeniedFeedback": "Demande refusée dans cette démo.",
+  "aiOverlayDemoCloudHint": "Faites glisser le nuage horizontalement. Sa position est enregistrée.",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}}
 }

@@ -8623,4 +8623,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiOverlayDemoDeniedFeedback => 'このデモではリクエストを拒否しました。';
+
+  @override
+  String get aiOverlayDemoCloudHint => '雲を左右にドラッグして移動します。位置は保存されます。';
 }

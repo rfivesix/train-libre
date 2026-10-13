@@ -3690,5 +3690,6 @@
   "aiOverlayDemoAllowOnce": "Consenti una volta",
   "aiOverlayDemoApprovedFeedback": "Autorizzazione simulata in questa demo.",
   "aiOverlayDemoDeniedFeedback": "Richiesta rifiutata in questa demo.",
+  "aiOverlayDemoCloudHint": "Trascina la nuvola orizzontalmente. La posizione viene salvata.",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}}
 }

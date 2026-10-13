@@ -8943,4 +8943,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiOverlayDemoDeniedFeedback => 'Request declined in this demo.';
+
+  @override
+  String get aiOverlayDemoCloudHint =>
+      'Drag horizontally to move the cloud. Its position is saved.';
 }

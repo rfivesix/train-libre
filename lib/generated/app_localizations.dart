@@ -15716,6 +15716,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Request declined in this demo.'**
   String get aiOverlayDemoDeniedFeedback;
+
+  /// No description provided for @aiOverlayDemoCloudHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag horizontally to move the cloud. Its position is saved.'**
+  String get aiOverlayDemoCloudHint;
 }
 
 class _AppLocalizationsDelegate

@@ -8,6 +8,7 @@ import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/glass_progress_bar.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 
 /// Scrollable sample content for exploring a future AI assistant surface.
 ///
@@ -34,27 +35,36 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.aiOverlayDemoScreenTitle),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          DesignConstants.spacingL,
-          contentTop,
-          DesignConstants.spacingL,
-          DesignConstants.spacingXXL,
-        ),
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          _buildIntroCard(context, l10n, theme),
-          const SizedBox(height: DesignConstants.spacingM),
-          AppSectionHeader(
-            title: l10n.aiOverlayDemoTodaySection,
-            isFirst: true,
+          ListView(
+            padding: EdgeInsets.fromLTRB(
+              DesignConstants.spacingL,
+              contentTop,
+              DesignConstants.spacingL,
+              MediaQuery.paddingOf(context).bottom + 176,
+            ),
+            children: [
+              _buildIntroCard(context, l10n, theme),
+              const SizedBox(height: DesignConstants.spacingM),
+              AppSectionHeader(
+                title: l10n.aiOverlayDemoTodaySection,
+                isFirst: true,
+              ),
+              _buildWorkoutCard(context, l10n),
+              AppSectionHeader(title: l10n.aiOverlayDemoNutritionSection),
+              _buildNutritionCard(context, l10n, theme),
+              AppSectionHeader(title: l10n.aiOverlayDemoActivitySection),
+              _buildActivityCard(context, l10n, theme),
+              AppSectionHeader(title: l10n.aiOverlayDemoAssistantSection),
+              _buildAssistantPreviewCard(context, l10n, theme),
+            ],
           ),
-          _buildWorkoutCard(context, l10n),
-          AppSectionHeader(title: l10n.aiOverlayDemoNutritionSection),
-          _buildNutritionCard(context, l10n, theme),
-          AppSectionHeader(title: l10n.aiOverlayDemoActivitySection),
-          _buildActivityCard(context, l10n, theme),
-          AppSectionHeader(title: l10n.aiOverlayDemoAssistantSection),
-          _buildAssistantPreviewCard(context, l10n, theme),
+          DraggableAiCloud(
+            semanticLabel: l10n.developerAiOverlayDemoTitle,
+            semanticHint: l10n.aiOverlayDemoCloudHint,
+          ),
         ],
       ),
     );

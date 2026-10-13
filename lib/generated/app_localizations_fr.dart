@@ -9087,4 +9087,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiOverlayDemoDeniedFeedback => 'Demande refusée dans cette démo.';
+
+  @override
+  String get aiOverlayDemoCloudHint =>
+      'Faites glisser le nuage horizontalement. Sa position est enregistrée.';
 }

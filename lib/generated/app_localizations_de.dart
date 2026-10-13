@@ -9013,4 +9013,8 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get aiOverlayDemoDeniedFeedback =>
       'Vorschlag in dieser Demo abgelehnt.';
+
+  @override
+  String get aiOverlayDemoCloudHint =>
+      'Wolke horizontal ziehen. Die Position wird gespeichert.';
 }

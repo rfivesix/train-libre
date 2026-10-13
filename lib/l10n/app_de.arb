@@ -3690,5 +3690,6 @@
   "aiOverlayDemoAllowOnce": "Einmal freigeben",
   "aiOverlayDemoApprovedFeedback": "Freigabe in dieser Demo simuliert.",
   "aiOverlayDemoDeniedFeedback": "Vorschlag in dieser Demo abgelehnt.",
+  "aiOverlayDemoCloudHint": "Wolke horizontal ziehen. Die Position wird gespeichert.",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}}
 }

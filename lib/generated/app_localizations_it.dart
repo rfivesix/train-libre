@@ -9062,4 +9062,8 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get aiOverlayDemoDeniedFeedback =>
       'Richiesta rifiutata in questa demo.';
+
+  @override
+  String get aiOverlayDemoCloudHint =>
+      'Trascina la nuvola orizzontalmente. La posizione viene salvata.';
 }
