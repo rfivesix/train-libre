@@ -39,42 +39,25 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
         title: l10n.aiOverlayDemoScreenTitle,
-        hidden: _cloudFullscreen,
       ),
-      body: Stack(
-        fit: StackFit.expand,
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          DesignConstants.spacingL,
+          contentTop,
+          DesignConstants.spacingL,
+          MediaQuery.paddingOf(context).bottom + 176,
+        ),
         children: [
-          ListView(
-            padding: EdgeInsets.fromLTRB(
-              DesignConstants.spacingL,
-              contentTop,
-              DesignConstants.spacingL,
-              MediaQuery.paddingOf(context).bottom + 176,
-            ),
-            children: [
-              _buildIntroCard(context, l10n, theme),
-              const SizedBox(height: DesignConstants.spacingM),
-              _buildCloudSettingsCard(theme),
-              AppSectionHeader(
-                title: 'Schwarz und Weiß',
-                isFirst: true,
-              ),
-              _buildColorCard(color: Colors.white, semanticLabel: 'Weiß'),
-              const SizedBox(height: DesignConstants.spacingM),
-              _buildColorCard(color: Colors.black, semanticLabel: 'Schwarz'),
-            ],
+          _buildIntroCard(context, l10n, theme),
+          const SizedBox(height: DesignConstants.spacingM),
+          _buildCloudSettingsCard(theme),
+          AppSectionHeader(
+            title: 'Schwarz und Weiß',
+            isFirst: true,
           ),
-          DraggableAiCloud(
-            key: _cloudKey,
-            semanticLabel: l10n.developerAiOverlayDemoTitle,
-            semanticHint: l10n.aiOverlayDemoCloudHint,
-            liveliness: _cloudLiveliness,
-            showResizeHandles: _showCloudResizeHandles,
-            onGenerationChanged: (value) =>
-                setState(() => _cloudIsGenerating = value),
-            onFullscreenChanged: (value) =>
-                setState(() => _cloudFullscreen = value),
-          ),
+          _buildColorCard(color: Colors.white, semanticLabel: 'Weiß'),
+          const SizedBox(height: DesignConstants.spacingM),
+          _buildColorCard(color: Colors.black, semanticLabel: 'Schwarz'),
         ],
       ),
     );
@@ -93,7 +76,29 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                   cloudIsLight ? Brightness.dark : Brightness.light,
             )
           : const SystemUiOverlayStyle(),
-      child: scaffold,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          scaffold,
+          Positioned.fill(
+            bottom: MediaQuery.viewInsetsOf(context).bottom,
+            child: Material(
+              type: MaterialType.transparency,
+              child: DraggableAiCloud(
+                key: _cloudKey,
+                semanticLabel: l10n.developerAiOverlayDemoTitle,
+                semanticHint: l10n.aiOverlayDemoCloudHint,
+                liveliness: _cloudLiveliness,
+                showResizeHandles: _showCloudResizeHandles,
+                onGenerationChanged: (value) =>
+                    setState(() => _cloudIsGenerating = value),
+                onFullscreenChanged: (value) =>
+                    setState(() => _cloudFullscreen = value),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

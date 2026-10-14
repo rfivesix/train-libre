@@ -744,6 +744,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }) {
     final contrastColor =
         theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+    final selectionBlue = theme.brightness == Brightness.dark
+        ? const Color(0xFF0A84FF)
+        : const Color(0xFF007AFF);
     final softColor = contrastColor.withValues(alpha: 0.08);
     const contentInset = 8.0;
     final chatBounds = Rect.lerp(
@@ -827,35 +830,45 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Expanded(
-                            child: TextField(
-                              controller: _chatInputController,
-                              focusNode: _chatFocusNode,
-                              minLines: 1,
-                              maxLines: 4,
-                              textInputAction: TextInputAction.send,
-                              onSubmitted: (_) {
-                                if (!_isGenerating) _sendDemoPrompt();
-                              },
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: contrastColor,
+                            child: TextSelectionTheme(
+                              data: TextSelectionThemeData(
+                                cursorColor: selectionBlue,
+                                selectionColor:
+                                    selectionBlue.withValues(alpha: 0.32),
+                                selectionHandleColor: selectionBlue,
                               ),
-                              cursorColor: theme.colorScheme.primary,
-                              decoration: InputDecoration(
-                                hintText: 'Nachricht schreiben …',
-                                hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                                  color: contrastColor.withValues(alpha: 0.52),
+                              child: TextField(
+                                controller: _chatInputController,
+                                focusNode: _chatFocusNode,
+                                minLines: 1,
+                                maxLines: 4,
+                                textInputAction: TextInputAction.send,
+                                onSubmitted: (_) {
+                                  if (!_isGenerating) _sendDemoPrompt();
+                                },
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: contrastColor,
                                 ),
-                                filled: false,
-                                fillColor: Colors.transparent,
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                focusedErrorBorder: InputBorder.none,
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 11,
+                                cursorColor: selectionBlue,
+                                decoration: InputDecoration(
+                                  hintText: 'Nachricht schreiben …',
+                                  hintStyle:
+                                      theme.textTheme.bodyMedium?.copyWith(
+                                    color:
+                                        contrastColor.withValues(alpha: 0.52),
+                                  ),
+                                  filled: false,
+                                  fillColor: Colors.transparent,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  focusedErrorBorder: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 11,
+                                  ),
                                 ),
                               ),
                             ),
