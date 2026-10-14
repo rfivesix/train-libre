@@ -287,7 +287,7 @@ void main() {
         child: PlanOverviewCard(
           plan: plan,
           activeSlotIndex: 0,
-          onRoutineTap: (day, _) => openedDay = day,
+          onRoutineTap: (day, _, __, ___) => openedDay = day,
         ),
       ),
     ));

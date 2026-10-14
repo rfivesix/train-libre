@@ -108,7 +108,6 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   DateTime? _weekAnchor;
   DateTime? _selectedDate;
   int _weekDirection = 0;
-  int _refresh = 0;
 
   @override
   void initState() {
@@ -121,7 +120,7 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
   DateTime _startOfWeek(DateTime date) =>
       DateTime(date.year, date.month, date.day - date.weekday + 1);
-  void _reload() => setState(() => _refresh++);
+  void _reload() => setState(() {});
 
   Future<void> _syncReminders() =>
       WorkoutPlanNotificationOrchestrator().synchronize();
@@ -492,7 +491,6 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     final text = ManualPlanText(context);
     final topPadding = MediaQuery.paddingOf(context).top + kToolbarHeight;
     return FutureBuilder<List<db.TrainingPlan>>(
-      key: ValueKey(_refresh),
       future: _repository.allPlans(),
       builder: (context, snapshot) {
         final rows = snapshot.data;
