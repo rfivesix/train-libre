@@ -23,10 +23,12 @@ class AiOverlayDemoScreen extends StatefulWidget {
 }
 
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
+  final _cloudKey = GlobalKey<DraggableAiCloudState>();
   bool? _accessApproved;
   bool _cloudFullscreen = false;
-  bool _showCloudResizeHandles = true;
-  double _cloudLiveliness = 0.275;
+  bool _showCloudResizeHandles = false;
+  bool _cloudIsGenerating = false;
+  double _cloudLiveliness = 0.10;
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +73,13 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             ],
           ),
           DraggableAiCloud(
+            key: _cloudKey,
             semanticLabel: l10n.developerAiOverlayDemoTitle,
             semanticHint: l10n.aiOverlayDemoCloudHint,
             liveliness: _cloudLiveliness,
             showResizeHandles: _showCloudResizeHandles,
+            onGenerationChanged: (value) =>
+                setState(() => _cloudIsGenerating = value),
             onFullscreenChanged: (value) =>
                 setState(() => _cloudFullscreen = value),
           ),
@@ -143,6 +148,16 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             value: _showCloudResizeHandles,
             onChanged: (value) =>
                 setState(() => _showCloudResizeHandles = value),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _cloudIsGenerating
+                  ? _cloudKey.currentState?.finishDemoGeneration
+                  : null,
+              icon: const Icon(Icons.check_circle_outline_rounded),
+              label: const Text('Demo-Antwort abschließen'),
+            ),
           ),
         ],
       ),

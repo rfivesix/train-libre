@@ -215,8 +215,8 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
     }
 
     final tint = widget.tint;
-    if (tint != null && tint != oldWidget.tint) {
-      _animateChargeTo(tint.clamp(0.0, 1.0) * 5.0);
+    if (tint != oldWidget.tint) {
+      _animateChargeTo((tint ?? 0).clamp(0.0, 1.0) * 5.0);
     }
 
     if (widget.animate != oldWidget.animate) {

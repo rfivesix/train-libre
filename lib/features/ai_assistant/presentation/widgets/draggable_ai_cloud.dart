@@ -16,6 +16,7 @@ class DraggableAiCloud extends StatefulWidget {
   final String semanticHint;
   final double liveliness;
   final ValueChanged<bool>? onFullscreenChanged;
+  final ValueChanged<bool>? onGenerationChanged;
   final bool showResizeHandles;
 
   const DraggableAiCloud({
@@ -24,14 +25,15 @@ class DraggableAiCloud extends StatefulWidget {
     required this.semanticHint,
     required this.liveliness,
     this.onFullscreenChanged,
+    this.onGenerationChanged,
     this.showResizeHandles = true,
   });
 
   @override
-  State<DraggableAiCloud> createState() => _DraggableAiCloudState();
+  DraggableAiCloudState createState() => DraggableAiCloudState();
 }
 
-class _DraggableAiCloudState extends State<DraggableAiCloud>
+class DraggableAiCloudState extends State<DraggableAiCloud>
     with TickerProviderStateMixin {
   static const _horizontalInset = DesignConstants.spacingL;
   static const _cloudSize = 160.0;
@@ -77,7 +79,10 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
   final _chatScrollController = ScrollController();
   final List<_DemoChatTurn> _chatTurns = [];
   Timer? _responseTimer;
+  Timer? _completionPulseTimer;
   bool _isGenerating = false;
+  bool _hasCompletedResponse = false;
+  bool _completionPulse = false;
   bool _followChatTail = true;
   int _demoWordIndex = 0;
   double _safeLeft = 0.14;
@@ -106,6 +111,7 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void dispose() {
     _responseTimer?.cancel();
+    _completionPulseTimer?.cancel();
     _chatInputController.dispose();
     _chatFocusNode.dispose();
     _chatScrollController.dispose();
@@ -125,10 +131,11 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
       _scale = 1;
       _isFullscreen = false;
       _showChatPreview = expanding;
-      if (!expanding) {
-        _responseTimer?.cancel();
-        _responseTimer = null;
-        _isGenerating = false;
+      if (expanding) {
+        // A completed response stays highlighted on the minimized orb until
+        // the chat is opened again.
+        _hasCompletedResponse = false;
+        _completionPulse = false;
       }
     });
     if (expanding) {
@@ -143,13 +150,21 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
       }
     } else {
       _morphAnimation.reverse().whenComplete(() {
-        if (mounted) widget.onFullscreenChanged?.call(false);
+        if (!mounted) return;
+        if (_hasCompletedResponse) {
+          setState(() => _completionPulse = true);
+          _scheduleCompletionPulseReset();
+        }
+        widget.onFullscreenChanged?.call(false);
       });
     }
     if (wasFullscreen) {
       _fullscreenAnimation.reverse();
     }
   }
+
+  /// Ends the current demo response, as if the model had finished generating.
+  void finishDemoGeneration() => _completeDemoGeneration();
 
   void _onFullscreenAnimationTick() {
     if (mounted) setState(() {});
@@ -395,22 +410,39 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
           children: [
             _buildExpandedBackdrop(theme),
             Positioned.fill(
-              child: IgnorePointer(
-                child: AiNeuralCloudOrbWidget(
-                  size: _cloudSize * _scale,
-                  rotation: _rotationRadians,
-                  canvasSize: viewportSize,
-                  cloudCenter: cloudCenter,
-                  frameRect: activeSafeRect,
-                  frameMorphAnimation: morphAnimation,
-                  showDetachedSatellite: false,
-                  flowSpeed: _isDragging
-                      ? 1.55
-                      : _isExpanded
-                          ? 2.0 * widget.liveliness.clamp(0.0, 1.0)
-                          : 0.24,
-                  enableInteraction: false,
-                ),
+              child: AnimatedBuilder(
+                animation: morphAnimation,
+                builder: (context, _) {
+                  final isSettledOrb =
+                      !_isExpanded && morphAnimation.value <= 0.005;
+                  return IgnorePointer(
+                    child: AiNeuralCloudOrbWidget(
+                      size: _cloudSize *
+                          _scale *
+                          (_completionPulse && isSettledOrb ? 1.12 : 1.0),
+                      rotation: _rotationRadians,
+                      canvasSize: viewportSize,
+                      cloudCenter: cloudCenter,
+                      frameRect: activeSafeRect,
+                      frameMorphAnimation: morphAnimation,
+                      showDetachedSatellite: false,
+                      flowSpeed: _isDragging
+                          ? 1.55
+                          : _isGenerating
+                              ? 0.9
+                              : 2.0 * widget.liveliness.clamp(0.0, 1.0),
+                      tint: !isSettledOrb
+                          ? null
+                          : _isGenerating
+                              ? 0.4
+                              : _hasCompletedResponse
+                                  ? 1.0
+                                  : null,
+                      energy: _completionPulse && isSettledOrb ? 0.75 : 0,
+                      enableInteraction: false,
+                    ),
+                  );
+                },
               ),
             ),
             AnimatedPositioned(
@@ -524,15 +556,15 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        _buildExpandedToolbar(
-                          activeSafeRect,
-                          theme,
-                          fullscreenProgress: fullscreenProgress,
-                        ),
                         _buildChatPreview(
                           activeSafeRect,
                           theme,
                           constraints.maxHeight,
+                          fullscreenProgress: fullscreenProgress,
+                        ),
+                        _buildExpandedToolbar(
+                          activeSafeRect,
+                          theme,
                           fullscreenProgress: fullscreenProgress,
                         ),
                       ],
@@ -736,7 +768,10 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
         MediaQuery.sizeOf(context).width - chatBounds.right + contentInset;
     final composerLeft = chatBounds.left;
     final composerRight = MediaQuery.sizeOf(context).width - chatBounds.right;
-    final chatTop = safeRect.top + 16 + 48 * fullscreenProgress;
+    final fullscreenContentTop = MediaQuery.paddingOf(context).top + 70;
+    final chatTop = safeRect.top +
+        16 +
+        (fullscreenContentTop - safeRect.top - 16) * fullscreenProgress;
 
     return Positioned.fill(
       child: IgnorePointer(
@@ -947,10 +982,12 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
     setState(() {
       _chatTurns.add(_DemoChatTurn(prompt));
       _isGenerating = true;
+      _hasCompletedResponse = false;
       _followChatTail = true;
       _demoWordIndex = 0;
       _chatInputController.clear();
     });
+    widget.onGenerationChanged?.call(true);
     _scrollChatToBottom(force: true);
 
     _responseTimer = Timer.periodic(const Duration(milliseconds: 55), (timer) {
@@ -973,6 +1010,28 @@ class _DraggableAiCloudState extends State<DraggableAiCloud>
     _responseTimer?.cancel();
     _responseTimer = null;
     setState(() => _isGenerating = false);
+    widget.onGenerationChanged?.call(false);
+  }
+
+  void _completeDemoGeneration() {
+    if (!_isGenerating) return;
+    _responseTimer?.cancel();
+    _responseTimer = null;
+    setState(() {
+      _isGenerating = false;
+      _hasCompletedResponse = true;
+      _completionPulse = !_isExpanded && _morphAnimation.value <= 0.005;
+    });
+    widget.onGenerationChanged?.call(false);
+    if (_completionPulse) _scheduleCompletionPulseReset();
+  }
+
+  void _scheduleCompletionPulseReset() {
+    _completionPulseTimer?.cancel();
+    _completionPulseTimer = Timer(const Duration(milliseconds: 260), () {
+      if (!mounted) return;
+      setState(() => _completionPulse = false);
+    });
   }
 
   void _handleChatScroll() {
