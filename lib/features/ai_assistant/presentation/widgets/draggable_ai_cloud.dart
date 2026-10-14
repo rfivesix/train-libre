@@ -408,7 +408,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            _buildExpandedBackdrop(theme),
+            _buildExpandedBackdrop(),
             Positioned.fill(
               child: AnimatedBuilder(
                 animation: morphAnimation,
@@ -425,6 +425,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       cloudCenter: cloudCenter,
                       frameRect: activeSafeRect,
                       frameMorphAnimation: morphAnimation,
+                      showAmbientGlow: false,
+                      edgeBlurSigma: 4,
                       showDetachedSatellite: false,
                       flowSpeed: _isDragging
                           ? 1.55
@@ -579,10 +581,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     );
   }
 
-  Widget _buildExpandedBackdrop(ThemeData theme) {
-    final scrimColor =
-        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
-
+  Widget _buildExpandedBackdrop() {
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _morphAnimation,
@@ -590,21 +589,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           final progress = _morphAnimation.value;
           return IgnorePointer(
             ignoring: progress <= 0.001,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: ColoredBox(
-                    color: scrimColor.withValues(alpha: 0.30 * progress),
-                  ),
-                ),
-                Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _toggleExpanded,
-                    child: const ColoredBox(color: Colors.transparent),
-                  ),
-                ),
-              ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _toggleExpanded,
+              child: const ColoredBox(color: Colors.transparent),
             ),
           );
         },

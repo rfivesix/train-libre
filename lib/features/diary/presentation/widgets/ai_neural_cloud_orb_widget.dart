@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/widgets/ai_neural_cloud_orb_widget.dart
 
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../../../services/haptic_feedback_service.dart';
@@ -44,6 +45,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   /// Optional external transition clock for synchronized overlay gestures.
   final Animation<double>? frameMorphAnimation;
   final bool showAmbientGlow;
+  final double edgeBlurSigma;
 
   /// Whether to draw the detached trailing bubble beside the cloud.
   ///
@@ -114,6 +116,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     this.frameMorph = 0,
     this.frameMorphAnimation,
     this.showAmbientGlow = true,
+    this.edgeBlurSigma = 0,
     this.showDetachedSatellite = true,
     this.baseColor,
     this.accentColor,
@@ -216,7 +219,12 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
 
     final tint = widget.tint;
     if (tint != oldWidget.tint) {
-      _animateChargeTo((tint ?? 0).clamp(0.0, 1.0) * 5.0);
+      if (tint == null) {
+        _chargeController.stop();
+        _chargeAnimation = const AlwaysStoppedAnimation<double>(0);
+      } else {
+        _animateChargeTo(tint.clamp(0.0, 1.0) * 5.0);
+      }
     }
 
     if (widget.animate != oldWidget.animate) {
@@ -340,6 +348,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
                     .clamp(0.0, 1.0),
                 energy: _energy,
                 showAmbientGlow: widget.showAmbientGlow,
+                edgeBlurSigma: widget.edgeBlurSigma,
                 showDetachedSatellite: widget.showDetachedSatellite,
                 baseColor: effectiveBase,
                 accentColor: effectiveAccent,
@@ -370,6 +379,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
   final double energy;
 
   final bool showAmbientGlow;
+  final double edgeBlurSigma;
   final bool showDetachedSatellite;
   final Color baseColor;
   final Color accentColor;
@@ -387,6 +397,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     required this.morph,
     required this.energy,
     required this.showAmbientGlow,
+    required this.edgeBlurSigma,
     required this.showDetachedSatellite,
     required this.baseColor,
     required this.accentColor,
@@ -513,48 +524,78 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     // 3. Global constant, seamless rotation (16s cycle, zero phase jumps)
     final globalRotation = (time * (2 * math.pi / 16.0)) % (2 * math.pi);
     final safeRect = frameRect?.shift(Offset(-center.dx, -center.dy));
-    if (safeRect != null && frameMorph > 0.001) {
-      final spread = Curves.easeInOutCubic.transform(
-        frameMorph.clamp(0.0, 1.0).toDouble(),
-      );
-      // The inner fill tracks the same four moving corner centers as the cloud.
-      final fillBounds = Rect.lerp(Rect.zero, safeRect.inflate(24), spread)!;
-      canvas.drawRect(fillBounds, cloudPaint);
+
+    void drawCloud(Paint paint) {
+      if (safeRect != null && frameMorph > 0.001) {
+        final spread = Curves.easeInOutCubic.transform(
+          frameMorph.clamp(0.0, 1.0).toDouble(),
+        );
+        // The inner fill tracks the same four moving corner centers as the cloud.
+        final fillBounds = Rect.lerp(Rect.zero, safeRect.inflate(24), spread)!;
+        canvas.drawRect(fillBounds, paint);
+      }
+
+      if (safeRect == null || frameMorph <= 0.001) {
+        _drawOrganicCloudCluster(
+          canvas: canvas,
+          paint: paint,
+          center: Offset.zero,
+          scale: scale,
+          sizeFactor: 1,
+          time: time,
+          phaseOffset: 0,
+          motion: motion,
+          energy: energy,
+          rippleIntensity: rippleIntensity,
+          ripple: ripple,
+          morph: morph,
+          rotation: globalRotation + rotation,
+        );
+      } else {
+        _drawMorphingCloudFrame(
+          canvas: canvas,
+          paint: paint,
+          sourceCenter: Offset.zero,
+          safeRect: safeRect,
+          frameMorph: frameMorph,
+          scale: scale,
+          time: time,
+          motion: motion,
+          energy: energy,
+          rippleIntensity: rippleIntensity,
+          ripple: ripple,
+          morph: morph,
+          rotation: globalRotation + rotation,
+        );
+      }
     }
 
-    if (safeRect == null || frameMorph <= 0.001) {
-      _drawOrganicCloudCluster(
-        canvas: canvas,
-        paint: cloudPaint,
-        center: Offset.zero,
-        scale: scale,
-        sizeFactor: 1,
-        time: time,
-        phaseOffset: 0,
-        motion: motion,
-        energy: energy,
-        rippleIntensity: rippleIntensity,
-        ripple: ripple,
-        morph: morph,
-        rotation: globalRotation + rotation,
+    // A restrained neutral-gray halo separates the cloud from both light and
+    // dark content without dimming or tinting the page behind it.
+    if (edgeBlurSigma > 0) {
+      canvas.saveLayer(
+        null,
+        Paint()
+          ..imageFilter = ui.ImageFilter.blur(
+            sigmaX: edgeBlurSigma,
+            sigmaY: edgeBlurSigma,
+          ),
       );
-    } else {
-      _drawMorphingCloudFrame(
-        canvas: canvas,
-        paint: cloudPaint,
-        sourceCenter: Offset.zero,
-        safeRect: safeRect,
-        frameMorph: frameMorph,
-        scale: scale,
-        time: time,
-        motion: motion,
-        energy: energy,
-        rippleIntensity: rippleIntensity,
-        ripple: ripple,
-        morph: morph,
-        rotation: globalRotation + rotation,
+      canvas.save();
+      canvas.scale(1.004);
+      drawCloud(
+        Paint()
+          ..color = const Color(0xFF888888).withValues(
+            alpha: isDark ? 0.82 : 0.52,
+          )
+          ..isAntiAlias = true
+          ..style = PaintingStyle.fill,
       );
+      canvas.restore();
+      canvas.restore();
     }
+
+    drawCloud(cloudPaint);
 
     // 4. Detached trailing satellite bubble — only once there is a cloud for it
     // to have detached from.
@@ -845,6 +886,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         oldDelegate.morph != morph ||
         oldDelegate.energy != energy ||
         oldDelegate.showAmbientGlow != showAmbientGlow ||
+        oldDelegate.edgeBlurSigma != edgeBlurSigma ||
         oldDelegate.showDetachedSatellite != showDetachedSatellite ||
         oldDelegate.baseColor != baseColor ||
         oldDelegate.accentColor != accentColor ||
