@@ -40,10 +40,39 @@ flutter build ipa --release \
   --build-number="$BUILD_NUMBER"
 
 echo "Uploading archive to App Store Connect / TestFlight..."
-(cd ios && bundle exec fastlane upload_beta)
+UPLOAD_LOG="$(mktemp)"
+if ! (cd ios && bundle exec fastlane upload_beta) 2>&1 | tee "$UPLOAD_LOG"; then
+  if grep -Eqi 'bundle version must be higher than the previously uploaded version|already been used \(-19232\)' "$UPLOAD_LOG"; then
+    # This build number is already present in App Store Connect. Advance the
+    # source version now so the next run rebuilds with a fresh number.
+    NEXT_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+    python3 - "$VERSION_NUMBER" "$NEXT_BUILD_NUMBER" <<'PY_BUMP'
+from pathlib import Path
+import re
+import sys
+
+version, build_number = sys.argv[1:]
+path = Path("pubspec.yaml")
+content = path.read_text()
+updated, count = re.subn(
+    r"(?m)^version:\s*[^\s+]+\+\d+\s*$",
+    f"version: {version}+{build_number}",
+    content,
+    count=1,
+)
+if count != 1:
+    raise SystemExit("Error: could not safely update pubspec.yaml version.")
+path.write_text(updated)
+PY_BUMP
+    echo "Apple already has build $BUILD_NUMBER. pubspec.yaml was advanced to $NEXT_BUILD_NUMBER; rerun the script to rebuild and upload." >&2
+  fi
+  rm -f "$UPLOAD_LOG"
+  exit 1
+fi
+rm -f "$UPLOAD_LOG"
 
 NEXT_BUILD_NUMBER=$((BUILD_NUMBER + 1))
-python3 - "$IOS_BUILD_NAME" "$NEXT_BUILD_NUMBER" <<'PY'
+python3 - "$VERSION_NUMBER" "$NEXT_BUILD_NUMBER" <<'PY'
 from pathlib import Path
 import re
 import sys
