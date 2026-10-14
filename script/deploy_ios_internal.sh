@@ -34,10 +34,25 @@ flutter build ios --config-only \
   --build-name="$IOS_BUILD_NAME" \
   --build-number="$BUILD_NUMBER"
 
+# Remove any previous IPA so a failed export can never upload a stale build.
+rm -rf build/ios/ipa
+
 # Flutter's IPA build runs the Xcode archive and export steps automatically.
 flutter build ipa --release \
   --build-name="$IOS_BUILD_NAME" \
   --build-number="$BUILD_NUMBER"
+
+IPA_PATH="$(find build/ios/ipa -type f -name '*.ipa' -print -quit 2>/dev/null || true)"
+if [[ -z "$IPA_PATH" ]]; then
+  cat >&2 <<'EOF'
+Error: Xcode created the archive but did not export an IPA, so upload was skipped.
+Review the export errors above. If they say a provisioning profile does not include
+"Apple Distribution", refresh/regenerate the App Store profiles for both the app
+and TrainLibreLiveActivity bundle IDs so they include the new distribution certificate.
+Then rerun this script.
+EOF
+  exit 1
+fi
 
 echo "Uploading archive to App Store Connect / TestFlight..."
 UPLOAD_LOG="$(mktemp)"
