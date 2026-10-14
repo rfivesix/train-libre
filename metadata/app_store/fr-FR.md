@@ -56,15 +56,15 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Capture de repas par IA plus rapide et plus précise: La capture de repas par IA est désormais plus rapide et plus précise, grâce à une meilleure correspondance avec les aliments du nouveau catalogue. Sur les iPhone compatibles, tu peux aussi utiliser Apple Intelligence directement sur l’appareil. La connexion à un fournisseur d’IA avec ta propre clé API reste disponible.
+Capture de repas par IA améliorée: L’analyse est plus rapide et trouve plus sûrement les bons aliments. Sur les iPhone compatibles, Apple Intelligence peut analyser les repas sur l’appareil ; tu peux aussi continuer à utiliser ta propre clé API avec un autre fournisseur. Vérifie et modifie chaque suggestion avant de l’enregistrer.
 
-Un catalogue alimentaire traduit et plus détaillé: Recherche des aliments génériques dans le catalogue allemand BLS 4.0, téléchargeable, avec des noms traduits dans toutes les langues de l’app. Il fournit des valeurs nutritionnelles plus précises, notamment les micronutriments, et fonctionne hors ligne après téléchargement. Open Food Facts reste disponible pour les produits de marque.
+Des données alimentaires plus détaillées: Télécharge le catalogue BLS 4.0 pour rechercher des aliments génériques aux noms traduits et consulter leurs nutriments, dont les micronutriments. Une fois téléchargé, il fonctionne hors ligne ; les produits de marque restent disponibles via Open Food Facts.
 
-Importe ton historique d’entraînement: Importe tes séances depuis Hevy, Strong ou un fichier CSV. Vérifie l’aperçu avant l’import, avec les doublons potentiels et les dates invalides.
+Importe ton historique d’entraînement: Importe des séances depuis Hevy, Strong ou un fichier CSV. L’aperçu signale les doublons possibles et les dates invalides. Retrouve plus facilement les exercices déjà pratiqués et ajoute des notes aux exercices, routines ou séances individuelles.
 
-Partage et récupère tes contenus: Partage ou importe tes routines, programmes, recettes et séances terminées par lien, texte ou JSON. Tu peux vérifier les éléments importés avant de les ajouter.
+Partage et réutilise tes contenus: Partage routines, programmes et recettes par lien, texte ou JSON ; exporte les séances terminées en texte ou JSON. Prévisualise les imports compatibles avant de les ajouter. Enregistre les recettes selon les portions ou le poids après cuisson.
 
-Plus de liberté pour tes entraînements et tes repas: Ajoute des notes aux exercices, aux routines ou à une séance précise. Enregistre les recettes selon le nombre de portions ou le poids après cuisson, et garde les filtres de dates à portée de main dans les statistiques.
+Des statistiques plus claires et une utilisation plus fluide: Personnalise l’aperçu des statistiques, explore les analyses de nutrition et de récupération, et retrouve les réglages d’import et d’export de santé au même endroit. Cette version améliore aussi la restauration des sauvegardes, l’accessibilité et l’affichage sur les petits écrans.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

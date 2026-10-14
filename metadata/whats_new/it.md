@@ -6,17 +6,17 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.6.0-beta.1 (2026-10-07)
+## 1.6.0-beta.2 (2026-10-15)
 
-{camera} Acquisizione dei pasti con IA più rapida e precisa: L’acquisizione dei pasti con IA è ora più rapida e precisa, grazie a un migliore abbinamento agli alimenti del nuovo catalogo. Sugli iPhone supportati puoi anche usare Apple Intelligence direttamente sul dispositivo. Puoi continuare a collegare un provider IA usando la tua chiave API.
+{camera} Acquisizione dei pasti con IA migliorata: L’analisi è più rapida e trova gli alimenti corrispondenti in modo più affidabile. Sugli iPhone compatibili, Apple Intelligence può analizzare i pasti sul dispositivo; puoi anche continuare a usare la tua chiave API con un altro provider. Controlla e modifica ogni suggerimento prima di salvarlo.
 
-{utensils} Un catalogo alimentare tradotto e più dettagliato: Cerca alimenti generici nel catalogo tedesco BLS 4.0, scaricabile, con nomi tradotti in tutte le lingue supportate dall’app. Offre valori nutrizionali più precisi, inclusi i micronutrienti, e funziona offline dopo il download. Open Food Facts resta disponibile per i prodotti di marca.
+{utensils} Dati alimentari più dettagliati: Scarica il catalogo BLS 4.0 per cercare alimenti generici con nomi tradotti e consultare i nutrienti, inclusi i micronutrienti. Dopo il download funziona offline; i prodotti di marca restano disponibili tramite Open Food Facts.
 
-{dumbbell} Importa la cronologia dei tuoi allenamenti: Importa le sessioni da Hevy, Strong o da un file CSV. Prima dell’importazione puoi controllare l’anteprima, con possibili duplicati e date non valide.
+{dumbbell} Importa la cronologia degli allenamenti: Importa le sessioni da Hevy, Strong o CSV. L’anteprima segnala possibili duplicati e date non valide. Ritrova più facilmente gli esercizi già svolti e aggiungi note a esercizi, routine o singoli allenamenti.
 
-{rocket} Condividi e trasferisci i tuoi contenuti: Condividi o importa routine, piani di allenamento, ricette e allenamenti completati tramite link, testo o JSON. Puoi verificare i contenuti importati prima di aggiungerli.
+{rocket} Condividi e riutilizza i tuoi contenuti: Condividi routine, piani e ricette tramite link, testo o JSON; esporta gli allenamenti completati come testo o JSON. Controlla l’anteprima delle importazioni supportate. Registra le ricette in base alle porzioni o al peso dopo la cottura.
 
-{chart_line} Più flessibilità per allenamenti e pasti: Aggiungi note agli esercizi, alle routine o ai singoli allenamenti. Registra le ricette salvate in base alle porzioni o al peso cotto e tieni a portata di mano i filtri per data nelle statistiche.
+{chart_line} Statistiche più chiare e uso quotidiano più fluido: Personalizza la panoramica delle statistiche, esplora le analisi di nutrizione e recupero e trova le impostazioni di importazione ed esportazione dei dati sanitari in un unico posto. Questo aggiornamento migliora anche il ripristino dei backup, l’accessibilità e la visualizzazione sugli schermi piccoli.
 
 ## 1.5.0 (2026-10-07)
 

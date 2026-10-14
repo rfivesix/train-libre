@@ -1,15 +1,15 @@
-Train Libre 1.6.0
+Train Libre 1.6.0-beta.2
 
-Please focus your testing on the new import, sharing, food search, and workout features:
+Please focus on these flows:
 
-• Workout History Import: Import sample Hevy, Strong, and generic CSV files. Check localized headers, dates, and units in the preview; confirm duplicates and invalid dates are identified before import.
-• BLS Offline Food Search: Search for generic foods in supported languages with the device offline. Check aliases and localized names, nutrient details, and source attribution. Confirm branded products remain searchable through Open Food Facts.
-• AI Meal Capture: Add a meal from a photo and from text using Apple Intelligence or a configured cloud provider. Review food matches and portions before logging, and check the flow when a provider response is incomplete or cannot be parsed.
-• Sharing and Import: Share routines, training plans, recipes, and completed workouts as text or JSON. Try share links for routines, plans, and recipes, then review the import preview before confirming. Check that exercise notes, workout notes, and pause durations are preserved where applicable.
-• Recipes: Create and scale a recipe by portions and cooked weight, log it as a grouped diary meal, then duplicate and share it.
-• Workout Notes and Controls: Add pinned exercise/routine notes and a note for an exercise in a workout. Check progression-suggestion and previously-trained exercise filters, plus the updated set-type menus and workout keyboard controls.
-• Health Settings: Open the unified Apple Health / Health Connect settings and check the available import and export options for your device.
+• AI meals and food search: On a supported iPhone, scan a mixed meal with Apple Intelligence and check that all ingredients remain in the review. Try editing the suggested foods and portions before saving. Search common foods in the downloaded BLS 4.0 catalog, including while offline, and check that branded products still appear through Open Food Facts. An external AI provider can also be tested with your own API key.
 
-Please also report any localisation, accessibility, layout, backup/restore, or general stability issues.
+• Workout history: Import a Hevy, Strong, or generic CSV export from onboarding or Settings > Data & Backup. Inspect the preview for units, dates, duplicates, and invalid rows. In the exercise catalog, filter for previously trained exercises and check their history labels.
+
+• Sharing and recipes: Share a routine, plan, or recipe by link, text, or JSON and check the import preview before confirming. Export a completed workout as text or JSON. Scale a saved recipe by servings or cooked weight, then log it to the diary.
+
+• Workout notes and controls: Add a pinned exercise note, a routine-specific note, and a note for one workout. Check that each appears in the right context. Try the progression toggle, set-type menu, and workout keyboard controls while logging sets.
+
+• Statistics, health, and maintenance: Reorder Statistics cards and open nutrition and recovery details. Check the consolidated Health settings and available Apple Health permissions. If you have an existing backup, restore it and confirm that goals and workout history remain intact. Please also report accessibility, localisation, and small-screen layout issues.
 
 Thank you for testing Train Libre!

@@ -56,15 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Faster, more accurate AI meal capture: AI meal capture is now faster and more accurate, with better food matching powered by the new food catalog. On supported iPhones, you can also use Apple Intelligence for on-device analysis. Your existing option to connect an AI provider with your own API key remains available.
+Better AI meal capture: Meal analysis is faster and food matching is more reliable. On supported iPhones, Apple Intelligence can analyse meals on the device; you can still use your own API key with another provider. Review and edit every suggestion before saving.
 
-A translated, more detailed food catalog: Search generic foods in the downloadable German BLS 4.0 catalog, with food names translated into all supported app languages. It provides more precise nutrient values, including micronutrients, and works offline after download. Open Food Facts remains available for branded products.
+More detailed food data: Download the BLS 4.0 catalog for translated generic food names and nutrient details, including micronutrients. Search it offline after download; branded products remain available through Open Food Facts.
 
-Bring your workout history: Import workouts from Hevy, Strong, or a CSV file. Preview the import first, including entries that may be duplicates or have invalid dates.
+Bring your training history: Import workouts from Hevy, Strong, or CSV with a preview that flags duplicates and invalid dates. Find exercises you have trained before, and keep notes for an exercise, a routine, or a single workout.
 
-Share and move your saved content: Share or import routines, training plans, recipes, and completed workouts using links, text, or JSON. Review imported content before adding it.
+Share and reuse your content: Share routines, plans, and recipes by link, text, or JSON; export completed workouts as text or JSON. Preview supported imports before adding them. Log saved recipes by serving or cooked weight.
 
-More flexibility for workouts and meals: Add notes to exercises, routines, or individual workouts. Log saved recipes by serving or cooked weight, and keep date filters close at hand in Statistics.
+Clearer insights and smoother everyday use: Customise your Statistics overview, explore nutrition and recovery insights, and find health import and export settings in one place. This update also improves backup restoration, accessibility, and small-screen layouts.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

@@ -1,0 +1,23 @@
+Dear App Review Team,
+
+Train Libre 1.6.0-beta.2 is an account-free workout and nutrition tracker. Core logging, plans, statistics, and backup features work without a login, subscription, or purchase. Onboarding requires a date of birth showing an age of at least 16. Health permissions and analytics consent are optional.
+
+REVIEW PATHS
+
+1. After onboarding, open Workout to create a routine or start a session. The exercise catalog can filter previously trained exercises after a workout has been logged. Exercise notes can be pinned generally, saved for a routine, or added to one workout.
+2. Open Settings > Data & Backup to import a Hevy, Strong, or generic CSV workout export. The preview shows detected dates, units, possible duplicates, and invalid rows before any import is confirmed. This feature requires a user-supplied export file.
+3. From a saved routine, manual plan, or recipe, open Share to create a link or export text/JSON. Receiving a supported link or importing JSON shows a preview before local data is added. Completed workouts can be exported as text or JSON.
+4. Open Nutrition to search the downloadable BLS 4.0 generic-food catalog, inspect nutrients, create a recipe, and log it by servings or cooked weight. The catalog can be searched offline after its initial download. Branded products are available through Open Food Facts when online.
+5. On a compatible iPhone, AI meal capture can use Apple Intelligence on the device without an API key. Review and edit all suggested foods and portions before saving. Other AI providers are optional and require the user's own API key; they are not needed to review the core app.
+6. Open Statistics to rearrange overview cards and inspect nutrition and recovery analyses. Settings > Health combines optional Apple Health import and export controls. Health access is requested only through the system permission flow.
+
+The update also improves backup restoration, screen-reader controls, and layouts on smaller screens. Existing weight goals, weekly reviews, workout plans, and timed sets remain available from Nutrition and Workout.
+
+PRIVACY AND HEALTH CONTEXT
+
+Train Libre stores core data locally. Apple Health and iCloud backup are optional. BLS is a downloadable food catalog; Open Food Facts supplies branded-food data, and OpenExerciseDB supplies exercise data. Optional product analytics use PostHog EU only after consent. Train Libre has no ads, IDFA access, or cross-app tracking.
+
+The app is for personal fitness logging. Nutrition, recovery, and health estimates are guidance, not diagnosis or treatment. No medical claim is made.
+
+Best regards,
+Richard

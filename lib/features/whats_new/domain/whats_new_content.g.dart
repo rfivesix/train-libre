@@ -16,33 +16,33 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.1',
-      releasedOn: '2026-10-07',
+      version: '1.6.0-beta.2',
+      releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
-          title: 'Faster, more accurate AI meal capture',
-          body: 'AI meal capture is now faster and more accurate, with better food matching powered by the new food catalog. On supported iPhones, you can also use Apple Intelligence for on-device analysis. Your existing option to connect an AI provider with your own API key remains available.',
+          title: 'Better AI meal capture',
+          body: 'Meal analysis is faster and food matching is more reliable. On supported iPhones, Apple Intelligence can analyse meals on the device; you can still use your own API key with another provider. Review and edit every suggestion before saving.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
-          title: 'A translated, more detailed food catalog',
-          body: 'Search generic foods in the downloadable German BLS 4.0 catalog, with food names translated into all supported app languages. It provides more precise nutrient values, including micronutrients, and works offline after download. Open Food Facts remains available for branded products.',
+          title: 'More detailed food data',
+          body: 'Download the BLS 4.0 catalog for translated generic food names and nutrient details, including micronutrients. Search it offline after download; branded products remain available through Open Food Facts.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Bring your workout history',
-          body: 'Import workouts from Hevy, Strong, or a CSV file. Preview the import first, including entries that may be duplicates or have invalid dates.',
+          title: 'Bring your training history',
+          body: 'Import workouts from Hevy, Strong, or CSV with a preview that flags duplicates and invalid dates. Find exercises you have trained before, and keep notes for an exercise, a routine, or a single workout.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.rocket,
-          title: 'Share and move your saved content',
-          body: 'Share or import routines, training plans, recipes, and completed workouts using links, text, or JSON. Review imported content before adding it.',
+          title: 'Share and reuse your content',
+          body: 'Share routines, plans, and recipes by link, text, or JSON; export completed workouts as text or JSON. Preview supported imports before adding them. Log saved recipes by serving or cooked weight.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'More flexibility for workouts and meals',
-          body: 'Add notes to exercises, routines, or individual workouts. Log saved recipes by serving or cooked weight, and keep date filters close at hand in Statistics.',
+          title: 'Clearer insights and smoother everyday use',
+          body: 'Customise your Statistics overview, explore nutrition and recovery insights, and find health import and export settings in one place. This update also improves backup restoration, accessibility, and small-screen layouts.',
         ),
       ],
     ),
@@ -267,33 +267,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'de': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.1',
-      releasedOn: '2026-10-07',
+      version: '1.6.0-beta.2',
+      releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
-          title: 'Schnellere und genauere KI-Mahlzeitenerfassung',
-          body: 'Die KI erfasst Mahlzeiten jetzt schneller und genauer. Der neue Lebensmittelkatalog verbessert den Abgleich mit passenden Lebensmitteln. Auf unterstützten iPhones kannst du dafür auch Apple Intelligence direkt auf dem Gerät verwenden. Die bisherige Möglichkeit, einen KI-Anbieter mit eigenem API-Schlüssel zu verbinden, bleibt bestehen.',
+          title: 'Verbesserte KI-Mahlzeitenerfassung',
+          body: 'Die Analyse ist schneller und findet passende Lebensmittel zuverlässiger. Auf unterstützten iPhones kannst du Apple Intelligence direkt auf dem Gerät nutzen oder weiterhin einen Anbieter mit eigenem API-Schlüssel verbinden. Jeden Vorschlag kannst du vor dem Speichern prüfen und ändern.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
-          title: 'Ein übersetzter Lebensmittelkatalog mit mehr Nährwerten',
-          body: 'Suche generische Lebensmittel im herunterladbaren deutschen BLS-4.0-Katalog. Die Lebensmittelnamen sind in alle unterstützten App-Sprachen übersetzt. Der Katalog bietet genauere Nährwerte einschließlich Mikronährstoffen und funktioniert nach dem Download auch offline. Markenprodukte findest du weiterhin über Open Food Facts.',
+          title: 'Mehr Details zu Lebensmitteln',
+          body: 'Lade den BLS-4.0-Katalog mit übersetzten Namen für generische Lebensmittel und Nährwerten einschließlich Mikronährstoffen herunter. Danach kannst du ihn offline durchsuchen; Markenprodukte findest du weiter über Open Food Facts.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Trainingsverlauf übernehmen',
-          body: 'Importiere Workouts aus Hevy, Strong oder einer CSV-Datei. Prüfe den Import vorher und erkenne dabei mögliche Duplikate und ungültige Datumsangaben.',
+          body: 'Importiere Workouts aus Hevy, Strong oder CSV. Die Vorschau zeigt mögliche Duplikate und ungültige Datumsangaben. Finde bereits trainierte Übungen leichter und hinterlege Notizen zu Übungen, Routinen oder einzelnen Workouts.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.rocket,
-          title: 'Gespeicherte Inhalte teilen und übernehmen',
-          body: 'Teile oder importiere Routinen, Trainingspläne, Rezepte und abgeschlossene Workouts per Link, Text oder JSON. Vor dem Übernehmen kannst du importierte Inhalte prüfen.',
+          title: 'Inhalte teilen und wiederverwenden',
+          body: 'Teile Routinen, Pläne und Rezepte per Link, Text oder JSON; exportiere abgeschlossene Workouts als Text oder JSON. Prüfe unterstützte Importe vor dem Übernehmen. Gespeicherte Rezepte kannst du nach Portionen oder gekochtem Gewicht erfassen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Mehr Spielraum für Training und Mahlzeiten',
-          body: 'Ergänze Notizen zu Übungen, Routinen oder einzelnen Workouts. Erfasse gespeicherte Rezepte nach Portionen oder gekochtem Gewicht und behalte Datumsfilter in der Statistik griffbereit.',
+          title: 'Mehr Überblick und Feinschliff',
+          body: 'Gestalte deine Statistikübersicht selbst, entdecke Ernährungs- und Regenerationsanalysen und finde Gesundheitsimporte und -exporte an einem Ort. Dazu kommen Verbesserungen bei der Backup-Wiederherstellung, Bedienungshilfen und Darstellung auf kleinen Bildschirmen.',
         ),
       ],
     ),
@@ -518,33 +518,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.1',
-      releasedOn: '2026-10-07',
+      version: '1.6.0-beta.2',
+      releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
-          title: 'Capture de repas par IA plus rapide et plus précise',
-          body: 'La capture de repas par IA est désormais plus rapide et plus précise, grâce à une meilleure correspondance avec les aliments du nouveau catalogue. Sur les iPhone compatibles, tu peux aussi utiliser Apple Intelligence directement sur l’appareil. La connexion à un fournisseur d’IA avec ta propre clé API reste disponible.',
+          title: 'Capture de repas par IA améliorée',
+          body: 'L’analyse est plus rapide et trouve plus sûrement les bons aliments. Sur les iPhone compatibles, Apple Intelligence peut analyser les repas sur l’appareil ; tu peux aussi continuer à utiliser ta propre clé API avec un autre fournisseur. Vérifie et modifie chaque suggestion avant de l’enregistrer.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
-          title: 'Un catalogue alimentaire traduit et plus détaillé',
-          body: 'Recherche des aliments génériques dans le catalogue allemand BLS 4.0, téléchargeable, avec des noms traduits dans toutes les langues de l’app. Il fournit des valeurs nutritionnelles plus précises, notamment les micronutriments, et fonctionne hors ligne après téléchargement. Open Food Facts reste disponible pour les produits de marque.',
+          title: 'Des données alimentaires plus détaillées',
+          body: 'Télécharge le catalogue BLS 4.0 pour rechercher des aliments génériques aux noms traduits et consulter leurs nutriments, dont les micronutriments. Une fois téléchargé, il fonctionne hors ligne ; les produits de marque restent disponibles via Open Food Facts.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Importe ton historique d’entraînement',
-          body: 'Importe tes séances depuis Hevy, Strong ou un fichier CSV. Vérifie l’aperçu avant l’import, avec les doublons potentiels et les dates invalides.',
+          body: 'Importe des séances depuis Hevy, Strong ou un fichier CSV. L’aperçu signale les doublons possibles et les dates invalides. Retrouve plus facilement les exercices déjà pratiqués et ajoute des notes aux exercices, routines ou séances individuelles.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.rocket,
-          title: 'Partage et récupère tes contenus',
-          body: 'Partage ou importe tes routines, programmes, recettes et séances terminées par lien, texte ou JSON. Tu peux vérifier les éléments importés avant de les ajouter.',
+          title: 'Partage et réutilise tes contenus',
+          body: 'Partage routines, programmes et recettes par lien, texte ou JSON ; exporte les séances terminées en texte ou JSON. Prévisualise les imports compatibles avant de les ajouter. Enregistre les recettes selon les portions ou le poids après cuisson.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Plus de liberté pour tes entraînements et tes repas',
-          body: 'Ajoute des notes aux exercices, aux routines ou à une séance précise. Enregistre les recettes selon le nombre de portions ou le poids après cuisson, et garde les filtres de dates à portée de main dans les statistiques.',
+          title: 'Des statistiques plus claires et une utilisation plus fluide',
+          body: 'Personnalise l’aperçu des statistiques, explore les analyses de nutrition et de récupération, et retrouve les réglages d’import et d’export de santé au même endroit. Cette version améliore aussi la restauration des sauvegardes, l’accessibilité et l’affichage sur les petits écrans.',
         ),
       ],
     ),
@@ -769,33 +769,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.1',
-      releasedOn: '2026-10-07',
+      version: '1.6.0-beta.2',
+      releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
-          title: 'Acquisizione dei pasti con IA più rapida e precisa',
-          body: 'L’acquisizione dei pasti con IA è ora più rapida e precisa, grazie a un migliore abbinamento agli alimenti del nuovo catalogo. Sugli iPhone supportati puoi anche usare Apple Intelligence direttamente sul dispositivo. Puoi continuare a collegare un provider IA usando la tua chiave API.',
+          title: 'Acquisizione dei pasti con IA migliorata',
+          body: 'L’analisi è più rapida e trova gli alimenti corrispondenti in modo più affidabile. Sugli iPhone compatibili, Apple Intelligence può analizzare i pasti sul dispositivo; puoi anche continuare a usare la tua chiave API con un altro provider. Controlla e modifica ogni suggerimento prima di salvarlo.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
-          title: 'Un catalogo alimentare tradotto e più dettagliato',
-          body: 'Cerca alimenti generici nel catalogo tedesco BLS 4.0, scaricabile, con nomi tradotti in tutte le lingue supportate dall’app. Offre valori nutrizionali più precisi, inclusi i micronutrienti, e funziona offline dopo il download. Open Food Facts resta disponibile per i prodotti di marca.',
+          title: 'Dati alimentari più dettagliati',
+          body: 'Scarica il catalogo BLS 4.0 per cercare alimenti generici con nomi tradotti e consultare i nutrienti, inclusi i micronutrienti. Dopo il download funziona offline; i prodotti di marca restano disponibili tramite Open Food Facts.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Importa la cronologia dei tuoi allenamenti',
-          body: 'Importa le sessioni da Hevy, Strong o da un file CSV. Prima dell’importazione puoi controllare l’anteprima, con possibili duplicati e date non valide.',
+          title: 'Importa la cronologia degli allenamenti',
+          body: 'Importa le sessioni da Hevy, Strong o CSV. L’anteprima segnala possibili duplicati e date non valide. Ritrova più facilmente gli esercizi già svolti e aggiungi note a esercizi, routine o singoli allenamenti.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.rocket,
-          title: 'Condividi e trasferisci i tuoi contenuti',
-          body: 'Condividi o importa routine, piani di allenamento, ricette e allenamenti completati tramite link, testo o JSON. Puoi verificare i contenuti importati prima di aggiungerli.',
+          title: 'Condividi e riutilizza i tuoi contenuti',
+          body: 'Condividi routine, piani e ricette tramite link, testo o JSON; esporta gli allenamenti completati come testo o JSON. Controlla l’anteprima delle importazioni supportate. Registra le ricette in base alle porzioni o al peso dopo la cottura.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'Più flessibilità per allenamenti e pasti',
-          body: 'Aggiungi note agli esercizi, alle routine o ai singoli allenamenti. Registra le ricette salvate in base alle porzioni o al peso cotto e tieni a portata di mano i filtri per data nelle statistiche.',
+          title: 'Statistiche più chiare e uso quotidiano più fluido',
+          body: 'Personalizza la panoramica delle statistiche, esplora le analisi di nutrizione e recupero e trova le impostazioni di importazione ed esportazione dei dati sanitari in un unico posto. Questo aggiornamento migliora anche il ripristino dei backup, l’accessibilità e la visualizzazione sugli schermi piccoli.',
         ),
       ],
     ),
@@ -1020,33 +1020,33 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.1',
-      releasedOn: '2026-10-07',
+      version: '1.6.0-beta.2',
+      releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
-          title: 'AI食事記録がより速く、より正確に',
-          body: '新しい食品カタログによる照合の改善で、AI食事記録がより速く正確になりました。対応するiPhoneでは、Apple Intelligenceを使って端末上で解析することもできます。お持ちのAPIキーを使ってAIプロバイダーに接続する従来の方法も引き続き利用できます。',
+          title: 'AI食事記録を改善',
+          body: '食事の解析が速くなり、食品との照合もより確実になりました。対応するiPhoneではApple Intelligenceによる端末上の解析を利用でき、引き続き自分のAPIキーで別のプロバイダーも使えます。提案は保存前に確認・修正できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
-          title: '翻訳対応と栄養情報が充実した食品カタログ',
-          body: 'ダウンロード可能なドイツのBLS 4.0カタログから一般食品を検索できます。食品名はアプリが対応するすべての言語に翻訳されています。より精密な栄養価に加えて微量栄養素にも対応し、ダウンロード後はオフラインで使えます。ブランド食品には引き続きOpen Food Factsを利用できます。',
+          title: 'より詳しい食品データ',
+          body: 'BLS 4.0カタログをダウンロードすると、翻訳された一般食品名と微量栄養素を含む栄養情報を確認できます。ダウンロード後はオフラインで検索でき、ブランド食品は引き続きOpen Food Factsで探せます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'トレーニング履歴を取り込む',
-          body: 'Hevy、Strong、またはCSVファイルからワークアウトをインポートできます。インポート前に内容を確認でき、重複の可能性や無効な日付も把握できます。',
+          body: 'Hevy、Strong、CSVからワークアウトをインポートできます。プレビューで重複の可能性や無効な日付を確認できます。過去に行った種目を見つけやすくなり、種目、ルーティン、個別のワークアウトにメモを残せます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.rocket,
-          title: '保存した内容を共有・移行',
-          body: 'ルーティン、トレーニングプラン、レシピ、完了したワークアウトをリンク、テキスト、JSONで共有・インポートできます。取り込む前に内容を確認できます。',
+          title: '保存した内容を共有・再利用',
+          body: 'ルーティン、プラン、レシピをリンク、テキスト、JSONで共有し、完了したワークアウトをテキストやJSONで書き出せます。対応するデータは取り込み前に確認できます。保存したレシピは人数分や調理後の重量で記録できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
-          title: 'トレーニングと食事をもっと柔軟に',
-          body: '種目、ルーティン、個別のワークアウトにメモを追加できます。保存したレシピは分量または調理後の重量で記録でき、統計の期間フィルターにもすぐアクセスできます。',
+          title: '見やすい統計と日々の使いやすさ',
+          body: '統計の概要をカスタマイズし、栄養や回復の分析を確認できます。ヘルスデータの取り込み・書き出し設定も一か所にまとまりました。バックアップ復元、アクセシビリティ、小さな画面での表示も改善しました。',
         ),
       ],
     ),
@@ -1277,4 +1277,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.6.0-beta.1';
+const String kWhatsNewGeneratedForVersion = '1.6.0-beta.2';
