@@ -33,6 +33,11 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../workout/domain/models/workout_log.dart';
+import '../../workout/domain/repositories/workout_repository.dart';
+import '../../workout/presentation/workout_log_detail_screen.dart';
+import '../../workout/presentation/widgets/workout_exercise_log_card.dart';
+import 'package:intl/intl.dart';
 
 /// A screen displaying detailed information about a specific [Exercise].
 class ExerciseDetailScreen extends StatefulWidget {
@@ -70,6 +75,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   /// in which case the body-weight cards read "-" rather than 0 kg.
   double? _bodyweightKg;
   List<Map<String, dynamic>> _timeSeriesData = [];
+  late final Stream<List<WorkoutLog>> _workoutHistory =
+      context.read<IWorkoutRepository>().watchFullWorkoutLogs();
 
   /// The UI language, read once per load rather than per row.
   String get _languageCode => Localizations.localeOf(context).languageCode;
@@ -415,6 +422,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final isLightMode = theme.brightness == Brightness.light;
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
@@ -474,122 +482,210 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        clipBehavior: Clip.none,
-        padding: DesignConstants.cardPadding.copyWith(
-          top: DesignConstants.cardPadding.top + topPadding,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if ((_currentExercise.imagePath ?? '').isNotEmpty)
-              Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusL),
-                ),
-                child: Image.asset(
-                  _currentExercise.imagePath!,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 200,
-                    alignment: Alignment.center,
-                    color: Colors.black12,
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusL),
-                    ),
-                    child: const Icon(LucideIcons.image_off),
-                  ),
-                ),
+      body: DefaultTabController(
+        length: 3,
+        child: Column(children: [
+          SizedBox(height: topPadding),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingL,
+              vertical: DesignConstants.spacingXS,
+            ),
+            child: TabBar(
+              isScrollable: false,
+              indicator: const BoxDecoration(),
+              splashFactory: NoSplash.splashFactory,
+              overlayColor: WidgetStateProperty.all(Colors.transparent),
+              labelPadding: EdgeInsets.zero,
+              labelColor: isLightMode ? Colors.black : Colors.white,
+              unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+              labelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
               ),
-            if ((_currentExercise.imagePath ?? '').isNotEmpty)
-              const SizedBox(height: DesignConstants.spacingXL),
-            _ClassificationChips(exercise: _currentExercise),
-            AppLinkRow(
-              title: l10n.pinnedExerciseNoteTitle,
-              subtitle: _currentExercise.pinnedNote?.trim().isNotEmpty == true
-                  ? _currentExercise.pinnedNote!
-                  : l10n.exerciseNoteHint,
-              leading: const Icon(Icons.push_pin_outlined),
-              trailingIcon: LucideIcons.pencil,
-              onTap: _editPinnedNote,
+              unselectedLabelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+              tabs: const [
+                Tab(text: 'Zusammenfassung'),
+                Tab(text: 'Historie'),
+                Tab(text: 'So geht’s'),
+              ],
             ),
-            const SizedBox(height: DesignConstants.spacingL),
-            AppInfoRow(
-              title: l10n.descriptionLabel,
-              subtitle:
-                  _currentExercise.getLocalizedDescription(context).isNotEmpty
-                      ? _currentExercise.getLocalizedDescription(context)
-                      : l10n.noDescriptionAvailable,
-              padding: EdgeInsets.zero,
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
-            if (!_currentExercise.isCardio) ...[
-              AppSectionHeader(title: l10n.involvedMuscles),
-              RepaintBoundary(
-                child: _ExerciseMuscleBodyView(
+          ),
+          Expanded(
+            child: TabBarView(children: [
+              _buildSummaryTab(l10n, textTheme),
+              _buildExerciseHistoryTab(),
+              _buildInstructionsTab(l10n),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildSummaryTab(AppLocalizations l10n, TextTheme textTheme) {
+    return SingleChildScrollView(
+      clipBehavior: Clip.none,
+      padding: DesignConstants.cardPadding,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (!_currentExercise.isCardio) ...[
+          RepaintBoundary(
+              child: _ExerciseMuscleBodyView(
                   exercise: _currentExercise,
                   vocabulary: _muscleVocabulary,
-                ),
-              ),
-              const SizedBox(height: DesignConstants.spacingXL),
-            ],
-            if (_isLoading &&
-                _timeSeriesData.isEmpty &&
-                _prMap.values.every((v) => v == null))
-              const Center(
-                child: Padding(
+                  showExerciseTitle: true)),
+          const SizedBox(height: DesignConstants.spacingXL),
+        ],
+        _ClassificationChips(exercise: _currentExercise),
+        if (_isLoading &&
+            _timeSeriesData.isEmpty &&
+            _prMap.values.every((v) => v == null))
+          const Center(
+              child: Padding(
                   padding: EdgeInsets.symmetric(
                       vertical: DesignConstants.spacingXXL),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (_timeSeriesData.isEmpty &&
-                _prMap.values.every((v) => v == null))
-              Center(
-                child: Padding(
+                  child: CircularProgressIndicator()))
+        else if (_timeSeriesData.isEmpty &&
+            _prMap.values.every((v) => v == null))
+          Center(
+              child: Padding(
                   padding: const EdgeInsets.symmetric(
                       vertical: DesignConstants.spacingXL),
-                  child: Text(
-                    l10n.exerciseAnalyticsNoData,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  child: Text(l10n.exerciseAnalyticsNoData,
+                      style: textTheme.bodyMedium?.copyWith(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant))))
+        else
+          Stack(children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              _buildPRSummarySection(l10n),
+              const SizedBox(height: DesignConstants.spacingXL),
+              AppSectionHeader(title: l10n.workoutHistoryButton),
+              RepaintBoundary(child: _buildConsolidatedChart(l10n)),
+            ]),
+            if (_isLoading)
+              const Positioned(
+                  top: DesignConstants.spacingM,
+                  right: DesignConstants.spacingM,
+                  child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
+          ]),
+      ]),
+    );
+  }
+
+  Widget _buildInstructionsTab(AppLocalizations l10n) {
+    return SingleChildScrollView(
+      padding: DesignConstants.cardPadding,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (!_currentExercise.isCardio) ...[
+          _ExerciseMuscleBodyView(
+              exercise: _currentExercise, vocabulary: _muscleVocabulary),
+          const SizedBox(height: DesignConstants.spacingXL),
+        ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            _currentExercise.getLocalizedDescription(context).isNotEmpty
+                ? _currentExercise.getLocalizedDescription(context)
+                : l10n.noDescriptionAvailable,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                 ),
-              )
-            else
-              Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppSectionHeader(title: l10n.workoutHistoryButton),
-                      RepaintBoundary(
-                        child: _buildConsolidatedChart(l10n),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXL),
-                      _buildPRSummarySection(l10n),
-                    ],
-                  ),
-                  if (_isLoading)
-                    const Positioned(
-                      top: DesignConstants.spacingM,
-                      right: DesignConstants.spacingM,
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                ],
-              ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: DesignConstants.spacingXL),
+        AppLinkRow(
+          title: l10n.pinnedExerciseNoteTitle,
+          subtitle: _currentExercise.pinnedNote?.trim().isNotEmpty == true
+              ? _currentExercise.pinnedNote!
+              : l10n.exerciseNoteHint,
+          trailingIcon: LucideIcons.pencil,
+          onTap: _editPinnedNote,
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildExerciseHistoryTab() {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    return StreamBuilder<List<WorkoutLog>>(
+      stream: _workoutHistory,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        final targetUuid = _currentExercise.uuid;
+        final names = {
+          _currentExercise.localizedNameFor(_languageCode).toLowerCase(),
+          _currentExercise.canonicalName.toLowerCase()
+        };
+        final entries = (snapshot.data ?? [])
+            .map((log) => (
+                  log: log,
+                  sets: log.sets
+                      .where((set) =>
+                          (targetUuid != null &&
+                              set.exerciseId == targetUuid) ||
+                          names.contains(set.exerciseName.toLowerCase()))
+                      .toList()
+                ))
+            .where((entry) => entry.sets.isNotEmpty)
+            .toList();
+        if (entries.isEmpty)
+          return Center(child: Text(l10n.exerciseAnalyticsNoData));
+        return ListView.builder(
+          padding: const EdgeInsets.only(bottom: DesignConstants.spacingXL),
+          itemCount: entries.length,
+          itemBuilder: (context, index) {
+            final entry = entries[index];
+            final log = entry.log;
+            return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    title: Text(log.routineName ?? l10n.freeWorkoutTitle,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(DateFormat.yMMMMd(locale)
+                        .add_Hm()
+                        .format(log.startTime)),
+                    trailing: const Icon(LucideIcons.chevron_right),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) =>
+                            WorkoutLogDetailScreen(logId: log.id!))),
+                  ),
+                  WorkoutExerciseLogCard(
+                    exerciseName: _currentExercise.getLocalizedName(context),
+                    exercise: _currentExercise,
+                    sets: entry.sets,
+                    isEditMode: false,
+                    isCardio: _currentExercise.isCardio,
+                    showExerciseHeader: false,
+                    mask: ExerciseLogMask.forExercise(_currentExercise),
+                    bodyweightKg: _bodyweightKg,
+                    weightControllers: const {},
+                    repsControllers: const {},
+                    rirControllers: const {},
+                    exerciseNote: null,
+                    onEditNotes: (_) {},
+                    onDeleteExercise: (_) {},
+                    onAddSet: () {},
+                    onDeleteSet: (_) {},
+                    index: index,
+                  ),
+                  const Divider(height: 1),
+                ]);
+          },
+        );
+      },
     );
   }
 
@@ -720,12 +816,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.screenPaddingHorizontal,
-            ),
-            child: _buildChartHeader(l10n),
-          ),
+          _buildChartHeader(l10n),
           const SizedBox(height: DesignConstants.spacingL),
           Container(
             height: 160,
@@ -770,12 +861,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignConstants.screenPaddingHorizontal,
-          ),
-          child: _buildChartHeader(l10n),
-        ),
+        _buildChartHeader(l10n),
         const SizedBox(height: DesignConstants.spacingS),
         MeasurementChartWidget.fromData(
           dataPoints: dataPoints,
@@ -1002,10 +1088,12 @@ class _CategoryBadge extends StatelessWidget {
 class _ExerciseMuscleBodyView extends StatelessWidget {
   final Exercise exercise;
   final MuscleVocabulary vocabulary;
+  final bool showExerciseTitle;
 
   const _ExerciseMuscleBodyView({
     required this.exercise,
     required this.vocabulary,
+    this.showExerciseTitle = false,
   });
 
   @override
@@ -1082,8 +1170,18 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
           frontHighlights: frontHighlights,
           backHighlights: backHighlights,
         ),
+        if (showExerciseTitle)
+          Padding(
+            padding: const EdgeInsets.only(top: DesignConstants.spacingL),
+            child: Text(
+              exercise.getLocalizedName(context),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         // ── Legend ─────────────────────────────────────────────────────
-        const SizedBox(height: DesignConstants.spacingL),
+        const SizedBox(height: DesignConstants.spacingS),
         _MuscleChipRow(
           label: l10n.primaryLabel,
           names: primaryNames,

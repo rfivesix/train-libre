@@ -24,6 +24,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final List<SetLog> sets;
   final bool isEditMode;
   final bool isCardio;
+  final bool showExerciseHeader;
 
   /// Which inputs each set row shows. Derived from the exercise by the caller,
   /// which is the only place that has it.
@@ -67,6 +68,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.sets,
     required this.isEditMode,
     required this.isCardio,
+    this.showExerciseHeader = true,
     required this.mask,
     this.bodyweightKg,
     required this.weightControllers,
@@ -164,61 +166,62 @@ class WorkoutExerciseLogCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            leading: null,
-            title: isEditMode
-                ? Listener(
-                    onPointerDown: onPointerDown,
-                    onPointerMove: onPointerMove,
-                    onPointerUp: onPointerUp,
-                    onPointerCancel: onPointerCancel,
-                    child: ReorderableDelayedDragStartListener(
-                      index: index,
-                      child: MorphSourceScope(
-                        builder: (context, setHidden) => Builder(
-                          builder: (titleCtx) => InkWell(
-                            onTap: () => openDetail(titleCtx, setHidden),
-                            child: title,
+          if (showExerciseHeader)
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              leading: null,
+              title: isEditMode
+                  ? Listener(
+                      onPointerDown: onPointerDown,
+                      onPointerMove: onPointerMove,
+                      onPointerUp: onPointerUp,
+                      onPointerCancel: onPointerCancel,
+                      child: ReorderableDelayedDragStartListener(
+                        index: index,
+                        child: MorphSourceScope(
+                          builder: (context, setHidden) => Builder(
+                            builder: (titleCtx) => InkWell(
+                              onTap: () => openDetail(titleCtx, setHidden),
+                              child: title,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )
-                : MorphSourceScope(
-                    builder: (context, setHidden) => Builder(
-                      builder: (titleCtx) => InkWell(
-                        onTap: () => openDetail(titleCtx, setHidden),
-                        child: title,
+                    )
+                  : MorphSourceScope(
+                      builder: (context, setHidden) => Builder(
+                        builder: (titleCtx) => InkWell(
+                          onTap: () => openDetail(titleCtx, setHidden),
+                          child: title,
+                        ),
                       ),
                     ),
-                  ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isEditMode)
-                  IconButton(
-                    icon: const Icon(LucideIcons.pencil),
-                    tooltip: l10n.exerciseNoteTitle,
-                    onPressed: () => onEditNotes(exerciseName),
-                  ),
-                if (isEditMode)
-                  IconButton(
-                    icon: const Icon(
-                      LucideIcons.trash,
-                      color: DesignConstants.brandRedColor,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isEditMode)
+                    IconButton(
+                      icon: const Icon(LucideIcons.pencil),
+                      tooltip: l10n.exerciseNoteTitle,
+                      onPressed: () => onEditNotes(exerciseName),
                     ),
-                    tooltip: l10n.removeExercise,
-                    onPressed: () => onDeleteExercise(exerciseName),
-                  )
-                else
-                  const Icon(LucideIcons.info),
-              ],
+                  if (isEditMode)
+                    IconButton(
+                      icon: const Icon(
+                        LucideIcons.trash,
+                        color: DesignConstants.brandRedColor,
+                      ),
+                      tooltip: l10n.removeExercise,
+                      onPressed: () => onDeleteExercise(exerciseName),
+                    )
+                  else
+                    const Icon(LucideIcons.info),
+                ],
+              ),
             ),
-          ),
           isDragging
               ? const SizedBox.shrink()
               : AnimatedSize(

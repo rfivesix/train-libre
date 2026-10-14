@@ -430,8 +430,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Text(l10n.delete_profile_picture_button),
                     ),
                   ),
-                _buildNavigationCard(
-                  icon: LucideIcons.settings,
+                AppLinkRow(
+                  leading: Icon(
+                    LucideIcons.settings,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   title: l10n.settingsTitle,
                   subtitle: l10n.settingsDescription,
                   onTap: () async {
@@ -445,8 +449,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     }
                   },
                 ),
-                _buildNavigationCard(
-                  icon: LucideIcons.flag,
+                AppLinkRow(
+                  leading: Icon(
+                    LucideIcons.flag,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   title: l10n.my_goals,
                   subtitle: l10n.my_goals_description,
                   onTap: () {
@@ -457,8 +465,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
                   },
                 ),
-                _buildNavigationCard(
-                  icon: LucideIcons.sliders_horizontal,
+                AppLinkRow(
+                  leading: Icon(
+                    LucideIcons.sliders_horizontal,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   title: l10n.dailyOperatingTargetsTitle,
                   subtitle: l10n.dailyOperatingTargetsSubtitle,
                   onTap: () {
@@ -471,6 +483,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
                 AppLinkRow(
+                  leading: Icon(
+                    LucideIcons.info,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   title: l10n.about_train_libre,
                   subtitle: l10n.app_version,
                   onTap: () {
@@ -482,6 +499,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
                 AppLinkRow(
+                  leading: Icon(
+                    LucideIcons.scale,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   title: l10n.legal_section,
                   subtitle: '${l10n.legal_notice} & ${l10n.privacy_policy}',
                   onTap: () {
@@ -495,31 +517,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const BottomContentSpacer(),
               ],
             ),
-    );
-  }
-
-  Widget _buildNavigationCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return SummaryCard(
-      child: ListTile(
-        contentPadding: DesignConstants.screenPadding,
-        leading: Icon(
-          icon,
-          size: 36,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(LucideIcons.chevron_right),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.0),
-        ),
-      ),
     );
   }
 }
