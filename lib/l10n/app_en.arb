@@ -820,7 +820,7 @@
   "@onbTipStartWorkout": {
     "description": "Hint for training slide"
   },
-  "unitsSection": "units",
+  "unitsSection": "Units",
   "weightUnit": "Weight units",
   "lengthUnit": "unit of length",
   "comingSoon": "Coming soon",

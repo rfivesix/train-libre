@@ -421,9 +421,12 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
             ? const Center(child: CircularProgressIndicator())
             : _log == null
                 ? Center(child: Text(l10n.workoutNotFound))
-                : Padding(
-                    padding: DesignConstants.cardPadding,
-                    child: Column(
+                : SafeArea(
+                    top: false,
+                    bottom: true,
+                    child: Padding(
+                      padding: DesignConstants.cardPadding,
+                      child: Column(
                       children: [
                         // Exercise list and all summary content
                         Expanded(
@@ -603,6 +606,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       ],
                     ),
                   ),
+                ),
       ),
     );
   }

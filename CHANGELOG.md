@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - Guarded dialog navigation after an asynchronous preference update so a dismissed context is not used.
+- Fixed vertical RenderFlex overflow in `ColdStartEmptyState` on small displays and under Dynamic Type XXL, and prevented empty call-to-action strings from rendering an unnecessary gap.
+- Fixed horizontal button and timer overflow in `RunningWorkoutBar` on small screen widths and with enlarged accessibility typography.
+- Fixed legend label overflow in `BodyMetricsSectionCard` under Dynamic Type XXL by switching to responsive `Wrap` and `Flexible` text.
+- Fixed `ProviderNotFoundException` crash in `BottomContentSpacer` when invoked outside of the active workout provider tree.
+- Fixed vertical container text clipping in `GlassProgressBar` and `NutritionSummaryWidget` under Dynamic Type XXL by scaling height with text scaling and adding `FittedBox` scale-down protection.
+- Fixed column misalignments between `RoutineSetRowWidget` and `EditRoutineExerciseCard` by synchronizing trailing delete-action width.
+- Localized hardcoded strings in `SettingsScreen` (Unit System, Metric, Imperial), `MacroStatisticsScreen` (Calories, Protein, Fat, Carbs metrics), `WeeklyIntakeVsTargetChart` (Target column header and German carbohydrate abbreviation), `Supplement.getLocalizedName`, and `MacroBadgeRow`.
+- Added bottom `SafeArea` to `WorkoutSummaryScreen` to prevent action button overlap with the iOS home indicator bar.
+- Added consistent header title and navigation chevron to `SleepSectionCard` on the Statistics Hub.
+- Updated User Guide articles (`logging_food.md` and `daily_targets.md`) with accurate screen navigation terms and localized labels.
 
 ### Added
 - Added a complete tabular Excel export with linked personal-data sheets and BLS micronutrient facts, while retaining focused CSV exports and the restorable backup format.

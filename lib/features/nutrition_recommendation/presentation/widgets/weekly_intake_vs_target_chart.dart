@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../generated/app_localizations.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
 
@@ -51,6 +52,7 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
       sevenDays.removeRange(0, sevenDays.length - 7);
     }
 
+    final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
 
     return Column(
@@ -116,7 +118,7 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                     proteinGrams: targetProtein.toDouble(),
                     fatGrams: targetFat.toDouble(),
                     carbsGrams: targetCarbs.toDouble(),
-                    bottomLabel: 'Ziel',
+                    bottomLabel: l10n.goalTargetHeader,
                     ceiling: ceiling,
                     proteinColor: proteinColor,
                     carbsColor: carbsColor,
@@ -283,7 +285,7 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
-                                      '${carbsGrams.round()}C',
+                                      '${carbsGrams.round()}${Localizations.localeOf(context).languageCode == 'de' ? 'KH' : 'C'}',
                                       maxLines: 1,
                                       style: const TextStyle(
                                         color: Colors.white,

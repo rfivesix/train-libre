@@ -2,8 +2,8 @@
 
 Set the calorie, nutrient, water, and step targets that Train Libre uses to show progress in your Diary and step summaries.
 
-1. Open **Profile** and tap **Daily Targets**.
-2. In **DAILY GOALS**, enter values for **Calories**, **Protein**, **Carbs**, **Fat**, **Water**, and **Steps**. Use calories for the energy target, grams for the nutrient targets, milliliters for water, and a step count for steps.
+1. Open **Profile** and tap **Daily Targets** (labeled **Tagesziele** in the German UI).
+2. In **DAILY GOALS** (or **TAGESZIELE**), enter values for **Calories**, **Protein**, **Carbs**, **Fat**, **Water**, and **Steps**. Use calories for the energy target, grams for the nutrient targets, milliliters (or fluid ounces) for water, and a step count for steps.
 3. In **DETAILED NUTRIENTS**, enter targets for **Sugar**, **Fiber**, and **Salt** if you want to track them.
 4. Tap **Save**. Train Libre saves the values and returns to the previous screen.
 

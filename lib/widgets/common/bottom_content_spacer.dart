@@ -18,9 +18,14 @@ class BottomContentSpacer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isRunning = context.select<LiveWorkoutViewModel, bool>(
-      (m) => m.isActive,
-    );
+    bool isRunning = false;
+    try {
+      isRunning = context.select<LiveWorkoutViewModel, bool>(
+        (m) => m.isActive,
+      );
+    } on ProviderNotFoundException {
+      isRunning = false;
+    }
     final double safe = MediaQuery.of(context).padding.bottom;
     final double h = kOverlayBaseHeight +
         (isRunning ? kOverlayRunningExtra : 0) +

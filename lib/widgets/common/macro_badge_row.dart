@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../generated/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import 'app_metadata_row.dart';
 
@@ -45,20 +46,26 @@ class MacroBadgeRow extends StatelessWidget {
   }
 
   Widget _buildPlainRow(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isGerman = Localizations.localeOf(context).languageCode == 'de';
+    final carbsAbbr = isGerman ? 'KH' : 'C';
+    final sugarLabel = l10n?.sugar ?? (isGerman ? 'Zucker' : 'Sugar');
+    final caffeineLabel = l10n?.caffeine ?? (isGerman ? 'Koffein' : 'Caffeine');
+
     final items = <String>[];
     if (kcal != null) items.add('$kcal kcal');
     if (protein != null && protein! > 0) {
       items.add('${protein!.toStringAsFixed(0)}g P');
     }
     if (carbs != null && carbs! > 0) {
-      items.add('${carbs!.toStringAsFixed(0)}g C');
+      items.add('${carbs!.toStringAsFixed(0)}g $carbsAbbr');
     }
     if (fat != null && fat! > 0) items.add('${fat!.toStringAsFixed(0)}g F');
     if (sugar != null && sugar! > 0) {
-      items.add('${sugar!.toStringAsFixed(0)}g Sugar');
+      items.add('${sugar!.toStringAsFixed(0)}g $sugarLabel');
     }
     if (caffeine != null && caffeine! > 0) {
-      items.add('${caffeine!.toStringAsFixed(0)}mg Caffeine');
+      items.add('${caffeine!.toStringAsFixed(0)}mg $caffeineLabel');
     }
     if (waterMl != null && waterMl! > 0) items.add('${waterMl}ml');
 
@@ -81,6 +88,7 @@ class MacroBadgeRow extends StatelessWidget {
     final caffeineColor = macroColors?.caffeine ?? Colors.brown;
     final waterColor = macroColors?.water ?? Colors.blue;
 
+    final isGerman = Localizations.localeOf(context).languageCode == 'de';
     final badges = <Widget>[];
 
     if (kcal != null) {
@@ -92,7 +100,7 @@ class MacroBadgeRow extends StatelessWidget {
     }
     if (carbs != null && carbs! > 0) {
       badges.add(
-          _badge('C ${carbs!.toStringAsFixed(0)}', 'g', carbsColor, theme));
+          _badge('${isGerman ? 'KH' : 'C'} ${carbs!.toStringAsFixed(0)}', 'g', carbsColor, theme));
     }
     if (fat != null && fat! > 0) {
       badges.add(_badge('F ${fat!.toStringAsFixed(0)}', 'g', fatColor, theme));

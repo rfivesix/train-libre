@@ -166,6 +166,11 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
     final clipper = ShapeBorderClipper(shape: squircle);
 
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final effectiveHeight = (textScale > 1.15)
+        ? (height * textScale.clamp(1.0, 1.4))
+        : height;
+
     return Container(
       decoration: ShapeDecoration(
         shape: squircle,
@@ -176,7 +181,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
       child: ClipPath(
         clipper: clipper,
         child: Container(
-          height: height,
+          height: effectiveHeight,
           decoration: ShapeDecoration(
             color: isDark ? DesignConstants.summaryCardDarkMode : Colors.white,
             shape: squircle.copyWith(
@@ -210,33 +215,38 @@ class _GlassProgressBarPainter extends StatelessWidget {
                     horizontal: DesignConstants.spacingM,
                     vertical: DesignConstants.spacingXS,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: primaryColor,
-                          shadows: shadows,
-                          fontWeight: FontWeight.bold,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: primaryColor,
+                            shadows: shadows,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        customSubtitle ??
-                            (hasTarget
-                                ? '${value.toStringAsFixed(decimalDigits)} / ${target.toStringAsFixed(0)}${unit.isEmpty ? '' : ' $unit'}'
-                                : '${value.toStringAsFixed(decimalDigits)}${unit.isEmpty ? '' : ' $unit'}'),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: secondaryColor,
-                          shadows: shadows,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 2),
+                        Text(
+                          customSubtitle ??
+                              (hasTarget
+                                  ? '${value.toStringAsFixed(decimalDigits)} / ${target.toStringAsFixed(0)}${unit.isEmpty ? '' : ' $unit'}'
+                                  : '${value.toStringAsFixed(decimalDigits)}${unit.isEmpty ? '' : ' $unit'}'),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: secondaryColor,
+                            shadows: shadows,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               }

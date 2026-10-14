@@ -1988,7 +1988,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Astuce : démarrez un entraînement vide pour enregistrer une séance rapide';
 
   @override
-  String get unitsSection => 'unités';
+  String get unitsSection => 'Unités';
 
   @override
   String get weightUnit => 'Unités de poids';

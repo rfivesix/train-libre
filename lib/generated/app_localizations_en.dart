@@ -1966,7 +1966,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tip: start an empty workout to log a quick session';
 
   @override
-  String get unitsSection => 'units';
+  String get unitsSection => 'Units';
 
   @override
   String get weightUnit => 'Weight units';

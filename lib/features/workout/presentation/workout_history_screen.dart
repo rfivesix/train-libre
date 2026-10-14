@@ -92,7 +92,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                   icon: LucideIcons.rotate_ccw_clock,
                   title: l10n.workoutHistoryEmptyTitle,
                   subtitle: l10n.emptyHistory,
-                  callToAction: '',
+                  callToAction: null,
                   showArrow: false,
                 ),
               ),

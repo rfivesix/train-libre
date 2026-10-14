@@ -352,11 +352,13 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
         ? '${selected.carbsGrams.toStringAsFixed(0)} g'
         : (summary != null ? '${summary.avgCarbs.toStringAsFixed(0)} g' : '--');
 
+    final l10n = AppLocalizations.of(context)!;
+
     // Sub-label distinguishes "avg" mode from "selected day" mode
-    final calLabel = showDay ? 'Kalorien' : 'Ø Kalorien';
-    final protLabel = showDay ? 'Protein' : 'Ø Protein';
-    final fatLabel = showDay ? 'Fett' : 'Ø Fett';
-    final carbsLabel = showDay ? 'Carbs' : 'Ø Carbs';
+    final calLabel = showDay ? l10n.calories : 'Ø ${l10n.calories}';
+    final protLabel = showDay ? l10n.protein : 'Ø ${l10n.protein}';
+    final fatLabel = showDay ? l10n.fat : 'Ø ${l10n.fat}';
+    final carbsLabel = showDay ? l10n.carbs : 'Ø ${l10n.carbs}';
 
     return Row(
       children: [

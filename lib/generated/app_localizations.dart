@@ -3539,7 +3539,7 @@ abstract class AppLocalizations {
   /// No description provided for @unitsSection.
   ///
   /// In en, this message translates to:
-  /// **'units'**
+  /// **'Units'**
   String get unitsSection;
 
   /// No description provided for @weightUnit.

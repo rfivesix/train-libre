@@ -821,7 +821,7 @@
   "@onbTipStartWorkout": {
     "description": "Hint for training slide"
   },
-  "unitsSection": "unités",
+  "unitsSection": "Unités",
   "weightUnit": "Unités de poids",
   "lengthUnit": "unité de longueur",
   "comingSoon": "À venir",

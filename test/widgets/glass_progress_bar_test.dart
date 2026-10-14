@@ -74,4 +74,61 @@ void main() {
     expect(find.text('2734 / 2986 kcal'), findsNWidgets(2));
     expect(find.textContaining('.'), findsNothing);
   });
+
+  testWidgets('does not overflow inside an IntrinsicHeight row with Dynamic Type XXL',
+      (tester) async {
+    tester.view.physicalSize = const Size(375, 667);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(375, 667),
+            textScaler: TextScaler.linear(2.0),
+          ),
+          child: Scaffold(
+            body: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: const [
+                        Expanded(
+                          child: GlassProgressBar(
+                            label: 'Calories',
+                            unit: 'kcal',
+                            value: 2734,
+                            target: 2986,
+                            color: Colors.orange,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Expanded(
+                          child: GlassProgressBar(
+                            label: 'Water',
+                            unit: 'ml',
+                            value: 4900,
+                            target: 4500,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final size = tester.getSize(find.byType(GlassProgressBar).first);
+    expect(size.height, greaterThan(0));
+  });
 }

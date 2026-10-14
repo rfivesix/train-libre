@@ -1977,7 +1977,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Suggerimento: avvia un allenamento vuoto per registrare una sessione veloce';
 
   @override
-  String get unitsSection => 'unità';
+  String get unitsSection => 'Unità';
 
   @override
   String get weightUnit => 'Unità di peso';

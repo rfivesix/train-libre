@@ -417,18 +417,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 items: [
                   PlatformAdaptivePopupMenuItem(
                     value: UnitSystem.metric,
-                    label: 'Metric (kg, cm, ml)',
+                    label:
+                        '${l10n.onboardingUnitMetric} (${l10n.onboardingUnitMetricSubtitle})',
                   ),
                   PlatformAdaptivePopupMenuItem(
                     value: UnitSystem.imperial,
-                    label: 'Imperial (lbs, in, fl oz)',
+                    label:
+                        '${l10n.onboardingUnitImperial} (${l10n.onboardingUnitImperialSubtitle})',
                   ),
                 ],
                 icon: AppSettingsRow.navigation(
-                  title: 'Unit System',
+                  title: l10n.unitsSection,
                   subtitle: unitService.isMetric
-                      ? 'Metric (kg, cm, ml)'
-                      : 'Imperial (lbs, in, fl oz)',
+                      ? '${l10n.onboardingUnitMetric} (${l10n.onboardingUnitMetricSubtitle})'
+                      : '${l10n.onboardingUnitImperial} (${l10n.onboardingUnitImperialSubtitle})',
                   leading: Icon(
                     LucideIcons.ruler_dimension_line,
                     size: 24,
