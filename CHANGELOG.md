@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.6.0-beta.1] - 2026-10-13
 
+### Fixed
+- Guarded dialog navigation after an asynchronous preference update so a dismissed context is not used.
+
 ### Added
 - Added a complete tabular Excel export with linked personal-data sheets and BLS micronutrient facts, while retaining focused CSV exports and the restorable backup format.
 - Added a customizable Statistics Hub with reorderable pinned cards, category-based card selection, and an all-data view that keeps empty statistics visible.

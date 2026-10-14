@@ -571,7 +571,9 @@ class BasisDataManager {
                       // before the next route is pushed, otherwise the outer
                       // await showGlassBottomMenu resolves before the push,
                       // causing a navigation race condition.
-                      Navigator.of(ctx).pop(true);
+                      if (ctx.mounted) {
+                        Navigator.of(ctx).pop(true);
+                      }
                     },
                     label: isMissingEither
                         ? l10n.offDownloadConfirm
