@@ -1619,6 +1619,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                               builder: (context,
                                                                   pauseSeconds,
                                                                   _) {
+                                                                if (_isDragging) {
+                                                                  return const SizedBox
+                                                                      .shrink();
+                                                                }
                                                                 final noteRow =
                                                                     InkWell(
                                                                   onTap: () =>

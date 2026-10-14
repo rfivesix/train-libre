@@ -69,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **iOS internal-testing deployment:** Extended the deployment script to detect existing build numbers and increment them, clean previous builds, and handle IPA export failures while preserving the build and upload workflow.
 
 ### Fixed
+- Hid pause times and exercise notes on every live workout card while exercises are being reordered, keeping the compact drag view consistent with the dragged card.
 - Unified website and documentation accent colors across light and dark themes, including navigation, links, controls, and diagram accents; the brand logo retains its fixed color.
 - Fixed KaTeX rendering for bracketed LaTeX formulas in feature documentation and restored sticky docs navigation by removing the clipping scroll container; left navigation and the right table of contents now scroll independently from article content.
 - **Excessive Top Spacing on Statistics Hub Screen (`StatisticsHubScreen`):** Fixed excessive vertical spacing between the pinned app bar / timeframe filter chips and the first statistics section. Removed redundant double-counted app bar extension height, eliminated unconditional `SizedBox` spacers that accumulated when steps or recovery tracking were disabled, and ensured the first rendered section header uses tight top padding (`isFirst: true`).
