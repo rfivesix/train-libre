@@ -621,8 +621,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     return StreamBuilder<List<WorkoutLog>>(
       stream: _workoutHistory,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
         final targetUuid = _currentExercise.uuid;
         final names = {
           _currentExercise.localizedNameFor(_languageCode).toLowerCase(),
@@ -640,8 +641,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 ))
             .where((entry) => entry.sets.isNotEmpty)
             .toList();
-        if (entries.isEmpty)
+        if (entries.isEmpty) {
           return Center(child: Text(l10n.exerciseAnalyticsNoData));
+        }
         return ListView.builder(
           padding: const EdgeInsets.only(bottom: DesignConstants.spacingXL),
           itemCount: entries.length,
