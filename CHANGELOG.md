@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.6.0] - Unreleased
+## [1.6.0-beta.2] - 2026-10-15
 
 ### Added
 - Added a dedicated English/German About page with the creator's first-person project story, user-focused release timeline, shared site navigation and working theme/language controls.
