@@ -22,6 +22,10 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Whether to automatically show a back button if the route allows it.
   final bool automaticallyImplyLeading;
 
+  /// Keeps the Scaffold's app-bar geometry while allowing an overlay to cover
+  /// it visually and receive its pointer events.
+  final bool hidden;
+
   /// Space between the leading widget and the title.
   final double? titleSpacing;
 
@@ -38,6 +42,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.leading,
     this.automaticallyImplyLeading = true,
+    this.hidden = false,
     this.titleSpacing,
     this.bottom,
     this.bottomHeight = 56,
@@ -52,6 +57,8 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (hidden) return SizedBox(height: preferredSize.height);
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 

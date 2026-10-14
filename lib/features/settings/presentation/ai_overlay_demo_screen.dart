@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -23,6 +24,8 @@ class AiOverlayDemoScreen extends StatefulWidget {
 
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   bool? _accessApproved;
+  bool _cloudFullscreen = false;
+  bool _showCloudResizeHandles = true;
   double _cloudLiveliness = 0.275;
 
   @override
@@ -33,9 +36,12 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
         kToolbarHeight +
         DesignConstants.spacingS;
 
-    return Scaffold(
+    final scaffold = Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(title: l10n.aiOverlayDemoScreenTitle),
+      appBar: GlobalAppBar(
+        title: l10n.aiOverlayDemoScreenTitle,
+        hidden: _cloudFullscreen,
+      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -48,6 +54,8 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             ),
             children: [
               _buildIntroCard(context, l10n, theme),
+              const SizedBox(height: DesignConstants.spacingM),
+              _buildCloudSettingsCard(theme),
               const SizedBox(height: DesignConstants.spacingM),
               AppSectionHeader(
                 title: l10n.aiOverlayDemoTodaySection,
@@ -66,8 +74,75 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             semanticLabel: l10n.developerAiOverlayDemoTitle,
             semanticHint: l10n.aiOverlayDemoCloudHint,
             liveliness: _cloudLiveliness,
-            onLivelinessChanged: (value) =>
-                setState(() => _cloudLiveliness = value),
+            showResizeHandles: _showCloudResizeHandles,
+            onFullscreenChanged: (value) =>
+                setState(() => _cloudFullscreen = value),
+          ),
+        ],
+      ),
+    );
+
+    final cloudIsLight = theme.brightness == Brightness.dark;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _cloudFullscreen
+          ? SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarBrightness:
+                  cloudIsLight ? Brightness.light : Brightness.dark,
+              statusBarIconBrightness:
+                  cloudIsLight ? Brightness.dark : Brightness.light,
+              systemNavigationBarColor: Colors.transparent,
+              systemNavigationBarIconBrightness:
+                  cloudIsLight ? Brightness.dark : Brightness.light,
+            )
+          : const SystemUiOverlayStyle(),
+      child: scaffold,
+    );
+  }
+
+  Widget _buildCloudSettingsCard(ThemeData theme) {
+    return SummaryCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingL,
+        vertical: DesignConstants.spacingM,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.sparkles, size: 18),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: Text(
+                  'Wolken-Lebhaftigkeit',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text('${(_cloudLiveliness * 100).round()}%'),
+            ],
+          ),
+          Slider(
+            value: _cloudLiveliness,
+            onChanged: (value) => setState(() => _cloudLiveliness = value),
+          ),
+          Text(
+            'Steuert die Bewegung der erweiterten KI-Wolke.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: const Text('Safe-Space-Punkte anzeigen'),
+            subtitle: const Text('Ecken zum Verändern des Bereichs einblenden'),
+            value: _showCloudResizeHandles,
+            onChanged: (value) =>
+                setState(() => _showCloudResizeHandles = value),
           ),
         ],
       ),
