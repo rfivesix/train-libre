@@ -262,6 +262,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   Future<void> _openRoutine(
     TrainingPlanDay day,
     BuildContext sourceContext,
+    WidgetBuilder sourceBuilder,
+    MorphSourceVisibilityCallback setHidden,
   ) async {
     final routineId = day.routine?.id;
     if (routineId == null) return;
@@ -272,7 +274,9 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
 
     await Navigator.of(context).push(
       CardMorphRoute(
-        sourceRect: CardMorphRoute.measureRect(sourceContext),
+        sourceContext: sourceContext,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: setHidden,
         builder: (_) => EditRoutineScreen(routine: routine),
       ),
     );
@@ -792,7 +796,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         (selectedDay?.status == PlannedDayStatus.completed ||
             selectedDay?.status == PlannedDayStatus.partial);
 
-    Widget buildDetailCard({VoidCallback? onStart, VoidCallback? onSkip}) =>
+    Widget buildDetailCard({
+      VoidCallback? onStart,
+      VoidCallback? onSkip,
+      VoidCallback? onViewRoutine,
+    }) =>
         PlanDayDetailCard(
           plan: plan,
           day: selectedDay!,
@@ -800,6 +808,7 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
           onSkip: onSkip,
           onViewWorkout:
               canViewWorkout ? () => _viewWorkout(workoutLogId) : null,
+          onViewRoutine: onViewRoutine,
         );
 
     return Column(children: [
@@ -853,6 +862,18 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                 key: ValueKey('${selectedDay.date}_${selectedDay.status}'),
                 builder: (context, setHidden) => Builder(
                   builder: (cardContext) => buildDetailCard(
+                    onViewRoutine: selectedDay.day.routine == null
+                        ? null
+                        : () => _openRoutine(
+                              selectedDay.day,
+                              cardContext,
+                              (_) => buildDetailCard(
+                                onStart: canStart ? () {} : null,
+                                onSkip: canStart ? () {} : null,
+                                onViewRoutine: () {},
+                              ),
+                              setHidden,
+                            ),
                     onStart: canStart
                         ? () => _start(
                               plan,

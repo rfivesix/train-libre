@@ -202,6 +202,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get foodDetailSegment100g => '100g';
 
   @override
+  String get foodDetailEnergyGroup => 'Énergie';
+
+  @override
+  String get foodDetailMacronutrientsGroup => 'Macronutriments';
+
+  @override
+  String get foodDetailOtherNutrientsGroup => 'Autres nutriments';
+
+  @override
   String get sugar => 'Sucre';
 
   @override

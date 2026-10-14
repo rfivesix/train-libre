@@ -91,6 +91,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   double _safeBottom = 0.90;
   AnimationController? _morphController;
   AnimationController? _fullscreenController;
+  late final AnimationController _initialDockController;
+  Timer? _initialDockStartTimer;
+  bool _initialDockScheduled = false;
+  double _displayedHorizontalPosition = 0;
 
   AnimationController get _morphAnimation =>
       _morphController ??= AnimationController(
@@ -106,6 +110,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   void initState() {
     super.initState();
     _chatScrollController.addListener(_handleChatScroll);
+    _initialDockController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    )..addListener(_handleInitialDockAnimationTick);
   }
 
   @override
@@ -115,16 +123,22 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _chatInputController.dispose();
     _chatFocusNode.dispose();
     _chatScrollController.dispose();
+    _initialDockStartTimer?.cancel();
+    _initialDockController.dispose();
     _morphController?.dispose();
     _fullscreenController?.dispose();
     super.dispose();
   }
 
   void _toggleExpanded() {
+    _initialDockStartTimer?.cancel();
+    _initialDockStartTimer = null;
+    _initialDockController.stop();
     final expanding = !_isExpanded;
     final wasFullscreen = _isFullscreen;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
+      _horizontalPosition ??= _displayedHorizontalPosition;
       _isExpanded = expanding;
       _isDragging = false;
       _rotationRadians = 0;
@@ -264,6 +278,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required double initialHorizontalPosition,
     required double initialVerticalPosition,
   }) {
+    _initialDockStartTimer?.cancel();
+    _initialDockStartTimer = null;
+    _initialDockController.stop();
     setState(() {
       _horizontalPosition ??= initialHorizontalPosition;
       _verticalPosition ??= initialVerticalPosition;
@@ -303,6 +320,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       );
       _scale = 1.035 + math.min(movement / 1000, 0.025).toDouble();
     });
+  }
+
+  void _handleInitialDockAnimationTick() {
+    if (mounted) setState(() {});
   }
 
   void _handleDragEnd({required double minLeft, required double maxLeft}) {
@@ -350,7 +371,36 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             : ((defaultLeft - minLeft) / travelDistance)
                 .clamp(0.0, 1.0)
                 .toDouble();
-        final position = _horizontalPosition ?? defaultPosition;
+        if (!_initialDockScheduled) {
+          _initialDockScheduled = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted ||
+                _isExpanded ||
+                _isDragging ||
+                _horizontalPosition != null) {
+              return;
+            }
+            _initialDockStartTimer = Timer(
+              const Duration(milliseconds: 650),
+              () {
+                _initialDockStartTimer = null;
+                if (!mounted ||
+                    _isExpanded ||
+                    _isDragging ||
+                    _horizontalPosition != null) {
+                  return;
+                }
+                _initialDockController.forward();
+              },
+            );
+          });
+        }
+        final dockProgress = Curves.easeOutCubic.transform(
+          _initialDockController.value,
+        );
+        final position = _horizontalPosition ??
+            (defaultPosition + (1 - defaultPosition) * dockProgress);
+        _displayedHorizontalPosition = position;
         final left = minLeft + position * travelDistance;
         final minTop = math
             .min(topBoundary - _topVisualInset, constraints.maxHeight)
@@ -448,7 +498,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               ),
             ),
             AnimatedPositioned(
-              duration: _isDragging
+              duration: _isDragging || _initialDockController.isAnimating
                   ? Duration.zero
                   : const Duration(milliseconds: 260),
               curve: Curves.easeOutCubic,
@@ -470,7 +520,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         onPanStart: morphAnimation.value > 0.001
                             ? null
                             : (_) => _handleDragStart(
-                                  initialHorizontalPosition: defaultPosition,
+                                  initialHorizontalPosition: position,
                                   initialVerticalPosition: verticalPosition,
                                 ),
                         onPanUpdate: morphAnimation.value > 0.001

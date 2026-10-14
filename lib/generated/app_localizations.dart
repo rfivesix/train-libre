@@ -476,6 +476,24 @@ abstract class AppLocalizations {
   /// **'100g'**
   String get foodDetailSegment100g;
 
+  /// No description provided for @foodDetailEnergyGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy'**
+  String get foodDetailEnergyGroup;
+
+  /// No description provided for @foodDetailMacronutrientsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Macronutrients'**
+  String get foodDetailMacronutrientsGroup;
+
+  /// No description provided for @foodDetailOtherNutrientsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Other nutrients'**
+  String get foodDetailOtherNutrientsGroup;
+
   /// No description provided for @sugar.
   ///
   /// In en, this message translates to:
