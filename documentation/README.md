@@ -30,3 +30,4 @@ These pages explain how user-facing features work, what inputs and rules they us
 ## Developer Documentation
 
 For contributors, start with the [Developer Documentation overview](developer/overview.md). The developer section covers [system architecture and database lifecycle](developer/architecture.md), [data flow and state lifecycle](developer/data_flow_and_state.md), [localization architecture](developer/localization_architecture.md), [food search](developer/food_search.md), and [home-screen widgets](developer/ios_home_screen_widgets.md).
+
