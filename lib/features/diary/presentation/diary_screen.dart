@@ -1831,12 +1831,18 @@ class _MealCardState extends State<_MealCard> {
                           <String, List<TrackedFoodItem>>{};
                       final standaloneItems = <TrackedFoodItem>[];
 
+                      // BOLT OPTIMIZATION: Replaced .putIfAbsent() with map lookup to prevent
+                      // closure allocations. Replaced .fold() during sorting with pre-calculated
+                      // cache to prevent O(N log N) redundant iterations during UI builds.
                       for (final item in items) {
                         final mId = item.entry.mealEntryId;
                         if (mId != null && mealEntriesById.containsKey(mId)) {
-                          groupedByMealEntry
-                              .putIfAbsent(mId, () => [])
-                              .add(item);
+                          var group = groupedByMealEntry[mId];
+                          if (group == null) {
+                            group = <TrackedFoodItem>[];
+                            groupedByMealEntry[mId] = group;
+                          }
+                          group.add(item);
                         } else {
                           standaloneItems.add(item);
                         }
@@ -1848,18 +1854,24 @@ class _MealCardState extends State<_MealCard> {
                       // most is what the user is looking for.
                       int kcalOf(TrackedFoodItem item) =>
                           item.calculatedCalories;
-                      int kcalOfGroup(List<TrackedFoodItem> group) =>
-                          group.fold(0, (sum, item) => sum + kcalOf(item));
 
-                      for (final group in groupedByMealEntry.values) {
+                      final groupCalories = <String, int>{};
+                      for (final entry in groupedByMealEntry.entries) {
+                        final group = entry.value;
                         group.sort((a, b) => kcalOf(b).compareTo(kcalOf(a)));
+
+                        int total = 0;
+                        for (final item in group) {
+                          total += kcalOf(item);
+                        }
+                        groupCalories[entry.key] = total;
                       }
+
                       standaloneItems
                           .sort((a, b) => kcalOf(b).compareTo(kcalOf(a)));
 
                       final orderedMealIds = groupedByMealEntry.keys.toList()
-                        ..sort((a, b) => kcalOfGroup(groupedByMealEntry[b]!)
-                            .compareTo(kcalOfGroup(groupedByMealEntry[a]!)));
+                        ..sort((a, b) => groupCalories[b]!.compareTo(groupCalories[a]!));
 
                       bool entryHasPhoto(MealEntry? entry) {
                         if (entry == null) return false;
