@@ -565,9 +565,17 @@ class ManualTrainingPlanRepository {
       completedByBlock.update(set.exerciseBlock!, (value) => value + 1,
           ifAbsent: () => 1);
     }
-    final allDone = requirements.isNotEmpty &&
-        List.generate(requirements.length, (index) => index).every(
-            (index) => (completedByBlock[index] ?? 0) >= requirements[index]);
+    // BOLT OPTIMIZATION: Replace List.generate(...).every() with short-circuiting loop
+    // to prevent unnecessary intermediate list allocation and iterations.
+    var allDone = requirements.isNotEmpty;
+    if (allDone) {
+      for (var i = 0; i < requirements.length; i++) {
+        if ((completedByBlock[i] ?? 0) < requirements[i]) {
+          allDone = false;
+          break;
+        }
+      }
+    }
     final status = allDone ? 'completed' : 'partial';
     await (_db.update(_db.trainingPlanOccurrences)
           ..where(
