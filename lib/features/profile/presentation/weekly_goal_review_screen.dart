@@ -943,17 +943,23 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => setState(() => _showReviewDetails = !_showReviewDetails),
-          child: AppSectionHeader(
-            title: l10n.weeklyReviewDetailsTitle,
-            action: Icon(
-              _showReviewDetails
-                  ? LucideIcons.chevron_up
-                  : LucideIcons.chevron_down,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
+        Semantics(
+          button: true,
+          label: l10n.weeklyReviewDetailsTitle,
+          expanded: _showReviewDetails,
+          excludeSemantics: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _showReviewDetails = !_showReviewDetails),
+            child: AppSectionHeader(
+              title: l10n.weeklyReviewDetailsTitle,
+              action: Icon(
+                _showReviewDetails
+                    ? LucideIcons.chevron_up
+                    : LucideIcons.chevron_down,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ),
