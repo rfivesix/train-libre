@@ -277,12 +277,13 @@ class PulseAggregateStore {
         continue;
       }
       final bucketStart = floorToBucket(sampledAt);
-      builders
-          .putIfAbsent(
-            bucketStart.millisecondsSinceEpoch,
-            () => _PulseBucketBuilder(bucketStart),
-          )
-          .add(sampledAt, sample.bpm);
+      final keyMs = bucketStart.millisecondsSinceEpoch;
+      var builder = builders[keyMs];
+      if (builder == null) {
+        builder = _PulseBucketBuilder(bucketStart);
+        builders[keyMs] = builder;
+      }
+      builder.add(sampledAt, sample.bpm);
     }
     final keys = builders.keys.toList()..sort();
     return keys.map((key) => builders[key]!.build()).toList(growable: false);
