@@ -169,9 +169,18 @@ class WorkoutLiveActivityContent {
       other.compactPrimary == compactPrimary &&
       other.compactSecondary == compactSecondary &&
       other.canCompleteSet == canCompleteSet &&
-      other.upcomingSets.length == upcomingSets.length &&
-      List.generate(upcomingSets.length, (index) => index)
-          .every((index) => other.upcomingSets[index] == upcomingSets[index]);
+      _upcomingSetsEqual(other.upcomingSets, upcomingSets);
+
+  // BOLT OPTIMIZATION: Replaced List.generate(length).every(...) with a short-circuiting
+  // for loop to avoid intermediate array allocations and closure overhead.
+  static bool _upcomingSetsEqual(
+      List<WorkoutLiveActivitySetSnapshot> a, List<WorkoutLiveActivitySetSnapshot> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 
   @override
   int get hashCode => Object.hashAll([
