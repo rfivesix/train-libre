@@ -86,26 +86,32 @@ List<SleepInterval> mergeOverlappingIntervals(List<SleepInterval> intervals) {
   }
   merged.add(current);
 
-  // Update classification logic: merged intervals exceeding >= 3 hours
-  // are correctly categorized as mainSleep, else nap.
-  return merged.map((s) {
+  // BOLT OPTIMIZATION: Replaced unconditional .map().toList() pipeline with
+  // an in-place mutation loop to avoid unnecessary object allocations and GC
+  // overhead when session types are already correct.
+  for (var i = 0; i < merged.length; i++) {
+    final s = merged[i];
     final duration = s.endAtUtc.difference(s.startAtUtc);
     final newType = duration >= const Duration(hours: 3)
         ? SleepSessionType.mainSleep
         : SleepSessionType.nap;
 
-    return SleepSession(
-      id: s.id,
-      startAtUtc: s.startAtUtc,
-      endAtUtc: s.endAtUtc,
-      sessionType: newType,
-      sourcePlatform: s.sourcePlatform,
-      sourceAppId: s.sourceAppId,
-      sourceRecordHash: s.sourceRecordHash,
-      sourceConfidence: s.sourceConfidence,
-      stageConfidence: s.stageConfidence,
-      overallConfidence: s.overallConfidence,
-      normalizationVersion: s.normalizationVersion,
-    );
-  }).toList();
+    if (s.sessionType != newType) {
+      merged[i] = SleepSession(
+        id: s.id,
+        startAtUtc: s.startAtUtc,
+        endAtUtc: s.endAtUtc,
+        sessionType: newType,
+        sourcePlatform: s.sourcePlatform,
+        sourceAppId: s.sourceAppId,
+        sourceRecordHash: s.sourceRecordHash,
+        sourceConfidence: s.sourceConfidence,
+        stageConfidence: s.stageConfidence,
+        overallConfidence: s.overallConfidence,
+        normalizationVersion: s.normalizationVersion,
+      );
+    }
+  }
+
+  return merged;
 }
