@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -22,6 +23,7 @@ class DraggableAiCloud extends StatefulWidget {
   final String semanticHint;
   final double liveliness;
   final ValueChanged<bool>? onFullscreenChanged;
+  final ValueChanged<bool>? onExpandedChanged;
   final ValueChanged<bool>? onGenerationChanged;
   final bool showResizeHandles;
   final bool openDirectlyFullscreen;
@@ -32,6 +34,7 @@ class DraggableAiCloud extends StatefulWidget {
     required this.semanticHint,
     required this.liveliness,
     this.onFullscreenChanged,
+    this.onExpandedChanged,
     this.onGenerationChanged,
     this.showResizeHandles = true,
     this.openDirectlyFullscreen = false,
@@ -82,8 +85,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _isClosing = false;
   bool _showChatPreview = false;
   bool _isFullscreen = false;
+  int _selectedSidebarExample = 0;
   double _headerDragDistance = 0;
   double _headerDragStartProgress = 1;
+  double _sidebarDragStartProgress = 0;
+  Offset? _sidebarPointerStart;
+  int? _sidebarPointerId;
+  bool _sidebarPointerDragging = false;
+  bool _sidebarPastSnapPoint = false;
   final _chatInputController = TextEditingController();
   final _chatFocusNode = FocusNode();
   final _chatScrollController = ScrollController();
@@ -110,6 +119,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   double _safeBottom = 0.90;
   AnimationController? _morphController;
   AnimationController? _fullscreenController;
+  late final AnimationController _sidebarController;
   late final AnimationController _initialDockController;
   Timer? _initialDockStartTimer;
   bool _initialDockScheduled = false;
@@ -133,6 +143,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       vsync: this,
       duration: const Duration(milliseconds: 420),
     )..addListener(_handleInitialDockAnimationTick);
+    _sidebarController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    )..addListener(_onSidebarAnimationTick);
   }
 
   @override
@@ -150,6 +164,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _chatScrollController.dispose();
     _initialDockStartTimer?.cancel();
     _initialDockController.dispose();
+    _sidebarController.dispose();
     _morphController?.dispose();
     _fullscreenController?.dispose();
     super.dispose();
@@ -183,6 +198,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     });
     _syncDemoWaitingHaptics();
     if (expanding) {
+      widget.onExpandedChanged?.call(true);
       widget.onFullscreenChanged?.call(openFullscreen);
       _morphAnimation.forward();
       if (openFullscreen) {
@@ -202,6 +218,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           _isClosing = false;
           if (wasFullscreen) _isFullscreen = false;
         });
+        _sidebarController.value = 0;
         if (wasFullscreen) _fullscreenAnimation.reverse();
         FocusManager.instance.primaryFocus?.unfocus();
         if (_hasCompletedResponse) {
@@ -209,6 +226,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           _scheduleCompletionPulseReset();
         }
         widget.onFullscreenChanged?.call(false);
+        widget.onExpandedChanged?.call(false);
       });
     }
   }
@@ -258,6 +276,88 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (mounted) setState(() {});
   }
 
+  void _onSidebarAnimationTick() {
+    if (mounted) setState(() {});
+  }
+
+  double _sidebarWidth(double viewportWidth) =>
+      math.min(viewportWidth * 0.82, 340.0);
+
+  void _openSidebar() {
+    if (!_isFullscreen) return;
+    _chatFocusNode.unfocus();
+    _sidebarController.animateTo(
+      1,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _toggleSidebar() {
+    if (_sidebarController.value > 0.5) {
+      _sidebarController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
+      );
+    } else {
+      _openSidebar();
+    }
+  }
+
+  void _handleSidebarPointerDown(PointerDownEvent event) {
+    if (!_isFullscreen) return;
+    _sidebarPointerId = event.pointer;
+    _sidebarPointerStart = event.position;
+    _sidebarDragStartProgress = _sidebarController.value;
+    _sidebarPointerDragging = false;
+    _sidebarPastSnapPoint = _sidebarController.value >= 0.5;
+    _sidebarController.stop();
+  }
+
+  void _handleSidebarPointerMove(PointerMoveEvent event, double width) {
+    if (event.pointer != _sidebarPointerId || !_isFullscreen) return;
+    final start = _sidebarPointerStart;
+    if (start == null) return;
+    final offset = event.position - start;
+    if (!_sidebarPointerDragging) {
+      if (offset.dx.abs() < gestures.kTouchSlop ||
+          offset.dx.abs() < offset.dy.abs()) {
+        return;
+      }
+      _sidebarPointerDragging = true;
+      _chatFocusNode.unfocus();
+    }
+    final nextProgress = (_sidebarDragStartProgress + offset.dx / width)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final isPastSnapPoint = nextProgress >= 0.5;
+    if (isPastSnapPoint != _sidebarPastSnapPoint) {
+      _sidebarPastSnapPoint = isPastSnapPoint;
+      unawaited(HapticFeedbackService.instance.selectionFeedback());
+    }
+    _sidebarController.value = nextProgress;
+  }
+
+  void _finishSidebarPointer(PointerEvent event) {
+    if (event.pointer != _sidebarPointerId) return;
+    if (_sidebarPointerDragging) {
+      _sidebarController.animateTo(
+        _sidebarController.value >= 0.5 ? 1 : 0,
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    _sidebarPointerId = null;
+    _sidebarPointerStart = null;
+    _sidebarPointerDragging = false;
+  }
+
+  void _selectSidebarExample(int index) {
+    setState(() => _selectedSidebarExample = index);
+    _sidebarController.reverse();
+  }
+
   void _toggleFullscreen() {
     FocusManager.instance.primaryFocus?.unfocus();
     final expand = !_isFullscreen;
@@ -269,6 +369,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       }
     });
     if (expand) {
+      widget.onExpandedChanged?.call(true);
       widget.onFullscreenChanged?.call(true);
       _morphAnimation.forward();
       _fullscreenAnimation.forward(from: _fullscreenAnimation.value);
@@ -555,7 +656,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            _buildExpandedBackdrop(),
             Positioned.fill(
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: left, end: left),
@@ -781,21 +881,60 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       scale: revealProgress,
                       child: Opacity(
                         opacity: revealProgress,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            _buildChatPreview(
-                              activeSafeRect,
-                              theme,
-                              constraints.maxHeight,
-                              fullscreenProgress: fullscreenProgress,
-                            ),
-                            _buildExpandedToolbar(
-                              activeSafeRect,
-                              theme,
-                              fullscreenProgress: fullscreenProgress,
-                            ),
-                          ],
+                        child: Listener(
+                          behavior: HitTestBehavior.translucent,
+                          onPointerDown: _handleSidebarPointerDown,
+                          onPointerMove: (event) => _handleSidebarPointerMove(
+                            event,
+                            _sidebarWidth(width),
+                          ),
+                          onPointerUp: _finishSidebarPointer,
+                          onPointerCancel: _finishSidebarPointer,
+                          child: Stack(
+                            children: [
+                              if (_sidebarController.value > 0.001)
+                                _buildDemoSidebar(theme, width),
+                              Positioned.fill(
+                                child: Transform.translate(
+                                  offset: Offset(
+                                    _sidebarController.value *
+                                        _sidebarWidth(width),
+                                    0,
+                                  ),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: _sidebarController.value > 0
+                                        ? () => _sidebarController.animateTo(
+                                              0,
+                                              duration: const Duration(
+                                                milliseconds: 240,
+                                              ),
+                                              curve: Curves.easeOutCubic,
+                                            )
+                                        : null,
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        _buildChatPreview(
+                                          activeSafeRect,
+                                          theme,
+                                          constraints.maxHeight,
+                                          fullscreenProgress:
+                                              fullscreenProgress,
+                                        ),
+                                        _buildExpandedToolbar(
+                                          activeSafeRect,
+                                          theme,
+                                          fullscreenProgress:
+                                              fullscreenProgress,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -806,25 +945,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           ],
         );
       },
-    );
-  }
-
-  Widget _buildExpandedBackdrop() {
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _morphAnimation,
-        builder: (context, _) {
-          final progress = _morphAnimation.value;
-          return IgnorePointer(
-            ignoring: progress <= 0.001,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _toggleExpanded,
-              child: const ColoredBox(color: Colors.transparent),
-            ),
-          );
-        },
-      ),
     );
   }
 
@@ -860,11 +980,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     : LucideIcons.maximize_2,
                 tooltip: _isFullscreen ? 'Seitenleiste' : 'Vollbild',
                 isDark: isDark,
-                onPressed: _isFullscreen
-                    ? () => _showNotImplementedMessage(
-                          'Sidebar is not implemented yet.',
-                        )
-                    : _toggleFullscreen,
+                onPressed: _isFullscreen ? _toggleSidebar : _toggleFullscreen,
               ),
             ),
             if (!_isFullscreen)
@@ -1011,21 +1127,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   void _handleAssistantMenuAction(_AssistantMenuAction action) {
     switch (action) {
       case _AssistantMenuAction.newChat:
+        _sidebarController.reverse();
         _startNewDemoChat();
       case _AssistantMenuAction.chatHistory:
-        _showNotImplementedMessage('Chat history is not implemented yet.');
+        _toggleSidebar();
     }
-  }
-
-  void _showNotImplementedMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
   }
 
   void _startNewDemoChat() {
@@ -1047,6 +1153,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _showScrollToBottom = false;
       _followChatTail = true;
       _demoWordIndex = 0;
+      _selectedSidebarExample = -1;
       _chatInputController.clear();
     });
     _syncDemoWaitingHaptics();
@@ -1056,6 +1163,197 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         _chatScrollController.jumpTo(0);
       }
     });
+  }
+
+  Widget _buildSidebarChatButton({
+    required ThemeData theme,
+    required bool isDark,
+    required Color foregroundColor,
+  }) {
+    final cloudIsDark = !isDark;
+    final radius = 24.0;
+    final settings = DesignConstants.liquidGlassSettings(!isDark).copyWith(
+      thickness: 18,
+      blur: 1.5,
+    );
+    final button = Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: cloudIsDark
+            ? DesignConstants.glassNeutralTint(true)
+            : Colors.black.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: foregroundColor.withValues(alpha: 0.14),
+          width: 0.5,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
+        children: [
+          Icon(LucideIcons.square_pen, size: 19, color: foregroundColor),
+          const SizedBox(width: 12),
+          Text(
+            'Chat',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: foregroundColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return IntrinsicWidth(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: DesignConstants.glassShadow(cloudIsDark),
+        ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggleSidebar,
+          child: InheritedLiquidGlass(
+            settings: settings,
+            isBlurProvidedByAncestor: true,
+            child: GlassAdaptiveScope(
+              maxQuality: DesignConstants.defaultGlassQuality,
+              minQuality: DesignConstants.minGlassQuality,
+              child: AdaptiveGlass(
+                settings: settings,
+                quality: DesignConstants.defaultGlassQuality,
+                useOwnLayer: true,
+                allowElevation: false,
+                shape: LiquidRoundedSuperellipse(borderRadius: radius),
+                child: GlassGlow(
+                  glowColor: foregroundColor.withValues(alpha: 0.12),
+                  glowRadius: 1,
+                  child: button,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDemoSidebar(ThemeData theme, double viewportWidth) {
+    final isDark = theme.brightness == Brightness.dark;
+    final surfaceColor = isDark ? Colors.white : Colors.black;
+    final foregroundColor = isDark ? Colors.black : Colors.white;
+    final drawerWidth = _sidebarWidth(viewportWidth);
+
+    return Positioned(
+      // Keep the drawer's trailing edge attached to the chat pane while the
+      // user drags. At progress 0 it is fully offscreen; at 1 it is settled
+      // against the translated chat surface.
+      left: -drawerWidth * (1 - _sidebarController.value),
+      top: 0,
+      bottom: 0,
+      width: drawerWidth,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          border: Border(
+            right: BorderSide(
+              color: foregroundColor.withValues(alpha: 0.14),
+              width: 1,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 20, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Chats',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: foregroundColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: foregroundColor.withValues(alpha: 0.12),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    ListView.separated(
+                      padding: EdgeInsets.fromLTRB(
+                        12,
+                        12,
+                        12,
+                        MediaQuery.paddingOf(context).bottom + 84,
+                      ),
+                      itemCount: 16,
+                      separatorBuilder: (_, __) => const SizedBox(height: 4),
+                      itemBuilder: (context, index) {
+                        final selected = index == _selectedSidebarExample;
+                        return Material(
+                          color: selected
+                              ? foregroundColor.withValues(alpha: 0.08)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () => _selectSidebarExample(index),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 13,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Example ${index + 1}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style:
+                                          theme.textTheme.bodyMedium?.copyWith(
+                                        color: foregroundColor,
+                                        fontWeight: selected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Positioned(
+                      left: 12,
+                      bottom: MediaQuery.paddingOf(context).bottom + 12,
+                      child: _buildSidebarChatButton(
+                        theme: theme,
+                        isDark: isDark,
+                        foregroundColor: foregroundColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildChatPreview(
@@ -1105,8 +1403,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final topFadeStart =
         clippedTop + (scrollViewportTop - clippedTop) * fullscreenProgress;
     final topFadeHoldStop = 0.45 * (1 - fullscreenProgress);
-    const bottomFadeHeight = 104.0;
+    final bottomFadeHeight = 104.0 * (1 - fullscreenProgress);
     final chatBottom = chatBounds.bottom - contentInset;
+    final contentViewportBottom = chatBounds.bottom +
+        (viewportHeight - chatBounds.bottom) * fullscreenProgress;
     final composerSurface = Container(
       decoration: BoxDecoration(
         color: cloudSurfaceDark
@@ -1178,14 +1478,16 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
     return Positioned.fill(
       child: IgnorePointer(
-        ignoring: !_isExpanded || !_showChatPreview,
+        ignoring: !_isExpanded ||
+            !_showChatPreview ||
+            _sidebarController.value > 0.001,
         child: Stack(
           children: [
             Positioned(
               left: contentLeft,
               right: contentRight,
               top: topFadeStart,
-              bottom: viewportHeight - chatBounds.bottom + contentInset,
+              bottom: viewportHeight - contentViewportBottom,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1206,6 +1508,24 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                     bounds.height)
                                 .clamp(topFadeEndStop, 1.0)
                                 .toDouble();
+                        if (fullscreenProgress >= 0.999) {
+                          return LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: const [
+                              Colors.transparent,
+                              Colors.transparent,
+                              Colors.white,
+                              Colors.white,
+                            ],
+                            stops: [
+                              0,
+                              topFadeOpaqueStartStop,
+                              topFadeEndStop,
+                              1,
+                            ],
+                          ).createShader(bounds);
+                        }
                         return LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,

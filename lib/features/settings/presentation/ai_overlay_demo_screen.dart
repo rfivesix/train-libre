@@ -23,6 +23,7 @@ class AiOverlayDemoScreen extends StatefulWidget {
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   final _cloudKey = GlobalKey<DraggableAiCloudState>();
   bool _cloudFullscreen = false;
+  bool _cloudExpanded = false;
   bool _showCloudResizeHandles = false;
   bool _openCloudDirectlyFullscreen = false;
   bool _cloudIsGenerating = false;
@@ -77,29 +78,36 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                   cloudIsLight ? Brightness.dark : Brightness.light,
             )
           : const SystemUiOverlayStyle(),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          scaffold,
-          Positioned.fill(
-            bottom: MediaQuery.viewInsetsOf(context).bottom,
-            child: Material(
-              type: MaterialType.transparency,
-              child: DraggableAiCloud(
-                key: _cloudKey,
-                semanticLabel: l10n.developerAiOverlayDemoTitle,
-                semanticHint: l10n.aiOverlayDemoCloudHint,
-                liveliness: _cloudLiveliness,
-                showResizeHandles: _showCloudResizeHandles,
-                openDirectlyFullscreen: _openCloudDirectlyFullscreen,
-                onGenerationChanged: (value) =>
-                    setState(() => _cloudIsGenerating = value),
-                onFullscreenChanged: (value) =>
-                    setState(() => _cloudFullscreen = value),
+      child: PopScope(
+        // Prevent the route underneath the overlay from claiming the iOS
+        // edge-swipe while the cloud is open. The cloud keeps its own gestures.
+        canPop: !_cloudExpanded,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            scaffold,
+            Positioned.fill(
+              bottom: MediaQuery.viewInsetsOf(context).bottom,
+              child: Material(
+                type: MaterialType.transparency,
+                child: DraggableAiCloud(
+                  key: _cloudKey,
+                  semanticLabel: l10n.developerAiOverlayDemoTitle,
+                  semanticHint: l10n.aiOverlayDemoCloudHint,
+                  liveliness: _cloudLiveliness,
+                  showResizeHandles: _showCloudResizeHandles,
+                  openDirectlyFullscreen: _openCloudDirectlyFullscreen,
+                  onExpandedChanged: (value) =>
+                      setState(() => _cloudExpanded = value),
+                  onGenerationChanged: (value) =>
+                      setState(() => _cloudIsGenerating = value),
+                  onFullscreenChanged: (value) =>
+                      setState(() => _cloudFullscreen = value),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
