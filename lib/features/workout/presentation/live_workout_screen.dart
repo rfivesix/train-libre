@@ -814,20 +814,20 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           children: [
             option(
               key: 'exercise',
-              icon: Icons.push_pin_outlined,
+              icon: LucideIcons.pin,
               title: l10n.pinnedExerciseNoteTitle,
               description: l10n.pinnedExerciseNoteDescription,
             ),
             if (canEditRoutineNote)
               option(
                 key: 'routine',
-                icon: Icons.bookmark_border,
+                icon: LucideIcons.bookmark,
                 title: l10n.pinnedRoutineNoteTitle,
                 description: l10n.pinnedRoutineNoteDescription,
               ),
             option(
               key: 'workout',
-              icon: Icons.description_outlined,
+              icon: LucideIcons.file_text,
               title: l10n.workoutExerciseNoteTitle,
               description: l10n.workoutExerciseNoteDescription,
             ),

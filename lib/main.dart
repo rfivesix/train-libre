@@ -621,13 +621,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             AppSurfaces(summaryCard: cardLight),
             MacroColors(
               calories: Colors.orange,
-              protein: Theme.of(context).colorScheme.error,
+              protein: lightScheme.error,
               carbs: Colors.green.shade400,
               fat: Colors.purple.shade300,
               water: Colors.blue,
               sugar: Colors.pink.shade200,
               fiber: Colors.brown.shade400,
-              salt: Theme.of(context).colorScheme.onSurfaceVariant,
+              salt: lightScheme.onSurfaceVariant,
               caffeine: Colors.brown,
             ),
           ],
@@ -840,13 +840,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             AppSurfaces(summaryCard: cardDark),
             MacroColors(
               calories: Colors.orange,
-              protein: Theme.of(context).colorScheme.error,
+              protein: darkScheme.error,
               carbs: Colors.green.shade400,
               fat: Colors.purple.shade300,
               water: Colors.blue,
               sugar: Colors.pink.shade200,
               fiber: Colors.brown.shade400,
-              salt: Theme.of(context).colorScheme.onSurfaceVariant,
+              salt: darkScheme.onSurfaceVariant,
               caffeine: Colors.brown,
             ),
           ],
@@ -874,6 +874,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             filled: true,
             fillColor: const Color(0xFF2C2C2E),
             border: OutlineInputBorder(
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,

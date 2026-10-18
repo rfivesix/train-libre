@@ -843,7 +843,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       Text(
                         l10n.scann_barcode_capslock,
                         style: const TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
                           color: Color(0xFF12120F),
@@ -894,7 +894,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       const Text(
                         'AI',
                         style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
                           color: Color(0xFF12120F),

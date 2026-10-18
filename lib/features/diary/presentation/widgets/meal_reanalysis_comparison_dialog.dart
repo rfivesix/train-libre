@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/app_button.dart';
 import '../../domain/models/tracked_food_item.dart';
 
 class ReanalysisItemDiff {
@@ -66,7 +68,9 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
         isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
-    final lime = const Color(0xFFC9EF00);
+    final lime = isDark
+        ? DesignConstants.brandAccentColor
+        : DesignConstants.brandAccentColorLightMode;
 
     int prevKcal = 0;
     for (final it in previousItems) {
@@ -107,7 +111,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
             Text(
               l10n.reanalysisTitle,
               style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
+                fontFamily: 'Inter',
                 fontWeight: FontWeight.w800,
                 fontSize: 21,
                 color: titleColor,
@@ -117,7 +121,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
             Text(
               l10n.reanalysisSubtitle,
               style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
+                fontFamily: 'Inter',
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
                 color: subtitleColor,
@@ -161,7 +165,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                         Text(
                           '$prevKcal kcal',
                           style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
+                            fontFamily: 'Inter',
                             fontWeight: FontWeight.w800,
                             fontSize: 17,
                             color: titleColor,
@@ -177,7 +181,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                                 Text(
                                   it.item.getLocalizedName(context),
                                   style: TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontFamily: 'Inter',
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13,
                                     color: titleColor,
@@ -188,7 +192,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                                 Text(
                                   '${it.entry.quantityInGrams} g',
                                   style: TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontFamily: 'Inter',
                                     fontWeight: FontWeight.w500,
                                     fontSize: 12,
                                     color: subtitleColor,
@@ -239,7 +243,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                             Text(
                               '$newKcal kcal',
                               style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
+                                fontFamily: 'Inter',
                                 fontWeight: FontWeight.w800,
                                 fontSize: 17,
                                 color: titleColor,
@@ -269,7 +273,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                                   Text(
                                     it.name,
                                     style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontFamily: 'Inter',
                                       fontWeight: FontWeight.w600,
                                       fontSize: 13,
                                       color: titleColor,
@@ -280,7 +284,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                                   Text(
                                     '${it.grams} g${it.diffBadge != null ? " · ${it.diffBadge}" : ""}',
                                     style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontFamily: 'Inter',
                                       fontWeight: isHighlighted
                                           ? FontWeight.w700
                                           : FontWeight.w500,
@@ -318,7 +322,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                 Text(
                   l10n.reanalysisDiffHint,
                   style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
+                    fontFamily: 'Inter',
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
                     color: subtitleColor,
@@ -332,48 +336,18 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cardBg,
-                      foregroundColor: titleColor,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(19),
-                      ),
-                      elevation: 1,
-                    ),
+                  child: AppButton.secondary(
                     onPressed: onKeepPrevious,
-                    child: Text(
-                      l10n.reanalysisKeepPrevious,
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
+                    label: l10n.reanalysisKeepPrevious,
+                    tooltip: l10n.reanalysisKeepPrevious,
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: lime,
-                      foregroundColor: const Color(0xFF12120F),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(19),
-                      ),
-                      elevation: 0,
-                    ),
+                  child: AppButton.primary(
                     onPressed: onApplyNew,
-                    child: Text(
-                      l10n.reanalysisApplyNew,
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
-                    ),
+                    label: l10n.reanalysisApplyNew,
+                    tooltip: l10n.reanalysisApplyNew,
                   ),
                 ),
               ],

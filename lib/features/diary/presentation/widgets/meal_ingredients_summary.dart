@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/summary_card.dart';
 
 class MealIngredientSummaryItem {
@@ -117,10 +118,11 @@ class MealIngredientsSummary extends StatelessWidget {
         const SizedBox(height: DesignConstants.spacingS),
         SizedBox(
           width: double.infinity,
-          child: OutlinedButton.icon(
+          child: AppButton.secondary(
             onPressed: onEdit,
-            icon: const Icon(LucideIcons.pencil, size: 18),
-            label: Text(l10n.edit),
+            icon: LucideIcons.pencil,
+            label: l10n.edit,
+            tooltip: l10n.edit,
           ),
         ),
       ],

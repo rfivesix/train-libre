@@ -40,7 +40,7 @@ class DeleteMealEntryBottomSheet {
               child: Text(
                 l10n.mealDeleteQuestion,
                 style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
+                  fontFamily: 'Inter',
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
                   color: subtitleColor,
@@ -73,7 +73,7 @@ class DeleteMealEntryBottomSheet {
                     Text(
                       l10n.mealDeleteUngroupTitle,
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                         color: titleColor,
@@ -83,7 +83,7 @@ class DeleteMealEntryBottomSheet {
                     Text(
                       l10n.mealDeleteUngroupBody(itemCount),
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w500,
                         fontSize: 12.5,
                         height: 1.4,
@@ -118,7 +118,7 @@ class DeleteMealEntryBottomSheet {
                     Text(
                       l10n.mealDeleteAllTitle,
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                         color: destructiveColor,
@@ -128,7 +128,7 @@ class DeleteMealEntryBottomSheet {
                     Text(
                       l10n.mealDeleteAllBody(itemCount, totalKcal),
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w500,
                         fontSize: 12.5,
                         height: 1.4,

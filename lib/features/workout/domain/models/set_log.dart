@@ -20,6 +20,10 @@ class SetLog {
   /// Null for legacy rows written before exercise_id was tracked.
   final String? exerciseId;
 
+  /// Catalog modality, when available (for example `strength` or `cardio`).
+  /// Data sources can attach this after joining a set to the exercise catalog.
+  final String? exerciseModality;
+
   /// The name of the exercise performed in this set.
   final String exerciseName;
 
@@ -144,6 +148,7 @@ class SetLog {
     this.id,
     required this.workoutLogId,
     this.exerciseId,
+    this.exerciseModality,
     required this.exerciseName,
     required this.setType,
     this.weightKg,

@@ -27,9 +27,10 @@ class _FakeAdapter implements HealthExportAdapter {
   @override
   final HealthExportPlatform platform;
 
-  final bool failWorkout;
+  bool failWorkout;
   final bool failNutrition;
   final bool failHydration;
+  bool denyWorkoutPermission = false;
   final bool denyNutritionPermission;
   final bool denyPermissionRequest;
   int? failMeasurementAtWriteCount;
@@ -45,6 +46,7 @@ class _FakeAdapter implements HealthExportAdapter {
   int hydrationBatchWrites = 0;
   int workoutBatchWrites = 0;
   final List<ExportMeasurementRecord> measurementRecords = [];
+  final List<ExportWorkoutRecord> workoutRecords = [];
 
   @override
   Future<HealthExportAvailability> getAvailability() async =>
@@ -91,6 +93,10 @@ class _FakeAdapter implements HealthExportAdapter {
   @override
   Future<void> writeWorkout(ExportWorkoutRecord record) async {
     workoutWrites += 1;
+    workoutRecords.add(record);
+    if (denyWorkoutPermission) {
+      throw PlatformException(code: 'permission_denied');
+    }
     if (failWorkout) {
       throw Exception('workout failure');
     }
@@ -440,6 +446,116 @@ void main() {
 
       expect(result.success, isTrue);
       expect(adapter.measurementWrites, 2);
+    });
+
+    test(
+        'Health Connect segment backfill preserves identity and retries safely',
+        () async {
+      final workoutRow = await db.select(db.workoutLogs).getSingle();
+      final historicalStart =
+          DateTime.now().toUtc().subtract(const Duration(days: 400));
+      await (db.update(db.workoutLogs)
+            ..where((tbl) => tbl.id.equals(workoutRow.id)))
+          .write(
+        WorkoutLogsCompanion(
+          startTime: drift.Value(historicalStart),
+          endTime:
+              drift.Value(historicalStart.add(const Duration(minutes: 45))),
+        ),
+      );
+      await db.into(db.setLogs).insert(
+            SetLogsCompanion(
+              workoutLogId: drift.Value(workoutRow.id),
+              exerciseNameSnapshot: const drift.Value('Bench Press'),
+              weight: const drift.Value(50),
+              reps: const drift.Value(8),
+              isCompleted: const drift.Value(true),
+              logOrder: const drift.Value(0),
+            ),
+          );
+      final sourceKey = 'workout_session:${workoutRow.localId}';
+      await db.customStatement(
+        '''INSERT INTO health_export_records
+           (id, platform, domain, idempotency_key, exported_at)
+           VALUES (?, ?, ?, ?, ?)''',
+        [
+          'legacy-health-connect-workout',
+          HealthExportPlatform.healthConnect.name,
+          HealthExportDomain.workouts.name,
+          sourceKey,
+          DateTime.now().toUtc().millisecondsSinceEpoch,
+        ],
+      );
+
+      final statusStore = HealthExportStatusStore(databaseHelper: dbHelper);
+      final adapter = _FakeAdapter(
+        HealthExportPlatform.healthConnect,
+        failWorkout: true,
+      );
+      final service = HealthExportService(
+        adapters: [adapter],
+        dataSource: HealthExportDataSource(databaseHelper: dbHelper),
+        statusStore: statusStore,
+        identityStore: HealthExportIdentityStore(databaseHelper: dbHelper),
+      );
+
+      await service.requestPermissions(HealthExportPlatform.healthConnect);
+      await statusStore.markDomainState(
+        platform: HealthExportPlatform.healthConnect,
+        domain: HealthExportDomain.workouts,
+        state: HealthExportState.success,
+        lastSuccessUtc: DateTime.now().toUtc(),
+      );
+
+      final failed = await service.exportNow(
+        HealthExportPlatform.healthConnect,
+        lookbackDays: 1,
+      );
+      expect(failed.success, isFalse);
+      expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 0);
+      final firstAttempt = adapter.workoutRecords.single;
+      expect(firstAttempt.externalId, sourceKey);
+      expect(firstAttempt.exportRevision, 1);
+      expect(firstAttempt.segments, hasLength(1));
+
+      adapter.failWorkout = false;
+      adapter.denyWorkoutPermission = true;
+      final permissionFailed = await service.exportNow(
+        HealthExportPlatform.healthConnect,
+        lookbackDays: 1,
+      );
+      expect(permissionFailed.success, isFalse);
+      expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 0);
+      expect(adapter.workoutRecords.last.externalId, firstAttempt.externalId);
+      expect(
+        adapter.workoutRecords.last.exportRevision,
+        firstAttempt.exportRevision,
+      );
+
+      adapter.denyWorkoutPermission = false;
+      final retried = await service.exportNow(
+        HealthExportPlatform.healthConnect,
+        lookbackDays: 1,
+      );
+      expect(retried.success, isTrue);
+      expect(await statusStore.getHealthConnectWorkoutPayloadVersion(), 1);
+      final retryAttempt = adapter.workoutRecords.last;
+      expect(retryAttempt.externalId, firstAttempt.externalId);
+      expect(retryAttempt.exportRevision, firstAttempt.exportRevision);
+
+      final workoutWritesAfterRetry = adapter.workoutWrites;
+      await statusStore.markDomainState(
+        platform: HealthExportPlatform.healthConnect,
+        domain: HealthExportDomain.workouts,
+        state: HealthExportState.success,
+        lastSuccessUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      );
+      final repeated = await service.exportNow(
+        HealthExportPlatform.healthConnect,
+        lookbackDays: null,
+      );
+      expect(repeated.success, isTrue);
+      expect(adapter.workoutWrites, workoutWritesAfterRetry);
     });
 
     test(

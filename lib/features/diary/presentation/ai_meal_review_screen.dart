@@ -278,7 +278,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       child: Text(
         '$label $value',
         style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
+          fontFamily: 'Inter',
           fontWeight: FontWeight.w700,
           fontSize: 11.5,
           color: color,
@@ -1198,7 +1198,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                               Text(
                                 mealTitle,
                                 style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontFamily: 'Inter',
                                   fontWeight: FontWeight.w800,
                                   fontSize: 22,
                                   color: titleColor,
@@ -1225,8 +1225,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                               child: Text(
                                                 '$localizedMealType · $timeStr',
                                                 style: TextStyle(
-                                                  fontFamily:
-                                                      'Plus Jakarta Sans',
+                                                  fontFamily: 'Inter',
                                                   fontWeight: FontWeight.w500,
                                                   fontSize: 14,
                                                   color: subtitleColor,
@@ -1255,7 +1254,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                       child: Text(
                                         tokenUsageText,
                                         style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontFamily: 'Inter',
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14,
                                           color: subtitleColor,
@@ -1330,7 +1329,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                       Text(
                                         '${_isMatching && _validation == null && _totalKcal == 0 ? 550 : _totalKcal} kcal',
                                         style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontFamily: 'Inter',
                                           fontWeight: FontWeight.w800,
                                           fontSize: 24,
                                           color: titleColor,
@@ -1761,7 +1760,7 @@ class _DepthToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const lime = Color(0xFFC9EF00);
+    const lime = DesignConstants.brandAccentColor;
     return GestureDetector(
       onTap: onTap,
       child: Container(

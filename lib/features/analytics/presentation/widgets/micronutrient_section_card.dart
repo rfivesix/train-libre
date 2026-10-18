@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -100,8 +101,11 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
                             ),
                           ),
                         ),
-                        Icon(Icons.chevron_right,
-                            color: theme.colorScheme.onSurfaceVariant),
+                        Icon(
+                          LucideIcons.chevron_right,
+                          size: 18,
+                          color: theme.colorScheme.outline,
+                        ),
                       ],
                     ),
                     const SizedBox(height: DesignConstants.spacingXS),

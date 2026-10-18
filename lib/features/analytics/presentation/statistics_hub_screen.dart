@@ -468,7 +468,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                     ),
               ),
             ),
-            const Icon(Icons.chevron_right),
+            AnalyticsCardBase.buildDrillDownHint(context),
           ],
         ),
       ),

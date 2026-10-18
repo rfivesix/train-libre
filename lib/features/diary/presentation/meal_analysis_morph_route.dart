@@ -230,7 +230,7 @@ class _MealAnalysisMorphTransition extends StatelessWidget {
                           Text(
                             'Analysieren',
                             style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
+                              fontFamily: 'Inter',
                               fontWeight: FontWeight.w800,
                               fontSize: 15,
                               color: isDark

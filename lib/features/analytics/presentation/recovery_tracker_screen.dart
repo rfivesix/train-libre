@@ -453,7 +453,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                 if (remainingHours != null) ...[
                   const SizedBox(width: DesignConstants.spacingM),
                   Icon(
-                    Icons.schedule_rounded,
+                    LucideIcons.clock,
                     size: 16,
                     color: Theme.of(context).colorScheme.outline,
                   ),

@@ -1260,7 +1260,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = Theme.of(context).scaffoldBackgroundColor;
     final primaryAccent = isDark
-        ? const Color(0xFFC9EF00)
+        ? DesignConstants.brandAccentColor
         : DesignConstants.brandAccentColorLightMode;
 
     if (!_isOffDbInitialized) {
@@ -1379,7 +1379,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   child: Text(
                                     _distanceHint!,
                                     style: const TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontFamily: 'Inter',
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12,
                                       color: Colors.white,
@@ -1656,7 +1656,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                               _images.length)
                                           : l10n.aiCaptureAnalyzeText,
                                       style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontFamily: 'Inter',
                                         fontWeight: FontWeight.w800,
                                         fontSize: 15,
                                         color: isDark
@@ -1872,7 +1872,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     Text(
                       l10n.aiCaptureTourBarcodeDemoHint,
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                         letterSpacing: 0.4,
@@ -1883,7 +1883,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     Text(
                       l10n.aiCaptureTourBarcodeDemoProduct,
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                         color: isDark ? Colors.white : const Color(0xFF12120F),
@@ -1905,7 +1905,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 child: Text(
                   l10n.aiCaptureLogBarcode,
                   style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
+                    fontFamily: 'Inter',
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
                     color: isDark ? const Color(0xFF12120F) : Colors.white,
@@ -1932,7 +1932,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             const Text(
               'Kamerazugriff erforderlich',
               style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
+                fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
                 color: Colors.white,
@@ -1945,7 +1945,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 'Bitte erlaube den Kamerazugriff in den Einstellungen, um Mahlzeiten direkt live zu erfassen.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
+                  fontFamily: 'Inter',
                   fontSize: 14,
                   color: Colors.white.withValues(alpha: 0.7),
                 ),
@@ -1954,7 +1954,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC9EF00),
+                backgroundColor: DesignConstants.brandAccentColor,
                 foregroundColor: const Color(0xFF12120F),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -2001,7 +2001,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       Text(
                         l10n.aiCaptureBarcodeDetected,
                         style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                           letterSpacing: 0.4,
@@ -2012,7 +2012,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       Text(
                         label,
                         style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
                           color:
@@ -2045,7 +2045,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       : Text(
                           l10n.aiCaptureLogBarcode,
                           style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
+                            fontFamily: 'Inter',
                             fontWeight: FontWeight.w800,
                             fontSize: 14,
                             color:
@@ -2070,7 +2070,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryAccent = isDark
-        ? const Color(0xFFC9EF00)
+        ? DesignConstants.brandAccentColor
         : DesignConstants.brandAccentColorLightMode;
     return GestureDetector(
       key: key,

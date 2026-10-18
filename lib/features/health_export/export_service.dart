@@ -165,6 +165,10 @@ class HealthExportService {
     final platformStatus =
         statuses[platform] ?? HealthExportPlatformStatus.initial(platform);
     final checkpoints = _domainIncrementalCheckpoints(platformStatus);
+    final healthConnectWorkoutBackfillPending =
+        platform == HealthExportPlatform.healthConnect &&
+            await _statusStore.getHealthConnectWorkoutPayloadVersion() <
+                HealthExportStatusStore.healthConnectWorkoutPayloadVersion;
     // Advance successful checkpoints only to the instant before the payload
     // snapshot. Mutations arriving while native writes are in flight then stay
     // eligible for the coordinator's queued rerun instead of being skipped.
@@ -208,10 +212,13 @@ class HealthExportService {
     );
     final workoutsPayload = await _dataSource.loadWorkouts(
       options: HealthExportLoadOptions(
-        lookbackDays: checkpoints[HealthExportDomain.workouts] == null
+        lookbackDays: healthConnectWorkoutBackfillPending ||
+                checkpoints[HealthExportDomain.workouts] == null
             ? null
             : lookbackDays,
-        updatedSinceUtc: checkpoints[HealthExportDomain.workouts],
+        updatedSinceUtc: healthConnectWorkoutBackfillPending
+            ? null
+            : checkpoints[HealthExportDomain.workouts],
         platform: platform,
       ),
     );
@@ -441,6 +448,12 @@ class HealthExportService {
         }
       },
     );
+    if (healthConnectWorkoutBackfillPending &&
+        domainOutcomes[HealthExportDomain.workouts]!.success) {
+      await _statusStore.markHealthConnectWorkoutPayloadVersion(
+        HealthExportStatusStore.healthConnectWorkoutPayloadVersion,
+      );
+    }
 
     final success = domainOutcomes.values.every((value) => value.success);
     final message = success

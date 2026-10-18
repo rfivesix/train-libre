@@ -708,7 +708,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                             '$localizedMealType · $timeStr',
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontFamily: 'Inter',
                                               fontWeight: FontWeight.w500,
                                               fontSize: 14,
                                               color: subtitleColor,
@@ -737,7 +737,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                   Text(
                                     '$_totalKcal kcal',
                                     style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontFamily: 'Inter',
                                       fontWeight: FontWeight.w800,
                                       fontSize: 24,
                                       color: titleColor,
@@ -874,7 +874,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       child: Text(
         '$label $value',
         style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
+          fontFamily: 'Inter',
           fontWeight: FontWeight.w700,
           fontSize: 11.5,
           color: color,

@@ -22,6 +22,7 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.BodyFatRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.ExerciseSegment
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.request.ReadRecordsRequest
@@ -1303,6 +1304,25 @@ class MainActivity : FlutterActivity() {
             "yoga" -> ExerciseSessionRecord.EXERCISE_TYPE_YOGA
             else -> ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING
         }
+        val segments = ((args["segments"] as? List<*>) ?: emptyList<Any>())
+            .mapIndexed { index, rawSegment ->
+                val segmentArgs = rawSegment as? Map<*, *>
+                    ?: throw IllegalArgumentException(
+                        "Invalid workout segment at index $index",
+                    )
+                buildWorkoutSegment(segmentArgs, start, end)
+                    ?: throw IllegalArgumentException(
+                        "Invalid workout segment at index $index",
+                    )
+            }
+        var previousSegmentEnd: Instant? = null
+        for (segment in segments) {
+            val previousEnd = previousSegmentEnd
+            if (previousEnd != null && segment.startTime.isBefore(previousEnd)) {
+                throw IllegalArgumentException("Workout segments overlap")
+            }
+            previousSegmentEnd = segment.endTime
+        }
         return ExerciseSessionRecord(
             startTime = start,
             startZoneOffset = toZoneOffset(startZoneOffsetMinutes),
@@ -1312,6 +1332,41 @@ class MainActivity : FlutterActivity() {
             exerciseType = exerciseType,
             title = args["title"] as? String,
             notes = args["notes"] as? String,
+            segments = segments,
+        )
+    }
+
+    private fun buildWorkoutSegment(
+        args: Map<*, *>,
+        workoutStart: Instant,
+        workoutEnd: Instant,
+    ): ExerciseSegment? {
+        val startIso = args["startUtcIso"] as? String ?: return null
+        val endIso = args["endUtcIso"] as? String ?: return null
+        val start = Instant.parse(startIso)
+        val end = Instant.parse(endIso)
+        if (!start.isBefore(end) || start.isBefore(workoutStart) || end.isAfter(workoutEnd)) {
+            return null
+        }
+        val exerciseType = when (args["exerciseType"] as? String) {
+            "weightlifting" -> ExerciseSegment.EXERCISE_SEGMENT_TYPE_WEIGHTLIFTING
+            else -> return null
+        }
+        val repetitions = (args["repetitions"] as? Number)?.toInt() ?: return null
+        if (repetitions < 0) return null
+        val setIndex = (args["setIndex"] as? Number)?.toInt() ?: return null
+        if (setIndex < 0) return null
+        val weightKg = (args["weightKg"] as? Number)?.toDouble()
+        val weight = weightKg?.takeIf { it.isFinite() && it >= 0.0 }
+            ?.let(Mass::kilograms)
+        return ExerciseSegment(
+            startTime = start,
+            endTime = end,
+            segmentType = exerciseType,
+            repetitions = repetitions,
+            weight = weight,
+            setIndex = setIndex,
+            rateOfPerceivedExertion = null,
         )
     }
 

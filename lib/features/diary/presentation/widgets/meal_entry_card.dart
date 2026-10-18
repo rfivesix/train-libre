@@ -201,7 +201,7 @@ class _MealEntryCardState extends State<MealEntryCard> {
                                 widget.mealEntry.title ??
                                     l10n.mealFallbackTitle,
                                 style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontFamily: 'Inter',
                                   fontWeight: FontWeight.w700,
                                   fontSize: 15,
                                   color: titleColor,
@@ -213,7 +213,7 @@ class _MealEntryCardState extends State<MealEntryCard> {
                               Text(
                                 countStr,
                                 style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontFamily: 'Inter',
                                   fontWeight: FontWeight.w500,
                                   fontSize: 12,
                                   color: subtitleColor,
@@ -232,7 +232,7 @@ class _MealEntryCardState extends State<MealEntryCard> {
                             '$totalKcal kcal',
                             textAlign: TextAlign.right,
                             style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
+                              fontFamily: 'Inter',
                               fontWeight: FontWeight.w800,
                               fontSize: 14,
                               color: titleColor,

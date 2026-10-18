@@ -1222,7 +1222,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       height: 32,
                     ),
                     padding: EdgeInsets.zero,
-                    icon: const Icon(Icons.info_outline, size: 18),
+                    icon: const Icon(LucideIcons.info, size: 18),
                     onPressed: () => _showBlsNutrientDetails(fact),
                   ),
                   const SizedBox(width: DesignConstants.spacingXS),

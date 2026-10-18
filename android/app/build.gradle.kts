@@ -23,7 +23,7 @@ plugins {
 
 android {
     namespace = "com.rfivesix.trainlibre"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "28.2.13676358"
 
     defaultConfig {
@@ -76,7 +76,7 @@ flutter { source = "../.." }
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-    implementation("androidx.health.connect:connect-client:1.1.0")
+    implementation("androidx.health.connect:connect-client:1.2.0-alpha06")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
@@ -91,10 +91,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.18.0")
 
     // Compose, for the three widget configuration Activities only.
-    // Pinned rather than tracking the newest BOM: Compose 1.12 wants AGP 9.1 and
-    // compileSdk 37, which is a toolchain upgrade this change has no business
-    // dragging in. 2026.02.01 resolves to Compose 1.10.4, the newest line that
-    // still builds against AGP 8.13 / compileSdk 36.
+    // Keep the widgets on the already tested Compose BOM while the Android
+    // Gradle toolchain is upgraded for Health Connect's set-segment API.
     implementation(platform("androidx.compose:compose-bom:2026.02.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../../util/design_constants.dart';
@@ -679,7 +680,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: _buildHeaderGlassButton(
-                  icon: Icons.close_rounded,
+                  icon: LucideIcons.x,
                   tooltip: 'Schließen',
                   isDark: isDark,
                   onPressed: _toggleExpanded,
@@ -715,8 +716,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 padding: const EdgeInsets.only(top: 6),
                 child: _buildHeaderGlassButton(
                   icon: _isFullscreen
-                      ? Icons.close_fullscreen_rounded
-                      : Icons.open_in_full_rounded,
+                      ? LucideIcons.minimize_2
+                      : LucideIcons.maximize_2,
                   tooltip: _isFullscreen ? 'Vollbild verlassen' : 'Vollbild',
                   isDark: isDark,
                   onPressed: _toggleFullscreen,
@@ -940,9 +941,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                   height: 42,
                                   child: Icon(
                                     _isGenerating
-                                        ? Icons.stop_rounded
-                                        : Icons.arrow_upward_rounded,
-                                    size: _isGenerating ? 21 : 20,
+                                        ? LucideIcons.square
+                                        : LucideIcons.arrow_up,
+                                    size: _isGenerating ? 18 : 20,
                                     color: theme.brightness == Brightness.dark
                                         ? Colors.white
                                         : Colors.black,
@@ -1145,7 +1146,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   ],
                 ),
                 child: Icon(
-                  Icons.open_in_full,
+                  LucideIcons.maximize_2,
                   size: 10,
                   color: theme.colorScheme.onPrimary,
                 ),

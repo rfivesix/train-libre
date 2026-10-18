@@ -4,7 +4,6 @@ import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../data/sleep_day_repository.dart';
 import '../../domain/metrics/sleep_thresholds.dart';
-import 'sleep_data_unavailable_card.dart';
 import 'sleep_detail_page_shell.dart';
 import 'sleep_metric_formatters.dart';
 import 'widgets/sleep_benchmark_bar.dart';
@@ -19,26 +18,16 @@ class DurationDetailPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final overview = this.overview;
     if (overview == null) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.sleepMetricDurationTitle)),
-        body: Padding(
-          padding: EdgeInsets.all(DesignConstants.spacingL),
-          child: SleepDataUnavailableCard(
-            message: l10n.sleepDurationUnavailable,
-          ),
-        ),
+      return SleepDetailUnavailablePage(
+        title: l10n.sleepMetricDurationTitle,
+        message: l10n.sleepDurationUnavailable,
       );
     }
     final duration = overview.totalSleepDuration;
     if (duration <= Duration.zero) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.sleepMetricDurationTitle)),
-        body: Padding(
-          padding: EdgeInsets.all(DesignConstants.spacingL),
-          child: SleepDataUnavailableCard(
-            message: l10n.sleepDurationUnavailable,
-          ),
-        ),
+      return SleepDetailUnavailablePage(
+        title: l10n.sleepMetricDurationTitle,
+        message: l10n.sleepDurationUnavailable,
       );
     }
     final status = duration.inHours >= SleepDurationThresholds.optimalLowerHours

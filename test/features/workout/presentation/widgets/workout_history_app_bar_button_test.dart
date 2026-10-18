@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:train_libre/features/workout/domain/models/workout_log.dart';
@@ -56,18 +57,18 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify calendar icon
-    final iconFinder = find.byIcon(Icons.calendar_month);
+    final iconFinder = find.byIcon(LucideIcons.calendar);
     expect(iconFinder, findsOneWidget);
 
     // Verify tooltip
-    final tooltipFinder = find.byTooltip('Workout-Historie');
+    final tooltipFinder = find.byTooltip('Workout-Verlauf');
     expect(tooltipFinder, findsOneWidget);
 
     // Verify semantics
     final semanticsFinder = find.byWidgetPredicate(
       (w) =>
           w is Semantics &&
-          w.properties.label == 'Workout-Historie' &&
+          w.properties.label == 'Workout-Verlauf' &&
           w.properties.button == true,
     );
     expect(semanticsFinder, findsOneWidget);
@@ -111,7 +112,7 @@ void main() {
     );
     expect(darkMaterial.color, equals(const ColorScheme.dark().onSurface));
 
-    final darkIcon = tester.widget<Icon>(find.byIcon(Icons.calendar_month));
+    final darkIcon = tester.widget<Icon>(find.byIcon(LucideIcons.calendar));
     expect(darkIcon.color, equals(const ColorScheme.dark().surface));
 
     // Light mode
@@ -123,7 +124,7 @@ void main() {
     );
     expect(lightMaterial.color, equals(const ColorScheme.light().onSurface));
 
-    final lightIcon = tester.widget<Icon>(find.byIcon(Icons.calendar_month));
+    final lightIcon = tester.widget<Icon>(find.byIcon(LucideIcons.calendar));
     expect(lightIcon.color, equals(const ColorScheme.light().surface));
   });
 

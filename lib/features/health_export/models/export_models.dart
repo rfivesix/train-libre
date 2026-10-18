@@ -19,6 +19,35 @@ enum ExportMeasurementType { weight, bodyFatPercentage, bmi }
 
 enum ExportWorkoutType { strength, running, walking, cycling, yoga, other }
 
+enum ExportWorkoutSegmentType { weightlifting }
+
+class ExportWorkoutSegment {
+  const ExportWorkoutSegment({
+    required this.startUtc,
+    required this.endUtc,
+    required this.exerciseType,
+    required this.repetitions,
+    required this.setIndex,
+    this.weightKg,
+  });
+
+  final DateTime startUtc;
+  final DateTime endUtc;
+  final ExportWorkoutSegmentType exerciseType;
+  final int repetitions;
+  final int setIndex;
+  final double? weightKg;
+
+  Map<String, dynamic> toMap() => {
+        'startUtcIso': startUtc.toUtc().toIso8601String(),
+        'endUtcIso': endUtc.toUtc().toIso8601String(),
+        'exerciseType': exerciseType.name,
+        'repetitions': repetitions,
+        'setIndex': setIndex,
+        if (weightKg != null) 'weightKg': weightKg,
+      };
+}
+
 class ExportMeasurementRecord {
   const ExportMeasurementRecord({
     required this.idempotencyKey,
@@ -196,6 +225,7 @@ class ExportWorkoutRecord {
     this.caloriesBurnedKcal,
     this.title,
     this.notes,
+    this.segments = const [],
     this.externalId,
     this.exportRevision,
   });
@@ -209,6 +239,7 @@ class ExportWorkoutRecord {
   final double? caloriesBurnedKcal;
   final String? title;
   final String? notes;
+  final List<ExportWorkoutSegment> segments;
   final String? externalId;
   final int? exportRevision;
 
@@ -222,6 +253,8 @@ class ExportWorkoutRecord {
         'caloriesBurnedKcal': caloriesBurnedKcal,
         'title': title,
         'notes': notes,
+        if (segments.isNotEmpty)
+          'segments': segments.map((segment) => segment.toMap()).toList(),
       };
 
   String get payloadFingerprint => _fingerprint(contentMap);
@@ -237,6 +270,7 @@ class ExportWorkoutRecord {
         caloriesBurnedKcal: caloriesBurnedKcal,
         title: title,
         notes: notes,
+        segments: segments,
         externalId: id,
         exportRevision: revision,
       );

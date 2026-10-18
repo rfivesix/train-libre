@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.6.0-beta.2] - 2026-10-15
+## [1.6.0-beta.3] - 2026-10-18
 
 ### Added
+- **Health Connect strength set segments (Issue #737):** Export completed strength workout sets as `ExerciseSegment` entries with repetitions, load, exercise type, and set indexes. Existing Health Connect workouts receive a one-time idempotent payload upgrade that reuses their record identities.
 - Added a dedicated English/German About page with the creator's first-person project story, user-focused release timeline, shared site navigation and working theme/language controls.
 - Added persistent right-side scroll indicators to workout history, body measurements, and nutrition statistics.
 - Added an English User Guide section to the public documentation structure, with a task-based topic map for workouts, plans, nutrition, statistics, notifications, and data import/export.
@@ -71,6 +72,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **iOS internal-testing deployment:** Extended the deployment script to detect existing build numbers and increment them, clean previous builds, and handle IPA export failures while preserving the build and upload workflow.
 
 ### Fixed
+- **UI & Design System Consistency (`main.dart`, `DesignConstants`, `LucideIcons`, `showDeleteConfirmation`, `showGlassBottomMenu`, `AppButton`, `GlobalAppBar`, `SummaryCard`):**
+  - Replaced unregistered `fontFamily: 'Plus Jakarta Sans'` overrides with the bundled `'Inter'` font family across 12 diary, AI meal capture/review, voice dictation, and onboarding tour files so text no longer falls back to the platform default font.
+  - Fixed `MacroColors` in `baseLightTheme` and `baseDarkTheme` (`main.dart`) to reference `lightScheme`/`darkScheme` instead of the ancestor `Theme.of(context).colorScheme`, and added the missing `enabledBorder` (`borderRadiusM`) to `baseDarkTheme.inputDecorationTheme` to match light mode.
+  - Replaced stray Material `Icons.*` with `LucideIcons.*` across workout, analytics, diary, AI overlay demo, and draggable AI cloud screens, and localized the tooltip in `WorkoutHistoryAppBarButton`.
+  - Unified hardcoded `0xFFC9EF00` lime values with `DesignConstants.brandAccentColor` / `DesignConstants.brandAccentColorLightMode`.
+  - Replaced raw Material `AlertDialog`s and plain `showModalBottomSheet`s with `showDeleteConfirmation` and `showGlassBottomMenu` in `AiSettingsScreen`, `AiMealScanLogsSection`, `MealReviewValidationSummary`, and `MuscleGroupAnalyticsScreen`.
+  - Updated `DurationDetailPage`, `MealEditorScreen`, `MealIngredientsSummary`, and `MealReanalysisComparisonDialog` to use `SleepDetailUnavailablePage` (`GlobalAppBar`), `SummaryCard`, and `AppButton`.
 - Hid pause times and exercise notes on every live workout card while exercises are being reordered, keeping the compact drag view consistent with the dragged card.
 - Unified website and documentation accent colors across light and dark themes, including navigation, links, controls, and diagram accents; the brand logo retains its fixed color.
 - Fixed KaTeX rendering for bracketed LaTeX formulas in feature documentation and restored sticky docs navigation by removing the clipping scroll container; left navigation and the right table of contents now scroll independently from article content.

@@ -167,7 +167,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
               onPressed: _cloudIsGenerating
                   ? _cloudKey.currentState?.finishDemoGeneration
                   : null,
-              icon: const Icon(Icons.check_circle_outline_rounded),
+              icon: const Icon(LucideIcons.circle_check),
               label: const Text('Demo-Antwort abschließen'),
             ),
           ),

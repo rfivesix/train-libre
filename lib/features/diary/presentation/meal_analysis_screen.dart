@@ -280,7 +280,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
                                 child: Text(
                                   _activeModelName!,
                                   style: TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontFamily: 'Inter',
                                     fontWeight: FontWeight.w500,
                                     fontSize: 12,
                                     color: isDark
@@ -341,7 +341,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
                                     _statusLabel(l10n, phase),
                                     key: ValueKey(phase),
                                     style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontFamily: 'Inter',
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
                                       color: textColor,
@@ -375,7 +375,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
                                 child: Text(
                                   l10n.cancel,
                                   style: TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontFamily: 'Inter',
                                     fontWeight: FontWeight.w600,
                                     fontSize: 15,
                                     color: cancelColor,

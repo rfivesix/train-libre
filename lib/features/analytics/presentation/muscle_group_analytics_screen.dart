@@ -23,6 +23,7 @@ import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
@@ -385,39 +386,28 @@ class _MuscleGroupAnalyticsScreenState
     final group = muscle['muscleGroup'] as String;
     final name = _muscleLabel(l10n, group);
 
-    showModalBottomSheet(
+    showGlassBottomMenu(
       context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
-                _buildDetailRow(
-                  l10n.analyticsWorkSets,
-                  _formatCompact(
-                    (muscle['equivalentSets'] as num).toDouble(),
-                  ),
-                  l10n.analyticsUnitSets,
-                ),
-                _buildDetailRow(
-                  l10n.analyticsFrequencyByMuscle,
-                  (muscle['frequencyPerWeek'] as num).toStringAsFixed(1),
-                  l10n.analyticsPerWeekAbbrev,
-                ),
-                const SizedBox(height: DesignConstants.spacingM),
-              ],
+      title: name,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDetailRow(
+              l10n.analyticsWorkSets,
+              _formatCompact(
+                (muscle['equivalentSets'] as num).toDouble(),
+              ),
+              l10n.analyticsUnitSets,
             ),
-          ),
+            _buildDetailRow(
+              l10n.analyticsFrequencyByMuscle,
+              (muscle['frequencyPerWeek'] as num).toStringAsFixed(1),
+              l10n.analyticsPerWeekAbbrev,
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+          ],
         );
       },
     );

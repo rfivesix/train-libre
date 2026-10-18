@@ -18,6 +18,7 @@ import '../../../services/telemetry/telemetry_service.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../../services/ai/apple_foundation_service.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -832,31 +833,16 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 subtitle: l10n.mealPhotoRetentionBody,
                 leading: const Icon(LucideIcons.trash),
                 isDestructive: true,
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: Text(l10n.mealPhotoDeleteAllTitle),
-                      content: Text(l10n.mealPhotoDeleteAllBody),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          child: Text(l10n.cancel),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(ctx).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(l10n.mealPhotoDeleted)),
-                            );
-                          },
-                          child: Text(
-                            l10n.delete,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      ],
-                    ),
+                onTap: () async {
+                  final confirmed = await showDeleteConfirmation(
+                    context,
+                    title: l10n.mealPhotoDeleteAllTitle,
+                    content: l10n.mealPhotoDeleteAllBody,
+                    confirmLabel: l10n.delete,
+                  );
+                  if (!confirmed || !context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.mealPhotoDeleted)),
                   );
                 },
               ),

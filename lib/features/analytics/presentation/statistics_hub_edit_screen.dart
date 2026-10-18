@@ -248,7 +248,7 @@ class _StatisticsHubEditScreenState extends State<StatisticsHubEditScreen> {
                   child: ReorderableDragStartListener(
                     index: index,
                     child: Icon(
-                      Icons.drag_handle,
+                      LucideIcons.grip_horizontal,
                       size: 22,
                       color: theme.colorScheme.onSurfaceVariant
                           .withValues(alpha: 0.7),
