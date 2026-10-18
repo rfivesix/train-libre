@@ -21,6 +21,9 @@ class SummaryCard extends StatelessWidget {
   /// Whether to disable the drop shadow.
   final bool disableShadow;
 
+  /// Whether to show the standard soft card shadow.
+  final bool showShadow;
+
   /// Optional background color override.
   final Color? backgroundColor;
 
@@ -43,6 +46,7 @@ class SummaryCard extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(vertical: 6.0),
     this.onTap,
     this.disableShadow = false,
+    this.showShadow = false,
     this.backgroundColor,
     this.backgroundGradient,
     this.useSecondarySurface = false,
@@ -105,11 +109,19 @@ class SummaryCard extends StatelessWidget {
     final card = Padding(
       padding: margin,
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-          // Summary cards stay flat in both themes. The surface contrast and
-          // grouped-page background provide their separation.
-          boxShadow: null,
+        decoration: ShapeDecoration(
+          shape: squircle,
+          shadows: showShadow && !disableShadow
+              ? (isDark
+                  ? [
+                      BoxShadow(
+                        color: cardBg.withValues(alpha: 0.28),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : DesignConstants.glassShadow(isDark))
+              : null,
         ),
         child: ClipPath(
           clipper: clipper,

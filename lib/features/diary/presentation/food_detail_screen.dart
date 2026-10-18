@@ -1101,7 +1101,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         backgroundColor: metric.color,
         backgroundOverlayGradient: diaryBarGradient,
         textShadows: diaryBarShadows,
-        disableShadow: true,
+        showShadow: true,
       );
     }).toList();
 
