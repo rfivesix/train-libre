@@ -5,13 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../services/haptic_feedback_service.dart';
+import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 
 /// The existing animated AI cloud, made draggable for the overlay demo.
 ///
 /// Its horizontal and vertical position is interactive and resets when the
 /// demo screen is opened again.
+enum _AssistantMenuAction { newChat, chatHistory }
+
 class DraggableAiCloud extends StatefulWidget {
   final String semanticLabel;
   final String semanticHint;
@@ -19,6 +24,7 @@ class DraggableAiCloud extends StatefulWidget {
   final ValueChanged<bool>? onFullscreenChanged;
   final ValueChanged<bool>? onGenerationChanged;
   final bool showResizeHandles;
+  final bool openDirectlyFullscreen;
 
   const DraggableAiCloud({
     super.key,
@@ -28,6 +34,7 @@ class DraggableAiCloud extends StatefulWidget {
     this.onFullscreenChanged,
     this.onGenerationChanged,
     this.showResizeHandles = true,
+    this.openDirectlyFullscreen = false,
   });
 
   @override
@@ -43,6 +50,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   static const _topVisualInset = 28.0;
   // Release within this many logical pixels of a card edge docks the cloud.
   static const _snapThreshold = 48.0;
+  static const _scrollToBottomThreshold = 120.0;
   static const _demoWords = <String>[
     'Lorem',
     'ipsum',
@@ -71,6 +79,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   double _scale = 1;
   bool _isDragging = false;
   bool _isExpanded = false;
+  bool _isClosing = false;
   bool _showChatPreview = false;
   bool _isFullscreen = false;
   double _headerDragDistance = 0;
@@ -80,11 +89,20 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   final _chatScrollController = ScrollController();
   final List<_DemoChatTurn> _chatTurns = [];
   Timer? _responseTimer;
+  Timer? _permissionContinuationTimer;
   Timer? _completionPulseTimer;
+  Timer? _permissionBadgeDelayTimer;
+  Timer? _collapsedWaitingHapticTimer;
   bool _isGenerating = false;
   bool _hasCompletedResponse = false;
+  bool _permissionPending = false;
+  bool _showPermissionBadge = false;
+  bool _attentionPeekDismissed = false;
+  bool? _permissionApproved;
+  bool _expandedWaitingHapticsActive = false;
   bool _completionPulse = false;
   bool _followChatTail = true;
+  bool _showScrollToBottom = false;
   int _demoWordIndex = 0;
   double _safeLeft = 0.14;
   double _safeTop = 0.10;
@@ -120,7 +138,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void dispose() {
     _responseTimer?.cancel();
+    _permissionContinuationTimer?.cancel();
     _completionPulseTimer?.cancel();
+    _permissionBadgeDelayTimer?.cancel();
+    _collapsedWaitingHapticTimer?.cancel();
+    if (_expandedWaitingHapticsActive) {
+      HapticFeedbackService.instance.stopAiWaiting();
+    }
     _chatInputController.dispose();
     _chatFocusNode.dispose();
     _chatScrollController.dispose();
@@ -137,14 +161,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _initialDockController.stop();
     final expanding = !_isExpanded;
     final wasFullscreen = _isFullscreen;
-    FocusManager.instance.primaryFocus?.unfocus();
+    final openFullscreen = expanding && widget.openDirectlyFullscreen;
+    if (expanding) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
     setState(() {
       _horizontalPosition ??= _displayedHorizontalPosition;
       _isExpanded = expanding;
+      _isClosing = !expanding;
       _isDragging = false;
       _rotationRadians = 0;
       _scale = 1;
-      _isFullscreen = false;
+      _isFullscreen = openFullscreen;
       _showChatPreview = expanding;
       if (expanding) {
         // A completed response stays highlighted on the minimized orb until
@@ -153,9 +181,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         _completionPulse = false;
       }
     });
+    _syncDemoWaitingHaptics();
     if (expanding) {
-      widget.onFullscreenChanged?.call(false);
+      widget.onFullscreenChanged?.call(openFullscreen);
       _morphAnimation.forward();
+      if (openFullscreen) {
+        _fullscreenAnimation.forward(from: 0);
+      }
       if (_chatTurns.isEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _isExpanded && _showChatPreview) {
@@ -166,6 +198,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     } else {
       _morphAnimation.reverse().whenComplete(() {
         if (!mounted) return;
+        setState(() => _isClosing = false);
+        FocusManager.instance.primaryFocus?.unfocus();
         if (_hasCompletedResponse) {
           setState(() => _completionPulse = true);
           _scheduleCompletionPulseReset();
@@ -178,8 +212,46 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
   }
 
-  /// Ends the current demo response, as if the model had finished generating.
+  void _syncDemoWaitingHaptics() {
+    final haptics = HapticFeedbackService.instance;
+    if (!_isGenerating) {
+      _collapsedWaitingHapticTimer?.cancel();
+      _collapsedWaitingHapticTimer = null;
+      if (_expandedWaitingHapticsActive) {
+        _expandedWaitingHapticsActive = false;
+        haptics.stopAiWaiting();
+      }
+      return;
+    }
+
+    if (_isExpanded) {
+      _collapsedWaitingHapticTimer?.cancel();
+      _collapsedWaitingHapticTimer = null;
+      if (!_expandedWaitingHapticsActive) {
+        _expandedWaitingHapticsActive = true;
+        haptics.startAiWaiting();
+      }
+      return;
+    }
+
+    if (_expandedWaitingHapticsActive) {
+      _expandedWaitingHapticsActive = false;
+      haptics.stopAiWaiting();
+    }
+    if (_collapsedWaitingHapticTimer == null) {
+      unawaited(haptics.lightImpact());
+      _collapsedWaitingHapticTimer = Timer.periodic(
+        const Duration(milliseconds: 1450),
+        (_) => unawaited(haptics.lightImpact()),
+      );
+    }
+  }
+
+  /// Ends the current demo response without requesting more permissions.
   void finishDemoGeneration() => _completeDemoGeneration();
+
+  /// Pauses the current demo response and shows a simulated permission request.
+  void requestDemoPermission() => _requestDemoPermission();
 
   void _onFullscreenAnimationTick() {
     if (mounted) setState(() {});
@@ -283,8 +355,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _initialDockStartTimer = null;
     _initialDockController.stop();
     setState(() {
-      _horizontalPosition ??= initialHorizontalPosition;
-      _verticalPosition ??= initialVerticalPosition;
+      _horizontalPosition = initialHorizontalPosition;
+      _verticalPosition = initialVerticalPosition;
+      if (_permissionPending || _hasCompletedResponse) {
+        // A manual drag takes over from the automatic attention peek. This
+        // lets the user park the cloud at either edge without it sliding back.
+        _attentionPeekDismissed = true;
+      }
       _isDragging = true;
       _rotationRadians = 0;
       _scale = 1.035;
@@ -399,10 +476,28 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         final dockProgress = Curves.easeOutCubic.transform(
           _initialDockController.value,
         );
-        final position = _horizontalPosition ??
+        final requestedPosition = _horizontalPosition ??
             (defaultPosition + (1 - defaultPosition) * dockProgress);
+        final requestedLeft = minLeft + requestedPosition * travelDistance;
+        final hasAttentionState = _permissionPending || _hasCompletedResponse;
+        // An attention state temporarily peeks the cloud out from its dock.
+        // Keep the requested/drag position untouched; only offset the display
+        // position, and allow the cloud to extend past the screen edge.
+        const attentionPeekInset = 20.0;
+        final isDockedLeft = requestedLeft <= minLeft + 8;
+        final isDockedRight = requestedLeft >= maxLeft - 8;
+        final left =
+            hasAttentionState && !_attentionPeekDismissed && width > _cloudSize
+                ? isDockedLeft
+                    ? -attentionPeekInset
+                    : isDockedRight
+                        ? width - _cloudSize + attentionPeekInset
+                        : requestedLeft
+                : requestedLeft;
+        final position = travelDistance == 0
+            ? 0.0
+            : ((left - minLeft) / travelDistance).clamp(0.0, 1.0).toDouble();
         _displayedHorizontalPosition = position;
-        final left = minLeft + position * travelDistance;
         final minTop = math
             .min(topBoundary - _topVisualInset, constraints.maxHeight)
             .toDouble();
@@ -461,39 +556,56 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           children: [
             _buildExpandedBackdrop(),
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: morphAnimation,
-                builder: (context, _) {
-                  final isSettledOrb =
-                      !_isExpanded && morphAnimation.value <= 0.005;
-                  return IgnorePointer(
-                    child: AiNeuralCloudOrbWidget(
-                      size: _cloudSize *
-                          _scale *
-                          (_completionPulse && isSettledOrb ? 1.12 : 1.0),
-                      rotation: _rotationRadians,
-                      canvasSize: viewportSize,
-                      cloudCenter: cloudCenter,
-                      frameRect: activeSafeRect,
-                      frameMorphAnimation: morphAnimation,
-                      showAmbientGlow: false,
-                      edgeBlurSigma: 4,
-                      showDetachedSatellite: false,
-                      flowSpeed: _isDragging
-                          ? 1.55
-                          : _isGenerating
-                              ? 0.9
-                              : 2.0 * widget.liveliness.clamp(0.0, 1.0),
-                      tint: !isSettledOrb
-                          ? null
-                          : _isGenerating
-                              ? 0.4
-                              : _hasCompletedResponse
-                                  ? 1.0
-                                  : null,
-                      energy: _completionPulse && isSettledOrb ? 0.75 : 0,
-                      enableInteraction: false,
-                    ),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: left, end: left),
+                duration: _isDragging
+                    ? Duration.zero
+                    : const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                builder: (context, animatedLeft, _) {
+                  final animatedCloudCenter =
+                      Offset(animatedLeft + _cloudSize / 2, cloudCenter.dy);
+                  return AnimatedBuilder(
+                    animation: morphAnimation,
+                    builder: (context, _) {
+                      final isSettledOrb =
+                          !_isExpanded && morphAnimation.value <= 0.005;
+                      return IgnorePointer(
+                        child: AiNeuralCloudOrbWidget(
+                          size: _cloudSize *
+                              _scale *
+                              (_completionPulse && isSettledOrb ? 1.12 : 1.0),
+                          rotation: _rotationRadians,
+                          canvasSize: viewportSize,
+                          cloudCenter: animatedCloudCenter,
+                          frameRect: activeSafeRect,
+                          frameMorphAnimation: morphAnimation,
+                          showAmbientGlow: false,
+                          edgeBlurSigma: 4,
+                          showDetachedSatellite: false,
+                          flowSpeed: _isDragging
+                              ? 1.55
+                              : _isGenerating
+                                  ? 0.9
+                                  : 2.0 * widget.liveliness.clamp(0.0, 1.0),
+                          animate: !_isClosing,
+                          accentColor: _permissionPending && isSettledOrb
+                              ? Colors.amber.shade700
+                              : null,
+                          tint: !isSettledOrb
+                              ? null
+                              : _isGenerating
+                                  ? 0.4
+                                  : _permissionPending
+                                      ? 0.62
+                                      : _hasCompletedResponse
+                                          ? 1.0
+                                          : null,
+                          energy: _completionPulse && isSettledOrb ? 0.75 : 0,
+                          enableInteraction: false,
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -554,6 +666,56 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 },
               ),
             ),
+            AnimatedBuilder(
+              animation: morphAnimation,
+              builder: (context, _) {
+                final isSettledOrb =
+                    !_isExpanded && morphAnimation.value <= 0.005;
+                if (!_permissionPending ||
+                    !_showPermissionBadge ||
+                    !isSettledOrb ||
+                    width < 100) {
+                  return const SizedBox.shrink();
+                }
+                final l10n = AppLocalizations.of(context)!;
+                const badgeSize = 48.0;
+                // This follows the cloud's actual center, even when the icon
+                // itself is clipped by the screen edge while the cloud is
+                // docked there.
+                final badgeLeft = cloudCenter.dx - badgeSize / 2;
+                final badgeTop = (cloudCenter.dy - badgeSize / 2)
+                    .clamp(
+                      mediaQuery.padding.top + 4,
+                      constraints.maxHeight -
+                          mediaQuery.padding.bottom -
+                          badgeSize -
+                          4,
+                    )
+                    .toDouble();
+                return AnimatedPositioned(
+                  duration: _isDragging || _initialDockController.isAnimating
+                      ? Duration.zero
+                      : const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  left: badgeLeft,
+                  top: badgeTop,
+                  child: IgnorePointer(
+                    child: Tooltip(
+                      message: l10n.aiOverlayDemoAssistantSection,
+                      child: SizedBox(
+                        width: badgeSize,
+                        height: badgeSize,
+                        child: const Icon(
+                          LucideIcons.shield_alert,
+                          size: 38,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
             if (widget.showResizeHandles &&
                 _fullscreenAnimation.value < 0.02) ...[
               _buildResizeHandle(
@@ -606,21 +768,35 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 return Positioned.fill(
                   child: ClipRect(
                     clipper: _CloudControlsClipper(contentRevealBounds),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        _buildChatPreview(
-                          activeSafeRect,
-                          theme,
-                          constraints.maxHeight,
-                          fullscreenProgress: fullscreenProgress,
+                    child: Transform.scale(
+                      // Keep the transform origin on the orb so the contents
+                      // contract into it instead of sliding toward the top.
+                      alignment: Alignment(
+                        width <= 0 ? 0 : cloudCenter.dx / width * 2 - 1,
+                        constraints.maxHeight <= 0
+                            ? 0
+                            : cloudCenter.dy / constraints.maxHeight * 2 - 1,
+                      ),
+                      scale: revealProgress,
+                      child: Opacity(
+                        opacity: revealProgress,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            _buildChatPreview(
+                              activeSafeRect,
+                              theme,
+                              constraints.maxHeight,
+                              fullscreenProgress: fullscreenProgress,
+                            ),
+                            _buildExpandedToolbar(
+                              activeSafeRect,
+                              theme,
+                              fullscreenProgress: fullscreenProgress,
+                            ),
+                          ],
                         ),
-                        _buildExpandedToolbar(
-                          activeSafeRect,
-                          theme,
-                          fullscreenProgress: fullscreenProgress,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -673,58 +849,83 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       height: 52,
       child: IgnorePointer(
         ignoring: !_isExpanded,
-        child: FadeTransition(
-          opacity: _morphAnimation,
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: _buildHeaderGlassButton(
-                  icon: LucideIcons.x,
-                  tooltip: 'Schließen',
-                  isDark: isDark,
-                  onPressed: _toggleExpanded,
-                ),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: _buildHeaderGlassButton(
+                icon: _isFullscreen
+                    ? LucideIcons.panel_left
+                    : LucideIcons.maximize_2,
+                tooltip: _isFullscreen ? 'Seitenleiste' : 'Vollbild',
+                isDark: isDark,
+                onPressed: _isFullscreen
+                    ? () => _showNotImplementedMessage(
+                          'Sidebar is not implemented yet.',
+                        )
+                    : _toggleFullscreen,
               ),
-              if (!_isFullscreen)
-                Expanded(
-                  child: Center(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onVerticalDragStart: _handleHeaderDragStart,
-                      onVerticalDragUpdate: _handleHeaderDragUpdate,
-                      onVerticalDragEnd: _handleHeaderDragEnd,
-                      child: SizedBox(
-                        width: 72,
-                        height: 56,
-                        child: Center(
-                          child: Container(
-                            width: 38,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: contrastColor.withValues(alpha: 0.24),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
+            ),
+            if (!_isFullscreen)
+              Expanded(
+                child: Center(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onVerticalDragStart: _handleHeaderDragStart,
+                    onVerticalDragUpdate: _handleHeaderDragUpdate,
+                    onVerticalDragEnd: _handleHeaderDragEnd,
+                    child: SizedBox(
+                      width: 72,
+                      height: 56,
+                      child: Center(
+                        child: Container(
+                          width: 38,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: contrastColor.withValues(alpha: 0.24),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              if (_isFullscreen) const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: _buildHeaderGlassButton(
-                  icon: _isFullscreen
-                      ? LucideIcons.minimize_2
-                      : LucideIcons.maximize_2,
-                  tooltip: _isFullscreen ? 'Vollbild verlassen' : 'Vollbild',
-                  isDark: isDark,
-                  onPressed: _toggleFullscreen,
-                ),
               ),
-            ],
-          ),
+            if (_isFullscreen) const Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: PlatformAdaptivePopupMenu<_AssistantMenuAction>(
+                icon: _buildHeaderGlassButton(
+                  icon: LucideIcons.ellipsis,
+                  tooltip: 'Chat-Menü',
+                  isDark: isDark,
+                ),
+                menuWidth: 230,
+                items: [
+                  PlatformAdaptivePopupMenuItem(
+                    value: _AssistantMenuAction.newChat,
+                    label: AppLocalizations.of(context)!.aiOverlayNewChat,
+                    icon: LucideIcons.square_pen,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: _AssistantMenuAction.chatHistory,
+                    label: AppLocalizations.of(context)!.aiOverlayChatHistory,
+                    icon: LucideIcons.rotate_ccw,
+                  ),
+                ],
+                onSelected: _handleAssistantMenuAction,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 8),
+              child: _buildHeaderGlassButton(
+                icon: LucideIcons.x,
+                tooltip: 'Schließen',
+                isDark: isDark,
+                onPressed: _toggleExpanded,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -734,9 +935,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required IconData icon,
     required String tooltip,
     required bool isDark,
-    required VoidCallback onPressed,
+    VoidCallback? onPressed,
+    Color? backgroundColor,
+    Color? foregroundColor,
   }) {
-    final foreground = isDark ? Colors.black : Colors.white;
+    final foreground =
+        foregroundColor ?? (isDark ? Colors.black : Colors.white);
     final cloudIsDark = !isDark;
     // The cloud's surface is inverted from the app theme: white in dark mode
     // and black in light mode. Tune the glass against that actual backdrop.
@@ -746,38 +950,38 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     );
     final rimColor = foreground.withValues(alpha: 0.14);
 
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        child: SizedBox.square(
-          dimension: 44,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: DesignConstants.glassShadow(cloudIsDark),
-            ),
-            child: InheritedLiquidGlass(
+    final button = SizedBox.square(
+      dimension: 44,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: DesignConstants.glassShadow(cloudIsDark),
+        ),
+        child: InheritedLiquidGlass(
+          settings: settings,
+          isBlurProvidedByAncestor: true,
+          child: GlassAdaptiveScope(
+            maxQuality: DesignConstants.defaultGlassQuality,
+            minQuality: DesignConstants.minGlassQuality,
+            child: AdaptiveGlass(
               settings: settings,
-              isBlurProvidedByAncestor: true,
-              child: AdaptiveGlass(
-                settings: settings,
-                allowElevation: false,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 22),
-                child: GlassGlow(
-                  glowColor: foreground.withValues(alpha: 0.12),
-                  glowRadius: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: DesignConstants.glassNeutralTint(cloudIsDark),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: rimColor, width: 0.5),
-                    ),
-                    child: Center(
-                      child: Icon(icon, size: 20, color: foreground),
-                    ),
+              quality: DesignConstants.defaultGlassQuality,
+              useOwnLayer: true,
+              allowElevation: false,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+              child: GlassGlow(
+                glowColor: foreground.withValues(alpha: 0.12),
+                glowRadius: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: backgroundColor ??
+                        (cloudIsDark
+                            ? DesignConstants.glassNeutralTint(true)
+                            : Colors.black.withValues(alpha: 0.04)),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: rimColor, width: 0.5),
                   ),
+                  child: Center(child: Icon(icon, size: 20, color: foreground)),
                 ),
               ),
             ),
@@ -785,6 +989,66 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         ),
       ),
     );
+    return Tooltip(
+      message: tooltip,
+      child: onPressed == null
+          ? button
+          : GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onPressed,
+              child: button,
+            ),
+    );
+  }
+
+  void _handleAssistantMenuAction(_AssistantMenuAction action) {
+    switch (action) {
+      case _AssistantMenuAction.newChat:
+        _startNewDemoChat();
+      case _AssistantMenuAction.chatHistory:
+        _showNotImplementedMessage('Chat history is not implemented yet.');
+    }
+  }
+
+  void _showNotImplementedMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  void _startNewDemoChat() {
+    _responseTimer?.cancel();
+    _responseTimer = null;
+    _permissionContinuationTimer?.cancel();
+    _permissionContinuationTimer = null;
+    _permissionBadgeDelayTimer?.cancel();
+    _completionPulseTimer?.cancel();
+    setState(() {
+      _chatTurns.clear();
+      _isGenerating = false;
+      _hasCompletedResponse = false;
+      _permissionPending = false;
+      _showPermissionBadge = false;
+      _permissionApproved = null;
+      _attentionPeekDismissed = false;
+      _completionPulse = false;
+      _showScrollToBottom = false;
+      _followChatTail = true;
+      _demoWordIndex = 0;
+      _chatInputController.clear();
+    });
+    _syncDemoWaitingHaptics();
+    widget.onGenerationChanged?.call(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_chatScrollController.hasClients) {
+        _chatScrollController.jumpTo(0);
+      }
+    });
   }
 
   Widget _buildChatPreview(
@@ -799,6 +1063,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         ? const Color(0xFF0A84FF)
         : const Color(0xFF007AFF);
     final softColor = contrastColor.withValues(alpha: 0.08);
+    final cloudSurfaceDark = theme.brightness != Brightness.dark;
+    final composerGlassSettings =
+        DesignConstants.liquidGlassSettings(cloudSurfaceDark).copyWith(
+      thickness: 18,
+      blur: 1.5,
+    );
     const contentInset = 8.0;
     final chatBounds = Rect.lerp(
       safeRect.inflate(44),
@@ -814,152 +1084,244 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final chatTop = safeRect.top +
         16 +
         (fullscreenContentTop - safeRect.top - 16) * fullscreenProgress;
+    final scrollViewportTop =
+        math.min(chatTop, MediaQuery.paddingOf(context).top + 8);
+    final toolbarTop = (safeRect.top - 62) +
+        (MediaQuery.paddingOf(context).top + 10 - (safeRect.top - 62)) *
+            fullscreenProgress;
+    final toolbarButtonCenter = toolbarTop + 28;
+    final topFadeEnd = toolbarButtonCenter +
+        (chatTop - toolbarButtonCenter) * fullscreenProgress;
+    final clippedTop = safeRect.top - 64;
+    final topFadeStart =
+        clippedTop + (scrollViewportTop - clippedTop) * fullscreenProgress;
+    final topFadeHoldStop = 0.45 * (1 - fullscreenProgress);
+    const bottomFadeHeight = 104.0;
+    final chatBottom = chatBounds.bottom - contentInset;
 
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: !_isExpanded || !_showChatPreview,
-        child: FadeTransition(
-          opacity: _morphAnimation,
-          child: AnimatedOpacity(
-            opacity: _showChatPreview ? 1 : 0,
-            duration: const Duration(milliseconds: 180),
-            child: Stack(
-              children: [
-                Positioned(
-                  left: contentLeft,
-                  right: contentRight,
-                  top: chatTop,
-                  bottom: viewportHeight - chatBounds.bottom + 60,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: _chatTurns.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'Schreib eine Nachricht …',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: contrastColor.withValues(alpha: 0.5),
-                                  ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: contentLeft,
+              right: contentRight,
+              top: topFadeStart,
+              bottom: viewportHeight - chatBounds.bottom + contentInset,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ShaderMask(
+                      blendMode: BlendMode.dstIn,
+                      shaderCallback: (bounds) {
+                        final topFadeEndStop =
+                            ((topFadeEnd - topFadeStart) / bounds.height)
+                                .clamp(0.0, 1.0)
+                                .toDouble();
+                        final topFadeOpaqueStartStop =
+                            (topFadeEndStop * topFadeHoldStop)
+                                .clamp(0.0, topFadeEndStop)
+                                .toDouble();
+                        final bottomFadeStartStop =
+                            ((chatBottom - bottomFadeHeight - topFadeStart) /
+                                    bounds.height)
+                                .clamp(topFadeEndStop, 1.0)
+                                .toDouble();
+                        return LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: const [
+                            Colors.transparent,
+                            Colors.transparent,
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                          ],
+                          stops: [
+                            0,
+                            topFadeOpaqueStartStop,
+                            topFadeEndStop,
+                            bottomFadeStartStop,
+                            1,
+                          ],
+                        ).createShader(bounds);
+                      },
+                      child: _chatTurns.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Schreib eine Nachricht …',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: contrastColor.withValues(alpha: 0.5),
                                 ),
-                              )
-                            : ListView.builder(
-                                controller: _chatScrollController,
-                                padding: const EdgeInsets.only(
-                                  top: 8,
-                                  bottom: 20,
-                                ),
-                                itemCount: _chatTurns.length,
-                                itemBuilder: (context, index) => _buildChatTurn(
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: _chatScrollController,
+                              padding: EdgeInsets.only(
+                                top: chatTop - topFadeStart + 8,
+                                bottom: 104,
+                              ),
+                              itemCount: _chatTurns.length +
+                                  (_permissionPending ||
+                                          _permissionApproved != null
+                                      ? 1
+                                      : 0),
+                              itemBuilder: (context, index) {
+                                if (index == _chatTurns.length) {
+                                  return _buildDemoPermissionCard(
+                                    theme: theme,
+                                    contrastColor: contrastColor,
+                                  );
+                                }
+                                return _buildChatTurn(
                                   _chatTurns[index],
                                   theme: theme,
                                   contrastColor: contrastColor,
                                   softColor: softColor,
                                   isStreaming: _isGenerating &&
                                       index == _chatTurns.length - 1,
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  left: composerLeft,
-                  right: composerRight,
-                  bottom: viewportHeight - chatBounds.bottom + contentInset,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: softColor,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(
-                        color: contrastColor.withValues(alpha: 0.14),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: TextSelectionTheme(
-                              data: TextSelectionThemeData(
-                                cursorColor: selectionBlue,
-                                selectionColor:
-                                    selectionBlue.withValues(alpha: 0.32),
-                                selectionHandleColor: selectionBlue,
-                              ),
-                              child: TextField(
-                                controller: _chatInputController,
-                                focusNode: _chatFocusNode,
-                                minLines: 1,
-                                maxLines: 4,
-                                textInputAction: TextInputAction.send,
-                                onSubmitted: (_) {
-                                  if (!_isGenerating) _sendDemoPrompt();
-                                },
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: contrastColor,
-                                ),
-                                cursorColor: selectionBlue,
-                                decoration: InputDecoration(
-                                  hintText: 'Nachricht schreiben …',
-                                  hintStyle:
-                                      theme.textTheme.bodyMedium?.copyWith(
-                                    color:
-                                        contrastColor.withValues(alpha: 0.52),
-                                  ),
-                                  filled: false,
-                                  fillColor: Colors.transparent,
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  disabledBorder: InputBorder.none,
-                                  errorBorder: InputBorder.none,
-                                  focusedErrorBorder: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 11,
-                                  ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Tooltip(
-                            message: _isGenerating ? 'Stopp' : 'Senden',
-                            child: Material(
-                              color: contrastColor,
-                              shape: const CircleBorder(),
-                              clipBehavior: Clip.antiAlias,
-                              child: InkWell(
-                                customBorder: const CircleBorder(),
-                                onTap: _isGenerating
-                                    ? _stopDemoGeneration
-                                    : _sendDemoPrompt,
-                                child: SizedBox(
-                                  width: 42,
-                                  height: 42,
-                                  child: Icon(
-                                    _isGenerating
-                                        ? LucideIcons.square
-                                        : LucideIcons.arrow_up,
-                                    size: _isGenerating ? 18 : 20,
-                                    color: theme.brightness == Brightness.dark
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            Positioned(
+              left: composerLeft,
+              right: composerRight,
+              bottom: viewportHeight - chatBounds.bottom + contentInset,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: DesignConstants.glassShadow(cloudSurfaceDark),
+                ),
+                child: InheritedLiquidGlass(
+                  settings: composerGlassSettings,
+                  isBlurProvidedByAncestor: true,
+                  child: GlassAdaptiveScope(
+                    maxQuality: DesignConstants.defaultGlassQuality,
+                    minQuality: DesignConstants.minGlassQuality,
+                    child: AdaptiveGlass(
+                      settings: composerGlassSettings,
+                      quality: DesignConstants.defaultGlassQuality,
+                      useOwnLayer: true,
+                      allowElevation: false,
+                      shape: const LiquidRoundedSuperellipse(borderRadius: 28),
+                      child: GlassGlow(
+                        glowColor: contrastColor.withValues(alpha: 0.12),
+                        glowRadius: 1,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: cloudSurfaceDark
+                                ? DesignConstants.glassNeutralTint(true)
+                                : Colors.black.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(28),
+                            border: Border.all(
+                              color: contrastColor.withValues(alpha: 0.14),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: TextSelectionTheme(
+                                    data: TextSelectionThemeData(
+                                      cursorColor: selectionBlue,
+                                      selectionColor: selectionBlue.withValues(
+                                        alpha: 0.32,
+                                      ),
+                                      selectionHandleColor: selectionBlue,
+                                    ),
+                                    child: TextField(
+                                      controller: _chatInputController,
+                                      focusNode: _chatFocusNode,
+                                      minLines: 1,
+                                      maxLines: 4,
+                                      textInputAction: TextInputAction.send,
+                                      onSubmitted: (_) {
+                                        if (!_isGenerating) _sendDemoPrompt();
+                                      },
+                                      style:
+                                          theme.textTheme.bodyMedium?.copyWith(
+                                        color: contrastColor,
+                                      ),
+                                      cursorColor: selectionBlue,
+                                      decoration: InputDecoration(
+                                        hintText: 'Nachricht schreiben …',
+                                        hintStyle: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          color: contrastColor.withValues(
+                                            alpha: 0.52,
+                                          ),
+                                        ),
+                                        filled: false,
+                                        fillColor: Colors.transparent,
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        disabledBorder: InputBorder.none,
+                                        errorBorder: InputBorder.none,
+                                        focusedErrorBorder: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          vertical: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                _buildHeaderGlassButton(
+                                  icon: _isGenerating
+                                      ? LucideIcons.square
+                                      : LucideIcons.arrow_up,
+                                  tooltip: _isGenerating ? 'Stopp' : 'Senden',
+                                  isDark: theme.brightness == Brightness.dark,
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                  onPressed: _isGenerating
+                                      ? _stopDemoGeneration
+                                      : _sendDemoPrompt,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: viewportHeight - chatBounds.bottom + 100,
+              child: IgnorePointer(
+                ignoring: !_showScrollToBottom,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 160),
+                  opacity: _showScrollToBottom ? 1 : 0,
+                  child: Center(
+                    child: _buildHeaderGlassButton(
+                      icon: LucideIcons.arrow_down,
+                      tooltip: 'Zum neuesten Beitrag',
+                      isDark: theme.brightness == Brightness.dark,
+                      onPressed: _scrollToLatestMessage,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1026,19 +1388,157 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     );
   }
 
+  Widget _buildDemoPermissionCard({
+    required ThemeData theme,
+    required Color contrastColor,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final hasLightCloudSurface = contrastColor == Colors.black;
+    final warningColor =
+        hasLightCloudSurface ? Colors.orange.shade800 : Colors.amber.shade200;
+    final cardTextColor = hasLightCloudSurface ? Colors.black : Colors.white;
+    final actionColor =
+        hasLightCloudSurface ? Colors.amber.shade700 : Colors.amber.shade300;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: hasLightCloudSurface
+              ? const Color(0xFFFFF6E5)
+              : const Color(0xFF593A0D),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: hasLightCloudSurface
+                ? Colors.amber.shade400
+                : Colors.amber.shade600,
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(LucideIcons.shield_alert, size: 17, color: warningColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.aiOverlayDemoRequestLabel,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: cardTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildPermissionScope(
+                l10n.aiOverlayDemoScope, theme, cardTextColor),
+            const SizedBox(height: 4),
+            _buildPermissionScope(
+              l10n.aiOverlayDemoScopeDetails,
+              theme,
+              cardTextColor,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.aiOverlayDemoPurpose,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: cardTextColor.withValues(alpha: 0.72),
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (_permissionPending)
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  TextButton(
+                    onPressed: () => _resolveDemoPermission(false),
+                    style: TextButton.styleFrom(
+                      foregroundColor: cardTextColor.withValues(alpha: 0.72),
+                    ),
+                    child: Text(l10n.aiOverlayDemoDeny),
+                  ),
+                  FilledButton(
+                    onPressed: () => _resolveDemoPermission(true),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: actionColor,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: Text(l10n.aiOverlayDemoAllowOnce),
+                  ),
+                ],
+              )
+            else
+              Text(
+                _permissionApproved == true
+                    ? l10n.aiOverlayDemoApprovedFeedback
+                    : l10n.aiOverlayDemoDeniedFeedback,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: cardTextColor.withValues(alpha: 0.72),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPermissionScope(
+    String text,
+    ThemeData theme,
+    Color contrastColor,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 9, right: 9),
+            child: Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: contrastColor.withValues(alpha: 0.76),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(color: contrastColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _sendDemoPrompt() {
     if (_isGenerating) return;
     final prompt = _chatInputController.text.trim();
     if (prompt.isEmpty) return;
 
     setState(() {
+      _permissionBadgeDelayTimer?.cancel();
       _chatTurns.add(_DemoChatTurn(prompt));
       _isGenerating = true;
       _hasCompletedResponse = false;
+      _permissionPending = false;
+      _showPermissionBadge = false;
+      _permissionApproved = null;
       _followChatTail = true;
       _demoWordIndex = 0;
       _chatInputController.clear();
     });
+    _syncDemoWaitingHaptics();
     widget.onGenerationChanged?.call(true);
     _scrollChatToBottom(force: true);
 
@@ -1061,7 +1561,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (!_isGenerating) return;
     _responseTimer?.cancel();
     _responseTimer = null;
+    _permissionContinuationTimer?.cancel();
+    _permissionContinuationTimer = null;
     setState(() => _isGenerating = false);
+    _syncDemoWaitingHaptics();
     widget.onGenerationChanged?.call(false);
   }
 
@@ -1069,13 +1572,100 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (!_isGenerating) return;
     _responseTimer?.cancel();
     _responseTimer = null;
+    _permissionContinuationTimer?.cancel();
+    _permissionContinuationTimer = null;
     setState(() {
       _isGenerating = false;
       _hasCompletedResponse = true;
+      _permissionPending = false;
+      _attentionPeekDismissed = false;
+      _showPermissionBadge = false;
+      _permissionApproved = null;
       _completionPulse = !_isExpanded && _morphAnimation.value <= 0.005;
     });
+    _permissionBadgeDelayTimer?.cancel();
+    _syncDemoWaitingHaptics();
+    unawaited(HapticFeedbackService.instance.strongImpact());
     widget.onGenerationChanged?.call(false);
+    _scrollChatToBottom();
     if (_completionPulse) _scheduleCompletionPulseReset();
+  }
+
+  void _requestDemoPermission() {
+    if (!_isGenerating || _chatTurns.isEmpty) return;
+    _responseTimer?.cancel();
+    _responseTimer = null;
+    setState(() {
+      _isGenerating = false;
+      _hasCompletedResponse = false;
+      _permissionPending = true;
+      _attentionPeekDismissed = false;
+      _showPermissionBadge = false;
+      _permissionApproved = null;
+    });
+    _permissionBadgeDelayTimer?.cancel();
+    _permissionBadgeDelayTimer = Timer(
+      const Duration(milliseconds: 300),
+      () {
+        if (!mounted || !_permissionPending) return;
+        setState(() => _showPermissionBadge = true);
+      },
+    );
+    _syncDemoWaitingHaptics();
+    unawaited(HapticFeedbackService.instance.strongImpact());
+    widget.onGenerationChanged?.call(false);
+    _scrollChatToBottom();
+  }
+
+  void _resolveDemoPermission(bool approved) {
+    if (approved) {
+      _permissionBadgeDelayTimer?.cancel();
+      _permissionBadgeDelayTimer = null;
+      setState(() {
+        _permissionPending = false;
+        _showPermissionBadge = false;
+        _permissionApproved = true;
+        _hasCompletedResponse = false;
+        _attentionPeekDismissed = false;
+        _isGenerating = true;
+      });
+      _syncDemoWaitingHaptics();
+      unawaited(HapticFeedbackService.instance.lightImpact());
+      widget.onGenerationChanged?.call(true);
+      _startDemoResponseTicker();
+      _permissionContinuationTimer = Timer(
+        const Duration(seconds: 3),
+        _completeDemoGeneration,
+      );
+      _scrollChatToBottom();
+      return;
+    }
+
+    setState(() {
+      _permissionPending = false;
+      _showPermissionBadge = false;
+      _permissionApproved = false;
+    });
+    _permissionBadgeDelayTimer?.cancel();
+    _permissionBadgeDelayTimer = null;
+    _scrollChatToBottom();
+  }
+
+  void _startDemoResponseTicker() {
+    _responseTimer?.cancel();
+    _responseTimer = Timer.periodic(const Duration(milliseconds: 55), (timer) {
+      if (!mounted || !_isGenerating || _chatTurns.isEmpty) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        final turn = _chatTurns.last;
+        turn.response += '${_demoWords[_demoWordIndex]} ';
+        _demoWordIndex = (_demoWordIndex + 1) % _demoWords.length;
+        if (_demoWordIndex == 0) turn.response += '\n\n';
+      });
+      _scrollChatToBottom();
+    });
   }
 
   void _scheduleCompletionPulseReset() {
@@ -1089,7 +1679,22 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   void _handleChatScroll() {
     if (!_chatScrollController.hasClients) return;
     final position = _chatScrollController.position;
-    _followChatTail = position.maxScrollExtent - position.pixels < 80;
+    final distanceToBottom = position.maxScrollExtent - position.pixels;
+    _followChatTail = distanceToBottom < 80;
+    final showButton = distanceToBottom > _scrollToBottomThreshold;
+    if (_showScrollToBottom != showButton && mounted) {
+      setState(() => _showScrollToBottom = showButton);
+    }
+  }
+
+  void _scrollToLatestMessage() {
+    if (!_chatScrollController.hasClients) return;
+    _followChatTail = true;
+    _chatScrollController.animateTo(
+      _chatScrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _scrollChatToBottom({bool force = false}) {

@@ -623,6 +623,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   Future<void> _analyze() async {
     if (!_hasInput) return;
+    // The text field can keep the system keyboard alive while the analysis
+    // route is shown. Clear focus before pushing it so it stays dismissed
+    // when the scan screen closes.
+    FocusManager.instance.primaryFocus?.unfocus();
     final stopwatch = Stopwatch()..start();
     final startedAt = DateTime.now();
     final requestId = const Uuid().v4();

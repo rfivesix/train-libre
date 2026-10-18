@@ -264,11 +264,13 @@ class ProductLocalDataSource {
       isFluid: overrideRow?.isFluid ?? row.isFluid,
       caffeineMgPer100ml: (overrideRow?.caffeine ?? row.caffeine) ??
           (overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g) ??
-          CaffeineCatalogResolver.lookupCaffeine(row.barcode, row.nameDe ?? row.name),
+          CaffeineCatalogResolver.lookupCaffeine(
+              row.barcode, row.nameDe ?? row.name),
       caffeineMgPer100g:
           (overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g) ??
               (overrideRow?.caffeine ?? row.caffeine) ??
-              CaffeineCatalogResolver.lookupCaffeine(row.barcode, row.nameDe ?? row.name),
+              CaffeineCatalogResolver.lookupCaffeine(
+                  row.barcode, row.nameDe ?? row.name),
       ingredientsText: overrideRow?.ingredientsText ?? row.ingredientsText,
       ingredientsAnalysisTags: _parseJsonList(
           overrideRow?.ingredientsAnalysisTags ?? row.ingredientsAnalysisTags),
@@ -582,7 +584,9 @@ class ProductLocalDataSource {
           bool includeOff = true,
           bool offOnly = false}) =>
       _searchCatalog(keyword,
-          aiSession: aiSession, includeOff: includeOff, offOnly: offOnly,
+          aiSession: aiSession,
+          includeOff: includeOff,
+          offOnly: offOnly,
           groupBySource: aiSession == null);
 
   Future<List<FoodItem>> _searchCatalog(
@@ -626,11 +630,14 @@ class ProductLocalDataSource {
               "(' ' || $expression || ' ') LIKE ${bind('% $token %')}")
           .join(' AND ');
       final prefixes = tokens
-          .map((token) => "(' ' || $expression) LIKE ${bind('% $token%')}")
+          .map((token) => token.length <= 2
+              ? "(' ' || $expression || ' ') LIKE ${bind('% $token %')}"
+              : "(' ' || $expression) LIKE ${bind('% $token%')}")
           .join(' AND ');
-      final compactPrefix = compactName == null
-          ? ''
-          : "WHEN $compactName LIKE ${bind('$compact%')} THEN 3";
+      final compactPrefix =
+          compactName == null || tokens.any((token) => token.length <= 2)
+              ? ''
+              : "WHEN $compactName LIKE ${bind('$compact%')} THEN 3";
       return '(CASE WHEN $exact$compactExact THEN 0 '
           'WHEN $words THEN 1 WHEN $prefixes THEN 2 $compactPrefix ELSE 4 END)';
     }

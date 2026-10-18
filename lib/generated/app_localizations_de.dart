@@ -8997,6 +8997,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiOverlayDemoAssistantSection => 'Vorschlag mit Freigabe';
 
   @override
+  String get aiOverlayNewChat => 'Neuer Chat';
+
+  @override
+  String get aiOverlayChatHistory => 'Chatverlauf';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       'Du hast diese Woche dreimal trainiert. Soll ich deine Trainingslast vergleichen?';
 
@@ -9005,6 +9011,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiOverlayDemoScope => 'Trainingseinheiten der letzten 7 Tage';
+
+  @override
+  String get aiOverlayDemoScopeDetails => 'Dauer und Umfang der Einheiten';
 
   @override
   String get aiOverlayDemoPurpose => 'Zweck: Trainingslast vergleichen';

@@ -17,6 +17,8 @@ Workout-plan reminders are scheduled only for upcoming planned workout days in t
 - **Target date guidance** schedules a reminder seven days before an active goal's target date and another on the target date, both at 9:00 a.m. local time. A reminder is only scheduled if its date is still in the future.
 - When a workout rest timer ends, Train Libre shows a **Rest finished** notification. There is no separate rest-timer notification switch in **Notifications**; use the rest timer in a workout as usual.
 
+Train Libre preloads weekly goal-review reminders for the next eight check-in dates on the device. iOS can deliver these while the app is closed. The review details are calculated from the app's local data when Train Libre is opened; without a server, the app cannot recalculate them while it is closed. If you change a goal or its reminder setting, the queue is refreshed the next time that change is saved in the app.
+
 ## Allow notifications on your device
 
 Train Libre's switches control individual reminders inside the app. Your operating system also controls whether Train Libre may display notifications. If workout reminders cannot be enabled, or reminders do not appear, allow notifications for Train Libre in your device's system settings. The app requests notification permission, but a denied system permission can prevent notifications even when an in-app option is on.

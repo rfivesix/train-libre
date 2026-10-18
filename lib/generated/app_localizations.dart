@@ -15687,6 +15687,18 @@ abstract class AppLocalizations {
   /// **'Action with approval'**
   String get aiOverlayDemoAssistantSection;
 
+  /// No description provided for @aiOverlayNewChat.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get aiOverlayNewChat;
+
+  /// No description provided for @aiOverlayChatHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat history'**
+  String get aiOverlayChatHistory;
+
   /// No description provided for @aiOverlayDemoAssistantMessage.
   ///
   /// In en, this message translates to:
@@ -15704,6 +15716,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Workouts from the past 7 days'**
   String get aiOverlayDemoScope;
+
+  /// No description provided for @aiOverlayDemoScopeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout duration and volume'**
+  String get aiOverlayDemoScopeDetails;
 
   /// No description provided for @aiOverlayDemoPurpose.
   ///

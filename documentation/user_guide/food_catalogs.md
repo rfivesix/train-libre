@@ -18,4 +18,6 @@ Choose which regional product catalog Nutrition Explorer searches and which lang
 
 In **Profile** > **Settings** > **Nutrition & Data**, tap **Update Databases** to check for updates to the food and exercise databases. This opens the update screen; wait for it to finish. Train Libre confirms when the databases have been updated.
 
+The BLS base-food catalog is updated separately from app releases. Curated search aliases are delivered as part of a versioned BLS catalog update, so use **Update Databases** to receive new names without waiting for a new app version. Searches such as **Ei/Eier**, **Brot**, and **Nudeln** can show several canonical foods; broad terms are suggestions and do not by themselves identify a particular preparation.
+
 For adding individual foods and understanding product values, see [Log food and review calories and macronutrients](logging_food.md).

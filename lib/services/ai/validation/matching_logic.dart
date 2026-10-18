@@ -1,11 +1,68 @@
 part of '../../ai_meal_validation.dart';
 
 extension MatchingLogic on AiMealValidationEngine {
+  static const _animalTerms = <String, List<String>>{
+    'chicken': [
+      'chicken',
+      'haehnchen',
+      'hahnchen',
+      'huehn',
+      'huhn',
+      'hen',
+      'poulet',
+      'pollo',
+    ],
+    'turkey': ['turkey', 'pute', 'truthahn', 'dinde', 'tacchino'],
+    'duck': ['duck', 'ente', 'canard', 'anatra'],
+    'goose': ['goose', 'gans', 'oie', 'oca'],
+    'deer': ['deer', 'venison', 'hirsch', 'reh', 'chevreuil', 'cervo'],
+    'beef': ['beef', 'rind', 'rinder', 'cattle', 'boeuf', 'manzo'],
+    'pork': ['pork', 'pig', 'schwein', 'porc', 'maiale'],
+    'lamb': ['lamb', 'sheep', 'lamm', 'schaf', 'agneau', 'agnello'],
+    'horse': ['horse', 'pferd', 'cheval', 'cavallo'],
+    'rabbit': ['rabbit', 'hare', 'kaninchen', 'hase', 'lapin', 'coniglio'],
+    'fish': ['fish', 'fisch', 'poisson', 'pesce'],
+  };
+
+  Set<String> _animalClasses(Iterable<String> names) {
+    final normalized = names.map(AiMealValidationEngine._normalizeText);
+    final classes = <String>{};
+    for (final name in normalized) {
+      final tokens = name.split(' ').where((token) => token.isNotEmpty).toSet();
+      for (final entry in _animalTerms.entries) {
+        if (entry.value.any((term) =>
+            tokens.contains(term) ||
+            tokens.any((token) =>
+                token.startsWith(term) && token.length > term.length))) {
+          classes.add(entry.key);
+        }
+      }
+    }
+    return classes;
+  }
+
+  bool _animalClassCompatible(AiMealCandidateItem item, FoodItem food) {
+    final queryClasses = _animalClasses([
+      item.name,
+      if (item.catalogSearchTerm != null) item.catalogSearchTerm!,
+      ...item.searchTerms,
+    ]);
+    final candidateClasses = _animalClasses(FoodNameMatching.names(food));
+    // A species-specific query requires a single, matching species on the
+    // candidate. Unknown or conflicting classes stay unresolved for review.
+    if (queryClasses.isEmpty) return true;
+    if (queryClasses.length != 1 || candidateClasses.length != 1) return false;
+    return queryClasses.single == candidateClasses.single;
+  }
+
   AiMatchResult _evaluateMatch(
     AiMealCandidateItem item,
     List<FoodItem> matches,
   ) {
     final query = item.name.trim();
+    matches = matches
+        .where((food) => _animalClassCompatible(item, food))
+        .toList(growable: false);
     if (matches.isEmpty) {
       return AiMatchResult(
         query: query,

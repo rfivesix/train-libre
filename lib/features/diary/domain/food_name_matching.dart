@@ -73,10 +73,15 @@ abstract final class FoodNameMatching {
     final queryTokens = tokens(q);
     final nameTokens = tokens(n);
     if (queryTokens.every(nameTokens.contains)) return 1;
-    if (queryTokens.every((q) => nameTokens.any((n) => n.startsWith(q)))) {
+    if (queryTokens.every((q) =>
+        nameTokens.any((n) => q.length <= 2 ? n == q : n.startsWith(q)))) {
       return 2;
     }
-    if (compactNames && compact(n).startsWith(compact(q))) return 3;
+    if (compactNames &&
+        queryTokens.every((token) => token.length > 2) &&
+        compact(n).startsWith(compact(q))) {
+      return 3;
+    }
     return 4;
   }
 

@@ -8609,6 +8609,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiOverlayDemoAssistantSection => '確認が必要な操作';
 
   @override
+  String get aiOverlayNewChat => '新しいチャット';
+
+  @override
+  String get aiOverlayChatHistory => 'チャット履歴';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       '今週は3回トレーニングしました。トレーニング負荷を比較しますか？';
 
@@ -8617,6 +8623,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiOverlayDemoScope => '過去7日間のトレーニング';
+
+  @override
+  String get aiOverlayDemoScopeDetails => 'トレーニングの時間と量';
 
   @override
   String get aiOverlayDemoPurpose => '目的：トレーニング負荷の比較';

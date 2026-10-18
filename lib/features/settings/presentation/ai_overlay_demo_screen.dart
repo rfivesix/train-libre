@@ -24,6 +24,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   final _cloudKey = GlobalKey<DraggableAiCloudState>();
   bool _cloudFullscreen = false;
   bool _showCloudResizeHandles = false;
+  bool _openCloudDirectlyFullscreen = false;
   bool _cloudIsGenerating = false;
   double _cloudLiveliness = 0.10;
 
@@ -90,6 +91,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                 semanticHint: l10n.aiOverlayDemoCloudHint,
                 liveliness: _cloudLiveliness,
                 showResizeHandles: _showCloudResizeHandles,
+                openDirectlyFullscreen: _openCloudDirectlyFullscreen,
                 onGenerationChanged: (value) =>
                     setState(() => _cloudIsGenerating = value),
                 onFullscreenChanged: (value) =>
@@ -161,14 +163,39 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             onChanged: (value) =>
                 setState(() => _showCloudResizeHandles = value),
           ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: const Text('Direkt im Vollbild öffnen'),
+            subtitle: const Text(
+              'Überspringt die Zwischenansicht beim Öffnen der Wolke',
+            ),
+            value: _openCloudDirectlyFullscreen,
+            onChanged: (value) =>
+                setState(() => _openCloudDirectlyFullscreen = value),
+          ),
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: _cloudIsGenerating
-                  ? _cloudKey.currentState?.finishDemoGeneration
-                  : null,
-              icon: const Icon(LucideIcons.circle_check),
-              label: const Text('Demo-Antwort abschließen'),
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: DesignConstants.spacingS,
+              runSpacing: DesignConstants.spacingXS,
+              children: [
+                TextButton.icon(
+                  onPressed: _cloudIsGenerating
+                      ? _cloudKey.currentState?.finishDemoGeneration
+                      : null,
+                  icon: const Icon(LucideIcons.circle_check),
+                  label: const Text('Direkt fertigstellen'),
+                ),
+                TextButton.icon(
+                  onPressed: _cloudIsGenerating
+                      ? _cloudKey.currentState?.requestDemoPermission
+                      : null,
+                  icon: const Icon(LucideIcons.shield_alert),
+                  label: const Text('Freigabe anfordern'),
+                ),
+              ],
             ),
           ),
         ],

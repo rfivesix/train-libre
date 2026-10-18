@@ -117,6 +117,50 @@ void main() {
       expect(result.passed, isTrue);
     });
 
+    test('does not match or suggest venison for a chicken ingredient',
+        () async {
+      final engine = engineWith({
+        'hähnchenbrustfilet': [
+          food('Hirschfleisch roh', barcode: 'venison'),
+          food('Hähnchen Brustfilet, roh', barcode: 'chicken'),
+        ],
+      });
+
+      final result = await engine.validateMealCandidate(
+        candidate: const AiMealCandidate(items: [
+          AiMealCandidateItem(name: 'Hähnchenbrustfilet', grams: 180),
+        ]),
+        mode: AiValidationMode.capture,
+      );
+      final item = result.items.single;
+
+      expect(item.match.bestMatch?.barcode, 'chicken');
+      expect(item.match.quality, AiMatchQuality.partial);
+      expect(item.match.alternatives.map((food) => food.barcode), ['chicken']);
+      expect(
+          item.getRepairCandidates().map((food) => food.barcode), ['chicken']);
+    });
+
+    test('keeps a chicken item unresolved when only venison is retrieved',
+        () async {
+      final engine = engineWith({
+        'hähnchen': [food('Hirschfleisch roh', barcode: 'venison')],
+      });
+
+      final result = await engine.validateMealCandidate(
+        candidate: const AiMealCandidate(items: [
+          AiMealCandidateItem(name: 'Hähnchen', grams: 150),
+        ]),
+        mode: AiValidationMode.capture,
+      );
+      final item = result.items.single;
+
+      expect(item.match.bestMatch, isNull);
+      expect(item.repairFoods, isEmpty);
+      expect(
+          item.issues.map((issue) => issue.code), contains('unmatched_item'));
+    });
+
     test('flags invalid and extreme quantities', () async {
       final engine = engineWith({
         'rice': [food('Rice')],

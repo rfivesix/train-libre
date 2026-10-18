@@ -142,6 +142,34 @@ void main() {
   });
 
   test(
+      'manual staple searches return canonical foods through candidate aliases',
+      () async {
+    await seed([
+      food('egg-raw', 'Hühnerei roh'),
+      food('chicken-raw', 'Hähnchen Brustfilet, roh'),
+      food('wholegrain-bread', 'Weizenvollkornbrot'),
+      food('plain-pasta', 'Teigwaren eifrei, roh'),
+    ]);
+    await alias('egg-raw', 'Ei');
+    await alias('egg-raw', 'Eier');
+    await alias('chicken-raw', 'Hähnchenbrustfilet');
+    await alias('wholegrain-bread', 'Brot');
+    await alias('plain-pasta', 'Nudeln');
+
+    expect(await manual('Ei'), contains('egg-raw'));
+    expect(await manual('Ei'), isNot(contains('plain-pasta')));
+    expect(await manual('Eier'), contains('egg-raw'));
+    expect(await manual('Hähnchenbrustfilet'), contains('chicken-raw'));
+    expect(await manual('Brot'), contains('wholegrain-bread'));
+    expect(await manual('Nudeln'), contains('plain-pasta'));
+    final egg = (await source.fuzzyMatchForAi('Ei'))
+        .firstWhere((food) => food.barcode == 'egg-raw');
+    expect(egg.barcode, 'egg-raw');
+    expect(egg.catalogMatchReviewStatus, 'pending');
+    expect(egg.catalogMatchScope, 'broader');
+  });
+
+  test(
       'translations and brands are searchable, but languages cannot mix tokens',
       () async {
     await seed([
@@ -489,18 +517,18 @@ void main() {
       () async {
     await database.transaction(() async {
       // Realistic BLS foods
-      await source.insertProduct(food('bls:F503000', 'Orange roh',
-          category: 'obst'));
-      await source.insertProduct(food('bls:B101000', 'Pilsner Bier',
-          category: 'bier_wein'));
-      await source.insertProduct(food('bls:B101001', 'Bier alkoholfrei',
-          category: 'bier_wein'));
-      await source.insertProduct(food('bls:F100000', 'Apfel roh',
-          category: 'obst'));
-      await source.insertProduct(food('bls:M100000', 'Milch 3,5% Fett',
-          category: 'milch'));
-      await source.insertProduct(food('bls:G100000', 'Reis poliert gekocht',
-          category: 'getreide'));
+      await source
+          .insertProduct(food('bls:F503000', 'Orange roh', category: 'obst'));
+      await source.insertProduct(
+          food('bls:B101000', 'Pilsner Bier', category: 'bier_wein'));
+      await source.insertProduct(
+          food('bls:B101001', 'Bier alkoholfrei', category: 'bier_wein'));
+      await source
+          .insertProduct(food('bls:F100000', 'Apfel roh', category: 'obst'));
+      await source.insertProduct(
+          food('bls:M100000', 'Milch 3,5% Fett', category: 'milch'));
+      await source.insertProduct(
+          food('bls:G100000', 'Reis poliert gekocht', category: 'getreide'));
 
       // Competing branded OFF products (including 60 orange products to test crowding)
       for (var i = 0; i < 60; i++) {
@@ -557,8 +585,8 @@ void main() {
       'AI selection prefers BLS candidates for generic foods while respecting packaged product evidence',
       () async {
     await database.transaction(() async {
-      await source.insertProduct(food('bls_orange', 'Orange roh',
-          category: 'obst'));
+      await source
+          .insertProduct(food('bls_orange', 'Orange roh', category: 'obst'));
       await source.insertProduct(food('off_hohes_c', 'Orange Saft',
           brand: 'Hohes C', source: FoodItemSource.off));
     });
