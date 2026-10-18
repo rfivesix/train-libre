@@ -73,10 +73,18 @@ class DoubleProgressionEngine {
     final lastSessionDate = sessionLatestDates[lastSessionSets]!;
 
     // Rule 9: Determine baseline working load from the last session.
-    final weights =
-        lastSessionSets.map((s) => s.weight).whereType<double>().toList();
+    // BOLT OPTIMIZATION: Replaced chained .map().whereType().toList() and .reduce()
+    // with a single-pass loop to avoid intermediate array allocations
+    double? lastWeight;
+    for (final s in lastSessionSets) {
+      if (s.weight != null) {
+        if (lastWeight == null || s.weight! > lastWeight) {
+          lastWeight = s.weight!;
+        }
+      }
+    }
 
-    if (weights.isEmpty) {
+    if (lastWeight == null) {
       return const ProgressionSuggestion(
         outcome: ProgressionOutcome.noSuggestion,
         targetWeight: null,
@@ -85,8 +93,6 @@ class DoubleProgressionEngine {
         algorithmVersion: algorithmVersion,
       );
     }
-
-    final lastWeight = weights.reduce(math.max);
 
     // Rule 6: Break of more than 3 weeks (21 days) resets progression to hold last load.
     final referenceDate = now ?? DateTime.now();
@@ -211,9 +217,14 @@ class DoubleProgressionEngine {
             ? order
             : left.performedAt.compareTo(right.performedAt);
       });
-    final lastSessionDate = lastSession
-        .map((entry) => entry.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    // BOLT OPTIMIZATION: Replaced .map().reduce() with a single-pass loop
+    // to eliminate intermediate mapped iterable and closure allocation.
+    DateTime lastSessionDate = lastSession.first.performedAt;
+    for (var i = 1; i < lastSession.length; i++) {
+      if (lastSession[i].performedAt.isAfter(lastSessionDate)) {
+        lastSessionDate = lastSession[i].performedAt;
+      }
+    }
 
     if ((now ?? DateTime.now()).difference(lastSessionDate) >
         const Duration(days: 21)) {
