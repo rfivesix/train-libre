@@ -9,6 +9,9 @@ class ValueSummaryCard extends StatelessWidget {
   /// Optional colour override for the value text.
   final Color? valueColor;
 
+  /// Optional colour override for the label text.
+  final Color? labelColor;
+
   /// Optional third line rendered below the label in a smaller style.
   final String? subtitle;
 
@@ -27,6 +30,12 @@ class ValueSummaryCard extends StatelessWidget {
   /// Optional outline color for emphasizing a value.
   final Color? borderColor;
 
+  /// Optional overlay used to add the same subtle shading as filled diary bars.
+  final Gradient? backgroundOverlayGradient;
+
+  /// Optional shadow applied to the value and label text.
+  final List<Shadow>? textShadows;
+
   /// Vertical alignment of the card content. Defaults to center; use
   /// [MainAxisAlignment.start] to top-align the value/label/subtitle when the
   /// card is stretched to match a taller sibling in the same row.
@@ -37,12 +46,15 @@ class ValueSummaryCard extends StatelessWidget {
     required this.label,
     required this.value,
     this.valueColor,
+    this.labelColor,
     this.subtitle,
     this.onTap,
     this.disableShadow = false,
     this.useSecondarySurface = false,
     this.backgroundColor,
     this.borderColor,
+    this.backgroundOverlayGradient,
+    this.textShadows,
     this.mainAxisAlignment = MainAxisAlignment.center,
   });
 
@@ -58,49 +70,56 @@ class ValueSummaryCard extends StatelessWidget {
         disableShadow: disableShadow,
         useSecondarySurface: useSecondarySurface,
         backgroundColor: backgroundColor,
+        backgroundGradient: backgroundOverlayGradient,
         borderColor: borderColor,
         padding: const EdgeInsets.symmetric(
           horizontal: DesignConstants.spacingM,
           vertical: DesignConstants.spacingS,
         ),
-        child: Column(
-          mainAxisAlignment: mainAxisAlignment,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                maxLines: 1,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: valueColor,
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            mainAxisAlignment: mainAxisAlignment,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: valueColor,
+                    shadows: textShadows,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (subtitle != null) ...[
               const SizedBox(height: 2),
               Text(
-                subtitle!,
+                label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: labelColor ?? theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                  shadows: textShadows,
                 ),
               ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                    shadows: textShadows,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

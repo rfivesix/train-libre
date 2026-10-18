@@ -63,6 +63,7 @@ class RoutineExercise {
     int? pauseSeconds,
     int? supersetGroup,
     String? notes,
+    bool clearPauseSeconds = false,
     bool clearNotes = false,
     bool clearSupersetGroup = false,
   }) {
@@ -71,7 +72,8 @@ class RoutineExercise {
       id: id ?? this.id,
       exercise: exercise ?? this.exercise,
       setTemplates: setTemplates ?? this.setTemplates,
-      pauseSeconds: pauseSeconds ?? this.pauseSeconds,
+      pauseSeconds:
+          clearPauseSeconds ? null : (pauseSeconds ?? this.pauseSeconds),
       supersetGroup:
           clearSupersetGroup ? null : (supersetGroup ?? this.supersetGroup),
       notes: clearNotes ? null : (notes ?? this.notes),

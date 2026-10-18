@@ -24,6 +24,9 @@ class SummaryCard extends StatelessWidget {
   /// Optional background color override.
   final Color? backgroundColor;
 
+  /// Optional gradient painted across the full card behind its padded content.
+  final Gradient? backgroundGradient;
+
   /// Whether to use the secondary surface color (tertiarySystemGroupedBackground in iOS).
   final bool useSecondarySurface;
 
@@ -41,6 +44,7 @@ class SummaryCard extends StatelessWidget {
     this.onTap,
     this.disableShadow = false,
     this.backgroundColor,
+    this.backgroundGradient,
     this.useSecondarySurface = false,
     this.borderColor,
     this.borderWidth = 1,
@@ -109,23 +113,40 @@ class SummaryCard extends StatelessWidget {
         ),
         child: ClipPath(
           clipper: clipper,
-          child: Container(
-            padding: padding,
-            decoration: ShapeDecoration(
-              color: cardBg,
-              shape: squircle.copyWith(
-                side: borderColor == null
-                    ? BorderSide.none
-                    : BorderSide(color: borderColor!, width: borderWidth),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: cardBg,
+                    shape: squircle.copyWith(
+                      side: borderColor == null
+                          ? BorderSide.none
+                          : BorderSide(color: borderColor!, width: borderWidth),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: Theme(
-                data: cardTheme,
-                child: child,
+              if (backgroundGradient != null)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: ShapeDecoration(
+                      gradient: backgroundGradient,
+                      shape: squircle,
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: padding,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Theme(
+                    data: cardTheme,
+                    child: child,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

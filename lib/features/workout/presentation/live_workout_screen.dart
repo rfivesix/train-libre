@@ -13,8 +13,6 @@ import '../../../widgets/common/morph_source.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
-import '../../exercise_catalog/domain/body_slug_mapper.dart';
-import '../../exercise_catalog/domain/muscle_vocabulary.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_exercise.dart';
 import '../domain/models/set_log.dart';
@@ -42,11 +40,7 @@ import 'widgets/workout_keyboard_accessory_bar.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
-import '../../../data/database_helper.dart';
-import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/platform_adaptive_dropdown.dart';
-import '../../../services/profile_service.dart';
 
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
@@ -60,42 +54,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/models/workout_log.dart';
 
 String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
-
-class _CompactExerciseMuscleMap extends StatelessWidget {
-  final Exercise exercise;
-  final MuscleVocabulary vocabulary;
-
-  const _CompactExerciseMuscleMap({
-    required this.exercise,
-    required this.vocabulary,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final useIds = !vocabulary.isEmpty && exercise.primaryMuscleIds.isNotEmpty;
-    final highlights = useIds
-        ? BodySlugMapper.mergedHighlightsFromIds(
-            primaryMuscleIds: exercise.primaryMuscleIds,
-            secondaryMuscleIds: exercise.secondaryMuscleIds,
-            vocabulary: vocabulary,
-          )
-        : BodySlugMapper.mergedHighlights(
-            primaryMuscles: exercise.primaryMuscles,
-            secondaryMuscles: exercise.secondaryMuscles,
-          );
-
-    return SizedBox(
-      width: 48,
-      child: DualBodyHighlighter(
-        height: 60,
-        outlineWidth: 0.45,
-        gender: context.watch<ProfileService>().gender.toBodyGender(),
-        frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
-        backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
-      ),
-    );
-  }
-}
 
 /// The active workout tracking screen, managing the real-time session state.
 ///
@@ -148,7 +106,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   Timer? _expandTimer;
   Offset? _pointerDownPosition;
   Object? _touchedAnchorId;
-  MuscleVocabulary _muscleVocabulary = MuscleVocabulary.empty;
   final ScrollController _scrollController = ScrollController();
   late final ReorderScrollAnchor _scrollAnchor =
       ReorderScrollAnchor(_scrollController);
@@ -350,7 +307,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       curve: Curves.elasticOut,
       reverseCurve: Curves.easeInBack,
     ));
-    unawaited(_loadMuscleVocabulary());
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -393,13 +349,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         _checkAndPromptProgressionEngine();
       }
     });
-  }
-
-  Future<void> _loadMuscleVocabulary() async {
-    final vocabulary = await MuscleVocabulary.load(
-      await DatabaseHelper.instance.database,
-    );
-    if (mounted) setState(() => _muscleVocabulary = vocabulary);
   }
 
   void _onScrollUpdated() {
@@ -640,13 +589,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         children: [
           Row(
             children: [
-              if (!routineExercise.exercise.isCardio) ...[
-                _CompactExerciseMuscleMap(
-                  exercise: routineExercise.exercise,
-                  vocabulary: _muscleVocabulary,
-                ),
-                const SizedBox(width: 10),
-              ],
               draggableTitle,
               if (!isProxy)
                 PlatformAdaptivePopupMenu<String>(

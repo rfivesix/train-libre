@@ -16,6 +16,7 @@ import 'log_mask_labels.dart';
 import 'routine_set_row_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../../util/time_util.dart';
 
 String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
@@ -87,11 +88,48 @@ class EditRoutineExerciseCard extends StatelessWidget {
     this.onPointerCancel,
   });
 
+  Widget _buildPauseTimerRow({
+    required int? pauseSeconds,
+    required AppLocalizations l10n,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    VoidCallback? onTap,
+  }) {
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(LucideIcons.timer, size: 20, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            pauseSeconds != null && pauseSeconds > 0
+                ? _formatPauseTime(pauseSeconds)
+                : l10n.timerOffLabel.toUpperCase(),
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (onTap == null) return content;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: content,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final exerciseNote = routineExercise.notes?.trim();
+    final hasExerciseNote = exerciseNote?.isNotEmpty == true;
+
     return WorkoutCard(
       continuesSupersetAbove: continuesSupersetAbove,
       continuesSupersetBelow: continuesSupersetBelow,
@@ -99,90 +137,77 @@ class EditRoutineExerciseCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(
+          Padding(
+            padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
               vertical: 8.0,
             ),
-            title: isEditMode && canDrag
-                ? Listener(
-                    onPointerDown: onPointerDown,
-                    onPointerMove: onPointerMove,
-                    onPointerUp: onPointerUp,
-                    onPointerCancel: onPointerCancel,
-                    child: ReorderableDelayedDragStartListener(
-                      index: index,
-                      child: _buildTitleContent(
-                          context, routineExercise, textTheme, colorScheme),
-                    ),
-                  )
-                : _buildTitleContent(
-                    context, routineExercise, textTheme, colorScheme),
-            leading: null,
-            trailing: isEditMode
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(LucideIcons.pencil),
-                        tooltip: l10n.pinnedRoutineNoteTitle,
-                        onPressed: onEditNotes,
-                      ),
-                      if (showPauseAction &&
-                          routineExercise.pauseSeconds != null &&
-                          routineExercise.pauseSeconds! > 0)
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            minimumSize: const Size(48, 48),
-                            padding: EdgeInsets.zero,
-                          ),
-                          onPressed: onEditPauseTime,
-                          child: Text(
-                            _formatPauseTime(routineExercise.pauseSeconds),
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: DesignConstants.spacingL,
+            child: Row(
+              children: [
+                Expanded(
+                  child: isEditMode && canDrag
+                      ? Listener(
+                          onPointerDown: onPointerDown,
+                          onPointerMove: onPointerMove,
+                          onPointerUp: onPointerUp,
+                          onPointerCancel: onPointerCancel,
+                          child: ReorderableDelayedDragStartListener(
+                            index: index,
+                            child: _buildTitleContent(
+                              context,
+                              routineExercise,
+                              textTheme,
+                              colorScheme,
                             ),
                           ),
                         )
-                      else if (showPauseAction)
-                        IconButton(
-                          icon: const Icon(LucideIcons.timer),
-                          tooltip: l10n.editPauseTime,
-                          onPressed: onEditPauseTime,
+                      : _buildTitleContent(
+                          context,
+                          routineExercise,
+                          textTheme,
+                          colorScheme,
                         ),
-                      IconButton(
-                        icon: const Icon(
-                          LucideIcons.trash,
-                          color: DesignConstants.brandRedColor,
-                        ),
-                        tooltip: l10n.removeExercise,
-                        onPressed: onDeleteExercise,
+                ),
+                if (isEditMode && !isDragging)
+                  PlatformAdaptivePopupMenu<String>(
+                    icon: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(LucideIcons.ellipsis_vertical),
+                    ),
+                    items: [
+                      PlatformAdaptivePopupMenuItem(
+                        value: 'notes',
+                        label: l10n.editExerciseNotes,
+                        icon: LucideIcons.pencil,
+                      ),
+                      PlatformAdaptivePopupMenuItem(
+                        value: 'timer',
+                        label: l10n.editPauseTime,
+                        icon: LucideIcons.timer,
+                      ),
+                      PlatformAdaptivePopupMenuItem(
+                        value: 'remove',
+                        label: l10n.removeExercise,
+                        icon: LucideIcons.trash,
+                        isDestructive: true,
                       ),
                     ],
-                  )
-                : (routineExercise.pauseSeconds != null &&
-                        routineExercise.pauseSeconds! > 0)
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            LucideIcons.timer,
-                            size: 16,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatPauseTime(routineExercise.pauseSeconds),
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      )
-                    : null,
+                    onSelected: (action) {
+                      switch (action) {
+                        case 'notes':
+                          onEditNotes();
+                          break;
+                        case 'timer':
+                          onEditPauseTime();
+                          break;
+                        case 'remove':
+                          onDeleteExercise();
+                          break;
+                      }
+                    },
+                  ),
+              ],
+            ),
           ),
           isDragging
               ? const SizedBox.shrink()
@@ -193,55 +218,74 @@ class EditRoutineExerciseCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (routineExercise.notes != null &&
-                          routineExercise.notes!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            left: 16.0,
-                            right: 16.0,
-                            bottom: 12.0,
-                          ),
-                          child: InkWell(
-                            onTap: isEditMode ? onEditNotes : null,
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest
-                                    .withValues(
-                                  alpha: 0.5,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color:
-                                      colorScheme.onSurfaceVariant.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    LucideIcons.file_text,
-                                    size: 16,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      routineExercise.notes!,
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                      Builder(
+                        builder: (context) {
+                          final timerRow = _buildPauseTimerRow(
+                            pauseSeconds: routineExercise.pauseSeconds,
+                            l10n: l10n,
+                            textTheme: textTheme,
+                            colorScheme: colorScheme,
+                            onTap: isEditMode ? onEditPauseTime : null,
+                          );
+                          final noteText = Text(
+                            hasExerciseNote
+                                ? exerciseNote!
+                                : l10n.workoutNoteAddHint,
+                            maxLines: hasExerciseNote ? null : 1,
+                            overflow: hasExerciseNote
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
-                          ),
-                        ),
+                          );
+                          final noteRow = isEditMode
+                              ? InkWell(
+                                  onTap: onEditNotes,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
+                                    child: noteText,
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  child: noteText,
+                                );
+
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: hasExerciseNote
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      noteRow,
+                                      const SizedBox(height: 2),
+                                      timerRow,
+                                    ],
+                                  )
+                                : isEditMode
+                                    ? Row(
+                                        children: [
+                                          timerRow,
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: noteRow,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : timerRow,
+                          );
+                        },
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0.0),
                         child: AnimatedSize(

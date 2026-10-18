@@ -25,6 +25,8 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/value_summary_card.dart';
+import '../../../theme/app_colors.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/bls_food_catalog_refresh_service.dart';
@@ -923,31 +925,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final saltFact = isBlsFood ? _findBlsNutrient(_saltBlsNames) : null;
     final caffeineFact = isBlsFood ? _findBlsNutrient(_caffeineBlsNames) : null;
     final additionalRows = <Widget>[];
-
-    if (sugarFact != null) {
-      additionalRows.add(_buildBlsNutrientRow(sugarFact, l10n));
-    } else if (_displayItem.sugar != null) {
-      additionalRows.add(_buildNutritionValueRow(
-        label: l10n.sugar,
-        value: _getDisplayValue(_displayItem.sugar),
-      ));
-    }
-    if (fiberFact != null) {
-      additionalRows.add(_buildBlsNutrientRow(fiberFact, l10n));
-    } else if (_displayItem.fiber != null) {
-      additionalRows.add(_buildNutritionValueRow(
-        label: l10n.fiber,
-        value: _getDisplayValue(_displayItem.fiber),
-      ));
-    }
-    if (saltFact != null) {
-      additionalRows.add(_buildBlsNutrientRow(saltFact, l10n));
-    } else if (_displayItem.salt != null) {
-      additionalRows.add(_buildNutritionValueRow(
-        label: l10n.salt,
-        value: _getDisplayValue(_displayItem.salt),
-      ));
-    }
+    final macroColors = Theme.of(context).extension<MacroColors>();
+    final sugar = _getDisplayValue(_displayItem.sugar);
+    final fiber = _getDisplayValue(_displayItem.fiber);
+    final salt = _getDisplayValue(_displayItem.salt);
 
     final caffeineValue =
         _displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml;
@@ -963,33 +944,57 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     }
 
     return [
-      _buildNutritionSectionHeader(
-        l10n.foodDetailEnergyGroup,
-        isFirst: true,
-      ),
-      _buildNutritionValueRow(
-        label: l10n.calories,
-        value: calories.value,
-        missingValue: calories.marker,
-        unit: 'kcal',
-        isInt: true,
-      ),
-      _buildNutritionSectionHeader(l10n.foodDetailMacronutrientsGroup),
-      _buildNutritionValueRow(
-        label: l10n.protein,
-        value: protein.value,
-        missingValue: protein.marker,
-      ),
-      _buildNutritionValueRow(
-        label: l10n.carbs,
-        value: carbs.value,
-        missingValue: carbs.marker,
-      ),
-      _buildNutritionValueRow(
-        label: l10n.fat,
-        value: fat.value,
-        missingValue: fat.marker,
-      ),
+      _buildNutritionMetricGrid([
+        _NutritionMetric(l10n.calories, calories.value, calories.marker, 'kcal',
+            macroColors?.calories ?? Colors.orange,
+            decimals: 0),
+        _NutritionMetric(l10n.protein, protein.value, protein.marker, 'g',
+            macroColors?.protein ?? Colors.red),
+        _NutritionMetric(l10n.carbs, carbs.value, carbs.marker, 'g',
+            macroColors?.carbs ?? Colors.green),
+        _NutritionMetric(l10n.fat, fat.value, fat.marker, 'g',
+            macroColors?.fat ?? Colors.purple),
+      ]),
+      if (sugarFact != null ||
+          _displayItem.sugar != null ||
+          fiberFact != null ||
+          _displayItem.fiber != null ||
+          saltFact != null ||
+          _displayItem.salt != null) ...[
+        const SizedBox(height: DesignConstants.spacingS),
+        _buildNutritionMetricGrid([
+          if (sugarFact != null)
+            _NutritionMetric(
+                l10n.sugar,
+                _getDisplayValue(sugarFact.value),
+                sugarFact.valueText,
+                sugarFact.unit,
+                macroColors?.sugar ?? Colors.pink)
+          else if (sugar != null)
+            _NutritionMetric(l10n.sugar, sugar, null, 'g',
+                macroColors?.sugar ?? Colors.pink),
+          if (fiberFact != null)
+            _NutritionMetric(
+                l10n.fiber,
+                _getDisplayValue(fiberFact.value),
+                fiberFact.valueText,
+                fiberFact.unit,
+                macroColors?.fiber ?? Colors.brown)
+          else if (fiber != null)
+            _NutritionMetric(l10n.fiber, fiber, null, 'g',
+                macroColors?.fiber ?? Colors.brown),
+          if (saltFact != null)
+            _NutritionMetric(
+                l10n.salt,
+                _getDisplayValue(saltFact.value),
+                saltFact.valueText,
+                saltFact.unit,
+                macroColors?.salt ?? Colors.blueGrey)
+          else if (salt != null)
+            _NutritionMetric(l10n.salt, salt, null, 'g',
+                macroColors?.salt ?? Colors.blueGrey),
+        ]),
+      ],
       if (additionalRows.isNotEmpty) ...[
         _buildNutritionSectionHeader(l10n.foodDetailOtherNutrientsGroup),
         ...additionalRows,
@@ -1056,6 +1061,72 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
   String _normalizeBlsNutrientName(String name) =>
       name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9äöüß]'), '');
+
+  Widget _buildNutritionMetricGrid(
+    List<_NutritionMetric> metrics,
+  ) {
+    if (metrics.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final valueTextColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
+    final labelTextColor = isDark
+        ? Colors.white.withValues(alpha: 0.9)
+        : const Color(0xFF1C1C1E).withValues(alpha: 0.85);
+    final diaryBarShadows = isDark
+        ? const [
+            Shadow(
+              color: Color.fromRGBO(0, 0, 0, 0.35),
+              offset: Offset(0, 1),
+              blurRadius: 2,
+            ),
+          ]
+        : null;
+    final diaryBarGradient = isDark
+        ? LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Colors.black.withValues(alpha: 0.15), Colors.transparent],
+            stops: const [0.0, 1.0],
+          )
+        : null;
+    final cards = metrics.map((metric) {
+      final displayValue = metric.value == null
+          ? metric.missingValue ?? '-'
+          : '${metric.decimals == 0 ? metric.value!.round() : metric.value!.toStringAsFixed(metric.decimals)} ${metric.unit}'
+              .trim();
+      return ValueSummaryCard(
+        label: metric.label,
+        value: displayValue,
+        valueColor: valueTextColor,
+        labelColor: labelTextColor,
+        backgroundColor: metric.color,
+        backgroundOverlayGradient: diaryBarGradient,
+        textShadows: diaryBarShadows,
+        disableShadow: true,
+      );
+    }).toList();
+
+    final rows = <Widget>[];
+    for (var i = 0; i < cards.length; i += 2) {
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: cards[i]),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: i + 1 < cards.length ? cards[i + 1] : const SizedBox(),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (i + 2 < cards.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
+  }
 
   Widget _buildNutritionSectionHeader(
     String title, {
@@ -1360,6 +1431,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ),
         ),
       );
+}
+
+class _NutritionMetric {
+  final String label;
+  final double? value;
+  final String? missingValue;
+  final String unit;
+  final Color color;
+  final int decimals;
+
+  const _NutritionMetric(
+    this.label,
+    this.value,
+    this.missingValue,
+    this.unit,
+    this.color, {
+    this.decimals = 1,
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

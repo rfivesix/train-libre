@@ -328,6 +328,7 @@ class SetLog {
     bool clearPerformedAt = false,
     bool clearWeight = false,
     bool clearReps = false,
+    bool clearRestTimeSeconds = false,
     bool clearRir = false,
     bool clearDistance = false,
     bool clearDuration = false,
@@ -347,7 +348,9 @@ class SetLog {
       setType: setType ?? this.setType,
       weightKg: clearWeight ? null : (weightKg ?? this.weightKg),
       reps: clearReps ? null : (reps ?? this.reps),
-      restTimeSeconds: restTimeSeconds ?? this.restTimeSeconds,
+      restTimeSeconds: clearRestTimeSeconds
+          ? null
+          : (restTimeSeconds ?? this.restTimeSeconds),
       isCompleted: isCompleted ?? this.isCompleted,
       logOrder: logOrder ?? this.logOrder,
       exerciseBlock: exerciseBlock ?? this.exerciseBlock,

@@ -789,6 +789,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         if (exerciseIndex != -1) {
           _routineExercises[exerciseIndex] = re.copyWith(
             pauseSeconds: result.value,
+            clearPauseSeconds: result.value == null,
           );
         }
       });

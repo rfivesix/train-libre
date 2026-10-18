@@ -43,6 +43,7 @@ import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
 import 'reorder_scroll_anchor.dart';
 import 'widgets/exercise_notes_dialog.dart';
+import 'widgets/routine_pause_time_dialog.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
@@ -1116,6 +1117,75 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     }
   }
 
+  int? _pauseSecondsForSets(List<SetLog> sets) {
+    for (final setLog in sets) {
+      final rest = setLog.restTimeSeconds;
+      if (rest != null && rest > 0) return rest;
+    }
+    return null;
+  }
+
+  void _editPauseTime(BuildContext context, ExerciseBlockKey key) async {
+    final l10n = AppLocalizations.of(context)!;
+    final sets = _groupedSets[key] ?? const <SetLog>[];
+    final initialPause = _pauseSecondsForSets(sets);
+
+    final result = await showGlassBottomMenu<({bool saved, int? value})>(
+      context: context,
+      title: l10n.editPauseTimeTitle,
+      headerTrailing: (initialPause != null && initialPause > 0)
+          ? TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                HapticFeedbackService.instance.selectionFeedback();
+                Navigator.of(context).pop((saved: true, value: null));
+              },
+              child: Text(
+                l10n.removeTimer,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.amber,
+                ),
+              ),
+            )
+          : null,
+      contentBuilder: (ctx, close) {
+        return RoutinePauseTimeDialog(
+          initialPauseSeconds: initialPause,
+          onSave: (seconds) {
+            close();
+            Navigator.of(ctx).pop((saved: true, value: seconds));
+          },
+          onCancel: () {
+            close();
+            Navigator.of(ctx).pop((saved: false, value: null));
+          },
+        );
+      },
+    );
+
+    if (result != null && result.saved) {
+      final newPause =
+          result.value != null && result.value! > 0 ? result.value : null;
+      setState(() {
+        final currentSets = _groupedSets[key];
+        if (currentSets != null) {
+          _groupedSets[key] = [
+            for (final setLog in currentSets)
+              setLog.copyWith(
+                restTimeSeconds: newPause,
+                clearRestTimeSeconds: newPause == null,
+              ),
+          ];
+        }
+      });
+    }
+  }
+
   void _editExerciseNotes(BuildContext context, ExerciseBlockKey key) async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -1508,6 +1578,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 repsControllers: _repsControllers,
                                 rirControllers: _rirControllers,
                                 exerciseNote: _exerciseNotes[key],
+                                pauseSeconds: _pauseSecondsForSets(sets),
+                                onEditPauseTime: () =>
+                                    _editPauseTime(context, key),
                                 onEditNotes: (_) =>
                                     _editExerciseNotes(context, key),
                                 onDeleteExercise: (_) {
@@ -1599,6 +1672,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       repsControllers: _repsControllers,
                                       rirControllers: _rirControllers,
                                       exerciseNote: _exerciseNotes[key],
+                                      pauseSeconds: _pauseSecondsForSets(sets),
+                                      onEditPauseTime: () {},
                                       onEditNotes: (_) {},
                                       onDeleteExercise: (_) {},
                                       onAddSet: () {},
@@ -1708,6 +1783,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                           _rirControllers,
                                                       exerciseNote:
                                                           _exerciseNotes[key],
+                                                      pauseSeconds:
+                                                          _pauseSecondsForSets(
+                                                              sets),
+                                                      onEditPauseTime: () =>
+                                                          _editPauseTime(
+                                                              context, key),
                                                       onEditNotes: (_) =>
                                                           _editExerciseNotes(
                                                               context, key),
@@ -1726,6 +1807,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                           isCompleted: true,
                                                           exerciseBlock:
                                                               key.exerciseBlock,
+                                                          restTimeSeconds:
+                                                              _pauseSecondsForSets(
+                                                                  sets),
                                                         );
                                                         setState(() {
                                                           sets.add(newSet);
