@@ -172,7 +172,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _isDragging = false;
       _rotationRadians = 0;
       _scale = 1;
-      _isFullscreen = openFullscreen;
+      _isFullscreen = expanding ? openFullscreen : wasFullscreen;
       _showChatPreview = expanding;
       if (expanding) {
         // A completed response stays highlighted on the minimized orb until
@@ -198,7 +198,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     } else {
       _morphAnimation.reverse().whenComplete(() {
         if (!mounted) return;
-        setState(() => _isClosing = false);
+        setState(() {
+          _isClosing = false;
+          if (wasFullscreen) _isFullscreen = false;
+        });
+        if (wasFullscreen) _fullscreenAnimation.reverse();
         FocusManager.instance.primaryFocus?.unfocus();
         if (_hasCompletedResponse) {
           setState(() => _completionPulse = true);
@@ -206,9 +210,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         }
         widget.onFullscreenChanged?.call(false);
       });
-    }
-    if (wasFullscreen) {
-      _fullscreenAnimation.reverse();
     }
   }
 
@@ -949,6 +950,41 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       blur: 1.5,
     );
     final rimColor = foreground.withValues(alpha: 0.14);
+    final buttonSurface = Container(
+      decoration: BoxDecoration(
+        color: backgroundColor ??
+            (cloudIsDark
+                ? DesignConstants.glassNeutralTint(true)
+                : Colors.black.withValues(alpha: 0.04)),
+        shape: BoxShape.circle,
+        border: Border.all(color: rimColor, width: 0.5),
+      ),
+      child: Center(child: Icon(icon, size: 20, color: foreground)),
+    );
+    final useStaticGlass =
+        _isClosing || (_isExpanded && _morphAnimation.value < 1);
+    final glassContent = useStaticGlass
+        ? buttonSurface
+        : InheritedLiquidGlass(
+            settings: settings,
+            isBlurProvidedByAncestor: true,
+            child: GlassAdaptiveScope(
+              maxQuality: DesignConstants.defaultGlassQuality,
+              minQuality: DesignConstants.minGlassQuality,
+              child: AdaptiveGlass(
+                settings: settings,
+                quality: DesignConstants.defaultGlassQuality,
+                useOwnLayer: true,
+                allowElevation: false,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+                child: GlassGlow(
+                  glowColor: foreground.withValues(alpha: 0.12),
+                  glowRadius: 1,
+                  child: buttonSurface,
+                ),
+              ),
+            ),
+          );
 
     final button = SizedBox.square(
       dimension: 44,
@@ -957,36 +993,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           shape: BoxShape.circle,
           boxShadow: DesignConstants.glassShadow(cloudIsDark),
         ),
-        child: InheritedLiquidGlass(
-          settings: settings,
-          isBlurProvidedByAncestor: true,
-          child: GlassAdaptiveScope(
-            maxQuality: DesignConstants.defaultGlassQuality,
-            minQuality: DesignConstants.minGlassQuality,
-            child: AdaptiveGlass(
-              settings: settings,
-              quality: DesignConstants.defaultGlassQuality,
-              useOwnLayer: true,
-              allowElevation: false,
-              shape: const LiquidRoundedSuperellipse(borderRadius: 22),
-              child: GlassGlow(
-                glowColor: foreground.withValues(alpha: 0.12),
-                glowRadius: 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: backgroundColor ??
-                        (cloudIsDark
-                            ? DesignConstants.glassNeutralTint(true)
-                            : Colors.black.withValues(alpha: 0.04)),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: rimColor, width: 0.5),
-                  ),
-                  child: Center(child: Icon(icon, size: 20, color: foreground)),
-                ),
-              ),
-            ),
-          ),
-        ),
+        child: glassContent,
       ),
     );
     return Tooltip(
@@ -1069,6 +1076,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       thickness: 18,
       blur: 1.5,
     );
+    final isGlassTransitioning =
+        _isClosing || (_isExpanded && _morphAnimation.value < 1);
     const contentInset = 8.0;
     final chatBounds = Rect.lerp(
       safeRect.inflate(44),
@@ -1098,6 +1107,74 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final topFadeHoldStop = 0.45 * (1 - fullscreenProgress);
     const bottomFadeHeight = 104.0;
     final chatBottom = chatBounds.bottom - contentInset;
+    final composerSurface = Container(
+      decoration: BoxDecoration(
+        color: cloudSurfaceDark
+            ? DesignConstants.glassNeutralTint(true)
+            : Colors.black.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: contrastColor.withValues(alpha: 0.14),
+          width: 0.5,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: TextSelectionTheme(
+                data: TextSelectionThemeData(
+                  cursorColor: selectionBlue,
+                  selectionColor: selectionBlue.withValues(alpha: 0.32),
+                  selectionHandleColor: selectionBlue,
+                ),
+                child: TextField(
+                  controller: _chatInputController,
+                  focusNode: _chatFocusNode,
+                  minLines: 1,
+                  maxLines: 4,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) {
+                    if (!_isGenerating) _sendDemoPrompt();
+                  },
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: contrastColor,
+                  ),
+                  cursorColor: selectionBlue,
+                  decoration: InputDecoration(
+                    hintText: 'Nachricht schreiben …',
+                    hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: contrastColor.withValues(alpha: 0.52),
+                    ),
+                    filled: false,
+                    fillColor: Colors.transparent,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            _buildHeaderGlassButton(
+              icon: _isGenerating ? LucideIcons.square : LucideIcons.arrow_up,
+              tooltip: _isGenerating ? 'Stopp' : 'Senden',
+              isDark: theme.brightness == Brightness.dark,
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              onPressed: _isGenerating ? _stopDemoGeneration : _sendDemoPrompt,
+            ),
+          ],
+        ),
+      ),
+    );
 
     return Positioned.fill(
       child: IgnorePointer(
@@ -1199,106 +1276,30 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: DesignConstants.glassShadow(cloudSurfaceDark),
                 ),
-                child: InheritedLiquidGlass(
-                  settings: composerGlassSettings,
-                  isBlurProvidedByAncestor: true,
-                  child: GlassAdaptiveScope(
-                    maxQuality: DesignConstants.defaultGlassQuality,
-                    minQuality: DesignConstants.minGlassQuality,
-                    child: AdaptiveGlass(
-                      settings: composerGlassSettings,
-                      quality: DesignConstants.defaultGlassQuality,
-                      useOwnLayer: true,
-                      allowElevation: false,
-                      shape: const LiquidRoundedSuperellipse(borderRadius: 28),
-                      child: GlassGlow(
-                        glowColor: contrastColor.withValues(alpha: 0.12),
-                        glowRadius: 1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: cloudSurfaceDark
-                                ? DesignConstants.glassNeutralTint(true)
-                                : Colors.black.withValues(alpha: 0.04),
-                            borderRadius: BorderRadius.circular(28),
-                            border: Border.all(
-                              color: contrastColor.withValues(alpha: 0.14),
-                              width: 0.5,
+                child: isGlassTransitioning
+                    ? composerSurface
+                    : InheritedLiquidGlass(
+                        settings: composerGlassSettings,
+                        isBlurProvidedByAncestor: true,
+                        child: GlassAdaptiveScope(
+                          maxQuality: DesignConstants.defaultGlassQuality,
+                          minQuality: DesignConstants.minGlassQuality,
+                          child: AdaptiveGlass(
+                            settings: composerGlassSettings,
+                            quality: DesignConstants.defaultGlassQuality,
+                            useOwnLayer: true,
+                            allowElevation: false,
+                            shape: const LiquidRoundedSuperellipse(
+                              borderRadius: 28,
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Expanded(
-                                  child: TextSelectionTheme(
-                                    data: TextSelectionThemeData(
-                                      cursorColor: selectionBlue,
-                                      selectionColor: selectionBlue.withValues(
-                                        alpha: 0.32,
-                                      ),
-                                      selectionHandleColor: selectionBlue,
-                                    ),
-                                    child: TextField(
-                                      controller: _chatInputController,
-                                      focusNode: _chatFocusNode,
-                                      minLines: 1,
-                                      maxLines: 4,
-                                      textInputAction: TextInputAction.send,
-                                      onSubmitted: (_) {
-                                        if (!_isGenerating) _sendDemoPrompt();
-                                      },
-                                      style:
-                                          theme.textTheme.bodyMedium?.copyWith(
-                                        color: contrastColor,
-                                      ),
-                                      cursorColor: selectionBlue,
-                                      decoration: InputDecoration(
-                                        hintText: 'Nachricht schreiben …',
-                                        hintStyle: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                          color: contrastColor.withValues(
-                                            alpha: 0.52,
-                                          ),
-                                        ),
-                                        filled: false,
-                                        fillColor: Colors.transparent,
-                                        border: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                        disabledBorder: InputBorder.none,
-                                        errorBorder: InputBorder.none,
-                                        focusedErrorBorder: InputBorder.none,
-                                        isDense: true,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                          vertical: 11,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                _buildHeaderGlassButton(
-                                  icon: _isGenerating
-                                      ? LucideIcons.square
-                                      : LucideIcons.arrow_up,
-                                  tooltip: _isGenerating ? 'Stopp' : 'Senden',
-                                  isDark: theme.brightness == Brightness.dark,
-                                  backgroundColor: Colors.black,
-                                  foregroundColor: Colors.white,
-                                  onPressed: _isGenerating
-                                      ? _stopDemoGeneration
-                                      : _sendDemoPrompt,
-                                ),
-                              ],
+                            child: GlassGlow(
+                              glowColor: contrastColor.withValues(alpha: 0.12),
+                              glowRadius: 1,
+                              child: composerSurface,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
               ),
             ),
             Positioned(
