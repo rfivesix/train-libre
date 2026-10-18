@@ -77,7 +77,13 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
               systemNavigationBarIconBrightness:
                   cloudIsLight ? Brightness.dark : Brightness.light,
             )
-          : const SystemUiOverlayStyle(),
+          : SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarBrightness: theme.brightness,
+              statusBarIconBrightness: theme.brightness == Brightness.dark
+                  ? Brightness.light
+                  : Brightness.dark,
+            ),
       child: PopScope(
         // Prevent the route underneath the overlay from claiming the iOS
         // edge-swipe while the cloud is open. The cloud keeps its own gestures.
