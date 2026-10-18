@@ -190,7 +190,7 @@ class GoalBaselineStep extends StatelessWidget {
                       ),
                       if (state.isEditingBaseline)
                         IconButton(
-                          tooltip: l10n.edit,
+                          tooltip: state.showManualBaselineInput ? l10n.cancel : l10n.edit,
                           icon: Icon(
                             state.showManualBaselineInput
                                 ? LucideIcons.sliders_horizontal

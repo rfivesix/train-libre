@@ -202,7 +202,7 @@ class GoalTargetStep extends StatelessWidget {
                         ),
                         const SizedBox(width: DesignConstants.spacingS),
                         IconButton(
-                          tooltip: l10n.edit,
+                          tooltip: state.showManualTargetWeightInput ? l10n.cancel : l10n.edit,
                           icon: Icon(
                             state.showManualTargetWeightInput
                                 ? LucideIcons.sliders_horizontal
