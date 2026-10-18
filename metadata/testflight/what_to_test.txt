@@ -1,4 +1,4 @@
-Train Libre 1.6.0-beta.2
+Train Libre 1.6.0-beta.3
 
 Please focus on these flows:
 
