@@ -569,6 +569,7 @@ class BodyNutritionAnalyticsEngine {
     }
   }
 
+  // BOLT OPTIMIZATION: Use sliding window sum to avoid O(N*W) complexity and intermediate array allocations
   static List<DailyValuePoint> movingAverage({
     required List<DailyValuePoint> series,
     required int windowSize,
@@ -576,15 +577,18 @@ class BodyNutritionAnalyticsEngine {
     if (series.isEmpty) return const [];
     if (windowSize <= 1) return List<DailyValuePoint>.from(series);
 
-    final values = series.map((p) => p.value).toList(growable: false);
     final result = <DailyValuePoint>[];
+    double currentSum = 0.0;
 
     for (var i = 0; i < series.length; i++) {
-      final start = (i - windowSize + 1).clamp(0, i);
-      final slice = values.sublist(start, i + 1);
-      final avg =
-          slice.fold<double>(0.0, (sum, value) => sum + value) / slice.length;
-      result.add(DailyValuePoint(day: series[i].day, value: avg));
+      currentSum += series[i].value;
+
+      if (i >= windowSize) {
+        currentSum -= series[i - windowSize].value;
+      }
+
+      final count = math.min(i + 1, windowSize);
+      result.add(DailyValuePoint(day: series[i].day, value: currentSum / count));
     }
 
     return result;
@@ -657,20 +661,23 @@ class BodyNutritionAnalyticsEngine {
     );
   }
 
+  // BOLT OPTIMIZATION: Avoid allocating intermediate lists via .sublist() and .fold()
   static double? seriesHalfDelta(List<DailyValuePoint> series) {
     if (series.length < 8) return null;
-    final half = (series.length / 2).floor();
+    final half = series.length ~/ 2;
     if (half <= 0 || half >= series.length) return null;
 
-    final first = series.sublist(0, half);
-    final second = series.sublist(half);
+    double firstSum = 0.0;
+    for (var i = 0; i < half; i++) {
+      firstSum += series[i].value;
+    }
 
-    final firstAvg =
-        first.fold<double>(0.0, (sum, p) => sum + p.value) / first.length;
-    final secondAvg =
-        second.fold<double>(0.0, (sum, p) => sum + p.value) / second.length;
+    double secondSum = 0.0;
+    for (var i = half; i < series.length; i++) {
+      secondSum += series[i].value;
+    }
 
-    return secondAvg - firstAvg;
+    return (secondSum / (series.length - half)) - (firstSum / half);
   }
 }
 
