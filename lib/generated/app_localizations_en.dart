@@ -8881,6 +8881,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Scrollable UI preview with sample cards';
 
   @override
+  String get aiOverlayDemoGlobalEnabledTitle =>
+      'Enable AI overlay throughout the app';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledSubtitle =>
+      'Show the demo cloud on every screen. Chats are not saved.';
+
+  @override
   String get aiOverlayDemoScreenTitle => 'AI Overlay UI Demo';
 
   @override

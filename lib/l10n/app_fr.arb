@@ -3670,6 +3670,8 @@
   "blsFoodModifications": "Traductions et catégories de Train Libre",
   "developerAiOverlayDemoTitle": "AI Overlay",
   "developerAiOverlayDemoSubtitle": "Aperçu défilant de l’interface avec des exemples",
+  "aiOverlayDemoGlobalEnabledTitle": "Activer AI Overlay dans toute l’application",
+  "aiOverlayDemoGlobalEnabledSubtitle": "Afficher le nuage de démonstration sur tous les écrans. Les discussions ne sont pas enregistrées.",
   "aiOverlayDemoScreenTitle": "Démo de l’interface AI Overlay",
   "aiOverlayDemoIntroTitle": "Aperçu de l’assistant",
   "aiOverlayDemoIntroBody": "Parcourez des exemples inspirés de l’application et essayez l’aperçu d’autorisation.",

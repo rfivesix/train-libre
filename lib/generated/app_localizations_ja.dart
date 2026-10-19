@@ -8563,6 +8563,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get developerAiOverlayDemoSubtitle => 'サンプルカードを使ったスクロール可能なUIプレビュー';
 
   @override
+  String get aiOverlayDemoGlobalEnabledTitle => 'アプリ全体で AI Overlay を有効にする';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledSubtitle =>
+      'すべての画面にデモの雲を表示します。チャットは保存されません。';
+
+  @override
   String get aiOverlayDemoScreenTitle => 'AI Overlay UIデモ';
 
   @override

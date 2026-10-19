@@ -1,10 +1,13 @@
 // lib/features/settings/presentation/developer_settings_screen.dart
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../services/experience_level_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
@@ -130,6 +133,20 @@ class DeveloperSettingsScreen extends StatelessWidget {
             MaterialPageRoute(
               builder: (context) => const AiOverlayDemoScreen(),
             ),
+          ),
+        ),
+        ValueListenableBuilder<AiOverlayDemoConfiguration>(
+          valueListenable: AiOverlayDemoSettings.configuration,
+          builder: (context, settings, _) => SwitchListTile.adaptive(
+            key: const Key('developer_ai_overlay_demo_enabled'),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingL,
+            ),
+            title: Text(l10n.aiOverlayDemoGlobalEnabledTitle),
+            subtitle: Text(l10n.aiOverlayDemoGlobalEnabledSubtitle),
+            value: settings.enabled,
+            onChanged: (value) =>
+                unawaited(AiOverlayDemoSettings.update(enabled: value)),
           ),
         ),
         const SizedBox(height: DesignConstants.spacingS),

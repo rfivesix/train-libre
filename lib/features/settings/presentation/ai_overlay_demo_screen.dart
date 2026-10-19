@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
@@ -23,11 +26,7 @@ class AiOverlayDemoScreen extends StatefulWidget {
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   final _cloudKey = GlobalKey<DraggableAiCloudState>();
   bool _cloudExpanded = false;
-  bool _showCloudResizeHandles = false;
-  bool _openCloudDirectlyFullscreen = true;
-  bool _useLiveAi = false;
   bool _cloudIsGenerating = false;
-  double _cloudLiveliness = 0.10;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +51,11 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
         children: [
           _buildIntroCard(context, l10n, theme),
           const SizedBox(height: DesignConstants.spacingM),
-          _buildCloudSettingsCard(theme),
+          ValueListenableBuilder<AiOverlayDemoConfiguration>(
+            valueListenable: AiOverlayDemoSettings.configuration,
+            builder: (context, settings, _) =>
+                _buildCloudSettingsCard(theme, settings),
+          ),
           AppSectionHeader(
             title: 'Schwarz und Weiß',
             isFirst: true,
@@ -84,24 +87,30 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
           fit: StackFit.expand,
           children: [
             scaffold,
-            Positioned.fill(
-              bottom: MediaQuery.viewInsetsOf(context).bottom,
-              child: Material(
-                type: MaterialType.transparency,
-                child: DraggableAiCloud(
-                  key: _cloudKey,
-                  semanticLabel: l10n.developerAiOverlayDemoTitle,
-                  semanticHint: l10n.aiOverlayDemoCloudHint,
-                  liveliness: _cloudLiveliness,
-                  showResizeHandles: _showCloudResizeHandles,
-                  openDirectlyFullscreen: _openCloudDirectlyFullscreen,
-                  useLiveAi: _useLiveAi,
-                  onExpandedChanged: (value) =>
-                      setState(() => _cloudExpanded = value),
-                  onGenerationChanged: (value) =>
-                      setState(() => _cloudIsGenerating = value),
-                ),
-              ),
+            ValueListenableBuilder<AiOverlayDemoConfiguration>(
+              valueListenable: AiOverlayDemoSettings.configuration,
+              builder: (context, settings, _) => settings.enabled
+                  ? const SizedBox.shrink()
+                  : Positioned.fill(
+                      bottom: MediaQuery.viewInsetsOf(context).bottom,
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: DraggableAiCloud(
+                          key: _cloudKey,
+                          semanticLabel: l10n.developerAiOverlayDemoTitle,
+                          semanticHint: l10n.aiOverlayDemoCloudHint,
+                          liveliness: settings.liveliness,
+                          showResizeHandles: settings.showResizeHandles,
+                          openDirectlyFullscreen:
+                              settings.openDirectlyFullscreen,
+                          useLiveAi: settings.useLiveAi,
+                          onExpandedChanged: (value) =>
+                              setState(() => _cloudExpanded = value),
+                          onGenerationChanged: (value) =>
+                              setState(() => _cloudIsGenerating = value),
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -124,7 +133,10 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
     );
   }
 
-  Widget _buildCloudSettingsCard(ThemeData theme) {
+  Widget _buildCloudSettingsCard(
+    ThemeData theme,
+    AiOverlayDemoConfiguration settings,
+  ) {
     return SummaryCard(
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.spacingL,
@@ -145,12 +157,13 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                   ),
                 ),
               ),
-              Text('${(_cloudLiveliness * 100).round()}%'),
+              Text('${(settings.liveliness * 100).round()}%'),
             ],
           ),
           Slider(
-            value: _cloudLiveliness,
-            onChanged: (value) => setState(() => _cloudLiveliness = value),
+            value: settings.liveliness,
+            onChanged: (value) =>
+                unawaited(AiOverlayDemoSettings.update(liveliness: value)),
           ),
           Text(
             'Steuert die Bewegung der erweiterten KI-Wolke.',
@@ -164,9 +177,10 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             dense: true,
             title: const Text('Safe-Space-Punkte anzeigen'),
             subtitle: const Text('Ecken zum Verändern des Bereichs einblenden'),
-            value: _showCloudResizeHandles,
-            onChanged: (value) =>
-                setState(() => _showCloudResizeHandles = value),
+            value: settings.showResizeHandles,
+            onChanged: (value) => unawaited(
+              AiOverlayDemoSettings.update(showResizeHandles: value),
+            ),
           ),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
@@ -175,9 +189,10 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             subtitle: const Text(
               'Überspringt die Zwischenansicht beim Öffnen der Wolke',
             ),
-            value: _openCloudDirectlyFullscreen,
-            onChanged: (value) =>
-                setState(() => _openCloudDirectlyFullscreen = value),
+            value: settings.openDirectlyFullscreen,
+            onChanged: (value) => unawaited(
+              AiOverlayDemoSettings.update(openDirectlyFullscreen: value),
+            ),
           ),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
@@ -186,10 +201,11 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             subtitle: const Text(
               'Antworten live über das konfigurierte KI-Modell streamen',
             ),
-            value: _useLiveAi,
-            onChanged: (value) => setState(() => _useLiveAi = value),
+            value: settings.useLiveAi,
+            onChanged: (value) =>
+                unawaited(AiOverlayDemoSettings.update(useLiveAi: value)),
           ),
-          if (!_useLiveAi)
+          if (!settings.useLiveAi)
             Align(
               alignment: Alignment.centerRight,
               child: Wrap(

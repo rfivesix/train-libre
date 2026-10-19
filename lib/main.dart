@@ -10,6 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
+import 'features/ai_assistant/data/ai_overlay_demo_settings.dart';
+import 'features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
 import 'core/performance/device_label.dart';
@@ -174,6 +176,7 @@ void main() async {
     'prefs',
     SharedPreferences.getInstance,
   );
+  AiOverlayDemoSettings.initialize(prefs);
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;
   final acceptedLegalVersion = prefs.getString('acceptedLegalVersion');
 
@@ -1139,10 +1142,47 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             );
           },
           builder: (context, child) {
-            return GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: child,
+            return Overlay(
+              initialEntries: [
+                OverlayEntry(
+                  builder: (overlayContext) => GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (child != null) child,
+                        ValueListenableBuilder<AiOverlayDemoConfiguration>(
+                          valueListenable: AiOverlayDemoSettings.configuration,
+                          builder: (context, settings, _) => settings.enabled
+                              ? Positioned.fill(
+                                  child: Material(
+                                    type: MaterialType.transparency,
+                                    child: DraggableAiCloud(
+                                      semanticLabel:
+                                          AppLocalizations.of(context)!
+                                              .developerAiOverlayDemoTitle,
+                                      semanticHint:
+                                          AppLocalizations.of(context)!
+                                              .aiOverlayDemoCloudHint,
+                                      liveliness: settings.liveliness,
+                                      showResizeHandles:
+                                          settings.showResizeHandles,
+                                      openDirectlyFullscreen:
+                                          settings.openDirectlyFullscreen,
+                                      // Chat state remains in memory only and is
+                                      // never persisted between app launches.
+                                      useLiveAi: settings.useLiveAi,
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             );
           },
           home: widget.home,

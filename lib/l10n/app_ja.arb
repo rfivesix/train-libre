@@ -3670,6 +3670,8 @@
   "blsFoodModifications": "Train Libre による翻訳とカテゴリ",
   "developerAiOverlayDemoTitle": "AI Overlay",
   "developerAiOverlayDemoSubtitle": "サンプルカードを使ったスクロール可能なUIプレビュー",
+  "aiOverlayDemoGlobalEnabledTitle": "アプリ全体で AI Overlay を有効にする",
+  "aiOverlayDemoGlobalEnabledSubtitle": "すべての画面にデモの雲を表示します。チャットは保存されません。",
   "aiOverlayDemoScreenTitle": "AI Overlay UIデモ",
   "aiOverlayDemoIntroTitle": "アシスタントのプレビュー",
   "aiOverlayDemoIntroBody": "アプリ風のサンプルをスクロールして、アクセス許可のプレビューを試せます。",

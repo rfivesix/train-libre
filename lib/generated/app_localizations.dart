@@ -15597,6 +15597,18 @@ abstract class AppLocalizations {
   /// **'Scrollable UI preview with sample cards'**
   String get developerAiOverlayDemoSubtitle;
 
+  /// No description provided for @aiOverlayDemoGlobalEnabledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable AI overlay throughout the app'**
+  String get aiOverlayDemoGlobalEnabledTitle;
+
+  /// No description provided for @aiOverlayDemoGlobalEnabledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the demo cloud on every screen. Chats are not saved.'**
+  String get aiOverlayDemoGlobalEnabledSubtitle;
+
   /// No description provided for @aiOverlayDemoScreenTitle.
   ///
   /// In en, this message translates to:

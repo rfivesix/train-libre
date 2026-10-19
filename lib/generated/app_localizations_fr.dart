@@ -9023,6 +9023,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aperçu défilant de l’interface avec des exemples';
 
   @override
+  String get aiOverlayDemoGlobalEnabledTitle =>
+      'Activer AI Overlay dans toute l’application';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledSubtitle =>
+      'Afficher le nuage de démonstration sur tous les écrans. Les discussions ne sont pas enregistrées.';
+
+  @override
   String get aiOverlayDemoScreenTitle => 'Démo de l’interface AI Overlay';
 
   @override

@@ -3886,6 +3886,8 @@
   "blsFoodModifications": "Train Libre translations and categories",
   "developerAiOverlayDemoTitle": "AI Overlay",
   "developerAiOverlayDemoSubtitle": "Scrollable UI preview with sample cards",
+  "aiOverlayDemoGlobalEnabledTitle": "Enable AI overlay throughout the app",
+  "aiOverlayDemoGlobalEnabledSubtitle": "Show the demo cloud on every screen. Chats are not saved.",
   "aiOverlayDemoScreenTitle": "AI Overlay UI Demo",
   "aiOverlayDemoIntroTitle": "A preview of the assistant",
   "aiOverlayDemoIntroBody": "Scroll through sample content styled like the app and try the access preview.",

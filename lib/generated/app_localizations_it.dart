@@ -8998,6 +8998,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Anteprima UI scorrevole con schede di esempio';
 
   @override
+  String get aiOverlayDemoGlobalEnabledTitle =>
+      'Attiva AI Overlay in tutta l’app';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledSubtitle =>
+      'Mostra la nuvola demo in ogni schermata. Le chat non vengono salvate.';
+
+  @override
   String get aiOverlayDemoScreenTitle => 'Demo UI di AI Overlay';
 
   @override
