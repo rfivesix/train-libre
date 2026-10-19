@@ -2017,10 +2017,16 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final sendButtonForeground = surfaceIsLight ? Colors.white : Colors.black;
     final controlFillColor = _overlayControlFill(theme, appearanceProgress);
     final composerSurface = AnimatedBuilder(
-      animation: Listenable.merge([_chatInputController, _chatFocusNode]),
+      animation: Listenable.merge([
+        _chatInputController,
+        _chatFocusNode,
+        _chatInputScrollController,
+      ]),
       builder: (context, _) {
         final inputValue = _chatInputController.value;
         final hasText = inputValue.text.trim().isNotEmpty;
+        final inputIsScrolled = _chatInputScrollController.hasClients &&
+            _chatInputScrollController.offset > 0.5;
         final recording = _voiceStarting || _voiceRecording || _voiceStopping;
         final expandedInput = hasText || _chatFocusNode.hasFocus;
 
@@ -2100,7 +2106,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    contentPadding: EdgeInsets.only(
+                      top: inputIsScrolled ? 0 : 8,
+                    ),
                   ),
                 ),
               ),
