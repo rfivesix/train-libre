@@ -4,14 +4,21 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:markdown/markdown.dart' as md;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../generated/app_localizations.dart';
-import '../../../../util/design_constants.dart';
+import '../../../../services/ai_service.dart';
 import '../../../../services/haptic_feedback_service.dart';
+import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+import '../../data/ai_overlay_live_chat_service.dart';
 
 /// The existing animated AI cloud, made draggable for the overlay demo.
 ///
@@ -28,6 +35,7 @@ class DraggableAiCloud extends StatefulWidget {
   final ValueChanged<bool>? onGenerationChanged;
   final bool showResizeHandles;
   final bool openDirectlyFullscreen;
+  final bool useLiveAi;
 
   const DraggableAiCloud({
     super.key,
@@ -39,6 +47,7 @@ class DraggableAiCloud extends StatefulWidget {
     this.onGenerationChanged,
     this.showResizeHandles = true,
     this.openDirectlyFullscreen = false,
+    this.useLiveAi = false,
   });
 
   @override
@@ -56,13 +65,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   static const _snapThreshold = 48.0;
   static const _scrollToBottomThreshold = 120.0;
   static const _demoWords = <String>[
-    'Lorem',
-    'ipsum',
+    '**Lorem',
+    'ipsum**',
     'dolor',
     'sit',
-    'amet,',
+    '*amet*,',
     'consectetur',
-    'adipiscing',
+    '`adipiscing`',
     'elit,',
     'sed',
     'do',
@@ -102,10 +111,23 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   final _chatScrollController = ScrollController();
   final List<_DemoChatTurn> _chatTurns = [];
   Timer? _responseTimer;
+  StreamSubscription<String>? _liveResponseSubscription;
+  Timer? _liveChunkFlushTimer;
+  final List<String> _pendingLiveChunks = <String>[];
+  bool _liveStreamCompleted = false;
+  String? _pendingLiveError;
+  int _activeGenerationId = 0;
+  bool _isLoadingCloudVisible = false;
+  bool _isLoadingCloudDismissing = false;
+  Future<void>? _loadingCloudEnterFuture;
+  _DemoChatTurn? _copiedTurn;
+  Timer? _copiedTurnTimer;
   Timer? _permissionContinuationTimer;
   Timer? _completionPulseTimer;
   Timer? _permissionBadgeDelayTimer;
   Timer? _collapsedWaitingHapticTimer;
+  int _lastHapticWordCount = 0;
+  DateTime? _lastWordHapticAt;
   bool _isGenerating = false;
   bool _hasCompletedResponse = false;
   bool _permissionPending = false;
@@ -127,6 +149,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   AnimationController? _fullscreenController;
   late final AnimationController _sidebarController;
   late final AnimationController _initialDockController;
+  late final AnimationController _loadingCloudController;
   Timer? _initialDockStartTimer;
   bool _initialDockScheduled = false;
   double _displayedHorizontalPosition = 0;
@@ -155,11 +178,44 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       vsync: this,
       duration: const Duration(milliseconds: 320),
     )..addListener(_onSidebarAnimationTick);
+    _loadingCloudController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 560),
+      reverseDuration: const Duration(milliseconds: 460),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant DraggableAiCloud oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.useLiveAi != widget.useLiveAi) {
+      if (_isGenerating) {
+        _stopDemoGeneration();
+      }
+      if (widget.useLiveAi &&
+          (_permissionPending ||
+              _showPermissionBadge ||
+              _permissionApproved != null)) {
+        _permissionBadgeDelayTimer?.cancel();
+        _permissionBadgeDelayTimer = null;
+        _permissionContinuationTimer?.cancel();
+        _permissionContinuationTimer = null;
+        setState(() {
+          _permissionPending = false;
+          _showPermissionBadge = false;
+          _permissionApproved = null;
+          _attentionPeekDismissed = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
     _responseTimer?.cancel();
+    _liveResponseSubscription?.cancel();
+    _liveChunkFlushTimer?.cancel();
+    _copiedTurnTimer?.cancel();
     _permissionContinuationTimer?.cancel();
     _completionPulseTimer?.cancel();
     _permissionBadgeDelayTimer?.cancel();
@@ -173,6 +229,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _initialDockStartTimer?.cancel();
     _initialDockController.dispose();
     _sidebarController.dispose();
+    _loadingCloudController.dispose();
     _morphController?.dispose();
     _fullscreenController?.dispose();
     super.dispose();
@@ -198,12 +255,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _scale = 1;
       _isFullscreen = expanding ? openFullscreen : wasFullscreen;
       _showChatPreview = expanding;
-      if (expanding) {
-        // A completed response stays highlighted on the minimized orb until
-        // the chat is opened again.
-        _hasCompletedResponse = false;
-        _completionPulse = false;
-      }
+      _hasCompletedResponse = false;
+      _completionPulse = false;
     });
     _syncDemoWaitingHaptics();
     if (expanding) {
@@ -262,9 +315,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (_isExpanded) {
       _collapsedWaitingHapticTimer?.cancel();
       _collapsedWaitingHapticTimer = null;
-      if (!_expandedWaitingHapticsActive) {
-        _expandedWaitingHapticsActive = true;
-        haptics.startAiWaiting();
+      if (_expandedWaitingHapticsActive) {
+        _expandedWaitingHapticsActive = false;
+        haptics.stopAiWaiting();
       }
       return;
     }
@@ -280,6 +333,22 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         (_) => unawaited(haptics.lightImpact()),
       );
     }
+  }
+
+  static final RegExp _wordPattern = RegExp(r'\S+');
+
+  void _triggerWordHapticIfNeeded(String responseText) {
+    final wordCount = _wordPattern.allMatches(responseText).length;
+    if (wordCount <= _lastHapticWordCount) return;
+    _lastHapticWordCount = wordCount;
+    if (!_isExpanded) return;
+    final now = DateTime.now();
+    final last = _lastWordHapticAt;
+    if (last != null && now.difference(last).inMilliseconds < 28) {
+      return;
+    }
+    _lastWordHapticAt = now;
+    unawaited(HapticFeedbackService.instance.selectionFeedback());
   }
 
   /// Ends the current demo response without requesting more permissions.
@@ -1323,14 +1392,28 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   void _startNewDemoChat() {
+    _activeGenerationId++;
     _responseTimer?.cancel();
     _responseTimer = null;
+    _liveResponseSubscription?.cancel();
+    _liveResponseSubscription = null;
+    _liveChunkFlushTimer?.cancel();
+    _liveChunkFlushTimer = null;
+    _pendingLiveChunks.clear();
+    _liveStreamCompleted = false;
+    _pendingLiveError = null;
+    _loadingCloudEnterFuture = null;
+    _loadingCloudController.value = 0;
     _permissionContinuationTimer?.cancel();
     _permissionContinuationTimer = null;
     _permissionBadgeDelayTimer?.cancel();
     _completionPulseTimer?.cancel();
+    _lastHapticWordCount = 0;
+    _lastWordHapticAt = null;
     setState(() {
       _chatTurns.clear();
+      _isLoadingCloudVisible = false;
+      _isLoadingCloudDismissing = false;
       _isGenerating = false;
       _hasCompletedResponse = false;
       _permissionPending = false;
@@ -1801,12 +1884,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                         theme: theme,
                                         contrastColor: contrastColor,
                                         surfaceColor: surfaceColor,
-                                        isVisible: _permissionPending ||
-                                            _permissionApproved != null,
+                                        isVisible: !widget.useLiveAi &&
+                                            (_permissionPending ||
+                                                _permissionApproved != null),
                                       ),
                                     );
                                   }
                                   final turn = _chatTurns[index];
+                                  final isLastTurn =
+                                      index == _chatTurns.length - 1;
                                   return KeyedSubtree(
                                     key: ValueKey<_DemoChatTurn>(turn),
                                     child: _buildChatTurn(
@@ -1814,8 +1900,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                       theme: theme,
                                       contrastColor: contrastColor,
                                       softColor: softColor,
-                                      isStreaming: _isGenerating &&
-                                          index == _chatTurns.length - 1,
+                                      isStreaming: _isGenerating && isLastTurn,
+                                      showLoadingCloud: isLastTurn &&
+                                          _isLoadingCloudVisible &&
+                                          turn.response.isEmpty,
                                     ),
                                   );
                                 },
@@ -1894,6 +1982,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required Color contrastColor,
     required Color softColor,
     required bool isStreaming,
+    required bool showLoadingCloud,
   }) {
     final isCompactPrompt = turn.prompt.trim().runes.length <= 2;
 
@@ -1936,31 +2025,411 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 4, top: 12),
-            child: Text(
-              turn.response,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: contrastColor,
-                height: 1.5,
-              ),
-            ),
-          ),
-          if (isStreaming && turn.response.isEmpty)
+          if (showLoadingCloud)
             Padding(
-              padding: const EdgeInsets.only(left: 4, top: 14),
-              child: SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: contrastColor.withValues(alpha: 0.58),
-                ),
+              padding: const EdgeInsets.only(left: 4, top: 12),
+              child: AnimatedBuilder(
+                animation: _loadingCloudController,
+                builder: (context, _) {
+                  // 0.0 -> 0.44: nichts -> Kreis (sizeFactor 0 -> 1, morph 0)
+                  // 0.44 -> 1.0: Kreis -> Wolke (sizeFactor 1, morph 0 -> 1)
+                  // Reverse runs Wolke -> Kreis -> nichts.
+                  const split = 0.44;
+                  final progress =
+                      _loadingCloudController.value.clamp(0.0, 1.0);
+                  final circleScale = progress <= split
+                      ? Curves.easeInOutCubic.transform(
+                          (progress / split).clamp(0.0, 1.0),
+                        )
+                      : 1.0;
+                  final cloudMorph = progress <= split
+                      ? 0.0
+                      : Curves.easeInOutCubic.transform(
+                          ((progress - split) / (1.0 - split)).clamp(0.0, 1.0),
+                        );
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: AiNeuralCloudOrbWidget(
+                      size: 68,
+                      canvasSize: const Size(42, 42),
+                      cloudCenter: const Offset(21, 21),
+                      sizeFactor: circleScale,
+                      morph: 0,
+                      instantaneousMorph: cloudMorph,
+                      baseColor: contrastColor,
+                      showAmbientGlow: false,
+                      enableInteraction: false,
+                    ),
+                  );
+                },
+              ),
+            )
+          else if (turn.response.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 4, top: 12),
+              child: _buildMarkdownResponse(
+                turn.response,
+                theme: theme,
+                contrastColor: contrastColor,
+                softColor: softColor,
+                isStreaming: isStreaming,
               ),
             ),
+            if (!isStreaming)
+              _buildChatTurnActionBar(
+                turn,
+                theme: theme,
+                contrastColor: contrastColor,
+              ),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildMarkdownResponse(
+    String rawResponse, {
+    required ThemeData theme,
+    required Color contrastColor,
+    required Color softColor,
+    required bool isStreaming,
+  }) {
+    final normalized = _normalizeStreamingMarkdown(
+      rawResponse,
+      isStreaming: isStreaming,
+    );
+    final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
+      color: contrastColor,
+      height: 1.5,
+    );
+    final codeStyle = bodyStyle?.copyWith(
+      fontFamily: 'monospace',
+      fontSize: 13,
+      color: contrastColor,
+      backgroundColor: softColor,
+    );
+
+    return MarkdownBody(
+      data: normalized,
+      selectable: false,
+      onTapLink: (text, href, title) {
+        if (href == null || href.trim().isEmpty) return;
+        final uri = Uri.tryParse(href.trim());
+        if (uri != null) {
+          unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
+        }
+      },
+      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+        p: bodyStyle,
+        pPadding: const EdgeInsets.only(bottom: 8),
+        h1: theme.textTheme.titleLarge?.copyWith(
+          color: contrastColor,
+          fontWeight: FontWeight.w700,
+          height: 1.3,
+        ),
+        h2: theme.textTheme.titleMedium?.copyWith(
+          color: contrastColor,
+          fontWeight: FontWeight.w700,
+          height: 1.35,
+        ),
+        h3: theme.textTheme.titleSmall?.copyWith(
+          color: contrastColor,
+          fontWeight: FontWeight.w700,
+          height: 1.4,
+        ),
+        h4: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
+        h5: bodyStyle?.copyWith(fontWeight: FontWeight.w600),
+        h6: bodyStyle?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: contrastColor.withValues(alpha: 0.82),
+        ),
+        strong: bodyStyle?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: contrastColor,
+        ),
+        em: bodyStyle?.copyWith(
+          fontStyle: FontStyle.italic,
+          color: contrastColor,
+        ),
+        del: bodyStyle?.copyWith(
+          decoration: TextDecoration.lineThrough,
+          color: contrastColor.withValues(alpha: 0.72),
+        ),
+        a: bodyStyle?.copyWith(
+          color: theme.colorScheme.primary,
+          decoration: TextDecoration.underline,
+        ),
+        listBullet: bodyStyle,
+        listIndent: 18,
+        code: codeStyle,
+        codeblockPadding: const EdgeInsets.all(12),
+        codeblockDecoration: BoxDecoration(
+          color: softColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: contrastColor.withValues(alpha: 0.12),
+            width: 0.5,
+          ),
+        ),
+        blockquote: bodyStyle?.copyWith(
+          color: contrastColor.withValues(alpha: 0.84),
+        ),
+        blockquotePadding:
+            const EdgeInsets.only(left: 12, top: 2, bottom: 2),
+        blockquoteDecoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: contrastColor.withValues(alpha: 0.35),
+              width: 3,
+            ),
+          ),
+        ),
+        tableHead: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
+        tableBody: bodyStyle,
+        tableBorder: TableBorder.all(
+          color: contrastColor.withValues(alpha: 0.18),
+          width: 0.5,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        horizontalRuleDecoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: contrastColor.withValues(alpha: 0.16),
+              width: 1,
+            ),
+          ),
+        ),
+      ),
+      builders: {
+        'latex': LatexElementBuilder(
+          textStyle: bodyStyle,
+        ),
+      },
+      extensionSet: md.ExtensionSet(
+        [
+          ...md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+          LatexBlockSyntax(),
+        ],
+        [
+          ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+          LatexInlineSyntax(),
+        ],
+      ),
+    );
+  }
+
+  String _normalizeStreamingMarkdown(String raw, {required bool isStreaming}) {
+    if (!isStreaming || raw.isEmpty) return raw;
+    var text = raw;
+    // Strip a lone trailing '**' before the first character of the bold span
+    // arrives so raw syntax markers never flash for a frame.
+    if (text.endsWith('**') && !text.endsWith('***')) {
+      final withoutTrailing = text.substring(0, text.length - 2);
+      if ('**'.allMatches(withoutTrailing).length.isEven) {
+        return withoutTrailing;
+      }
+    }
+    // Auto-close an active '**bold**' span while words are streaming inside it.
+    final boldMatches = '**'.allMatches(text).length;
+    if (boldMatches.isOdd) {
+      final trimmed = text.trimRight();
+      if (!trimmed.endsWith('*')) {
+        text = '$trimmed**';
+      }
+    }
+    // Auto-close an active inline '`code`' span when not inside a fenced block.
+    final fenceMatches = '```'.allMatches(text).length;
+    if (fenceMatches.isEven) {
+      final withoutFences = text.replaceAll('```', '');
+      final backtickMatches = '`'.allMatches(withoutFences).length;
+      if (backtickMatches.isOdd) {
+        final trimmed = text.trimRight();
+        if (trimmed.endsWith('`')) {
+          text = trimmed.substring(0, trimmed.length - 1);
+        } else {
+          text = '$trimmed`';
+        }
+      }
+    }
+    return text;
+  }
+
+  Widget _buildChatTurnActionBar(
+    _DemoChatTurn turn, {
+    required ThemeData theme,
+    required Color contrastColor,
+  }) {
+    final isCopied = _copiedTurn == turn;
+    final subtleColor = contrastColor.withValues(alpha: 0.52);
+    final modelLabel = turn.modelName;
+    final durationLabel = turn.duration != null
+        ? _formatGenerationDuration(turn.duration!)
+        : null;
+
+    final metaText = [
+      if (modelLabel != null && modelLabel.isNotEmpty) modelLabel,
+      if (durationLabel != null) durationLabel,
+    ].join(' · ');
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, top: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildActionIconButton(
+            icon: isCopied ? LucideIcons.check : LucideIcons.copy,
+            tooltip: 'Antwort kopieren (Lange drücken: Gesamten Chat kopieren)',
+            onTap: () => _copyResponseMarkdown(turn),
+            onLongPress: _copyFullChatMarkdown,
+            foregroundColor: isCopied
+                ? (theme.brightness == Brightness.dark
+                    ? Colors.greenAccent
+                    : Colors.green.shade700)
+                : subtleColor,
+          ),
+          const SizedBox(width: 4),
+          _buildActionIconButton(
+            icon: LucideIcons.rotate_cw,
+            tooltip: 'Erneut versuchen',
+            onTap: _isGenerating ? null : () => _retryTurnPrompt(turn),
+            foregroundColor: subtleColor,
+          ),
+          if (metaText.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text(
+              metaText,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+                color: subtleColor,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionIconButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onTap,
+    VoidCallback? onLongPress,
+    required Color foregroundColor,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: Center(
+              child: Icon(
+                icon,
+                size: 15,
+                color: foregroundColor,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatGenerationDuration(Duration duration) {
+    final seconds = duration.inMilliseconds / 1000.0;
+    if (seconds < 10) {
+      return '${seconds.toStringAsFixed(1).replaceAll('.', ',')} s';
+    } else {
+      return '${seconds.toStringAsFixed(0)} s';
+    }
+  }
+
+  Future<void> _copyResponseMarkdown(_DemoChatTurn turn) async {
+    await Clipboard.setData(ClipboardData(text: turn.response));
+    unawaited(HapticFeedbackService.instance.selectionFeedback());
+    setState(() => _copiedTurn = turn);
+    _copiedTurnTimer?.cancel();
+    _copiedTurnTimer = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted) setState(() => _copiedTurn = null);
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Antwort im Markdown-Format kopiert'),
+        duration: const Duration(milliseconds: 2500),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'Gesamten Chat',
+          onPressed: _copyFullChatMarkdown,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _copyFullChatMarkdown() async {
+    if (_chatTurns.isEmpty) return;
+    final buffer = StringBuffer();
+    for (var i = 0; i < _chatTurns.length; i++) {
+      final t = _chatTurns[i];
+      buffer.writeln('### Benutzer');
+      buffer.writeln(t.prompt);
+      buffer.writeln();
+      buffer.writeln('### Assistent');
+      buffer.writeln(t.response);
+      if (i < _chatTurns.length - 1) {
+        buffer.writeln();
+        buffer.writeln('---');
+        buffer.writeln();
+      }
+    }
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    unawaited(HapticFeedbackService.instance.selectionFeedback());
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Kompletter Chat im Markdown-Format kopiert'),
+        duration: Duration(milliseconds: 2000),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _retryTurnPrompt(_DemoChatTurn turn) {
+    if (_isGenerating) return;
+    final prompt = turn.prompt.trim();
+    if (prompt.isEmpty) return;
+    final index = _chatTurns.indexOf(turn);
+    if (index != -1) {
+      setState(() {
+        _chatTurns.removeRange(index, _chatTurns.length);
+      });
+    }
+    _chatInputController.text = prompt;
+    _sendDemoPrompt();
+  }
+
+  Future<String> _resolveCurrentModelName() async {
+    if (!widget.useLiveAi) return 'Demo';
+    try {
+      final provider = await AiService.instance.getSelectedProvider();
+      if (provider == AiProvider.appleFoundation) {
+        return 'Apple Intelligence';
+      }
+      final model = await AiService.instance.getSelectedModel(provider);
+      if (model.isNotEmpty) {
+        return model;
+      }
+      return AiService.instance.getProviderMetadata(provider).displayName;
+    } catch (_) {
+      return 'KI';
+    }
   }
 
   Widget _buildDemoPermissionCard({
@@ -2136,9 +2605,35 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final prompt = _chatInputController.text.trim();
     if (prompt.isEmpty) return;
 
+    final history = <AiOverlayLiveChatTurn>[
+      if (widget.useLiveAi)
+        for (final turn in _chatTurns)
+          if (turn.prompt.trim().isNotEmpty && turn.response.trim().isNotEmpty)
+            AiOverlayLiveChatTurn(prompt: turn.prompt, response: turn.response),
+    ];
+
+    final generationId = ++_activeGenerationId;
+    _responseTimer?.cancel();
+    _responseTimer = null;
+    _liveResponseSubscription?.cancel();
+    _liveResponseSubscription = null;
+    _liveChunkFlushTimer?.cancel();
+    _liveChunkFlushTimer = null;
+    _pendingLiveChunks.clear();
+    _liveStreamCompleted = false;
+    _pendingLiveError = null;
+    _lastHapticWordCount = 0;
+    _lastWordHapticAt = null;
+
+    final turn = _DemoChatTurn(prompt)
+      ..generationStartedAt = DateTime.now()
+      ..modelName = widget.useLiveAi ? null : 'Demo';
+
     setState(() {
       _permissionBadgeDelayTimer?.cancel();
-      _chatTurns.add(_DemoChatTurn(prompt));
+      _chatTurns.add(turn);
+      _isLoadingCloudVisible = true;
+      _isLoadingCloudDismissing = false;
       _isGenerating = true;
       _hasCompletedResponse = false;
       _permissionPending = false;
@@ -2148,51 +2643,305 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _demoWordIndex = 0;
       _chatInputController.clear();
     });
+    if (widget.useLiveAi) {
+      unawaited(_resolveCurrentModelName().then((name) {
+        if (mounted && turn.modelName == null) {
+          setState(() => turn.modelName = name);
+        }
+      }));
+    }
+    _loadingCloudEnterFuture = _loadingCloudController.forward(from: 0.0);
     _syncDemoWaitingHaptics();
     widget.onGenerationChanged?.call(true);
     _scrollChatToBottom(force: true);
 
-    _responseTimer = Timer.periodic(const Duration(milliseconds: 55), (timer) {
-      if (!mounted) {
-        timer.cancel();
+    if (widget.useLiveAi) {
+      _liveResponseSubscription = AiOverlayLiveChatService.instance
+          .streamChat(prompt: prompt, history: history)
+          .listen(
+        (chunk) {
+          if (!mounted ||
+              _activeGenerationId != generationId ||
+              !_isGenerating ||
+              _chatTurns.isEmpty) {
+            return;
+          }
+          if (_isLoadingCloudVisible ||
+              _liveChunkFlushTimer != null ||
+              _pendingLiveChunks.isNotEmpty) {
+            _pendingLiveChunks.add(chunk);
+            if (_isLoadingCloudVisible && !_isLoadingCloudDismissing) {
+              unawaited(_dismissLoadingCloudAndStartStreaming(generationId));
+            }
+            return;
+          }
+          setState(() {
+            _chatTurns.last.response += chunk;
+          });
+          _triggerWordHapticIfNeeded(_chatTurns.last.response);
+          _scrollChatToBottom();
+        },
+        onError: (Object error) {
+          _liveResponseSubscription = null;
+          if (!mounted || _activeGenerationId != generationId) return;
+          _pendingLiveError = error.toString();
+          if (_isLoadingCloudVisible) {
+            if (!_isLoadingCloudDismissing) {
+              unawaited(_dismissLoadingCloudAndStartStreaming(generationId));
+            }
+            return;
+          }
+          if (_liveChunkFlushTimer == null) {
+            _applyPendingLiveErrorAndFinish();
+          }
+        },
+        onDone: () {
+          _liveResponseSubscription = null;
+          if (!mounted ||
+              _activeGenerationId != generationId ||
+              !_isGenerating) {
+            return;
+          }
+          _liveStreamCompleted = true;
+          if (_isLoadingCloudVisible) {
+            if (!_isLoadingCloudDismissing) {
+              unawaited(_dismissLoadingCloudAndStartStreaming(generationId));
+            }
+            return;
+          }
+          if (_liveChunkFlushTimer == null && _pendingLiveChunks.isEmpty) {
+            _completeDemoGeneration();
+          }
+        },
+      );
+      return;
+    }
+
+    unawaited(_startDemoStreamingAfterLoadingCloud(generationId));
+  }
+
+  Future<void> _startDemoStreamingAfterLoadingCloud(int generationId) async {
+    try {
+      final enterFuture = _loadingCloudEnterFuture;
+      if (enterFuture != null) {
+        await enterFuture;
+      }
+      if (!mounted || _activeGenerationId != generationId || !_isGenerating) {
         return;
       }
+      await Future<void>.delayed(const Duration(milliseconds: 360));
+      if (!mounted || _activeGenerationId != generationId || !_isGenerating) {
+        return;
+      }
+      _isLoadingCloudDismissing = true;
+      await _loadingCloudController.reverse();
+    } catch (_) {
+      // Animation disposed or interrupted.
+    }
+    if (!mounted || _activeGenerationId != generationId || !_isGenerating) {
+      return;
+    }
+    setState(() {
+      _isLoadingCloudVisible = false;
+      _isLoadingCloudDismissing = false;
+    });
+    _startDemoResponseTicker();
+  }
+
+  Future<void> _dismissLoadingCloudAndStartStreaming(int generationId) async {
+    if (_isLoadingCloudDismissing) return;
+    _isLoadingCloudDismissing = true;
+    try {
+      final enterFuture = _loadingCloudEnterFuture;
+      if (enterFuture != null && _loadingCloudController.isAnimating) {
+        await enterFuture;
+        if (!mounted || _activeGenerationId != generationId) return;
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+      }
+      if (!mounted || _activeGenerationId != generationId) return;
+      await _loadingCloudController.reverse();
+    } catch (_) {
+      // Animation disposed or interrupted.
+    }
+    if (!mounted || _activeGenerationId != generationId) return;
+    setState(() {
+      _isLoadingCloudVisible = false;
+      _isLoadingCloudDismissing = false;
+    });
+    _startFlushingPendingLiveChunks(generationId);
+  }
+
+  void _startFlushingPendingLiveChunks(int generationId) {
+    if (!mounted || _activeGenerationId != generationId) return;
+    if (_pendingLiveChunks.isEmpty) {
+      if (_pendingLiveError != null) {
+        _applyPendingLiveErrorAndFinish();
+      } else if (_liveStreamCompleted && _isGenerating) {
+        _completeDemoGeneration();
+      }
+      return;
+    }
+
+    void emitNextBufferedChunk() {
+      if (!mounted ||
+          _activeGenerationId != generationId ||
+          _chatTurns.isEmpty ||
+          _pendingLiveChunks.isEmpty) {
+        return;
+      }
+      final nextChunk = _pendingLiveChunks.removeAt(0);
       setState(() {
-        final turn = _chatTurns.last;
-        turn.response += '${_demoWords[_demoWordIndex]} ';
-        _demoWordIndex = (_demoWordIndex + 1) % _demoWords.length;
-        if (_demoWordIndex == 0) turn.response += '\n\n';
+        _chatTurns.last.response += nextChunk;
       });
+      _triggerWordHapticIfNeeded(_chatTurns.last.response);
       _scrollChatToBottom();
+    }
+
+    emitNextBufferedChunk();
+    if (_pendingLiveChunks.isEmpty) {
+      if (_pendingLiveError != null) {
+        _applyPendingLiveErrorAndFinish();
+      } else if (_liveStreamCompleted && _isGenerating) {
+        _completeDemoGeneration();
+      }
+      return;
+    }
+
+    _liveChunkFlushTimer?.cancel();
+    _liveChunkFlushTimer = Timer.periodic(
+      const Duration(milliseconds: 24),
+      (timer) {
+        if (!mounted ||
+            _activeGenerationId != generationId ||
+            !_isGenerating ||
+            _chatTurns.isEmpty) {
+          timer.cancel();
+          _liveChunkFlushTimer = null;
+          return;
+        }
+        emitNextBufferedChunk();
+        if (_pendingLiveChunks.isEmpty) {
+          timer.cancel();
+          _liveChunkFlushTimer = null;
+          if (_pendingLiveError != null) {
+            _applyPendingLiveErrorAndFinish();
+          } else if (_liveStreamCompleted && _isGenerating) {
+            _completeDemoGeneration();
+          }
+        }
+      },
+    );
+  }
+
+  void _applyPendingLiveErrorAndFinish() {
+    final errorText = _pendingLiveError;
+    _pendingLiveError = null;
+    if (!mounted) return;
+    setState(() {
+      if (errorText != null && _chatTurns.isNotEmpty) {
+        if (_chatTurns.last.response.trim().isEmpty) {
+          _chatTurns.last.response = errorText;
+        } else {
+          _chatTurns.last.response += '\n\n[$errorText]';
+        }
+      }
+      if (_chatTurns.isNotEmpty) {
+        final lastTurn = _chatTurns.last;
+        if (lastTurn.generationStartedAt != null) {
+          lastTurn.duration =
+              DateTime.now().difference(lastTurn.generationStartedAt!);
+        }
+        lastTurn.modelName ??= widget.useLiveAi ? 'KI' : 'Demo';
+      }
+      _isGenerating = false;
+    });
+    _syncDemoWaitingHaptics();
+    widget.onGenerationChanged?.call(false);
+    _scrollChatToBottom();
+  }
+
+  Future<void> _reverseLoadingCloudToNothing(int generationId) async {
+    if (!_isLoadingCloudVisible) return;
+    _isLoadingCloudDismissing = true;
+    try {
+      if (_loadingCloudController.value > 0.001) {
+        await _loadingCloudController.reverse();
+      }
+    } catch (_) {
+      // Animation disposed or interrupted.
+    }
+    if (!mounted || _activeGenerationId != generationId) return;
+    setState(() {
+      _isLoadingCloudVisible = false;
+      _isLoadingCloudDismissing = false;
     });
   }
 
   void _stopDemoGeneration() {
     if (!_isGenerating) return;
+    final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
     _responseTimer = null;
+    _liveResponseSubscription?.cancel();
+    _liveResponseSubscription = null;
+    _liveChunkFlushTimer?.cancel();
+    _liveChunkFlushTimer = null;
+    _pendingLiveChunks.clear();
+    _liveStreamCompleted = false;
+    _pendingLiveError = null;
     _permissionContinuationTimer?.cancel();
     _permissionContinuationTimer = null;
+    if (_chatTurns.isNotEmpty) {
+      final lastTurn = _chatTurns.last;
+      if (lastTurn.generationStartedAt != null && lastTurn.duration == null) {
+        lastTurn.duration =
+            DateTime.now().difference(lastTurn.generationStartedAt!);
+      }
+      lastTurn.modelName ??= widget.useLiveAi ? 'KI' : 'Demo';
+    }
     setState(() => _isGenerating = false);
+    if (_isLoadingCloudVisible) {
+      unawaited(_reverseLoadingCloudToNothing(generationId));
+    }
     _syncDemoWaitingHaptics();
     widget.onGenerationChanged?.call(false);
   }
 
   void _completeDemoGeneration() {
     if (!_isGenerating) return;
+    final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
     _responseTimer = null;
+    _liveResponseSubscription?.cancel();
+    _liveResponseSubscription = null;
+    _liveChunkFlushTimer?.cancel();
+    _liveChunkFlushTimer = null;
+    _pendingLiveChunks.clear();
+    _liveStreamCompleted = false;
+    _pendingLiveError = null;
     _permissionContinuationTimer?.cancel();
     _permissionContinuationTimer = null;
+    if (_chatTurns.isNotEmpty) {
+      final lastTurn = _chatTurns.last;
+      if (lastTurn.generationStartedAt != null) {
+        lastTurn.duration =
+            DateTime.now().difference(lastTurn.generationStartedAt!);
+      }
+      lastTurn.modelName ??= widget.useLiveAi ? 'KI' : 'Demo';
+    }
+    final wasDocked = !_isExpanded && _morphAnimation.value <= 0.005;
     setState(() {
       _isGenerating = false;
-      _hasCompletedResponse = true;
+      _hasCompletedResponse = wasDocked;
       _permissionPending = false;
       _attentionPeekDismissed = false;
       _showPermissionBadge = false;
       _permissionApproved = null;
-      _completionPulse = !_isExpanded && _morphAnimation.value <= 0.005;
+      _completionPulse = wasDocked;
     });
+    if (_isLoadingCloudVisible) {
+      unawaited(_reverseLoadingCloudToNothing(generationId));
+    }
     _permissionBadgeDelayTimer?.cancel();
     _syncDemoWaitingHaptics();
     unawaited(HapticFeedbackService.instance.strongImpact());
@@ -2202,7 +2951,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   void _requestDemoPermission() {
-    if (!_isGenerating || _chatTurns.isEmpty) return;
+    if (widget.useLiveAi || !_isGenerating || _chatTurns.isEmpty) return;
+    final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
     _responseTimer = null;
     setState(() {
@@ -2213,6 +2963,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _showPermissionBadge = false;
       _permissionApproved = null;
     });
+    if (_isLoadingCloudVisible) {
+      unawaited(_reverseLoadingCloudToNothing(generationId));
+    }
     _permissionBadgeDelayTimer?.cancel();
     _permissionBadgeDelayTimer = Timer(
       const Duration(milliseconds: 300),
@@ -2274,6 +3027,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         _demoWordIndex = (_demoWordIndex + 1) % _demoWords.length;
         if (_demoWordIndex == 0) turn.response += '\n\n';
       });
+      _triggerWordHapticIfNeeded(_chatTurns.last.response);
       _scrollChatToBottom();
     });
   }
@@ -2383,6 +3137,9 @@ class _DemoChatTurn {
 
   final String prompt;
   String response = '';
+  String? modelName;
+  Duration? duration;
+  DateTime? generationStartedAt;
 }
 
 class _CloudControlsClipper extends CustomClipper<Rect> {

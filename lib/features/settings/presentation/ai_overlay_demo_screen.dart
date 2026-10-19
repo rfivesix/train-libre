@@ -25,6 +25,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   bool _cloudExpanded = false;
   bool _showCloudResizeHandles = false;
   bool _openCloudDirectlyFullscreen = true;
+  bool _useLiveAi = false;
   bool _cloudIsGenerating = false;
   double _cloudLiveliness = 0.10;
 
@@ -94,6 +95,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                   liveliness: _cloudLiveliness,
                   showResizeHandles: _showCloudResizeHandles,
                   openDirectlyFullscreen: _openCloudDirectlyFullscreen,
+                  useLiveAi: _useLiveAi,
                   onExpandedChanged: (value) =>
                       setState(() => _cloudExpanded = value),
                   onGenerationChanged: (value) =>
@@ -177,30 +179,41 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             onChanged: (value) =>
                 setState(() => _openCloudDirectlyFullscreen = value),
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              spacing: DesignConstants.spacingS,
-              runSpacing: DesignConstants.spacingXS,
-              children: [
-                TextButton.icon(
-                  onPressed: _cloudIsGenerating
-                      ? _cloudKey.currentState?.finishDemoGeneration
-                      : null,
-                  icon: const Icon(LucideIcons.circle_check),
-                  label: const Text('Direkt fertigstellen'),
-                ),
-                TextButton.icon(
-                  onPressed: _cloudIsGenerating
-                      ? _cloudKey.currentState?.requestDemoPermission
-                      : null,
-                  icon: const Icon(LucideIcons.shield_alert),
-                  label: const Text('Freigabe anfordern'),
-                ),
-              ],
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: const Text('Echte KI-Anbindung'),
+            subtitle: const Text(
+              'Antworten live über das konfigurierte KI-Modell streamen',
             ),
+            value: _useLiveAi,
+            onChanged: (value) => setState(() => _useLiveAi = value),
           ),
+          if (!_useLiveAi)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: DesignConstants.spacingS,
+                runSpacing: DesignConstants.spacingXS,
+                children: [
+                  TextButton.icon(
+                    onPressed: _cloudIsGenerating
+                        ? _cloudKey.currentState?.finishDemoGeneration
+                        : null,
+                    icon: const Icon(LucideIcons.circle_check),
+                    label: const Text('Direkt fertigstellen'),
+                  ),
+                  TextButton.icon(
+                    onPressed: _cloudIsGenerating
+                        ? _cloudKey.currentState?.requestDemoPermission
+                        : null,
+                    icon: const Icon(LucideIcons.shield_alert),
+                    label: const Text('Freigabe anfordern'),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

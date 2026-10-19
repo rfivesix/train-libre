@@ -31,6 +31,7 @@ abstract class AiNeuralCloudOrbState {
 /// driving it.
 class AiNeuralCloudOrbWidget extends StatefulWidget {
   final double size;
+  final double sizeFactor;
   final double rotation;
   final Size? canvasSize;
   final Offset? cloudCenter;
@@ -109,6 +110,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   const AiNeuralCloudOrbWidget({
     super.key,
     this.size = 280,
+    this.sizeFactor = 1.0,
     this.rotation = 0,
     this.canvasSize,
     this.cloudCenter,
@@ -332,6 +334,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
               size: widget.canvasSize ?? Size(widget.size, widget.size),
               painter: _OrganicLivingCloudPainter(
                 cloudSize: widget.size,
+                sizeFactor: widget.sizeFactor.clamp(0.0, 1.0).toDouble(),
                 rotation: widget.rotation,
                 cloudCenter: widget.cloudCenter,
                 frameRect: widget.frameRect,
@@ -364,6 +367,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
 
 class _OrganicLivingCloudPainter extends CustomPainter {
   final double cloudSize;
+  final double sizeFactor;
   final double rotation;
   final Offset? cloudCenter;
   final Rect? frameRect;
@@ -387,6 +391,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
 
   _OrganicLivingCloudPainter({
     required this.cloudSize,
+    required this.sizeFactor,
     required this.rotation,
     required this.cloudCenter,
     required this.frameRect,
@@ -422,11 +427,15 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     final motion = morph;
 
     // 1. Soft atmospheric background glow with dynamic color tint
-    if (showAmbientGlow && morph > 0.01 && frameMorph < 0.999) {
+    if (showAmbientGlow &&
+        sizeFactor > 0.01 &&
+        morph > 0.01 &&
+        frameMorph < 0.999) {
       final glowBreathe = (0.92 +
               0.08 * math.sin(time * 1.6) * motion +
               0.12 * rippleIntensity +
               0.18 * energy) *
+          sizeFactor *
           morph.clamp(0.0, 1.0) *
           (1.0 - frameMorph).clamp(0.0, 1.0);
       final glowRadius = (125.0 + 12.0 * (charge / 5.0)) * scale * glowBreathe;
@@ -541,7 +550,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
           paint: paint,
           center: Offset.zero,
           scale: scale,
-          sizeFactor: 1,
+          sizeFactor: sizeFactor,
           time: time,
           phaseOffset: 0,
           motion: motion,
@@ -572,7 +581,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
 
     // A restrained neutral-gray halo separates the cloud from both light and
     // dark content without dimming or tinting the page behind it.
-    if (edgeBlurSigma > 0) {
+    if (edgeBlurSigma > 0 && sizeFactor > 0.001) {
       canvas.saveLayer(
         null,
         Paint()
@@ -599,7 +608,10 @@ class _OrganicLivingCloudPainter extends CustomPainter {
 
     // 4. Detached trailing satellite bubble — only once there is a cloud for it
     // to have detached from.
-    if (showDetachedSatellite && morph > 0.02 && frameMorph <= 0.001) {
+    if (showDetachedSatellite &&
+        sizeFactor > 0.01 &&
+        morph > 0.02 &&
+        frameMorph <= 0.001) {
       final satProgress = charge.clamp(0.0, 1.0);
       final satColor = Color.lerp(baseColor, accentColor, satProgress)!;
 
@@ -613,7 +625,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
           0.12 * rippleIntensity +
           0.22 * energy;
       final satDistWobble = 4.0 * math.sin(time * 1.8) * motion;
-      final satDist = (98.0 + satDistWobble) * scale * morph;
+      final satDist = (98.0 + satDistWobble) * scale * sizeFactor * morph;
 
       final satAngleDrift = 0.06 * math.cos(time * 1.4) * motion;
       const satBaseAngle = 0.72 * math.pi; // ~130 deg (bottom-left quadrant)
@@ -623,7 +635,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         satDist * math.cos(satAngle),
         satDist * math.sin(satAngle),
       );
-      final satRadius = 13.0 * scale * satBreathe * morph;
+      final satRadius = 13.0 * scale * sizeFactor * satBreathe * morph;
       canvas.drawCircle(satPos, satRadius, satPaint);
     }
 
@@ -877,6 +889,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
   bool shouldRepaint(covariant _OrganicLivingCloudPainter oldDelegate) {
     return oldDelegate.time != time ||
         oldDelegate.cloudSize != cloudSize ||
+        oldDelegate.sizeFactor != sizeFactor ||
         oldDelegate.rotation != rotation ||
         oldDelegate.cloudCenter != cloudCenter ||
         oldDelegate.frameRect != frameRect ||

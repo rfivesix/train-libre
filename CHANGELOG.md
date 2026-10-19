@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.6.0-beta.3] - 2026-10-18
 
 ### Added
+- **AI Chat Message Action Bar & Markdown Copy (`DraggableAiCloud`, `draggable_ai_cloud.dart`):** Added a ChatGPT-style borderless action bar directly beneath completed AI assistant responses featuring one-tap Markdown copying of the answer (with checkmark confirmation, preserved 28x28 hit area, and full-chat copy option via long-press or snackbar action), an inline retry/regenerate button (`rotate_cw`), and subtle metadata text displaying the active model name and elapsed generation duration (e.g. `gpt-4o-mini · 1,4 s`).
 - Added curated German everyday aliases for common BLS staples and blocked incompatible animal-species matches from AI meal matches and repair suggestions; see the BLS catalog curation and release process.
 - **Offline weekly-review reminders:** Preload the next eight goal check-ins as local notifications so iOS can deliver them while Train Libre is closed. Review calculations still use on-device data when the app next opens.
 - **Health Connect strength set segments (Issue #737):** Export completed strength workout sets as `ExerciseSegment` entries with repetitions, load, exercise type, and set indexes. Existing Health Connect workouts receive a one-time idempotent payload upgrade that reuses their record identities.
@@ -74,6 +75,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **iOS internal-testing deployment:** Extended the deployment script to detect existing build numbers and increment them, clean previous builds, and handle IPA export failures while preserving the build and upload workflow.
 
 ### Fixed
+- **AI Overlay Docked Attention Flash on Chat Close (`DraggableAiCloud`, `draggable_ai_cloud.dart`):** Fixed an issue where closing the expanded or fullscreen AI chat after an answer had already completed generation caused the docked cloud button to flash the lime-green unread attention tint (`_hasCompletedResponse`) with an edge peek animation as if the response had arrived while the chat was closed. Closing the chat now clears any unread completed response status.
 - Restored the previous AI overlay button and transition styling after continuous Liquid Glass looked worse. Kept the permission prompt on one translucent orange surface and removed the mis-sized glass layer; one- or two-character chat prompts remain pill-shaped.
 - Preserved the fullscreen AI chat's visible scroll position while opening and closing its history sidebar, including the keyboard resize; animated the permission card's exit and retained its identity as new messages are appended.
 - Fixed AI overlay glass controls appearing flat in dark mode by restoring their local backdrop blur and using the overlay surface brightness for glass rendering. Kept the permission card's orange tint light and legible in the white overlay appearance.
