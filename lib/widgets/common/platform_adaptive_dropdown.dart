@@ -70,7 +70,8 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       menuItems.add(
         GlassMenuItem(
           title: item.label,
-          icon: item.customIcon ??
+          icon:
+              item.customIcon ??
               (item.icon != null ? Icon(item.icon, size: 20) : null),
           isSelected: isSelected,
           trailing: isSelected
@@ -167,14 +168,15 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           selectedItem = items.first;
         }
 
-        final selectedText =
-            selectedItem != null ? _getItemText(selectedItem.child) : '';
+        final selectedText = selectedItem != null
+            ? _getItemText(selectedItem.child)
+            : '';
         // Keep the collapsed trigger visually identical to a regular text field:
         // take the fill straight from the input theme (white in Light, 0xFF2C2C2E
         // in Dark) and stay borderless like the themed fields do.
         final containerFillColor =
             Theme.of(context).inputDecorationTheme.fillColor ??
-                (isDark ? const Color(0xFF2C2C2E) : Colors.white);
+            (isDark ? const Color(0xFF2C2C2E) : Colors.white);
 
         const borderColor = Colors.transparent;
 
@@ -192,7 +194,9 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.primary, width: 2),
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.spacingM,
@@ -210,11 +214,13 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           fillColor: decoration?.fillColor ?? containerFillColor,
           filled: decoration?.filled ?? true,
           contentPadding: decoration?.contentPadding,
-          border: decoration?.border != null &&
+          border:
+              decoration?.border != null &&
                   decoration?.border != const OutlineInputBorder()
               ? decoration?.border
               : defaultDecoration.border,
-          enabledBorder: decoration?.enabledBorder != null &&
+          enabledBorder:
+              decoration?.enabledBorder != null &&
                   decoration?.enabledBorder != const OutlineInputBorder()
               ? decoration?.enabledBorder
               : defaultDecoration.enabledBorder,
@@ -222,8 +228,9 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final menuWidth =
-                constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+            final menuWidth = constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : 280.0;
             return AdaptiveLiquidGlassLayer(
               settings: menuSettings,
               quality: DesignConstants.defaultGlassQuality,
@@ -232,34 +239,38 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
                 autoAdjustToScreen: true,
                 settings: menuSettings,
                 triggerBuilder: (context, toggle) {
-                  return GestureDetector(
-                    onTap: onChanged == null ? null : toggle,
-                    behavior: HitTestBehavior.opaque,
-                    child: InputDecorator(
-                      decoration: mergedDecoration,
-                      isEmpty: selectedText.isEmpty,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              selectedText,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    color:
-                                        isDark ? Colors.white : Colors.black87,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                  return Semantics(
+                    button: true,
+                    label: label,
+                    value: selectedText,
+                    child: GestureDetector(
+                      onTap: onChanged == null ? null : toggle,
+                      behavior: HitTestBehavior.opaque,
+                      child: InputDecorator(
+                        decoration: mergedDecoration,
+                        isEmpty: selectedText.isEmpty,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                selectedText,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            color: isDark ? Colors.white70 : Colors.black54,
-                          ),
-                        ],
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -357,7 +368,8 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
         .toList(growable: false);
     final summary = selectedLabels.join(', ');
 
-    final fillColor = theme.inputDecorationTheme.fillColor ??
+    final fillColor =
+        theme.inputDecorationTheme.fillColor ??
         (isDark ? const Color(0xFF2C2C2E) : Colors.white);
     const borderColor = Colors.transparent;
 
@@ -369,8 +381,9 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final menuWidth =
-            constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+        final menuWidth = constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : 280.0;
         return AdaptiveLiquidGlassLayer(
           settings: menuSettings,
           quality: DesignConstants.defaultGlassQuality,
@@ -378,41 +391,46 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
             menuWidth: menuWidth,
             autoAdjustToScreen: true,
             settings: menuSettings,
-            triggerBuilder: (context, toggle) => GestureDetector(
-              onTap: toggle,
-              behavior: HitTestBehavior.opaque,
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: label,
-                  filled: true,
-                  fillColor: fillColor,
-                  border: border(),
-                  enabledBorder: border(),
-                  focusedBorder: border(theme.colorScheme.primary, 2),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingM,
-                    vertical: DesignConstants.spacingS + 2,
+            triggerBuilder: (context, toggle) => Semantics(
+              button: true,
+              label: label,
+              value: summary,
+              child: GestureDetector(
+                onTap: toggle,
+                behavior: HitTestBehavior.opaque,
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: label,
+                    filled: true,
+                    fillColor: fillColor,
+                    border: border(),
+                    enabledBorder: border(),
+                    focusedBorder: border(theme.colorScheme.primary, 2),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingM,
+                      vertical: DesignConstants.spacingS + 2,
+                    ),
                   ),
-                ),
-                isEmpty: summary.isEmpty,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        summary,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: isDark ? Colors.white : Colors.black87,
+                  isEmpty: summary.isEmpty,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          summary,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Icon(
-                      Icons.arrow_drop_down,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ],
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
