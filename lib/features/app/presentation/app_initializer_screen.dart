@@ -564,68 +564,84 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Center(
-            child: isDownloadMode
-                ? Semantics(
-                    label: displayTask.isNotEmpty
-                        ? displayTask
-                        : l10n.offDownloadCTA,
-                    value: '$percentage%',
-                    child: OperationProgressWidget(
-                      icon: LucideIcons.download,
-                      title: displayTask,
-                      detail: displayDetail,
-                      progress: (_progress >= 0.0 && _progress <= 1.0)
-                          ? _progress
-                          : null,
-                      action: _canSkipRemoteCatalog
-                          ? TextButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _skipRemoteCatalogRequested = true;
-                                  _canSkipRemoteCatalog = false;
-                                  _currentDetail =
-                                      l10n.appInitSkippingRemoteDownload;
-                                });
-                              },
-                              icon: const Icon(LucideIcons.skip_forward),
-                              label: Text(l10n.appInitSkipDownload),
-                            )
-                          : null,
+          child: isDownloadMode
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Semantics(
+                          label: displayTask.isNotEmpty
+                              ? displayTask
+                              : l10n.offDownloadCTA,
+                          value: '$percentage%',
+                          child: OperationProgressWidget(
+                            icon: LucideIcons.download,
+                            title: displayTask,
+                            detail: displayDetail,
+                            progress: (_progress >= 0.0 && _progress <= 1.0)
+                                ? _progress
+                                : null,
+                            showCard: false,
+                            action: null,
+                          ),
+                        ),
+                      ),
                     ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Semantics(
-                        label: l10n.appInitStarting,
-                        value: '$percentage%',
-                        child: _buildStartupCloud(theme),
-                      ),
-                      const SizedBox(height: 28),
-
-                      // Main status text.
-                      Text(
-                        displayTask,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                    if (_canSkipRemoteCatalog)
+                      SafeArea(
+                        top: false,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _skipRemoteCatalogRequested = true;
+                                _canSkipRemoteCatalog = false;
+                                _currentDetail =
+                                    l10n.appInitSkippingRemoteDownload;
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  theme.colorScheme.onSurfaceVariant,
+                            ),
+                            child: Text(l10n.appInitSkipDownload),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: DesignConstants.spacingS),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Semantics(
+                      label: l10n.appInitStarting,
+                      value: '$percentage%',
+                      child: _buildStartupCloud(theme),
+                    ),
+                    const SizedBox(height: 28),
 
-                      // Secondary detail text.
-                      Text(
-                        displayDetail,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                    // Main status text.
+                    Text(
+                      displayTask,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-          ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+
+                    // Secondary detail text.
+                    Text(
+                      displayDetail,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );

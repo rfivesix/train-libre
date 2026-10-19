@@ -17,6 +17,7 @@ class OperationProgressWidget extends StatefulWidget {
   final double? progress;
   final Widget? action;
   final EdgeInsetsGeometry padding;
+  final bool showCard;
 
   const OperationProgressWidget({
     super.key,
@@ -28,6 +29,7 @@ class OperationProgressWidget extends StatefulWidget {
     this.progress,
     this.action,
     this.padding = const EdgeInsets.all(DesignConstants.spacingXL),
+    this.showCard = true,
   });
 
   @override
@@ -122,93 +124,107 @@ class _OperationProgressWidgetState extends State<OperationProgressWidget>
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
-          SummaryCard(
-            padding: widget.padding,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  widget.title,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (hasStatusRow) ...[
-                  const SizedBox(height: DesignConstants.spacingL),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      if (statusText != null)
-                        Expanded(
-                          child: AnimatedBuilder(
-                            animation: _dotsController,
-                            builder: (context, _) => Text.rich(
-                              TextSpan(
-                                text: statusText,
-                                children: [
-                                  TextSpan(
-                                    text: '.' *
-                                        ((_dotsController.value * 4)
-                                            .floor()
-                                            .clamp(0, 3)),
-                                  ),
-                                ],
-                              ),
-                              textAlign: TextAlign.left,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                      else
-                        const Spacer(),
-                      if (percentageText != null) ...[
-                        const SizedBox(width: DesignConstants.spacingS),
-                        Text(
-                          percentageText,
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                ] else ...[
-                  const SizedBox(height: DesignConstants.spacingL),
-                ],
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    value: normalizedProgress,
-                    minHeight: 8,
-                    backgroundColor: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : theme.colorScheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-                if (widget.action != null) ...[
-                  const SizedBox(height: DesignConstants.spacingL),
-                  Center(child: widget.action!),
-                ],
-              ],
-            ),
-          ),
+          _buildProgressContent(context, theme, widget, statusText,
+              percentageText, normalizedProgress, isDark, hasStatusRow),
         ],
       ),
     );
+  }
+
+  Widget _buildProgressContent(
+    BuildContext context,
+    ThemeData theme,
+    OperationProgressWidget widget,
+    String? statusText,
+    String? percentageText,
+    double? normalizedProgress,
+    bool isDark,
+    bool hasStatusRow,
+  ) {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          widget.title,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        if (hasStatusRow) ...[
+          const SizedBox(height: DesignConstants.spacingL),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              if (statusText != null)
+                Expanded(
+                  child: AnimatedBuilder(
+                    animation: _dotsController,
+                    builder: (context, _) => Text.rich(
+                      TextSpan(
+                        text: statusText,
+                        children: [
+                          TextSpan(
+                            text: '.' *
+                                ((_dotsController.value * 4)
+                                    .floor()
+                                    .clamp(0, 3)),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.left,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+              else
+                const Spacer(),
+              if (percentageText != null) ...[
+                const SizedBox(width: DesignConstants.spacingS),
+                Text(
+                  percentageText,
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+        ] else ...[
+          const SizedBox(height: DesignConstants.spacingL),
+        ],
+        ClipRRect(
+          borderRadius: BorderRadius.circular(99),
+          child: LinearProgressIndicator(
+            value: normalizedProgress,
+            minHeight: 8,
+            backgroundColor: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : theme.colorScheme.surfaceContainerHighest,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              theme.colorScheme.primary,
+            ),
+          ),
+        ),
+        if (widget.action != null) ...[
+          const SizedBox(height: DesignConstants.spacingL),
+          Center(child: widget.action!),
+        ],
+      ],
+    );
+    return widget.showCard
+        ? SummaryCard(padding: widget.padding, child: content)
+        : Padding(padding: widget.padding, child: content);
   }
 }
