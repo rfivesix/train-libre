@@ -22,10 +22,9 @@ class AiOverlayDemoScreen extends StatefulWidget {
 
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   final _cloudKey = GlobalKey<DraggableAiCloudState>();
-  bool _cloudFullscreen = false;
   bool _cloudExpanded = false;
   bool _showCloudResizeHandles = false;
-  bool _openCloudDirectlyFullscreen = false;
+  bool _openCloudDirectlyFullscreen = true;
   bool _cloudIsGenerating = false;
   double _cloudLiveliness = 0.10;
 
@@ -64,26 +63,18 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
       ),
     );
 
-    final cloudIsLight = theme.brightness == Brightness.dark;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: _cloudFullscreen
-          ? SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarBrightness:
-                  cloudIsLight ? Brightness.light : Brightness.dark,
-              statusBarIconBrightness:
-                  cloudIsLight ? Brightness.dark : Brightness.light,
-              systemNavigationBarColor: Colors.transparent,
-              systemNavigationBarIconBrightness:
-                  cloudIsLight ? Brightness.dark : Brightness.light,
-            )
-          : SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarBrightness: theme.brightness,
-              statusBarIconBrightness: theme.brightness == Brightness.dark
-                  ? Brightness.light
-                  : Brightness.dark,
-            ),
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: theme.brightness,
+        statusBarIconBrightness: theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+      ),
       child: PopScope(
         // Prevent the route underneath the overlay from claiming the iOS
         // edge-swipe while the cloud is open. The cloud keeps its own gestures.
@@ -107,8 +98,6 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                       setState(() => _cloudExpanded = value),
                   onGenerationChanged: (value) =>
                       setState(() => _cloudIsGenerating = value),
-                  onFullscreenChanged: (value) =>
-                      setState(() => _cloudFullscreen = value),
                 ),
               ),
             ),

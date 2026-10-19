@@ -83,6 +83,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _isDragging = false;
   bool _isExpanded = false;
   bool _isClosing = false;
+  bool _isClosingFromFullscreen = false;
   bool _showChatPreview = false;
   bool _isFullscreen = false;
   int _selectedSidebarExample = 0;
@@ -127,7 +128,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   AnimationController get _morphAnimation =>
       _morphController ??= AnimationController(
-          vsync: this, duration: const Duration(milliseconds: 760));
+        vsync: this,
+        duration: const Duration(milliseconds: 760),
+      )..addListener(_onMorphAnimationTick);
 
   AnimationController get _fullscreenAnimation =>
       _fullscreenController ??= AnimationController(
@@ -184,6 +187,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _horizontalPosition ??= _displayedHorizontalPosition;
       _isExpanded = expanding;
       _isClosing = !expanding;
+      _isClosingFromFullscreen = !expanding && wasFullscreen;
       _isDragging = false;
       _rotationRadians = 0;
       _scale = 1;
@@ -200,17 +204,20 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (expanding) {
       widget.onExpandedChanged?.call(true);
       widget.onFullscreenChanged?.call(openFullscreen);
-      _morphAnimation.forward();
-      if (openFullscreen) {
-        _fullscreenAnimation.forward(from: 0);
-      }
-      if (_chatTurns.isEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _isExpanded && _showChatPreview) {
-            _chatFocusNode.requestFocus();
-          }
-        });
-      }
+      final morphOpening = _morphAnimation.forward();
+      final fullscreenOpening = openFullscreen
+          ? _fullscreenAnimation.forward(from: 0)
+          : Future<void>.value();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _isExpanded && _showChatPreview) {
+          _chatFocusNode.requestFocus();
+        }
+      });
+      unawaited(
+        Future.wait<void>([morphOpening, fullscreenOpening]).then((_) {
+          _restoreChatKeyboardAfterOpening();
+        }),
+      );
     } else {
       _morphAnimation.reverse().whenComplete(() {
         if (!mounted) return;
@@ -219,7 +226,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           if (wasFullscreen) _isFullscreen = false;
         });
         _sidebarController.value = 0;
-        if (wasFullscreen) _fullscreenAnimation.reverse();
+        if (wasFullscreen) {
+          _fullscreenAnimation.reverse().whenComplete(() {
+            if (mounted) setState(() => _isClosingFromFullscreen = false);
+          });
+        }
         FocusManager.instance.primaryFocus?.unfocus();
         if (_hasCompletedResponse) {
           setState(() => _completionPulse = true);
@@ -276,12 +287,71 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (mounted) setState(() {});
   }
 
+  void _onMorphAnimationTick() {
+    if (mounted && _isFullscreen) setState(() {});
+  }
+
   void _onSidebarAnimationTick() {
     if (mounted) setState(() {});
   }
 
   double _sidebarWidth(double viewportWidth) =>
       math.min(viewportWidth * 0.82, 340.0);
+
+  double _openingAppearanceProgress(double progress) {
+    const transitionRange = 0.5;
+    final transitionProgress =
+        (progress / transitionRange).clamp(0.0, 1.0).toDouble();
+    return Curves.easeInOutCubic.transform(transitionProgress);
+  }
+
+  void _restoreChatKeyboardAfterOpening() {
+    Future<void>.delayed(const Duration(milliseconds: 120), () {
+      if (!mounted || !_isExpanded || !_showChatPreview) return;
+      if (MediaQuery.viewInsetsOf(context).bottom <= 0 &&
+          _chatFocusNode.hasFocus) {
+        _chatFocusNode.unfocus();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _isExpanded && _showChatPreview) {
+            _chatFocusNode.requestFocus();
+          }
+        });
+      } else {
+        _chatFocusNode.requestFocus();
+      }
+    });
+  }
+
+  Color _overlaySurfaceColor(ThemeData theme, double appearanceProgress) {
+    final appIsDark = theme.brightness == Brightness.dark;
+    final cloudSurface = appIsDark ? Colors.white : Colors.black;
+    return Color.lerp(
+      cloudSurface,
+      theme.scaffoldBackgroundColor,
+      appearanceProgress,
+    )!;
+  }
+
+  Color _overlayForegroundColor(ThemeData theme, double appearanceProgress) {
+    final appIsDark = theme.brightness == Brightness.dark;
+    final cloudForeground = appIsDark ? Colors.black : Colors.white;
+    return Color.lerp(
+      cloudForeground,
+      theme.colorScheme.onSurface,
+      appearanceProgress,
+    )!;
+  }
+
+  Color _overlayControlFill(ThemeData theme, double appearanceProgress) {
+    final appIsDark = theme.brightness == Brightness.dark;
+    final cloudFill = appIsDark
+        ? DesignConstants.glassNeutralTint(true)
+        : Colors.black.withValues(alpha: 0.04);
+    final appFill = appIsDark
+        ? const Color(0xFF1C1C1E)
+        : Colors.white.withValues(alpha: 0.72);
+    return Color.lerp(cloudFill, appFill, appearanceProgress)!;
+  }
 
   void _openSidebar() {
     if (!_isFullscreen) return;
@@ -632,15 +702,34 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           width,
           constraints.maxHeight,
         );
+        final morphAnimation = _morphAnimation;
         final fullscreenProgress = Curves.easeInOutCubic.transform(
           _fullscreenAnimation.value,
         );
+        // Keep the half-expanded cloud unchanged. For a direct fullscreen
+        // opening, keep its palette in step with whichever animation is still
+        // running. During close the morph reverses first, so it also drives the
+        // palette smoothly back to the cloud colors.
+        final morphProgress = morphAnimation.value.clamp(0.0, 1.0).toDouble();
+        final openingClosingProgress = math.min(
+          _fullscreenAnimation.value.clamp(0.0, 1.0).toDouble(),
+          morphProgress,
+        );
+        final isWholeCloudTransition =
+            (_isFullscreen || _isClosingFromFullscreen) &&
+                morphProgress < 0.999;
+        final appearanceProgress = isWholeCloudTransition
+            ? _openingAppearanceProgress(openingClosingProgress)
+            : fullscreenProgress;
         final activeSafeRect =
             Rect.lerp(safeRect, fullscreenRect, fullscreenProgress)!;
         const handleOutset = 44.0;
         final cloudCenter = Offset(left + _cloudSize / 2, top + _cloudSize / 2);
-        final morphAnimation = _morphAnimation;
         final theme = Theme.of(context);
+        final overlaySurfaceColor =
+            _overlaySurfaceColor(theme, appearanceProgress);
+        final overlayForegroundColor =
+            _overlayForegroundColor(theme, appearanceProgress);
         Offset handlePosition(Offset corner, Offset direction) => Offset(
               (corner.dx + direction.dx * handleOutset)
                   .clamp(28.0, width - 28.0)
@@ -680,6 +769,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           canvasSize: viewportSize,
                           cloudCenter: animatedCloudCenter,
                           frameRect: activeSafeRect,
+                          baseColor: overlaySurfaceColor,
                           frameMorphAnimation: morphAnimation,
                           showAmbientGlow: false,
                           edgeBlurSigma: 4,
@@ -893,7 +983,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           child: Stack(
                             children: [
                               if (_sidebarController.value > 0.001)
-                                _buildDemoSidebar(theme, width),
+                                _buildDemoSidebar(
+                                  theme,
+                                  width,
+                                  appearanceProgress: appearanceProgress,
+                                ),
                               Positioned.fill(
                                 child: Transform.translate(
                                   offset: Offset(
@@ -921,12 +1015,19 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                           constraints.maxHeight,
                                           fullscreenProgress:
                                               fullscreenProgress,
+                                          appearanceProgress:
+                                              appearanceProgress,
                                         ),
                                         _buildExpandedToolbar(
                                           activeSafeRect,
                                           theme,
                                           fullscreenProgress:
                                               fullscreenProgress,
+                                          appearanceProgress:
+                                              appearanceProgress,
+                                          surfaceColor: overlaySurfaceColor,
+                                          foregroundColor:
+                                              overlayForegroundColor,
                                         ),
                                       ],
                                     ),
@@ -952,9 +1053,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     Rect safeRect,
     ThemeData theme, {
     required double fullscreenProgress,
+    required double appearanceProgress,
+    required Color surfaceColor,
+    required Color foregroundColor,
   }) {
-    final isDark = theme.brightness == Brightness.dark;
-    final contrastColor = isDark ? Colors.black : Colors.white;
+    final surfaceIsLight = surfaceColor.computeLuminance() >= 0.5;
+    final controlFill = _overlayControlFill(theme, appearanceProgress);
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final safeSpaceOutset = 44.0 * (1 - fullscreenProgress);
     final fullscreenInset = 12.0 * fullscreenProgress;
@@ -979,7 +1083,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     ? LucideIcons.panel_left
                     : LucideIcons.maximize_2,
                 tooltip: _isFullscreen ? 'Seitenleiste' : 'Vollbild',
-                isDark: isDark,
+                isDark: surfaceIsLight,
+                foregroundColor: foregroundColor,
+                backgroundColor: controlFill,
                 onPressed: _isFullscreen ? _toggleSidebar : _toggleFullscreen,
               ),
             ),
@@ -999,7 +1105,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           width: 38,
                           height: 5,
                           decoration: BoxDecoration(
-                            color: contrastColor.withValues(alpha: 0.24),
+                            color: foregroundColor.withValues(alpha: 0.24),
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
@@ -1015,7 +1121,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 icon: _buildHeaderGlassButton(
                   icon: LucideIcons.ellipsis,
                   tooltip: 'Chat-Menü',
-                  isDark: isDark,
+                  isDark: surfaceIsLight,
+                  foregroundColor: foregroundColor,
+                  backgroundColor: controlFill,
                 ),
                 menuWidth: 230,
                 items: [
@@ -1038,7 +1146,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               child: _buildHeaderGlassButton(
                 icon: LucideIcons.x,
                 tooltip: 'Schließen',
-                isDark: isDark,
+                isDark: surfaceIsLight,
+                foregroundColor: foregroundColor,
+                backgroundColor: controlFill,
                 onPressed: _toggleExpanded,
               ),
             ),
@@ -1169,6 +1279,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required ThemeData theme,
     required bool isDark,
     required Color foregroundColor,
+    required double appearanceProgress,
   }) {
     final cloudIsDark = !isDark;
     final radius = 24.0;
@@ -1179,9 +1290,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final button = Container(
       height: 48,
       decoration: BoxDecoration(
-        color: cloudIsDark
-            ? DesignConstants.glassNeutralTint(true)
-            : Colors.black.withValues(alpha: 0.04),
+        color: _overlayControlFill(theme, appearanceProgress),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
           color: foregroundColor.withValues(alpha: 0.14),
@@ -1238,10 +1347,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     );
   }
 
-  Widget _buildDemoSidebar(ThemeData theme, double viewportWidth) {
-    final isDark = theme.brightness == Brightness.dark;
-    final surfaceColor = isDark ? Colors.white : Colors.black;
-    final foregroundColor = isDark ? Colors.black : Colors.white;
+  Widget _buildDemoSidebar(
+    ThemeData theme,
+    double viewportWidth, {
+    required double appearanceProgress,
+  }) {
+    final surfaceColor = _overlaySurfaceColor(theme, appearanceProgress);
+    final foregroundColor = _overlayForegroundColor(theme, appearanceProgress);
+    final surfaceIsLight = surfaceColor.computeLuminance() >= 0.5;
     final drawerWidth = _sidebarWidth(viewportWidth);
 
     return Positioned(
@@ -1342,8 +1455,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       bottom: MediaQuery.paddingOf(context).bottom + 12,
                       child: _buildSidebarChatButton(
                         theme: theme,
-                        isDark: isDark,
+                        isDark: surfaceIsLight,
                         foregroundColor: foregroundColor,
+                        appearanceProgress: appearanceProgress,
                       ),
                     ),
                   ],
@@ -1361,14 +1475,16 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     ThemeData theme,
     double viewportHeight, {
     required double fullscreenProgress,
+    required double appearanceProgress,
   }) {
-    final contrastColor =
-        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+    final appIsDark = theme.brightness == Brightness.dark;
+    final contrastColor = _overlayForegroundColor(theme, appearanceProgress);
+    final surfaceColor = _overlaySurfaceColor(theme, appearanceProgress);
     final selectionBlue = theme.brightness == Brightness.dark
         ? const Color(0xFF0A84FF)
         : const Color(0xFF007AFF);
     final softColor = contrastColor.withValues(alpha: 0.08);
-    final cloudSurfaceDark = theme.brightness != Brightness.dark;
+    final cloudSurfaceDark = surfaceColor.computeLuminance() < 0.5;
     final composerGlassSettings =
         DesignConstants.liquidGlassSettings(cloudSurfaceDark).copyWith(
       thickness: 18,
@@ -1407,11 +1523,24 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final chatBottom = chatBounds.bottom - contentInset;
     final contentViewportBottom = chatBounds.bottom +
         (viewportHeight - chatBounds.bottom) * fullscreenProgress;
+    final composerBaseColor = appIsDark
+        ? DesignConstants.glassNeutralTint(true)
+        : Colors.black.withValues(alpha: 0.04);
+    final composerTargetColor = appIsDark
+        ? const Color(0xFF1C1C1E)
+        : Colors.white.withValues(alpha: 0.72);
+    final composerFillColor = Color.lerp(
+      composerBaseColor,
+      composerTargetColor,
+      appearanceProgress,
+    )!;
+    final surfaceIsLight = surfaceColor.computeLuminance() >= 0.5;
+    final sendButtonBackground = surfaceIsLight ? Colors.black : Colors.white;
+    final sendButtonForeground = surfaceIsLight ? Colors.white : Colors.black;
+    final controlFillColor = _overlayControlFill(theme, appearanceProgress);
     final composerSurface = Container(
       decoration: BoxDecoration(
-        color: cloudSurfaceDark
-            ? DesignConstants.glassNeutralTint(true)
-            : Colors.black.withValues(alpha: 0.04),
+        color: composerFillColor,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: contrastColor.withValues(alpha: 0.14),
@@ -1466,9 +1595,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             _buildHeaderGlassButton(
               icon: _isGenerating ? LucideIcons.square : LucideIcons.arrow_up,
               tooltip: _isGenerating ? 'Stopp' : 'Senden',
-              isDark: theme.brightness == Brightness.dark,
-              backgroundColor: cloudSurfaceDark ? Colors.white : Colors.black,
-              foregroundColor: cloudSurfaceDark ? Colors.black : Colors.white,
+              isDark: surfaceIsLight,
+              backgroundColor: sendButtonBackground,
+              foregroundColor: sendButtonForeground,
               onPressed: _isGenerating ? _stopDemoGeneration : _sendDemoPrompt,
             ),
           ],
@@ -1635,7 +1764,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     child: _buildHeaderGlassButton(
                       icon: LucideIcons.arrow_down,
                       tooltip: 'Zum neuesten Beitrag',
-                      isDark: theme.brightness == Brightness.dark,
+                      isDark: surfaceIsLight,
+                      backgroundColor: controlFillColor,
+                      foregroundColor: contrastColor,
                       onPressed: _scrollToLatestMessage,
                     ),
                   ),
@@ -1714,7 +1845,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required Color contrastColor,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final hasLightCloudSurface = contrastColor == Colors.black;
+    final hasLightCloudSurface = contrastColor.computeLuminance() < 0.5;
     final warningColor =
         hasLightCloudSurface ? Colors.orange.shade800 : Colors.amber.shade200;
     final cardTextColor = hasLightCloudSurface ? Colors.black : Colors.white;
