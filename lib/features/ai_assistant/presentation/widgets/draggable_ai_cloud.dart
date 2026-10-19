@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -94,6 +95,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   int? _sidebarPointerId;
   bool _sidebarPointerDragging = false;
   bool _sidebarPastSnapPoint = false;
+  double? _sidebarDragStartScrollOffset;
+  bool _sidebarDragStartFollowChatTail = true;
   final _chatInputController = TextEditingController();
   final _chatFocusNode = FocusNode();
   final _chatScrollController = ScrollController();
@@ -113,6 +116,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _completionPulse = false;
   bool _followChatTail = true;
   bool _showScrollToBottom = false;
+  int _chatUserScrollRevision = 0;
+  int _chatContentRevision = 0;
   int _demoWordIndex = 0;
   double _safeLeft = 0.14;
   double _safeTop = 0.10;
@@ -348,31 +353,82 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         ? DesignConstants.glassNeutralTint(true)
         : Colors.black.withValues(alpha: 0.04);
     final appFill = appIsDark
-        ? const Color(0xFF1C1C1E)
-        : Colors.white.withValues(alpha: 0.72);
+        ? Colors.white.withValues(alpha: 0.10)
+        : Colors.black.withValues(alpha: 0.04);
     return Color.lerp(cloudFill, appFill, appearanceProgress)!;
   }
 
   void _openSidebar() {
     if (!_isFullscreen) return;
+    final chatScrollOffset = _captureChatScrollOffset();
+    final shouldFollowChatTail = _followChatTail;
     _chatFocusNode.unfocus();
     _sidebarController.animateTo(
       1,
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
+    _restoreChatScrollOffsetAfterLayout(
+      chatScrollOffset,
+      shouldFollowChatTail: shouldFollowChatTail,
+    );
   }
 
   void _toggleSidebar() {
     if (_sidebarController.value > 0.5) {
+      final chatScrollOffset = _captureChatScrollOffset();
+      final shouldFollowChatTail = _followChatTail;
       _sidebarController.animateTo(
         0,
         duration: const Duration(milliseconds: 240),
         curve: Curves.easeOutCubic,
       );
+      _restoreChatScrollOffsetAfterLayout(
+        chatScrollOffset,
+        shouldFollowChatTail: shouldFollowChatTail,
+      );
     } else {
       _openSidebar();
     }
+  }
+
+  double? _captureChatScrollOffset() => _chatScrollController.hasClients
+      ? _chatScrollController.position.pixels
+      : null;
+
+  void _restoreChatScrollOffsetAfterLayout(
+    double? offset, {
+    bool? shouldFollowChatTail,
+  }) {
+    if (offset == null) return;
+    final userScrollRevision = _chatUserScrollRevision;
+    final contentRevision = _chatContentRevision;
+    final shouldFollowTail = shouldFollowChatTail ?? _followChatTail;
+
+    void restore() {
+      if (!mounted ||
+          !_chatScrollController.hasClients ||
+          _chatUserScrollRevision != userScrollRevision ||
+          _chatContentRevision != contentRevision) {
+        return;
+      }
+      final position = _chatScrollController.position;
+      final target = shouldFollowTail
+          ? position.maxScrollExtent
+          : offset
+              .clamp(position.minScrollExtent, position.maxScrollExtent)
+              .toDouble();
+      if ((position.pixels - target).abs() > 0.5) {
+        _chatScrollController.jumpTo(target);
+      }
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      restore();
+      // The keyboard and the safe-area layout can finish resizing after the
+      // sidebar starts moving. Reapply once the viewport has settled too.
+      Future<void>.delayed(const Duration(milliseconds: 420), restore);
+    });
   }
 
   void _handleSidebarPointerDown(PointerDownEvent event) {
@@ -380,6 +436,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _sidebarPointerId = event.pointer;
     _sidebarPointerStart = event.position;
     _sidebarDragStartProgress = _sidebarController.value;
+    _sidebarDragStartScrollOffset = _captureChatScrollOffset();
+    _sidebarDragStartFollowChatTail = _followChatTail;
     _sidebarPointerDragging = false;
     _sidebarPastSnapPoint = _sidebarController.value >= 0.5;
     _sidebarController.stop();
@@ -417,15 +475,41 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         duration: const Duration(milliseconds: 240),
         curve: Curves.easeOutCubic,
       );
+      _restoreChatScrollOffsetAfterLayout(
+        _sidebarDragStartScrollOffset,
+        shouldFollowChatTail: _sidebarDragStartFollowChatTail,
+      );
     }
     _sidebarPointerId = null;
     _sidebarPointerStart = null;
     _sidebarPointerDragging = false;
+    _sidebarDragStartScrollOffset = null;
+    _sidebarDragStartFollowChatTail = true;
   }
 
   void _selectSidebarExample(int index) {
+    final chatScrollOffset = _captureChatScrollOffset();
+    final shouldFollowChatTail = _followChatTail;
     setState(() => _selectedSidebarExample = index);
     _sidebarController.reverse();
+    _restoreChatScrollOffsetAfterLayout(
+      chatScrollOffset,
+      shouldFollowChatTail: shouldFollowChatTail,
+    );
+  }
+
+  void _closeSidebar() {
+    final chatScrollOffset = _captureChatScrollOffset();
+    final shouldFollowChatTail = _followChatTail;
+    _sidebarController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOutCubic,
+    );
+    _restoreChatScrollOffsetAfterLayout(
+      chatScrollOffset,
+      shouldFollowChatTail: shouldFollowChatTail,
+    );
   }
 
   void _toggleFullscreen() {
@@ -998,13 +1082,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: _sidebarController.value > 0
-                                        ? () => _sidebarController.animateTo(
-                                              0,
-                                              duration: const Duration(
-                                                milliseconds: 240,
-                                              ),
-                                              curve: Curves.easeOutCubic,
-                                            )
+                                        ? _closeSidebar
                                         : null,
                                     child: Stack(
                                       clipBehavior: Clip.none,
@@ -1083,7 +1161,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     ? LucideIcons.panel_left
                     : LucideIcons.maximize_2,
                 tooltip: _isFullscreen ? 'Seitenleiste' : 'Vollbild',
-                isDark: surfaceIsLight,
+                isDarkSurface: !surfaceIsLight,
                 foregroundColor: foregroundColor,
                 backgroundColor: controlFill,
                 onPressed: _isFullscreen ? _toggleSidebar : _toggleFullscreen,
@@ -1121,7 +1199,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 icon: _buildHeaderGlassButton(
                   icon: LucideIcons.ellipsis,
                   tooltip: 'Chat-Menü',
-                  isDark: surfaceIsLight,
+                  isDarkSurface: !surfaceIsLight,
                   foregroundColor: foregroundColor,
                   backgroundColor: controlFill,
                 ),
@@ -1146,7 +1224,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               child: _buildHeaderGlassButton(
                 icon: LucideIcons.x,
                 tooltip: 'Schließen',
-                isDark: surfaceIsLight,
+                isDarkSurface: !surfaceIsLight,
                 foregroundColor: foregroundColor,
                 backgroundColor: controlFill,
                 onPressed: _toggleExpanded,
@@ -1161,25 +1239,25 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   Widget _buildHeaderGlassButton({
     required IconData icon,
     required String tooltip,
-    required bool isDark,
+    required bool isDarkSurface,
     VoidCallback? onPressed,
     Color? backgroundColor,
     Color? foregroundColor,
   }) {
+    final theme = Theme.of(context);
     final foreground =
-        foregroundColor ?? (isDark ? Colors.black : Colors.white);
-    final cloudIsDark = !isDark;
-    // The cloud's surface is inverted from the app theme: white in dark mode
-    // and black in light mode. Tune the glass against that actual backdrop.
-    final settings = DesignConstants.liquidGlassSettings(!isDark).copyWith(
-      thickness: 18,
-      blur: 1.5,
+        foregroundColor ?? (isDarkSurface ? Colors.white : Colors.black);
+    // The cloud can have the opposite appearance from the app while it opens
+    // or closes. Let the glass renderer use the cloud's current surface too.
+    final glassTheme = theme.copyWith(
+      brightness: isDarkSurface ? Brightness.dark : Brightness.light,
     );
+    final settings = DesignConstants.liquidGlassSettings(isDarkSurface);
     final rimColor = foreground.withValues(alpha: 0.14);
     final buttonSurface = Container(
       decoration: BoxDecoration(
         color: backgroundColor ??
-            (cloudIsDark
+            (isDarkSurface
                 ? DesignConstants.glassNeutralTint(true)
                 : Colors.black.withValues(alpha: 0.04)),
         shape: BoxShape.circle,
@@ -1191,9 +1269,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         _isClosing || (_isExpanded && _morphAnimation.value < 1);
     final glassContent = useStaticGlass
         ? buttonSurface
-        : InheritedLiquidGlass(
-            settings: settings,
-            isBlurProvidedByAncestor: true,
+        : Theme(
+            data: glassTheme,
             child: GlassAdaptiveScope(
               maxQuality: DesignConstants.defaultGlassQuality,
               minQuality: DesignConstants.minGlassQuality,
@@ -1204,20 +1281,21 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 allowElevation: false,
                 shape: const LiquidRoundedSuperellipse(borderRadius: 22),
                 child: GlassGlow(
-                  glowColor: foreground.withValues(alpha: 0.12),
+                  glowColor: Colors.white.withValues(
+                    alpha: isDarkSurface ? 0.24 : 0.18,
+                  ),
                   glowRadius: 1,
                   child: buttonSurface,
                 ),
               ),
             ),
           );
-
     final button = SizedBox.square(
       dimension: 44,
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          boxShadow: DesignConstants.glassShadow(cloudIsDark),
+          boxShadow: DesignConstants.glassShadow(isDarkSurface),
         ),
         child: glassContent,
       ),
@@ -1281,12 +1359,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required Color foregroundColor,
     required double appearanceProgress,
   }) {
-    final cloudIsDark = !isDark;
-    final radius = 24.0;
-    final settings = DesignConstants.liquidGlassSettings(!isDark).copyWith(
-      thickness: 18,
-      blur: 1.5,
+    final glassTheme = theme.copyWith(
+      brightness: isDark ? Brightness.dark : Brightness.light,
     );
+    final radius = 24.0;
+    final settings = DesignConstants.liquidGlassSettings(isDark);
     final button = Container(
       height: 48,
       decoration: BoxDecoration(
@@ -1317,14 +1394,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
-          boxShadow: DesignConstants.glassShadow(cloudIsDark),
+          boxShadow: DesignConstants.glassShadow(isDark),
         ),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _toggleSidebar,
-          child: InheritedLiquidGlass(
-            settings: settings,
-            isBlurProvidedByAncestor: true,
+          child: Theme(
+            data: glassTheme,
             child: GlassAdaptiveScope(
               maxQuality: DesignConstants.defaultGlassQuality,
               minQuality: DesignConstants.minGlassQuality,
@@ -1335,7 +1411,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 allowElevation: false,
                 shape: LiquidRoundedSuperellipse(borderRadius: radius),
                 child: GlassGlow(
-                  glowColor: foregroundColor.withValues(alpha: 0.12),
+                  glowColor: Colors.white.withValues(
+                    alpha: isDark ? 0.24 : 0.18,
+                  ),
                   glowRadius: 1,
                   child: button,
                 ),
@@ -1455,7 +1533,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       bottom: MediaQuery.paddingOf(context).bottom + 12,
                       child: _buildSidebarChatButton(
                         theme: theme,
-                        isDark: surfaceIsLight,
+                        isDark: !surfaceIsLight,
                         foregroundColor: foregroundColor,
                         appearanceProgress: appearanceProgress,
                       ),
@@ -1483,16 +1561,19 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final selectionBlue = theme.brightness == Brightness.dark
         ? const Color(0xFF0A84FF)
         : const Color(0xFF007AFF);
-    final softColor = contrastColor.withValues(alpha: 0.08);
     final cloudSurfaceDark = surfaceColor.computeLuminance() < 0.5;
+    final softColor = contrastColor.withValues(
+      alpha: cloudSurfaceDark ? 0.10 : 0.08,
+    );
     final composerGlassSettings =
-        DesignConstants.liquidGlassSettings(cloudSurfaceDark).copyWith(
-      thickness: 18,
-      blur: 1.5,
+        DesignConstants.liquidGlassSettings(cloudSurfaceDark);
+    final glassTheme = theme.copyWith(
+      brightness: cloudSurfaceDark ? Brightness.dark : Brightness.light,
     );
     final isGlassTransitioning =
         _isClosing || (_isExpanded && _morphAnimation.value < 1);
     const contentInset = 8.0;
+    const permissionCardKey = ValueKey<String>('ai-overlay-permission-card');
     final chatBounds = Rect.lerp(
       safeRect.inflate(44),
       safeRect.deflate(12),
@@ -1527,8 +1608,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         ? DesignConstants.glassNeutralTint(true)
         : Colors.black.withValues(alpha: 0.04);
     final composerTargetColor = appIsDark
-        ? const Color(0xFF1C1C1E)
-        : Colors.white.withValues(alpha: 0.72);
+        ? Colors.white.withValues(alpha: 0.10)
+        : Colors.black.withValues(alpha: 0.04);
     final composerFillColor = Color.lerp(
       composerBaseColor,
       composerTargetColor,
@@ -1595,7 +1676,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             _buildHeaderGlassButton(
               icon: _isGenerating ? LucideIcons.square : LucideIcons.arrow_up,
               tooltip: _isGenerating ? 'Stopp' : 'Senden',
-              isDark: surfaceIsLight,
+              isDarkSurface: !surfaceIsLight,
               backgroundColor: sendButtonBackground,
               foregroundColor: sendButtonForeground,
               onPressed: _isGenerating ? _stopDemoGeneration : _sendDemoPrompt,
@@ -1683,33 +1764,62 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                 ),
                               ),
                             )
-                          : ListView.builder(
-                              controller: _chatScrollController,
-                              padding: EdgeInsets.only(
-                                top: chatTop - topFadeStart + 8,
-                                bottom: 104,
-                              ),
-                              itemCount: _chatTurns.length +
-                                  (_permissionPending ||
-                                          _permissionApproved != null
-                                      ? 1
-                                      : 0),
-                              itemBuilder: (context, index) {
-                                if (index == _chatTurns.length) {
-                                  return _buildDemoPermissionCard(
-                                    theme: theme,
-                                    contrastColor: contrastColor,
-                                  );
+                          : NotificationListener<UserScrollNotification>(
+                              onNotification: (notification) {
+                                if (notification.direction !=
+                                    ScrollDirection.idle) {
+                                  _chatUserScrollRevision++;
                                 }
-                                return _buildChatTurn(
-                                  _chatTurns[index],
-                                  theme: theme,
-                                  contrastColor: contrastColor,
-                                  softColor: softColor,
-                                  isStreaming: _isGenerating &&
-                                      index == _chatTurns.length - 1,
-                                );
+                                return false;
                               },
+                              child: ListView.builder(
+                                key: const PageStorageKey<String>(
+                                  'ai-overlay-chat-history',
+                                ),
+                                controller: _chatScrollController,
+                                findChildIndexCallback: (key) {
+                                  if (key == permissionCardKey) {
+                                    return _chatTurns.length;
+                                  }
+                                  if (key is ValueKey<_DemoChatTurn>) {
+                                    final turnIndex =
+                                        _chatTurns.indexOf(key.value);
+                                    return turnIndex < 0 ? null : turnIndex;
+                                  }
+                                  return null;
+                                },
+                                padding: EdgeInsets.only(
+                                  top: chatTop - topFadeStart + 8,
+                                  bottom: 104,
+                                ),
+                                itemCount: _chatTurns.length + 1,
+                                itemBuilder: (context, index) {
+                                  if (index == _chatTurns.length) {
+                                    return KeyedSubtree(
+                                      key: permissionCardKey,
+                                      child: _buildDemoPermissionCard(
+                                        theme: theme,
+                                        contrastColor: contrastColor,
+                                        surfaceColor: surfaceColor,
+                                        isVisible: _permissionPending ||
+                                            _permissionApproved != null,
+                                      ),
+                                    );
+                                  }
+                                  final turn = _chatTurns[index];
+                                  return KeyedSubtree(
+                                    key: ValueKey<_DemoChatTurn>(turn),
+                                    child: _buildChatTurn(
+                                      turn,
+                                      theme: theme,
+                                      contrastColor: contrastColor,
+                                      softColor: softColor,
+                                      isStreaming: _isGenerating &&
+                                          index == _chatTurns.length - 1,
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                     ),
                   ),
@@ -1727,9 +1837,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 ),
                 child: isGlassTransitioning
                     ? composerSurface
-                    : InheritedLiquidGlass(
-                        settings: composerGlassSettings,
-                        isBlurProvidedByAncestor: true,
+                    : Theme(
+                        data: glassTheme,
                         child: GlassAdaptiveScope(
                           maxQuality: DesignConstants.defaultGlassQuality,
                           minQuality: DesignConstants.minGlassQuality,
@@ -1764,7 +1873,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     child: _buildHeaderGlassButton(
                       icon: LucideIcons.arrow_down,
                       tooltip: 'Zum neuesten Beitrag',
-                      isDark: surfaceIsLight,
+                      isDarkSurface: !surfaceIsLight,
                       backgroundColor: controlFillColor,
                       foregroundColor: contrastColor,
                       onPressed: _scrollToLatestMessage,
@@ -1786,8 +1895,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required Color softColor,
     required bool isStreaming,
   }) {
+    final isCompactPrompt = turn.prompt.trim().runes.length <= 2;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1795,26 +1906,38 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             alignment: Alignment.centerRight,
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.sizeOf(context).width * 0.68,
+                minWidth: isCompactPrompt ? 56 : 0,
+                maxWidth: MediaQuery.sizeOf(context).width * 0.62,
               ),
               padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
+                horizontal: 12,
+                vertical: 8,
               ),
               decoration: BoxDecoration(
                 color: softColor,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                turn.prompt,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: contrastColor,
-                ),
-              ),
+              child: isCompactPrompt
+                  ? Center(
+                      widthFactor: 1,
+                      child: Text(
+                        turn.prompt,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: contrastColor,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      turn.prompt,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: contrastColor,
+                      ),
+                    ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 4, top: 16),
+            padding: const EdgeInsets.only(left: 4, top: 12),
             child: Text(
               turn.response,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -1843,99 +1966,134 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   Widget _buildDemoPermissionCard({
     required ThemeData theme,
     required Color contrastColor,
+    required Color surfaceColor,
+    required bool isVisible,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final hasLightCloudSurface = contrastColor.computeLuminance() < 0.5;
-    final warningColor =
-        hasLightCloudSurface ? Colors.orange.shade800 : Colors.amber.shade200;
-    final cardTextColor = hasLightCloudSurface ? Colors.black : Colors.white;
+    final isDarkSurface = surfaceColor.computeLuminance() < 0.5;
+    final cardTextColor = contrastColor;
     final actionColor =
-        hasLightCloudSurface ? Colors.amber.shade700 : Colors.amber.shade300;
-
-    return Padding(
+        isDarkSurface ? Colors.amber.shade300 : Colors.amber.shade700;
+    final glassTheme = theme.copyWith(
+      brightness: isDarkSurface ? Brightness.dark : Brightness.light,
+    );
+    const radius = 18.0;
+    final card = Padding(
       padding: const EdgeInsets.only(bottom: 20),
-      child: Container(
-        padding: const EdgeInsets.all(16),
+      child: DecoratedBox(
         decoration: BoxDecoration(
-          color: hasLightCloudSurface
-              ? const Color(0xFFFFF6E5)
-              : const Color(0xFF593A0D),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: hasLightCloudSurface
-                ? Colors.amber.shade400
-                : Colors.amber.shade600,
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: DesignConstants.glassShadow(isDarkSurface),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: Theme(
+          data: glassTheme,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(
+                alpha: isDarkSurface ? 0.12 : 0.08,
+              ),
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(
+                color: Colors.amber.withValues(
+                  alpha: isDarkSurface ? 0.48 : 0.34,
+                ),
+                width: 0.8,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(LucideIcons.shield_alert, size: 17, color: warningColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l10n.aiOverlayDemoRequestLabel,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: cardTextColor,
-                      fontWeight: FontWeight.w700,
-                    ),
+                Text(
+                  l10n.aiOverlayDemoRequestLabel,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: cardTextColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+                const SizedBox(height: 8),
+                _buildPermissionScope(
+                  l10n.aiOverlayDemoScope,
+                  theme,
+                  cardTextColor,
+                ),
+                const SizedBox(height: 4),
+                _buildPermissionScope(
+                  l10n.aiOverlayDemoScopeDetails,
+                  theme,
+                  cardTextColor,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.aiOverlayDemoPurpose,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: cardTextColor.withValues(alpha: 0.72),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (_permissionPending)
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      TextButton(
+                        onPressed: () => _resolveDemoPermission(false),
+                        style: TextButton.styleFrom(
+                          foregroundColor:
+                              cardTextColor.withValues(alpha: 0.72),
+                        ),
+                        child: Text(l10n.aiOverlayDemoDeny),
+                      ),
+                      FilledButton(
+                        onPressed: () => _resolveDemoPermission(true),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: actionColor,
+                          foregroundColor: Colors.black,
+                        ),
+                        child: Text(l10n.aiOverlayDemoAllowOnce),
+                      ),
+                    ],
+                  )
+                else
+                  Text(
+                    _permissionApproved == true
+                        ? l10n.aiOverlayDemoApprovedFeedback
+                        : l10n.aiOverlayDemoDeniedFeedback,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cardTextColor.withValues(alpha: 0.72),
+                    ),
+                  ),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildPermissionScope(
-                l10n.aiOverlayDemoScope, theme, cardTextColor),
-            const SizedBox(height: 4),
-            _buildPermissionScope(
-              l10n.aiOverlayDemoScopeDetails,
-              theme,
-              cardTextColor,
+          ),
+        ),
+      ),
+    );
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeInOutCubic,
+      alignment: Alignment.topCenter,
+      clipBehavior: Clip.hardEdge,
+      onEnd: () {
+        if (_followChatTail) _scrollChatToBottom();
+      },
+      child: Align(
+        alignment: Alignment.topCenter,
+        heightFactor: isVisible ? 1 : 0,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          opacity: isVisible ? 1 : 0,
+          child: IgnorePointer(
+            ignoring: !isVisible,
+            child: ExcludeSemantics(
+              excluding: !isVisible,
+              child: card,
             ),
-            const SizedBox(height: 10),
-            Text(
-              l10n.aiOverlayDemoPurpose,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: cardTextColor.withValues(alpha: 0.72),
-              ),
-            ),
-            const SizedBox(height: 10),
-            if (_permissionPending)
-              Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  TextButton(
-                    onPressed: () => _resolveDemoPermission(false),
-                    style: TextButton.styleFrom(
-                      foregroundColor: cardTextColor.withValues(alpha: 0.72),
-                    ),
-                    child: Text(l10n.aiOverlayDemoDeny),
-                  ),
-                  FilledButton(
-                    onPressed: () => _resolveDemoPermission(true),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: actionColor,
-                      foregroundColor: Colors.black,
-                    ),
-                    child: Text(l10n.aiOverlayDemoAllowOnce),
-                  ),
-                ],
-              )
-            else
-              Text(
-                _permissionApproved == true
-                    ? l10n.aiOverlayDemoApprovedFeedback
-                    : l10n.aiOverlayDemoDeniedFeedback,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: cardTextColor.withValues(alpha: 0.72),
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );
@@ -2141,6 +2299,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   void _scrollToLatestMessage() {
     if (!_chatScrollController.hasClients) return;
+    _chatContentRevision++;
     _followChatTail = true;
     _chatScrollController.animateTo(
       _chatScrollController.position.maxScrollExtent,
@@ -2150,7 +2309,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   void _scrollChatToBottom({bool force = false}) {
-    if (force) _followChatTail = true;
+    if (force) {
+      _followChatTail = true;
+      _chatContentRevision++;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_chatScrollController.hasClients || !_followChatTail) {
         return;

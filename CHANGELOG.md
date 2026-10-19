@@ -74,6 +74,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **iOS internal-testing deployment:** Extended the deployment script to detect existing build numbers and increment them, clean previous builds, and handle IPA export failures while preserving the build and upload workflow.
 
 ### Fixed
+- Restored the previous AI overlay button and transition styling after continuous Liquid Glass looked worse. Kept the permission prompt on one translucent orange surface and removed the mis-sized glass layer; one- or two-character chat prompts remain pill-shaped.
+- Preserved the fullscreen AI chat's visible scroll position while opening and closing its history sidebar, including the keyboard resize; animated the permission card's exit and retained its identity as new messages are appended.
+- Fixed AI overlay glass controls appearing flat in dark mode by restoring their local backdrop blur and using the overlay surface brightness for glass rendering. Kept the permission card's orange tint light and legible in the white overlay appearance.
 - **iOS workout reminder timing:** Schedule workout-plan notifications from the device-local date and time, preserving the intended reminder hour across time zones and daylight-saving changes.
 - **UI & Design System Consistency (`main.dart`, `DesignConstants`, `LucideIcons`, `showDeleteConfirmation`, `showGlassBottomMenu`, `AppButton`, `GlobalAppBar`, `SummaryCard`):**
   - Replaced unregistered `fontFamily: 'Plus Jakarta Sans'` overrides with the bundled `'Inter'` font family across 12 diary, AI meal capture/review, voice dictation, and onboarding tour files so text no longer falls back to the platform default font.
