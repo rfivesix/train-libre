@@ -1147,7 +1147,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 OverlayEntry(
                   builder: (overlayContext) => GestureDetector(
                     behavior: HitTestBehavior.translucent,
-                    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTap: () {
+                      final focusedNode = FocusManager.instance.primaryFocus;
+                      if (focusedNode?.debugLabel == 'ai-overlay-composer') {
+                        return;
+                      }
+                      focusedNode?.unfocus();
+                    },
                     child: Stack(
                       fit: StackFit.expand,
                       children: [

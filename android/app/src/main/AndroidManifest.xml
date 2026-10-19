@@ -3,8 +3,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Explicitly remove microphone permissions injected by dependencies -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+    <!-- Needed for user-started meal and assistant voice dictation. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" tools:node="remove" />
 
     <!-- FIX: These two lines must be direct children of <manifest>. -->
@@ -312,6 +312,9 @@
 
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

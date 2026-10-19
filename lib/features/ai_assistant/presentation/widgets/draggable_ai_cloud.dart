@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
@@ -8,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
@@ -15,6 +17,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/ai_service.dart';
 import '../../../../services/haptic_feedback_service.dart';
+import '../../../../services/voice/voice_dictation_service.dart';
+import '../../../../services/voice/voice_dictation_settings.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
@@ -107,7 +111,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   double? _sidebarDragStartScrollOffset;
   bool _sidebarDragStartFollowChatTail = true;
   final _chatInputController = TextEditingController();
-  final _chatFocusNode = FocusNode();
+  final _chatFocusNode = FocusNode(debugLabel: 'ai-overlay-composer');
+  final _chatInputScrollController = ScrollController();
   final _chatScrollController = ScrollController();
   final List<_DemoChatTurn> _chatTurns = [];
   Timer? _responseTimer;
@@ -129,6 +134,17 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   int _lastHapticWordCount = 0;
   DateTime? _lastWordHapticAt;
   bool _isGenerating = false;
+  bool _voiceStarting = false;
+  bool _voiceRecording = false;
+  bool _voiceStopping = false;
+  bool _voiceSimulation = false;
+  bool _voiceFinalizing = false;
+  int _voiceSessionId = 0;
+  String _voiceBaseText = '';
+  String _voiceTranscript = '';
+  double _voiceLevel = 0;
+  Timer? _voiceSimulationTimer;
+  Future<bool>? _iosSimulatorCheck;
   bool _hasCompletedResponse = false;
   bool _permissionPending = false;
   bool _showPermissionBadge = false;
@@ -210,8 +226,199 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
   }
 
+  Future<bool> _isIosSimulator() {
+    if (!kDebugMode || defaultTargetPlatform != TargetPlatform.iOS) {
+      return Future<bool>.value(false);
+    }
+    return _iosSimulatorCheck ??= DeviceInfoPlugin()
+        .iosInfo
+        .then((info) => !info.isPhysicalDevice)
+        .catchError((Object _) => false);
+  }
+
+  Future<void> _startSimulatedVoiceInput(int sessionId) async {
+    // Simulate partial speech results and microphone levels only in debug
+    // builds running on the iOS Simulator. Physical devices always use the
+    // platform recognizer.
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted || sessionId != _voiceSessionId) return;
+
+    _voiceSimulation = true;
+    setState(() {
+      _voiceStarting = false;
+      _voiceRecording = true;
+    });
+
+    const sample = 'Das ist eine simulierte Spracheingabe im iOS-Simulator.';
+    var elapsedMs = 0;
+    _voiceSimulationTimer?.cancel();
+    _voiceSimulationTimer = Timer.periodic(
+      const Duration(milliseconds: 80),
+      (timer) {
+        if (!mounted || sessionId != _voiceSessionId || !_voiceSimulation) {
+          timer.cancel();
+          return;
+        }
+        elapsedMs += 80;
+        final transcriptCharacters =
+            ((elapsedMs - 450) / 34).floor().clamp(0, sample.length);
+        final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
+        final variation = (math.sin(elapsedMs / 73) + 1) / 2;
+        setState(() {
+          _voiceLevel = 0.12 + pulse * 0.58 + variation * 0.22;
+          _voiceTranscript = sample.substring(0, transcriptCharacters);
+        });
+      },
+    );
+  }
+
+  Future<void> _startVoiceInput() async {
+    if (_voiceStarting || _voiceRecording || _voiceStopping) return;
+
+    final sessionId = ++_voiceSessionId;
+    _chatFocusNode.unfocus();
+    _voiceBaseText = _chatInputController.text.trim();
+    _voiceTranscript = '';
+    _voiceLevel = 0;
+    setState(() {
+      _voiceStarting = true;
+      _voiceStopping = false;
+    });
+
+    final simulateVoice = await _isIosSimulator();
+    if (!mounted || sessionId != _voiceSessionId) return;
+    if (simulateVoice) {
+      await _startSimulatedVoiceInput(sessionId);
+      return;
+    }
+
+    final service = VoiceDictationService.instance;
+    final availability = await service.prepare();
+    if (!mounted || sessionId != _voiceSessionId) return;
+    if (!availability.available) {
+      setState(() => _voiceStarting = false);
+      final l10n = AppLocalizations.of(context)!;
+      final message = switch (availability.reason) {
+        VoiceUnavailableReason.permissionDenied =>
+          l10n.voiceUnavailablePermission,
+        VoiceUnavailableReason.unsupported => l10n.voiceUnavailableUnsupported,
+        _ => l10n.voiceUnavailableFailed,
+      };
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      return;
+    }
+
+    final localeId = await VoiceDictationSettings.instance.localeId();
+    if (!mounted || sessionId != _voiceSessionId) return;
+    final started = await service.start(
+      localeId: localeId,
+      onPartial: (text) {
+        if (!mounted || sessionId != _voiceSessionId) return;
+        setState(() => _voiceTranscript = text);
+      },
+      onFinal: (text) {
+        if (!mounted || sessionId != _voiceSessionId) return;
+        setState(() => _voiceTranscript = text);
+      },
+      onSoundLevel: (level) {
+        if (!mounted || sessionId != _voiceSessionId) return;
+        setState(() => _voiceLevel = level);
+      },
+      onStopped: () => unawaited(_stopVoiceInput(sessionId)),
+    );
+    if (!mounted || sessionId != _voiceSessionId) {
+      if (started) unawaited(service.cancel());
+      return;
+    }
+    if (!started) {
+      setState(() => _voiceStarting = false);
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.voiceUnavailableFailed),
+        ),
+      );
+      return;
+    }
+    if (!service.isListening) {
+      unawaited(_stopVoiceInput(sessionId));
+      return;
+    }
+    setState(() {
+      _voiceStarting = false;
+      _voiceRecording = true;
+    });
+    if (service.lastRunUsedNetwork) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.voiceNetworkNotice),
+        ),
+      );
+    }
+  }
+
+  Future<void> _stopVoiceInput([int? requestedSessionId]) async {
+    final sessionId = requestedSessionId ?? _voiceSessionId;
+    if (sessionId != _voiceSessionId || _voiceFinalizing) return;
+    if (!_voiceStarting && !_voiceRecording) return;
+
+    _voiceFinalizing = true;
+    setState(() {
+      _voiceStarting = false;
+      _voiceStopping = true;
+    });
+    _voiceSimulationTimer?.cancel();
+    if (!_voiceSimulation) {
+      await VoiceDictationService.instance.stop();
+    }
+    await Future<void>.delayed(
+      Duration(milliseconds: _voiceSimulation ? 120 : 450),
+    );
+    if (!mounted || sessionId != _voiceSessionId) return;
+
+    final dictatedText = _voiceTranscript.trim();
+    final combinedText = [
+      if (_voiceBaseText.isNotEmpty) _voiceBaseText,
+      if (dictatedText.isNotEmpty) dictatedText,
+    ].join(' ');
+    _chatInputController.value = TextEditingValue(
+      text: combinedText,
+      selection: TextSelection.collapsed(offset: combinedText.length),
+    );
+    setState(() {
+      _voiceRecording = false;
+      _voiceStopping = false;
+      _voiceLevel = 0;
+      _voiceSimulation = false;
+    });
+    _voiceFinalizing = false;
+  }
+
+  Future<void> _cancelVoiceInput() async {
+    if (!_voiceStarting && !_voiceRecording && !_voiceStopping) return;
+    ++_voiceSessionId;
+    _voiceFinalizing = false;
+    _voiceSimulationTimer?.cancel();
+    final wasSimulating = _voiceSimulation;
+    setState(() {
+      _voiceStarting = false;
+      _voiceRecording = false;
+      _voiceStopping = false;
+      _voiceLevel = 0;
+      _voiceTranscript = '';
+      _voiceSimulation = false;
+    });
+    if (!wasSimulating) await VoiceDictationService.instance.cancel();
+  }
+
   @override
   void dispose() {
+    _voiceSimulationTimer?.cancel();
+    if ((_voiceStarting || _voiceRecording || _voiceStopping) &&
+        !_voiceSimulation) {
+      unawaited(VoiceDictationService.instance.cancel());
+    }
     _responseTimer?.cancel();
     _liveResponseSubscription?.cancel();
     _liveChunkFlushTimer?.cancel();
@@ -225,6 +432,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
     _chatInputController.dispose();
     _chatFocusNode.dispose();
+    _chatInputScrollController.dispose();
     _chatScrollController.dispose();
     _initialDockStartTimer?.cancel();
     _initialDockController.dispose();
@@ -735,6 +943,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = math.max(0.0, constraints.maxWidth).toDouble();
+        final viewportHeight = math
+            .min(
+              constraints.maxHeight,
+              mediaQuery.size.height - mediaQuery.viewInsets.bottom,
+            )
+            .clamp(0.0, double.infinity)
+            .toDouble();
+        final bottomOcclusion = constraints.maxHeight - viewportHeight;
         final visibleEdge = math.min(_visibleEdge, width / 2).toDouble();
         final minLeft = visibleEdge - _cloudSize;
         final maxLeft = math.max(minLeft, width - visibleEdge).toDouble();
@@ -799,25 +1015,22 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             ? 0.0
             : ((left - minLeft) / travelDistance).clamp(0.0, 1.0).toDouble();
         _displayedHorizontalPosition = position;
-        final minTop = math
-            .min(topBoundary - _topVisualInset, constraints.maxHeight)
-            .toDouble();
+        final minTop =
+            math.min(topBoundary - _topVisualInset, viewportHeight).toDouble();
         final maxTop = math
-            .max(minTop, constraints.maxHeight - bottomInset - _cloudSize)
+            .max(minTop, viewportHeight - bottomInset - _cloudSize)
             .toDouble();
         final verticalTravelDistance =
             math.max(0.0, maxTop - minTop).toDouble();
         final verticalPosition =
             (_verticalPosition ?? 1.0).clamp(0.0, 1.0).toDouble();
         final top = maxTop - verticalPosition * verticalTravelDistance;
-        final viewportSize = Size(width, constraints.maxHeight);
+        final viewportSize = Size(width, viewportHeight);
         final panelRect = Rect.fromLTRB(
           DesignConstants.spacingS,
           panelTop,
           width - DesignConstants.spacingS,
-          constraints.maxHeight -
-              mediaQuery.padding.bottom -
-              DesignConstants.spacingS,
+          viewportHeight - mediaQuery.padding.bottom - DesignConstants.spacingS,
         );
         final safeRect = Rect.fromLTRB(
           panelRect.left + panelRect.width * _safeLeft,
@@ -829,7 +1042,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           0,
           0,
           width,
-          constraints.maxHeight,
+          viewportHeight,
         );
         final morphAnimation = _morphAnimation;
         final fullscreenProgress = Curves.easeInOutCubic.transform(
@@ -866,7 +1079,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               (corner.dy + direction.dy * handleOutset)
                   .clamp(
                     mediaQuery.padding.top + 28.0,
-                    constraints.maxHeight - mediaQuery.padding.bottom - 28.0,
+                    viewportHeight - mediaQuery.padding.bottom - 28.0,
                   )
                   .toDouble(),
             );
@@ -1006,7 +1219,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 final badgeTop = (cloudCenter.dy - badgeSize / 2)
                     .clamp(
                       mediaQuery.padding.top + 4,
-                      constraints.maxHeight -
+                      viewportHeight -
                           mediaQuery.padding.bottom -
                           badgeSize -
                           4,
@@ -1020,8 +1233,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   left: badgeLeft,
                   top: badgeTop,
                   child: IgnorePointer(
-                    child: Tooltip(
-                      message: l10n.aiOverlayDemoAssistantSection,
+                    child: Semantics(
+                      label: l10n.aiOverlayDemoAssistantSection,
                       child: SizedBox(
                         width: badgeSize,
                         height: badgeSize,
@@ -1093,9 +1306,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       // contract into it instead of sliding toward the top.
                       alignment: Alignment(
                         width <= 0 ? 0 : cloudCenter.dx / width * 2 - 1,
-                        constraints.maxHeight <= 0
+                        viewportHeight <= 0
                             ? 0
-                            : cloudCenter.dy / constraints.maxHeight * 2 - 1,
+                            : cloudCenter.dy / viewportHeight * 2 - 1,
                       ),
                       scale: revealProgress,
                       child: Opacity(
@@ -1135,7 +1348,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                         _buildChatPreview(
                                           activeSafeRect,
                                           theme,
-                                          constraints.maxHeight,
+                                          viewportHeight,
+                                          bottomOcclusion: bottomOcclusion,
                                           fullscreenProgress:
                                               fullscreenProgress,
                                           appearanceProgress:
@@ -1288,6 +1502,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     VoidCallback? onPressed,
     Color? backgroundColor,
     Color? foregroundColor,
+    bool showBorder = true,
   }) {
     final theme = Theme.of(context);
     final foreground =
@@ -1298,21 +1513,24 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       brightness: isDarkSurface ? Brightness.dark : Brightness.light,
     );
     final settings = DesignConstants.liquidGlassSettings(isDarkSurface);
-    final rimColor = foreground.withValues(alpha: 0.14);
     final buttonSurface = Container(
       decoration: BoxDecoration(
-        color: backgroundColor ??
-            (isDarkSurface
-                ? DesignConstants.glassNeutralTint(true)
-                : Colors.black.withValues(alpha: 0.04)),
+        color: showBorder
+            ? backgroundColor ??
+                (isDarkSurface
+                    ? DesignConstants.glassNeutralTint(true)
+                    : Colors.black.withValues(alpha: 0.04))
+            : Colors.transparent,
         shape: BoxShape.circle,
-        border: Border.all(color: rimColor, width: 0.5),
+        border: showBorder
+            ? Border.all(color: foreground.withValues(alpha: 0.14), width: 0.5)
+            : null,
       ),
       child: Center(child: Icon(icon, size: 20, color: foreground)),
     );
     final useStaticGlass =
         _isClosing || (_isExpanded && _morphAnimation.value < 1);
-    final glassContent = useStaticGlass
+    final glassContent = !showBorder || useStaticGlass
         ? buttonSurface
         : Theme(
             data: glassTheme,
@@ -1340,13 +1558,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          boxShadow: DesignConstants.glassShadow(isDarkSurface),
+          boxShadow:
+              showBorder ? DesignConstants.glassShadow(isDarkSurface) : null,
         ),
         child: glassContent,
       ),
     );
-    return Tooltip(
-      message: tooltip,
+    // This widget is also mounted through a root OverlayEntry, whose subtree
+    // does not consistently expose an Overlay ancestor on every platform.
+    // Tooltip tries to insert a RawTooltip entry and throws in that case.
+    return Semantics(
+      button: onPressed != null,
+      label: tooltip,
       child: onPressed == null
           ? button
           : GestureDetector(
@@ -1354,6 +1577,61 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               onTap: onPressed,
               child: button,
             ),
+    );
+  }
+
+  Widget _buildVoiceRecordingContent(Color foregroundColor) {
+    if (_voiceStarting) {
+      return Center(
+        child: SizedBox(
+          width: 96,
+          child: LinearProgressIndicator(
+            minHeight: 2,
+            color: foregroundColor.withValues(alpha: 0.72),
+            backgroundColor: foregroundColor.withValues(alpha: 0.16),
+          ),
+        ),
+      );
+    }
+    if (_voiceStopping) {
+      return Center(
+        child: SizedBox(
+          width: 96,
+          child: LinearProgressIndicator(
+            minHeight: 2,
+            color: foregroundColor.withValues(alpha: 0.72),
+            backgroundColor: foregroundColor.withValues(alpha: 0.16),
+          ),
+        ),
+      );
+    }
+
+    const barWeights = [0.35, 0.65, 1.0, 0.52, 0.82, 0.44, 0.72];
+    final level = math.max(_voiceLevel, 0.05).toDouble();
+    return SizedBox(
+      height: 44,
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            for (final weight in barWeights)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 100),
+                  curve: Curves.easeOut,
+                  width: 3,
+                  height: (4 + level * weight * 24).clamp(4.0, 28.0),
+                  decoration: BoxDecoration(
+                    color: foregroundColor.withValues(alpha: 0.82),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1611,6 +1889,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     Rect safeRect,
     ThemeData theme,
     double viewportHeight, {
+    required double bottomOcclusion,
     required double fullscreenProgress,
     required double appearanceProgress,
   }) {
@@ -1678,21 +1957,40 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final sendButtonBackground = surfaceIsLight ? Colors.black : Colors.white;
     final sendButtonForeground = surfaceIsLight ? Colors.white : Colors.black;
     final controlFillColor = _overlayControlFill(theme, appearanceProgress);
-    final composerSurface = Container(
-      decoration: BoxDecoration(
-        color: composerFillColor,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: contrastColor.withValues(alpha: 0.14),
-          width: 0.5,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
+    final composerSurface = AnimatedBuilder(
+      animation: Listenable.merge([_chatInputController, _chatFocusNode]),
+      builder: (context, _) {
+        final inputValue = _chatInputController.value;
+        final hasText = inputValue.text.trim().isNotEmpty;
+        final recording = _voiceStarting || _voiceRecording || _voiceStopping;
+        final expandedInput = hasText || _chatFocusNode.hasFocus;
+
+        Widget voiceButton({bool filled = false}) => _buildHeaderGlassButton(
+              icon: recording ? LucideIcons.x : LucideIcons.mic,
+              tooltip: recording
+                  ? AppLocalizations.of(context)!.cancel
+                  : AppLocalizations.of(context)!.voiceTapToRecord,
+              isDarkSurface: !surfaceIsLight,
+              foregroundColor: filled ? sendButtonForeground : contrastColor,
+              backgroundColor: filled ? sendButtonBackground : controlFillColor,
+              showBorder: recording || filled,
+              onPressed: recording ? _cancelVoiceInput : _startVoiceInput,
+            );
+
+        Widget sendButton() => _buildHeaderGlassButton(
+              icon: _isGenerating ? LucideIcons.square : LucideIcons.arrow_up,
+              tooltip: _isGenerating ? 'Stopp' : 'Senden',
+              isDarkSurface: !surfaceIsLight,
+              backgroundColor: sendButtonBackground,
+              foregroundColor: sendButtonForeground,
+              onPressed: _isGenerating ? _stopDemoGeneration : _sendDemoPrompt,
+            );
+
+        Widget messageField({required bool compact}) => Scrollbar(
+              controller: _chatInputScrollController,
+              thumbVisibility: !compact,
+              thickness: 2,
+              radius: const Radius.circular(2),
               child: TextSelectionTheme(
                 data: TextSelectionThemeData(
                   cursorColor: selectionBlue,
@@ -1701,10 +1999,33 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 ),
                 child: TextField(
                   controller: _chatInputController,
+                  scrollController: _chatInputScrollController,
                   focusNode: _chatFocusNode,
+                  onTapOutside: (_) => _chatFocusNode.unfocus(),
+                  onTap: () {
+                    // Reapply focus after the tap in case an ancestor handled
+                    // the same gesture before the editable field did.
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted &&
+                          !_voiceStarting &&
+                          !_voiceRecording &&
+                          !_voiceStopping) {
+                        _chatFocusNode.requestFocus();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted && _chatFocusNode.hasFocus) {
+                            unawaited(
+                              SystemChannels.textInput.invokeMethod<void>(
+                                'TextInput.show',
+                              ),
+                            );
+                          }
+                        });
+                      }
+                    });
+                  },
                   textAlign: TextAlign.start,
                   minLines: 1,
-                  maxLines: 4,
+                  maxLines: compact ? 1 : 6,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) {
                     if (!_isGenerating) _sendDemoPrompt();
@@ -1731,19 +2052,83 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   ),
                 ),
               ),
+            );
+
+        return AnimatedSize(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.bottomCenter,
+          child: ClipRRect(
+            // TextField's internal scroll viewport can paint at its rounded
+            // top edge. Clip the entire composer so content always follows the
+            // card's outer contour, including its rounded corners.
+            borderRadius: BorderRadius.circular(28),
+            child: Container(
+              decoration: BoxDecoration(
+                color: composerFillColor,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: contrastColor.withValues(alpha: 0.14),
+                  width: 0.5,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+                child: recording
+                    ? Row(
+                        children: [
+                          voiceButton(),
+                          const SizedBox(width: 6),
+                          Expanded(
+                              child:
+                                  _buildVoiceRecordingContent(contrastColor)),
+                          const SizedBox(width: 6),
+                          _buildHeaderGlassButton(
+                            icon: LucideIcons.square,
+                            tooltip:
+                                AppLocalizations.of(context)!.voiceTapToFinish,
+                            isDarkSurface: !surfaceIsLight,
+                            backgroundColor: sendButtonBackground,
+                            foregroundColor: sendButtonForeground,
+                            onPressed: _voiceStopping ? null : _stopVoiceInput,
+                          ),
+                        ],
+                      )
+                    : !expandedInput && !_isGenerating
+                        ? Row(
+                            children: [
+                              Expanded(child: messageField(compact: true)),
+                              const SizedBox(width: 6),
+                              // With an empty draft the mic occupies the send
+                              // button's usual trailing position and uses its
+                              // exact filled circular treatment.
+                              voiceButton(filled: true),
+                            ],
+                          )
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!_isGenerating)
+                                ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 156),
+                                  child: messageField(compact: false),
+                                ),
+                              Row(
+                                children: [
+                                  const Spacer(),
+                                  voiceButton(),
+                                  const SizedBox(width: 6),
+                                  sendButton(),
+                                ],
+                              ),
+                            ],
+                          ),
+              ),
             ),
-            const SizedBox(width: 10),
-            _buildHeaderGlassButton(
-              icon: _isGenerating ? LucideIcons.square : LucideIcons.arrow_up,
-              tooltip: _isGenerating ? 'Stopp' : 'Senden',
-              isDarkSurface: !surfaceIsLight,
-              backgroundColor: sendButtonBackground,
-              foregroundColor: sendButtonForeground,
-              onPressed: _isGenerating ? _stopDemoGeneration : _sendDemoPrompt,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
 
     return Positioned.fill(
@@ -1757,7 +2142,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               left: contentLeft,
               right: contentRight,
               top: topFadeStart,
-              bottom: viewportHeight - contentViewportBottom,
+              bottom: bottomOcclusion + viewportHeight - contentViewportBottom,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1894,7 +2279,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             Positioned(
               left: composerLeft,
               right: composerRight,
-              bottom: viewportHeight - chatBounds.bottom + contentInset,
+              bottom: bottomOcclusion +
+                  viewportHeight -
+                  chatBounds.bottom +
+                  contentInset,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(28),
@@ -1928,7 +2316,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             Positioned(
               left: 0,
               right: 0,
-              bottom: viewportHeight - chatBounds.bottom + 100,
+              bottom:
+                  bottomOcclusion + viewportHeight - chatBounds.bottom + 100,
               child: IgnorePointer(
                 ignoring: !_showScrollToBottom,
                 child: AnimatedOpacity(
@@ -2292,8 +2681,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     VoidCallback? onLongPress,
     required Color foregroundColor,
   }) {
-    return Tooltip(
-      message: tooltip,
+    return Semantics(
+      button: onTap != null,
+      label: tooltip,
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
