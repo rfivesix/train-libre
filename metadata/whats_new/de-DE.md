@@ -6,7 +6,7 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.6.0-beta.3 (2026-10-15)
+## 1.6.0-beta.4 (2026-10-15)
 
 {camera} Verbesserte KI-Mahlzeitenerfassung: Die Analyse ist schneller und findet passende Lebensmittel zuverlässiger. Auf unterstützten iPhones kannst du Apple Intelligence direkt auf dem Gerät nutzen oder weiterhin einen Anbieter mit eigenem API-Schlüssel verbinden. Jeden Vorschlag kannst du vor dem Speichern prüfen und ändern.
 

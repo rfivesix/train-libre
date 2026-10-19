@@ -6,7 +6,7 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.6.0-beta.3 (2026-10-15)
+## 1.6.0-beta.4 (2026-10-15)
 
 {camera} Acquisizione dei pasti con IA migliorata: L’analisi è più rapida e trova gli alimenti corrispondenti in modo più affidabile. Sugli iPhone compatibili, Apple Intelligence può analizzare i pasti sul dispositivo; puoi anche continuare a usare la tua chiave API con un altro provider. Controlla e modifica ogni suggerimento prima di salvarlo.
 

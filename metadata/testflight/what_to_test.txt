@@ -1,8 +1,8 @@
-Train Libre 1.6.0-beta.3
+Train Libre 1.6.0-beta.4
 
 Please focus on these flows:
 
-• AI meals and food search: On a supported iPhone, scan a mixed meal with Apple Intelligence and check that all ingredients remain in the review. Try editing the suggested foods and portions before saving. Search common foods in the downloaded BLS 4.0 catalog, including while offline, and check that branded products still appear through Open Food Facts. An external AI provider can also be tested with your own API key.
+• AI meals, replies, and food search: On a supported iPhone, scan a mixed meal with Apple Intelligence and check that all ingredients remain in the review. Edit suggested foods and portions before saving. In AI chat, copy a response as Markdown, regenerate it, and check the displayed model and response time. Search common foods in the downloaded BLS 4.0 catalog, including while offline; try everyday German names and check that AI suggestions do not match the wrong animal species. Confirm branded products still appear through Open Food Facts. An external AI provider can also be tested with your own API key.
 
 • Workout history: Import a Hevy, Strong, or generic CSV export from onboarding or Settings > Data & Backup. Inspect the preview for units, dates, duplicates, and invalid rows. In the exercise catalog, filter for previously trained exercises and check their history labels.
 
@@ -10,6 +10,6 @@ Please focus on these flows:
 
 • Workout notes and controls: Add a pinned exercise note, a routine-specific note, and a note for one workout. Check that each appears in the right context. Try the progression toggle, set-type menu, and workout keyboard controls while logging sets.
 
-• Statistics, health, and maintenance: Reorder Statistics cards and open nutrition and recovery details. Check the consolidated Health settings and available Apple Health permissions. If you have an existing backup, restore it and confirm that goals and workout history remain intact. Please also report accessibility, localisation, and small-screen layout issues.
+• Statistics, health, and maintenance: Reorder Statistics cards and open nutrition and recovery details. Check the consolidated Health settings and available Apple Health permissions. On Android, export a completed strength workout to Health Connect and confirm its sets include repetitions, load, and order; repeat the export to check that it does not create duplicates. If available, check that upcoming weekly goal-review reminders are scheduled and delivered while the app is closed. If you have an existing backup, restore it and confirm that goals and workout history remain intact. Please also report accessibility, localisation, and small-screen layout issues.
 
 Thank you for testing Train Libre!

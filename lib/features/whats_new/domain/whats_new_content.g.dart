@@ -16,7 +16,7 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.3',
+      version: '1.6.0-beta.4',
       releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -267,7 +267,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'de': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.3',
+      version: '1.6.0-beta.4',
       releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -518,7 +518,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.3',
+      version: '1.6.0-beta.4',
       releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -769,7 +769,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.3',
+      version: '1.6.0-beta.4',
       releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -1020,7 +1020,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.6.0-beta.3',
+      version: '1.6.0-beta.4',
       releasedOn: '2026-10-15',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
@@ -1277,4 +1277,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.6.0-beta.3';
+const String kWhatsNewGeneratedForVersion = '1.6.0-beta.4';

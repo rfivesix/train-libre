@@ -6,7 +6,7 @@
   編集後: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.6.0-beta.3 (2026-10-15)
+## 1.6.0-beta.4 (2026-10-15)
 
 {camera} AI食事記録を改善: 食事の解析が速くなり、食品との照合もより確実になりました。対応するiPhoneではApple Intelligenceによる端末上の解析を利用でき、引き続き自分のAPIキーで別のプロバイダーも使えます。提案は保存前に確認・修正できます。
 
