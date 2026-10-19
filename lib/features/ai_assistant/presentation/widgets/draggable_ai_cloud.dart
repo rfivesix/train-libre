@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
+import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
@@ -139,11 +140,16 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _voiceStopping = false;
   bool _voiceSimulation = false;
   bool _voiceFinalizing = false;
+  bool _sendVoiceAfterStop = false;
   int _voiceSessionId = 0;
   String _voiceBaseText = '';
   String _voiceTranscript = '';
-  double _voiceLevel = 0;
+  final List<_VoiceWaveSample> _voiceLevelHistory = <_VoiceWaveSample>[];
   Timer? _voiceSimulationTimer;
+  double _latestVoiceLevel = 0;
+  int _lastVoiceWaveSampleIndex = 0;
+  late final Ticker _voiceWaveTicker;
+  late final ValueNotifier<double> _voiceWaveOffset;
   Future<bool>? _iosSimulatorCheck;
   bool _hasCompletedResponse = false;
   bool _permissionPending = false;
@@ -199,6 +205,27 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       duration: const Duration(milliseconds: 560),
       reverseDuration: const Duration(milliseconds: 460),
     );
+    _voiceWaveOffset = ValueNotifier<double>(0);
+    _voiceWaveTicker = createTicker((elapsed) {
+      const sampleSpacing = 6.0;
+      // Scroll continuously at a fixed speed. Samples are placed on exact
+      // spacing boundaries derived from this same monotonic position.
+      final position = elapsed.inMicroseconds * 0.000045;
+      _voiceWaveOffset.value = position;
+      final sampleIndex = (position / sampleSpacing).floor();
+      if (sampleIndex > _lastVoiceWaveSampleIndex &&
+          mounted &&
+          (_voiceRecording || _voiceStarting)) {
+        setState(() {
+          for (var index = _lastVoiceWaveSampleIndex + 1;
+              index <= sampleIndex;
+              index++) {
+            _appendVoiceLevel(_latestVoiceLevel, index * sampleSpacing);
+          }
+          _lastVoiceWaveSampleIndex = sampleIndex;
+        });
+      }
+    });
   }
 
   @override
@@ -248,6 +275,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _voiceStarting = false;
       _voiceRecording = true;
     });
+    _startVoiceWaveAnimation();
 
     const sample = 'Das ist eine simulierte Spracheingabe im iOS-Simulator.';
     var elapsedMs = 0;
@@ -264,8 +292,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             ((elapsedMs - 450) / 34).floor().clamp(0, sample.length);
         final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
         final variation = (math.sin(elapsedMs / 73) + 1) / 2;
+        final level = 0.12 + pulse * 0.58 + variation * 0.22;
         setState(() {
-          _voiceLevel = 0.12 + pulse * 0.58 + variation * 0.22;
+          _latestVoiceLevel = level;
           _voiceTranscript = sample.substring(0, transcriptCharacters);
         });
       },
@@ -279,7 +308,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _chatFocusNode.unfocus();
     _voiceBaseText = _chatInputController.text.trim();
     _voiceTranscript = '';
-    _voiceLevel = 0;
+    _voiceLevelHistory.clear();
+    _latestVoiceLevel = 0;
+    _sendVoiceAfterStop = false;
     setState(() {
       _voiceStarting = true;
       _voiceStopping = false;
@@ -324,7 +355,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       },
       onSoundLevel: (level) {
         if (!mounted || sessionId != _voiceSessionId) return;
-        setState(() => _voiceLevel = level);
+        setState(() {
+          _latestVoiceLevel = level;
+        });
       },
       onStopped: () => unawaited(_stopVoiceInput(sessionId)),
     );
@@ -349,6 +382,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _voiceStarting = false;
       _voiceRecording = true;
     });
+    _startVoiceWaveAnimation();
     if (service.lastRunUsedNetwork) {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         SnackBar(
@@ -369,6 +403,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _voiceStopping = true;
     });
     _voiceSimulationTimer?.cancel();
+    _voiceWaveTicker.stop();
     if (!_voiceSimulation) {
       await VoiceDictationService.instance.stop();
     }
@@ -389,23 +424,55 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     setState(() {
       _voiceRecording = false;
       _voiceStopping = false;
-      _voiceLevel = 0;
       _voiceSimulation = false;
     });
     _voiceFinalizing = false;
+    final shouldSend = _sendVoiceAfterStop;
+    _sendVoiceAfterStop = false;
+    if (shouldSend) _sendDemoPrompt();
+  }
+
+  void _appendVoiceLevel(double level, double position) {
+    _voiceLevelHistory.add(
+      _VoiceWaveSample(
+        position: position,
+        level: level.clamp(0.0, 1.0).toDouble(),
+      ),
+    );
+    if (_voiceLevelHistory.length > 120) _voiceLevelHistory.removeAt(0);
+  }
+
+  void _startVoiceWaveAnimation() {
+    _voiceWaveOffset.value = 0;
+    _voiceLevelHistory.clear();
+    _lastVoiceWaveSampleIndex = 0;
+    _appendVoiceLevel(_latestVoiceLevel, 0);
+    _voiceWaveTicker.start();
+  }
+
+  Future<void> _sendVoiceInput() async {
+    if (_voiceStopping || (!_voiceStarting && !_voiceRecording)) return;
+    if (_voiceFinalizing) {
+      _sendVoiceAfterStop = true;
+      return;
+    }
+    _sendVoiceAfterStop = true;
+    await _stopVoiceInput();
   }
 
   Future<void> _cancelVoiceInput() async {
     if (!_voiceStarting && !_voiceRecording && !_voiceStopping) return;
     ++_voiceSessionId;
     _voiceFinalizing = false;
+    _sendVoiceAfterStop = false;
     _voiceSimulationTimer?.cancel();
+    _voiceWaveTicker.stop();
     final wasSimulating = _voiceSimulation;
     setState(() {
       _voiceStarting = false;
       _voiceRecording = false;
       _voiceStopping = false;
-      _voiceLevel = 0;
+      _latestVoiceLevel = 0;
       _voiceTranscript = '';
       _voiceSimulation = false;
     });
@@ -415,6 +482,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void dispose() {
     _voiceSimulationTimer?.cancel();
+    _voiceWaveTicker.dispose();
+    _voiceWaveOffset.dispose();
     if ((_voiceStarting || _voiceRecording || _voiceStopping) &&
         !_voiceSimulation) {
       unawaited(VoiceDictationService.instance.cancel());
@@ -1606,31 +1675,16 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       );
     }
 
-    const barWeights = [0.35, 0.65, 1.0, 0.52, 0.82, 0.44, 0.72];
-    final level = math.max(_voiceLevel, 0.05).toDouble();
     return SizedBox(
       height: 44,
-      child: Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            for (final weight in barWeights)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 100),
-                  curve: Curves.easeOut,
-                  width: 3,
-                  height: (4 + level * weight * 24).clamp(4.0, 28.0),
-                  decoration: BoxDecoration(
-                    color: foregroundColor.withValues(alpha: 0.82),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-          ],
+      width: double.infinity,
+      child: CustomPaint(
+        painter: _VoiceWaveformPainter(
+          samples: List<_VoiceWaveSample>.of(_voiceLevelHistory),
+          color: foregroundColor.withValues(alpha: 0.82),
+          scrollOffset: _voiceWaveOffset,
         ),
+        willChange: true,
       ),
     );
   }
@@ -2073,7 +2127,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+                padding: EdgeInsets.fromLTRB(recording ? 6 : 10, 6, 6, 6),
                 child: recording
                     ? Row(
                         children: [
@@ -2088,9 +2142,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                             tooltip:
                                 AppLocalizations.of(context)!.voiceTapToFinish,
                             isDarkSurface: !surfaceIsLight,
+                            backgroundColor: controlFillColor,
+                            foregroundColor: contrastColor,
+                            onPressed: _voiceStopping ? null : _stopVoiceInput,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildHeaderGlassButton(
+                            icon: LucideIcons.arrow_up,
+                            tooltip: 'Senden',
+                            isDarkSurface: !surfaceIsLight,
                             backgroundColor: sendButtonBackground,
                             foregroundColor: sendButtonForeground,
-                            onPressed: _voiceStopping ? null : _stopVoiceInput,
+                            onPressed: _voiceStopping ? null : _sendVoiceInput,
                           ),
                         ],
                       )
@@ -3519,6 +3582,61 @@ class _CloudControlsClipper extends CustomClipper<Rect> {
   @override
   bool shouldReclip(covariant _CloudControlsClipper oldClipper) =>
       oldClipper.revealBounds != revealBounds;
+}
+
+class _VoiceWaveformPainter extends CustomPainter {
+  const _VoiceWaveformPainter({
+    required this.samples,
+    required this.color,
+    required this.scrollOffset,
+  }) : super(repaint: scrollOffset);
+
+  final List<_VoiceWaveSample> samples;
+  final Color color;
+  final ValueListenable<double> scrollOffset;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const rightInset = 3.5;
+    const fadeWidth = 30.0;
+    final centerY = size.height / 2;
+    final paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 3;
+    final currentPosition = scrollOffset.value;
+
+    // A single moving waveform; no stationary baseline remains behind it.
+    for (final sample in samples) {
+      final age = currentPosition - sample.position;
+      if (age < 0 || age > size.width) continue;
+      final x = size.width - rightInset - age;
+      if (x < 2) continue;
+      final halfHeight = 2.0 + sample.level * (size.height * 0.42);
+      final leftFade = ((x - 2) / fadeWidth).clamp(0.0, 1.0);
+      final rightFade = ((size.width - x) / fadeWidth).clamp(0.0, 1.0);
+      paint.color = color.withValues(
+        alpha: color.a * math.min(leftFade, rightFade),
+      );
+      canvas.drawLine(
+        Offset(x, centerY - halfHeight),
+        Offset(x, centerY + halfHeight),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _VoiceWaveformPainter oldDelegate) =>
+      oldDelegate.color != color ||
+      !listEquals(oldDelegate.samples, samples) ||
+      oldDelegate.scrollOffset != scrollOffset;
+}
+
+class _VoiceWaveSample {
+  const _VoiceWaveSample({required this.position, required this.level});
+
+  final double position;
+  final double level;
 }
 
 enum _SafeSpaceCorner { topLeft, topRight, bottomLeft, bottomRight }
