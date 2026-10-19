@@ -15770,6 +15770,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag horizontally to move the cloud. Its position is saved.'**
   String get aiOverlayDemoCloudHint;
+
+  /// No description provided for @aiAssistantAskModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask {model}'**
+  String aiAssistantAskModelHint(String model);
 }
 
 class _AppLocalizationsDelegate

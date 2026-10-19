@@ -9117,4 +9117,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get aiOverlayDemoCloudHint =>
       'Faites glisser le nuage horizontalement. Sa position est enregistrée.';
+
+  @override
+  String aiAssistantAskModelHint(String model) {
+    return 'Demander à $model';
+  }
 }

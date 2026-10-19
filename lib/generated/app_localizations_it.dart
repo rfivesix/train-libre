@@ -9092,4 +9092,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get aiOverlayDemoCloudHint =>
       'Trascina la nuvola orizzontalmente. La posizione viene salvata.';
+
+  @override
+  String aiAssistantAskModelHint(String model) {
+    return 'Chiedi a $model';
+  }
 }

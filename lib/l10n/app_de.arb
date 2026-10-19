@@ -3699,5 +3699,13 @@
   "aiOverlayDemoApprovedFeedback": "Freigabe in dieser Demo simuliert.",
   "aiOverlayDemoDeniedFeedback": "Vorschlag in dieser Demo abgelehnt.",
   "aiOverlayDemoCloudHint": "Wolke horizontal ziehen. Die Position wird gespeichert.",
-  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}}
+  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
+  "aiAssistantAskModelHint": "Frage {model}",
+  "@aiAssistantAskModelHint": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  }
 }

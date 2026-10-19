@@ -3915,5 +3915,13 @@
   "aiOverlayDemoApprovedFeedback": "Approval simulated in this demo.",
   "aiOverlayDemoDeniedFeedback": "Request declined in this demo.",
   "aiOverlayDemoCloudHint": "Drag horizontally to move the cloud. Its position is saved.",
-  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}}
+  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
+  "aiAssistantAskModelHint": "Ask {model}",
+  "@aiAssistantAskModelHint": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -175,6 +175,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   Timer? _initialDockStartTimer;
   bool _initialDockScheduled = false;
   double _displayedHorizontalPosition = 0;
+  String? _currentModelName;
 
   AnimationController get _morphAnimation =>
       _morphController ??= AnimationController(
@@ -191,6 +192,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void initState() {
     super.initState();
+    unawaited(_resolveCurrentModelName().then((name) {
+      if (mounted) setState(() => _currentModelName = name);
+    }));
     _chatScrollController.addListener(_handleChatScroll);
     _initialDockController = AnimationController(
       vsync: this,
@@ -1980,8 +1984,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final chatTop = safeRect.top +
         16 +
         (fullscreenContentTop - safeRect.top - 16) * fullscreenProgress;
-    final scrollViewportTop =
-        math.min(chatTop, MediaQuery.paddingOf(context).top + 8);
+    // Keep the scroll viewport flush with the animated chat window's outer
+    // top edge so messages can scroll right up to it without painting beyond.
+    final scrollViewportTop = chatBounds.top;
     final toolbarTop = (safeRect.top - 62) +
         (MediaQuery.paddingOf(context).top + 10 - (safeRect.top - 62)) *
             fullscreenProgress;
@@ -2055,31 +2060,24 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   controller: _chatInputController,
                   scrollController: _chatInputScrollController,
                   focusNode: _chatFocusNode,
+                  keyboardType: TextInputType.text,
                   onTapOutside: (_) => _chatFocusNode.unfocus(),
                   onTap: () {
-                    // Reapply focus after the tap in case an ancestor handled
-                    // the same gesture before the editable field did.
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted &&
-                          !_voiceStarting &&
-                          !_voiceRecording &&
-                          !_voiceStopping) {
-                        _chatFocusNode.requestFocus();
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted && _chatFocusNode.hasFocus) {
-                            unawaited(
-                              SystemChannels.textInput.invokeMethod<void>(
-                                'TextInput.show',
-                              ),
-                            );
-                          }
-                        });
-                      }
-                    });
+                    if (!_voiceStarting &&
+                        !_voiceRecording &&
+                        !_voiceStopping) {
+                      _chatFocusNode.requestFocus();
+                      unawaited(
+                        SystemChannels.textInput.invokeMethod<void>(
+                          'TextInput.show',
+                        ),
+                      );
+                    }
                   },
                   textAlign: TextAlign.start,
+                  textAlignVertical: TextAlignVertical.top,
                   minLines: 1,
-                  maxLines: compact ? 1 : 6,
+                  maxLines: (!compact || inputValue.text.isEmpty) ? 6 : 1,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) {
                     if (!_isGenerating) _sendDemoPrompt();
@@ -2089,7 +2087,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   ),
                   cursorColor: selectionBlue,
                   decoration: InputDecoration(
-                    hintText: 'Nachricht schreiben …',
+                    hintText: _askModelHint,
                     hintStyle: theme.textTheme.bodyMedium?.copyWith(
                       color: contrastColor.withValues(alpha: 0.52),
                     ),
@@ -2102,91 +2100,119 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
                   ),
                 ),
               ),
             );
 
-        return AnimatedSize(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.bottomCenter,
-          child: ClipRRect(
-            // TextField's internal scroll viewport can paint at its rounded
-            // top edge. Clip the entire composer so content always follows the
-            // card's outer contour, including its rounded corners.
-            borderRadius: BorderRadius.circular(28),
-            child: Container(
-              decoration: BoxDecoration(
-                color: composerFillColor,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: contrastColor.withValues(alpha: 0.14),
-                  width: 0.5,
+        return TextFieldTapRegion(
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.bottomCenter,
+            child: ClipRRect(
+              // TextField's internal scroll viewport can paint at its rounded
+              // top edge. Clip the entire composer so content always follows the
+              // card's outer contour, including its rounded corners.
+              borderRadius: BorderRadius.circular(28),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: composerFillColor,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: contrastColor.withValues(alpha: 0.14),
+                    width: 0.5,
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(recording ? 6 : 10, 6, 6, 6),
-                child: recording
-                    ? Row(
-                        children: [
-                          voiceButton(),
-                          const SizedBox(width: 6),
-                          Expanded(
-                              child:
-                                  _buildVoiceRecordingContent(contrastColor)),
-                          const SizedBox(width: 6),
-                          _buildHeaderGlassButton(
-                            icon: LucideIcons.square,
-                            tooltip:
-                                AppLocalizations.of(context)!.voiceTapToFinish,
-                            isDarkSurface: !surfaceIsLight,
-                            backgroundColor: controlFillColor,
-                            foregroundColor: contrastColor,
-                            onPressed: _voiceStopping ? null : _stopVoiceInput,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildHeaderGlassButton(
-                            icon: LucideIcons.arrow_up,
-                            tooltip: 'Senden',
-                            isDarkSurface: !surfaceIsLight,
-                            backgroundColor: sendButtonBackground,
-                            foregroundColor: sendButtonForeground,
-                            onPressed: _voiceStopping ? null : _sendVoiceInput,
-                          ),
-                        ],
-                      )
-                    : !expandedInput && !_isGenerating
-                        ? Row(
-                            children: [
-                              Expanded(child: messageField(compact: true)),
-                              const SizedBox(width: 6),
-                              // With an empty draft the mic occupies the send
-                              // button's usual trailing position and uses its
-                              // exact filled circular treatment.
-                              voiceButton(filled: true),
-                            ],
-                          )
-                        : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (!_isGenerating)
-                                ConstrainedBox(
-                                  constraints:
-                                      const BoxConstraints(maxHeight: 156),
-                                  child: messageField(compact: false),
-                                ),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(recording ? 6 : 10, 6, 6, 6),
+                  child: recording
+                      ? Row(
+                          children: [
+                            voiceButton(),
+                            const SizedBox(width: 6),
+                            Expanded(
+                                child:
+                                    _buildVoiceRecordingContent(contrastColor)),
+                            const SizedBox(width: 6),
+                            _buildHeaderGlassButton(
+                              icon: LucideIcons.square,
+                              tooltip: AppLocalizations.of(context)!
+                                  .voiceTapToFinish,
+                              isDarkSurface: !surfaceIsLight,
+                              backgroundColor: controlFillColor,
+                              foregroundColor: contrastColor,
+                              onPressed:
+                                  _voiceStopping ? null : _stopVoiceInput,
+                            ),
+                            const SizedBox(width: 6),
+                            _buildHeaderGlassButton(
+                              icon: LucideIcons.arrow_up,
+                              tooltip: 'Senden',
+                              isDarkSurface: !surfaceIsLight,
+                              backgroundColor: sendButtonBackground,
+                              foregroundColor: sendButtonForeground,
+                              onPressed:
+                                  _voiceStopping ? null : _sendVoiceInput,
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!_isGenerating)
                               Row(
                                 children: [
-                                  const Spacer(),
-                                  voiceButton(),
-                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: ConstrainedBox(
+                                      constraints:
+                                          const BoxConstraints(maxHeight: 156),
+                                      child: messageField(
+                                        compact: !expandedInput,
+                                      ),
+                                    ),
+                                  ),
+                                  if (!expandedInput) ...[
+                                    const SizedBox(width: 6),
+                                    // With an empty draft the mic occupies the
+                                    // send button's usual trailing position and
+                                    // uses its exact filled circular treatment.
+                                    voiceButton(filled: true),
+                                  ],
+                                ],
+                              ),
+                            if (expandedInput || _isGenerating)
+                              Row(
+                                children: [
+                                  if (!_isGenerating)
+                                    Expanded(
+                                      child: GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () {
+                                          _chatFocusNode.requestFocus();
+                                          unawaited(
+                                            SystemChannels.textInput
+                                                .invokeMethod<void>(
+                                              'TextInput.show',
+                                            ),
+                                          );
+                                        },
+                                        child: const SizedBox(height: 44),
+                                      ),
+                                    )
+                                  else
+                                    const Spacer(),
+                                  if (!_isGenerating) ...[
+                                    voiceButton(),
+                                    const SizedBox(width: 6),
+                                  ],
                                   sendButton(),
                                 ],
                               ),
-                            ],
-                          ),
+                          ],
+                        ),
+                ),
               ),
             ),
           ),
@@ -2264,14 +2290,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         ).createShader(bounds);
                       },
                       child: _chatTurns.isEmpty
-                          ? Center(
-                              child: Text(
-                                'Schreib eine Nachricht …',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: contrastColor.withValues(alpha: 0.5),
-                                ),
-                              ),
-                            )
+                          ? const SizedBox.shrink()
                           : NotificationListener<UserScrollNotification>(
                               onNotification: (notification) {
                                 if (notification.direction !=
@@ -2287,22 +2306,27 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                 controller: _chatScrollController,
                                 findChildIndexCallback: (key) {
                                   if (key == permissionCardKey) {
-                                    return _chatTurns.length;
+                                    return _chatTurns.length + 1;
                                   }
                                   if (key is ValueKey<_DemoChatTurn>) {
                                     final turnIndex =
                                         _chatTurns.indexOf(key.value);
-                                    return turnIndex < 0 ? null : turnIndex;
+                                    return turnIndex < 0 ? null : turnIndex + 1;
                                   }
                                   return null;
                                 },
-                                padding: EdgeInsets.only(
-                                  top: chatTop - topFadeStart + 8,
-                                  bottom: 104,
-                                ),
-                                itemCount: _chatTurns.length + 1,
+                                padding: const EdgeInsets.only(bottom: 104),
+                                itemCount: _chatTurns.length + 2,
                                 itemBuilder: (context, index) {
-                                  if (index == _chatTurns.length) {
+                                  if (index == 0) {
+                                    return SizedBox(
+                                      height: math.max(
+                                        0.0,
+                                        chatTop - topFadeStart + 16,
+                                      ),
+                                    );
+                                  }
+                                  if (index == _chatTurns.length + 1) {
                                     return KeyedSubtree(
                                       key: permissionCardKey,
                                       child: _buildDemoPermissionCard(
@@ -2315,9 +2339,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                       ),
                                     );
                                   }
-                                  final turn = _chatTurns[index];
-                                  final isLastTurn =
-                                      index == _chatTurns.length - 1;
+                                  final turn = _chatTurns[index - 1];
+                                  final isLastTurn = index == _chatTurns.length;
                                   return KeyedSubtree(
                                     key: ValueKey<_DemoChatTurn>(turn),
                                     child: _buildChatTurn(
@@ -2346,57 +2369,57 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   viewportHeight -
                   chatBounds.bottom +
                   contentInset,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: DesignConstants.glassShadow(cloudSurfaceDark),
-                ),
-                child: isGlassTransitioning
-                    ? composerSurface
-                    : Theme(
-                        data: glassTheme,
-                        child: GlassAdaptiveScope(
-                          maxQuality: DesignConstants.defaultGlassQuality,
-                          minQuality: DesignConstants.minGlassQuality,
-                          child: AdaptiveGlass(
-                            settings: composerGlassSettings,
-                            quality: DesignConstants.defaultGlassQuality,
-                            useOwnLayer: true,
-                            allowElevation: false,
-                            shape: const LiquidRoundedSuperellipse(
-                              borderRadius: 28,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 160),
+                    alignment: Alignment.bottomCenter,
+                    child: _showScrollToBottom
+                        ? Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: _buildHeaderGlassButton(
+                              icon: LucideIcons.arrow_down,
+                              tooltip: 'Zum neuesten Beitrag',
+                              isDarkSurface: !surfaceIsLight,
+                              backgroundColor: controlFillColor,
+                              foregroundColor: contrastColor,
+                              onPressed: _scrollToLatestMessage,
                             ),
-                            child: GlassGlow(
-                              glowColor: contrastColor.withValues(alpha: 0.12),
-                              glowRadius: 1,
-                              child: composerSurface,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: DesignConstants.glassShadow(cloudSurfaceDark),
+                    ),
+                    child: isGlassTransitioning
+                        ? composerSurface
+                        : Theme(
+                            data: glassTheme,
+                            child: GlassAdaptiveScope(
+                              maxQuality: DesignConstants.defaultGlassQuality,
+                              minQuality: DesignConstants.minGlassQuality,
+                              child: AdaptiveGlass(
+                                settings: composerGlassSettings,
+                                quality: DesignConstants.defaultGlassQuality,
+                                useOwnLayer: true,
+                                allowElevation: false,
+                                shape: const LiquidRoundedSuperellipse(
+                                  borderRadius: 28,
+                                ),
+                                child: GlassGlow(
+                                  glowColor:
+                                      contrastColor.withValues(alpha: 0.12),
+                                  glowRadius: 1,
+                                  child: composerSurface,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom:
-                  bottomOcclusion + viewportHeight - chatBounds.bottom + 100,
-              child: IgnorePointer(
-                ignoring: !_showScrollToBottom,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 160),
-                  opacity: _showScrollToBottom ? 1 : 0,
-                  child: Center(
-                    child: _buildHeaderGlassButton(
-                      icon: LucideIcons.arrow_down,
-                      tooltip: 'Zum neuesten Beitrag',
-                      isDarkSurface: !surfaceIsLight,
-                      backgroundColor: controlFillColor,
-                      foregroundColor: contrastColor,
-                      onPressed: _scrollToLatestMessage,
-                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -2859,6 +2882,17 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     } catch (_) {
       return 'KI';
     }
+  }
+
+  String? get _composerModelName => !widget.useLiveAi
+      ? 'Demo'
+      : (_chatTurns.isNotEmpty ? _chatTurns.last.modelName : null) ??
+          _currentModelName;
+
+  String? get _askModelHint {
+    final modelName = _composerModelName;
+    if (modelName == null || modelName.isEmpty) return null;
+    return AppLocalizations.of(context)!.aiAssistantAskModelHint(modelName);
   }
 
   Widget _buildDemoPermissionCard({

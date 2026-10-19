@@ -3699,5 +3699,13 @@
   "aiOverlayDemoApprovedFeedback": "このデモでは許可をシミュレートします。",
   "aiOverlayDemoDeniedFeedback": "このデモではリクエストを拒否しました。",
   "aiOverlayDemoCloudHint": "雲を左右にドラッグして移動します。位置は保存されます。",
-  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}}
+  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
+  "aiAssistantAskModelHint": "{model}に質問",
+  "@aiAssistantAskModelHint": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -3699,5 +3699,13 @@
   "aiOverlayDemoApprovedFeedback": "Autorizzazione simulata in questa demo.",
   "aiOverlayDemoDeniedFeedback": "Richiesta rifiutata in questa demo.",
   "aiOverlayDemoCloudHint": "Trascina la nuvola orizzontalmente. La posizione viene salvata.",
-  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}}
+  "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
+  "aiAssistantAskModelHint": "Chiedi a {model}",
+  "@aiAssistantAskModelHint": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  }
 }

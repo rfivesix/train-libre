@@ -9043,4 +9043,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get aiOverlayDemoCloudHint =>
       'Wolke horizontal ziehen. Die Position wird gespeichert.';
+
+  @override
+  String aiAssistantAskModelHint(String model) {
+    return 'Frage $model';
+  }
 }
