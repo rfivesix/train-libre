@@ -1702,6 +1702,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 child: TextField(
                   controller: _chatInputController,
                   focusNode: _chatFocusNode,
+                  textAlign: TextAlign.start,
                   minLines: 1,
                   maxLines: 4,
                   textInputAction: TextInputAction.send,
