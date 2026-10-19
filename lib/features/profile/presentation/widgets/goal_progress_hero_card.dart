@@ -52,6 +52,7 @@ class GoalProgressHeroCard extends StatelessWidget {
 
     if (goal == null) {
       return SummaryCard(
+        padding: EdgeInsets.zero,
         child: Padding(
           padding: DesignConstants.cardPadding,
           child: Column(
@@ -139,6 +140,7 @@ class GoalProgressHeroCard extends StatelessWidget {
     );
 
     return SummaryCard(
+      padding: EdgeInsets.zero,
       child: InkWell(
         onTap: () async {
           await Navigator.of(context).push(

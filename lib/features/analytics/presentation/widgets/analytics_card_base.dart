@@ -17,6 +17,7 @@ class AnalyticsCardBase {
   ) {
     return SummaryCard(
       margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       key: Key('statistics_section_loading_${sectionId.name}'),
       child: Padding(
         padding: const EdgeInsets.all(DesignConstants.spacingL),
@@ -57,6 +58,7 @@ class AnalyticsCardBase {
   ) {
     return SummaryCard(
       margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       key: Key('statistics_section_error_${sectionId.name}'),
       child: Padding(
         padding: const EdgeInsets.all(DesignConstants.spacingL),

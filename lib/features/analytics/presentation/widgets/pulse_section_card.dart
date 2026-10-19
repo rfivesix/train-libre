@@ -59,6 +59,7 @@ class PulseSectionCard extends StatelessWidget {
       state: state,
       child: SummaryCard(
         margin: EdgeInsets.zero,
+        padding: EdgeInsets.zero,
         key: const Key('statistics_pulse_card'),
         onTap: onTap,
         child: Padding(

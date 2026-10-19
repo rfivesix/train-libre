@@ -71,6 +71,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
       state: state,
       child: SummaryCard(
         margin: EdgeInsets.zero,
+        padding: EdgeInsets.zero,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(DesignConstants.spacingL),

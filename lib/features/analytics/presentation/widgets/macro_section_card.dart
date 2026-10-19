@@ -126,6 +126,7 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
 
     return SummaryCard(
       margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       child: InkWell(
         onTap: widget.onTap ??
             () {

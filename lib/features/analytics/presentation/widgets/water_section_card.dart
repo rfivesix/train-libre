@@ -86,6 +86,7 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
         final hasData = data != null && data.trackedDays > 0;
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
               margin: EdgeInsets.zero,
+              padding: EdgeInsets.zero,
               onTap: onTap,
               child: Padding(
                 padding: const EdgeInsets.all(DesignConstants.spacingL),

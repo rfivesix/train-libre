@@ -250,6 +250,7 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                 // Section Header & Collapsible Accordion: Ziel-Historie
                 if (retiredGoals.isNotEmpty) ...[
                   SummaryCard(
+                    padding: EdgeInsets.zero,
                     child: Theme(
                       data: theme.copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(

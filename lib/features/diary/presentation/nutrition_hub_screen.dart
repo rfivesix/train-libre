@@ -64,6 +64,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   late final IGoalRepository _goalRepository;
   bool _isApplyingRecommendation = false;
   final Map<int, Future<List<Map<String, dynamic>>>> _mealItemsCache = {};
+  final Map<String, Future<String?>> _mealIngredientSummaryCache = {};
 
   IProfileRepository? _profileRepo;
 
@@ -101,6 +102,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Future<void> _refreshData() async {
     setState(() {
       _mealItemsCache.clear();
+      _mealIngredientSummaryCache.clear();
       _hubDataFuture = _loadHubData(refreshIfDue: true);
     });
   }
@@ -124,6 +126,30 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final products =
         await ProductLocalDataSource.instance.getProductsByBarcodes(barcodes);
     return {for (final product in products) product.barcode: product};
+  }
+
+  Future<String?> _mealIngredientSummary(
+    int mealId, {
+    required String languageCode,
+  }) {
+    final cacheKey = '$mealId:$languageCode';
+    return _mealIngredientSummaryCache.putIfAbsent(cacheKey, () async {
+      final items = await _mealItems(mealId);
+      final products = await _productsForMealItems(items);
+      final names = <String>[];
+      for (final item in items) {
+        final barcode = item['barcode'] as String?;
+        final name = barcode == null
+            ? null
+            : products[barcode]
+                ?.getLocalizedName(null, languageCode: languageCode)
+                .trim();
+        if (name != null && name.isNotEmpty && !names.contains(name)) {
+          names.add(name);
+        }
+      }
+      return names.isEmpty ? null : names.join(', ');
+    });
   }
 
   Future<void> _logRecipe(Map<String, dynamic> meal) async {
@@ -576,9 +602,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
           }
 
           card = SummaryCard(
+            padding: EdgeInsets.zero,
             onTap: openRecipe,
             child: Padding(
-              padding: const EdgeInsets.all(DesignConstants.spacingS),
+              padding: const EdgeInsets.all(DesignConstants.spacingM),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -598,7 +625,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                       PlatformAdaptivePopupMenu<String>(
                         icon: const Padding(
                           padding: EdgeInsets.all(8),
-                          child: Icon(LucideIcons.ellipsis),
+                          child: Icon(LucideIcons.ellipsis_vertical),
                         ),
                         items: [
                           PlatformAdaptivePopupMenuItem(
@@ -641,6 +668,36 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                         },
                       ),
                     ],
+                  ),
+                  FutureBuilder<String?>(
+                    future: _mealIngredientSummary(
+                      meal['id'] as int,
+                      languageCode:
+                          Localizations.localeOf(context).languageCode,
+                    ),
+                    builder: (context, snapshot) {
+                      final summary = snapshot.data;
+                      if (summary == null || summary.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          top: DesignConstants.spacingXS,
+                        ),
+                        child: Text(
+                          summary,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.62),
+                                  ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: DesignConstants.spacingS),
                   SizedBox(

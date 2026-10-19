@@ -85,6 +85,7 @@ class _MicronutrientSectionCardState extends State<MicronutrientSectionCard> {
         final summary = snapshot.data;
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
               margin: EdgeInsets.zero,
+              padding: EdgeInsets.zero,
               onTap: onTap,
               child: Padding(
                 padding: const EdgeInsets.all(DesignConstants.spacingL),

@@ -266,15 +266,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       final fullscreenOpening = openFullscreen
           ? _fullscreenAnimation.forward(from: 0)
           : Future<void>.value();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _isExpanded && _showChatPreview) {
-          _chatFocusNode.requestFocus();
-        }
-      });
       unawaited(
-        Future.wait<void>([morphOpening, fullscreenOpening]).then((_) {
-          _restoreChatKeyboardAfterOpening();
-        }),
+        Future.wait<void>([morphOpening, fullscreenOpening]),
       );
     } else {
       _morphAnimation.reverse().whenComplete(() {
@@ -377,23 +370,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final transitionProgress =
         (progress / transitionRange).clamp(0.0, 1.0).toDouble();
     return Curves.easeInOutCubic.transform(transitionProgress);
-  }
-
-  void _restoreChatKeyboardAfterOpening() {
-    Future<void>.delayed(const Duration(milliseconds: 120), () {
-      if (!mounted || !_isExpanded || !_showChatPreview) return;
-      if (MediaQuery.viewInsetsOf(context).bottom <= 0 &&
-          _chatFocusNode.hasFocus) {
-        _chatFocusNode.unfocus();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _isExpanded && _showChatPreview) {
-            _chatFocusNode.requestFocus();
-          }
-        });
-      } else {
-        _chatFocusNode.requestFocus();
-      }
-    });
   }
 
   Color _overlaySurfaceColor(ThemeData theme, double appearanceProgress) {
@@ -2174,8 +2150,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         blockquote: bodyStyle?.copyWith(
           color: contrastColor.withValues(alpha: 0.84),
         ),
-        blockquotePadding:
-            const EdgeInsets.only(left: 12, top: 2, bottom: 2),
+        blockquotePadding: const EdgeInsets.only(left: 12, top: 2, bottom: 2),
         blockquoteDecoration: BoxDecoration(
           border: Border(
             left: BorderSide(
