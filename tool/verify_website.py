@@ -107,10 +107,14 @@ def validate_404() -> None:
     metadata = parse_html(page)
     assert "noindex" in metadata.robots.lower(), "404 page must not be indexed"
     for href in metadata.links:
-        if urlparse(href).scheme or href.startswith("#"):
+        parsed = urlparse(href)
+        if parsed.scheme or parsed.netloc or not parsed.path:
             continue
-        target = (page.parent / href).resolve()
-        if href.endswith("/"):
+        # Root-relative links refer to the published site root, while other
+        # links are relative to the 404 page itself.
+        target = DOCS_DIR / parsed.path.lstrip("/") if parsed.path.startswith("/") else page.parent / parsed.path
+        target = target.resolve()
+        if parsed.path.endswith("/"):
             target /= "index.html"
         assert target.is_file(), f"404 page links to missing local path: {href}"
 
