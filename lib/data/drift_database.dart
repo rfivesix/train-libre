@@ -15,6 +15,53 @@ import '../services/telemetry/telemetry_service.dart';
 
 part 'drift_database.g.dart';
 
+/// Assistant history is local app data. Requests have no shared payload until
+/// the provider dispatch has actually started.
+Future<void> _createAssistantSchema(AppDatabase database) async {
+  await database.customStatement('''
+    CREATE TABLE IF NOT EXISTS assistant_conversations (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  ''');
+  await database.customStatement('''
+    CREATE TABLE IF NOT EXISTS assistant_messages (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL REFERENCES assistant_conversations(id) ON DELETE CASCADE,
+      role TEXT NOT NULL CHECK(role IN ('user', 'assistant')),
+      content TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      provider_id TEXT,
+      model_id TEXT,
+      status TEXT NOT NULL,
+      error TEXT
+    )
+  ''');
+  await database.customStatement('''
+    CREATE TABLE IF NOT EXISTS assistant_data_access (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL REFERENCES assistant_conversations(id) ON DELETE CASCADE,
+      message_id TEXT NOT NULL REFERENCES assistant_messages(id) ON DELETE CASCADE,
+      categories_json TEXT NOT NULL,
+      scope_json TEXT NOT NULL,
+      requested_at TEXT NOT NULL,
+      decided_at TEXT,
+      status TEXT NOT NULL,
+      provider_id TEXT,
+      model_id TEXT,
+      shared_at TEXT,
+      shared_manifest_json TEXT NOT NULL DEFAULT '{}',
+      error TEXT
+    )
+  ''');
+  await database.customStatement(
+      'CREATE INDEX IF NOT EXISTS assistant_messages_conversation_idx ON assistant_messages(conversation_id, created_at)');
+  await database.customStatement(
+      'CREATE INDEX IF NOT EXISTS assistant_access_conversation_idx ON assistant_data_access(conversation_id, requested_at)');
+}
+
 // --- Mixins for recurring columns ---
 
 /// Guarantees the hybrid architecture:
@@ -977,7 +1024,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 40;
+  int get schemaVersion => 41;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1059,6 +1106,7 @@ class AppDatabase extends _$AppDatabase {
           // Keep derived search indexes correct for INSERT OR REPLACE deletes.
           await customStatement('PRAGMA recursive_triggers = ON;');
           await reconcileSchema();
+          await _createAssistantSchema(this);
           await customStatement('''
             CREATE TABLE IF NOT EXISTS bls_food_alias_index (
               barcode TEXT NOT NULL,
@@ -1087,6 +1135,7 @@ class AppDatabase extends _$AppDatabase {
         },
         onCreate: (Migrator m) async {
           await m.createAll();
+          await _createAssistantSchema(this);
           await customStatement(
               'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;');
           await customStatement(
@@ -1154,6 +1203,7 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 41) await _createAssistantSchema(this);
             if (from < 39) {
               final cols = await _columnsOf(this, meals.actualTableName);
               if (!cols.contains('serving_count')) {

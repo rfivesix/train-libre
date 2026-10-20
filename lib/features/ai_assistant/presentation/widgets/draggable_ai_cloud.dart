@@ -14,8 +14,10 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../generated/app_localizations.dart';
+import '../../../../data/database_helper.dart';
 import '../../../../services/ai_service.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/voice/voice_dictation_service.dart';
@@ -23,7 +25,19 @@ import '../../../../services/voice/voice_dictation_settings.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
-import '../../data/ai_overlay_live_chat_service.dart';
+import '../../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../application/assistant_chat_service.dart';
+import '../../data/assistant_history_repository.dart';
+import '../../data/assistant_training_actions.dart';
+import '../../data/assistant_diary_actions.dart';
+import '../../data/assistant_health_actions.dart';
+import '../../domain/assistant_data_action.dart';
+import '../../domain/assistant_data_request.dart';
+import '../../../workout/domain/repositories/workout_repository.dart';
+import '../../../diary/domain/repositories/diary_repository.dart';
+import '../../../profile/domain/repositories/profile_repository.dart';
+import '../../../profile/domain/repositories/goal_repository.dart';
+import '../../../steps/data/steps_aggregation_repository.dart';
 
 /// The existing animated AI cloud, made draggable for the overlay demo.
 ///
@@ -41,6 +55,7 @@ class DraggableAiCloud extends StatefulWidget {
   final bool showResizeHandles;
   final bool openDirectlyFullscreen;
   final bool useLiveAi;
+  final AssistantModelClient? modelClient;
 
   const DraggableAiCloud({
     super.key,
@@ -53,6 +68,7 @@ class DraggableAiCloud extends StatefulWidget {
     this.showResizeHandles = true,
     this.openDirectlyFullscreen = false,
     this.useLiveAi = false,
+    this.modelClient,
   });
 
   @override
@@ -116,15 +132,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   final _chatInputScrollController = ScrollController();
   final _chatScrollController = ScrollController();
   final List<_DemoChatTurn> _chatTurns = [];
+  AssistantChatService? _assistant;
+  AssistantHistoryRepository? _history;
+  String? _conversationId;
+  List<AssistantConversation> _conversations = const [];
+  AssistantAccessRecord? _pendingAccess;
+  AssistantAccessRecord? _activeAuditRecord;
+  String? _pendingQuestion;
+  bool _assistantInitialized = false;
   Timer? _responseTimer;
   StreamSubscription<String>? _liveResponseSubscription;
-  Timer? _liveChunkFlushTimer;
-  final List<String> _pendingLiveChunks = <String>[];
-  bool _liveStreamCompleted = false;
-  String? _pendingLiveError;
   int _activeGenerationId = 0;
   bool _isLoadingCloudVisible = false;
-  bool _isLoadingCloudDismissing = false;
   Future<void>? _loadingCloudEnterFuture;
   _DemoChatTurn? _copiedTurn;
   Timer? _copiedTurnTimer;
@@ -192,9 +211,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void initState() {
     super.initState();
-    unawaited(_resolveCurrentModelName().then((name) {
-      if (mounted) setState(() => _currentModelName = name);
-    }));
+    AiService.instance.configurationRevision
+        .addListener(_handleAiConfigurationChanged);
+    unawaited(_refreshCurrentModelName());
     _chatScrollController.addListener(_handleChatScroll);
     _initialDockController = AnimationController(
       vsync: this,
@@ -206,8 +225,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     )..addListener(_onSidebarAnimationTick);
     _loadingCloudController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 560),
-      reverseDuration: const Duration(milliseconds: 460),
+      duration: const Duration(milliseconds: 420),
+      reverseDuration: const Duration(milliseconds: 320),
     );
     _voiceWaveOffset = ValueNotifier<double>(0);
     _voiceWaveTicker = createTicker((elapsed) {
@@ -233,9 +252,44 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _ensureAssistantInitialized();
+  }
+
+  void _ensureAssistantInitialized() {
+    if (widget.useLiveAi && !_assistantInitialized) {
+      _assistantInitialized = true;
+      final database = DatabaseHelper.instance.dbInstance;
+      _history = AssistantHistoryRepository(database);
+      _assistant = AssistantChatService(
+        history: _history!,
+        data: AssistantDataGateway([
+          AssistantTrainingActions(
+              workouts: context.read<IWorkoutRepository>(), database: database),
+          AssistantDiaryActions(context.read<IDiaryRepository>()),
+          AssistantHealthActions(
+            database: database,
+            steps: HealthStepsAggregationRepository(),
+            profile: context.read<IProfileRepository>(),
+            goals: context.read<IGoalRepository>(),
+          ),
+        ]),
+        model: widget.modelClient ?? const ConfiguredAssistantModelClient(),
+      );
+      unawaited(_loadAssistantHistory());
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant DraggableAiCloud oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.useLiveAi != widget.useLiveAi) {
+      if (widget.useLiveAi) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _ensureAssistantInitialized();
+        });
+      }
       if (_isGenerating) {
         _stopDemoGeneration();
       }
@@ -485,6 +539,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   @override
   void dispose() {
+    AiService.instance.configurationRevision
+        .removeListener(_handleAiConfigurationChanged);
     _voiceSimulationTimer?.cancel();
     _voiceWaveTicker.dispose();
     _voiceWaveOffset.dispose();
@@ -494,7 +550,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
     _responseTimer?.cancel();
     _liveResponseSubscription?.cancel();
-    _liveChunkFlushTimer?.cancel();
     _copiedTurnTimer?.cancel();
     _permissionContinuationTimer?.cancel();
     _completionPulseTimer?.cancel();
@@ -525,12 +580,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final openFullscreen = expanding && widget.openDirectlyFullscreen;
     if (expanding) {
       FocusManager.instance.primaryFocus?.unfocus();
+      unawaited(_refreshCurrentModelName());
     }
     setState(() {
       _horizontalPosition ??= _displayedHorizontalPosition;
       _isExpanded = expanding;
       _isClosing = !expanding;
       _isClosingFromFullscreen = !expanding && wasFullscreen;
+      if (!expanding) _activeAuditRecord = null;
       _isDragging = false;
       _rotationRadians = 0;
       _scale = 1;
@@ -814,6 +871,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   void _selectSidebarExample(int index) {
+    if (widget.useLiveAi) {
+      if (index >= 0 && index < _conversations.length) {
+        unawaited(_openConversation(_conversations[index].id));
+      }
+      return;
+    }
     final chatScrollOffset = _captureChatScrollOffset();
     final shouldFollowChatTail = _followChatTail;
     setState(() => _selectedSidebarExample = index);
@@ -822,6 +885,82 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       chatScrollOffset,
       shouldFollowChatTail: shouldFollowChatTail,
     );
+  }
+
+  Future<void> _loadAssistantHistory() async {
+    try {
+      final conversations = await _history!.conversations();
+      if (!mounted) return;
+      setState(() => _conversations = conversations);
+      if (_conversationId == null && conversations.isNotEmpty) {
+        await _openConversation(conversations.first.id);
+      }
+    } catch (error) {
+      if (mounted) debugPrint('[Assistant] Could not load history: $error');
+    }
+  }
+
+  Future<void> _openConversation(String id) async {
+    var messages = await _history!.messages(id);
+    var pending = await _history!.latestAccess(id, status: 'pending');
+    if (pending != null &&
+        DateTime.now().toUtc().difference(pending.requestedAt) >
+            AssistantChatService.approvalLifetime) {
+      final isDe =
+          mounted && Localizations.localeOf(context).languageCode == 'de';
+      await _history!.expireAccess(pending.id);
+      await _history!.addMessage(
+          conversationId: id,
+          role: 'assistant',
+          content: isDe
+              ? 'Die Datenanfrage ist abgelaufen. Es wurden keine App-Daten gesendet.'
+              : 'Data request expired. No app data was sent.',
+          status: 'complete');
+      messages = await _history!.messages(id);
+      pending = null;
+    }
+    final accesses = await _history!.accessForConversation(id);
+    final accessByMessage = {
+      for (final access in accesses) access.messageId: access,
+    };
+    if (!mounted) return;
+    _stopDemoGeneration();
+    final turns = <_DemoChatTurn>[];
+    for (final message in messages) {
+      if (message.role == 'user') {
+        turns.add(_DemoChatTurn(message.content)
+          ..userMessageId = message.id
+          ..access = accessByMessage[message.id]);
+      } else if (turns.isNotEmpty) {
+        turns.last.response = message.content;
+        turns.last.modelName =
+            _formatModelDisplayName(message.providerId, message.modelId);
+        turns.last.assistantMessageId = message.id;
+      }
+    }
+    final restoredPending = pending;
+    setState(() {
+      _conversationId = id;
+      _activeAuditRecord = null;
+      _chatTurns
+        ..clear()
+        ..addAll(turns);
+      _pendingAccess = restoredPending;
+      _pendingQuestion = restoredPending == null
+          ? null
+          : turns
+              .where((turn) => turn.userMessageId == restoredPending.messageId)
+              .map((turn) => turn.prompt)
+              .firstOrNull;
+      _permissionPending = restoredPending != null;
+      _showPermissionBadge = restoredPending != null;
+      _permissionApproved = null;
+      _selectedSidebarExample =
+          _conversations.indexWhere((item) => item.id == id);
+      _followChatTail = true;
+    });
+    _sidebarController.reverse();
+    _scrollChatToBottom(force: true);
   }
 
   void _closeSidebar() {
@@ -1453,6 +1592,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 );
               },
             ),
+            if (_activeAuditRecord != null)
+              _buildAccessAuditModal(_activeAuditRecord!, theme),
           ],
         );
       },
@@ -1704,16 +1845,16 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   void _startNewDemoChat() {
+    if (widget.useLiveAi) {
+      _conversationId = null;
+      _pendingAccess = null;
+      _pendingQuestion = null;
+    }
     _activeGenerationId++;
     _responseTimer?.cancel();
     _responseTimer = null;
     _liveResponseSubscription?.cancel();
     _liveResponseSubscription = null;
-    _liveChunkFlushTimer?.cancel();
-    _liveChunkFlushTimer = null;
-    _pendingLiveChunks.clear();
-    _liveStreamCompleted = false;
-    _pendingLiveError = null;
     _loadingCloudEnterFuture = null;
     _loadingCloudController.value = 0;
     _permissionContinuationTimer?.cancel();
@@ -1725,7 +1866,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     setState(() {
       _chatTurns.clear();
       _isLoadingCloudVisible = false;
-      _isLoadingCloudDismissing = false;
       _isGenerating = false;
       _hasCompletedResponse = false;
       _permissionPending = false;
@@ -1883,7 +2023,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         12,
                         MediaQuery.paddingOf(context).bottom + 84,
                       ),
-                      itemCount: 16,
+                      itemCount: widget.useLiveAi ? _conversations.length : 16,
                       separatorBuilder: (_, __) => const SizedBox(height: 4),
                       itemBuilder: (context, index) {
                         final selected = index == _selectedSidebarExample;
@@ -1904,7 +2044,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'Example ${index + 1}',
+                                      widget.useLiveAi
+                                          ? _conversations[index].title
+                                          : 'Example ${index + 1}',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style:
@@ -2052,6 +2194,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             );
 
         Widget messageField({required bool compact}) => Scrollbar(
+              key: const ValueKey('ai-composer-scrollbar'),
               controller: _chatInputScrollController,
               thumbVisibility: !compact,
               thickness: 2,
@@ -2063,6 +2206,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   selectionHandleColor: selectionBlue,
                 ),
                 child: TextField(
+                  key: const ValueKey('ai-composer-text-field'),
                   controller: _chatInputController,
                   scrollController: _chatInputScrollController,
                   focusNode: _chatFocusNode,
@@ -2081,7 +2225,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     }
                   },
                   textAlign: TextAlign.start,
-                  textAlignVertical: TextAlignVertical.top,
+                  textAlignVertical: compact
+                      ? TextAlignVertical.center
+                      : TextAlignVertical.top,
                   minLines: 1,
                   maxLines: (!compact || inputValue.text.isEmpty) ? 6 : 1,
                   textInputAction: TextInputAction.send,
@@ -2107,7 +2253,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     focusedErrorBorder: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.only(
-                      top: inputIsScrolled ? 0 : 8,
+                      top: compact ? 0 : (inputIsScrolled ? 0 : 8),
                     ),
                   ),
                 ),
@@ -2341,9 +2487,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                         theme: theme,
                                         contrastColor: contrastColor,
                                         surfaceColor: surfaceColor,
-                                        isVisible: !widget.useLiveAi &&
-                                            (_permissionPending ||
-                                                _permissionApproved != null),
+                                        isVisible: (_permissionPending ||
+                                            _permissionApproved != null),
                                       ),
                                     );
                                   }
@@ -2471,7 +2616,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       widthFactor: 1,
                       child: Text(
                         turn.prompt,
-                        textAlign: TextAlign.center,
+                        textAlign: TextAlign.start,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: contrastColor,
                         ),
@@ -2541,10 +2686,155 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 theme: theme,
                 contrastColor: contrastColor,
               ),
+            if (widget.useLiveAi && turn.access != null && !isStreaming)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => _showAccessAudit(turn.access!),
+                  icon: const Icon(LucideIcons.shield_check, size: 14),
+                  label: Text(
+                    Localizations.localeOf(context).languageCode == 'de'
+                        ? 'Datenzugriff'
+                        : 'Data access',
+                  ),
+                ),
+              ),
           ],
         ],
       ),
     );
+  }
+
+  void _showAccessAudit(AssistantAccessRecord access) {
+    setState(() => _activeAuditRecord = access);
+  }
+
+  Widget _buildAccessAuditModal(AssistantAccessRecord access, ThemeData theme) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final isDe = locale.toLowerCase().startsWith('de');
+    final manifest = access.sharedManifest;
+    final categoriesText = access.categories
+        .map((c) => AssistantDataCategory.localizeName(c, locale))
+        .join(', ');
+    final rawScopeLabel = access.scope['label']?.toString() ?? 'current';
+    final localizedScopeLabel =
+        localizeAssistantScopeLabel(rawScopeLabel, locale);
+    final start = access.scope['start']?.toString();
+    final end = access.scope['end']?.toString();
+    final scopeText = start == null
+        ? localizedScopeLabel
+        : isDe
+            ? '$localizedScopeLabel ($start bis ${end ?? start})'
+            : '$localizedScopeLabel ($start to ${end ?? start})';
+    final statusText = _localizeAccessStatus(access.status, isDe: isDe);
+    final modelDisplay =
+        _formatModelDisplayName(access.providerId, access.modelId);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final actions = <GlassMenuAction>[
+      GlassMenuAction(
+        icon: access.status == 'approved' || access.status == 'shared'
+            ? LucideIcons.shield_check
+            : (access.status == 'denied'
+                ? LucideIcons.shield_x
+                : LucideIcons.shield_alert),
+        label: isDe ? 'Status: $statusText' : 'Status: $statusText',
+        subtitle: isDe ? 'Datenfreigabestatus' : 'Data access status',
+        onTap: () {},
+      ),
+      GlassMenuAction(
+        icon: LucideIcons.clock,
+        label: isDe ? 'Angefragt' : 'Requested',
+        subtitle: access.requestedAt.toLocal().toString().split('.').first,
+        onTap: () {},
+      ),
+      if (access.decidedAt != null)
+        GlassMenuAction(
+          icon: LucideIcons.circle_check,
+          label: isDe ? 'Entschieden' : 'Decided',
+          subtitle: access.decidedAt!.toLocal().toString().split('.').first,
+          onTap: () {},
+        ),
+      GlassMenuAction(
+        icon: LucideIcons.layout_grid,
+        label: isDe ? 'Kategorien' : 'Categories',
+        subtitle: categoriesText,
+        onTap: () {},
+      ),
+      GlassMenuAction(
+        icon: LucideIcons.calendar,
+        label: isDe ? 'Zeitraum' : 'Scope',
+        subtitle: scopeText,
+        onTap: () {},
+      ),
+      if (access.providerId != null)
+        GlassMenuAction(
+          icon: LucideIcons.bot,
+          label: isDe ? 'Modell' : 'Provider',
+          subtitle: modelDisplay ?? access.providerId!,
+          onTap: () {},
+        ),
+      if (access.sharedAt != null)
+        GlassMenuAction(
+          icon: LucideIcons.send,
+          label: isDe ? 'Übertragen' : 'Shared',
+          subtitle: access.sharedAt!.toLocal().toString().split('.').first,
+          onTap: () {},
+        ),
+      for (final entry in manifest.entries)
+        GlassMenuAction(
+          icon: LucideIcons.database,
+          label: AssistantDataCategory.localizeName(entry.key, locale),
+          subtitle:
+              '${(entry.value as Map)['count']} ${isDe ? 'Einträge' : 'records'}\n'
+              '${((entry.value as Map)['references'] as List).join(', ')}',
+          onTap: () {},
+        ),
+    ];
+
+    final Color barrierColor = isDark
+        ? Colors.black.withValues(alpha: 0.5)
+        : Colors.black.withValues(alpha: 0.3);
+
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _activeAuditRecord = null),
+        child: ColoredBox(
+          color: barrierColor,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: GestureDetector(
+              onTap: () {}, // Prevent taps inside sheet from dismissing
+              child: GlassBottomMenuSheet(
+                title: isDe ? 'Datenzugriff' : 'Data access',
+                headerTrailing: TextButton(
+                  onPressed: () => setState(() => _activeAuditRecord = null),
+                  child: Text(isDe ? 'Schließen' : 'Close'),
+                ),
+                actions: actions,
+                onClose: () => setState(() => _activeAuditRecord = null),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _localizeAccessStatus(String status, {required bool isDe}) {
+    if (!isDe) return status;
+    return switch (status) {
+      'pending' => 'Ausstehend',
+      'approved' => 'Freigegeben',
+      'denied' => 'Abgelehnt',
+      'shared' => 'Übertragen',
+      'no_data' => 'Keine Daten im Zeitraum (nichts übertragen)',
+      'unresolved' => 'Rückfrage offen (nichts übertragen)',
+      'expired' => 'Abgelaufen (nichts übertragen)',
+      'error' => 'Fehler (nichts übertragen)',
+      _ => status,
+    };
   }
 
   Widget _buildMarkdownResponse(
@@ -2866,7 +3156,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final prompt = turn.prompt.trim();
     if (prompt.isEmpty) return;
     final index = _chatTurns.indexOf(turn);
-    if (index != -1) {
+    if (index != -1 && !widget.useLiveAi) {
       setState(() {
         _chatTurns.removeRange(index, _chatTurns.length);
       });
@@ -2875,8 +3165,38 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _sendDemoPrompt();
   }
 
+  void _handleAiConfigurationChanged() {
+    unawaited(_refreshCurrentModelName());
+  }
+
+  Future<void> _refreshCurrentModelName() async {
+    final name = await _resolveCurrentModelName();
+    if (mounted && _currentModelName != name) {
+      setState(() => _currentModelName = name);
+    }
+  }
+
+  String? _formatModelDisplayName(String? providerId, String? modelId) {
+    if (providerId == AiProvider.appleFoundation.name ||
+        modelId == 'apple-foundation-system') {
+      return 'Apple Intelligence';
+    }
+    if (modelId != null && modelId.trim().isNotEmpty) {
+      return modelId.trim();
+    }
+    return null;
+  }
+
   Future<String> _resolveCurrentModelName() async {
     if (!widget.useLiveAi) return 'Demo';
+    if (widget.modelClient != null) {
+      try {
+        final identity = await widget.modelClient!.identity();
+        final formatted =
+            _formatModelDisplayName(identity.providerId, identity.modelId);
+        if (formatted != null) return formatted;
+      } catch (_) {}
+    }
     try {
       final provider = await AiService.instance.getSelectedProvider();
       if (provider == AiProvider.appleFoundation) {
@@ -2894,8 +3214,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   String? get _composerModelName => !widget.useLiveAi
       ? 'Demo'
-      : (_chatTurns.isNotEmpty ? _chatTurns.last.modelName : null) ??
-          _currentModelName;
+      : _currentModelName ??
+          (_chatTurns.isNotEmpty ? _chatTurns.last.modelName : null);
 
   String? get _askModelHint {
     final modelName = _composerModelName;
@@ -2910,6 +3230,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required bool isVisible,
   }) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final isDe = locale.toLowerCase().startsWith('de');
     final isDarkSurface = surfaceColor.computeLuminance() < 0.5;
     final cardTextColor = contrastColor;
     final actionColor =
@@ -2918,6 +3240,21 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       brightness: isDarkSurface ? Brightness.dark : Brightness.light,
     );
     const radius = 18.0;
+    final localizedCategories = _pendingAccess?.categories
+            .map((c) => AssistantDataCategory.localizeName(c, locale))
+            .join(', ') ??
+        '';
+    final rawScopeLabel =
+        _pendingAccess?.scope['label']?.toString() ?? 'current';
+    final localizedScopeLabel =
+        localizeAssistantScopeLabel(rawScopeLabel, locale);
+    final scopeStart = _pendingAccess?.scope['start']?.toString();
+    final scopeEnd = _pendingAccess?.scope['end']?.toString();
+    final periodLine = isDe
+        ? 'Zeitraum: $localizedScopeLabel'
+            '${scopeStart == null ? '' : ' — $scopeStart bis ${scopeEnd ?? scopeStart}'}'
+        : 'Period: $localizedScopeLabel'
+            '${scopeStart == null ? '' : ' — $scopeStart to ${scopeEnd ?? scopeStart}'}';
     final card = Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: DecoratedBox(
@@ -2946,7 +3283,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.aiOverlayDemoRequestLabel,
+                  widget.useLiveAi
+                      ? (isDe ? 'Datenzugriffsanfrage' : 'Data access request')
+                      : l10n.aiOverlayDemoRequestLabel,
                   style: theme.textTheme.titleSmall?.copyWith(
                     color: cardTextColor,
                     fontWeight: FontWeight.w700,
@@ -2954,19 +3293,27 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 ),
                 const SizedBox(height: 8),
                 _buildPermissionScope(
-                  l10n.aiOverlayDemoScope,
+                  widget.useLiveAi
+                      ? '${isDe ? 'Kategorien' : 'Categories'}: $localizedCategories'
+                      : l10n.aiOverlayDemoScope,
                   theme,
                   cardTextColor,
                 ),
                 const SizedBox(height: 4),
                 _buildPermissionScope(
-                  l10n.aiOverlayDemoScopeDetails,
+                  widget.useLiveAi
+                      ? periodLine
+                      : l10n.aiOverlayDemoScopeDetails,
                   theme,
                   cardTextColor,
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  l10n.aiOverlayDemoPurpose,
+                  widget.useLiveAi
+                      ? (isDe
+                          ? 'Einmalig freigeben. Nur diese Einträge werden an das ausgewählte Modell gesendet.'
+                          : 'Allow this request once. Only these records will be sent to the selected model.')
+                      : l10n.aiOverlayDemoPurpose,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: cardTextColor.withValues(alpha: 0.72),
                   ),
@@ -2979,7 +3326,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     runSpacing: 4,
                     children: [
                       TextButton(
-                        onPressed: () => _resolveDemoPermission(false),
+                        onPressed: () => widget.useLiveAi
+                            ? _resolveAssistantPermission(false)
+                            : _resolveDemoPermission(false),
                         style: TextButton.styleFrom(
                           foregroundColor:
                               cardTextColor.withValues(alpha: 0.72),
@@ -2987,7 +3336,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         child: Text(l10n.aiOverlayDemoDeny),
                       ),
                       FilledButton(
-                        onPressed: () => _resolveDemoPermission(true),
+                        onPressed: () => widget.useLiveAi
+                            ? _resolveAssistantPermission(true)
+                            : _resolveDemoPermission(true),
                         style: FilledButton.styleFrom(
                           backgroundColor: actionColor,
                           foregroundColor: Colors.black,
@@ -2998,9 +3349,17 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   )
                 else
                   Text(
-                    _permissionApproved == true
-                        ? l10n.aiOverlayDemoApprovedFeedback
-                        : l10n.aiOverlayDemoDeniedFeedback,
+                    widget.useLiveAi
+                        ? (_permissionApproved == true
+                            ? (isDe
+                                ? 'Datenzugriff einmalig freigegeben.'
+                                : 'Data access approved once.')
+                            : (isDe
+                                ? 'Datenzugriff abgelehnt.'
+                                : 'Data access declined.'))
+                        : (_permissionApproved == true
+                            ? l10n.aiOverlayDemoApprovedFeedback
+                            : l10n.aiOverlayDemoDeniedFeedback),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: cardTextColor.withValues(alpha: 0.72),
                     ),
@@ -3072,39 +3431,30 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   void _sendDemoPrompt() {
+    if (widget.useLiveAi) {
+      unawaited(_sendAssistantPrompt());
+      return;
+    }
     if (_isGenerating) return;
     final prompt = _chatInputController.text.trim();
     if (prompt.isEmpty) return;
-
-    final history = <AiOverlayLiveChatTurn>[
-      if (widget.useLiveAi)
-        for (final turn in _chatTurns)
-          if (turn.prompt.trim().isNotEmpty && turn.response.trim().isNotEmpty)
-            AiOverlayLiveChatTurn(prompt: turn.prompt, response: turn.response),
-    ];
 
     final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
     _responseTimer = null;
     _liveResponseSubscription?.cancel();
     _liveResponseSubscription = null;
-    _liveChunkFlushTimer?.cancel();
-    _liveChunkFlushTimer = null;
-    _pendingLiveChunks.clear();
-    _liveStreamCompleted = false;
-    _pendingLiveError = null;
     _lastHapticWordCount = 0;
     _lastWordHapticAt = null;
 
     final turn = _DemoChatTurn(prompt)
       ..generationStartedAt = DateTime.now()
-      ..modelName = widget.useLiveAi ? null : 'Demo';
+      ..modelName = 'Demo';
 
     setState(() {
       _permissionBadgeDelayTimer?.cancel();
       _chatTurns.add(turn);
       _isLoadingCloudVisible = true;
-      _isLoadingCloudDismissing = false;
       _isGenerating = true;
       _hasCompletedResponse = false;
       _permissionPending = false;
@@ -3114,81 +3464,288 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _demoWordIndex = 0;
       _chatInputController.clear();
     });
-    if (widget.useLiveAi) {
-      unawaited(_resolveCurrentModelName().then((name) {
-        if (mounted && turn.modelName == null) {
-          setState(() => turn.modelName = name);
-        }
-      }));
-    }
     _loadingCloudEnterFuture = _loadingCloudController.forward(from: 0.0);
     _syncDemoWaitingHaptics();
     widget.onGenerationChanged?.call(true);
     _scrollChatToBottom(force: true);
 
-    if (widget.useLiveAi) {
-      _liveResponseSubscription = AiOverlayLiveChatService.instance
-          .streamChat(prompt: prompt, history: history)
-          .listen(
-        (chunk) {
-          if (!mounted ||
-              _activeGenerationId != generationId ||
-              !_isGenerating ||
-              _chatTurns.isEmpty) {
-            return;
-          }
-          if (_isLoadingCloudVisible ||
-              _liveChunkFlushTimer != null ||
-              _pendingLiveChunks.isNotEmpty) {
-            _pendingLiveChunks.add(chunk);
-            if (_isLoadingCloudVisible && !_isLoadingCloudDismissing) {
-              unawaited(_dismissLoadingCloudAndStartStreaming(generationId));
-            }
-            return;
-          }
+    unawaited(_startDemoStreamingAfterLoadingCloud(generationId));
+  }
+
+  Future<void> _sendAssistantPrompt() async {
+    if (_isGenerating) return;
+    final prompt = _chatInputController.text.trim();
+    if (prompt.isEmpty) return;
+    final service = _assistant;
+    if (service == null) return;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final isDe = locale.toLowerCase().startsWith('de');
+    if (_permissionPending) {
+      final skippedAccess = _pendingAccess;
+      _pendingAccess = null;
+      _pendingQuestion = null;
+      _permissionPending = false;
+      _showPermissionBadge = false;
+      if (skippedAccess != null) {
+        unawaited(
+          service
+              .deny(skippedAccess.id, locale: locale)
+              .then((_) => _refreshTurnAccess(skippedAccess.id))
+              .catchError((Object _) {}),
+        );
+      }
+    }
+    final generationId = ++_activeGenerationId;
+    _lastHapticWordCount = 0;
+    _lastWordHapticAt = null;
+    final turn = _DemoChatTurn(prompt)
+      ..generationStartedAt = DateTime.now()
+      ..modelName = _currentModelName;
+    setState(() {
+      _activeAuditRecord = null;
+      _chatTurns.add(turn);
+      _chatInputController.clear();
+      _followChatTail = true;
+      _isGenerating = true;
+      _isLoadingCloudVisible = true;
+      _hasCompletedResponse = false;
+      _permissionApproved = null;
+    });
+    unawaited(_resolveCurrentModelName().then((name) {
+      if (!mounted) return;
+      setState(() {
+        _currentModelName = name;
+        turn.modelName ??= name;
+      });
+    }));
+    _syncDemoWaitingHaptics();
+    widget.onGenerationChanged?.call(true);
+    _loadingCloudEnterFuture = _loadingCloudController.forward(from: 0.0);
+    _scrollChatToBottom(force: true);
+    try {
+      final submission = await service.submit(
+        prompt,
+        conversationId: _conversationId,
+        now: DateTime.now(),
+        locale: locale,
+      );
+      if (!mounted || _activeGenerationId != generationId) return;
+      turn.userMessageId = submission.userMessage.id;
+      turn.access = submission.access;
+      turn.modelName =
+          _formatModelDisplayName(submission.providerId, submission.modelId) ??
+              _currentModelName ??
+              turn.modelName;
+      await _reverseLoadingCloudToNothing(generationId);
+      if (!mounted || _activeGenerationId != generationId) return;
+      if (submission.access != null) {
+        setState(() {
+          _conversationId = submission.conversationId;
+          _pendingAccess = submission.access;
+          _pendingQuestion = prompt;
+          _permissionPending = true;
+          _showPermissionBadge = true;
+          _attentionPeekDismissed = false;
+          _isGenerating = false;
+          _isLoadingCloudVisible = false;
+        });
+        _syncDemoWaitingHaptics();
+        unawaited(HapticFeedbackService.instance.strongImpact());
+        widget.onGenerationChanged?.call(false);
+        unawaited(_loadAssistantHistory());
+        _scrollChatToBottom(force: true);
+        return;
+      }
+      setState(() {
+        _conversationId = submission.conversationId;
+        _pendingAccess = null;
+        _pendingQuestion = null;
+        turn.response = submission.clarification ?? '';
+      });
+      _completeDemoGeneration();
+      unawaited(_loadAssistantHistory());
+      _scrollChatToBottom(force: true);
+    } catch (error) {
+      if (!mounted || _activeGenerationId != generationId) return;
+      await _reverseLoadingCloudToNothing(generationId);
+      if (!mounted || _activeGenerationId != generationId) return;
+      setState(() {
+        turn.response = isDe
+            ? 'Diese Anfrage konnte nicht verarbeitet werden: $error'
+            : 'Could not save this question: $error';
+        _isGenerating = false;
+        _isLoadingCloudVisible = false;
+      });
+      _syncDemoWaitingHaptics();
+      widget.onGenerationChanged?.call(false);
+    }
+  }
+
+  void _resolveAssistantPermission(bool approved) {
+    final access = _pendingAccess;
+    final question = _pendingQuestion;
+    if (access == null || question == null || _assistant == null) return;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    setState(() {
+      _permissionPending = false;
+      _showPermissionBadge = false;
+      _permissionApproved = approved;
+      _pendingAccess = null;
+      _pendingQuestion = null;
+    });
+    if (!approved) {
+      unawaited(
+        _assistant!.deny(access.id, locale: locale).then((message) {
+          if (!mounted || _chatTurns.isEmpty) return;
           setState(() {
-            _chatTurns.last.response += chunk;
+            _chatTurns.last.response = message.content;
+            if (_chatTurns.last.generationStartedAt != null) {
+              _chatTurns.last.duration = DateTime.now()
+                  .difference(_chatTurns.last.generationStartedAt!);
+            }
+            _chatTurns.last.modelName ??=
+                _formatModelDisplayName(access.providerId, access.modelId) ??
+                    _currentModelName;
           });
-          _triggerWordHapticIfNeeded(_chatTurns.last.response);
+          unawaited(_refreshTurnAccess(access.id));
+          unawaited(_loadAssistantHistory());
           _scrollChatToBottom();
-        },
-        onError: (Object error) {
-          _liveResponseSubscription = null;
-          if (!mounted || _activeGenerationId != generationId) return;
-          _pendingLiveError = error.toString();
-          if (_isLoadingCloudVisible) {
-            if (!_isLoadingCloudDismissing) {
-              unawaited(_dismissLoadingCloudAndStartStreaming(generationId));
-            }
-            return;
+        }).catchError((Object error) {
+          if (mounted && _chatTurns.isNotEmpty) {
+            setState(() => _chatTurns.last.response = error.toString());
           }
-          if (_liveChunkFlushTimer == null) {
-            _applyPendingLiveErrorAndFinish();
-          }
-        },
-        onDone: () {
-          _liveResponseSubscription = null;
-          if (!mounted ||
-              _activeGenerationId != generationId ||
-              !_isGenerating) {
-            return;
-          }
-          _liveStreamCompleted = true;
-          if (_isLoadingCloudVisible) {
-            if (!_isLoadingCloudDismissing) {
-              unawaited(_dismissLoadingCloudAndStartStreaming(generationId));
-            }
-            return;
-          }
-          if (_liveChunkFlushTimer == null && _pendingLiveChunks.isEmpty) {
-            _completeDemoGeneration();
-          }
-        },
+        }),
       );
       return;
     }
+    final generationId = ++_activeGenerationId;
+    _lastHapticWordCount = 0;
+    _lastWordHapticAt = null;
+    setState(() {
+      _isGenerating = true;
+      _isLoadingCloudVisible = true;
+      _permissionApproved = null;
+      _hasCompletedResponse = false;
+      _attentionPeekDismissed = false;
+      if (_chatTurns.isNotEmpty) {
+        _chatTurns.last.generationStartedAt = DateTime.now();
+        _chatTurns.last.modelName ??=
+            _formatModelDisplayName(access.providerId, access.modelId) ??
+                _currentModelName;
+      }
+    });
+    unawaited(_resolveCurrentModelName().then((name) {
+      if (!mounted) return;
+      setState(() {
+        _currentModelName = name;
+        if (_chatTurns.isNotEmpty) {
+          _chatTurns.last.modelName ??= name;
+        }
+      });
+    }));
+    _loadingCloudEnterFuture = _loadingCloudController.forward(from: 0.0);
+    _syncDemoWaitingHaptics();
+    unawaited(HapticFeedbackService.instance.lightImpact());
+    widget.onGenerationChanged?.call(true);
+    _scrollChatToBottom(force: true);
 
-    unawaited(_startDemoStreamingAfterLoadingCloud(generationId));
+    final bufferedChunks = <String>[];
+    var dismissingCloud = false;
+    var streamDone = false;
+    Object? streamError;
+
+    Future<void> flushAfterCloudDismiss() async {
+      if (dismissingCloud) return;
+      dismissingCloud = true;
+      try {
+        await _reverseLoadingCloudToNothing(generationId);
+      } finally {
+        dismissingCloud = false;
+      }
+      if (!mounted || _activeGenerationId != generationId) return;
+      if (bufferedChunks.isNotEmpty && _chatTurns.isNotEmpty) {
+        setState(() {
+          _chatTurns.last.response += bufferedChunks.join();
+          bufferedChunks.clear();
+        });
+        _triggerWordHapticIfNeeded(_chatTurns.last.response);
+        _scrollChatToBottom();
+      }
+      if (streamError != null) {
+        if (_chatTurns.isNotEmpty) {
+          setState(() => _chatTurns.last.response += '\n\n$streamError');
+        }
+        _completeDemoGeneration();
+        unawaited(_refreshTurnAccess(access.id));
+      } else if (streamDone) {
+        _completeDemoGeneration();
+        unawaited(_refreshTurnAccess(access.id));
+        unawaited(_loadAssistantHistory());
+      }
+    }
+
+    _liveResponseSubscription = _assistant!
+        .approveAndAnswer(access.id, question, locale: locale)
+        .listen(
+      (chunk) {
+        if (!mounted ||
+            _activeGenerationId != generationId ||
+            _chatTurns.isEmpty) {
+          return;
+        }
+        if (_isLoadingCloudVisible || dismissingCloud) {
+          bufferedChunks.add(chunk);
+          unawaited(flushAfterCloudDismiss());
+          return;
+        }
+        setState(() => _chatTurns.last.response += chunk);
+        _triggerWordHapticIfNeeded(_chatTurns.last.response);
+        _scrollChatToBottom();
+      },
+      onError: (Object error) {
+        if (!mounted ||
+            _activeGenerationId != generationId ||
+            _chatTurns.isEmpty) {
+          return;
+        }
+        streamError = error;
+        if (_isLoadingCloudVisible || dismissingCloud) {
+          unawaited(flushAfterCloudDismiss());
+          return;
+        }
+        setState(() => _chatTurns.last.response += '\n\n$error');
+        _completeDemoGeneration();
+        unawaited(_refreshTurnAccess(access.id));
+      },
+      onDone: () {
+        if (!mounted || _activeGenerationId != generationId) return;
+        streamDone = true;
+        if (_isLoadingCloudVisible || dismissingCloud) {
+          unawaited(flushAfterCloudDismiss());
+          return;
+        }
+        _completeDemoGeneration();
+        unawaited(_refreshTurnAccess(access.id));
+        unawaited(_loadAssistantHistory());
+      },
+    );
+  }
+
+  Future<void> _refreshTurnAccess(String accessId) async {
+    final access = await _history?.access(accessId);
+    if (!mounted || access == null) return;
+    final index =
+        _chatTurns.indexWhere((turn) => turn.userMessageId == access.messageId);
+    if (index >= 0) {
+      setState(() {
+        _chatTurns[index].access = access;
+        final modelDisplay =
+            _formatModelDisplayName(access.providerId, access.modelId);
+        if (modelDisplay != null) {
+          _chatTurns[index].modelName = modelDisplay;
+        }
+      });
+    }
   }
 
   Future<void> _startDemoStreamingAfterLoadingCloud(int generationId) async {
@@ -3204,7 +3761,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       if (!mounted || _activeGenerationId != generationId || !_isGenerating) {
         return;
       }
-      _isLoadingCloudDismissing = true;
       await _loadingCloudController.reverse();
     } catch (_) {
       // Animation disposed or interrupted.
@@ -3214,129 +3770,26 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
     setState(() {
       _isLoadingCloudVisible = false;
-      _isLoadingCloudDismissing = false;
     });
     _startDemoResponseTicker();
   }
 
-  Future<void> _dismissLoadingCloudAndStartStreaming(int generationId) async {
-    if (_isLoadingCloudDismissing) return;
-    _isLoadingCloudDismissing = true;
-    try {
-      final enterFuture = _loadingCloudEnterFuture;
-      if (enterFuture != null && _loadingCloudController.isAnimating) {
-        await enterFuture;
-        if (!mounted || _activeGenerationId != generationId) return;
-        await Future<void>.delayed(const Duration(milliseconds: 120));
-      }
-      if (!mounted || _activeGenerationId != generationId) return;
-      await _loadingCloudController.reverse();
-    } catch (_) {
-      // Animation disposed or interrupted.
-    }
-    if (!mounted || _activeGenerationId != generationId) return;
-    setState(() {
-      _isLoadingCloudVisible = false;
-      _isLoadingCloudDismissing = false;
-    });
-    _startFlushingPendingLiveChunks(generationId);
-  }
-
-  void _startFlushingPendingLiveChunks(int generationId) {
-    if (!mounted || _activeGenerationId != generationId) return;
-    if (_pendingLiveChunks.isEmpty) {
-      if (_pendingLiveError != null) {
-        _applyPendingLiveErrorAndFinish();
-      } else if (_liveStreamCompleted && _isGenerating) {
-        _completeDemoGeneration();
-      }
-      return;
-    }
-
-    void emitNextBufferedChunk() {
-      if (!mounted ||
-          _activeGenerationId != generationId ||
-          _chatTurns.isEmpty ||
-          _pendingLiveChunks.isEmpty) {
-        return;
-      }
-      final nextChunk = _pendingLiveChunks.removeAt(0);
-      setState(() {
-        _chatTurns.last.response += nextChunk;
-      });
-      _triggerWordHapticIfNeeded(_chatTurns.last.response);
-      _scrollChatToBottom();
-    }
-
-    emitNextBufferedChunk();
-    if (_pendingLiveChunks.isEmpty) {
-      if (_pendingLiveError != null) {
-        _applyPendingLiveErrorAndFinish();
-      } else if (_liveStreamCompleted && _isGenerating) {
-        _completeDemoGeneration();
-      }
-      return;
-    }
-
-    _liveChunkFlushTimer?.cancel();
-    _liveChunkFlushTimer = Timer.periodic(
-      const Duration(milliseconds: 24),
-      (timer) {
-        if (!mounted ||
-            _activeGenerationId != generationId ||
-            !_isGenerating ||
-            _chatTurns.isEmpty) {
-          timer.cancel();
-          _liveChunkFlushTimer = null;
-          return;
-        }
-        emitNextBufferedChunk();
-        if (_pendingLiveChunks.isEmpty) {
-          timer.cancel();
-          _liveChunkFlushTimer = null;
-          if (_pendingLiveError != null) {
-            _applyPendingLiveErrorAndFinish();
-          } else if (_liveStreamCompleted && _isGenerating) {
-            _completeDemoGeneration();
-          }
-        }
-      },
-    );
-  }
-
-  void _applyPendingLiveErrorAndFinish() {
-    final errorText = _pendingLiveError;
-    _pendingLiveError = null;
-    if (!mounted) return;
-    setState(() {
-      if (errorText != null && _chatTurns.isNotEmpty) {
-        if (_chatTurns.last.response.trim().isEmpty) {
-          _chatTurns.last.response = errorText;
-        } else {
-          _chatTurns.last.response += '\n\n[$errorText]';
-        }
-      }
-      if (_chatTurns.isNotEmpty) {
-        final lastTurn = _chatTurns.last;
-        if (lastTurn.generationStartedAt != null) {
-          lastTurn.duration =
-              DateTime.now().difference(lastTurn.generationStartedAt!);
-        }
-        lastTurn.modelName ??= widget.useLiveAi ? 'KI' : 'Demo';
-      }
-      _isGenerating = false;
-    });
-    _syncDemoWaitingHaptics();
-    widget.onGenerationChanged?.call(false);
-    _scrollChatToBottom();
-  }
-
-  Future<void> _reverseLoadingCloudToNothing(int generationId) async {
+  Future<void> _reverseLoadingCloudToNothing(
+    int generationId, {
+    bool waitForEnter = true,
+  }) async {
     if (!_isLoadingCloudVisible) return;
-    _isLoadingCloudDismissing = true;
     try {
       if (_loadingCloudController.value > 0.001) {
+        final enterFuture = _loadingCloudEnterFuture;
+        if (waitForEnter && enterFuture != null) {
+          await enterFuture;
+        }
+        if (!mounted || _activeGenerationId != generationId) return;
         await _loadingCloudController.reverse();
+      } else {
+        _loadingCloudController.stop();
+        _loadingCloudController.value = 0;
       }
     } catch (_) {
       // Animation disposed or interrupted.
@@ -3344,7 +3797,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (!mounted || _activeGenerationId != generationId) return;
     setState(() {
       _isLoadingCloudVisible = false;
-      _isLoadingCloudDismissing = false;
     });
   }
 
@@ -3355,11 +3807,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _responseTimer = null;
     _liveResponseSubscription?.cancel();
     _liveResponseSubscription = null;
-    _liveChunkFlushTimer?.cancel();
-    _liveChunkFlushTimer = null;
-    _pendingLiveChunks.clear();
-    _liveStreamCompleted = false;
-    _pendingLiveError = null;
     _permissionContinuationTimer?.cancel();
     _permissionContinuationTimer = null;
     if (_chatTurns.isNotEmpty) {
@@ -3368,11 +3815,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         lastTurn.duration =
             DateTime.now().difference(lastTurn.generationStartedAt!);
       }
-      lastTurn.modelName ??= widget.useLiveAi ? 'KI' : 'Demo';
+      lastTurn.modelName ??=
+          widget.useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
     }
     setState(() => _isGenerating = false);
     if (_isLoadingCloudVisible) {
-      unawaited(_reverseLoadingCloudToNothing(generationId));
+      unawaited(
+        _reverseLoadingCloudToNothing(generationId, waitForEnter: false),
+      );
     }
     _syncDemoWaitingHaptics();
     widget.onGenerationChanged?.call(false);
@@ -3385,11 +3835,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _responseTimer = null;
     _liveResponseSubscription?.cancel();
     _liveResponseSubscription = null;
-    _liveChunkFlushTimer?.cancel();
-    _liveChunkFlushTimer = null;
-    _pendingLiveChunks.clear();
-    _liveStreamCompleted = false;
-    _pendingLiveError = null;
     _permissionContinuationTimer?.cancel();
     _permissionContinuationTimer = null;
     if (_chatTurns.isNotEmpty) {
@@ -3398,7 +3843,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         lastTurn.duration =
             DateTime.now().difference(lastTurn.generationStartedAt!);
       }
-      lastTurn.modelName ??= widget.useLiveAi ? 'KI' : 'Demo';
+      lastTurn.modelName ??=
+          widget.useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
     }
     final wasDocked = !_isExpanded && _morphAnimation.value <= 0.005;
     setState(() {
@@ -3607,6 +4053,9 @@ class _DemoChatTurn {
   _DemoChatTurn(this.prompt);
 
   final String prompt;
+  String? userMessageId;
+  String? assistantMessageId;
+  AssistantAccessRecord? access;
   String response = '';
   String? modelName;
   Duration? duration;

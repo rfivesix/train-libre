@@ -62,6 +62,9 @@ class AiService {
   final AiHttpGet _httpGet;
   final Map<String, (String, String)> _geminiResolvedRoutes = {};
 
+  /// Increments whenever the selected AI provider or model configuration changes.
+  final ValueNotifier<int> configurationRevision = ValueNotifier<int>(0);
+
   /// Keychain items default to `kSecAttrAccessibleWhenUnlocked`, which Apple
   /// copies into device and iCloud backups and restores onto whatever device
   /// the backup is applied to. BYOK credentials must not travel that way, so
@@ -293,6 +296,7 @@ class AiService {
     } else {
       await _secureStorage.write(key: _customModelKey, value: model);
     }
+    configurationRevision.value++;
   }
 
   /// Reads the AI request timeout in seconds.
@@ -423,6 +427,7 @@ class AiService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_providerKey, provider.name);
     } catch (_) {}
+    configurationRevision.value++;
   }
 
   Future<String> getSelectedModel(AiProvider provider) async {
@@ -474,6 +479,7 @@ class AiService {
       key: selectedModelStorageKeyFor(provider),
       value: resolvedModel,
     );
+    configurationRevision.value++;
   }
 
   /// How many live models the picker shows at most.

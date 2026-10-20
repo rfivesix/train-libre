@@ -70,6 +70,9 @@ class DatabaseHelper {
     await dbInst.customStatement('PRAGMA foreign_keys = OFF');
     try {
       await dbInst.transaction(() async {
+        await dbInst.customStatement('DELETE FROM assistant_data_access');
+        await dbInst.customStatement('DELETE FROM assistant_messages');
+        await dbInst.customStatement('DELETE FROM assistant_conversations');
         await dbInst.delete(dbInst.goalReviews).go();
         await dbInst.delete(dbInst.goalEvents).go();
         await dbInst.delete(dbInst.userGoals).go();

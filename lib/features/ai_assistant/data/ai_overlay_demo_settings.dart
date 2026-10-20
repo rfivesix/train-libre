@@ -34,8 +34,8 @@ class AiOverlayDemoConfiguration {
       );
 }
 
-/// Local settings for showing and configuring the in-memory AI overlay demo.
-/// Only preferences are persisted; overlay conversations remain transient.
+/// Local settings for the cloud overlay and its developer demo controls.
+/// Conversation history is stored separately in the app database.
 class AiOverlayDemoSettings {
   AiOverlayDemoSettings._();
 

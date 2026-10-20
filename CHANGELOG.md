@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.7.0] - unreleased
 
+### Added
+- Added persistent AI assistant conversations and scoped, per-request approval for read-only Train Libre data access. The overlay now records provider/model identity and a local audit of the records shared for each approved request.
+- Added an ignored planning document for the AI assistant's product idea, user experience, action inventory, and architecture.
+
+### Changed
+- The AI assistant now lets the configured model answer ordinary chat without a data prompt and infer narrow, reviewable data scopes from natural language. The app validates model proposals and still requires fresh approval before reading records.
+
+### Fixed
+- Localized AI assistant permission cards, audit details, status messages, and category/scope labels in German and English, and added contextual AI-generated chat titles.
+- Replaced the custom Data Access audit modal with the app's canonical `GlassBottomMenuSheet` widget and actions, reverted horizontal text centering, and vertically centered the placeholder text in the compact AI composer bar.
+- Fixed the AI overlay Data Access audit dialog so it renders inside the root overlay without requiring a `Navigator` ancestor, restored the loading cloud animation during post-approval reasoning, and updated the active model indicator immediately when switching models at runtime.
+- Fixed the AI overlay streaming state after loading-cloud dismissal (`dismissingCloud` flag) and increased reasoning completion token limits so approved answers do not stall or cut off after the initial burst of tokens.
+
 ## [1.6.0] - 2026-10-20
 
 ### Added

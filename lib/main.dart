@@ -1176,9 +1176,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                                           settings.showResizeHandles,
                                       openDirectlyFullscreen:
                                           settings.openDirectlyFullscreen,
-                                      // Chat state remains in memory only and is
-                                      // never persisted between app launches.
-                                      useLiveAi: settings.useLiveAi,
+                                      useLiveAi: true,
                                     ),
                                   ),
                                 )
