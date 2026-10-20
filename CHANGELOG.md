@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - The AI assistant now lets the configured model answer ordinary chat without a data prompt and infer narrow, reviewable data scopes from natural language. The app validates model proposals and still requires fresh approval before reading records.
 
 ### Fixed
+- Optimized AI assistant cloud animation and rendering battery efficiency: replaced unbounded full-screen offscreen `saveLayer` image filter blur passes with tight bounding rectangles, implemented adaptive framerate throttling (~30 FPS during idle resting states with dynamic 60/120Hz switching during interactions, streaming, voice, or morph transitions), added lifecycle observation to pause cloud tickers when the app is backgrounded or inactive, and tuned resting flow speed for calmer, energy-efficient idle motion.
 - Localized AI assistant permission cards, audit details, status messages, and category/scope labels in German and English, and added contextual AI-generated chat titles.
 - Replaced the custom Data Access audit modal with the app's canonical `GlassBottomMenuSheet` widget and actions, reverted horizontal text centering, and vertically centered the placeholder text in the compact AI composer bar.
 - Fixed the AI overlay Data Access audit dialog so it renders inside the root overlay without requiring a `Navigator` ancestor, restored the loading cloud animation during post-approval reasoning, and updated the active model indicator immediately when switching models at runtime.

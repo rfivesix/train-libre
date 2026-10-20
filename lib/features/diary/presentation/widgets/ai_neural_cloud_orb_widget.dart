@@ -85,6 +85,10 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   /// it consumes no per-frame ticker work while the progress is unchanged.
   final bool animate;
 
+  /// When true, forces the widget to repaint at the full display refresh rate
+  /// (e.g. 60Hz or 120Hz) rather than using energy-saving idle throttling.
+  final bool forceHighFrameRate;
+
   /// Whether taps may trigger the widget's own ripple and colour response.
   /// Decorative uses can disable this when an ancestor handles interaction.
   final bool enableInteraction;
@@ -128,6 +132,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     this.energy = 0.0,
     this.flowSpeed = 1.0,
     this.animate = true,
+    this.forceHighFrameRate = false,
     this.enableInteraction = true,
     this.tint,
     this.tintEnergyGain = 0.0,
@@ -138,7 +143,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
 }
 
 class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
-    with TickerProviderStateMixin
+    with TickerProviderStateMixin, WidgetsBindingObserver
     implements AiNeuralCloudOrbState {
   /// Accumulated flow time in seconds, advanced by the ticker at a rate that
   /// rises with [AiNeuralCloudOrbWidget.energy].
@@ -148,6 +153,8 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
   /// it did. Integrating the delta keeps the motion continuous *and* lets the
   /// speed change mid-flight.
   final ValueNotifier<double> _flow = ValueNotifier<double>(0);
+  double _internalFlow = 0;
+  Duration _lastRepaintElapsed = Duration.zero;
   late final Ticker _ticker;
   Duration _lastTick = Duration.zero;
 
@@ -170,6 +177,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _ticker = createTicker(_onTick);
     if (widget.animate) _ticker.start();
@@ -212,6 +220,21 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (widget.animate && !_ticker.isActive) {
+        _lastTick = Duration.zero;
+        _lastRepaintElapsed = Duration.zero;
+        _ticker.start();
+      }
+    } else {
+      if (_ticker.isActive) {
+        _ticker.stop();
+      }
+    }
+  }
+
+  @override
   void didUpdateWidget(AiNeuralCloudOrbWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
@@ -232,6 +255,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
     if (widget.animate != oldWidget.animate) {
       if (widget.animate) {
         _lastTick = Duration.zero;
+        _lastRepaintElapsed = Duration.zero;
         _ticker.start();
       } else {
         _ticker.stop();
@@ -257,11 +281,33 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
     final target = widget.energy.clamp(0.0, 1.0);
     _energy += (target - _energy) * math.min(1.0, dt * 7.0);
 
-    _flow.value += dt * widget.flowSpeed * (1.0 + 2.4 * _energy);
+    _internalFlow += dt * widget.flowSpeed * (1.0 + 2.4 * _energy);
+
+    // Dynamic framerate: when voice is active, ripple or morph is running,
+    // or external forceHighFrameRate is set, run at full display rate (60/120Hz).
+    // During idle rest, throttle repaint triggers to ~30 FPS (32ms), reducing
+    // CPU/GPU redraw wakeups by 50-75% without perceptible loss of smoothness.
+    final isHighFrameRate = widget.forceHighFrameRate ||
+        _energy > 0.01 ||
+        _rippleController.isAnimating ||
+        _chargeController.isAnimating ||
+        _morphController.isAnimating ||
+        (widget.frameMorphAnimation != null &&
+            widget.frameMorphAnimation!.isAnimating);
+
+    if (isHighFrameRate) {
+      _lastRepaintElapsed = elapsed;
+      _flow.value = _internalFlow;
+    } else if (elapsed - _lastRepaintElapsed >=
+        const Duration(milliseconds: 32)) {
+      _lastRepaintElapsed = elapsed;
+      _flow.value = _internalFlow;
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ticker.dispose();
     _flow.dispose();
     _rippleController.dispose();
@@ -582,8 +628,20 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     // A restrained neutral-gray halo separates the cloud from both light and
     // dark content without dimming or tinting the page behind it.
     if (edgeBlurSigma > 0 && sizeFactor > 0.001) {
+      final Rect layerBounds;
+      if (safeRect != null && frameMorph > 0.001) {
+        layerBounds = safeRect.inflate(36.0 + edgeBlurSigma * 3.0);
+      } else {
+        final maxClusterRadius = (cloudSize * 0.70 * sizeFactor * (1.0 + 0.85 * energy) +
+                edgeBlurSigma * 3.0 + 8.0)
+            .ceilToDouble();
+        layerBounds = Rect.fromCircle(
+          center: Offset.zero,
+          radius: maxClusterRadius,
+        );
+      }
       canvas.saveLayer(
-        null,
+        layerBounds,
         Paint()
           ..imageFilter = ui.ImageFilter.blur(
             sigmaX: edgeBlurSigma,

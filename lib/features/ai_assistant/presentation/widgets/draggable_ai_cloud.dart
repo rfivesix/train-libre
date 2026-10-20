@@ -1332,7 +1332,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                               ? 1.55
                               : _isGenerating
                                   ? 0.9
-                                  : 2.0 * widget.liveliness.clamp(0.0, 1.0),
+                                  : (1.0 * widget.liveliness.clamp(0.0, 1.0))
+                                      .clamp(0.1, 1.2),
+                          forceHighFrameRate: _isDragging ||
+                              _isGenerating ||
+                              _voiceRecording ||
+                              _voiceStarting ||
+                              _voiceStopping ||
+                              _completionPulse ||
+                              !isSettledOrb,
                           animate: !_isClosing,
                           accentColor: _permissionPending && isSettledOrb
                               ? Colors.amber.shade700
