@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/pulse/application/pulse_tracking_service.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/settings/presentation/pulse_settings_screen.dart';
-import 'package:train_libre/widgets/common/platform_adaptive_switch_list_tile.dart';
+import 'package:train_libre/widgets/common/platform_adaptive_switch.dart';
 import 'package:train_libre/widgets/common/app_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,8 +50,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final toggle = tester.widget<PlatformAdaptiveSwitchListTile>(
-      find.byKey(const Key('pulse_tracking_toggle')),
+    final toggle = tester.widget<PlatformAdaptiveSwitch>(
+      find.descendant(
+        of: find.byKey(const Key('pulse_tracking_toggle')),
+        matching: find.byType(PlatformAdaptiveSwitch),
+      ),
     );
     expect(toggle.value, isFalse);
 

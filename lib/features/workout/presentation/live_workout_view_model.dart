@@ -19,7 +19,6 @@ import '../domain/repositories/workout_repository.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
 import '../data/live_activity/workout_live_activity_service.dart';
-import '../data/sources/workout_local_data_source.dart';
 import '../domain/live_activity/build_workout_live_activity_content.dart';
 import '../domain/live_activity/workout_live_activity_content.dart';
 import '../domain/live_activity/workout_live_activity_strings.dart';
@@ -628,7 +627,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           ...workoutExerciseNotes,
           blockIndex: prefilledNote,
         };
-        await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
+        await _saveWorkoutExerciseNote(
           workoutLogId: log.id!,
           exerciseBlock: blockIndex,
           exerciseName: re.exercise.canonicalName,
@@ -703,8 +702,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> restoreWorkoutSession(WorkoutLog log) async {
     _workoutLog = log;
     final savedSets = await _repository.getSetLogsForWorkout(log.id!);
-    final savedExerciseNotes = await WorkoutLocalDataSource.instance
-        .getWorkoutExerciseNotesByBlock(log.id!);
+    final savedExerciseNotes =
+        _repository is WorkoutExerciseBlockNotesRepository
+            ? await (_repository as WorkoutExerciseBlockNotesRepository)
+                .getWorkoutExerciseNotesByBlock(log.id!)
+            : const <int, String>{};
     workoutExerciseNotes = Map<int, String>.from(savedExerciseNotes);
 
     _setLogs.clear();
@@ -1526,7 +1528,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final re = _exercises[reIndex];
     final noteBlock = exerciseBlockFor(re);
     if (noteBlock != null && _workoutLog?.id != null) {
-      await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
+      await _saveWorkoutExerciseNote(
         workoutLogId: _workoutLog!.id!,
         exerciseBlock: noteBlock,
         exerciseName: re.exercise.canonicalName,
@@ -1743,7 +1745,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         ...workoutExerciseNotes,
         exerciseBlock: pinnedNote,
       };
-      await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
+      await _saveWorkoutExerciseNote(
         workoutLogId: _workoutLog!.id!,
         exerciseBlock: exerciseBlock,
         exerciseName: exercise.canonicalName,
@@ -1895,12 +1897,36 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     return blocks.isEmpty ? 0 : blocks.reduce((a, b) => a > b ? a : b) + 1;
   }
 
+  Future<void> _saveWorkoutExerciseNote({
+    required int workoutLogId,
+    required int exerciseBlock,
+    required String exerciseName,
+    required String? notes,
+  }) async {
+    final repository = _repository;
+    if (repository is WorkoutExerciseBlockNotesRepository) {
+      await (repository as WorkoutExerciseBlockNotesRepository)
+          .saveWorkoutExerciseNoteByBlock(
+        workoutLogId: workoutLogId,
+        exerciseBlock: exerciseBlock,
+        exerciseName: exerciseName,
+        notes: notes,
+      );
+      return;
+    }
+    await _repository.saveWorkoutExerciseNote(
+      workoutLogId: workoutLogId,
+      exerciseName: exerciseName,
+      notes: notes,
+    );
+  }
+
   Future<void> updateWorkoutExerciseNote(
       RoutineExercise exercise, String? notes) async {
     final block = exerciseBlockFor(exercise);
     if (block == null || _workoutLog?.id == null) return;
     final normalized = notes?.trim();
-    await WorkoutLocalDataSource.instance.saveWorkoutExerciseNote(
+    await _saveWorkoutExerciseNote(
       workoutLogId: _workoutLog!.id!,
       exerciseBlock: block,
       exerciseName: exercise.exercise.canonicalName,
@@ -1963,10 +1989,14 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final uuid = exercise.exercise.uuid;
     if (uuid == null) return;
     final normalized = notes?.trim();
-    await WorkoutLocalDataSource.instance.savePinnedExerciseNote(
-      exerciseUuid: uuid,
-      notes: normalized == null || normalized.isEmpty ? null : normalized,
-    );
+    final pinnedNotesRepository = _repository;
+    if (pinnedNotesRepository is WorkoutPinnedExerciseNotesRepository) {
+      await (pinnedNotesRepository as WorkoutPinnedExerciseNotesRepository)
+          .savePinnedExerciseNote(
+        exerciseUuid: uuid,
+        notes: normalized == null || normalized.isEmpty ? null : normalized,
+      );
+    }
     _exercises = _exercises.map((entry) {
       if (entry.exercise.uuid != uuid) return entry;
       return entry.copyWith(

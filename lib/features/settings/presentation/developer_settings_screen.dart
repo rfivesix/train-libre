@@ -181,7 +181,7 @@ class DeveloperSettingsScreen extends StatelessWidget {
                     const SizedBox(width: DesignConstants.spacingL),
                     Expanded(
                       child: PlatformAdaptiveDropdownFormField<ExperienceLevel>(
-                        key: ValueKey(experienceLevelService.level),
+                        key: const Key('developer_experience_level'),
                         value: experienceLevelService.level,
                         decoration: InputDecoration(
                           labelText: l10n.developerLabExperienceLabel,

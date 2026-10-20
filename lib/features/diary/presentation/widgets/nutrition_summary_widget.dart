@@ -1,17 +1,12 @@
 // lib/widgets/nutrition_summary_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/models/daily_nutrition.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/glass_progress_bar.dart';
-import '../../../../widgets/common/morph_source.dart';
-import '../../../../widgets/common/summary_card.dart';
-import '../../../analytics/presentation/widgets/micronutrient_section_card.dart';
 
 /// A comprehensive summary widget for daily nutrition and macro tracking.
 ///
@@ -25,7 +20,6 @@ class NutritionSummaryWidget extends StatelessWidget {
   final bool isExpandedView;
   final bool showSugarInOverview;
   final String extraNutrient;
-  final DateTime? selectedDate;
 
   /// Localization instance for labels.
   final AppLocalizations l10n;
@@ -36,7 +30,6 @@ class NutritionSummaryWidget extends StatelessWidget {
     this.isExpandedView = false,
     this.showSugarInOverview = false,
     this.extraNutrient = 'fiber',
-    this.selectedDate,
     required this.l10n,
   });
 
@@ -210,112 +203,7 @@ class NutritionSummaryWidget extends StatelessWidget {
             ],
           ),
         ),
-        if (selectedDate != null)
-          _MicronutrientDiaryShortcut(
-            date: selectedDate!,
-            title: l10n.statisticsMicronutrientsTitle,
-            subtitle: l10n.statisticsMicronutrientsPreviewSubtitle,
-          ),
       ],
-    );
-  }
-}
-
-class _MicronutrientDiaryShortcut extends StatelessWidget {
-  const _MicronutrientDiaryShortcut({
-    required this.date,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final DateTime date;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    Widget buildCard({VoidCallback? onTap}) => SummaryCard(
-          padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(
-            top: DesignConstants.spacingS,
-          ),
-          child: Semantics(
-            button: true,
-            container: true,
-            label: '$title, $subtitle',
-            child: InkWell(
-              onTap: onTap,
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 54),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingM,
-                    vertical: DesignConstants.spacingXS,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              subtitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: DesignConstants.spacingM),
-                      Icon(
-                        LucideIcons.chevron_right,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-
-    return MorphSourceScope(
-      builder: (context, setHidden) => Builder(
-        builder: (cardContext) => buildCard(
-          onTap: () {
-            Navigator.of(context).push(
-              CardMorphRoute(
-                sourceContext: cardContext,
-                sourceBuilder: (_) => buildCard(),
-                onSourceVisibilityChanged: setHidden,
-                builder: (_) => MicronutrientStatisticsScreen(initialDay: date),
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
 }

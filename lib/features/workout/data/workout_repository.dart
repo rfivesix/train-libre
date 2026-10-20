@@ -11,6 +11,8 @@ import '../domain/classification/set_load.dart';
 class WorkoutRepository
     implements
         IWorkoutRepository,
+        WorkoutExerciseBlockNotesRepository,
+        WorkoutPinnedExerciseNotesRepository,
         ProgressionHistoryRepository,
         ProgressionPrescriptionRepository,
         WorkoutFinalizationRepository {
@@ -118,6 +120,34 @@ class WorkoutRepository
   @override
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) =>
       _localDataSource.getWorkoutExerciseNotes(workoutLogId);
+
+  @override
+  Future<Map<int, String>> getWorkoutExerciseNotesByBlock(int workoutLogId) =>
+      _localDataSource.getWorkoutExerciseNotesByBlock(workoutLogId);
+
+  @override
+  Future<void> saveWorkoutExerciseNoteByBlock({
+    required int workoutLogId,
+    required int exerciseBlock,
+    required String exerciseName,
+    required String? notes,
+  }) =>
+      _localDataSource.saveWorkoutExerciseNote(
+        workoutLogId: workoutLogId,
+        exerciseBlock: exerciseBlock,
+        exerciseName: exerciseName,
+        notes: notes,
+      );
+
+  @override
+  Future<void> savePinnedExerciseNote({
+    required String exerciseUuid,
+    required String? notes,
+  }) =>
+      _localDataSource.savePinnedExerciseNote(
+        exerciseUuid: exerciseUuid,
+        notes: notes,
+      );
 
   @override
   Future<void> saveProgressionConfig(String prescriptionKey, String data,

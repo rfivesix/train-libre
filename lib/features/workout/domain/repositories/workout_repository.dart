@@ -90,3 +90,23 @@ abstract interface class ProgressionPrescriptionRepository {
       {bool equipmentOnly = false});
   Future<void> initializeProgressionConfig(int routineExerciseId, String data);
 }
+
+/// Optional capability for restoring notes attached to exercise blocks in a
+/// live workout. Kept separate so simple repository fakes need not implement
+/// persistence details they do not exercise.
+abstract interface class WorkoutExerciseBlockNotesRepository {
+  Future<Map<int, String>> getWorkoutExerciseNotesByBlock(int workoutLogId);
+  Future<void> saveWorkoutExerciseNoteByBlock({
+    required int workoutLogId,
+    required int exerciseBlock,
+    required String exerciseName,
+    required String? notes,
+  });
+}
+
+abstract interface class WorkoutPinnedExerciseNotesRepository {
+  Future<void> savePinnedExerciseNote({
+    required String exerciseUuid,
+    required String? notes,
+  });
+}

@@ -442,7 +442,7 @@ void main() {
       expect(eierResults.map((item) => item.barcode), ['999999', '888888']);
       // No arbitrary interior-substring match: Hühnerei needs its own alias.
       final eiResults = await dataSource.searchProducts('Ei');
-      expect(eiResults.map((item) => item.barcode), ['999999', '888888']);
+      expect(eiResults.map((item) => item.barcode), ['999999']);
     });
 
     test(

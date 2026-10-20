@@ -1018,7 +1018,7 @@ void main() {
 
       await manager.updateExerciseNotes('Exercise A', 'Focus on form');
 
-      expect(manager.exercises.first.notes, 'Focus on form');
+      expect(manager.workoutExerciseNotes[0], 'Focus on form');
     });
 
     test('clearLocalSessionState resets manager state', () async {
