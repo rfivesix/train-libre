@@ -7,6 +7,7 @@ import '../../domain/models/food_item.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../core/infrastructure/caffeine_catalog_resolver.dart';
 import '../meal_editor_screen.dart';
 
 /// A dialog content widget for logging food and liquid quantities.
@@ -72,18 +73,34 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
           widget.item.sugar?.toStringAsFixed(1).replaceAll('.0', '') ??
           '',
     );
-    _caffeineController = TextEditingController(
-      text: widget.initialCaffeine?.toStringAsFixed(1).replaceAll('.0', '') ??
-          (widget.item.caffeineMgPer100g ?? widget.item.caffeineMgPer100ml)
-              ?.toStringAsFixed(1)
-              .replaceAll('.0', '') ??
-          '',
-    );
+    final defaultCaffeine = widget.item.effectiveCaffeinePer100ml ??
+        widget.item.effectiveCaffeinePer100g ??
+        CaffeineCatalogResolver.lookupCaffeine(
+          widget.item.barcode,
+          widget.item.nameDe.isNotEmpty ? widget.item.nameDe : widget.item.name,
+        );
+    final String caffeineText;
+    if (widget.initialCaffeine != null && widget.initialCaffeine! > 0) {
+      caffeineText =
+          widget.initialCaffeine!.toStringAsFixed(1).replaceAll('.0', '');
+    } else if (defaultCaffeine != null && defaultCaffeine > 0) {
+      caffeineText =
+          defaultCaffeine.toStringAsFixed(1).replaceAll('.0', '');
+    } else if (widget.initialCaffeine != null) {
+      caffeineText =
+          widget.initialCaffeine!.toStringAsFixed(1).replaceAll('.0', '');
+    } else {
+      caffeineText = '';
+    }
+    _caffeineController = TextEditingController(text: caffeineText);
     _selectedDateTime = widget.initialTimestamp ?? DateTime.now();
     _selectedMealType = widget.initialMealType ??
         MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
     _isLiquid = widget.initialIsLiquid ??
-        (widget.item.isFluid || (widget.item.isLiquid ?? false));
+        (widget.item.isFluidOrLiquid ||
+            (defaultCaffeine != null &&
+                defaultCaffeine > 0 &&
+                widget.item.category == 'beverages'));
   }
 
   @override

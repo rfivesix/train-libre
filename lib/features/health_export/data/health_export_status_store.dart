@@ -5,6 +5,9 @@ import '../models/export_models.dart';
 
 class HealthExportStatusStore {
   static const String _statusKey = 'health_export_status_v1';
+  static const int healthConnectWorkoutPayloadVersion = 1;
+  static const String _healthConnectWorkoutPayloadVersionKey =
+      'health_export_health_connect_workout_payload_version';
   static const String _appleEnabledKey = 'health_export_apple_enabled';
   static const String _healthConnectEnabledKey =
       'health_export_health_connect_enabled';
@@ -13,6 +16,16 @@ class HealthExportStatusStore {
       : _dbHelper = databaseHelper ?? DatabaseHelper.instance;
 
   final DatabaseHelper _dbHelper;
+
+  Future<int> getHealthConnectWorkoutPayloadVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_healthConnectWorkoutPayloadVersionKey) ?? 0;
+  }
+
+  Future<void> markHealthConnectWorkoutPayloadVersion(int version) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_healthConnectWorkoutPayloadVersionKey, version);
+  }
 
   Future<bool> isPlatformEnabled(HealthExportPlatform platform) async {
     final prefs = await SharedPreferences.getInstance();

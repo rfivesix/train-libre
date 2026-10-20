@@ -114,6 +114,160 @@ void main() {
         hasLength(1),
       );
     });
+
+    test(
+        'exports completed strength sets as non-overlapping Health Connect segments',
+        () async {
+      final source = HealthExportDataSource(databaseHelper: dbHelper);
+      final healthConnect = await source.loadWorkouts(
+        options: const HealthExportLoadOptions(
+          platform: HealthExportPlatform.healthConnect,
+        ),
+      );
+      final appleHealth = await source.loadWorkouts(
+        options: const HealthExportLoadOptions(
+          platform: HealthExportPlatform.appleHealth,
+        ),
+      );
+      final workout = healthConnect.single;
+      final appleWorkout = appleHealth.single;
+
+      expect(workout.segments, hasLength(13));
+      expect(workout.segments.first.exerciseType,
+          ExportWorkoutSegmentType.weightlifting);
+      expect(workout.segments.first.repetitions, 20);
+      expect(workout.segments.first.weightKg, 20);
+      expect(workout.segments.first.setIndex, 0);
+      expect(
+        workout.segments.take(5).map((segment) => segment.setIndex),
+        [0, 1, 2, 3, 4],
+      );
+      expect(workout.segments[5].setIndex, 0);
+      expect(appleWorkout.segments, isEmpty);
+      expect(
+          appleWorkout.payloadFingerprint, isNot(workout.payloadFingerprint));
+
+      expect(workout.segments.first.startUtc, workout.startUtc);
+      expect(workout.segments.last.endUtc, workout.endUtc);
+      for (var index = 0; index < workout.segments.length; index++) {
+        final segment = workout.segments[index];
+        expect(segment.startUtc.isBefore(segment.endUtc), isTrue);
+        expect(segment.startUtc.isBefore(workout.startUtc), isFalse);
+        expect(segment.endUtc.isAfter(workout.endUtc), isFalse);
+        if (index > 0) {
+          expect(
+            segment.startUtc.isBefore(workout.segments[index - 1].endUtc),
+            isFalse,
+          );
+        }
+      }
+    });
+
+    test('uses set creation times when they fit the workout in order',
+        () async {
+      final workout = await db.select(db.workoutLogs).getSingle();
+      final setRows = await (db.select(db.setLogs)
+            ..where((tbl) => tbl.workoutLogId.equals(workout.id))
+            ..orderBy([
+              (tbl) => drift.OrderingTerm(expression: tbl.logOrder),
+              (tbl) => drift.OrderingTerm(expression: tbl.localId),
+            ]))
+          .get();
+      for (var index = 0; index < setRows.length; index++) {
+        await (db.update(db.setLogs)
+              ..where((tbl) => tbl.localId.equals(setRows[index].localId)))
+            .write(
+          SetLogsCompanion(
+            createdAt: drift.Value(
+              workout.startTime.add(Duration(seconds: index * 2)),
+            ),
+          ),
+        );
+      }
+
+      final records =
+          await HealthExportDataSource(databaseHelper: dbHelper).loadWorkouts(
+        options: const HealthExportLoadOptions(
+          platform: HealthExportPlatform.healthConnect,
+        ),
+      );
+
+      expect(records.single.segments.first.startUtc, workout.startTime.toUtc());
+      expect(
+        records.single.segments[1].startUtc,
+        workout.startTime.toUtc().add(const Duration(seconds: 2)),
+      );
+      expect(
+        records.single.segments.last.startUtc,
+        workout.startTime.toUtc().add(const Duration(seconds: 26)),
+      );
+    });
+
+    test('omits unfinished sets and known non-strength modalities', () async {
+      final workoutRow = await db.select(db.workoutLogs).getSingle();
+      await db.into(db.setLogs).insert(
+            SetLogsCompanion(
+              workoutLogId: drift.Value(workoutRow.id),
+              exerciseNameSnapshot: const drift.Value('Incomplete Bench Press'),
+              weight: const drift.Value(100),
+              reps: const drift.Value(5),
+              isCompleted: const drift.Value(false),
+              logOrder: const drift.Value(20),
+            ),
+          );
+      final cardioId = await db.into(db.exercises).insert(
+            const ExercisesCompanion(
+              id: drift.Value('exercise-cardio-test'),
+              modality: drift.Value('cardio'),
+            ),
+          );
+      await db.into(db.setLogs).insert(
+            SetLogsCompanion(
+              workoutLogId: drift.Value(workoutRow.id),
+              exerciseId: drift.Value('exercise-cardio-test'),
+              exerciseNameSnapshot: const drift.Value('Bike'),
+              weight: const drift.Value(0),
+              reps: const drift.Value(10),
+              isCompleted: const drift.Value(true),
+              logOrder: const drift.Value(21),
+            ),
+          );
+      await db.into(db.setLogs).insert(
+            SetLogsCompanion(
+              workoutLogId: drift.Value(workoutRow.id),
+              exerciseNameSnapshot: const drift.Value('Bodyweight Pull Up'),
+              setType: const drift.Value('bodyweight'),
+              isCompleted: const drift.Value(true),
+              logOrder: const drift.Value(22),
+            ),
+          );
+      await db.into(db.setLogs).insert(
+            SetLogsCompanion(
+              workoutLogId: drift.Value(workoutRow.id),
+              exerciseNameSnapshot: const drift.Value('Invalid Load Set'),
+              setType: const drift.Value('bodyweight'),
+              weight: const drift.Value(-1),
+              reps: const drift.Value(4),
+              isCompleted: const drift.Value(true),
+              logOrder: const drift.Value(23),
+            ),
+          );
+
+      final records =
+          await HealthExportDataSource(databaseHelper: dbHelper).loadWorkouts(
+        options: const HealthExportLoadOptions(
+          platform: HealthExportPlatform.healthConnect,
+        ),
+      );
+
+      expect(records.single.segments, hasLength(15));
+      expect(records.single.segments[13].repetitions, 0);
+      expect(records.single.segments[13].weightKg, isNull);
+      expect(records.single.segments[13].setIndex, 0);
+      expect(records.single.segments[14].weightKg, isNull);
+      expect(records.single.segments[14].repetitions, 4);
+      expect(cardioId, greaterThan(0));
+    });
   });
 }
 
@@ -179,10 +333,23 @@ Future<void> _seed(AppDatabase db) async {
           notes: const drift.Value('Session note'),
         ),
       );
+  await db.into(db.exercises).insert(
+        const ExercisesCompanion(
+          id: drift.Value('exercise-cardio-seed'),
+          modality: drift.Value('cardio'),
+        ),
+      );
+  await db.into(db.exercises).insert(
+        const ExercisesCompanion(
+          id: drift.Value('exercise-strength-seed'),
+          modality: drift.Value('strength'),
+        ),
+      );
   await db.batch((batch) {
     batch.insertAll(db.setLogs, [
       SetLogsCompanion(
         workoutLogId: drift.Value(workout.id),
+        exerciseId: const drift.Value('exercise-strength-seed'),
         exerciseNameSnapshot: const drift.Value('Kurzhantelbankdrücken'),
         setType: const drift.Value('warmup'),
         weight: const drift.Value(20),
@@ -192,6 +359,7 @@ Future<void> _seed(AppDatabase db) async {
       ),
       SetLogsCompanion(
         workoutLogId: drift.Value(workout.id),
+        exerciseId: const drift.Value('exercise-strength-seed'),
         exerciseNameSnapshot: const drift.Value('Kurzhantelbankdrücken'),
         setType: const drift.Value('warmup'),
         weight: const drift.Value(30),
@@ -201,6 +369,7 @@ Future<void> _seed(AppDatabase db) async {
       ),
       SetLogsCompanion(
         workoutLogId: drift.Value(workout.id),
+        exerciseId: const drift.Value('exercise-strength-seed'),
         exerciseNameSnapshot: const drift.Value('Kurzhantelbankdrücken'),
         setType: const drift.Value('warmup'),
         weight: const drift.Value(40),
@@ -210,6 +379,7 @@ Future<void> _seed(AppDatabase db) async {
       ),
       SetLogsCompanion(
         workoutLogId: drift.Value(workout.id),
+        exerciseId: const drift.Value('exercise-strength-seed'),
         exerciseNameSnapshot: const drift.Value('Kurzhantelbankdrücken'),
         setType: const drift.Value('normal'),
         weight: const drift.Value(45),
@@ -219,6 +389,7 @@ Future<void> _seed(AppDatabase db) async {
       ),
       SetLogsCompanion(
         workoutLogId: drift.Value(workout.id),
+        exerciseId: const drift.Value('exercise-strength-seed'),
         exerciseNameSnapshot: const drift.Value('Kurzhantelbankdrücken'),
         setType: const drift.Value('failure'),
         weight: const drift.Value(45),
@@ -293,6 +464,7 @@ Future<void> _seed(AppDatabase db) async {
       ),
       SetLogsCompanion(
         workoutLogId: drift.Value(workout.id),
+        exerciseId: const drift.Value('exercise-cardio-seed'),
         exerciseNameSnapshot: const drift.Value('Laufband'),
         setType: const drift.Value('normal'),
         distance: const drift.Value(5.2),

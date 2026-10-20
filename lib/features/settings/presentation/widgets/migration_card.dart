@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/common/app_link_row.dart';
+import '../../../../generated/app_localizations.dart';
 
 class MigrationCard extends StatelessWidget {
   const MigrationCard({
@@ -13,9 +14,10 @@ class MigrationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AppLinkRow(
-      title: "External Workout Import",
-      subtitle: "Import your training history from a CSV or Excel export file.",
+      title: l10n.workoutImportTitle,
+      subtitle: l10n.workoutImportDescription,
       onTap: isMigrationRunning ? () {} : (onImportPressed ?? () {}),
     );
   }

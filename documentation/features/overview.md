@@ -1,79 +1,105 @@
-# Feature Transparency & Privacy Architecture
+# Feature Capabilities and Privacy Boundaries
 
-Train Libre provides adaptive nutrition goals and recommendations, manual workout plans, intelligent meal capture, workout progression, recovery analytics, and health metrics synchronization. All calculations and integrations are designed around strict **local-first** and **privacy-first** principles.
+Train Libre is local-first: workout, diary, measurement, sleep, and other app records are stored in the app’s local database. Optional integrations can move selected data outside that database. In particular, network AI providers receive the meal input sent for analysis, HealthKit or Health Connect can exchange records when enabled, user-triggered exports and backups can create files, and optional telemetry sends usage events after consent. “Local-first” therefore does not mean that every operation is offline or that no data can leave the device.
 
----
+> Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.
 
-## Architectural Privacy Invariants
+## Data boundaries
 
-To achieve true user privacy and data ownership, the application enforces the following technical boundaries:
+### Local calculations and records
 
-1.  **Zero Mandatory Cloud Intermediaries**: The application does not require a custom backend server to function. There is no central user database, no mandatory registration, and no login wall. All diary, workout, sleep, and metric records reside in local SQLite storage.
-2.  **On-Device Encryption & Security**: Sensitive credentials, specifically the user-provided API keys required for Bring Your Own Key (BYOK) Large Language Models, are stored in hardware-backed system secure vaults (iOS Keychain and Android Keystore) via `FlutterSecureStorage` with device-only accessibility.
-3.  **Local Algorithmic Execution**: High-level statistical and physiological logic — including the Kalman filter for TDEE, macronutrient distributions, adaptive goal reviews, the Sleep Health Score engine, muscle recovery timelines, and Brzycki 1RM heuristics — executes entirely on-device. Personal logs, bodyweight measurements, and physical metrics are never transmitted to external servers for analytical evaluation.
-4.  **Strictly Opt-In, Zero-Profiling Usage Telemetry**:
-    *   Disabled by default upon installation.
-    *   No network connection or SDK initialization occurs before explicit consent.
-    *   Consent is requested separately from mandatory terms, with at most one non-intrusive follow-up after 14 days and 5 app launches.
-    *   When enabled, events (sent to PostHog EU) are decoupled from device identity via per-launch ID rotation. Personal profiles are suppressed (`personProfiles: never`, `$process_person_profile: false`), rageclicks/autocapture are disabled, and all metrics are grouped into coarse, anonymous buckets (`TelemetryBuckets`).
-    *   Users can revoke consent or delete all server-side records with one tap in Settings.
-    *   A build compiled with `--dart-define=DISABLE_TELEMETRY=true` selects the no-op telemetry implementation, so telemetry initialization and event dispatch do not run.
+The TDEE estimator, macro allocator, adaptive-goal review logic, sleep score, muscle-recovery estimate, and estimated 1RM calculations run in the app. Their inputs come from app records and, where configured, imported health data. They do not require sending those records to a server for the calculation. Estimates and recommendations are heuristics; their presence in the app does not make them clinical assessments.
 
----
+The AI meal-capture path is different. The selected provider receives the prompt and, for image analysis, resized meal images. Providers include remote services and local/custom endpoints; the destination depends on the provider and its configuration. Apple Foundation Models is an on-device option when the native framework is available. The code does not establish that every provider is offline, that every supported device uses a Neural Engine, or that provider processing has the same privacy terms. Review the [AI capture and validation documentation](byok_ai_validation.md) before choosing a provider.
 
-## Smart Capabilities Overview
+### Optional connections
 
-The core computational modules of Train Libre are split into isolated, mathematically transparent features:
+HealthKit on iOS and Health Connect on Android are separate platform integrations. Permissions and supported data types determine what can be imported or exported. The app also has user-triggered backup/export flows and optional iCloud sync. These paths are distinct from optional product telemetry; enabling one does not imply that health records are included in telemetry. See [Health Sync & Export](health_sync_export.md) for the supported data and platform limits.
 
-### 1. Bayesian TDEE Estimator
-A mathematical engine utilizing a recursive Kalman filter. It combines a recent 14-day bodyweight trend with logged calorie intake to estimate Total Daily Energy Expenditure (TDEE), increases observation uncertainty around diet-phase transitions, and uses a separate bounded controller for persistent goal-rate divergence. Poor-quality or sparse data reduces trust and suppresses trajectory corrections.
-*   *Learn more in the [**Bayesian TDEE Estimator Documentation**](bayesian_tdee_estimator.md).*
+API credentials are stored through `FlutterSecureStorage`. The iOS and macOS configuration uses this-device-only Keychain accessibility; this Dart configuration does not establish the same platform-specific storage guarantee for Android. See the [AI provider and validation page](byok_ai_validation.md) for provider-specific request behavior.
+
+### Optional usage telemetry
+
+Telemetry is disabled unless the user opts in. Initialization reads the saved choice, and PostHog SDK setup is deferred until opt-in; setting `DISABLE_TELEMETRY=true` at build time selects a no-op implementation. Users can opt out in Settings. The app sends opted-in events to PostHog’s EU capture endpoint.
+
+The SDK configuration disables person profiles, lifecycle capture, surveys, replay, feature-flag events, push events, and rage-click capture, and filters selected event names. SDK events receive properties that disable PostHog person-profile processing and GeoIP lookup. In-app SDK identity is reset on SDK configuration to rotate its distinct ID. The separate `app_launched` event is sent directly over HTTP with a locally stored persistent install ID, so telemetry is pseudonymous rather than fully anonymous or identity-free.
+
+Event properties are not uniformly coarse buckets. Depending on the event, they include app/platform/OS version, locale, country, time zone, feature and screen keys, counts, durations, booleans, AI provider, and validation outcome metadata. The AI scan telemetry helpers report request metadata rather than the submitted meal text or images. The telemetry service uses closed values or sanitization for selected fields. This describes app-created telemetry payloads; it is not a guarantee about PostHog’s service-side retention or processing beyond the SDK configuration.
+
+## Feature directory
+
+These articles explain feature logic and its limitations. Practical instructions belong in the [User Guide](../user_guide/overview.md); implementation internals belong in [Developer Documentation](../developer/overview.md).
+
+### 1. Bayesian TDEE Estimate and Adaptive Calorie Target
+
+A recursive Bayesian estimator combines logged intake and body-weight observations with a baseline prior. A separate controller can adjust an eligible calorie target after review. Both operate on local app data; sparse, incomplete, or incompatible data can prevent a target update.
+
+* [Bayesian TDEE estimator](bayesian_tdee_estimator.md)
 
 ### 2. Macronutrient Distribution
-The deterministic second stage of the nutrition recommendation. It turns the estimator's calorie target into protein, carbohydrate, and fat figures: protein and fat are anchored per kilogram of body weight and scaled with the goal, carbohydrates take the remainder, and a fat floor bounds how far the distribution may give way on a budget too small to carry both targets.
-*   *Learn more in the [**Macronutrient Distribution Documentation**](macro_distribution.md).*
 
-### 3. BYOK AI Meal Capture & Validation
-An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates under a **Bring Your Own Key (BYOK)** security structure, communicating directly with provider endpoints (OpenAI, Gemini, Anthropic, Mistral, xAI, Ollama, or custom OpenAI-compatible servers). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving.
-*   *Learn more in the [**BYOK AI Captured Meal Validation Documentation**](byok_ai_validation.md).*
+A deterministic allocator converts a calorie target and profile/goal inputs into protein, fat, and carbohydrate targets, subject to configured bounds and fallback behavior. The allocation is an app rule, not an individualized clinical prescription.
 
-### 4. Native Health Sync & Export
-A local synchronization pipe bridging local wellness records with native platform health frameworks (Apple HealthKit on iOS and Google Health Connect on Android). The architecture is bidirectional:
-*   **Import**: Ingests passive vitals (step segments, sleep stage intervals, and heart rate samples) into local SQLite tables, using configurable hourly step segment merging policies (`auto_dominant` and `max_per_hour`).
-*   **Export**: Pushes user logs (body measurements, nutrition & hydration totals, and workout sessions) to the platform health store using a hash-based idempotency table (`health_export_records`) and incremental domain checkpoints to guarantee zero duplicate writes.
-*   *Learn more in the [**Native Health Sync & Export Documentation**](health_sync_export.md).*
+* [Macronutrient Distribution](macro_distribution.md)
 
-### 5. Sleep Health Score Engine (SHS v3.5)
-A sleep analysis engine evaluating overnight recovery across 5 domains (Sleep Duration, Sleep Continuity, Sleep Stage Depth / Architecture, Circadian Timing, and Sleep Regularity). Using a continuous soft-cap multiplier model, the engine dynamically applies penalty factors based on the single worst-performing biological bottleneck (such as severe REM or N3 deep sleep deprivation, insufficient TST, or late circadian mid-sleep delays) to guide users with precise, contextual feedback.
-*   *Learn more in the [**Sleep Health Score Engine Documentation**](sleep_scoring_engine.md).*
+### 3. Meal Capture and BYOK AI Validation
 
-### 6. Muscle Recovery Model
-A fitness-oriented, log-based readiness model that turns eligible completed sets into a per-muscle, time-decaying residual load. It applies bounded per-set RIR and repetition modifiers, role-weighted direct and indirect exposure, and distinct baseline decay profiles before deriving a continuous readiness score.
+Meal capture can use image, text, voice, or barcode workflows. AI analysis uses the selected provider; network providers receive the request content, while Apple Foundation Models can run on-device when available. Validation checks structured output against the local food catalog, but suggestions can remain ambiguous or require user correction.
 
-*Learn more in the [**Muscle Recovery & Readiness Model Documentation**](muscle_recovery_model.md).*
+* [Meal capture and AI validation](meal_capture_pipeline.md)
+* [BYOK providers and validation](byok_ai_validation.md)
 
-### 7. Estimated 1-Rep Max (1RM) Heuristics
-A physical capacity estimation model that computes estimated maximum strength capabilities from submaximal resistance training loads using the Brzycki formula. It accurately handles effective set loads for assisted exercises (subtracting machine assistance from bodyweight) and bodyweight movements (using historical bodyweight on the day the set was performed), capped within the safe $1 \leq r \leq 12$ repetition window.
-*   *Learn more in the [**Estimated 1-Rep Max Documentation**](intelligent_workouts.md).*
+### 4. Health Sync and Export
+
+Platform adapters exchange supported records with HealthKit or Health Connect after the relevant permissions and settings are enabled. Import, export, and update behavior varies by data type and platform; the feature is not a guarantee of complete or background synchronization.
+
+* [Health Sync & Export](health_sync_export.md)
+
+### 5. Sleep Health Score (SHS v3)
+
+The score combines five sleep domains using the current v3 formulas and score caps. Imported records are mapped into the sleep inputs; missing or partial stage data can affect completeness and the result. The score is a software heuristic, not a diagnosis or a measure of medical sleep health.
+
+* [Sleep Health Score engine](sleep_scoring_engine.md)
+
+### 6. Muscle Recovery Estimate
+
+The model turns eligible logged sets into time-decaying, per-muscle residual load and maps that load to a continuous readiness estimate. Its inputs and coverage limits depend on workout logging and exercise metadata.
+
+* [Muscle Recovery model](muscle_recovery_model.md)
+
+### 7. Estimated 1-Rep Max
+
+The app estimates 1RM from eligible logged set loads and repetitions using its configured formula and valid repetition range. Bodyweight and assisted movements use effective-load rules; an estimate is not a guaranteed maximum or a safety assessment.
+
+* [Estimated 1RM heuristics](intelligent_workouts.md)
 
 ### 8. Workout Progression
-The workout recommendation uses the most recent first working set to suggest the next first set, then derives later-set targets from the completed first set with a transparent fatigue back-off. The user can edit every generated value directly.
-*   *Learn more in the [**Workout Progression Documentation**](workout_progression_engine.md).*
 
-### 9. Live Activity & Cross-Platform Widgets
-Real-time glanceable surfaces mirroring active workouts and daily wellness metrics:
-*   **Workout Live Activity**: iOS Lock Screen and Dynamic Island card displaying live set targets, active rest timers, and exercise navigation without background network polling.
-*   **Home Screen Widgets**: Shared Dart snapshot engine delivering six glanceable widgets (Today Glance, Quick Actions, Steps, Measurements, Muscle Recovery, Last Workout) on both iOS 18+ and Android 12+.
-*   *Learn more in the [**Live Activity Documentation**](live_activity_workout.md) and [**Home Screen Widgets Guide**](../developer/ios_home_screen_widgets.md).*
+When enabled, the progression feature evaluates eligible recent performance and proposes set targets under the current simple progression policy. The user can review or edit the proposed values; eligibility and load mode affect the result.
+
+* [Workout progression engine](workout_progression_engine.md)
+
+### 9. Live Activity and Widgets
+
+iOS provides a workout Live Activity; Android uses its workout notification surfaces and platform-supported live-update behavior. Home-screen widgets are a separate feature with platform-specific support and limits.
+
+* [Live Activity and workout notification behavior](live_activity_workout.md)
+* [Home Screen Widgets](../developer/ios_home_screen_widgets.md)
 
 ### 10. Adaptive Nutrition Goals
-Users can set a long-term weight goal from a recorded baseline and review its trajectory over time. Weekly reviews require sufficient weigh-ins and food logs before proposing calorie and macro changes. Recommendations remain proposals until the user applies them.
-*   *Learn more in the [**Adaptive Nutrition Goals Documentation**](adaptive_nutrition_goals.md).*
+
+Users set a goal and can receive periodic review proposals when the implementation’s data and compatibility gates pass. Proposals require user action before they change targets.
+
+* [Adaptive Nutrition Goals](adaptive_nutrition_goals.md)
 
 ### 11. Manual Workout Plans
-Saved routines can be arranged as a fixed weekly schedule or a repeating 1–14 day sequence with rest days. Plans track completed, partial, and skipped sessions. Missed sequence sessions remain next until completed or skipped; optional local reminders open the active plan.
-*   *Learn more in the [**Manual Workout Plans Documentation**](manual_workout_plans.md).*
+
+Users can save routines as weekly schedules or repeating sequences, record session outcomes, and optionally schedule local reminders. Sequence advancement depends on the recorded outcome and plan rules.
+
+* [Manual Workout Plans](manual_workout_plans.md)
 
 ### 12. Macronutrient Analytics
-The Statistics hub carries its selected date range into macro analytics, with period navigation, daily intake detail, and a rolling seven-day intake-versus-target comparison in Nutrition.
-*   *Learn more in the [**Macronutrient Analytics Documentation**](macro_analytics.md).*
+
+The Statistics hub passes a selected date range to macro analytics, which displays logged intake and comparison summaries. A displayed target can differ from the active diary target when a recommendation has not been applied.
+
+* [Macronutrient Analytics](macro_analytics.md)

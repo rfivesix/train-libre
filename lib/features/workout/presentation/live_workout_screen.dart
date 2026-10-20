@@ -36,9 +36,11 @@ import '../domain/classification/workout_set_position.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/log_mask_labels.dart';
 import 'widgets/live_workout_set_row.dart';
+import 'widgets/workout_keyboard_accessory_bar.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/platform_adaptive_dropdown.dart';
 
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
@@ -460,6 +462,38 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     return re.exercise.isCardio;
   }
 
+  Widget _buildPauseTimerRow({
+    required int? pauseSeconds,
+    required AppLocalizations l10n,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(LucideIcons.timer, size: 20, color: colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(
+              pauseSeconds != null && pauseSeconds > 0
+                  ? _formatPauseTime(pauseSeconds)
+                  : l10n.timerOffLabel.toUpperCase(),
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildExerciseCardHeader(
     BuildContext context,
     RoutineExercise routineExercise,
@@ -516,15 +550,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             ],
           );
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 8.0,
-      ),
-      leading: null,
-      title: isProxy
-          ? titleContent
-          : Listener(
+    final draggableTitle = isProxy
+        ? Expanded(child: titleContent)
+        : Expanded(
+            child: Listener(
               onPointerDown: (e) =>
                   _onDragPointerDown(e, routineExercise.id ?? index, index),
               onPointerMove: _onDragPointerMove,
@@ -539,9 +568,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                         CardMorphRoute(
                           sourceContext: titleCtx,
                           sourceBorderRadius: 12.0,
-                          // The title flies inside the container, so the
-                          // detail screen dissolves out of it instead of being
-                          // the only thing drawn while the container grows.
                           sourceBuilder: (_) => titleContent,
                           onSourceVisibilityChanged: setHidden,
                           builder: (context) => ExerciseDetailScreen(
@@ -555,60 +581,56 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 ),
               ),
             ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+          );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          IconButton(
-            icon: const Icon(LucideIcons.pencil),
-            tooltip: l10n.exerciseNoteTitle,
-            onPressed: isProxy
-                ? null
-                : () => _editExerciseNotes(context, routineExercise),
-          ),
-          if (membership?.isLast ?? true)
-            Selector<LiveWorkoutViewModel, int?>(
-              selector: (_, vm) => vm.pauseTimes[routineExercise.id!],
-              builder: (context, livePauseVal, child) {
-                final liveHasPause = livePauseVal != null && livePauseVal > 0;
-                if (liveHasPause) {
-                  return TextButton(
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      padding: EdgeInsets.zero,
+          Row(
+            children: [
+              draggableTitle,
+              if (!isProxy)
+                PlatformAdaptivePopupMenu<String>(
+                  icon: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(LucideIcons.ellipsis_vertical),
+                  ),
+                  items: [
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'notes',
+                      label: l10n.editExerciseNotes,
+                      icon: LucideIcons.pencil,
                     ),
-                    onPressed: isProxy
-                        ? null
-                        : (onEditPauseTime != null
-                            ? () => onEditPauseTime(routineExercise)
-                            : null),
-                    child: Text(
-                      _formatPauseTime(livePauseVal),
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: DesignConstants.spacingL,
-                      ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'timer',
+                      label: l10n.editPauseTime,
+                      icon: LucideIcons.timer,
                     ),
-                  );
-                }
-                return IconButton(
-                  icon: const Icon(LucideIcons.timer),
-                  tooltip: l10n.editPauseTime,
-                  onPressed: isProxy
-                      ? null
-                      : (onEditPauseTime != null
-                          ? () => onEditPauseTime(routineExercise)
-                          : null),
-                );
-              },
-            ),
-          IconButton(
-            icon: const Icon(
-              LucideIcons.trash,
-              color: DesignConstants.brandRedColor,
-            ),
-            tooltip: l10n.removeExercise,
-            onPressed: isProxy ? null : () => _removeExercise(routineExercise),
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'remove',
+                      label: l10n.removeExercise,
+                      icon: LucideIcons.trash,
+                      isDestructive: true,
+                    ),
+                  ],
+                  onSelected: (action) {
+                    switch (action) {
+                      case 'notes':
+                        _editExerciseNotes(context, routineExercise);
+                        break;
+                      case 'timer':
+                        if (onEditPauseTime != null) {
+                          onEditPauseTime(routineExercise);
+                        }
+                        break;
+                      case 'remove':
+                        _removeExercise(routineExercise);
+                        break;
+                    }
+                  },
+                ),
+            ],
           ),
         ],
       ),
@@ -766,30 +788,91 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final l10n = AppLocalizations.of(context)!;
     final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
 
-    final result = await showGlassBottomMenu<String?>(
+    final canEditRoutineNote = manager.canEditRoutineNoteFor(re);
+    final scope = await showGlassBottomMenu<String>(
       context: context,
-      title: l10n.exerciseNoteTitle,
+      title: l10n.noteTypeTitle,
       contentBuilder: (ctx, close) {
-        return ExerciseNotesDialog(
-          initialNotes: re.notes,
-          onSave: (notes) {
-            close();
-            Navigator.of(ctx).pop(notes);
-          },
-          onDelete: () {
-            close();
-            Navigator.of(ctx).pop('');
-          },
-          onCancel: () {
-            close();
-            Navigator.of(ctx).pop(null);
-          },
+        Widget option({
+          required String key,
+          required IconData icon,
+          required String title,
+          required String description,
+        }) =>
+            ListTile(
+              leading: Icon(icon),
+              title: Text(title),
+              subtitle: Text(description),
+              onTap: () {
+                close();
+                Navigator.of(ctx).pop(key);
+              },
+            );
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            option(
+              key: 'exercise',
+              icon: LucideIcons.pin,
+              title: l10n.pinnedExerciseNoteTitle,
+              description: l10n.pinnedExerciseNoteDescription,
+            ),
+            if (canEditRoutineNote)
+              option(
+                key: 'routine',
+                icon: LucideIcons.bookmark,
+                title: l10n.pinnedRoutineNoteTitle,
+                description: l10n.pinnedRoutineNoteDescription,
+              ),
+            option(
+              key: 'workout',
+              icon: LucideIcons.file_text,
+              title: l10n.workoutExerciseNoteTitle,
+              description: l10n.workoutExerciseNoteDescription,
+            ),
+          ],
         );
       },
     );
+    if (scope == null || !context.mounted) return;
 
-    if (result != null) {
-      await manager.updateExerciseNotes(re.exercise.canonicalName, result);
+    final initialNotes = switch (scope) {
+      'exercise' => re.exercise.pinnedNote,
+      'routine' => re.notes,
+      _ => manager.workoutNoteFor(re),
+    };
+    final result = await showGlassBottomMenu<String?>(
+      context: context,
+      title: switch (scope) {
+        'exercise' => l10n.pinnedExerciseNoteTitle,
+        'routine' => l10n.pinnedRoutineNoteTitle,
+        _ => l10n.workoutExerciseNoteTitle,
+      },
+      contentBuilder: (ctx, close) => ExerciseNotesDialog(
+        initialNotes: initialNotes,
+        onSave: (notes) {
+          close();
+          Navigator.of(ctx).pop(notes);
+        },
+        onDelete: () {
+          close();
+          Navigator.of(ctx).pop('');
+        },
+        onCancel: () {
+          close();
+          Navigator.of(ctx).pop(null);
+        },
+      ),
+    );
+    if (result == null) return;
+    switch (scope) {
+      case 'exercise':
+        await manager.updatePinnedExerciseNote(re, result);
+      case 'routine':
+        await manager.updateRoutineExerciseNote(re, result);
+      default:
+        await manager.updateWorkoutExerciseNote(re, result);
     }
   }
 
@@ -1151,6 +1234,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final exercises =
         context.select<LiveWorkoutViewModel, List<RoutineExercise>>(
             (vm) => vm.exercises);
+    final workoutNotes = context.select<LiveWorkoutViewModel, Map<int, String>>(
+        (vm) => vm.workoutExerciseNotes);
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
 
@@ -1393,6 +1478,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       itemBuilder: (context, index) {
                                         final routineExercise =
                                             exercises[index];
+                                        final exerciseNote = manager
+                                            .workoutNoteFor(
+                                              routineExercise,
+                                              workoutNotes,
+                                            )
+                                            ?.trim();
+                                        final hasExerciseNote =
+                                            exerciseNote?.isNotEmpty == true;
                                         final showE1rmSummary =
                                             !_isCardio(routineExercise);
                                         final membership = supersetMembershipAt(
@@ -1457,6 +1550,106 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                               onEditPauseTime:
                                                                   editPauseTime,
                                                             ),
+                                                            Selector<
+                                                                LiveWorkoutViewModel,
+                                                                int?>(
+                                                              selector: (_,
+                                                                      vm) =>
+                                                                  vm.pauseTimes[
+                                                                      routineExercise
+                                                                          .id!],
+                                                              builder: (context,
+                                                                  pauseSeconds,
+                                                                  _) {
+                                                                if (_isDragging) {
+                                                                  return const SizedBox
+                                                                      .shrink();
+                                                                }
+                                                                final noteRow =
+                                                                    InkWell(
+                                                                  onTap: () =>
+                                                                      _editExerciseNotes(
+                                                                          context,
+                                                                          routineExercise),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8),
+                                                                  child:
+                                                                      Padding(
+                                                                    padding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            4),
+                                                                    child: Text(
+                                                                      hasExerciseNote
+                                                                          ? exerciseNote!
+                                                                          : l10n
+                                                                              .workoutNoteAddHint,
+                                                                      maxLines: hasExerciseNote
+                                                                          ? null
+                                                                          : 1,
+                                                                      overflow: hasExerciseNote
+                                                                          ? TextOverflow
+                                                                              .visible
+                                                                          : TextOverflow
+                                                                              .ellipsis,
+                                                                      style: textTheme
+                                                                          .bodyMedium
+                                                                          ?.copyWith(
+                                                                        color: colorScheme
+                                                                            .onSurfaceVariant,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                                final timerRow =
+                                                                    _buildPauseTimerRow(
+                                                                  pauseSeconds:
+                                                                      pauseSeconds,
+                                                                  l10n: l10n,
+                                                                  textTheme:
+                                                                      textTheme,
+                                                                  colorScheme:
+                                                                      colorScheme,
+                                                                  onTap: () =>
+                                                                      editPauseTime(
+                                                                          routineExercise),
+                                                                );
+
+                                                                return Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .fromLTRB(
+                                                                          16,
+                                                                          0,
+                                                                          16,
+                                                                          12),
+                                                                  child: hasExerciseNote
+                                                                      ? Column(
+                                                                          crossAxisAlignment:
+                                                                              CrossAxisAlignment.start,
+                                                                          children: [
+                                                                            noteRow,
+                                                                            const SizedBox(height: 2),
+                                                                            timerRow,
+                                                                          ],
+                                                                        )
+                                                                      : Row(
+                                                                          children: [
+                                                                            timerRow,
+                                                                            const SizedBox(width: 16),
+                                                                            Expanded(
+                                                                              child: Align(
+                                                                                alignment: Alignment.centerRight,
+                                                                                child: noteRow,
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                );
+                                                              },
+                                                            ),
                                                             _isDragging
                                                                 ? const SizedBox
                                                                     .shrink()
@@ -1475,52 +1668,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                           CrossAxisAlignment
                                                                               .start,
                                                                       children: [
-                                                                        if (routineExercise.notes !=
-                                                                                null &&
-                                                                            routineExercise.notes!.isNotEmpty)
-                                                                          Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.only(
-                                                                              left: 16.0,
-                                                                              right: 16.0,
-                                                                              bottom: 12.0,
-                                                                            ),
-                                                                            child:
-                                                                                InkWell(
-                                                                              onTap: () => _editExerciseNotes(context, routineExercise),
-                                                                              borderRadius: BorderRadius.circular(8),
-                                                                              child: Container(
-                                                                                width: double.infinity,
-                                                                                padding: const EdgeInsets.all(12),
-                                                                                decoration: BoxDecoration(
-                                                                                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                                                                                  borderRadius: BorderRadius.circular(8),
-                                                                                  border: Border.all(
-                                                                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                                                                                  ),
-                                                                                ),
-                                                                                child: Row(
-                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                  children: [
-                                                                                    Icon(
-                                                                                      Icons.description_outlined,
-                                                                                      size: 16,
-                                                                                      color: colorScheme.onSurfaceVariant,
-                                                                                    ),
-                                                                                    const SizedBox(width: 8),
-                                                                                    Expanded(
-                                                                                      child: Text(
-                                                                                        routineExercise.notes!,
-                                                                                        style: textTheme.bodyMedium?.copyWith(
-                                                                                          color: colorScheme.onSurfaceVariant,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                          ),
                                                                         if (showE1rmSummary)
                                                                           ExerciseE1rmSummary(
                                                                             routineExercise:
@@ -1770,7 +1917,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                     ),
 
                     // --- Keyboard Done Accessory Bar ---
-                    const _LiveWorkoutKeyboardDoneBar(),
+                    const WorkoutKeyboardAccessoryBar(
+                        showProgressionToggle: true),
                   ],
                 ),
         ),
@@ -1792,99 +1940,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final match = RegExp(r'[-+]?\d+(?:[.,]\d+)?').firstMatch(text);
     if (match == null) return null;
     return double.tryParse(match.group(0)!.replaceAll(',', '.'));
-  }
-}
-
-class _LiveWorkoutKeyboardDoneBar extends StatefulWidget {
-  const _LiveWorkoutKeyboardDoneBar();
-
-  @override
-  State<_LiveWorkoutKeyboardDoneBar> createState() =>
-      _LiveWorkoutKeyboardDoneBarState();
-}
-
-class _LiveWorkoutKeyboardDoneBarState
-    extends State<_LiveWorkoutKeyboardDoneBar> with WidgetsBindingObserver {
-  double _keyboardHeight = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateKeyboardHeight();
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    _updateKeyboardHeight();
-  }
-
-  void _updateKeyboardHeight() {
-    if (!mounted) return;
-    final view = View.of(context);
-    final newHeight = view.viewInsets.bottom / view.devicePixelRatio;
-    if (newHeight != _keyboardHeight) {
-      setState(() {
-        _keyboardHeight = newHeight;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_keyboardHeight <= 0) {
-      return const SizedBox.shrink();
-    }
-    final l10n = AppLocalizations.of(context)!;
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Material(
-        elevation: 8.0,
-        child: Container(
-          height: 44,
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF1E1E1E)
-                : const Color(0xFFF5F5F7),
-            border: Border(
-              top: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white10
-                    : Colors.black12,
-                width: 0.5,
-              ),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: Text(
-                  l10n.doneButtonLabel,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

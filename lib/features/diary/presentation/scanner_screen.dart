@@ -308,7 +308,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   size: 20,
                   color: _isFlashOn
                       ? (isDark
-                          ? const Color(0xFFC9EF00)
+                          ? DesignConstants.brandAccentColor
                           : Theme.of(context).colorScheme.primary)
                       : null,
                 ),

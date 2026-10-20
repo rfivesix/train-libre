@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/settings/presentation/developer_settings_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/experience_level_service.dart';
+import 'package:train_libre/widgets/common/platform_adaptive_dropdown.dart';
 
 /// Settings used to link straight to the performance log. It now sits behind a
 /// "Developer" entry, together with the experience level — which this screen is
@@ -29,6 +30,18 @@ Future<void> _pumpDeveloperScreen(
   await tester.pumpAndSettle();
 }
 
+Future<Finder> _revealExperienceLevel(WidgetTester tester) async {
+  final field = find.byKey(const Key('developer_experience_level'));
+  await tester.scrollUntilVisible(
+    field,
+    400,
+    scrollable: find.byType(Scrollable).last,
+  );
+  expect(field, findsOneWidget);
+  await tester.ensureVisible(field);
+  return field;
+}
+
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
@@ -36,7 +49,15 @@ void main() {
     await _pumpDeveloperScreen(tester, ExperienceLevelService());
 
     expect(find.byKey(const Key('developer_performance_log')), findsOneWidget);
-    expect(find.text('Pro'), findsOneWidget);
+    final levelField = await _revealExperienceLevel(tester);
+    expect(
+      tester
+          .widget<PlatformAdaptiveDropdownFormField<ExperienceLevel>>(
+            levelField,
+          )
+          .value,
+      ExperienceLevel.pro,
+    );
   });
 
   testWidgets('opens on the level the service holds', (tester) async {
@@ -44,8 +65,23 @@ void main() {
     await service.setLevel(ExperienceLevel.beginner);
     await _pumpDeveloperScreen(tester, service);
 
-    expect(find.text('Beginner'), findsOneWidget);
+    final levelField = await _revealExperienceLevel(tester);
+    expect(
+      tester
+          .widget<PlatformAdaptiveDropdownFormField<ExperienceLevel>>(
+            levelField,
+          )
+          .value,
+      ExperienceLevel.beginner,
+    );
     // The description tells the tester what the level actually changes.
+    final description = find.textContaining('focuses on the essentials');
+    await tester.scrollUntilVisible(
+      description,
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(description, findsOneWidget);
     expect(find.textContaining('focuses on the essentials'), findsOneWidget);
   });
 
@@ -53,7 +89,8 @@ void main() {
     final service = ExperienceLevelService();
     await _pumpDeveloperScreen(tester, service);
 
-    await tester.tap(find.text('Pro').last);
+    final levelField = await _revealExperienceLevel(tester);
+    await tester.tap(levelField);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Beginner').last);
     await tester.pumpAndSettle();

@@ -7,6 +7,7 @@ import '../../../../services/ai_meal_scan_log_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/common.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 
 /// Local, content-free AI scan diagnostics shown directly on the main lab tab.
 class AiMealScanLogsSection extends StatefulWidget {
@@ -47,22 +48,13 @@ class _AiMealScanLogsSectionState extends State<AiMealScanLogsSection> {
 
   Future<void> _confirmClear() async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.aiScanLogsClear),
-        content: Text(l10n.aiScanLogsClearConfirm),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.cancel)),
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.delete)),
-        ],
-      ),
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: l10n.aiScanLogsClear,
+      content: l10n.aiScanLogsClearConfirm,
+      confirmLabel: l10n.delete,
     );
-    if (confirmed == true) await _logs.clear();
+    if (confirmed) await _logs.clear();
   }
 
   @override

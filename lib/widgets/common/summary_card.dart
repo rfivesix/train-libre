@@ -21,8 +21,14 @@ class SummaryCard extends StatelessWidget {
   /// Whether to disable the drop shadow.
   final bool disableShadow;
 
+  /// Whether to show the standard soft card shadow.
+  final bool showShadow;
+
   /// Optional background color override.
   final Color? backgroundColor;
+
+  /// Optional gradient painted across the full card behind its padded content.
+  final Gradient? backgroundGradient;
 
   /// Whether to use the secondary surface color (tertiarySystemGroupedBackground in iOS).
   final bool useSecondarySurface;
@@ -40,7 +46,9 @@ class SummaryCard extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(vertical: 6.0),
     this.onTap,
     this.disableShadow = false,
+    this.showShadow = false,
     this.backgroundColor,
+    this.backgroundGradient,
     this.useSecondarySurface = false,
     this.borderColor,
     this.borderWidth = 1,
@@ -101,31 +109,56 @@ class SummaryCard extends StatelessWidget {
     final card = Padding(
       padding: margin,
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-          // Summary cards stay flat in both themes. The surface contrast and
-          // grouped-page background provide their separation.
-          boxShadow: null,
+        decoration: ShapeDecoration(
+          shape: squircle,
+          shadows: showShadow && !disableShadow
+              ? (isDark
+                  ? [
+                      BoxShadow(
+                        color: cardBg.withValues(alpha: 0.28),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : DesignConstants.glassShadow(isDark))
+              : null,
         ),
         child: ClipPath(
           clipper: clipper,
-          child: Container(
-            padding: padding,
-            decoration: ShapeDecoration(
-              color: cardBg,
-              shape: squircle.copyWith(
-                side: borderColor == null
-                    ? BorderSide.none
-                    : BorderSide(color: borderColor!, width: borderWidth),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: cardBg,
+                    shape: squircle.copyWith(
+                      side: borderColor == null
+                          ? BorderSide.none
+                          : BorderSide(color: borderColor!, width: borderWidth),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: Theme(
-                data: cardTheme,
-                child: child,
+              if (backgroundGradient != null)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: ShapeDecoration(
+                      gradient: backgroundGradient,
+                      shape: squircle,
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: padding,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Theme(
+                    data: cardTheme,
+                    child: child,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../workout_history_screen.dart';
 
@@ -20,7 +22,8 @@ class WorkoutHistoryAppBarButton extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final backgroundColor = colorScheme.onSurface;
     final iconColor = colorScheme.surface;
-    const String tooltip = 'Workout-Historie';
+    final String tooltip =
+        AppLocalizations.of(context)?.workoutHistoryTitle ?? 'Workout-Verlauf';
 
     return Padding(
       padding: const EdgeInsets.only(
@@ -54,7 +57,7 @@ class WorkoutHistoryAppBarButton extends StatelessWidget {
                       },
                   child: Center(
                     child: Icon(
-                      Icons.calendar_month,
+                      LucideIcons.calendar,
                       size: 20,
                       color: iconColor,
                     ),

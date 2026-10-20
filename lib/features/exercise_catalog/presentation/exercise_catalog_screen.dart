@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../generated/app_localizations.dart';
@@ -50,6 +51,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   bool _isLoading = true;
   bool _isFabHidden = false;
   final _searchController = TextEditingController();
+  int _searchGeneration = 0;
+  bool _onlyPerformed = false;
   List<String> _allCategories = [];
   final List<String> _selectedCategories = [];
 
@@ -141,6 +144,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   }
 
   void _runFilter(String enteredKeyword) async {
+    final generation = ++_searchGeneration;
     final results = await _repository.searchExercises(
       query: enteredKeyword,
       categories: _selectedCategories,
@@ -150,8 +154,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       mechanics: _selectedMechanics,
       lateralities: _selectedLateralities,
       languageCode: Localizations.localeOf(context).languageCode,
+      onlyPerformed: _onlyPerformed,
     );
-    if (mounted) {
+    if (mounted && generation == _searchGeneration) {
       setState(() {
         _foundExercises = results;
       });
@@ -256,7 +261,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                     : _foundExercises.isEmpty
                         ? Center(
                             child: Text(
-                              l10n.noExercisesFound,
+                              _onlyPerformed
+                                  ? l10n.noTrainedExercisesFound
+                                  : l10n.noExercisesFound,
                               style: textTheme.titleMedium,
                             ),
                           )
@@ -277,14 +284,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                     late final Widget card;
                                     card = SummaryCard(
                                       child: ListTile(
+                                        contentPadding: EdgeInsets.zero,
                                         title: Row(
                                           children: [
                                             Expanded(
                                               child: Text(
                                                 exercise
                                                     .getLocalizedName(context),
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
+                                                style: textTheme.titleMedium
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
                                                 ),
                                               ),
                                             ),
@@ -300,10 +309,12 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                           ],
                                         ),
                                         subtitle: Text(
-                                          BodySlugMapper.localize(
+                                          _buildSubtitleText(
                                             context,
-                                            exercise.categoryName,
+                                            exercise,
+                                            l10n,
                                           ),
+                                          style: textTheme.bodyMedium,
                                         ),
                                         trailing: widget.isSelectionMode
                                             ? IconButton(
@@ -377,44 +388,48 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           ),
         ],
       ),
-      floatingActionButton: Opacity(
-        opacity: _isFabHidden ? 0.0 : 1.0,
-        child: IgnorePointer(
-          ignoring: _isFabHidden,
-          child: Builder(
-            builder: (fabCtx) {
-              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
-                    label: l10n.create_exercise_screen_title,
-                    onPressed: onPressed ?? () {},
-                  );
+      floatingActionButton: widget.isSelectionMode
+          ? null
+          : Opacity(
+              opacity: _isFabHidden ? 0.0 : 1.0,
+              child: IgnorePointer(
+                ignoring: _isFabHidden,
+                child: Builder(
+                  builder: (fabCtx) {
+                    Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                          label: l10n.create_exercise_screen_title,
+                          onPressed: onPressed ?? () {},
+                        );
 
-              return GlassFab(
-                label: l10n.create_exercise_screen_title,
-                onPressed: () {
-                  Navigator.of(context)
-                      .push(
-                    CardMorphRoute(
-                      sourceContext: fabCtx,
-                      sourceBorderRadius: 28.0,
-                      sourceBuilder: (_) => buildFab(),
-                      onSourceVisibilityChanged: (hidden) {
-                        if (mounted) setState(() => _isFabHidden = hidden);
+                    return GlassFab(
+                      label: l10n.create_exercise_screen_title,
+                      onPressed: () {
+                        Navigator.of(context)
+                            .push(
+                          CardMorphRoute(
+                            sourceContext: fabCtx,
+                            sourceBorderRadius: 28.0,
+                            sourceBuilder: (_) => buildFab(),
+                            onSourceVisibilityChanged: (hidden) {
+                              if (mounted) {
+                                setState(() => _isFabHidden = hidden);
+                              }
+                            },
+                            builder: (context) =>
+                                CreateExerciseScreen(repository: _repository),
+                          ),
+                        )
+                            .then((wasCreated) {
+                          if (wasCreated == true) {
+                            _runFilter(_searchController.text);
+                          }
+                        });
                       },
-                      builder: (context) =>
-                          CreateExerciseScreen(repository: _repository),
-                    ),
-                  )
-                      .then((wasCreated) {
-                    if (wasCreated == true) {
-                      _runFilter(_searchController.text);
-                    }
-                  });
-                },
-              );
-            },
-          ),
-        ),
-      ),
+                    );
+                  },
+                ),
+              ),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
@@ -427,7 +442,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         _selectedUsageTags.length +
         _selectedDifficulties.length +
         _selectedMechanics.length +
-        _selectedLateralities.length;
+        _selectedLateralities.length +
+        (_onlyPerformed ? 1 : 0);
     final hasFilter = activeCount > 0;
 
     final fillColor = hasFilter
@@ -483,6 +499,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       context: context,
       title: l10n.catalogFilterTitle,
       contentBuilder: (sheetContext, close) => ExerciseFilterSheet(
+        onlyPerformed: _onlyPerformed,
+        onOnlyPerformedChanged: (val) {
+          setState(() => _onlyPerformed = val);
+        },
         sections: [
           ExerciseFilterSection(
             title: l10n.catalogFilterBodyRegion,
@@ -612,5 +632,37 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         ),
       ),
     );
+  }
+
+  String _buildSubtitleText(
+    BuildContext context,
+    Exercise exercise,
+    AppLocalizations l10n,
+  ) {
+    final category = BodySlugMapper.localize(context, exercise.categoryName);
+    if (exercise.lastPerformedAt != null) {
+      final now = DateTime.now();
+      final performed = exercise.lastPerformedAt!;
+      final diffDays = DateTime(now.year, now.month, now.day)
+          .difference(DateTime(performed.year, performed.month, performed.day))
+          .inDays;
+
+      final String timeText;
+      if (diffDays <= 0) {
+        timeText = l10n.catalogLastTrainedToday;
+      } else if (diffDays == 1) {
+        timeText = l10n.catalogLastTrainedYesterday;
+      } else if (diffDays < 30) {
+        timeText = l10n.catalogLastTrainedDaysAgo(diffDays);
+      } else {
+        final locale = Localizations.localeOf(context).toString();
+        final formattedDate = DateFormat.yMMMd(locale).format(performed);
+        timeText = l10n.catalogLastTrainedOn(formattedDate);
+      }
+      return '$category • $timeText';
+    } else if (exercise.totalLoggedSets > 0) {
+      return '$category • ${l10n.catalogTrainedBadge}';
+    }
+    return category;
   }
 }

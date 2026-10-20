@@ -19,7 +19,9 @@ import '../../services/base_food_language_service.dart';
 import '../../services/exercise_catalog_refresh_service.dart';
 import '../../services/off_catalog_country_service.dart';
 import '../../services/off_catalog_refresh_service.dart';
+import '../../services/bls_food_catalog_refresh_service.dart';
 import '../../services/telemetry/telemetry_service.dart';
+import 'caffeine_catalog_resolver.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
@@ -121,12 +123,14 @@ class BasisDataManager {
   // [invalidateCatalogPresenceCache].
   bool _exerciseRowsVerified = false;
   bool _offRowsVerified = false;
+  bool _blsRowsVerified = false;
 
   /// Drops the memoized presence results, e.g. after a restore replaced the
   /// database underneath us.
   void invalidateCatalogPresenceCache() {
     _exerciseRowsVerified = false;
     _offRowsVerified = false;
+    _blsRowsVerified = false;
   }
 
   Future<bool> isExerciseCatalogInitialized() async {
@@ -179,6 +183,88 @@ class BasisDataManager {
     }
   }
 
+  Future<bool> isBlsFoodCatalogInitialized() async {
+    final service = BlsFoodCatalogRefreshService.instance;
+    if (_blsRowsVerified) {
+      final path = await service.installedDatabasePath();
+      if (File(path).existsSync()) return true;
+      _blsRowsVerified = false;
+    }
+    final installed = await service.isInstalled();
+    if (!installed) return false;
+    try {
+      final mainDb = await DatabaseHelper.instance.database;
+      final row = await mainDb.customSelect('''
+        SELECT 1
+        FROM products p
+        INNER JOIN food_categories c ON c.key = p.category
+        WHERE p.source = 'base' AND p.barcode LIKE 'bls:%'
+        LIMIT 1
+      ''').getSingleOrNull();
+      _blsRowsVerified = row != null;
+      return _blsRowsVerified;
+    } catch (error) {
+      debugPrint('[BLS catalog] App database check failed: $error');
+      return false;
+    }
+  }
+
+  /// The search index can be rebuilt from the installed sidecar. A stale index
+  /// must not make the food catalog appear missing or trigger another download.
+  Future<bool> _isBlsAliasIndexCurrent() async {
+    final path =
+        await BlsFoodCatalogRefreshService.instance.installedDatabasePath();
+    if (!await File(path).exists()) return false;
+    try {
+      final catalogDb = await sqflite.openDatabase(path, readOnly: true);
+      try {
+        final aliasTable = await catalogDb.rawQuery(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_aliases'",
+        );
+        // The app-side index has a composite primary key and can collapse
+        // duplicate source rows. Compare against the same distinct key count,
+        // otherwise a catalog containing duplicates is rebuilt every launch.
+        final catalogCount = aliasTable.isEmpty
+            ? 0
+            : sqflite.Sqflite.firstIntValue(await catalogDb.rawQuery('''
+                SELECT COUNT(*) FROM (
+                  SELECT barcode, language_code, alias
+                  FROM food_aliases
+                  GROUP BY barcode, language_code, alias
+                )
+              ''')) ??
+                0;
+        final versionRows = await catalogDb.query('metadata',
+            columns: ['value'], where: 'key = ?', whereArgs: ['version']);
+        final catalogVersion =
+            versionRows.isEmpty ? null : versionRows.first['value']?.toString();
+        final mainDb = await DatabaseHelper.instance.database;
+        final localCount = (await mainDb
+                .customSelect(
+                  'SELECT COUNT(*) AS count FROM bls_food_alias_index',
+                )
+                .getSingle())
+            .read<int>('count');
+        final state = await mainDb
+            .customSelect(
+              'SELECT catalog_version, alias_count '
+              'FROM bls_food_alias_index_state WHERE id = 1',
+            )
+            .getSingleOrNull();
+        return catalogVersion != null &&
+            state != null &&
+            localCount == catalogCount &&
+            state.read<String>('catalog_version') == catalogVersion &&
+            state.read<int>('alias_count') == catalogCount;
+      } finally {
+        await catalogDb.close();
+      }
+    } catch (error) {
+      debugPrint('[BLS catalog] Alias index check failed: $error');
+      return false;
+    }
+  }
+
   Future<int?> getRemoteFileSize(Uri uri) async {
     try {
       final client = http.Client();
@@ -212,11 +298,14 @@ class BasisDataManager {
     final prefs = await SharedPreferences.getInstance();
     final wgerInitialized = await isExerciseCatalogInitialized();
     final offInitialized = await isOffDatabaseInitialized();
+    final blsInitialized = await isBlsFoodCatalogInitialized();
 
     bool wgerUpdateAvailable = false;
     bool offUpdateAvailable = false;
     double? wgerSize;
     double? offSize;
+    bool blsUpdateAvailable = false;
+    double? blsSize;
 
     try {
       final wgerManifest =
@@ -267,38 +356,65 @@ class BasisDataManager {
       debugPrint('Error getting OFF manifest: $e');
     }
 
-    final isMissingEither = !wgerInitialized || !offInitialized;
-    final isUpdateAvailable = wgerUpdateAvailable || offUpdateAvailable;
+    try {
+      final blsManifest =
+          await BlsFoodCatalogRefreshService.instance.fetchManifestDirect();
+      final blsInstalled =
+          await BlsFoodCatalogRefreshService.instance.installedVersion() ?? '0';
+      blsUpdateAvailable = !blsInitialized ||
+          BlsFoodCatalogRefreshService.isRemoteVersionNewer(
+            remoteVersion: blsManifest.version,
+            installedVersion: blsInstalled,
+          );
+      await prefs.setString(
+          'bls_food_catalog_last_remote_version', blsManifest.version);
+      blsSize = blsManifest.downloadSizeBytes / (1024 * 1024);
+    } catch (e) {
+      debugPrint('Error getting BLS manifest: $e');
+      blsUpdateAvailable = !blsInitialized;
+    }
+
+    final isMissingEither =
+        !wgerInitialized || !offInitialized || !blsInitialized;
+    final isUpdateAvailable =
+        wgerUpdateAvailable || offUpdateAvailable || blsUpdateAvailable;
 
     if (!isMissingEither && !isUpdateAvailable) {
       return;
     }
 
-    if (!isMissingEither) {
-      final snoozeUntilIso = prefs.getString('db_update_snoozed_until');
-      if (snoozeUntilIso != null) {
-        final snoozeUntil = DateTime.tryParse(snoozeUntilIso);
-        if (snoozeUntil != null && DateTime.now().isBefore(snoozeUntil)) {
-          return;
-        }
+    final snoozeUntilIso = prefs.getString('db_update_snoozed_until');
+    if (snoozeUntilIso != null) {
+      final snoozeUntil = DateTime.tryParse(snoozeUntilIso);
+      if (snoozeUntil != null && DateTime.now().isBefore(snoozeUntil)) {
+        return;
       }
+      await prefs.remove('db_update_snoozed_until');
+    }
 
+    if (!isMissingEither) {
       final lastPromptedWger =
           prefs.getString('last_prompted_wger_version') ?? '';
       final lastPromptedOff =
           prefs.getString('last_prompted_off_version') ?? '';
+      final lastPromptedBls =
+          prefs.getString('last_prompted_bls_version') ?? '';
       final currentWgerRemote =
           prefs.getString('exercise_catalog_last_remote_version') ?? '';
       final currentOffRemote = prefs.getString(
               'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
           '';
+      final currentBlsRemote =
+          prefs.getString('bls_food_catalog_last_remote_version') ?? '';
 
       bool wgerMatch = !wgerUpdateAvailable ||
           (lastPromptedWger == currentWgerRemote &&
               currentWgerRemote.isNotEmpty);
       bool offMatch = !offUpdateAvailable ||
           (lastPromptedOff == currentOffRemote && currentOffRemote.isNotEmpty);
-      if (wgerMatch && offMatch) {
+      bool blsMatch = !blsUpdateAvailable ||
+          (lastPromptedBls == currentBlsRemote && currentBlsRemote.isNotEmpty);
+      if (wgerMatch && offMatch && blsMatch) {
         return;
       }
     }
@@ -313,6 +429,12 @@ class BasisDataManager {
           prefs.getString(
                   'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
               '');
+    }
+    if (blsUpdateAvailable) {
+      await prefs.setString(
+        'last_prompted_bls_version',
+        prefs.getString('bls_food_catalog_last_remote_version') ?? '',
+      );
     }
 
     if (!context.mounted) return;
@@ -335,11 +457,18 @@ class BasisDataManager {
                 ? l10n.updateAvailableTitle
                 : l10n.statusReady)
             : l10n.statusRequired;
+        final blsStatus = blsInitialized
+            ? (blsUpdateAvailable
+                ? l10n.updateAvailableTitle
+                : l10n.statusReady)
+            : l10n.statusRequired;
 
         final wgerSizeText =
             wgerSize != null ? '${wgerSize.toStringAsFixed(1)} MB' : '1.4 MB';
         final offSizeText =
             offSize != null ? '${offSize.toStringAsFixed(1)} MB' : '41.2 MB';
+        final blsSizeText =
+            blsSize != null ? '${blsSize.toStringAsFixed(1)} MB' : '25.6 MB';
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -378,6 +507,26 @@ class BasisDataManager {
                 const Icon(LucideIcons.database, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
+                  child: Text(l10n.nutritionCatalogBls,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                Text(
+                  '$blsStatus ($blsSizeText)',
+                  style: TextStyle(
+                    color: blsStatus == l10n.statusReady
+                        ? Colors.green
+                        : Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+            Row(
+              children: [
+                const Icon(LucideIcons.database, size: 24),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
                   child: Text(l10n.nutritionCatalogOff,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
@@ -398,13 +547,12 @@ class BasisDataManager {
                 Expanded(
                   child: AppButton.secondary(
                     onPressed: () async {
-                      if (!isMissingEither) {
-                        await prefs.setString(
-                            'db_update_snoozed_until',
-                            DateTime.now()
-                                .add(const Duration(days: 30))
-                                .toIso8601String());
-                      }
+                      await prefs.setString(
+                        'db_update_snoozed_until',
+                        DateTime.now()
+                            .add(const Duration(days: 30))
+                            .toIso8601String(),
+                      );
                       if (ctx.mounted) {
                         Navigator.of(ctx).pop(false);
                       }
@@ -416,13 +564,16 @@ class BasisDataManager {
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: AppButton.primary(
-                    onPressed: () {
+                    onPressed: () async {
+                      await prefs.remove('db_update_snoozed_until');
                       // Return true to signal the caller to launch the download
                       // screen. Do NOT push here — the sheet must fully close
                       // before the next route is pushed, otherwise the outer
                       // await showGlassBottomMenu resolves before the push,
                       // causing a navigation race condition.
-                      Navigator.of(ctx).pop(true);
+                      if (ctx.mounted) {
+                        Navigator.of(ctx).pop(true);
+                      }
                     },
                     label: isMissingEither
                         ? l10n.offDownloadConfirm
@@ -546,7 +697,8 @@ class BasisDataManager {
 
   /// Checks for updates to the basis data and performs an import if necessary.
   ///
-  /// [force] checks remote catalogs immediately. Exercise catalogs never downgrade.
+  /// [force] checks remote catalogs immediately. It does not reimport an
+  /// unchanged catalog; exercise catalogs never downgrade.
   /// The [onProgress] callback reports the ongoing task, details, and percentage.
   Future<void> checkForBasisDataUpdate({
     bool force = false,
@@ -557,21 +709,35 @@ class BasisDataManager {
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
-    if (force) {
-      await prefs.remove(_keyVersionFood);
-      await _clearOffVersionPreferences(prefs);
-      await prefs.remove(_keyVersionCats);
-    }
-
     final mainDb = await DatabaseHelper.instance.database;
-    // App updates carry catalog updates too, even when the existing catalog
-    // has rows. Routine startup remains entirely offline.
+    // Check remote catalogs on startup. Each refresh service applies its own
+    // check interval, and imports only a newer catalog or repairs missing data.
     await importExerciseCatalog(
       force: force,
+      checkRemote: true,
       onProgress: onProgress,
       onRemoteProgress: onRemoteProgress,
       isRemoteSkipRequested: isRemoteSkipRequested,
     );
+
+    final blsWasInstalled = await isBlsFoodCatalogInitialized();
+    // A missing catalog is not fetched in the background before the user has
+    // accepted the first download prompt. Once installed, update checks run
+    // automatically at the service's interval. `force` is used by onboarding
+    // and the manual database refresh action after user intent.
+    if (force || blsWasInstalled) {
+      try {
+        await refreshBlsFoodCatalog(
+          forceCheck: force,
+          onProgress: onProgress,
+          onRemoteProgress: onRemoteProgress,
+        );
+      } catch (e) {
+        debugPrint('[BLS catalog] Remote update failed safely: $e');
+        // Keep a missing catalog marked as missing so the user is prompted
+        // again on the next launch, even if preferences were restored.
+      }
+    }
 
     final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
       prefs,
@@ -622,11 +788,39 @@ class BasisDataManager {
     // build-bound gate below skip the bundled imports even though nothing is
     // on disk here. Verify the rows before trusting the gate, and clear the
     // installed-version keys so the importer does not skip a second time.
-    final bool hasBaseFoodData =
-        await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionFood);
+    final bool hasBaseFoodData = await isBlsFoodCatalogInitialized();
     final bool hasCategoryData =
         await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionCats);
     final bool bundledDataMissing = !hasBaseFoodData || !hasCategoryData;
+
+    String? remoteOffDbPath;
+    if (!skipOffDatabase) {
+      final installedOffVersion = prefs.getString(activeOffVersionKey) ?? '0';
+      try {
+        onProgress?.call(
+          'Prüfe Produktdatenbank (${activeOffCountry.upperCode})...',
+          'Suche nach Remote-OFF-Katalog-Updates...',
+          0.0,
+        );
+        final remoteOffCandidate =
+            await OffCatalogRefreshService.instance.prepareUpdateCandidate(
+          installedVersion: installedOffVersion,
+          force: force,
+          onProgress: onRemoteProgress,
+          isSkipRequested: isRemoteSkipRequested,
+        );
+        if (remoteOffCandidate != null) {
+          remoteOffDbPath = remoteOffCandidate.localDbPath;
+          onProgress?.call(
+            'Update Produktdatenbank (${activeOffCountry.upperCode})',
+            'Remote-OFF-Katalog ${remoteOffCandidate.version} gefunden.',
+            0.02,
+          );
+        }
+      } catch (e) {
+        debugPrint('Remote OFF catalog check skipped safely: $e');
+      }
+    }
 
     if (bundledDataMissing && !force) {
       if (!hasBaseFoodData) {
@@ -646,7 +840,8 @@ class BasisDataManager {
     final bool shouldSync = force ||
         currentAppBuild != lastDbSyncAppVersion ||
         forceEnrichment ||
-        bundledDataMissing;
+        bundledDataMissing ||
+        remoteOffDbPath != null;
 
     if (!shouldSync) {
       onProgress?.call(
@@ -698,34 +893,18 @@ class BasisDataManager {
       );
     }
 
-    // 2a. Base Foods
-    // Read the preferred display language once before import.
-    final baseFoodLang = await BaseFoodLanguageService.readChoice(prefs: prefs);
-    final baseFoodLangCode = _resolveBaseFoodLangCode(
-      choice: baseFoodLang,
-      offCountry: activeOffCountry,
-    );
-    await process(
-      'Basis-Produkte',
-      AppDataSources.baseFoodsAssetDbPath,
-      _keyVersionFood,
-      'products',
-      BatchImportType.productsBase,
-      preferredLanguage: baseFoodLangCode,
-      legacyAssetPath: AppDataSources.legacyBaseFoodsAssetDbPath,
-      forceImportOverride: force || forceEnrichment,
-    );
-
-    // 2b. Categories
-    await process(
-      'Kategorien',
-      AppDataSources.foodCategoriesAssetDbPath,
-      _keyVersionCats,
-      'categories',
-      BatchImportType.categories,
-      driftTable: 'food_categories',
-      legacyAssetPath: AppDataSources.legacyFoodCategoriesAssetDbPath,
-    );
+    // The old bundled base-food database is no longer the source of truth.
+    // BLS products and categories are installed together from its verified
+    // sidecar database; existing historical product rows stay addressable.
+    if (hasBaseFoodData) {
+      onProgress?.call('Basis-Produkte', 'BLS-Katalog ist aktuell.', 1.0);
+      onProgress?.call('Kategorien', 'BLS-Kategorien sind aktuell.', 1.0);
+    } else {
+      onProgress?.call(
+          'Basis-Produkte', 'BLS-Katalog wartet auf den Download.', 1.0);
+      onProgress?.call(
+          'Kategorien', 'BLS-Kategorien warten auf den Download.', 1.0);
+    }
 
     if (skipOffDatabase) {
       await prefs.setString('last_db_sync_app_version', currentAppBuild);
@@ -735,35 +914,6 @@ class BasisDataManager {
         1.0,
       );
       return;
-    }
-
-    String? remoteOffDbPath;
-    final installedOffVersion = prefs.getString(activeOffVersionKey) ?? '0';
-    if (force) {
-      try {
-        onProgress?.call(
-          'Prüfe Produktdatenbank (${activeOffCountry.upperCode})...',
-          'Suche nach Remote-OFF-Katalog-Updates...',
-          0.0,
-        );
-        final remoteOffCandidate =
-            await OffCatalogRefreshService.instance.prepareUpdateCandidate(
-          installedVersion: installedOffVersion,
-          force: force,
-          onProgress: onRemoteProgress,
-          isSkipRequested: isRemoteSkipRequested,
-        );
-        if (remoteOffCandidate != null) {
-          remoteOffDbPath = remoteOffCandidate.localDbPath;
-          onProgress?.call(
-            'Update Produktdatenbank (${activeOffCountry.upperCode})',
-            'Remote-OFF-Katalog ${remoteOffCandidate.version} gefunden.',
-            0.02,
-          );
-        }
-      } catch (e) {
-        debugPrint('Remote OFF catalog check skipped safely: $e');
-      }
     }
 
     final hasBundledOffAsset =
@@ -791,13 +941,14 @@ class BasisDataManager {
       sourceFilePath: remoteOffDbPath,
       legacyAssetPath: activeOffSource.legacyBundledAssetDbPath,
       enableOffReplacementRetention: true,
-      forceImportOverride: force || forceEnrichment,
+      forceImportOverride: forceEnrichment,
     );
 
     await prefs.setString('last_db_sync_app_version', currentAppBuild);
   }
 
-  /// Exposes a public method that bypasses the version check for manual triggers.
+  /// Exposes a public method that bypasses remote check intervals for a manual
+  /// refresh. Catalog contents are still imported only when newer or missing.
   Future<void> forceSyncDatabase({
     ProgressCallback? onProgress,
     RemoteCatalogProgressCallback? onRemoteProgress,
@@ -811,19 +962,320 @@ class BasisDataManager {
     );
   }
 
-  Future<void> _clearOffVersionPreferences(SharedPreferences prefs) async {
-    await prefs.remove(OffCatalogCountryService.legacyInstalledVersionKey);
-    final offVersionKeys = prefs
-        .getKeys()
-        .where(
-          (key) => key.startsWith(
-            OffCatalogCountryService.installedVersionKeyPrefix,
-          ),
-        )
-        .toList(growable: false);
-    for (final key in offVersionKeys) {
-      await prefs.remove(key);
+  /// Checks and installs only the BLS base-food catalog, leaving the OFF and
+  /// exercise catalogs untouched. Used by the dedicated Data screen action.
+  Future<bool> refreshBlsFoodCatalog({
+    bool forceCheck = true,
+    ProgressCallback? onProgress,
+    RemoteCatalogProgressCallback? onRemoteProgress,
+  }) async {
+    final service = BlsFoodCatalogRefreshService.instance;
+    var repairedLocal = false;
+    final blsRowsPresent = await isBlsFoodCatalogInitialized();
+    final aliasIndexCurrent = await _isBlsAliasIndexCurrent();
+    if (!blsRowsPresent || !aliasIndexCurrent) {
+      final localPath = await service.installedDatabasePath();
+      if (File(localPath).existsSync()) {
+        if (blsRowsPresent) {
+          await _rebuildBlsAliasIndex(localPath);
+          repairedLocal = true;
+        } else {
+          final localDb = await sqflite.openDatabase(localPath, readOnly: true);
+          String? sourceVersion;
+          try {
+            final metadata = await localDb.query('metadata',
+                columns: ['value'], where: 'key = ?', whereArgs: ['version']);
+            sourceVersion =
+                metadata.isEmpty ? null : metadata.first['value']?.toString();
+          } finally {
+            await localDb.close();
+          }
+          if (sourceVersion != null && sourceVersion.startsWith('bls-')) {
+            await _importBlsFoodCatalog(
+              localPath,
+              await service.installedVersion() ??
+                  sourceVersion.substring('bls-'.length),
+              onProgress: onProgress,
+            );
+            repairedLocal = true;
+          }
+        }
+      }
     }
+    final BlsFoodCatalogUpdateCandidate? candidate;
+    try {
+      candidate = await service.prepareUpdateCandidate(
+        installedVersion: await service.installedVersion() ?? '0',
+        force: forceCheck,
+        onProgress: (task, detail, progress) {
+          onProgress?.call(task, detail, progress);
+          onRemoteProgress?.call(task, detail, progress, canSkip: false);
+        },
+      );
+    } catch (_) {
+      if (repairedLocal) return true;
+      rethrow;
+    }
+    if (candidate == null) {
+      if (!await isBlsFoodCatalogInitialized() && await service.isInstalled()) {
+        final path = await service.installedDatabasePath();
+        final version = await service.installedVersion();
+        if (version != null) {
+          await _importBlsFoodCatalog(
+            path,
+            version,
+            onProgress: onProgress,
+          );
+          return true;
+        }
+      }
+      onProgress?.call(
+        'BLS-Katalog aktuell',
+        'Kein neuerer Lebensmittelkatalog verfügbar.',
+        1.0,
+      );
+      return repairedLocal;
+    }
+    _blsRowsVerified = false;
+    try {
+      await _importBlsFoodCatalog(
+        candidate.localDbPath,
+        candidate.version,
+        onProgress: onProgress,
+      );
+    } catch (_) {
+      if (!_blsRowsVerified) await service.restorePreviousDatabase();
+      rethrow;
+    }
+    return true;
+  }
+
+  Future<void> _importBlsFoodCatalog(
+    String sourcePath,
+    String catalogVersion, {
+    ProgressCallback? onProgress,
+  }) async {
+    final sourceDb = await sqflite.openDatabase(sourcePath, readOnly: true);
+    final mainDb = await DatabaseHelper.instance.database;
+    final prefs = await SharedPreferences.getInstance();
+    final languageChoice =
+        await BaseFoodLanguageService.readChoice(prefs: prefs);
+    final activeCountry =
+        OffCatalogCountryService.readActiveCountryFromPrefs(prefs);
+    final language = _resolveBaseFoodLangCode(
+      choice: languageChoice,
+      offCountry: activeCountry,
+    );
+    try {
+      final count = sqflite.Sqflite.firstIntValue(
+            await sourceDb.rawQuery('SELECT COUNT(*) FROM products'),
+          ) ??
+          0;
+      final facts = sqflite.Sqflite.firstIntValue(
+            await sourceDb.rawQuery('SELECT COUNT(*) FROM food_nutrients'),
+          ) ??
+          0;
+      if (count <= 0 || facts <= 0) {
+        throw StateError(
+            'BLS catalog is incomplete ($count foods, $facts nutrient facts).');
+      }
+
+      onProgress?.call(
+          'Basis-Produkte', 'Importiere BLS-Lebensmittel...', 0.03);
+      // Keep historical product rows and their foreign-key references. They
+      // remain available to old diary entries and saved meals, but disappear
+      // from current catalog search once their replacements are installed.
+      final aliasTable = await sourceDb.rawQuery(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_aliases'",
+      );
+      final aliases = aliasTable.isEmpty
+          ? <Map<String, Object?>>[]
+          : await sourceDb.query('food_aliases');
+      final metadataRows = await sourceDb.query('metadata');
+      final metadata = {
+        for (final row in metadataRows)
+          row['key']?.toString() ?? '': row['value']?.toString() ?? '',
+      };
+      final sourceVersion = metadata['version'];
+      if (sourceVersion == null || !sourceVersion.startsWith('bls-')) {
+        throw StateError('BLS catalog has invalid version metadata.');
+      }
+      final sourceSchema = int.tryParse(metadata['schema_version'] ?? '');
+      if (sourceSchema == null ||
+          sourceSchema > AppDataSources.supportedCatalogSchemaVersion ||
+          (sourceSchema >= 2 &&
+              (aliasTable.isEmpty ||
+                  int.tryParse(metadata['curated_alias_count'] ?? '') !=
+                      aliases.length))) {
+        throw StateError('BLS alias data does not match catalog metadata.');
+      }
+      await mainDb.transaction(() async {
+        await mainDb.customStatement(
+          "UPDATE products SET source = 'legacy' WHERE source = 'base'",
+        );
+        await _performBatchImport(
+          sourceDb,
+          'products',
+          BatchImportType.productsBase,
+          language,
+          onProgress,
+          'Basis-Produkte',
+          collectProductBarcodes: false,
+          withinCatalogTransaction: true,
+        );
+        await _performBatchImport(
+          sourceDb,
+          'categories',
+          BatchImportType.categories,
+          null,
+          onProgress,
+          'Kategorien',
+          collectProductBarcodes: false,
+          withinCatalogTransaction: true,
+        );
+        await _replaceBlsAliasIndex(
+          mainDb: mainDb,
+          aliases: aliases,
+          catalogVersion: sourceVersion,
+        );
+        await mainDb.customStatement('''
+        DELETE FROM food_categories
+        WHERE key NOT IN (
+          SELECT DISTINCT category FROM products
+          WHERE source = 'base' AND category IS NOT NULL
+        )
+      ''');
+        // Backfill caffeine for base products from legacy mappings & known catalog values
+        final legacyMappingTable = await sourceDb.rawQuery(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'legacy_food_mappings'",
+        );
+        if (legacyMappingTable.isNotEmpty) {
+          final mappedRows = await sourceDb.rawQuery(
+            "SELECT legacy_product_id, target_barcode FROM legacy_food_mappings WHERE status = 'mapped' AND target_barcode IS NOT NULL",
+          );
+          for (final row in mappedRows) {
+            final targetBarcode = row['target_barcode']?.toString();
+            final legacyId = row['legacy_product_id']?.toString();
+            if (targetBarcode != null && legacyId != null) {
+              await mainDb.customStatement('''
+                UPDATE products
+                SET caffeine = (
+                  SELECT caffeine_mg_per_100g FROM products
+                  WHERE barcode = ? AND caffeine_mg_per_100g IS NOT NULL
+                  LIMIT 1
+                ),
+                caffeine_mg_per_100g = (
+                  SELECT caffeine_mg_per_100g FROM products
+                  WHERE barcode = ? AND caffeine_mg_per_100g IS NOT NULL
+                  LIMIT 1
+                )
+                WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
+              ''', [
+                drift.Variable.withString(legacyId),
+                drift.Variable.withString(legacyId),
+                drift.Variable.withString(targetBarcode),
+              ]);
+            }
+          }
+        }
+        for (final entry in CaffeineCatalogResolver.knownBlsCaffeineMap.entries) {
+          await mainDb.customStatement('''
+            UPDATE products
+            SET caffeine = ?, caffeine_mg_per_100g = ?
+            WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
+          ''', [
+            drift.Variable.withReal(entry.value),
+            drift.Variable.withReal(entry.value),
+            drift.Variable.withString(entry.key),
+          ]);
+        }
+      });
+      _blsRowsVerified = true;
+      await BlsFoodCatalogRefreshService.instance.markInstalled(catalogVersion);
+      await prefs.setString(_keyVersionFood, catalogVersion);
+      await prefs.setString(_keyVersionCats, catalogVersion);
+      await prefs.setBool(_keyVersionFoodEnrichment, true);
+      onProgress?.call('Kategorien', 'BLS-Kategorien bereit.', 1.0);
+    } catch (error) {
+      // The local catalog and alias index roll back together.
+      rethrow;
+    } finally {
+      await sourceDb.close();
+    }
+  }
+
+  /// Rebuilds only the replaceable BLS alias index. This avoids re-importing
+  /// thousands of food rows when the sidecar catalog itself is already current.
+  Future<void> _rebuildBlsAliasIndex(String sourcePath) async {
+    final sourceDb = await sqflite.openDatabase(sourcePath, readOnly: true);
+    final mainDb = await DatabaseHelper.instance.database;
+    try {
+      final aliasTable = await sourceDb.rawQuery(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_aliases'",
+      );
+      final aliases = aliasTable.isEmpty
+          ? <Map<String, Object?>>[]
+          : await sourceDb.query('food_aliases');
+      final metadataRows = await sourceDb.query('metadata');
+      final metadata = {
+        for (final row in metadataRows)
+          row['key']?.toString() ?? '': row['value']?.toString() ?? '',
+      };
+      final sourceVersion = metadata['version'];
+      if (sourceVersion == null || !sourceVersion.startsWith('bls-')) {
+        throw StateError('BLS catalog has invalid version metadata.');
+      }
+      final sourceSchema = int.tryParse(metadata['schema_version'] ?? '');
+      if (sourceSchema == null ||
+          sourceSchema > AppDataSources.supportedCatalogSchemaVersion ||
+          (sourceSchema >= 2 &&
+              (aliasTable.isEmpty ||
+                  int.tryParse(metadata['curated_alias_count'] ?? '') !=
+                      aliases.length))) {
+        throw StateError('BLS alias data does not match catalog metadata.');
+      }
+      await mainDb.transaction(() => _replaceBlsAliasIndex(
+            mainDb: mainDb,
+            aliases: aliases,
+            catalogVersion: sourceVersion,
+          ));
+    } finally {
+      await sourceDb.close();
+    }
+  }
+
+  Future<void> _replaceBlsAliasIndex({
+    required AppDatabase mainDb,
+    required List<Map<String, Object?>> aliases,
+    required String catalogVersion,
+  }) async {
+    await mainDb.customStatement('DELETE FROM bls_food_alias_index');
+    for (final alias in aliases) {
+      await mainDb.customStatement(
+        'INSERT OR REPLACE INTO bls_food_alias_index '
+        '(barcode, language_code, alias, normalized_alias, kind, method, match_scope, review_status) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          for (final value in [
+            alias['barcode'],
+            alias['language_code'],
+            alias['alias'],
+            alias['normalized_alias'],
+            alias['kind'],
+            alias['method'],
+            alias['match_scope'],
+            alias['review_status'],
+          ])
+            drift.Variable.withString(value?.toString() ?? ''),
+        ],
+      );
+    }
+    await mainDb.customStatement(
+      'INSERT OR REPLACE INTO bls_food_alias_index_state '
+      '(id, catalog_version, alias_count) VALUES (1, ?, '
+      '(SELECT COUNT(*) FROM bls_food_alias_index))',
+      [drift.Variable.withString(catalogVersion)],
+    );
   }
 
   Future<void> _migrateLegacyOffVersionPreference({
@@ -1132,6 +1584,7 @@ class BasisDataManager {
     ProgressCallback? onProgress,
     String taskLabel, {
     required bool collectProductBarcodes,
+    bool withinCatalogTransaction = false,
   }) async {
     final mainDb = await DatabaseHelper.instance.database;
     const int batchSize = 5000;
@@ -1160,29 +1613,33 @@ class BasisDataManager {
     String originalJournalMode = 'WAL';
     int originalSynchronous = 1; // NORMAL
     int originalForeignKeys = 1; // ON
-    try {
-      final journalModeRow =
-          await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
-      originalJournalMode = journalModeRow.read<String>('journal_mode');
-      final syncRow =
-          await mainDb.customSelect('PRAGMA synchronous;').getSingle();
-      originalSynchronous = syncRow.read<int>('synchronous');
-      final fkRow =
-          await mainDb.customSelect('PRAGMA foreign_keys;').getSingle();
-      originalForeignKeys = fkRow.read<int>('foreign_keys');
-    } catch (e) {
-      debugPrint(
-          '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
+    if (!withinCatalogTransaction) {
+      try {
+        final journalModeRow =
+            await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
+        originalJournalMode = journalModeRow.read<String>('journal_mode');
+        final syncRow =
+            await mainDb.customSelect('PRAGMA synchronous;').getSingle();
+        originalSynchronous = syncRow.read<int>('synchronous');
+        final fkRow =
+            await mainDb.customSelect('PRAGMA foreign_keys;').getSingle();
+        originalForeignKeys = fkRow.read<int>('foreign_keys');
+      } catch (e) {
+        debugPrint(
+            '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
+      }
     }
 
     // Configure performance PRAGMAs before transaction
-    try {
-      await mainDb.customStatement('PRAGMA synchronous = OFF;');
-      await mainDb.customStatement('PRAGMA journal_mode = MEMORY;');
-      await mainDb.customStatement('PRAGMA foreign_keys = OFF;');
-    } catch (e) {
-      debugPrint(
-          '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
+    if (!withinCatalogTransaction) {
+      try {
+        await mainDb.customStatement('PRAGMA synchronous = OFF;');
+        await mainDb.customStatement('PRAGMA journal_mode = MEMORY;');
+        await mainDb.customStatement('PRAGMA foreign_keys = OFF;');
+      } catch (e) {
+        debugPrint(
+            '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
+      }
     }
 
     int processed = 0;
@@ -1191,7 +1648,7 @@ class BasisDataManager {
     int batchNumber = 0;
 
     try {
-      await mainDb.transaction(() async {
+      Future<void> importRows() async {
         while (true) {
           final rows = await assetDb.query(
             tableName,
@@ -1480,7 +1937,13 @@ class BasisDataManager {
           // release — the pass is idempotent by construction.
           await const ExerciseAliasMigration().run(mainDb);
         }
-      });
+      }
+
+      if (withinCatalogTransaction) {
+        await importRows();
+      } else {
+        await mainDb.transaction(importRows);
+      }
 
       if (importType == BatchImportType.exercises) {
         debugPrint(
@@ -1505,17 +1968,19 @@ class BasisDataManager {
       }
     } finally {
       // Restore original PRAGMAs
-      debugPrint(
-          '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys');
-      try {
-        await mainDb
-            .customStatement('PRAGMA synchronous = $originalSynchronous;');
-        await mainDb
-            .customStatement('PRAGMA journal_mode = $originalJournalMode;');
-        await mainDb
-            .customStatement('PRAGMA foreign_keys = $originalForeignKeys;');
-      } catch (e) {
-        debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
+      if (!withinCatalogTransaction) {
+        debugPrint(
+            '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys');
+        try {
+          await mainDb
+              .customStatement('PRAGMA synchronous = $originalSynchronous;');
+          await mainDb
+              .customStatement('PRAGMA journal_mode = $originalJournalMode;');
+          await mainDb
+              .customStatement('PRAGMA foreign_keys = $originalForeignKeys;');
+        } catch (e) {
+          debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
+        }
       }
     }
 
@@ -2208,9 +2673,14 @@ class BasisDataManager {
       sugar: drift.Value(_parseDouble(row['sugar'])),
       fiber: drift.Value(_parseDouble(row['fiber'])),
       salt: drift.Value(_parseDouble(row['salt'])),
-      caffeine: drift.Value(
-          _parseDouble(row['caffeine_mg_per_100ml'] ?? row['caffeine'])),
-      caffeineMgPer100g: drift.Value(_parseDouble(row['caffeine_mg_per_100g'])),
+      caffeine: drift.Value(_parseNullableDouble(row['caffeine_mg_per_100ml'] ??
+          row['caffeine'] ??
+          row['caffeine_mg_per_100g']) ??
+          CaffeineCatalogResolver.lookupCaffeine(barcode, rawNameDe ?? displayName)),
+      caffeineMgPer100g: drift.Value(_parseNullableDouble(row['caffeine_mg_per_100g'] ??
+          row['caffeine_mg_per_100ml'] ??
+          row['caffeine']) ??
+          CaffeineCatalogResolver.lookupCaffeine(barcode, rawNameDe ?? displayName)),
       ingredientsText: drift.Value(
           sourceLabel == 'base' ? null : row['ingredients_text']?.toString()),
       ingredientsAnalysisTags:

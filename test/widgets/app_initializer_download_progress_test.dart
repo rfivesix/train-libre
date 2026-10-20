@@ -67,7 +67,7 @@ void main() {
     expect(find.byType(OperationProgressWidget), findsOneWidget);
     expect(find.text('45%'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    expect(find.text('Restoring tables...'), findsOneWidget);
+    expect(find.text('Restoring tables'), findsOneWidget);
   });
 
   testWidgets(
@@ -90,7 +90,7 @@ void main() {
     expect(find.byType(AdaptiveGlass), findsOneWidget);
     expect(find.byIcon(LucideIcons.database), findsOneWidget);
     expect(find.text('Exporting Data'), findsOneWidget);
-    expect(find.text('Processing workouts...'), findsOneWidget);
+    expect(find.text('Processing workouts'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(find.text('68%'), findsOneWidget);
   });

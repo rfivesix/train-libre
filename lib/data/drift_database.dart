@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'food_search_index.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
@@ -672,6 +673,8 @@ class Meals extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()(); // For future multi-user logic
   TextColumn get name => text()();
   TextColumn get notes => text().nullable()();
+  IntColumn get servingCount => integer().nullable()();
+  IntColumn get cookedWeightInGrams => integer().nullable()();
 }
 
 class MealItems extends Table with HybridId, MetaColumns {
@@ -746,6 +749,20 @@ class WorkoutExerciseLogs extends Table with HybridId, MetaColumns {
   TextColumn get exerciseId => text().nullable().references(Exercises, #id)();
   TextColumn get exerciseNameSnapshot => text().nullable()();
   TextColumn get notes => text().nullable()();
+  IntColumn get exerciseBlock => integer().nullable()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {workoutLogId, exerciseBlock}
+      ];
+}
+
+/// User-authored pinned notes attached to a stable exercise identity. Kept
+/// separate from catalog metadata so catalog refreshes cannot overwrite them.
+class PinnedExerciseNotes extends Table with HybridId, MetaColumns {
+  TextColumn get exerciseId =>
+      text().unique().references(Exercises, #id, onDelete: KeyAction.cascade)();
+  TextColumn get notes => text()();
 }
 
 // 21. UserFoodOverrides
@@ -930,6 +947,7 @@ class TrainingPlanOccurrences extends Table with HybridId, MetaColumns {
     SupplementSettingsHistory,
     HealthStepSegments,
     WorkoutExerciseLogs,
+    PinnedExerciseNotes,
     UserFoodOverrides,
     ExerciseTranslations,
     Muscles,
@@ -959,7 +977,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 38;
+  int get schemaVersion => 40;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1038,7 +1056,34 @@ class AppDatabase extends _$AppDatabase {
           // must not depend on how the executor was constructed.
           await customStatement('PRAGMA busy_timeout = 30000;');
           await customStatement('PRAGMA foreign_keys = ON;');
+          // Keep derived search indexes correct for INSERT OR REPLACE deletes.
+          await customStatement('PRAGMA recursive_triggers = ON;');
           await reconcileSchema();
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS bls_food_alias_index (
+              barcode TEXT NOT NULL,
+              language_code TEXT NOT NULL,
+              alias TEXT NOT NULL,
+              normalized_alias TEXT NOT NULL,
+              kind TEXT NOT NULL,
+              method TEXT NOT NULL,
+              match_scope TEXT NOT NULL,
+              review_status TEXT NOT NULL,
+              PRIMARY KEY (barcode, language_code, alias)
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS bls_food_alias_index_state (
+              id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+              catalog_version TEXT NOT NULL,
+              alias_count INTEGER NOT NULL
+            )
+          ''');
+          await customStatement(
+              'CREATE INDEX IF NOT EXISTS bls_alias_lookup_idx ON bls_food_alias_index(language_code, normalized_alias)');
+          await customStatement(
+              'CREATE INDEX IF NOT EXISTS bls_alias_normalized_lookup_idx ON bls_food_alias_index(normalized_alias, language_code)');
+          await FoodSearchIndex.ensure(this);
         },
         onCreate: (Migrator m) async {
           await m.createAll();
@@ -1109,6 +1154,15 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 39) {
+              final cols = await _columnsOf(this, meals.actualTableName);
+              if (!cols.contains('serving_count')) {
+                await m.addColumn(meals, meals.servingCount);
+              }
+              if (!cols.contains('cooked_weight_in_grams')) {
+                await m.addColumn(meals, meals.cookedWeightInGrams);
+              }
+            }
             if (from < 38) {
               await customStatement('''
                 CREATE TABLE IF NOT EXISTS health_export_identities (
@@ -1808,6 +1862,143 @@ class AppDatabase extends _$AppDatabase {
               await customStatement(
                 'CREATE UNIQUE INDEX IF NOT EXISTS idx_goal_reviews_window ON goal_reviews (goal_id, window_start, window_end);',
               );
+            }
+            if (from < 40) {
+              final setLogColumns =
+                  await _columnsOf(this, setLogs.actualTableName);
+              if (!setLogColumns.contains('exercise_block')) {
+                await m.addColumn(setLogs, setLogs.exerciseBlock);
+              }
+              final workoutNoteColumns =
+                  await _columnsOf(this, workoutExerciseLogs.actualTableName);
+              if (!workoutNoteColumns.contains('exercise_block')) {
+                await m.addColumn(
+                    workoutExerciseLogs, workoutExerciseLogs.exerciseBlock);
+              }
+              if (!await _tableExists(
+                  this, pinnedExerciseNotes.actualTableName)) {
+                await m.createTable(pinnedExerciseNotes);
+              }
+
+              // Older history has no exercise_block. Reconstruct the same
+              // contiguous exercise groups the session restore uses, then
+              // persist those groups so notes can be attached per instance.
+              final legacySetRows = await (select(setLogs)
+                    ..where((row) => row.exerciseBlock.isNull())
+                    ..orderBy([
+                      (row) => OrderingTerm.asc(row.workoutLogId),
+                      (row) => OrderingTerm.asc(row.logOrder),
+                      (row) => OrderingTerm.asc(row.localId),
+                    ]))
+                  .get();
+              final legacySetGroups = <String, List<SetLog>>{};
+              for (final set in legacySetRows) {
+                legacySetGroups
+                    .putIfAbsent(set.workoutLogId, () => [])
+                    .add(set);
+              }
+              for (final entry in legacySetGroups.entries) {
+                final maxRows = await customSelect(
+                  'SELECT MAX(exercise_block) AS block FROM set_logs WHERE workout_log_id = ?',
+                  variables: [Variable.withString(entry.key)],
+                  readsFrom: {setLogs},
+                ).getSingle();
+                var nextBlock = (maxRows.read<int?>('block') ?? -1) + 1;
+                String? previousIdentity;
+                int? currentBlock;
+                for (final set in entry.value) {
+                  final identity = set.exerciseId ??
+                      set.exerciseNameSnapshot ??
+                      'unknown:${set.localId}';
+                  if (identity != previousIdentity) {
+                    currentBlock = nextBlock++;
+                    previousIdentity = identity;
+                  }
+                  await (update(setLogs)
+                        ..where((row) => row.localId.equals(set.localId)))
+                      .write(SetLogsCompanion(
+                    exerciseBlock: Value(currentBlock),
+                  ));
+                }
+              }
+
+              // Legacy workout notes were stored once per exercise name. Copy
+              // that value to every matching exercise block, preserving the
+              // old detail screen's behavior for repeated exercises.
+              final legacyRows = await select(workoutExerciseLogs).get();
+              for (final legacy in legacyRows) {
+                if (legacy.exerciseBlock != null) continue;
+                final name = legacy.exerciseNameSnapshot;
+                if (name == null || name.isEmpty) continue;
+                final blocks = await customSelect(
+                  '''SELECT DISTINCT exercise_block FROM set_logs
+                     WHERE workout_log_id = ? AND exercise_name_snapshot = ?
+                     AND exercise_block IS NOT NULL ORDER BY exercise_block''',
+                  variables: [
+                    Variable.withString(legacy.workoutLogId),
+                    Variable.withString(name),
+                  ],
+                  readsFrom: {setLogs},
+                ).get();
+                final blockIds = blocks
+                    .map((row) => row.read<int>('exercise_block'))
+                    .toList();
+                if (blockIds.isEmpty) continue;
+                for (var index = 0; index < blockIds.length; index++) {
+                  final block = blockIds[index];
+                  final existing = await (select(workoutExerciseLogs)
+                        ..where((row) =>
+                            row.workoutLogId.equals(legacy.workoutLogId) &
+                            row.exerciseBlock.equals(block))
+                        ..limit(1))
+                      .getSingleOrNull();
+                  if (existing != null) {
+                    final existingText = existing.notes?.trim() ?? '';
+                    final incomingText = legacy.notes?.trim() ?? '';
+                    final mergedText = existingText.isEmpty
+                        ? legacy.notes
+                        : incomingText.isEmpty || existingText == incomingText
+                            ? existing.notes
+                            : '$existingText\n\n$incomingText';
+                    await (update(workoutExerciseLogs)
+                          ..where(
+                              (row) => row.localId.equals(existing.localId)))
+                        .write(WorkoutExerciseLogsCompanion(
+                      notes: Value(mergedText),
+                      updatedAt: Value(DateTime.now()),
+                    ));
+                    await (delete(workoutExerciseLogs)
+                          ..where((row) => row.localId.equals(legacy.localId)))
+                        .go();
+                    break;
+                  }
+
+                  if (index == 0) {
+                    await (update(workoutExerciseLogs)
+                          ..where((row) => row.localId.equals(legacy.localId)))
+                        .write(WorkoutExerciseLogsCompanion(
+                      exerciseBlock: Value(block),
+                    ));
+                  } else {
+                    await into(workoutExerciseLogs).insert(
+                      WorkoutExerciseLogsCompanion(
+                        id: Value(const Uuid().v4()),
+                        workoutLogId: Value(legacy.workoutLogId),
+                        exerciseId: Value(legacy.exerciseId),
+                        exerciseNameSnapshot: Value(name),
+                        notes: Value(legacy.notes),
+                        exerciseBlock: Value(block),
+                      ),
+                    );
+                  }
+                }
+              }
+              await customStatement('''
+                CREATE UNIQUE INDEX IF NOT EXISTS
+                  idx_workout_exercise_logs_workout_block
+                ON workout_exercise_logs (workout_log_id, exercise_block)
+                WHERE exercise_block IS NOT NULL
+              ''');
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,

@@ -61,20 +61,20 @@ class SleepSectionCard extends StatelessWidget {
       context,
       state: state,
       child: SummaryCard(
+        margin: EdgeInsets.zero,
+        padding: EdgeInsets.zero,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Spacer(),
-                  if (rangeLabel != null && rangeLabel!.isNotEmpty)
-                    AnalyticsCardBase.buildRangeChip(context, rangeLabel!),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  AnalyticsCardBase.buildDrillDownHint(context),
-                ],
+              AnalyticsCardBase.buildHeaderWithChevron(
+                context,
+                label: title,
+                chipText: (rangeLabel != null && rangeLabel!.isNotEmpty)
+                    ? rangeLabel
+                    : null,
               ),
               const SizedBox(height: DesignConstants.spacingM),
               Row(

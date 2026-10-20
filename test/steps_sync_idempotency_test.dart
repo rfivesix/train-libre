@@ -52,6 +52,22 @@ void main() {
       await database.close();
     });
 
+    test('legacy provider and source preferences use automatic defaults',
+        () async {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString(StepsSyncService.providerFilterKey, 'apple');
+      await preferences.setString(
+        StepsSyncService.sourcePolicyKey,
+        'max_per_hour',
+      );
+      final service = StepsSyncService(
+        stepsDb: StepsLocalDataSource(database),
+      );
+
+      expect(await service.getProviderFilter(), StepsProviderFilter.all);
+      expect(await service.getSourcePolicy(), StepsSourcePolicy.autoDominant);
+    });
+
     test(
       're-enable sync with overlapping range does not inflate totals',
       () async {

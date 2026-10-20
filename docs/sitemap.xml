@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://trainlibre.com/</loc></url>
+  <url><loc>https://trainlibre.com/about.html</loc></url>
   <url><loc>https://trainlibre.com/privacy.html</loc></url>
   <url><loc>https://trainlibre.com/terms.html</loc></url>
   <url><loc>https://trainlibre.com/support.html</loc></url>
@@ -11,6 +12,9 @@
   <url><loc>https://trainlibre.com/docs/features/muscle-recovery-model/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/bayesian-tdee-estimator/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/macro-distribution/</loc></url>
+  <url><loc>https://trainlibre.com/docs/features/macro-analytics/</loc></url>
+  <url><loc>https://trainlibre.com/docs/features/manual-workout-plans/</loc></url>
+  <url><loc>https://trainlibre.com/docs/features/adaptive-nutrition-goals/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/workout-progression-engine/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/intelligent-workouts/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/meal-capture-pipeline/</loc></url>
@@ -18,9 +22,40 @@
   <url><loc>https://trainlibre.com/docs/features/depth-scale-hint/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/health-sync-export/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/live-activity-workout/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/overview/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/getting-started/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/settings-and-privacy/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/tracking-a-workout/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/supersets-and-editing/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/workout-routines/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/ai-workout-routines/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/exercise-catalog/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/workout-history/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/training-plans/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/logging-food/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/food-catalogs/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/saved-meals/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/ai-meal-capture/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/water-and-drinks/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/daily-targets/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/weight-goals/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/logging-supplements/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/measurements/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/statistics/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/training-statistics/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/body-nutrition-statistics/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/health-data/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/widgets/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/live-activities/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/notifications/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/importing-data/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/prepare-csv-files/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/exporting-and-backing-up/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/sharing-and-ai/</loc></url>
   <url><loc>https://trainlibre.com/docs/developer/overview/</loc></url>
   <url><loc>https://trainlibre.com/docs/developer/architecture/</loc></url>
   <url><loc>https://trainlibre.com/docs/developer/data-flow-and-state/</loc></url>
   <url><loc>https://trainlibre.com/docs/developer/localization-architecture/</loc></url>
   <url><loc>https://trainlibre.com/docs/developer/ios-home-screen-widgets/</loc></url>
+  <url><loc>https://trainlibre.com/docs/developer/food-search/</loc></url>
 </urlset>

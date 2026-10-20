@@ -69,136 +69,141 @@ class NutritionSummaryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final unitService = context.watch<UnitService>();
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Expanded(
-                  child: GlassProgressBar(
-                    label: l10n.calories,
-                    unit: 'kcal',
-                    value: nutritionData.calories.toDouble(),
-                    target: nutritionData.targetCalories.toDouble(),
-                    color: Colors.orange,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GlassProgressBar(
+                        label: l10n.calories,
+                        unit: 'kcal',
+                        value: nutritionData.calories.toDouble(),
+                        target: nutritionData.targetCalories.toDouble(),
+                        color: Colors.orange,
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Expanded(
+                      child: GlassProgressBar(
+                        label: l10n.water,
+                        unit: unitService.suffixFor(UnitDimension.liquid),
+                        value: unitService.convertDisplayValue(
+                          nutritionData.water.toDouble(),
+                          UnitDimension.liquid,
+                        ),
+                        target: unitService.convertDisplayValue(
+                          nutritionData.targetWater.toDouble(),
+                          UnitDimension.liquid,
+                        ),
+                        color: Colors.blue,
+                      ),
+                    ),
+                    if (!isExpandedView) ...[
+                      const SizedBox(height: DesignConstants.spacingS),
+                      Expanded(
+                        child: _buildExtraNutrientBar(l10n, nutritionData),
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Expanded(
-                  child: GlassProgressBar(
-                    label: l10n.water,
-                    unit: unitService.suffixFor(UnitDimension.liquid),
-                    value: unitService.convertDisplayValue(
-                      nutritionData.water.toDouble(),
-                      UnitDimension.liquid,
-                    ),
-                    target: unitService.convertDisplayValue(
-                      nutritionData.targetWater.toDouble(),
-                      UnitDimension.liquid,
-                    ),
-                    color: Colors.blue,
-                  ),
-                ),
-                if (!isExpandedView) ...[
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Expanded(
-                    child: _buildExtraNutrientBar(l10n, nutritionData),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: DesignConstants.spacingS),
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Expanded(
-                  child: GlassProgressBar(
-                    label: l10n.protein,
-                    unit: 'g',
-                    value: nutritionData.protein.toDouble(),
-                    target: nutritionData.targetProtein.toDouble(),
-                    color: DesignConstants.brandRedColor,
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Expanded(
-                  child: GlassProgressBar(
-                    label: l10n.carbs,
-                    unit: 'g',
-                    value: nutritionData.carbs.toDouble(),
-                    target: nutritionData.targetCarbs.toDouble(),
-                    color: Colors.green.shade400,
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Expanded(
-                  child: GlassProgressBar(
-                    label: l10n.fat,
-                    unit: 'g',
-                    value: nutritionData.fat.toDouble(),
-                    target: nutritionData.targetFat.toDouble(),
-                    color: Colors.purple.shade300,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isExpandedView) ...[
-            const SizedBox(width: DesignConstants.spacingS),
-            Expanded(
-              flex: 1,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: GlassProgressBar(
-                      label: l10n.sugar,
-                      unit: 'g',
-                      value: nutritionData.sugar,
-                      target: nutritionData.targetSugar.toDouble(),
-                      color: Colors.pink.shade200,
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Expanded(
-                    child: GlassProgressBar(
-                      label: l10n.fiber,
-                      unit: 'g',
-                      value: nutritionData.fiber,
-                      target: nutritionData.targetFiber.toDouble(),
-                      color: Colors.brown.shade400,
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Expanded(
-                    child: GlassProgressBar(
-                      label: l10n.salt,
-                      unit: 'g',
-                      value: nutritionData.salt,
-                      target: nutritionData.targetSalt.toDouble(),
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Expanded(
-                    child: GlassProgressBar(
-                      label: l10n.supplement_caffeine,
-                      unit: 'mg',
-                      value: nutritionData.caffeine,
-                      target: nutritionData.targetCaffeine.toDouble(),
-                      color: Colors.brown,
-                    ),
-                  ),
-                ],
               ),
-            ),
-          ],
-        ],
-      ),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GlassProgressBar(
+                        label: l10n.protein,
+                        unit: 'g',
+                        value: nutritionData.protein.toDouble(),
+                        target: nutritionData.targetProtein.toDouble(),
+                        color: DesignConstants.brandRedColor,
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Expanded(
+                      child: GlassProgressBar(
+                        label: l10n.carbs,
+                        unit: 'g',
+                        value: nutritionData.carbs.toDouble(),
+                        target: nutritionData.targetCarbs.toDouble(),
+                        color: Colors.green.shade400,
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Expanded(
+                      child: GlassProgressBar(
+                        label: l10n.fat,
+                        unit: 'g',
+                        value: nutritionData.fat.toDouble(),
+                        target: nutritionData.targetFat.toDouble(),
+                        color: Colors.purple.shade300,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isExpandedView) ...[
+                const SizedBox(width: DesignConstants.spacingS),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: GlassProgressBar(
+                          label: l10n.sugar,
+                          unit: 'g',
+                          value: nutritionData.sugar,
+                          target: nutritionData.targetSugar.toDouble(),
+                          color: Colors.pink.shade200,
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                      Expanded(
+                        child: GlassProgressBar(
+                          label: l10n.fiber,
+                          unit: 'g',
+                          value: nutritionData.fiber,
+                          target: nutritionData.targetFiber.toDouble(),
+                          color: Colors.brown.shade400,
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                      Expanded(
+                        child: GlassProgressBar(
+                          label: l10n.salt,
+                          unit: 'g',
+                          value: nutritionData.salt,
+                          target: nutritionData.targetSalt.toDouble(),
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                      Expanded(
+                        child: GlassProgressBar(
+                          label: l10n.supplement_caffeine,
+                          unit: 'mg',
+                          value: nutritionData.caffeine,
+                          target: nutritionData.targetCaffeine.toDouble(),
+                          color: Colors.brown,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

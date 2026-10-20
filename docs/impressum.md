@@ -71,16 +71,17 @@ Missbrauchsprävention (Art. 6 Abs. 1 lit. f DSGVO).
 Innerhalb der App findet kein automatischer Datentransfer an uns statt. Empfänger technischer oder
 nutzergenerierter Daten können jedoch sein:
  - KI-Anbieter (OpenAI, Google, Anthropic, Mistral, xAI etc.): Diese agieren als separate
-   Verantwortliche und erhalten Daten (z. B. Fotos, Prompts), wenn Sie die BYOK-KI-Funktionen aktiv
-   nutzen.
+   Verantwortliche und erhalten Daten (z. B. Fotos, Prompts), wenn Sie die optionalen Cloud-BYOK-KI-Funktionen aktiv
+   nutzen. Bei der Nutzung von Apples On-Device-KI (Apple Intelligence / Foundation Models) findet hingegen
+   keine Datenübertragung an externe Server statt (Verarbeitung 100% lokal auf dem Gerät).
  - Katalog-Dienste (Open Food Facts, wger, GitHub): Diese erhalten technische Verbindungsdaten
    (IP-Adresse, User-Agent) beim Abruf von Datenbanken oder Updates.
  - Cloud-Anbieter (Apple iCloud / Google Drive): Diese erhalten Daten im Rahmen Ihrer systemweiten
-   Backups, sofern Sie diese Funktion im Betriebssystem aktiviert haben.
+   Backups oder des optionalen iCloud-Backups, sofern Sie diese Funktionen aktiviert haben.
 
 5. Drittlandübermittlung (BYOK AI)
-Bei Nutzung von KI-Diensten können Daten an Anbieter in Drittländern (insbesondere die USA)
-übertragen werden.
+Bei Nutzung von Cloud-KI-Diensten können Daten an Anbieter in Drittländern (insbesondere die USA)
+übertragen werden (entfällt bei On-Device-Verarbeitung via Apple Intelligence).
  - Mechanismen: Die Anbieter stützen sich in der Regel auf Standardvertragsklauseln (SCCs) oder
    Angemessenheitsbeschlüsse.
  - Hinweis: Da Sie Ihren eigenen API-Schlüssel nutzen, unterliegt die Datenverarbeitung den
@@ -176,13 +177,13 @@ prevention (Art. 6(1)(f) GDPR).
 
 4. Categories of Recipients
 Apart from technical connection data processed by the hosting provider and third-party services described below, we do not receive the contents of your in‑app data. Recipients of technical or user-generated data may be:
- - AI Providers (OpenAI, Google, etc.): Act as separate controllers when you use BYOK AI features.
+ - AI Providers (OpenAI, Google, Anthropic, etc.): Act as separate controllers when you use optional cloud BYOK AI features. When using Apple's on-device AI (Apple Intelligence / Foundation Models), zero data leaves your device (processing is 100% local).
  - Catalog Services (Open Food Facts, wger, GitHub): Receive technical connection data (IP, User-Agent) during updates.
- - Cloud Providers (Apple/Google): Receive data via your system-wide backups if enabled.
+ - Cloud Providers (Apple/Google): Receive data via your system-wide backups or optional iCloud backup if enabled.
 
 5. International Data Transfers (BYOK AI)
-When using AI services, data may be transferred to third countries (especially the USA) subject to
-Art. 44 et seq. GDPR.
+When using cloud AI services, data may be transferred to third countries (especially the USA) subject to
+Art. 44 et seq. GDPR (does not apply to local on-device Apple Intelligence processing).
  - Safeguards: Providers typically use Standard Contractual Clauses (SCCs) or other legal
    mechanisms.
  - Note: As you use your own API key, processing is subject to the provider's privacy policy.

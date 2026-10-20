@@ -425,8 +425,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       await tester.tap(nextButton); // nutrition -> ai_health (last page)
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      expect(
+        find.byKey(const Key('onboarding_workout_import_page')),
+        findsOneWidget,
+      );
+      await tester.tap(nextButton); // skip workout import -> AI and health
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
       expect(
           find.byKey(const Key('onboarding_ai_health_page')), findsOneWidget);
 

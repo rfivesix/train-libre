@@ -314,6 +314,14 @@ class BackupManager {
         goalEvents: await _fetchTable('goal_events'),
         goalReviews: await _fetchTable('goal_reviews'));
     final payload = backup.toJson();
+    final pinnedExerciseNoteRows = await dbInst.customSelect('''
+      SELECT pn.*
+      FROM pinned_exercise_notes pn
+      LEFT JOIN exercises e ON e.id = pn.exercise_id
+      WHERE e.is_custom = 0 OR e.id IS NULL
+    ''').get();
+    payload['pinned_exercise_notes'] =
+        pinnedExerciseNoteRows.map((row) => row.data).toList();
     // Immutable manual-plan revisions and occurrence history are exported
     // separately so older JSON backups continue to mean "no plan".
     payload['training_plans'] = await _fetchTable('training_plans');
@@ -816,6 +824,7 @@ class BackupManager {
                 .go();
 
             // Clear workout tables
+            await dbInst.delete(dbInst.pinnedExerciseNotes).go();
             await dbInst.delete(dbInst.trainingPlanOccurrences).go();
             await dbInst.delete(dbInst.trainingPlanActivations).go();
             await dbInst.delete(dbInst.trainingPlanRevisions).go();
@@ -953,6 +962,10 @@ class BackupManager {
             onProgress?.call('workouts', 0.80);
             await _workoutDb.importWorkoutData(
                 routines: backup.routines, workoutLogs: backup.workoutLogs);
+            final pinnedExerciseNotes = payload['pinned_exercise_notes'];
+            if (pinnedExerciseNotes is List && pinnedExerciseNotes.isNotEmpty) {
+              await _restorePinnedExerciseNotes(pinnedExerciseNotes);
+            }
             await _restoreManualPlans(payload, backup);
             token?.throwIfCancelled();
 
@@ -1467,6 +1480,45 @@ class BackupManager {
           'INSERT OR REPLACE INTO $tableName (${validColumns.join(', ')}) VALUES ($placeholders)';
       await dbInst.customStatement(sql, values);
     }
+  }
+
+  Future<void> _restorePinnedExerciseNotes(List<dynamic> rows) async {
+    final dbInst = _dbHelper.dbInstance;
+    await dbInst.transaction(() async {
+      await dbInst.customStatement('''
+        DELETE FROM pinned_exercise_notes
+        WHERE exercise_id IN (SELECT id FROM exercises WHERE is_custom = 0)
+      ''');
+      for (final raw in rows) {
+        if (raw is! Map) continue;
+        final row = Map<String, dynamic>.from(raw);
+        final exerciseId = row['exercise_id']?.toString();
+        final notes = row['notes']?.toString().trim();
+        if (exerciseId == null ||
+            exerciseId.isEmpty ||
+            notes == null ||
+            notes.isEmpty ||
+            notes.length > 10000) {
+          continue;
+        }
+        final existing = await (dbInst.select(dbInst.pinnedExerciseNotes)
+              ..where((note) => note.exerciseId.equals(exerciseId))
+              ..limit(1))
+            .getSingleOrNull();
+        final companion = db.PinnedExerciseNotesCompanion(
+          exerciseId: drift.Value(exerciseId),
+          notes: drift.Value(notes),
+          updatedAt: drift.Value(DateTime.now()),
+        );
+        if (existing == null) {
+          await dbInst.into(dbInst.pinnedExerciseNotes).insert(companion);
+        } else {
+          await (dbInst.update(dbInst.pinnedExerciseNotes)
+                ..where((note) => note.localId.equals(existing.localId)))
+              .write(companion);
+        }
+      }
+    });
   }
 
   Future<T> _executeWithRetry<T>(
@@ -2017,7 +2069,9 @@ class BackupManager {
         'rpe',
         'rir',
         'set_notes',
-        'workout_notes'
+        'workout_notes',
+        'exercise_block',
+        'workout_exercise_note'
       ]
     ];
     for (final l in logs) {
@@ -2038,7 +2092,9 @@ class BackupManager {
           s.rpe ?? 0,
           s.rir ?? 0,
           s.notes ?? '',
-          l.notes ?? ''
+          l.notes ?? '',
+          s.exerciseBlock ?? '',
+          l.exerciseNotesByBlock[s.exerciseBlock] ?? ''
         ]);
       }
     }

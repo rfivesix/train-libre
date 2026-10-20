@@ -8,10 +8,8 @@ import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/settings/presentation/appearance_settings_screen.dart';
+import 'package:train_libre/features/settings/presentation/health_settings_screen.dart';
 import 'package:train_libre/features/settings/presentation/settings_screen.dart';
-import 'package:train_libre/features/settings/presentation/sleep_settings_screen.dart';
-import 'package:train_libre/features/settings/presentation/pulse_settings_screen.dart';
-import 'package:train_libre/features/settings/presentation/steps_settings_screen.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -125,13 +123,14 @@ void main() {
     );
 
     expect(find.byKey(const Key('settings_appearance_entry')), findsOneWidget);
-    expect(find.byKey(const Key('settings_steps_entry')), findsOneWidget);
-    expect(find.byKey(const Key('settings_sleep_entry')), findsOneWidget);
-    expect(find.byKey(const Key('settings_pulse_entry')), findsOneWidget);
     expect(
-      find.byKey(const Key('settings_health_export_entry')),
+      find.byKey(const Key('settings_health_entry')),
       findsOneWidget,
     );
+    expect(find.byKey(const Key('settings_steps_entry')), findsNothing);
+    expect(find.byKey(const Key('settings_sleep_entry')), findsNothing);
+    expect(find.byKey(const Key('settings_pulse_entry')), findsNothing);
+    expect(find.byKey(const Key('settings_health_export_entry')), findsNothing);
   });
 
   testWidgets('appearance entry opens appearance settings sub-screen', (
@@ -159,7 +158,8 @@ void main() {
     expect(find.byType(AppearanceSettingsScreen), findsOneWidget);
   });
 
-  testWidgets('steps entry opens steps settings sub-screen', (tester) async {
+  testWidgets('health entry opens the unified health settings screen',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(900, 3000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -176,58 +176,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('settings_steps_entry')));
+    await tester.tap(find.byKey(const Key('settings_health_entry')));
     await tester.pumpAndSettle();
 
-    expect(find.byType(StepsSettingsScreen), findsOneWidget);
-  });
-
-  testWidgets('sleep entry opens sleep settings sub-screen', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(900, 3000));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
-
-    await tester.pumpWidget(
-      _wrap(
-        SettingsScreen(
-          sleepSyncService: _FakeSleepSettingsService(controller: controller),
-          sleepPermissionController: controller,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final sleepEntry = find.byKey(const Key('settings_sleep_entry'));
-    await tester.tap(sleepEntry);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(SleepSettingsScreen), findsOneWidget);
-  });
-
-  testWidgets('pulse entry opens pulse settings sub-screen', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(900, 3000));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
-
-    await tester.pumpWidget(
-      _wrap(
-        SettingsScreen(
-          sleepSyncService: _FakeSleepSettingsService(controller: controller),
-          sleepPermissionController: controller,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final pulseEntry = find.byKey(const Key('settings_pulse_entry'));
-    await tester.tap(pulseEntry);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(PulseSettingsScreen), findsOneWidget);
+    expect(find.byType(HealthSettingsScreen), findsOneWidget);
   });
 
   testWidgets(

@@ -421,11 +421,14 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
 
     // Check app features
-    if ((_consistencyState.data?.trainingStats.totalWorkouts ?? 0) > 0)
+    if ((_consistencyState.data?.trainingStats.totalWorkouts ?? 0) > 0) {
       return false;
+    }
     if (bodyNutrition != null &&
-        (bodyNutrition!.weightDays > 0 || bodyNutrition!.loggedCalorieDays > 0))
+        (bodyNutrition!.weightDays > 0 ||
+            bodyNutrition!.loggedCalorieDays > 0)) {
       return false;
+    }
 
     // If nothing has data, it's an active gap
     return true;
@@ -452,6 +455,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
     Future<bool> Function()? isSleepTrackingEnabled,
     Future<int> Function()? targetStepsLoader,
     Future<String> Function()? stepsProviderNameLoader,
+    TimeframeBlock initialBlockType = TimeframeBlock.week,
+    DateTime? initialAnchorDate,
+    bool initialIsRolling = true,
   })  : _hubDataAdapter = hubDataAdapter ??
             StatisticsHubDataAdapter(
               workoutDatabaseHelper: WorkoutLocalDataSource.instance,
@@ -469,6 +475,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
         _isSleepTrackingEnabledOverride = isSleepTrackingEnabled,
         _targetStepsLoaderOverride = targetStepsLoader,
         _stepsProviderNameLoaderOverride = stepsProviderNameLoader {
+    _activeBlockType = initialBlockType;
+    _anchorDate = initialAnchorDate ?? DateTime.now();
+    _isRolling = initialIsRolling;
     StepsSyncService.trackingEnabledListenable.addListener(
       _onTrackingEnabledChanged,
     );

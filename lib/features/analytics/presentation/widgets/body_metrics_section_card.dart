@@ -70,6 +70,8 @@ class BodyMetricsSectionCard extends StatelessWidget {
       context,
       state: state,
       child: SummaryCard(
+        margin: EdgeInsets.zero,
+        padding: EdgeInsets.zero,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(DesignConstants.spacingL),
@@ -133,7 +135,9 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: DesignConstants.spacingS),
-              Row(
+              Wrap(
+                spacing: DesignConstants.spacingM,
+                runSpacing: DesignConstants.spacingXS,
                 children: [
                   _legendDot(
                     context,
@@ -142,7 +146,6 @@ class BodyMetricsSectionCard extends StatelessWidget {
                         unitService.suffixFor(UnitDimension.weight)),
                     shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: DesignConstants.spacingM),
                   _legendDot(
                     context,
                     color: const Color(0xFFF97316),
@@ -221,11 +224,13 @@ class BodyMetricsSectionCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+        Flexible(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
         ),
       ],
     );

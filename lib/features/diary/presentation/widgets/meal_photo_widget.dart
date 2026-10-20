@@ -2,6 +2,9 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
+import '../../../../util/design_constants.dart';
 
 /// The photo of a meal — one image, a swipeable carousel when a capture
 /// produced several, or a LiDAR depth map.
@@ -169,7 +172,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
                       height: 6,
                       decoration: BoxDecoration(
                         color: isActive
-                            ? const Color(0xFFC9EF00)
+                            ? DesignConstants.brandAccentColor
                             : Colors.white.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(3),
                       ),
@@ -189,7 +192,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
       color: isDark ? const Color(0xFF1A1A18) : const Color(0xFFE8E8E0),
       alignment: Alignment.center,
       child: Icon(
-        Icons.restaurant,
+        LucideIcons.utensils,
         size: 42,
         color: isDark ? const Color(0xFF7E7E74) : const Color(0xFF9A9A90),
       ),

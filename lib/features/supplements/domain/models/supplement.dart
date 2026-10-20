@@ -114,18 +114,20 @@ class Supplement {
     this.isTracked = true,
   });
 
-  /// Returns the name of the supplement localized to the user's language if it's built-in.
+  /// Returns the name of the supplement localized to the user's language.
   String getLocalizedName(BuildContext context) {
-    if (!isBuiltin || code == null) return name;
-
     final l10n = AppLocalizations.of(context);
     if (l10n == null) return name;
 
-    switch (code) {
+    final normalizedKey = (code ?? name).toLowerCase().trim();
+    switch (normalizedKey) {
       case 'caffeine':
+      case 'koffein':
         return l10n.supplement_caffeine;
       case 'creatine':
       case 'creatine_monohydrate':
+      case 'kreatin':
+      case 'kreatin monohydrat':
         return l10n.supplement_creatine_monohydrate;
       default:
         return name;

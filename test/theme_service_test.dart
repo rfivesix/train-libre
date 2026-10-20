@@ -19,7 +19,7 @@ void main() {
 
       expect(service.themeMode, ThemeMode.dark);
       expect(service.visualStyle, 1);
-      expect(service.isAiEnabled, false);
+      expect(service.isAiEnabled, true);
       expect(service.materialColorsEnabled, false);
       expect(service.hapticsEnabled, true);
     });
@@ -51,19 +51,19 @@ void main() {
 
       await service.setThemeMode(ThemeMode.light);
       await service.setVisualStyle(1); // Test writing style 1
-      await service.setAiEnabled(true);
+      await service.setAiEnabled(false);
       await service.setMaterialColorsEnabled(true);
       await service.setHapticsEnabled(false);
 
       final prefs = await SharedPreferences.getInstance();
       expect(service.themeMode, ThemeMode.light);
       expect(service.visualStyle, 1);
-      expect(service.isAiEnabled, true);
+      expect(service.isAiEnabled, false);
       expect(service.materialColorsEnabled, true);
       expect(service.hapticsEnabled, false);
       expect(prefs.getInt('theme_mode'), ThemeMode.light.index);
       expect(prefs.getInt('visual_style'), 1);
-      expect(prefs.getBool('ai_enabled'), true);
+      expect(prefs.getBool('ai_enabled'), false);
       expect(prefs.getBool('material_colors_enabled'), true);
       expect(prefs.getBool('haptics_enabled'), false);
     });

@@ -8,6 +8,7 @@ import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
+import '../../../../widgets/common/morph_source.dart';
 import '../../domain/models/manual_training_plan.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../manual_plan_text.dart';
@@ -42,8 +43,12 @@ class PlanOverviewCard extends StatelessWidget {
 
   final ManualTrainingPlan plan;
   final int? activeSlotIndex;
-  final void Function(TrainingPlanDay day, BuildContext sourceContext)?
-      onRoutineTap;
+  final void Function(
+    TrainingPlanDay day,
+    BuildContext sourceContext,
+    WidgetBuilder sourceBuilder,
+    MorphSourceVisibilityCallback setHidden,
+  )? onRoutineTap;
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +74,12 @@ class PlanScheduleOverviewGrid extends StatelessWidget {
 
   final ManualTrainingPlan plan;
   final int? activeSlotIndex;
-  final void Function(TrainingPlanDay day, BuildContext sourceContext)?
-      onRoutineTap;
+  final void Function(
+    TrainingPlanDay day,
+    BuildContext sourceContext,
+    WidgetBuilder sourceBuilder,
+    MorphSourceVisibilityCallback setHidden,
+  )? onRoutineTap;
 
   @override
   Widget build(BuildContext context) {
@@ -78,14 +87,27 @@ class PlanScheduleOverviewGrid extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final tiles = [
       for (var index = 0; index < plan.days.length; index++)
-        Builder(
-          builder: (tileContext) => _PlanScheduleOverviewTile(
-            label: _labelFor(index, locale, text),
-            day: plan.days[index],
-            isActive: plan.active && activeSlotIndex == index,
-            onTap: !plan.days[index].isRest && onRoutineTap != null
-                ? () => onRoutineTap!(plan.days[index], tileContext)
-                : null,
+        MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (tileContext) {
+              final day = plan.days[index];
+              final label = _labelFor(index, locale, text);
+              final active = plan.active && activeSlotIndex == index;
+              Widget buildTile() => _PlanScheduleOverviewTile(
+                    label: label,
+                    day: day,
+                    isActive: active,
+                    onTap: !day.isRest && onRoutineTap != null
+                        ? () => onRoutineTap!(
+                              day,
+                              tileContext,
+                              (_) => buildTile(),
+                              setHidden,
+                            )
+                        : null,
+                  );
+              return buildTile();
+            },
           ),
         ),
     ];
@@ -483,6 +505,7 @@ class PlanDayDetailCard extends StatelessWidget {
     this.onStart,
     this.onSkip,
     this.onViewWorkout,
+    this.onViewRoutine,
   });
 
   final ManualTrainingPlan plan;
@@ -490,6 +513,7 @@ class PlanDayDetailCard extends StatelessWidget {
   final VoidCallback? onStart;
   final VoidCallback? onSkip;
   final VoidCallback? onViewWorkout;
+  final VoidCallback? onViewRoutine;
 
   @override
   Widget build(BuildContext context) {
@@ -503,80 +527,94 @@ class PlanDayDetailCard extends StatelessWidget {
     return SummaryCard(
       margin: const EdgeInsets.only(top: DesignConstants.spacingM),
       padding: const EdgeInsets.all(DesignConstants.spacingL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (sequenceLabel != null)
+      child: InkWell(
+        onTap: onViewRoutine,
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
                 Expanded(
-                  child: Text(
-                    sequenceLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )
-              else
-                const Spacer(),
-              PlanStatusIndicator(status: day.status),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            day.day.routineName ?? text.get('rest'),
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.4,
+                  child: sequenceLabel == null
+                      ? Text(
+                          day.day.routineName ?? text.get('rest'),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.4,
+                          ),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              sequenceLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              day.day.routineName ?? text.get('rest'),
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+                const SizedBox(width: DesignConstants.spacingS),
+                PlanStatusIndicator(status: day.status),
+              ],
             ),
-          ),
-          if (metadata.isNotEmpty) ...[
-            const SizedBox(height: 5),
-            Text(
-              metadata,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-              ),
-            ),
-          ],
-          if (!day.day.isRest &&
-              day.day.routine?.exercises.isNotEmpty == true) ...[
-            const SizedBox(height: DesignConstants.spacingM),
-            for (final exercise in day.day.routine!.exercises)
-              _PlanExerciseRow(exercise: exercise),
-          ],
-          if (onStart != null) ...[
-            const SizedBox(height: DesignConstants.spacingL),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton.primary(
-                label: text.get('start'),
-                onPressed: onStart,
-              ),
-            ),
-            if (onSkip != null)
-              Align(
-                alignment: Alignment.center,
-                child: TextButton(
-                  onPressed: onSkip,
-                  child: Text(text.get('skip')),
+            if (metadata.isNotEmpty) ...[
+              const SizedBox(height: 5),
+              Text(
+                metadata,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                 ),
               ),
-          ],
-          if (onStart == null && onViewWorkout != null) ...[
-            const SizedBox(height: DesignConstants.spacingL),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton.primary(
-                label: text.get('viewWorkout'),
-                onPressed: onViewWorkout,
+            ],
+            if (!day.day.isRest &&
+                day.day.routine?.exercises.isNotEmpty == true) ...[
+              const SizedBox(height: DesignConstants.spacingM),
+              for (final exercise in day.day.routine!.exercises)
+                _PlanExerciseRow(exercise: exercise),
+            ],
+            if (onStart != null) ...[
+              const SizedBox(height: DesignConstants.spacingL),
+              SizedBox(
+                width: double.infinity,
+                child: AppButton.primary(
+                  label: text.get('start'),
+                  onPressed: onStart,
+                ),
               ),
-            ),
+              if (onSkip != null)
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    onPressed: onSkip,
+                    child: Text(text.get('skip')),
+                  ),
+                ),
+            ],
+            if (onStart == null && onViewWorkout != null) ...[
+              const SizedBox(height: DesignConstants.spacingL),
+              SizedBox(
+                width: double.infinity,
+                child: AppButton.primary(
+                  label: text.get('viewWorkout'),
+                  onPressed: onViewWorkout,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

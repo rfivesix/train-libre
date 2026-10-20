@@ -5,11 +5,14 @@ import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/meal_entry.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/morph_source.dart';
@@ -19,8 +22,10 @@ import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:uuid/uuid.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../sharing/share_service.dart';
 
 /// A screen that displays a list of the user's saved meals.
 ///
@@ -60,6 +65,30 @@ class _MealsScreenState extends State<MealsScreen> {
       _meals = meals;
       _loading = false;
     });
+  }
+
+  Future<void> _importRecipe() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'recipe',
+      warning: l10n.shareImportAddWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      await const ShareLinkRepository().import(payload);
+      if (!mounted) return;
+      await _reloadMeals();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
+    }
   }
 
   Future<List<Map<String, dynamic>>> _getMealItems(int mealId) async {
@@ -109,38 +138,48 @@ class _MealsScreenState extends State<MealsScreen> {
 
     await showGlassBottomMenu<bool>(
       context: context,
-      title: l10n.mealsAddToDiary,
       contentBuilder: (ctx, close) {
         return ConfirmLogMealBottomSheet(
           mealName: meal['name'] as String,
           rawItems: rawItems,
           products: products,
+          recipeCookedWeightInGrams:
+              (meal['cooked_weight_in_grams'] as num?)?.toInt(),
+          recipeServingCount: (meal['serving_count'] as num?)?.toInt(),
           initialDate: DateTime.now(),
           initialMealType: 'mealtypeBreakfast',
-          onClose: close,
           onSave: (date, mealType, quantities) async {
-            for (final it in rawItems) {
-              final bc = it['barcode'] as String;
-              final qty = quantities[bc] ?? (it['quantity_in_grams'] as int);
-
-              final newFoodEntryId =
-                  await DatabaseHelper.instance.insertFoodEntry(
-                FoodEntry(
-                  barcode: bc,
-                  timestamp: date,
-                  quantityInGrams: qty,
-                  mealType: mealType,
-                ),
-                telemetrySource: FoodLogSource.meal,
+            final foodEntries = rawItems.map((item) {
+              final barcode = item['barcode'] as String;
+              return FoodEntry(
+                barcode: barcode,
+                timestamp: date,
+                quantityInGrams:
+                    quantities[item['id']?.toString() ?? barcode] ??
+                        (item['quantity_in_grams'] as int),
+                mealType: mealType,
               );
-
+            }).toList();
+            final foodEntryIds =
+                await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
+                    MealEntry(
+                      id: const Uuid().v4(),
+                      title: meal['name'] as String,
+                      consumedAt: date,
+                      mealType: mealType,
+                      source: 'template',
+                    ),
+                    foodEntries);
+            for (var i = 0; i < foodEntries.length; i++) {
+              final bc = foodEntries[i].barcode;
+              final qty = foodEntries[i].quantityInGrams;
               final fi = products[bc];
-              final c100 = fi?.caffeineMgPer100ml;
-              if (fi?.isLiquid == true && c100 != null && c100 > 0) {
+              final c100 = fi?.effectiveCaffeinePer100ml;
+              if (fi?.isFluidOrLiquid == true && c100 != null && c100 > 0) {
                 await _logCaffeineDose(
                   c100 * (qty / 100.0),
                   date,
-                  foodEntryId: newFoodEntryId,
+                  foodEntryId: foodEntryIds[i],
                 );
               }
             }
@@ -274,7 +313,16 @@ class _MealsScreenState extends State<MealsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: GlobalAppBar(title: l10n.tabMeals),
+      appBar: GlobalAppBar(
+        title: l10n.tabMeals,
+        actions: [
+          IconButton(
+            tooltip: l10n.shareImportSectionTitle,
+            onPressed: _importRecipe,
+            icon: const Icon(LucideIcons.file_down),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           _loading
@@ -373,6 +421,9 @@ class _MealsScreenState extends State<MealsScreen> {
                                   ingredientCount:
                                       _mealItemsCache[mealId]?.length ?? 0,
                                   onAdd: () => _confirmAndLogMeal(meal, l10n),
+                                  onShare: () => const ShareService()
+                                      .showRecipeShareSheet(
+                                          context: context, meal: meal),
                                   onEdit: () async {
                                     await Navigator.of(context).push(
                                       CardMorphRoute(
@@ -382,6 +433,13 @@ class _MealsScreenState extends State<MealsScreen> {
                                         builder: (_) => MealScreen(
                                             meal: meal, startInEdit: true),
                                       ),
+                                    );
+                                    await _reloadMeals();
+                                  },
+                                  onDuplicate: () async {
+                                    await DatabaseHelper.instance.duplicateMeal(
+                                      mealId,
+                                      copySuffix: l10n.mealCopySuffix,
                                     );
                                     await _reloadMeals();
                                   },

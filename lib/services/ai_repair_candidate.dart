@@ -12,6 +12,7 @@ class AiRepairCandidate {
   final double carbsPer100g;
   final double fatPer100g;
   final String source; // "base" | "user" | "off"
+  final String? matchEvidence;
 
   const AiRepairCandidate({
     required this.exactName,
@@ -21,6 +22,7 @@ class AiRepairCandidate {
     required this.carbsPer100g,
     required this.fatPer100g,
     required this.source,
+    this.matchEvidence,
   });
 
   /// Formats this candidate as a single line for prompt injection.
@@ -29,6 +31,7 @@ class AiRepairCandidate {
     return '  - "$exactName" ($kcalPer100g kcal | '
         'P${proteinPer100g.round()} C${carbsPer100g.round()} '
         'F${fatPer100g.round()} per 100g) [$source]'
+        '${matchEvidence ?? ''}'
         '${barcode == null || barcode!.isEmpty ? '' : ' [id:$barcode]'}';
   }
 
@@ -49,6 +52,12 @@ class AiRepairCandidate {
       carbsPer100g: food.carbs,
       fatPer100g: food.fat,
       source: src,
+      matchEvidence: food.catalogMatchAlias == null
+          ? null
+          : ' [alias:${food.catalogMatchAlias};'
+              ' language:${food.catalogMatchLanguage};'
+              ' scope:${food.catalogMatchScope};'
+              ' review:${food.catalogMatchReviewStatus}]',
     );
   }
 }

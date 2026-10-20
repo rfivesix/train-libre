@@ -130,14 +130,21 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     setState(() => _applyValidationResult(result));
   }
 
-  String _tokenUsageLabel(AppLocalizations l10n) {
+  String? _tokenUsageLabel(AppLocalizations l10n) {
+    if (widget.usageCollector == null) return null;
     final scan = widget.usageCollector!;
     final total = scan.totalTokens + _correctionUsage.totalTokens;
+    // For local / unmetered models without token tracking, total is 0.
+    // Do not show "wird aktualisiert..." or "0 Tokens".
+    if (total <= 0 && scan.usageComplete && _correctionUsage.usageComplete) {
+      return null;
+    }
     final pending = scan.pendingCount + _correctionUsage.pendingCount;
     if (pending > 0) return l10n.aiReviewTokensPending;
     if (!scan.usageComplete || !_correctionUsage.usageComplete) {
-      return l10n.aiReviewTokensUnknown;
+      return null;
     }
+    if (total <= 0) return null;
     return l10n.aiReviewTokensUsed(total);
   }
 
@@ -160,12 +167,11 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   }
 
   void _dismissAnalysisScreen() {
-    if (_analysisRoute == null) return;
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.removeRoute(_analysisRoute!);
-    }
+    final route = _analysisRoute;
     _analysisRoute = null;
+    if (route != null && route.isActive) {
+      route.navigator?.removeRoute(route);
+    }
   }
 
   // Meal type selection
@@ -272,7 +278,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       child: Text(
         '$label $value',
         style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
+          fontFamily: 'Inter',
           fontWeight: FontWeight.w700,
           fontSize: 11.5,
           color: color,
@@ -407,6 +413,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   item.matchedFood?.barcode ?? item.suggestion.matchedBarcode,
               stateHint: item.suggestion.stateHint,
               catalogSearchTerm: item.suggestion.catalogSearchTerm,
+              packagedProductEvidence: item.suggestion.packagedProductEvidence,
+              selectedFood: item.matchedFood,
               searchTerms: item.suggestion.searchTerms,
             ),
           )
@@ -428,6 +436,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   item.candidate.matchedBarcode,
               stateHint: item.candidate.stateHint,
               catalogSearchTerm: item.candidate.catalogSearchTerm,
+              packagedProductEvidence: item.candidate.packagedProductEvidence,
               searchTerms: item.candidate.searchTerms,
             ),
             matchedFood: item.match.bestMatch,
@@ -536,6 +545,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       setState(() {
         _items[index].matchedFood = selectedItem;
         _items[index].suggestion.matchedBarcode = selectedItem.barcode;
+        _items[index].suggestion.catalogSearchTerm = null;
+        _items[index].suggestion.packagedProductEvidence = null;
+        _items[index].suggestion.searchTerms = const [];
         _items[index].suggestion.name = (() {
           final themeService =
               Provider.of<ThemeService>(context, listen: false);
@@ -1091,6 +1103,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    ThemeService? themeService;
+    try {
+      themeService = Provider.of<ThemeService>(context, listen: false);
+    } catch (_) {}
+    final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+      choice: themeService?.baseFoodLanguage ?? BaseFoodLanguage.auto,
+      context: context,
+    );
     final isDark = theme.brightness == Brightness.dark;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
@@ -1101,6 +1121,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     );
     final localizedMealType = _getLocalizedMealName(context, _selectedMealType);
     final mealTitle = _getDerivedMealTitle(context);
+    final tokenUsageText = _tokenUsageLabel(l10n);
 
     return PopScope(
       canPop: false,
@@ -1166,78 +1187,120 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   Transform.translate(
                     offset:
                         Offset(0, widget.originalImages.isNotEmpty ? -32 : 0),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            mealTitle,
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 22,
-                              color: titleColor,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          if (widget.usageCollector != null) ...[
-                            Text(
-                              _tokenUsageLabel(l10n),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: subtitleColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                          ],
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // The one place the capture flow shows when the
-                              // meal happened, so it is also the place to
-                              // change it — an AI-captured meal is otherwise
-                              // stuck at whatever moment it was photographed.
-                              // Expanded rather than Flexible + Spacer: the
-                              // label takes only the width it needs, and the
-                              // slack it leaves still pushes the depth toggle
-                              // to the right edge.
-                              Expanded(
-                                child: InkWell(
-                                  key: const ValueKey(
-                                      'ai_review_timestamp_button'),
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: _pickTimestamp,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 4, vertical: 2),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            '$localizedMealType · $timeStr',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 14,
-                                              color: subtitleColor,
+                              Text(
+                                mealTitle,
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 22,
+                                  color: titleColor,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      key: const ValueKey(
+                                          'ai_review_timestamp_button'),
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: _pickTimestamp,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4, vertical: 2),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                '$localizedMealType · $timeStr',
+                                                style: TextStyle(
+                                                  fontFamily: 'Inter',
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 14,
+                                                  color: subtitleColor,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
                                             ),
-                                          ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              LucideIcons.pencil,
+                                              size: 12,
+                                              color: subtitleColor,
+                                              semanticLabel:
+                                                  l10n.mealDetailChangeDateTime,
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          LucideIcons.pencil,
-                                          size: 12,
-                                          color: subtitleColor,
-                                          semanticLabel:
-                                              l10n.mealDetailChangeDateTime,
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
+                                  if (tokenUsageText != null)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 4, vertical: 2),
+                                      child: Text(
+                                        tokenUsageText,
+                                        style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                          color: subtitleColor,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  if (_showDepthMap &&
+                                      (_depthRenders[_currentPhotoIndex] ??
+                                              (_currentPhotoIndex == 0
+                                                  ? _depthRender
+                                                  : null)) !=
+                                          null &&
+                                      _hasDepthMapFor(_currentPhotoIndex))
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () => setState(() =>
+                                          _showDepthLegend = !_showDepthLegend),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4, vertical: 2),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Farbskala',
+                                              style: TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w600,
+                                                color: subtitleColor,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              _showDepthLegend
+                                                  ? LucideIcons.chevron_up
+                                                  : LucideIcons.chevron_down,
+                                              size: 15,
+                                              color: subtitleColor,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                               if (_showDepthMap &&
                                   (_depthRenders[_currentPhotoIndex] ??
@@ -1245,301 +1308,302 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                               ? _depthRender
                                               : null)) !=
                                       null &&
-                                  _hasDepthMapFor(_currentPhotoIndex))
-                                InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: () => setState(() =>
-                                      _showDepthLegend = !_showDepthLegend),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 4, vertical: 2),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'Farbskala',
-                                          style: TextStyle(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w600,
-                                            color: subtitleColor,
-                                          ),
+                                  _showDepthLegend &&
+                                  _hasDepthMapFor(_currentPhotoIndex)) ...[
+                                const SizedBox(height: 8),
+                                DepthLegend(
+                                  render: _depthRenders[_currentPhotoIndex] ??
+                                      (_currentPhotoIndex == 0
+                                          ? _depthRender!
+                                          : _depthRenders[_currentPhotoIndex]!),
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              if (!_scanFailed)
+                                Skeletonizer(
+                                  enabled: _isMatching && _validation == null,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        '${_isMatching && _validation == null && _totalKcal == 0 ? 550 : _totalKcal} kcal',
+                                        style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 24,
+                                          color: titleColor,
                                         ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          _showDepthLegend
-                                              ? LucideIcons.chevron_up
-                                              : LucideIcons.chevron_down,
-                                          size: 15,
-                                          color: subtitleColor,
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      const Spacer(),
+                                      _buildMacroPill(
+                                        'P',
+                                        '${_isMatching && _validation == null && _totalProtein == 0 ? 35 : _totalProtein.round()}g',
+                                        const Color(0xFFFF453A),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildMacroPill(
+                                        'C',
+                                        '${_isMatching && _validation == null && _totalCarbs == 0 ? 50 : _totalCarbs.round()}g',
+                                        const Color(0xFF30D158),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildMacroPill(
+                                        'F',
+                                        '${_isMatching && _validation == null && _totalFat == 0 ? 15 : _totalFat.round()}g',
+                                        const Color(0xFFBF5AF2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (_isMatching && _validation != null)
+                                Text(
+                                  l10n.aiReviewPreliminaryNutrition,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: subtitleColor,
                                   ),
                                 ),
                             ],
                           ),
-                          if (_showDepthMap &&
-                              (_depthRenders[_currentPhotoIndex] ??
-                                      (_currentPhotoIndex == 0
-                                          ? _depthRender
-                                          : null)) !=
-                                  null &&
-                              _showDepthLegend &&
-                              _hasDepthMapFor(_currentPhotoIndex)) ...[
-                            const SizedBox(height: 8),
-                            DepthLegend(
-                              render: _depthRenders[_currentPhotoIndex] ??
-                                  (_currentPhotoIndex == 0
-                                      ? _depthRender!
-                                      : _depthRenders[_currentPhotoIndex]!),
-                            ),
-                          ],
-                          const SizedBox(height: 8),
-                          if (!_scanFailed)
-                            Skeletonizer(
-                              enabled: _isMatching && _validation == null,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '${_isMatching && _validation == null && _totalKcal == 0 ? 550 : _totalKcal} kcal',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 24,
-                                      color: titleColor,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  _buildMacroPill(
-                                    'P',
-                                    '${_isMatching && _validation == null && _totalProtein == 0 ? 35 : _totalProtein.round()}g',
-                                    const Color(0xFFFF453A),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  _buildMacroPill(
-                                    'C',
-                                    '${_isMatching && _validation == null && _totalCarbs == 0 ? 50 : _totalCarbs.round()}g',
-                                    const Color(0xFF30D158),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  _buildMacroPill(
-                                    'F',
-                                    '${_isMatching && _validation == null && _totalFat == 0 ? 15 : _totalFat.round()}g',
-                                    const Color(0xFFBF5AF2),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          if (_isMatching && _validation != null)
-                            Text(
-                              l10n.aiReviewPreliminaryNutrition,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: subtitleColor,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  if (_scanFailed)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        _scanTimedOut
-                            ? l10n.aiReviewScanTimedOut
-                            : l10n.aiReviewScanFailed,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.error,
                         ),
-                      ),
-                    ),
 
-                  if (!_scanFailed &&
-                      _validation != null &&
-                      (!_validation!.passed ||
-                          (_isEditing &&
-                              _validation!.allIssues.any((i) =>
-                                  i.severity !=
-                                  AiValidationSeverity.info)))) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: MealReviewValidationSummary(
-                        validation: _validation!,
-                        itemsCount: _items.length,
-                      ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                  ],
+                        const SizedBox(height: 16),
 
-                  if (!_scanFailed)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _isEditing
-                          ? Column(
-                              children: [
-                                if (_isMatching)
-                                  const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(
-                                          DesignConstants.spacingXL),
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  )
-                                else
-                                  ..._items.asMap().entries.map((entry) {
-                                    final index = entry.key;
-                                    final item = entry.value;
-                                    return MealReviewComparisonCard(
-                                      dismissibleKey: ValueKey(item.hashCode),
-                                      name: item.suggestion.name,
-                                      estimatedGrams:
-                                          item.suggestion.estimatedGrams,
-                                      confidence: item.suggestion.confidence,
-                                      matchedFood: item.matchedFood,
-                                      issues: item.issues,
-                                      nutrition: item.nutrition,
-                                      onDismissed: () => _removeItem(index),
-                                      onTap: item.matchedFood != null
-                                          ? () => _inspectFood(index)
-                                          : () => _replaceWithFood(index),
-                                      onReplace: () => _replaceWithFood(index),
-                                      onEditQuantity: () =>
-                                          _editQuantity(index),
-                                      onQuickAdjustQuantity: (delta) =>
-                                          _adjustQuantityBy(index, delta),
-                                    );
-                                  }),
+                        if (_scanFailed)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              _scanTimedOut
+                                  ? l10n.aiReviewScanTimedOut
+                                  : l10n.aiReviewScanFailed,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.error,
+                              ),
+                            ),
+                          ),
 
-                                const SizedBox(height: 8),
+                        if (!_scanFailed &&
+                            _validation != null &&
+                            (!_validation!.passed ||
+                                (_isEditing &&
+                                    _validation!.allIssues.any((i) =>
+                                        i.severity !=
+                                        AiValidationSeverity.info)))) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: MealReviewValidationSummary(
+                              validation: _validation!,
+                              itemsCount: _items.length,
+                            ),
+                          ),
+                          const SizedBox(height: DesignConstants.spacingM),
+                        ],
 
-                                // Add item button (compact, centered)
-                                Center(
-                                  child: AppButton.secondary(
-                                    onPressed: _addManualItem,
-                                    label: l10n.aiReviewAddItem,
-                                    tooltip: l10n.aiReviewAddItem,
-                                    icon: LucideIcons.plus,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Skeletonizer(
-                              enabled: _isMatching && _validation == null,
-                              child: MealIngredientsSummary(
-                                ingredients: _items.isNotEmpty
-                                    ? _items
-                                        .map(
-                                          (item) => MealIngredientSummaryItem(
-                                            name: item.suggestion.name,
-                                            grams:
-                                                item.suggestion.estimatedGrams,
-                                            kcal: item.nutrition.kcalRounded > 0
-                                                ? item.nutrition.kcalRounded
-                                                : _validation == null &&
-                                                        _isMatching
-                                                    ? 150
-                                                    : 0,
+                        if (!_scanFailed)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _isEditing
+                                ? Column(
+                                    children: [
+                                      if (_isMatching)
+                                        const Center(
+                                          child: Padding(
+                                            padding: EdgeInsets.all(
+                                                DesignConstants.spacingXL),
+                                            child: CircularProgressIndicator(),
                                           ),
                                         )
-                                        .toList(growable: false)
-                                    : const [
-                                        MealIngredientSummaryItem(
-                                          name: 'Zutat',
-                                          grams: 150,
-                                          kcal: 200,
-                                        ),
-                                        MealIngredientSummaryItem(
-                                          name: 'Zutat',
-                                          grams: 200,
-                                          kcal: 300,
-                                        ),
-                                      ],
-                                onEdit: _isMatching
-                                    ? () {}
-                                    : () => setState(() => _isEditing = true),
-                                onIngredientTap: _isMatching
-                                    ? null
-                                    : (index) {
-                                        final item = _items[index];
-                                        if (item.matchedFood != null) {
-                                          _inspectFood(index);
-                                        } else {
-                                          _replaceWithFood(index);
-                                        }
-                                      },
-                              ),
-                            ),
-                    ),
+                                      else
+                                        ..._items.asMap().entries.map((entry) {
+                                          final index = entry.key;
+                                          final item = entry.value;
+                                          return MealReviewComparisonCard(
+                                            dismissibleKey:
+                                                ValueKey(item.hashCode),
+                                            name: item.suggestion.name,
+                                            estimatedGrams:
+                                                item.suggestion.estimatedGrams,
+                                            confidence:
+                                                item.suggestion.confidence,
+                                            matchedFood: item.matchedFood,
+                                            issues: item.issues,
+                                            nutrition: item.nutrition,
+                                            onDismissed: () =>
+                                                _removeItem(index),
+                                            onTap: item.matchedFood != null
+                                                ? () => _inspectFood(index)
+                                                : () => _replaceWithFood(index),
+                                            onReplace: () =>
+                                                _replaceWithFood(index),
+                                            onEditQuantity: () =>
+                                                _editQuantity(index),
+                                            onQuickAdjustQuantity: (delta) =>
+                                                _adjustQuantityBy(index, delta),
+                                          );
+                                        }),
 
-                  // Matching diagnostics and retry controls are useful when a
-                  // person explicitly edits, but overwhelm the normal result.
-                  if (_isEditing)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: DesignConstants.spacingM),
-                          InkWell(
-                            onTap: () =>
-                                setState(() => _showFeedback = !_showFeedback),
-                            child: Row(
+                                      const SizedBox(height: 8),
+
+                                      // Add item button (compact, centered)
+                                      Center(
+                                        child: AppButton.secondary(
+                                          onPressed: _addManualItem,
+                                          label: l10n.aiReviewAddItem,
+                                          tooltip: l10n.aiReviewAddItem,
+                                          icon: LucideIcons.plus,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Skeletonizer(
+                                    enabled: _isMatching && _validation == null,
+                                    child: MealIngredientsSummary(
+                                      ingredients: _items.isNotEmpty
+                                          ? _items
+                                              .map(
+                                                (item) =>
+                                                    MealIngredientSummaryItem(
+                                                  name: (item.matchedFood !=
+                                                              null
+                                                          ? (item.matchedFood!
+                                                                      .source ==
+                                                                  FoodItemSource
+                                                                      .base
+                                                              ? item
+                                                                  .matchedFood!
+                                                                  .getLocalizedName(
+                                                                  context,
+                                                                  languageCode:
+                                                                      baseFoodLang,
+                                                                )
+                                                              : item
+                                                                  .matchedFood!
+                                                                  .getLocalizedName(
+                                                                      context))
+                                                          : null) ??
+                                                      item.suggestion.name,
+                                                  grams: item.suggestion
+                                                      .estimatedGrams,
+                                                  kcal: item.nutrition
+                                                              .kcalRounded >
+                                                          0
+                                                      ? item
+                                                          .nutrition.kcalRounded
+                                                      : _validation == null &&
+                                                              _isMatching
+                                                          ? 150
+                                                          : 0,
+                                                ),
+                                              )
+                                              .toList(growable: false)
+                                          : const [
+                                              MealIngredientSummaryItem(
+                                                name: 'Zutat',
+                                                grams: 150,
+                                                kcal: 200,
+                                              ),
+                                              MealIngredientSummaryItem(
+                                                name: 'Zutat',
+                                                grams: 200,
+                                                kcal: 300,
+                                              ),
+                                            ],
+                                      onEdit: _isMatching
+                                          ? () {}
+                                          : () =>
+                                              setState(() => _isEditing = true),
+                                      onIngredientTap: _isMatching
+                                          ? null
+                                          : (index) {
+                                              final item = _items[index];
+                                              if (item.matchedFood != null) {
+                                                _inspectFood(index);
+                                              } else {
+                                                _replaceWithFood(index);
+                                              }
+                                            },
+                                    ),
+                                  ),
+                          ),
+
+                        // Matching diagnostics and retry controls are useful when a
+                        // person explicitly edits, but overwhelm the normal result.
+                        if (_isEditing)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  _showFeedback
-                                      ? LucideIcons.chevron_up
-                                      : LucideIcons.chevron_down,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: DesignConstants.spacingS),
-                                Text(
-                                  l10n.aiReviewFeedbackSection,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
+                                const SizedBox(
+                                    height: DesignConstants.spacingM),
+                                InkWell(
+                                  onTap: () => setState(
+                                      () => _showFeedback = !_showFeedback),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _showFeedback
+                                            ? LucideIcons.chevron_up
+                                            : LucideIcons.chevron_down,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(
+                                          width: DesignConstants.spacingS),
+                                      Text(
+                                        l10n.aiReviewFeedbackSection,
+                                        style: theme.textTheme.titleSmall
+                                            ?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+                                if (_showFeedback) ...[
+                                  const SizedBox(
+                                      height: DesignConstants.spacingS),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    children: [
+                                      _buildFeedbackChip(
+                                          theme, 'Larger portions'),
+                                      _buildFeedbackChip(
+                                          theme, 'Smaller portions'),
+                                      _buildFeedbackChip(
+                                          theme, 'Separate ingredients'),
+                                      _buildFeedbackChip(
+                                          theme, 'No sauce/dressing'),
+                                    ],
+                                  ),
+                                  const SizedBox(
+                                      height: DesignConstants.spacingS),
+                                  TextField(
+                                    controller: _feedbackController,
+                                    maxLines: 3,
+                                    decoration: InputDecoration(
+                                      hintText: l10n.aiReviewFeedbackHint,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      height: DesignConstants.spacingS),
+                                  AppButton.secondary(
+                                    onPressed: _isRetrying ||
+                                            _isMatching ||
+                                            _scanFailed
+                                        ? null
+                                        : _retryWithFeedback,
+                                    label: l10n.aiReviewRetryButton,
+                                    tooltip: l10n.aiReviewRetryButton,
+                                  ),
+                                ],
                               ],
                             ),
                           ),
-                          if (_showFeedback) ...[
-                            const SizedBox(height: DesignConstants.spacingS),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 6,
-                              children: [
-                                _buildFeedbackChip(theme, 'Larger portions'),
-                                _buildFeedbackChip(theme, 'Smaller portions'),
-                                _buildFeedbackChip(
-                                    theme, 'Separate ingredients'),
-                                _buildFeedbackChip(theme, 'No sauce/dressing'),
-                              ],
-                            ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            TextField(
-                              controller: _feedbackController,
-                              maxLines: 3,
-                              decoration: InputDecoration(
-                                hintText: l10n.aiReviewFeedbackHint,
-                                border: const OutlineInputBorder(),
-                              ),
-                            ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            AppButton.secondary(
-                              onPressed:
-                                  _isRetrying || _isMatching || _scanFailed
-                                      ? null
-                                      : _retryWithFeedback,
-                              label: l10n.aiReviewRetryButton,
-                              tooltip: l10n.aiReviewRetryButton,
-                            ),
-                          ],
-                        ],
-                      ),
+                      ],
                     ),
+                  ),
 
                   const SizedBox(height: 80), // Bottom padding for save button
                 ],
@@ -1696,7 +1760,7 @@ class _DepthToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const lime = Color(0xFFC9EF00);
+    const lime = DesignConstants.brandAccentColor;
     return GestureDetector(
       onTap: onTap,
       child: Container(

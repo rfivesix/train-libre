@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/drift_database.dart' as db;
+import '../../../generated/app_localizations.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -29,6 +30,9 @@ import 'live_workout_view_model.dart';
 import 'edit_routine_screen.dart';
 import 'manual_plan_editor_screen.dart';
 import 'manual_plan_text.dart';
+import '../../sharing/share_service.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import 'workout_log_detail_screen.dart';
 import 'widgets/manual_plan_ui.dart';
 
@@ -104,7 +108,6 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   DateTime? _weekAnchor;
   DateTime? _selectedDate;
   int _weekDirection = 0;
-  int _refresh = 0;
 
   @override
   void initState() {
@@ -117,7 +120,7 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
   DateTime _startOfWeek(DateTime date) =>
       DateTime(date.year, date.month, date.day - date.weekday + 1);
-  void _reload() => setState(() => _refresh++);
+  void _reload() => setState(() {});
 
   Future<void> _syncReminders() =>
       WorkoutPlanNotificationOrchestrator().synchronize();
@@ -132,6 +135,32 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       _selectedDate = null;
       _weekDirection = 0;
       _reload();
+    }
+  }
+
+  Future<void> _importPlan() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'plan',
+      warning: l10n.shareImportAddWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      await const ShareLinkRepository().import(payload);
+      if (!mounted) return;
+      _selectedId = null;
+      _weekAnchor = null;
+      _selectedDate = null;
+      _reload();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
     }
   }
 
@@ -213,6 +242,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         await _versions(plan);
       case 'deactivate':
         await _deactivate(plan);
+      case 'share':
+        await const ShareService().showPlanShareSheet(
+          context: context,
+          plan: plan,
+        );
     }
   }
 
@@ -227,6 +261,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   Future<void> _openRoutine(
     TrainingPlanDay day,
     BuildContext sourceContext,
+    WidgetBuilder sourceBuilder,
+    MorphSourceVisibilityCallback setHidden,
   ) async {
     final routineId = day.routine?.id;
     if (routineId == null) return;
@@ -237,7 +273,9 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
 
     await Navigator.of(context).push(
       CardMorphRoute(
-        sourceRect: CardMorphRoute.measureRect(sourceContext),
+        sourceContext: sourceContext,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: setHidden,
         builder: (_) => EditRoutineScreen(routine: routine),
       ),
     );
@@ -453,7 +491,6 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     final text = ManualPlanText(context);
     final topPadding = MediaQuery.paddingOf(context).top + kToolbarHeight;
     return FutureBuilder<List<db.TrainingPlan>>(
-      key: ValueKey(_refresh),
       future: _repository.allPlans(),
       builder: (context, snapshot) {
         final rows = snapshot.data;
@@ -464,15 +501,19 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
           extendBodyBehindAppBar: true,
           appBar: GlobalAppBar(
             title: text.get('plan'),
-            actions: hasPlans
-                ? [
-                    IconButton(
-                      tooltip: text.get('create'),
-                      onPressed: () => _createOrEdit(null),
-                      icon: const Icon(LucideIcons.plus),
-                    ),
-                  ]
-                : null,
+            actions: [
+              IconButton(
+                tooltip: AppLocalizations.of(context)!.shareImportSectionTitle,
+                onPressed: _importPlan,
+                icon: const Icon(LucideIcons.file_down),
+              ),
+              if (hasPlans)
+                IconButton(
+                  tooltip: text.get('create'),
+                  onPressed: () => _createOrEdit(null),
+                  icon: const Icon(LucideIcons.plus),
+                ),
+            ],
           ),
           body: !snapshot.hasData
               ? Padding(
@@ -667,6 +708,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                     label: text.get('history'),
                     icon: LucideIcons.rotate_ccw_clock,
                   ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'share',
+                    label: AppLocalizations.of(context)!.share,
+                    icon: LucideIcons.link,
+                  ),
                   if (plan.active)
                     PlatformAdaptivePopupMenuItem(
                       value: 'deactivate',
@@ -748,7 +794,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         (selectedDay?.status == PlannedDayStatus.completed ||
             selectedDay?.status == PlannedDayStatus.partial);
 
-    Widget buildDetailCard({VoidCallback? onStart, VoidCallback? onSkip}) =>
+    Widget buildDetailCard({
+      VoidCallback? onStart,
+      VoidCallback? onSkip,
+      VoidCallback? onViewRoutine,
+    }) =>
         PlanDayDetailCard(
           plan: plan,
           day: selectedDay!,
@@ -756,6 +806,7 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
           onSkip: onSkip,
           onViewWorkout:
               canViewWorkout ? () => _viewWorkout(workoutLogId) : null,
+          onViewRoutine: onViewRoutine,
         );
 
     return Column(children: [
@@ -809,6 +860,18 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                 key: ValueKey('${selectedDay.date}_${selectedDay.status}'),
                 builder: (context, setHidden) => Builder(
                   builder: (cardContext) => buildDetailCard(
+                    onViewRoutine: selectedDay.day.routine == null
+                        ? null
+                        : () => _openRoutine(
+                              selectedDay.day,
+                              cardContext,
+                              (_) => buildDetailCard(
+                                onStart: canStart ? () {} : null,
+                                onSkip: canStart ? () {} : null,
+                                onViewRoutine: () {},
+                              ),
+                              setHidden,
+                            ),
                     onStart: canStart
                         ? () => _start(
                               plan,

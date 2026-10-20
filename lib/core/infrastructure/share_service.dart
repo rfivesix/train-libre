@@ -52,6 +52,7 @@ class ShareService {
     // Share the image
     await SharePlus.instance.share(
       ShareParams(
+        text: 'https://trainlibre.com',
         files: [XFile(file.path, mimeType: 'image/png')],
         sharePositionOrigin: _sharePositionOrigin(),
       ),
@@ -545,7 +546,9 @@ class ShareService {
     // Trigger share
     await SharePlus.instance.share(
       ShareParams(
-        text: buffer.toString().trim(),
+        text: '${buffer.toString().trim()}\n\n'
+            '${l10n?.sharedWithTrainLibre ?? 'Shared with Train Libre'}\n'
+            'https://trainlibre.com',
         subject: '$titleDailyLog $dateStr',
         sharePositionOrigin: _sharePositionOrigin(),
       ),

@@ -16,7 +16,7 @@ class ThemeService extends ChangeNotifier {
 
   ThemeMode _themeMode = ThemeMode.dark;
   int _visualStyle = 0; // 0 = Standard (Glas), 1 = Liquid
-  bool _isAiEnabled = false;
+  bool _isAiEnabled = true;
   bool _materialColorsEnabled = false;
   bool _hapticsEnabled = true;
   bool _useColorfulMacroBadges = true;
@@ -89,7 +89,7 @@ class ThemeService extends ChangeNotifier {
 
   Future<void> _loadAiEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    _isAiEnabled = prefs.getBool(_aiEnabledKey) ?? false;
+    _isAiEnabled = prefs.getBool(_aiEnabledKey) ?? true;
     notifyListeners();
   }
 

@@ -157,6 +157,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     WidgetsBinding.instance.addObserver(this);
     _checkDbStatus();
     unawaited(_prepareCamera());
+    unawaited(AiService.instance.prewarm());
 
     _analyzeButtonAnimationController = AnimationController(
       vsync: this,
@@ -613,16 +614,19 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   /// Closes the blocking analysis screen if it is still up.
   void _dismissAnalysisScreen() {
-    if (_analysisRoute == null) return;
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.removeRoute(_analysisRoute!);
-    }
+    final route = _analysisRoute;
     _analysisRoute = null;
+    if (route != null && route.isActive) {
+      route.navigator?.removeRoute(route);
+    }
   }
 
   Future<void> _analyze() async {
     if (!_hasInput) return;
+    // The text field can keep the system keyboard alive while the analysis
+    // route is shown. Clear focus before pushing it so it stays dismissed
+    // when the scan screen closes.
+    FocusManager.instance.primaryFocus?.unfocus();
     final stopwatch = Stopwatch()..start();
     final startedAt = DateTime.now();
     final requestId = const Uuid().v4();
@@ -826,20 +830,26 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final savedCompleter = Completer<bool?>();
       int revealStartedMilliseconds = 0;
 
-      void navigateToReview({
+      Future<void> navigateToReview({
         required List<AiMealCandidateItem> items,
         AiValidationResult? validation,
         AiMealContext? mealContext,
-      }) {
+      }) async {
         if (reviewNavigated || !mounted || _analysisCancelled) return;
         reviewNavigated = true;
         _stopAiWaitingHaptics();
+
+        // Let the living cloud return to its calm circle, then hold that shape
+        // briefly before the reveal route disperses it into vapor. The startup
+        // initializer has its own contraction timing and does not use this path.
+        await controller.contractToCircle();
+        if (!mounted || _analysisCancelled) return;
+
         if (mounted) {
           setState(() => _isAnalyzing = false);
         }
 
-        // Smoothly contract cloud back into circle and pause before organic vapor dispersion
-        // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
+        // Hide the orb and its UI beneath the review route after the contraction.
         controller.isFinished.value = true;
 
         final detectedType = _detectMealTypeFromText(text);
@@ -859,6 +869,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     matchedBarcode: item.matchedBarcode,
                     stateHint: item.stateHint,
                     catalogSearchTerm: item.catalogSearchTerm,
+                    packagedProductEvidence: item.packagedProductEvidence,
                     searchTerms: item.searchTerms,
                   ),
                 )
@@ -912,10 +923,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         fastMode: fastMode && cloudProvider,
         isCancelled: () => _analysisCancelled || !mounted,
         onCandidateReady: (candidate) {
-          navigateToReview(
+          unawaited(navigateToReview(
             items: candidate.items,
             mealContext: candidate.context,
-          );
+          ));
         },
         onValidationReady: (validation, _) {
           if (!reviewNavigated || !mounted) return;
@@ -988,7 +999,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewReady,
           elapsedMilliseconds: readyMilliseconds));
       if (!reviewNavigated) {
-        navigateToReview(
+        await navigateToReview(
           items: validationOutcome.validation.candidate.items,
           validation: validationOutcome.validation,
           mealContext: validationOutcome.validation.candidate.context,
@@ -1253,7 +1264,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = Theme.of(context).scaffoldBackgroundColor;
     final primaryAccent = isDark
-        ? const Color(0xFFC9EF00)
+        ? DesignConstants.brandAccentColor
         : DesignConstants.brandAccentColorLightMode;
 
     if (!_isOffDbInitialized) {
@@ -1372,7 +1383,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   child: Text(
                                     _distanceHint!,
                                     style: const TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontFamily: 'Inter',
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12,
                                       color: Colors.white,
@@ -1649,7 +1660,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                               _images.length)
                                           : l10n.aiCaptureAnalyzeText,
                                       style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontFamily: 'Inter',
                                         fontWeight: FontWeight.w800,
                                         fontSize: 15,
                                         color: isDark
@@ -1865,7 +1876,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     Text(
                       l10n.aiCaptureTourBarcodeDemoHint,
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                         letterSpacing: 0.4,
@@ -1876,7 +1887,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     Text(
                       l10n.aiCaptureTourBarcodeDemoProduct,
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'Inter',
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                         color: isDark ? Colors.white : const Color(0xFF12120F),
@@ -1898,7 +1909,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 child: Text(
                   l10n.aiCaptureLogBarcode,
                   style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
+                    fontFamily: 'Inter',
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
                     color: isDark ? const Color(0xFF12120F) : Colors.white,
@@ -1925,7 +1936,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             const Text(
               'Kamerazugriff erforderlich',
               style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
+                fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
                 color: Colors.white,
@@ -1938,7 +1949,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 'Bitte erlaube den Kamerazugriff in den Einstellungen, um Mahlzeiten direkt live zu erfassen.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
+                  fontFamily: 'Inter',
                   fontSize: 14,
                   color: Colors.white.withValues(alpha: 0.7),
                 ),
@@ -1947,7 +1958,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC9EF00),
+                backgroundColor: DesignConstants.brandAccentColor,
                 foregroundColor: const Color(0xFF12120F),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -1994,7 +2005,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       Text(
                         l10n.aiCaptureBarcodeDetected,
                         style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                           letterSpacing: 0.4,
@@ -2005,7 +2016,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       Text(
                         label,
                         style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
                           color:
@@ -2038,7 +2049,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       : Text(
                           l10n.aiCaptureLogBarcode,
                           style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
+                            fontFamily: 'Inter',
                             fontWeight: FontWeight.w800,
                             fontSize: 14,
                             color:
@@ -2063,7 +2074,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryAccent = isDark
-        ? const Color(0xFFC9EF00)
+        ? DesignConstants.brandAccentColor
         : DesignConstants.brandAccentColorLightMode;
     return GestureDetector(
       key: key,

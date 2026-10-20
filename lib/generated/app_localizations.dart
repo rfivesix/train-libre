@@ -476,6 +476,24 @@ abstract class AppLocalizations {
   /// **'100g'**
   String get foodDetailSegment100g;
 
+  /// No description provided for @foodDetailEnergyGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy'**
+  String get foodDetailEnergyGroup;
+
+  /// No description provided for @foodDetailMacronutrientsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Macronutrients'**
+  String get foodDetailMacronutrientsGroup;
+
+  /// No description provided for @foodDetailOtherNutrientsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Other nutrients'**
+  String get foodDetailOtherNutrientsGroup;
+
   /// No description provided for @sugar.
   ///
   /// In en, this message translates to:
@@ -986,6 +1004,18 @@ abstract class AppLocalizations {
   /// **'Rest'**
   String get restTimerLabel;
 
+  /// No description provided for @pauseTimerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest timer'**
+  String get pauseTimerLabel;
+
+  /// No description provided for @timerOffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get timerOffLabel;
+
   /// No description provided for @skipButton.
   ///
   /// In en, this message translates to:
@@ -1166,6 +1196,72 @@ abstract class AppLocalizations {
   /// **'Import your training history from a CSV or Excel export file.'**
   String get workoutImportDescription;
 
+  /// No description provided for @workoutImportPreviewSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{workouts} workouts and {sets} sets are ready. {duplicates} existing workouts will be skipped.'**
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates);
+
+  /// No description provided for @workoutImportHevyInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Hevy export detected. Export from Profile > Settings > Export & Import Data > Export Data > Export Workouts.'**
+  String get workoutImportHevyInstructions;
+
+  /// No description provided for @workoutImportStrongInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong export detected. In Settings, choose Export Strong Data on iOS or Export Data on Android.'**
+  String get workoutImportStrongInstructions;
+
+  /// No description provided for @workoutImportGenericInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic CSV or Excel file detected. Confirm the weight unit before importing.'**
+  String get workoutImportGenericInstructions;
+
+  /// No description provided for @workoutImportPreviewInvalidRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rows with missing or invalid dates will be skipped.'**
+  String workoutImportPreviewInvalidRows(int count);
+
+  /// No description provided for @onboardingWorkoutImportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Already tracking workouts elsewhere? Import your history in the next step or later from Settings > Data & Backup.'**
+  String get onboardingWorkoutImportHint;
+
+  /// No description provided for @onboardingWorkoutImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring your workout history with you?'**
+  String get onboardingWorkoutImportTitle;
+
+  /// No description provided for @onboardingWorkoutImportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your training history from Hevy, Strong, or a CSV file. You can review a preview before anything is added.'**
+  String get onboardingWorkoutImportDescription;
+
+  /// No description provided for @onboardingWorkoutImportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose export file'**
+  String get onboardingWorkoutImportButton;
+
+  /// No description provided for @onboardingWorkoutImportLater.
+  ///
+  /// In en, this message translates to:
+  /// **'I’ll do this later'**
+  String get onboardingWorkoutImportLater;
+
+  /// No description provided for @onboardingWorkoutImportPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your export is processed on this device. If anonymous analytics is enabled, we record whether you start, skip, or complete an import, never workout details.'**
+  String get onboardingWorkoutImportPrivacy;
+
   /// No description provided for @workoutImportButton.
   ///
   /// In en, this message translates to:
@@ -1211,7 +1307,7 @@ abstract class AppLocalizations {
   /// No description provided for @excelExportButton.
   ///
   /// In en, this message translates to:
-  /// **'Excel Export (.xlsx)'**
+  /// **'Complete Data Export (.xlsx)'**
   String get excelExportButton;
 
   /// No description provided for @exportWorkoutHistory.
@@ -1279,6 +1375,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'180D'**
   String get filter180DaysShort;
+
+  /// No description provided for @filter1DayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'1D'**
+  String get filter1DayShort;
 
   /// No description provided for @filter7DaysShort.
   ///
@@ -1405,6 +1507,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share as text'**
   String get shareAsText;
+
+  /// No description provided for @shareWebLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Share web link'**
+  String get shareWebLink;
+
+  /// No description provided for @shareFormattedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as formatted text'**
+  String get shareFormattedText;
+
+  /// No description provided for @sharePortableJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as JSON / data'**
+  String get sharePortableJson;
+
+  /// No description provided for @shareCopyJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy JSON'**
+  String get shareCopyJson;
+
+  /// No description provided for @shareJsonCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'JSON copied to clipboard'**
+  String get shareJsonCopied;
+
+  /// No description provided for @shareJsonFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Share JSON file'**
+  String get shareJsonFile;
+
+  /// No description provided for @shareImportFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import shared JSON file'**
+  String get shareImportFile;
+
+  /// No description provided for @shareImportSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import shared content'**
+  String get shareImportSectionTitle;
+
+  /// No description provided for @shareImportSectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import routines, training plans, recipes, or workouts from a JSON file, or paste JSON text such as an AI response. Review the content before importing.'**
+  String get shareImportSectionDescription;
+
+  /// No description provided for @shareImportPasteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste JSON text'**
+  String get shareImportPasteButton;
+
+  /// No description provided for @shareImportPasteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import JSON text'**
+  String get shareImportPasteTitle;
+
+  /// No description provided for @shareImportPasteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the complete Train Libre JSON content here. You can review it before saving.'**
+  String get shareImportPasteDescription;
+
+  /// No description provided for @shareImportPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste JSON here'**
+  String get shareImportPasteHint;
+
+  /// No description provided for @shareImportReplaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The currently open content will be completely replaced. Completed workouts and older plan revisions will remain intact.'**
+  String get shareImportReplaceWarning;
+
+  /// No description provided for @shareImportAddWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This content will be imported as a new item. Existing routines, training plans, recipes, and workouts will remain unchanged.'**
+  String get shareImportAddWarning;
+
+  /// No description provided for @shareImportPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Import shared item'**
+  String get shareImportPreview;
+
+  /// No description provided for @shareImportConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Import to Train Libre'**
+  String get shareImportConfirm;
+
+  /// No description provided for @shareImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported successfully'**
+  String get shareImportSuccess;
+
+  /// No description provided for @shareImportInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This shared item could not be imported.'**
+  String get shareImportInvalid;
+
+  /// No description provided for @shareImportRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get shareImportRetry;
+
+  /// No description provided for @sharePlanWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly plan'**
+  String get sharePlanWeekly;
+
+  /// No description provided for @sharePlanSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sequence'**
+  String get sharePlanSequence;
+
+  /// No description provided for @shareRestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day'**
+  String get shareRestDay;
+
+  /// No description provided for @shareDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get shareDay;
+
+  /// No description provided for @shareDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get shareDays;
+
+  /// No description provided for @sharePortions.
+  ///
+  /// In en, this message translates to:
+  /// **'Portions'**
+  String get sharePortions;
+
+  /// No description provided for @shareIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get shareIngredients;
+
+  /// No description provided for @shareRestSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest (seconds)'**
+  String get shareRestSeconds;
+
+  /// No description provided for @shareTargetMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Target muscles'**
+  String get shareTargetMuscles;
+
+  /// No description provided for @shareTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get shareTotal;
 
   /// No description provided for @sharedFromTrainLibre.
   ///
@@ -2075,7 +2357,7 @@ abstract class AppLocalizations {
   /// No description provided for @amount_in_milliliters.
   ///
   /// In en, this message translates to:
-  /// **'Amount in milliliters'**
+  /// **'Amount'**
   String get amount_in_milliliters;
 
   /// No description provided for @amount_in_grams.
@@ -2179,6 +2461,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dropset'**
   String get set_type_dropset;
+
+  /// No description provided for @set_type_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Info & Explanations'**
+  String get set_type_info;
 
   /// No description provided for @set_type_normal_help.
   ///
@@ -3251,7 +3539,7 @@ abstract class AppLocalizations {
   /// No description provided for @unitsSection.
   ///
   /// In en, this message translates to:
-  /// **'units'**
+  /// **'Units'**
   String get unitsSection;
 
   /// No description provided for @weightUnit.
@@ -3317,7 +3605,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataManagementBackupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Back up or restore all your app data. Ideal for changing devices.'**
+  /// **'Back up or restore your Train Libre records and preview images. Original photos stay on this device.'**
   String get dataManagementBackupDescription;
 
   /// No description provided for @exportEncrypted.
@@ -3347,13 +3635,13 @@ abstract class AppLocalizations {
   /// No description provided for @csvExportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Data Export (CSV)'**
+  /// **'Data Export'**
   String get csvExportTitle;
 
   /// No description provided for @csvExportDescription.
   ///
   /// In en, this message translates to:
-  /// **'Export parts of your data as a CSV file for analysis in other programs.'**
+  /// **'Export selected records as CSV files, or export all personal tabular data in one Excel workbook. Use a backup to restore data.'**
   String get csvExportDescription;
 
   /// No description provided for @snackbarSharingNutrition.
@@ -3671,7 +3959,7 @@ abstract class AppLocalizations {
   /// No description provided for @attributionText.
   ///
   /// In en, this message translates to:
-  /// **'This app uses data from external sources:\n\n● Exercise data from OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), licensed under CC BY-SA 4.0, derived in part from the wger project (wger.de).\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).'**
+  /// **'This app uses data from external sources:\n\n● Exercise data from OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), licensed under CC BY-SA 4.0, derived in part from the wger project (wger.de).\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).\n\n● Base-food nutrient data from the Bundeslebensmittelschlüssel (BLS) 4.0, published by the Max Rubner-Institut, DOI 10.25826/Data20251217-134202-0, licensed under CC BY 4.0. Train Libre adds translations, search aliases, and categories.'**
   String get attributionText;
 
   /// No description provided for @errorRoutineNotFound.
@@ -4147,6 +4435,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Amount'**
   String get mealIngredientAmountLabel;
+
+  /// No description provided for @mealTotalAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total recipe amount'**
+  String get mealTotalAmountLabel;
+
+  /// No description provided for @mealWeightBasisLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get mealWeightBasisLabel;
+
+  /// No description provided for @mealWeightBasisRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw'**
+  String get mealWeightBasisRaw;
+
+  /// No description provided for @mealWeightBasisCooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooked'**
+  String get mealWeightBasisCooked;
+
+  /// No description provided for @mealPreviewBasisLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust preview by'**
+  String get mealPreviewBasisLabel;
+
+  /// No description provided for @mealTotalNutrientsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'total'**
+  String get mealTotalNutrientsLabel;
+
+  /// No description provided for @mealTotalAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full recipe: {grams} g. Ingredients scale proportionally.'**
+  String mealTotalAmountHint(int grams);
+
+  /// No description provided for @mealServingCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Servings in recipe'**
+  String get mealServingCountLabel;
+
+  /// No description provided for @mealServingCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How many servings the full recipe makes.'**
+  String get mealServingCountHint;
+
+  /// No description provided for @mealCookedWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished weight after cooking'**
+  String get mealCookedWeightLabel;
+
+  /// No description provided for @mealCookedWeightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: weigh the finished recipe to scale gram portions accurately.'**
+  String get mealCookedWeightHint;
+
+  /// No description provided for @mealServingsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} servings'**
+  String mealServingsSummary(String count);
+
+  /// No description provided for @mealCookedWeightSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} g cooked'**
+  String mealCookedWeightSummary(String weight);
+
+  /// No description provided for @mealPortionAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Servings eaten'**
+  String get mealPortionAmountLabel;
+
+  /// No description provided for @mealDecreasePortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease by 0.5 serving'**
+  String get mealDecreasePortion;
+
+  /// No description provided for @mealIncreasePortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase by 0.5 serving'**
+  String get mealIncreasePortion;
+
+  /// No description provided for @mealPortionAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved recipe: {count} servings'**
+  String mealPortionAmountHint(int count);
+
+  /// No description provided for @mealDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate recipe'**
+  String get mealDuplicate;
+
+  /// No description provided for @mealCopySuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'(copy)'**
+  String get mealCopySuffix;
 
   /// No description provided for @mealDeleteConfirmTitle.
   ///
@@ -5216,6 +5618,24 @@ abstract class AppLocalizations {
   /// **'Allows the use of AI for meal recognition. Disabling this hides all AI buttons in the app.'**
   String get aiEnableSubtitle;
 
+  /// No description provided for @aiStatusAndFeaturesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Status & Features'**
+  String get aiStatusAndFeaturesSectionTitle;
+
+  /// No description provided for @aiProviderSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model & Provider'**
+  String get aiProviderSectionTitle;
+
+  /// No description provided for @aiAdvancedOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Options'**
+  String get aiAdvancedOptionsTitle;
+
   /// No description provided for @aiCustomInstructionsTitle.
   ///
   /// In en, this message translates to:
@@ -5795,6 +6215,66 @@ abstract class AppLocalizations {
   /// **'Last session'**
   String get recoveryDetailLastSession;
 
+  /// No description provided for @recoveryNoRecentLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded significant load'**
+  String get recoveryNoRecentLoad;
+
+  /// No description provided for @recoveryDetailEquivalentSets.
+  ///
+  /// In en, this message translates to:
+  /// **'equivalent sets'**
+  String get recoveryDetailEquivalentSets;
+
+  /// No description provided for @recoveryDataConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Data confidence'**
+  String get recoveryDataConfidence;
+
+  /// No description provided for @recoveryDetailEligibleSets.
+  ///
+  /// In en, this message translates to:
+  /// **'included sets'**
+  String get recoveryDetailEligibleSets;
+
+  /// No description provided for @recoveryDetailResidualLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'residual load'**
+  String get recoveryDetailResidualLoad;
+
+  /// No description provided for @recoveryDetailDirectLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'direct load'**
+  String get recoveryDetailDirectLoad;
+
+  /// No description provided for @recoveryDetailIndirectLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'indirect load'**
+  String get recoveryDetailIndirectLoad;
+
+  /// No description provided for @recoveryDetailAverageRir.
+  ///
+  /// In en, this message translates to:
+  /// **'average RIR'**
+  String get recoveryDetailAverageRir;
+
+  /// No description provided for @recoveryDetailAverageRpe.
+  ///
+  /// In en, this message translates to:
+  /// **'average RPE'**
+  String get recoveryDetailAverageRpe;
+
+  /// No description provided for @recoveryMovementPatterns.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement patterns'**
+  String get recoveryMovementPatterns;
+
   /// No description provided for @recoveryDetailForecast.
   ///
   /// In en, this message translates to:
@@ -5950,6 +6430,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Body'**
   String get statisticsSectionBody;
+
+  /// No description provided for @statisticsEditCardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Statistics'**
+  String get statisticsEditCardsTitle;
+
+  /// No description provided for @statisticsPinnedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get statisticsPinnedTitle;
+
+  /// No description provided for @statisticsAddCardsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More Statistics'**
+  String get statisticsAddCardsTitle;
+
+  /// No description provided for @statisticsMicronutrientsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Micronutrients'**
+  String get statisticsMicronutrientsTitle;
+
+  /// No description provided for @statisticsMicronutrientsCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS foods logged in the diary only'**
+  String get statisticsMicronutrientsCoverage;
+
+  /// No description provided for @statisticsMicronutrientsPreviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamins, minerals and other nutrients'**
+  String get statisticsMicronutrientsPreviewSubtitle;
+
+  /// No description provided for @statisticsMicronutrientsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No BLS foods logged yet'**
+  String get statisticsMicronutrientsNoData;
+
+  /// No description provided for @statisticsAveragePerLoggedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per logged day'**
+  String get statisticsAveragePerLoggedDay;
+
+  /// No description provided for @statisticsMicronutrientsLoggedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'logged days'**
+  String get statisticsMicronutrientsLoggedDays;
+
+  /// No description provided for @statisticsMicronutrientsNutrientCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Value recorded on {count} days'**
+  String statisticsMicronutrientsNutrientCoverage(int count);
+
+  /// No description provided for @diaryMicronutrientsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View this day\'s micronutrients'**
+  String get diaryMicronutrientsAction;
+
+  /// No description provided for @statisticsWaterDailyAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily average'**
+  String get statisticsWaterDailyAverage;
+
+  /// No description provided for @statisticsWaterNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No drinks logged yet'**
+  String get statisticsWaterNoData;
+
+  /// No description provided for @statisticsWaterGoalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of daily goal'**
+  String statisticsWaterGoalProgress(int percent);
+
+  /// No description provided for @statisticsActivityCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get statisticsActivityCategory;
+
+  /// No description provided for @statisticsPinnedEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add statistics below to show them here.'**
+  String get statisticsPinnedEmptyHint;
+
+  /// No description provided for @statisticsAllDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All Data'**
+  String get statisticsAllDataTitle;
+
+  /// No description provided for @statisticsAllDataAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show All Data'**
+  String get statisticsAllDataAction;
+
+  /// No description provided for @statisticsRemoveCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove statistic'**
+  String get statisticsRemoveCard;
 
   /// No description provided for @statisticsEnableStepTrackingHint.
   ///
@@ -8688,6 +9282,60 @@ abstract class AppLocalizations {
   /// **'Health & Tracking'**
   String get settingsSectionHealthTracking;
 
+  /// No description provided for @healthSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get healthSettingsTitle;
+
+  /// No description provided for @onboardingHealthSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage steps, sleep, pulse, and Apple Health or Health Connect'**
+  String get onboardingHealthSettingsDescription;
+
+  /// No description provided for @healthSettingsStepActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Step tracking is on'**
+  String get healthSettingsStepActive;
+
+  /// No description provided for @healthSettingsStepAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Step data is available'**
+  String get healthSettingsStepAvailable;
+
+  /// No description provided for @healthSettingsStepUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Step data is unavailable'**
+  String get healthSettingsStepUnavailable;
+
+  /// No description provided for @healthSettingsSyncSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync steps now'**
+  String get healthSettingsSyncSteps;
+
+  /// No description provided for @healthSettingsSyncExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export now'**
+  String get healthSettingsSyncExport;
+
+  /// No description provided for @healthSettingsStepsSyncResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {count} step segments'**
+  String healthSettingsStepsSyncResult(int count);
+
+  /// No description provided for @healthSettingsSleepSyncResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {count} sleep sessions'**
+  String healthSettingsSleepSyncResult(int count);
+
   /// No description provided for @settingsStepsSubtitle.
   ///
   /// In en, this message translates to:
@@ -10201,6 +10849,60 @@ abstract class AppLocalizations {
   /// **'Enter notes or hints...'**
   String get exerciseNoteHint;
 
+  /// No description provided for @editExerciseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add/edit note'**
+  String get editExerciseNotes;
+
+  /// No description provided for @workoutNoteAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note here...'**
+  String get workoutNoteAddHint;
+
+  /// No description provided for @noteTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note type'**
+  String get noteTypeTitle;
+
+  /// No description provided for @pinnedExerciseNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned Exercise Note'**
+  String get pinnedExerciseNoteTitle;
+
+  /// No description provided for @pinnedExerciseNoteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefilled every time you log this exercise.'**
+  String get pinnedExerciseNoteDescription;
+
+  /// No description provided for @pinnedRoutineNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned Routine Note'**
+  String get pinnedRoutineNoteTitle;
+
+  /// No description provided for @pinnedRoutineNoteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefilled only for this exercise in this routine.'**
+  String get pinnedRoutineNoteDescription;
+
+  /// No description provided for @workoutExerciseNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout Note'**
+  String get workoutExerciseNoteTitle;
+
+  /// No description provided for @workoutExerciseNoteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies only to this exercise in this workout.'**
+  String get workoutExerciseNoteDescription;
+
   /// No description provided for @deleteNoteTooltip.
   ///
   /// In en, this message translates to:
@@ -10606,7 +11308,7 @@ abstract class AppLocalizations {
   /// No description provided for @offDownloadBody.
   ///
   /// In en, this message translates to:
-  /// **'To access full offline product search, barcode scanning, and AI features, please initialize the local catalogs. You will download the latest database releases from GitHub.'**
+  /// **'To use offline base foods, packaged-product search, barcode scanning, exercise lookup, and AI meal matching, download the local catalogs. The BLS 4.0 ingredient catalog is about 25.6 MB; food-product and exercise catalogs are separate downloads.'**
   String get offDownloadBody;
 
   /// No description provided for @offDownloadConfirm.
@@ -11743,6 +12445,48 @@ abstract class AppLocalizations {
   /// **'Sides'**
   String get catalogFilterLaterality;
 
+  /// No description provided for @catalogFilterAlreadyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Previously performed'**
+  String get catalogFilterAlreadyDone;
+
+  /// No description provided for @catalogTrainedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained'**
+  String get catalogTrainedBadge;
+
+  /// No description provided for @catalogLastTrainedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained today'**
+  String get catalogLastTrainedToday;
+
+  /// No description provided for @catalogLastTrainedYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained yesterday'**
+  String get catalogLastTrainedYesterday;
+
+  /// No description provided for @catalogLastTrainedDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String catalogLastTrainedDaysAgo(int days);
+
+  /// No description provided for @catalogLastTrainedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Trained on {date}'**
+  String catalogLastTrainedOn(String date);
+
+  /// No description provided for @noTrainedExercisesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No previously performed exercises found.'**
+  String get noTrainedExercisesFound;
+
   /// No description provided for @exerciseDifficultyBeginner.
   ///
   /// In en, this message translates to:
@@ -12306,6 +13050,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set progression'**
   String get progressionPolicy;
+
+  /// No description provided for @progressionToggleEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic progression on'**
+  String get progressionToggleEnabled;
+
+  /// No description provided for @progressionToggleDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic progression off'**
+  String get progressionToggleDisabled;
+
+  /// No description provided for @workoutKeyboardInsertHyphen.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert minus sign'**
+  String get workoutKeyboardInsertHyphen;
+
+  /// No description provided for @workoutKeyboardNextField.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to next field'**
+  String get workoutKeyboardNextField;
+
+  /// No description provided for @workoutKeyboardClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close keyboard'**
+  String get workoutKeyboardClose;
 
   /// No description provided for @progressionSetOutcome.
   ///
@@ -14708,6 +15482,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Call'**
   String get aiScanLogsCall;
+
+  /// No description provided for @blsModificationsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre additions: translations, search aliases, and categories.'**
+  String get blsModificationsDetail;
+
+  /// No description provided for @nutritionCatalogBls.
+  ///
+  /// In en, this message translates to:
+  /// **'Base food catalog (BLS)'**
+  String get nutritionCatalogBls;
+
+  /// No description provided for @blsCatalogManagementDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Download and update the offline BLS 4.0 ingredient catalog (25.6 MB).'**
+  String get blsCatalogManagementDescription;
+
+  /// No description provided for @blsCatalogRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for catalog updates'**
+  String get blsCatalogRefresh;
+
+  /// No description provided for @blsCatalogUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS catalog updated.'**
+  String get blsCatalogUpdated;
+
+  /// No description provided for @blsCatalogCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS catalog is up to date.'**
+  String get blsCatalogCurrent;
+
+  /// No description provided for @blsCatalogRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update BLS catalog. Try again later.'**
+  String get blsCatalogRefreshFailed;
+
+  /// No description provided for @blsCompleteNutrientProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete nutrient profile (BLS)'**
+  String get blsCompleteNutrientProfile;
+
+  /// No description provided for @blsNutrientCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} nutrient values per 100 g'**
+  String blsNutrientCount(int count);
+
+  /// No description provided for @blsNutrientsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrient details are unavailable until the BLS catalog is installed.'**
+  String get blsNutrientsUnavailable;
+
+  /// No description provided for @blsNutrientDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get blsNutrientDetails;
+
+  /// No description provided for @blsNutrientOrigin.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement or calculation'**
+  String get blsNutrientOrigin;
+
+  /// No description provided for @blsNutrientReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get blsNutrientReference;
+
+  /// No description provided for @blsFoodSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source and license'**
+  String get blsFoodSourceLabel;
+
+  /// No description provided for @blsFoodSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundeslebensmittelschlüssel (BLS) 4.0 — Max Rubner-Institut'**
+  String get blsFoodSource;
+
+  /// No description provided for @blsFoodLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'BLS data: CC BY 4.0'**
+  String get blsFoodLicense;
+
+  /// No description provided for @blsFoodModifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre translations and categories'**
+  String get blsFoodModifications;
+
+  /// No description provided for @developerAiOverlayDemoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Overlay'**
+  String get developerAiOverlayDemoTitle;
+
+  /// No description provided for @developerAiOverlayDemoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrollable UI preview with sample cards'**
+  String get developerAiOverlayDemoSubtitle;
+
+  /// No description provided for @aiOverlayDemoGlobalEnabledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable AI overlay throughout the app'**
+  String get aiOverlayDemoGlobalEnabledTitle;
+
+  /// No description provided for @aiOverlayDemoGlobalEnabledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the demo cloud on every screen. Chats are not saved.'**
+  String get aiOverlayDemoGlobalEnabledSubtitle;
+
+  /// No description provided for @aiOverlayDemoScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Overlay UI Demo'**
+  String get aiOverlayDemoScreenTitle;
+
+  /// No description provided for @aiOverlayDemoIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A preview of the assistant'**
+  String get aiOverlayDemoIntroTitle;
+
+  /// No description provided for @aiOverlayDemoIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll through sample content styled like the app and try the access preview.'**
+  String get aiOverlayDemoIntroBody;
+
+  /// No description provided for @aiOverlayDemoPreviewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample data only. No AI calls and no access to real workout or nutrition data.'**
+  String get aiOverlayDemoPreviewNote;
+
+  /// No description provided for @aiOverlayDemoTodaySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Your day'**
+  String get aiOverlayDemoTodaySection;
+
+  /// No description provided for @aiOverlayDemoNutritionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition'**
+  String get aiOverlayDemoNutritionSection;
+
+  /// No description provided for @aiOverlayDemoActivitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get aiOverlayDemoActivitySection;
+
+  /// No description provided for @aiOverlayDemoWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength training'**
+  String get aiOverlayDemoWorkoutTitle;
+
+  /// No description provided for @aiOverlayDemoWorkoutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper Body A · 2 hours ago'**
+  String get aiOverlayDemoWorkoutSubtitle;
+
+  /// No description provided for @aiOverlayDemoWorkoutMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'47 min · 6 exercises · 12 sets'**
+  String get aiOverlayDemoWorkoutMeta;
+
+  /// No description provided for @aiOverlayDemoExerciseOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Bench press'**
+  String get aiOverlayDemoExerciseOne;
+
+  /// No description provided for @aiOverlayDemoExerciseTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Seated cable row'**
+  String get aiOverlayDemoExerciseTwo;
+
+  /// No description provided for @aiOverlayDemoStepsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'7,842 of 10,000 steps'**
+  String get aiOverlayDemoStepsValue;
+
+  /// No description provided for @aiOverlayDemoWaterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'1.6 of 2.5 L'**
+  String get aiOverlayDemoWaterValue;
+
+  /// No description provided for @aiOverlayDemoAssistantSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Action with approval'**
+  String get aiOverlayDemoAssistantSection;
+
+  /// No description provided for @aiOverlayNewChat.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get aiOverlayNewChat;
+
+  /// No description provided for @aiOverlayChatHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat history'**
+  String get aiOverlayChatHistory;
+
+  /// No description provided for @aiOverlayDemoAssistantMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You trained three times this week. Would you like me to compare your training load?'**
+  String get aiOverlayDemoAssistantMessage;
+
+  /// No description provided for @aiOverlayDemoRequestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Data needed'**
+  String get aiOverlayDemoRequestLabel;
+
+  /// No description provided for @aiOverlayDemoScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts from the past 7 days'**
+  String get aiOverlayDemoScope;
+
+  /// No description provided for @aiOverlayDemoScopeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout duration and volume'**
+  String get aiOverlayDemoScopeDetails;
+
+  /// No description provided for @aiOverlayDemoPurpose.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose: compare training load'**
+  String get aiOverlayDemoPurpose;
+
+  /// No description provided for @aiOverlayDemoDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get aiOverlayDemoDeny;
+
+  /// No description provided for @aiOverlayDemoAllowOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow once'**
+  String get aiOverlayDemoAllowOnce;
+
+  /// No description provided for @aiOverlayDemoApprovedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval simulated in this demo.'**
+  String get aiOverlayDemoApprovedFeedback;
+
+  /// No description provided for @aiOverlayDemoDeniedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Request declined in this demo.'**
+  String get aiOverlayDemoDeniedFeedback;
+
+  /// No description provided for @aiOverlayDemoCloudHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag horizontally to move the cloud. Its position is saved.'**
+  String get aiOverlayDemoCloudHint;
+
+  /// No description provided for @aiAssistantAskModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask {model}'**
+  String aiAssistantAskModelHint(String model);
 }
 
 class _AppLocalizationsDelegate

@@ -200,6 +200,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get foodDetailSegment100g => '100g';
 
   @override
+  String get foodDetailEnergyGroup => 'エネルギー';
+
+  @override
+  String get foodDetailMacronutrientsGroup => '主要栄養素';
+
+  @override
+  String get foodDetailOtherNutrientsGroup => 'その他の栄養素';
+
+  @override
   String get sugar => '砂糖';
 
   @override
@@ -472,6 +481,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get restTimerLabel => '休む';
 
   @override
+  String get pauseTimerLabel => '休憩タイマー';
+
+  @override
+  String get timerOffLabel => 'オフ';
+
+  @override
   String get skipButton => 'スキップ';
 
   @override
@@ -578,6 +593,49 @@ class AppLocalizationsJa extends AppLocalizations {
       'CSV または Excel エクスポート ファイルからトレーニング履歴をインポートします。';
 
   @override
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates) {
+    return '$workouts 件のワークアウト、$sets セットを読み込みます。既存の $duplicates 件はスキップします。';
+  }
+
+  @override
+  String get workoutImportHevyInstructions =>
+      'Hevy のエクスポートを検出しました。プロフィール > 設定 > Export & Import Data > Export Data > Export Workouts から書き出してください。';
+
+  @override
+  String get workoutImportStrongInstructions =>
+      'Strong のエクスポートを検出しました。設定から iOS は Export Strong Data、Android は Export Data を選択してください。';
+
+  @override
+  String get workoutImportGenericInstructions =>
+      'CSV または Excel ファイルを検出しました。インポート前に重量単位を確認してください。';
+
+  @override
+  String workoutImportPreviewInvalidRows(int count) {
+    return '日付がない、または無効な $count 行をスキップします。';
+  }
+
+  @override
+  String get onboardingWorkoutImportHint =>
+      '別のアプリで記録した履歴は、次のステップまたは後から設定 > データとバックアップでインポートできます。';
+
+  @override
+  String get onboardingWorkoutImportTitle => 'ワークアウト履歴を引き継ぎますか？';
+
+  @override
+  String get onboardingWorkoutImportDescription =>
+      'Hevy、Strong、または CSV ファイルから履歴をインポートできます。追加する前にプレビューを確認できます。';
+
+  @override
+  String get onboardingWorkoutImportButton => 'エクスポートファイルを選択';
+
+  @override
+  String get onboardingWorkoutImportLater => '後で行う';
+
+  @override
+  String get onboardingWorkoutImportPrivacy =>
+      'ファイルはこの端末上で処理されます。匿名分析が有効な場合、インポートの開始・スキップ・完了のみを記録し、ワークアウトの詳細は送信しません。';
+
+  @override
   String get workoutImportButton => 'ワークアウトデータのインポート';
 
   @override
@@ -601,7 +659,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get unitImperialLabel => 'インペリアル (ポンド)';
 
   @override
-  String get excelExportButton => 'Excel エクスポート (.xlsx)';
+  String get excelExportButton => 'すべてのデータをエクスポート (.xlsx)';
 
   @override
   String get exportWorkoutHistory => 'トレーニング履歴';
@@ -635,6 +693,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get filter180DaysShort => '180日';
+
+  @override
+  String get filter1DayShort => '1日';
 
   @override
   String get filter7DaysShort => '7日';
@@ -698,6 +759,100 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get shareAsText => 'テキストとして共有する';
+
+  @override
+  String get shareWebLink => 'ウェブリンクを共有';
+
+  @override
+  String get shareFormattedText => '整形済みテキストで共有';
+
+  @override
+  String get sharePortableJson => 'JSON・データとして書き出す';
+
+  @override
+  String get shareCopyJson => 'JSONをコピー';
+
+  @override
+  String get shareJsonCopied => 'JSONをクリップボードにコピーしました';
+
+  @override
+  String get shareJsonFile => 'JSONファイルを共有';
+
+  @override
+  String get shareImportFile => '共有JSONファイルを読み込む';
+
+  @override
+  String get shareImportSectionTitle => '共有コンテンツを読み込む';
+
+  @override
+  String get shareImportSectionDescription =>
+      'JSONファイルからルーティン、トレーニングプラン、レシピ、ワークアウトを読み込むか、AIの回答などからJSONテキストを貼り付けます。読み込み前に内容を確認できます。';
+
+  @override
+  String get shareImportPasteButton => 'JSONテキストを貼り付け';
+
+  @override
+  String get shareImportPasteTitle => 'JSONテキストを読み込む';
+
+  @override
+  String get shareImportPasteDescription =>
+      'Train LibreのJSON全体をここに貼り付けてください。保存前に内容を確認できます。';
+
+  @override
+  String get shareImportPasteHint => 'ここにJSONを貼り付け';
+
+  @override
+  String get shareImportReplaceWarning =>
+      '現在開いている内容はすべて置き換えられます。完了済みのワークアウトと過去のプラン履歴は保持されます。';
+
+  @override
+  String get shareImportAddWarning =>
+      'この内容は新しい項目として読み込まれます。既存のルーティン、プラン、レシピ、ワークアウトは変更されません。';
+
+  @override
+  String get shareImportPreview => '共有アイテムを読み込む';
+
+  @override
+  String get shareImportConfirm => 'Train Libreに読み込む';
+
+  @override
+  String get shareImportSuccess => '読み込みが完了しました';
+
+  @override
+  String get shareImportInvalid => 'この共有アイテムを読み込めませんでした。';
+
+  @override
+  String get shareImportRetry => '再試行';
+
+  @override
+  String get sharePlanWeekly => '週間プラン';
+
+  @override
+  String get sharePlanSequence => 'トレーニング順序';
+
+  @override
+  String get shareRestDay => '休息日';
+
+  @override
+  String get shareDay => '日目';
+
+  @override
+  String get shareDays => '日間';
+
+  @override
+  String get sharePortions => '人数分';
+
+  @override
+  String get shareIngredients => '材料';
+
+  @override
+  String get shareRestSeconds => '休憩（秒）';
+
+  @override
+  String get shareTargetMuscles => '対象の筋肉';
+
+  @override
+  String get shareTotal => '合計';
 
   @override
   String get sharedFromTrainLibre => 'トレイン・リブレから共有';
@@ -1164,7 +1319,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chart_no_data_for_period => 'この期間のチャート データはありません';
 
   @override
-  String get amount_in_milliliters => 'ミリリットル単位の量';
+  String get amount_in_milliliters => '量';
 
   @override
   String get amount_in_grams => 'グラム単位の量';
@@ -1216,6 +1371,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get set_type_dropset => 'ドロップセット';
+
+  @override
+  String get set_type_info => '情報と説明';
 
   @override
   String get set_type_normal_help =>
@@ -1809,7 +1967,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get dataManagementBackupDescription =>
-      'すべてのアプリデータをバックアップまたは復元します。機種変更に最適です。';
+      'Train Libreの記録とプレビュー画像をバックアップまたは復元します。元の写真はこの端末に残ります。';
 
   @override
   String get exportEncrypted => '暗号化してエクスポート';
@@ -1824,11 +1982,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exportFailed => 'エクスポートに失敗しました。';
 
   @override
-  String get csvExportTitle => 'データエクスポート(CSV)';
+  String get csvExportTitle => 'データエクスポート';
 
   @override
   String get csvExportDescription =>
-      '他のプログラムで分析できるように、データの一部を CSV ファイルとしてエクスポートします。';
+      '選択したデータをCSVファイルで、または個人の表形式データすべてを1つのExcelブックでエクスポートできます。データの復元にはバックアップを使用してください。';
 
   @override
   String get snackbarSharingNutrition => '栄養日記を共有...';
@@ -1995,7 +2153,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'このアプリは外部ソースのデータを使用しています:\n\n● OpenExerciseDB (github.com/rfivesix/OpenExerciseDB) の運動データ。CC BY-SA 4.0 ライセンス。一部は wger プロジェクト (wger.de) に由来します。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) のもとで利用可能です。';
+      'このアプリは外部ソースのデータを使用しています:\n\n● OpenExerciseDB (github.com/rfivesix/OpenExerciseDB) の運動データ。CC BY-SA 4.0 ライセンス。一部は wger プロジェクト (wger.de) に由来します。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) のもとで利用可能です。\n\n● Max Rubner-Institut が公開する Bundeslebensmittelschlüssel（BLS）4.0 の基本食品栄養データ。DOI 10.25826/Data20251217-134202-0、CC BY 4.0 ライセンス。Train Libre は翻訳、検索エイリアス、カテゴリを追加しています。';
 
   @override
   String get errorRoutineNotFound => 'ルーチンが見つかりません';
@@ -2236,6 +2394,71 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mealIngredientAmountLabel => '額';
+
+  @override
+  String get mealTotalAmountLabel => 'レシピ全体の量';
+
+  @override
+  String get mealWeightBasisLabel => '状態';
+
+  @override
+  String get mealWeightBasisRaw => '調理前';
+
+  @override
+  String get mealWeightBasisCooked => '調理後';
+
+  @override
+  String get mealPreviewBasisLabel => 'プレビューの基準';
+
+  @override
+  String get mealTotalNutrientsLabel => '合計';
+
+  @override
+  String mealTotalAmountHint(int grams) {
+    return 'レシピ全体: $grams g。材料は比例して調整されます。';
+  }
+
+  @override
+  String get mealServingCountLabel => 'レシピの分量数';
+
+  @override
+  String get mealServingCountHint => 'レシピ全体で何人分できるかを入力します。';
+
+  @override
+  String get mealCookedWeightLabel => '調理後の完成重量';
+
+  @override
+  String get mealCookedWeightHint => '任意: 完成したレシピを量ると、グラム単位の分量を正確に調整できます。';
+
+  @override
+  String mealServingsSummary(String count) {
+    return '$count人分';
+  }
+
+  @override
+  String mealCookedWeightSummary(String weight) {
+    return '調理後 $weight g';
+  }
+
+  @override
+  String get mealPortionAmountLabel => '食べた分量';
+
+  @override
+  String get mealDecreasePortion => '0.5人前減らす';
+
+  @override
+  String get mealIncreasePortion => '0.5人前増やす';
+
+  @override
+  String mealPortionAmountHint(int count) {
+    return '保存したレシピ: $count人分';
+  }
+
+  @override
+  String get mealDuplicate => 'レシピを複製';
+
+  @override
+  String get mealCopySuffix => '(コピー)';
 
   @override
   String get mealDeleteConfirmTitle => 'レシピを削除する';
@@ -2808,6 +3031,15 @@ class AppLocalizationsJa extends AppLocalizations {
       'AIを利用した食事認識が可能になります。これを無効にすると、アプリ内のすべての AI ボタン​​が非表示になります。';
 
   @override
+  String get aiStatusAndFeaturesSectionTitle => 'ステータスと機能';
+
+  @override
+  String get aiProviderSectionTitle => 'AIモデルとプロバイダー';
+
+  @override
+  String get aiAdvancedOptionsTitle => '詳細設定';
+
+  @override
   String get aiCustomInstructionsTitle => 'グローバル AI 命令';
 
   @override
@@ -3153,6 +3385,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recoveryDetailLastSession => '直近のセッション';
 
   @override
+  String get recoveryNoRecentLoad => '記録された有意な負荷はありません';
+
+  @override
+  String get recoveryDetailEquivalentSets => '相当セット';
+
+  @override
+  String get recoveryDataConfidence => 'データ信頼度';
+
+  @override
+  String get recoveryDetailEligibleSets => '対象セット';
+
+  @override
+  String get recoveryDetailResidualLoad => '残存負荷';
+
+  @override
+  String get recoveryDetailDirectLoad => '直接負荷';
+
+  @override
+  String get recoveryDetailIndirectLoad => '間接負荷';
+
+  @override
+  String get recoveryDetailAverageRir => '平均RIR';
+
+  @override
+  String get recoveryDetailAverageRpe => '平均RPE';
+
+  @override
+  String get recoveryMovementPatterns => '動作パターン';
+
+  @override
   String get recoveryDetailForecast => '見通し';
 
   @override
@@ -3253,6 +3515,67 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get statisticsSectionBody => '体';
+
+  @override
+  String get statisticsEditCardsTitle => '統計を編集';
+
+  @override
+  String get statisticsPinnedTitle => 'ピン留め済み';
+
+  @override
+  String get statisticsAddCardsTitle => 'その他の統計';
+
+  @override
+  String get statisticsMicronutrientsTitle => '微量栄養素';
+
+  @override
+  String get statisticsMicronutrientsCoverage => 'BLS食品の記録のみが対象です';
+
+  @override
+  String get statisticsMicronutrientsPreviewSubtitle => 'ビタミン、ミネラルなどの栄養素';
+
+  @override
+  String get statisticsMicronutrientsNoData => 'BLS食品の記録はまだありません';
+
+  @override
+  String get statisticsAveragePerLoggedDay => '記録日の平均';
+
+  @override
+  String get statisticsMicronutrientsLoggedDays => '記録日';
+
+  @override
+  String statisticsMicronutrientsNutrientCoverage(int count) {
+    return '$count日分のデータ';
+  }
+
+  @override
+  String get diaryMicronutrientsAction => 'この日の微量栄養素を見る';
+
+  @override
+  String get statisticsWaterDailyAverage => '1日平均';
+
+  @override
+  String get statisticsWaterNoData => '飲み物の記録はまだありません';
+
+  @override
+  String statisticsWaterGoalProgress(int percent) {
+    return '1日の目標の$percent%';
+  }
+
+  @override
+  String get statisticsActivityCategory => 'アクティビティ';
+
+  @override
+  String get statisticsPinnedEmptyHint => 'ここに表示する統計を下から追加してください。';
+
+  @override
+  String get statisticsAllDataTitle => 'すべてのデータ';
+
+  @override
+  String get statisticsAllDataAction => 'すべてのデータを表示';
+
+  @override
+  String get statisticsRemoveCard => '統計を削除';
 
   @override
   String get statisticsEnableStepTrackingHint => '設定で歩数追跡を有効にする';
@@ -4793,6 +5116,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsSectionHealthTracking => '健康状態と追跡';
 
   @override
+  String get healthSettingsTitle => 'ヘルスケア';
+
+  @override
+  String get onboardingHealthSettingsDescription =>
+      '歩数、睡眠、心拍数、AppleヘルスケアまたはHealth Connectを管理します';
+
+  @override
+  String get healthSettingsStepActive => '歩数の記録はオンです';
+
+  @override
+  String get healthSettingsStepAvailable => '歩数データを利用できます';
+
+  @override
+  String get healthSettingsStepUnavailable => '歩数データを利用できません';
+
+  @override
+  String get healthSettingsSyncSteps => '歩数を今すぐ同期';
+
+  @override
+  String get healthSettingsSyncExport => '今すぐエクスポート';
+
+  @override
+  String healthSettingsStepsSyncResult(int count) {
+    return '歩数データを$count件更新しました';
+  }
+
+  @override
+  String healthSettingsSleepSyncResult(int count) {
+    return '睡眠セッションを$count件読み込みました';
+  }
+
+  @override
   String get settingsStepsSubtitle => '追跡、ソースポリシー、およびプロバイダー';
 
   @override
@@ -5627,6 +5982,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exerciseNoteHint => 'メモやヒントを入力...';
 
   @override
+  String get editExerciseNotes => 'メモを追加/編集';
+
+  @override
+  String get workoutNoteAddHint => 'ここにメモを追加...';
+
+  @override
+  String get noteTypeTitle => 'メモの種類';
+
+  @override
+  String get pinnedExerciseNoteTitle => '固定エクササイズメモ';
+
+  @override
+  String get pinnedExerciseNoteDescription => 'このエクササイズを記録するたびに入力欄に表示されます。';
+
+  @override
+  String get pinnedRoutineNoteTitle => '固定ルーティンメモ';
+
+  @override
+  String get pinnedRoutineNoteDescription => 'このルーティン内のこのエクササイズだけに表示されます。';
+
+  @override
+  String get workoutExerciseNoteTitle => 'ワークアウトメモ';
+
+  @override
+  String get workoutExerciseNoteDescription => 'このワークアウト内のこのエクササイズだけに適用されます。';
+
+  @override
   String get deleteNoteTooltip => 'メモを削除';
 
   @override
@@ -5872,7 +6254,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get offDownloadBody =>
-      'オフラインでの食品検索、バーコードスキャン、およびAI機能を利用するには、ローカルカタログを初期化してください。GitHubから最新のデータベースリリースをダウンロードします。';
+      '基本食品、商品検索、バーコード、エクササイズ、AI 食事認識をオフラインで使うには、ローカルカタログをダウンロードしてください。BLS 4.0 カタログは約 25.6 MB です。商品とエクササイズのカタログは別途ダウンロードされます。';
 
   @override
   String get offDownloadConfirm => '今すぐダウンロード';
@@ -6510,6 +6892,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get catalogFilterLaterality => '左右';
 
   @override
+  String get catalogFilterAlreadyDone => '実施済み';
+
+  @override
+  String get catalogTrainedBadge => '履歴あり';
+
+  @override
+  String get catalogLastTrainedToday => '今日実施';
+
+  @override
+  String get catalogLastTrainedYesterday => '昨日実施';
+
+  @override
+  String catalogLastTrainedDaysAgo(int days) {
+    return '$days日前';
+  }
+
+  @override
+  String catalogLastTrainedOn(String date) {
+    return '$dateに実施';
+  }
+
+  @override
+  String get noTrainedExercisesFound => '実施済みの種目が見つかりません。';
+
+  @override
   String get exerciseDifficultyBeginner => '初級';
 
   @override
@@ -6797,6 +7204,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get progressionPolicy => 'セットの進行方法';
+
+  @override
+  String get progressionToggleEnabled => '自動進行をオン';
+
+  @override
+  String get progressionToggleDisabled => '自動進行をオフ';
+
+  @override
+  String get workoutKeyboardInsertHyphen => 'マイナス記号を挿入';
+
+  @override
+  String get workoutKeyboardNextField => '次の入力欄へ移動';
+
+  @override
+  String get workoutKeyboardClose => 'キーボードを閉じる';
 
   @override
   String get progressionSetOutcome => 'セットの扱い';
@@ -8078,4 +8500,160 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiScanLogsCall => 'リクエスト';
+
+  @override
+  String get blsModificationsDetail => 'Train Libre による追加：翻訳、検索エイリアス、カテゴリ。';
+
+  @override
+  String get nutritionCatalogBls => '基本食品カタログ（BLS）';
+
+  @override
+  String get blsCatalogManagementDescription =>
+      'オフライン食材カタログ BLS 4.0 をダウンロードして更新します（25.6 MB）。';
+
+  @override
+  String get blsCatalogRefresh => 'カタログの更新を確認';
+
+  @override
+  String get blsCatalogUpdated => 'BLS カタログを更新しました。';
+
+  @override
+  String get blsCatalogCurrent => 'BLS カタログは最新です。';
+
+  @override
+  String get blsCatalogRefreshFailed => 'BLS カタログを更新できませんでした。後でもう一度お試しください。';
+
+  @override
+  String get blsCompleteNutrientProfile => '完全な栄養素プロファイル（BLS）';
+
+  @override
+  String blsNutrientCount(int count) {
+    return '100 g あたりの栄養値：$count 件';
+  }
+
+  @override
+  String get blsNutrientsUnavailable => 'BLS カタログをインストールすると栄養の詳細を表示できます。';
+
+  @override
+  String get blsNutrientDetails => '詳細';
+
+  @override
+  String get blsNutrientOrigin => '測定または計算方法';
+
+  @override
+  String get blsNutrientReference => '出典情報';
+
+  @override
+  String get blsFoodSourceLabel => '出典とライセンス';
+
+  @override
+  String get blsFoodSource =>
+      'Bundeslebensmittelschlüssel（BLS）4.0 — Max Rubner-Institut';
+
+  @override
+  String get blsFoodLicense => 'BLS データ：CC BY 4.0';
+
+  @override
+  String get blsFoodModifications => 'Train Libre による翻訳とカテゴリ';
+
+  @override
+  String get developerAiOverlayDemoTitle => 'AI Overlay';
+
+  @override
+  String get developerAiOverlayDemoSubtitle => 'サンプルカードを使ったスクロール可能なUIプレビュー';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledTitle => 'アプリ全体で AI Overlay を有効にする';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledSubtitle =>
+      'すべての画面にデモの雲を表示します。チャットは保存されません。';
+
+  @override
+  String get aiOverlayDemoScreenTitle => 'AI Overlay UIデモ';
+
+  @override
+  String get aiOverlayDemoIntroTitle => 'アシスタントのプレビュー';
+
+  @override
+  String get aiOverlayDemoIntroBody => 'アプリ風のサンプルをスクロールして、アクセス許可のプレビューを試せます。';
+
+  @override
+  String get aiOverlayDemoPreviewNote =>
+      'サンプルデータのみを使用します。AIへの接続や実際のトレーニング・栄養データへのアクセスはありません。';
+
+  @override
+  String get aiOverlayDemoTodaySection => '今日の概要';
+
+  @override
+  String get aiOverlayDemoNutritionSection => '栄養';
+
+  @override
+  String get aiOverlayDemoActivitySection => 'アクティビティ';
+
+  @override
+  String get aiOverlayDemoWorkoutTitle => '筋力トレーニング';
+
+  @override
+  String get aiOverlayDemoWorkoutSubtitle => '上半身 A · 2時間前';
+
+  @override
+  String get aiOverlayDemoWorkoutMeta => '47分 · 6種目 · 12セット';
+
+  @override
+  String get aiOverlayDemoExerciseOne => 'ベンチプレス';
+
+  @override
+  String get aiOverlayDemoExerciseTwo => 'ケーブルロー';
+
+  @override
+  String get aiOverlayDemoStepsValue => '7,842 / 10,000 歩';
+
+  @override
+  String get aiOverlayDemoWaterValue => '1.6 / 2.5 L';
+
+  @override
+  String get aiOverlayDemoAssistantSection => '確認が必要な操作';
+
+  @override
+  String get aiOverlayNewChat => '新しいチャット';
+
+  @override
+  String get aiOverlayChatHistory => 'チャット履歴';
+
+  @override
+  String get aiOverlayDemoAssistantMessage =>
+      '今週は3回トレーニングしました。トレーニング負荷を比較しますか？';
+
+  @override
+  String get aiOverlayDemoRequestLabel => '必要なデータ';
+
+  @override
+  String get aiOverlayDemoScope => '過去7日間のトレーニング';
+
+  @override
+  String get aiOverlayDemoScopeDetails => 'トレーニングの時間と量';
+
+  @override
+  String get aiOverlayDemoPurpose => '目的：トレーニング負荷の比較';
+
+  @override
+  String get aiOverlayDemoDeny => '拒否';
+
+  @override
+  String get aiOverlayDemoAllowOnce => '今回のみ許可';
+
+  @override
+  String get aiOverlayDemoApprovedFeedback => 'このデモでは許可をシミュレートします。';
+
+  @override
+  String get aiOverlayDemoDeniedFeedback => 'このデモではリクエストを拒否しました。';
+
+  @override
+  String get aiOverlayDemoCloudHint => '雲を左右にドラッグして移動します。位置は保存されます。';
+
+  @override
+  String aiAssistantAskModelHint(String model) {
+    return '$modelに質問';
+  }
 }

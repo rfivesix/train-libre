@@ -2,14 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../core/infrastructure/export_manager.dart';
-import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
@@ -34,8 +33,11 @@ import '../../../core/infrastructure/icloud_sync_service.dart';
 import '../../../data/database_helper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../sharing/share_link_codec.dart';
+import '../../sharing/share_link_preview_screen.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../workout/presentation/workout_import_flow.dart';
 import '../../../widgets/common/app_restart.dart';
 
 /// A screen for managing application data and backups.
@@ -225,106 +227,62 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     }
   }
 
-  // --- Externer Workout-Import (neutral) ---
-  void _performWorkoutImport() async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _performSharedJsonImport() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (result.isEmpty || result.single.path == null || !mounted) return;
+    try {
+      final file = File(result.single.path!);
+      if (await file.length() > SharePortableCodec.maxFileBytes) {
+        throw const FormatException('Share file is too large');
+      }
+      await _previewSharedJson(await file.readAsString());
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.shareImportInvalid),
+      ));
+    }
+  }
 
-    // 1. Ask for unit
-    final bool? isImperial = await showGlassBottomMenu<bool>(
+  Future<void> _performSharedJsonTextImport() async {
+    final l10n = AppLocalizations.of(context)!;
+    final jsonText = await showGlassBottomMenu<String>(
       context: context,
-      title: l10n.importUnitSelectionTitle,
-      contentBuilder: (ctx, close) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(l10n.importUnitSelectionDescription),
-          const SizedBox(height: DesignConstants.spacingL),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  label: l10n.unitMetricLabel,
-                  tooltip: l10n.unitMetricLabel,
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  label: l10n.unitImperialLabel,
-                  tooltip: l10n.unitImperialLabel,
-                ),
-              ),
-            ],
-          ),
-        ],
+      title: l10n.shareImportPasteTitle,
+      contentBuilder: (ctx, close) => _SharedJsonImportTextForm(
+        l10n: l10n,
+        onCancel: () => Navigator.of(ctx).pop(),
+        onSubmit: (text) => Navigator.of(ctx).pop(text),
       ),
     );
-
-    if (isImperial == null) return;
-
-    int count = 0;
-    bool wasCanceled = false;
-
-    if (!mounted) return;
+    if (jsonText == null || !mounted) return;
     try {
-      final success = await LongRunningOperationOverlay.run(
-        context: context,
-        title: l10n.workoutImportButton,
-        initialStatus: l10n.workoutImportButton,
-        icon: LucideIcons.download,
-        operation: (token, updateProgress) async {
-          updateProgress(l10n.workoutImportButton, 0.2);
-          count = await ImportManager().importWorkoutFile(
-            isImperial: isImperial,
-            defaultWorkoutTitle: l10n.importedWorkout,
-            defaultExerciseName: l10n.unknownExercise,
-          );
-          if (count > 0) {
-            unawaited(TelemetryService.instance
-                .trackFeatureUsed(featureKey: FeatureKey.workoutImported));
-          }
-          updateProgress(l10n.workoutImportButton, 1.0);
-        },
-      );
-      if (!success) wasCanceled = true;
-    } catch (e) {
-      count = -1;
+      await _previewSharedJson(jsonText);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.shareImportInvalid),
+      ));
     }
+  }
 
-    if (!mounted || wasCanceled) return;
-
-    final unknown =
-        await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
-
-    if (mounted && unknown.isNotEmpty) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ExerciseMappingScreen(unknownNames: unknown),
-        ),
-      );
+  Future<void> _previewSharedJson(String jsonText) async {
+    if (utf8.encode(jsonText).length > SharePortableCodec.maxFileBytes) {
+      throw const FormatException('Share JSON is too large');
     }
-
+    final payload = SharePortableCodec.decode(jsonText);
     if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ShareLinkPreviewScreen(payload: payload),
+    ));
+  }
 
-    if (count > 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.workoutImportSuccess(count))));
-    } else if (count == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.workoutImportZeroNew),
-        ),
-      );
-    } else if (count == -1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.workoutImportFailed),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
+  // --- Externer Workout-Import (neutral) ---
+  void _performWorkoutImport() {
+    unawaited(performWorkoutImport(context));
   }
 
   void _performExcelExport() async {
@@ -387,117 +345,155 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SummaryCard(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DataBackupCard(
-                    isFullBackupRunning: false,
-                    onExportPressed: _performFullExport,
-                    onImportPressed: _performFullImport,
-                    onExportEncryptedPressed: () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final pw = await _askPassword(
-                        title: l10n.dialogPasswordForExport,
-                      );
-                      if (!context.mounted) return;
-                      if (pw == null || pw.isEmpty) return;
-
-                      bool ok = false;
-                      bool wasCanceled = false;
-                      try {
-                        ok = await LongRunningOperationOverlay.run(
-                          context: context,
-                          title: l10n.backupExportTitle,
-                          initialStatus: l10n.backupExportTitle,
-                          icon: LucideIcons.lock,
-                          operation: (token, updateProgress) async {
-                            await BackupManager.instance
-                                .exportFullBackupEncrypted(pw, token, (
-                              tableName,
-                              progress,
-                            ) {
-                              final statusText =
-                                  l10n.progressExportingTable(tableName);
-                              updateProgress(statusText, progress);
-                            });
-                          },
-                        );
-                      } catch (e) {
-                        if (e is OperationCanceledException) {
-                          wasCanceled = true;
-                        }
-                        ok = false;
-                      }
-
-                      if (!wasCanceled) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              ok
-                                  ? l10n.snackbarEncryptedBackupShared
-                                  : l10n.exportFailed,
-                            ),
-                          ),
-                        );
-                      }
-                    },
+                  Text(
+                    l10n.shareImportSectionTitle,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                  const Divider(height: 1),
-                  if (!isApple)
-                    DataAutoBackupCard(
-                      autoBackupDir: _autoBackupDir,
-                      lastAutoBackupFilePath: _lastAutoBackupFilePath,
-                      lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
-                      lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
-                      onPickDirectory: _pickAutoBackupDirectory,
-                      onCopyPath: _copyAutoBackupPathToClipboard,
-                      onRunNow: () async {
-                        final ok =
-                            await BackupManager.instance.runAutoBackupIfDue(
-                          interval: const Duration(days: 1),
-                          encrypted: false,
-                          passphrase: null,
-                          retention: 7,
-                          dirPath: _autoBackupDir,
-                          force: true, // New: run immediately
-                        );
-                        await _loadAutoBackupDir();
-                        if (!mounted) return;
-                        final successText = ok
-                            ? (_lastAutoBackupFilePath != null &&
-                                    _lastAutoBackupFilePath!.isNotEmpty
-                                ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
-                                : l10n.snackbarAutoBackupSuccess)
-                            : (_lastAutoBackupError != null &&
-                                    _lastAutoBackupError!.isNotEmpty
-                                ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
-                                : l10n.snackbarAutoBackupFailed);
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                          SnackBar(
-                            content: Text(successText),
-                            backgroundColor: ok
-                                ? (_lastAutoBackupUsedFallback
-                                    ? Colors.orange
-                                    : null)
-                                : Theme.of(this.context).colorScheme.error,
-                          ),
-                        );
-                      },
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Text(
+                    l10n.shareImportSectionDescription,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                        ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AppButton.secondary(
+                      onPressed: _performSharedJsonImport,
+                      label: l10n.shareImportFile,
+                      icon: LucideIcons.file_down,
+                      tooltip: l10n.shareImportFile,
                     ),
-                  if (isApple)
-                    ICloudSyncCard(
-                      onBackupNow: ({onProgress}) async {
-                        final db = DatabaseHelper.driftDb!;
-                        return await ICloudSyncService.instance.backupNow(
-                          db,
-                          onProgress: onProgress,
-                        );
-                      },
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AppButton.secondary(
+                      onPressed: _performSharedJsonTextImport,
+                      label: l10n.shareImportPasteButton,
+                      icon: LucideIcons.clipboard,
+                      tooltip: l10n.shareImportPasteButton,
                     ),
+                  ),
                 ],
               ),
             ),
+            const SizedBox(height: DesignConstants.spacingL),
+            DataBackupCard(
+              isFullBackupRunning: false,
+              onExportPressed: _performFullExport,
+              onImportPressed: _performFullImport,
+              onExportEncryptedPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final pw = await _askPassword(
+                  title: l10n.dialogPasswordForExport,
+                );
+                if (!context.mounted) return;
+                if (pw == null || pw.isEmpty) return;
+
+                bool ok = false;
+                bool wasCanceled = false;
+                try {
+                  ok = await LongRunningOperationOverlay.run(
+                    context: context,
+                    title: l10n.backupExportTitle,
+                    initialStatus: l10n.backupExportTitle,
+                    icon: LucideIcons.lock,
+                    operation: (token, updateProgress) async {
+                      await BackupManager.instance
+                          .exportFullBackupEncrypted(pw, token, (
+                        tableName,
+                        progress,
+                      ) {
+                        final statusText =
+                            l10n.progressExportingTable(tableName);
+                        updateProgress(statusText, progress);
+                      });
+                    },
+                  );
+                } catch (e) {
+                  if (e is OperationCanceledException) {
+                    wasCanceled = true;
+                  }
+                  ok = false;
+                }
+
+                if (!wasCanceled) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? l10n.snackbarEncryptedBackupShared
+                            : l10n.exportFailed,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            if (!isApple) ...[
+              const SizedBox(height: DesignConstants.spacingL),
+              DataAutoBackupCard(
+                autoBackupDir: _autoBackupDir,
+                lastAutoBackupFilePath: _lastAutoBackupFilePath,
+                lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
+                lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
+                onPickDirectory: _pickAutoBackupDirectory,
+                onCopyPath: _copyAutoBackupPathToClipboard,
+                onRunNow: () async {
+                  final ok = await BackupManager.instance.runAutoBackupIfDue(
+                    interval: const Duration(days: 1),
+                    encrypted: false,
+                    passphrase: null,
+                    retention: 7,
+                    dirPath: _autoBackupDir,
+                    force: true, // New: run immediately
+                  );
+                  await _loadAutoBackupDir();
+                  if (!mounted) return;
+                  final successText = ok
+                      ? (_lastAutoBackupFilePath != null &&
+                              _lastAutoBackupFilePath!.isNotEmpty
+                          ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
+                          : l10n.snackbarAutoBackupSuccess)
+                      : (_lastAutoBackupError != null &&
+                              _lastAutoBackupError!.isNotEmpty
+                          ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
+                          : l10n.snackbarAutoBackupFailed);
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    SnackBar(
+                      content: Text(successText),
+                      backgroundColor: ok
+                          ? (_lastAutoBackupUsedFallback ? Colors.orange : null)
+                          : Theme.of(this.context).colorScheme.error,
+                    ),
+                  );
+                },
+              ),
+            ],
+            if (isApple) ...[
+              const SizedBox(height: DesignConstants.spacingL),
+              ICloudSyncCard(
+                onBackupNow: ({onProgress}) async {
+                  final db = DatabaseHelper.driftDb!;
+                  return await ICloudSyncService.instance.backupNow(
+                    db,
+                    onProgress: onProgress,
+                  );
+                },
+              ),
+            ],
             const SizedBox(height: DesignConstants.spacingL),
             LocalDataDeletionCard(
               isLocalResetRunning: _isLocalResetRunning,
@@ -867,6 +863,86 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           },
         );
       },
+    );
+  }
+}
+
+/// Owns its controller for the lifetime of the bottom-sheet route. The route
+/// may keep its outgoing transition subtree alive after Navigator.pop returns.
+class _SharedJsonImportTextForm extends StatefulWidget {
+  const _SharedJsonImportTextForm({
+    required this.l10n,
+    required this.onCancel,
+    required this.onSubmit,
+  });
+
+  final AppLocalizations l10n;
+  final VoidCallback onCancel;
+  final ValueChanged<String> onSubmit;
+
+  @override
+  State<_SharedJsonImportTextForm> createState() =>
+      _SharedJsonImportTextFormState();
+}
+
+class _SharedJsonImportTextFormState extends State<_SharedJsonImportTextForm> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        DesignConstants.spacingL,
+        DesignConstants.spacingM,
+        DesignConstants.spacingL,
+        DesignConstants.spacingL,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(l10n.shareImportPasteDescription),
+          const SizedBox(height: DesignConstants.spacingM),
+          TextField(
+            controller: _controller,
+            minLines: 6,
+            maxLines: 10,
+            keyboardType: TextInputType.multiline,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: InputDecoration(
+              hintText: l10n.shareImportPasteHint,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: widget.onCancel,
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () => widget.onSubmit(_controller.text),
+                  label: l10n.shareImportConfirm,
+                  tooltip: l10n.shareImportConfirm,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

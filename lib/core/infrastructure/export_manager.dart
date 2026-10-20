@@ -10,12 +10,16 @@ import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../data/database_helper.dart';
+import 'catalog_state_prefs.dart';
 import '../../services/health/steps_sync_service.dart';
 import '../../services/health/health_models.dart';
+import '../../features/diary/domain/models/food_entry.dart';
 import '../../features/diary/domain/models/food_item.dart';
+import '../../services/bls_food_catalog_refresh_service.dart';
 
 // =============================================================================
 // PURE DART DTOS FOR TYPE-SAFE ISOLATE MESSAGE PASSING
@@ -61,6 +65,8 @@ class WorkoutRowDto {
   final int? rpe;
   final String? setNotes;
   final String? workoutComments;
+  final int? exerciseBlock;
+  final String? workoutExerciseNote;
 
   const WorkoutRowDto({
     required this.workoutName,
@@ -72,6 +78,22 @@ class WorkoutRowDto {
     this.rpe,
     this.setNotes,
     this.workoutComments,
+    this.exerciseBlock,
+    this.workoutExerciseNote,
+  });
+}
+
+class PinnedNoteRowDto {
+  final String scope;
+  final String owner;
+  final String exerciseName;
+  final String note;
+
+  const PinnedNoteRowDto({
+    required this.scope,
+    required this.owner,
+    required this.exerciseName,
+    required this.note,
   });
 }
 
@@ -157,6 +179,23 @@ class MeasurementRowDto {
   });
 }
 
+/// One relational data table included in the complete workbook export.
+///
+/// Values are normalized to Excel-safe scalar types before this object is
+/// sent to the workbook-generation isolate. Nested JSON values remain JSON
+/// text so their complete content can still be inspected or copied.
+class WorkbookTableDto {
+  final String name;
+  final List<String> columns;
+  final List<List<Object?>> rows;
+
+  const WorkbookTableDto({
+    required this.name,
+    required this.columns,
+    required this.rows,
+  });
+}
+
 class ExcelExportData {
   final List<NutritionRowDto> nutritionRows;
   final List<WorkoutRowDto> workoutRows;
@@ -166,6 +205,8 @@ class ExcelExportData {
   final Map<String, WorkoutHeartRateDto> workoutHeartRatesByDay;
   final StepsSourcePolicy stepsSourcePolicy;
   final List<MeasurementRowDto> measurementRows;
+  final List<PinnedNoteRowDto> pinnedNoteRows;
+  final List<WorkbookTableDto> completeDataSheets;
 
   const ExcelExportData({
     required this.nutritionRows,
@@ -176,7 +217,23 @@ class ExcelExportData {
     required this.workoutHeartRatesByDay,
     required this.stepsSourcePolicy,
     required this.measurementRows,
+    required this.pinnedNoteRows,
+    required this.completeDataSheets,
   });
+}
+
+class _WorkbookTableSpec {
+  const _WorkbookTableSpec(
+    this.tableName,
+    this.sheetName, {
+    this.query,
+    this.excludedColumns = const {},
+  });
+
+  final String tableName;
+  final String sheetName;
+  final String? query;
+  final Set<String> excludedColumns;
 }
 
 // =============================================================================
@@ -184,6 +241,408 @@ class ExcelExportData {
 // =============================================================================
 
 class ExportManager {
+  static const List<_WorkbookTableSpec> _completeWorkbookTables = [
+    _WorkbookTableSpec('profiles', 'profiles', excludedColumns: {
+      'profile_image_path',
+    }),
+    _WorkbookTableSpec('app_settings', 'app_settings'),
+    _WorkbookTableSpec(
+      'exercises',
+      'custom_exercises',
+      excludedColumns: {'image_path'},
+      query: '''
+        SELECT e.* FROM exercises e
+        WHERE e.is_custom = 1 OR e.id IN (
+          SELECT exercise_id FROM routine_exercises
+          UNION SELECT exercise_id FROM set_logs WHERE exercise_id IS NOT NULL
+          UNION SELECT exercise_id FROM pinned_exercise_notes
+        )
+      ''',
+    ),
+    _WorkbookTableSpec(
+      'exercise_translations',
+      'exercise_translations',
+      query: '''
+        SELECT t.* FROM exercise_translations t
+        JOIN exercises e ON e.id = t.exercise_id
+        WHERE e.is_custom = 1 OR e.id IN (
+          SELECT exercise_id FROM routine_exercises
+          UNION SELECT exercise_id FROM set_logs WHERE exercise_id IS NOT NULL
+          UNION SELECT exercise_id FROM pinned_exercise_notes
+        )
+      ''',
+    ),
+    _WorkbookTableSpec('routines', 'routines'),
+    _WorkbookTableSpec('routine_exercises', 'routine_exercises'),
+    _WorkbookTableSpec('routine_set_templates', 'routine_set_templates'),
+    _WorkbookTableSpec('workout_logs', 'workout_logs', excludedColumns: {
+      'photo_path',
+      'photo_thumb_path',
+      'photo_extra_paths',
+    }),
+    _WorkbookTableSpec('set_logs', 'set_logs'),
+    _WorkbookTableSpec('cardio_activities', 'cardio_activities'),
+    _WorkbookTableSpec('cardio_samples', 'cardio_samples'),
+    _WorkbookTableSpec(
+      'products',
+      'food_items',
+      query: '''
+        SELECT p.* FROM products p
+        WHERE p.source = 'user' OR p.id IN (
+          SELECT product_id FROM nutrition_logs WHERE product_id IS NOT NULL
+          UNION SELECT product_id FROM meal_items WHERE product_id IS NOT NULL
+          UNION SELECT referenced_product.id FROM products referenced_product
+            JOIN nutrition_logs n ON n.legacy_barcode = referenced_product.barcode
+          UNION SELECT referenced_product.id FROM products referenced_product
+            JOIN meal_items m ON m.product_barcode = referenced_product.barcode
+        )
+      ''',
+    ),
+    _WorkbookTableSpec('off_products_archive', 'food_snapshots'),
+    _WorkbookTableSpec('nutrition_logs', 'nutrition_logs'),
+    _WorkbookTableSpec('fluid_logs', 'fluid_logs'),
+    _WorkbookTableSpec('supplements', 'supplements'),
+    _WorkbookTableSpec('supplement_logs', 'supplement_logs'),
+    _WorkbookTableSpec('measurements', 'measurements'),
+    _WorkbookTableSpec('meal_entries', 'meal_entries', excludedColumns: {
+      'photo_path',
+      'photo_thumb_path',
+    }),
+    _WorkbookTableSpec('meals', 'saved_meals'),
+    _WorkbookTableSpec('meal_items', 'saved_meal_items'),
+    _WorkbookTableSpec('favorites', 'food_favorites'),
+    _WorkbookTableSpec('daily_goals_history', 'daily_goals_history'),
+    _WorkbookTableSpec(
+        'supplement_settings_history', 'supplement_settings_history'),
+    _WorkbookTableSpec('health_step_segments', 'health_step_segments',
+        excludedColumns: {'source_id', 'external_key'}),
+    _WorkbookTableSpec('workout_exercise_logs', 'workout_exercise_logs'),
+    _WorkbookTableSpec('pinned_exercise_notes', 'pinned_exercise_notes'),
+    _WorkbookTableSpec('user_food_overrides', 'user_food_overrides'),
+    _WorkbookTableSpec(
+        'user_food_override_translations', 'food_override_translations'),
+    _WorkbookTableSpec('user_goals', 'user_goals'),
+    _WorkbookTableSpec('goal_events', 'goal_events'),
+    _WorkbookTableSpec('goal_reviews', 'goal_reviews'),
+    _WorkbookTableSpec('training_plans', 'training_plans'),
+    _WorkbookTableSpec('training_plan_revisions', 'training_plan_revisions'),
+    _WorkbookTableSpec(
+        'training_plan_activations', 'training_plan_activations'),
+    _WorkbookTableSpec(
+        'training_plan_occurrences', 'training_plan_occurrences'),
+    _WorkbookTableSpec('sleep_canonical_sessions', 'sleep_sessions',
+        excludedColumns: {'source_app_id', 'source_record_hash'}),
+    _WorkbookTableSpec('sleep_canonical_stage_segments', 'sleep_stages',
+        excludedColumns: {'source_app_id', 'source_record_hash'}),
+    _WorkbookTableSpec(
+      'sleep_canonical_heart_rate_samples',
+      'sleep_heart_rate',
+      excludedColumns: {'source_app_id', 'source_record_hash'},
+    ),
+    _WorkbookTableSpec(
+      'sleep_nightly_analyses',
+      'sleep_analyses',
+      excludedColumns: {'source_app_id', 'source_record_hash'},
+    ),
+    _WorkbookTableSpec('pulse_hourly_aggregates', 'pulse_hourly_aggregates'),
+    _WorkbookTableSpec('posts', 'shared_posts'),
+    _WorkbookTableSpec('social_interactions', 'social_interactions'),
+  ];
+
+  /// Shared table allowlist so new persistence domains are considered
+  /// explicitly instead of silently disappearing from the analysis export.
+  @visibleForTesting
+  static List<String> get completeWorkbookTableNames =>
+      List.unmodifiable(_completeWorkbookTables.map((spec) => spec.tableName));
+
+  @visibleForTesting
+  static Future<List<WorkbookTableDto>> collectCompleteDataSheetsForTesting({
+    required DatabaseHelper databaseHelper,
+    SharedPreferences? preferences,
+    List<FoodEntry>? foodEntries,
+    List<BlsNutrientFact>? nutrientFacts,
+    bool? catalogAvailable,
+  }) =>
+      _collectCompleteDataSheets(
+        databaseHelper: databaseHelper,
+        preferences: preferences,
+        foodEntries: foodEntries,
+        nutrientFacts: nutrientFacts,
+        catalogAvailable: catalogAvailable,
+      );
+
+  @visibleForTesting
+  static List<int>? buildWorkbookForTesting(ExcelExportData data) =>
+      _generateExcelIsolate(data);
+
+  static Future<List<WorkbookTableDto>> _collectCompleteDataSheets({
+    required DatabaseHelper databaseHelper,
+    SharedPreferences? preferences,
+    List<FoodEntry>? foodEntries,
+    List<BlsNutrientFact>? nutrientFacts,
+    bool? catalogAvailable,
+  }) async {
+    final dbInst = databaseHelper.dbInstance;
+    final sheets = <WorkbookTableDto>[];
+
+    for (final spec in _completeWorkbookTables) {
+      final query = spec.query ?? 'SELECT * FROM ${spec.tableName}';
+      final rows = await dbInst.customSelect(query).get();
+      final pragmaRows = await dbInst
+          .customSelect('PRAGMA table_info(${spec.tableName})')
+          .get();
+      final columns = pragmaRows
+          .map((row) => row.read<String>('name'))
+          .where((name) => !spec.excludedColumns.contains(name))
+          .toList(growable: false);
+      sheets.add(WorkbookTableDto(
+        name: spec.sheetName,
+        columns: columns,
+        rows: rows
+            .map((row) => columns
+                .map((column) => _normalizeWorkbookValue(
+                      spec.tableName,
+                      column,
+                      row.data[column],
+                    ))
+                .toList(growable: false))
+            .toList(growable: false),
+      ));
+    }
+
+    final prefs = preferences ?? await SharedPreferences.getInstance();
+    final preferenceRows = <List<Object?>>[];
+    final preferenceKeys = prefs.getKeys().toList()..sort();
+    for (final key in preferenceKeys) {
+      final lowerKey = key.toLowerCase();
+      if (!_shouldExportPreference(key, lowerKey)) continue;
+      preferenceRows.add([
+        key,
+        prefs.get(key) == null ? '' : prefs.get(key).runtimeType.toString(),
+        _normalizeWorkbookValue('preferences', 'value', prefs.get(key)),
+      ]);
+    }
+    sheets.add(WorkbookTableDto(
+      name: 'app_preferences',
+      columns: const ['key', 'value_type', 'value'],
+      rows: preferenceRows,
+    ));
+
+    // The backup query also resolves older rows whose barcode is null but
+    // whose product_id still points at a BLS food. That relationship is needed
+    // for micronutrients as well as for restoring the diary.
+    final entries =
+        foodEntries ?? await databaseHelper.getAllFoodEntriesForBackup();
+    final blsEntries = entries
+        .where((entry) => entry.barcode.startsWith('bls:'))
+        .where((entry) => entry.quantityInGrams > 0)
+        .toList(growable: false);
+    final installed = catalogAvailable ??
+        (blsEntries.isEmpty
+            ? true
+            : await BlsFoodCatalogRefreshService.instance.isInstalled());
+    final facts = nutrientFacts ??
+        (blsEntries.isEmpty
+            ? const <BlsNutrientFact>[]
+            : await const BlsNutrientRepository().getFactsForBarcodes(
+                blsEntries.map((entry) => entry.barcode),
+                Platform.localeName.split(RegExp('[-_]')).first,
+              ));
+    sheets.addAll(_micronutrientSheets(blsEntries, facts, installed));
+    return sheets;
+  }
+
+  static List<WorkbookTableDto> _micronutrientSheets(
+    List<FoodEntry> entries,
+    List<BlsNutrientFact> facts,
+    bool catalogAvailable,
+  ) {
+    final factsByBarcode = <String, List<BlsNutrientFact>>{};
+    for (final fact in facts) {
+      factsByBarcode.putIfAbsent(fact.barcode, () => []).add(fact);
+    }
+
+    final nutrientRows = <List<Object?>>[];
+    final coverageRows = <List<Object?>>[];
+    for (final entry in entries) {
+      final entryFacts = factsByBarcode[entry.barcode] ?? const [];
+      coverageRows.add([
+        entry.id,
+        entry.mealEntryId,
+        entry.timestamp.toIso8601String(),
+        entry.barcode,
+        entry.quantityInGrams,
+        catalogAvailable ? 1 : 0,
+        entryFacts.length,
+      ]);
+      for (final fact in entryFacts) {
+        nutrientRows.add([
+          entry.id,
+          entry.mealEntryId,
+          entry.timestamp.toIso8601String(),
+          entry.barcode,
+          entry.quantityInGrams,
+          fact.code,
+          fact.name,
+          fact.group,
+          fact.unit,
+          fact.value,
+          fact.value == null ? null : fact.value! * entry.quantityInGrams / 100,
+          fact.valueText,
+          fact.origin,
+          fact.reference,
+        ]);
+      }
+    }
+
+    return [
+      WorkbookTableDto(
+        name: 'micronutrients',
+        columns: const [
+          'food_entry_id',
+          'meal_entry_id',
+          'consumed_at',
+          'barcode',
+          'quantity_g',
+          'nutrient_code',
+          'nutrient_name',
+          'nutrient_group',
+          'unit',
+          'value_per_100g',
+          'consumed_amount',
+          'value_text',
+          'origin',
+          'reference',
+        ],
+        rows: nutrientRows,
+      ),
+      WorkbookTableDto(
+        name: 'micronutrient_coverage',
+        columns: const [
+          'food_entry_id',
+          'meal_entry_id',
+          'consumed_at',
+          'barcode',
+          'quantity_g',
+          'bls_catalog_available',
+          'nutrient_facts_exported',
+        ],
+        rows: coverageRows,
+      ),
+    ];
+  }
+
+  static Object? _normalizeWorkbookValue(
+    String tableName,
+    String columnName,
+    Object? value,
+  ) {
+    if (value == null) return null;
+    if (value is DateTime) return value.toUtc().toIso8601String();
+    if (value is bool) return value ? 1 : 0;
+    if (value is Uint8List) return base64Encode(value);
+    if (tableName == 'meal_entries' &&
+        columnName == 'capture_meta' &&
+        value is String) {
+      return _removeLocalMediaReferences(value);
+    }
+    if (value is List || value is Map) return jsonEncode(value);
+
+    if (value is int && _isTimestampColumn(tableName, columnName)) {
+      return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true)
+          .toIso8601String();
+    }
+    return value;
+  }
+
+  static bool _shouldExportPreference(String key, String lowerKey) {
+    const excludedPreferenceKeys = {
+      'ai_meal_scan_diagnostics_v1',
+      'perf_jank_stats_v1',
+      'perf_startup_trace_v1',
+    };
+    return !key.startsWith('ai_api_key_') &&
+        !CatalogStatePrefs.isCatalogStateKey(key) &&
+        !lowerKey.startsWith('bls_food_catalog_') &&
+        !lowerKey.startsWith('auto_backup_') &&
+        !lowerKey.startsWith('last_auto_backup_') &&
+        !excludedPreferenceKeys.contains(lowerKey) &&
+        !lowerKey.contains('telemetry') &&
+        !lowerKey.contains('posthog') &&
+        !lowerKey.contains('device_id') &&
+        !lowerKey.contains('installation_id') &&
+        !lowerKey.contains('api_key') &&
+        !lowerKey.contains('secret') &&
+        !lowerKey.contains('password') &&
+        !lowerKey.contains('token') &&
+        !lowerKey.contains('path') &&
+        !lowerKey.contains('uri') &&
+        !lowerKey.contains('directory');
+  }
+
+  static String _removeLocalMediaReferences(String value) {
+    try {
+      final decoded = jsonDecode(value);
+      if (decoded is Map) {
+        final sanitized = Map<String, dynamic>.from(decoded)
+          ..remove('extra_photos');
+        return jsonEncode(sanitized);
+      }
+    } catch (_) {
+      // Keep malformed capture metadata available as stored text.
+    }
+    return value;
+  }
+
+  static bool _isTimestampColumn(String tableName, String columnName) {
+    if (tableName.startsWith('pulse_') && columnName.endsWith('_ms')) {
+      return true;
+    }
+    if (tableName.startsWith('sleep_') &&
+        !const {'regularity_valid_days', 'interruptions_count'}
+            .contains(columnName) &&
+        !columnName.endsWith('_minutes') &&
+        columnName != 'id' &&
+        columnName != 'session_id' &&
+        columnName != 'raw_import_id') {
+      return columnName.endsWith('_at') ||
+          columnName.endsWith('_at_ms') ||
+          columnName.endsWith('_date');
+    }
+    const dateColumns = {
+      'created_at',
+      'updated_at',
+      'deleted_at',
+      'birthday',
+      'last_used_at',
+      'start_time',
+      'end_time',
+      'consumed_at',
+      'taken_at',
+      'date',
+      'start_date',
+      'started_on',
+      'paused_on',
+      'effective_on',
+      'ended_on',
+      'scheduled_on',
+      'resolved_at',
+      'start_at',
+      'end_at',
+      'occurred_at',
+      'window_start',
+      'window_end',
+      'baseline_date',
+      'target_date',
+      'retired_at',
+      'imported_at',
+      'normalized_at',
+      'sampled_at',
+      'analyzed_at',
+    };
+    return dateColumns.contains(columnName);
+  }
+
   static Future<Map<String, double>?> _getWorkoutHeartRate(
     String workoutLogId,
     DateTime startTime,
@@ -374,9 +833,38 @@ class ExportManager {
           rpe: set.rpe,
           setNotes: set.notes,
           workoutComments: log.notes,
+          exerciseBlock: set.exerciseBlock,
+          workoutExerciseNote: log.exerciseNotesByBlock[set.exerciseBlock],
         ));
       }
     }
+
+    final pinnedNoteQuery = await dbInst.customSelect('''
+      SELECT 'exercise' AS scope, '' AS owner,
+             COALESCE(te.name, e.id) AS exercise_name, pn.notes AS note
+      FROM pinned_exercise_notes pn
+      JOIN exercises e ON e.id = pn.exercise_id
+      LEFT JOIN exercise_translations te
+        ON te.exercise_id = e.id AND te.language_code = 'en'
+      UNION ALL
+      SELECT 'routine' AS scope, r.name AS owner,
+             COALESCE(tr.name, e.id) AS exercise_name, re.notes AS note
+      FROM routine_exercises re
+      JOIN routines r ON r.id = re.routine_id
+      JOIN exercises e ON e.id = re.exercise_id
+      LEFT JOIN exercise_translations tr
+        ON tr.exercise_id = e.id AND tr.language_code = 'en'
+      WHERE re.notes IS NOT NULL AND TRIM(re.notes) <> ''
+      ORDER BY scope, owner, exercise_name
+    ''').get();
+    final pinnedNoteRows = pinnedNoteQuery
+        .map((row) => PinnedNoteRowDto(
+              scope: row.read<String>('scope'),
+              owner: row.read<String>('owner'),
+              exerciseName: row.read<String>('exercise_name'),
+              note: row.read<String>('note'),
+            ))
+        .toList(growable: false);
 
     // -------------------------------------------------------------------------
     // 3. Pre-fetch Sleep Sheet Data
@@ -553,6 +1041,10 @@ class ExportManager {
       workoutHeartRatesByDay: workoutHeartRatesByDay,
       stepsSourcePolicy: stepsSourcePolicy,
       measurementRows: measurementRows,
+      pinnedNoteRows: pinnedNoteRows,
+      completeDataSheets: await _collectCompleteDataSheets(
+        databaseHelper: foodHelper,
+      ),
     );
 
     final bytes = await compute(_generateExcelIsolate, data);
@@ -561,20 +1053,24 @@ class ExportManager {
     if (bytes != null) {
       final tempDir = await getTemporaryDirectory();
       final file = File(
-          '${tempDir.path}/train_libre_export_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx');
+          '${tempDir.path}/train_libre_complete_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx');
       await file.writeAsBytes(bytes);
 
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [
-            XFile(file.path,
-                mimeType:
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-          ],
-          subject: 'Train Libre Excel Export',
-          sharePositionOrigin: _sharePositionOrigin(),
-        ),
-      );
+      try {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [
+              XFile(file.path,
+                  mimeType:
+                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ],
+            subject: 'Train Libre Complete Data Export',
+            sharePositionOrigin: _sharePositionOrigin(),
+          ),
+        );
+      } finally {
+        if (await file.exists()) await file.delete();
+      }
     }
   }
 
@@ -648,7 +1144,9 @@ class ExportManager {
       'RIR',
       'RPE',
       'Set Notes',
-      'Workout Comments'
+      'Workout Comments',
+      'Exercise Block',
+      'Workout Exercise Note'
     ];
     for (int col = 0; col < workoutHeaders.length; col++) {
       writeCell(workoutSheet, col, 0, TextCellValue(workoutHeaders[col]));
@@ -690,6 +1188,29 @@ class ExportManager {
           workoutSheet, 7, rowIndex, TextCellValue(rowData.setNotes ?? ''));
       writeCell(workoutSheet, 8, rowIndex,
           TextCellValue(rowData.workoutComments ?? ''));
+      writeCell(
+          workoutSheet,
+          9,
+          rowIndex,
+          rowData.exerciseBlock == null
+              ? TextCellValue('')
+              : IntCellValue(rowData.exerciseBlock!));
+      writeCell(workoutSheet, 10, rowIndex,
+          TextCellValue(rowData.workoutExerciseNote ?? ''));
+    }
+
+    final notesSheet = excel['Pinned Notes'];
+    const notesHeaders = ['Scope', 'Routine', 'Exercise', 'Note'];
+    for (int col = 0; col < notesHeaders.length; col++) {
+      writeCell(notesSheet, col, 0, TextCellValue(notesHeaders[col]));
+    }
+    for (int r = 0; r < data.pinnedNoteRows.length; r++) {
+      final note = data.pinnedNoteRows[r];
+      final row = r + 1;
+      writeCell(notesSheet, 0, row, TextCellValue(note.scope));
+      writeCell(notesSheet, 1, row, TextCellValue(note.owner));
+      writeCell(notesSheet, 2, row, TextCellValue(note.exerciseName));
+      writeCell(notesSheet, 3, row, TextCellValue(note.note));
     }
 
     // -------------------------------------------------------------------------
@@ -925,6 +1446,28 @@ class ExportManager {
       writeCell(measurementsSheet, 3, rowIndex,
           DoubleCellValue(rowData.value.toDouble()));
       writeCell(measurementsSheet, 4, rowIndex, TextCellValue(rowData.unit));
+    }
+
+    // The sheets above are convenient analysis views. These additional sheets
+    // preserve the complete tabular user-data rows and their IDs/relationships.
+    for (final tableData in data.completeDataSheets) {
+      final sheet = excel[tableData.name];
+      for (var column = 0; column < tableData.columns.length; column++) {
+        writeCell(sheet, column, 0, TextCellValue(tableData.columns[column]));
+      }
+      for (var row = 0; row < tableData.rows.length; row++) {
+        final values = tableData.rows[row];
+        for (var column = 0; column < values.length; column++) {
+          final value = values[column];
+          final cellValue = switch (value) {
+            null => null,
+            int number => IntCellValue(number),
+            num number => DoubleCellValue(number.toDouble()),
+            _ => TextCellValue(value.toString()),
+          };
+          writeCell(sheet, column, row + 1, cellValue);
+        }
+      }
     }
 
     return excel.encode();

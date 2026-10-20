@@ -155,7 +155,7 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                               child: Text(
                                 progressLabel,
                                 style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontFamily: 'Inter',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w800,
                                   color: isDark
@@ -170,7 +170,7 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                         Text(
                           title,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontFamily: 'Plus Jakarta Sans',
+                            fontFamily: 'Inter',
                             fontWeight: FontWeight.w800,
                             fontSize: 16.5,
                           ),

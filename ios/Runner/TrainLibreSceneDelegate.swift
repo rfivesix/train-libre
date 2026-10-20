@@ -31,7 +31,10 @@ class TrainLibreSceneDelegate: NSObject, UIWindowSceneDelegate {
       appDelegate?.enqueueShortcut(shortcutItem)
     }
     for context in connectionOptions.urlContexts {
-      handle(urlContext: context)
+      appDelegate?.enqueueIncomingURL(context.url)
+    }
+    for activity in connectionOptions.userActivities where activity.activityType == NSUserActivityTypeBrowsingWeb {
+      appDelegate?.enqueueUniversalLink(activity)
     }
   }
 
@@ -39,6 +42,11 @@ class TrainLibreSceneDelegate: NSObject, UIWindowSceneDelegate {
     for context in URLContexts {
       handle(urlContext: context)
     }
+  }
+
+  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    guard userActivity.activityType == NSUserActivityTypeBrowsingWeb else { return }
+    _ = appDelegate?.continueUniversalLink(userActivity)
   }
 
   func windowScene(

@@ -51,9 +51,10 @@ class StepsSyncService {
   }
 
   Future<StepsProviderFilter> getProviderFilter() async {
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString(providerFilterKey) ?? 'all';
-    return providerFilterFromRaw(value);
+    // Provider selection is automatic in the simplified health settings. Keep
+    // the legacy preference key/API for backup compatibility, but ignore any
+    // previously selected single-provider filter.
+    return StepsProviderFilter.all;
   }
 
   Future<void> setProviderFilter(StepsProviderFilter filter) async {
@@ -63,9 +64,8 @@ class StepsSyncService {
   }
 
   Future<StepsSourcePolicy> getSourcePolicy() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(sourcePolicyKey) ?? 'auto_dominant';
-    return sourcePolicyFromRaw(raw);
+    // Use the supported automatic policy regardless of legacy saved choices.
+    return StepsSourcePolicy.autoDominant;
   }
 
   Future<void> setSourcePolicy(StepsSourcePolicy policy) async {

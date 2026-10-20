@@ -178,11 +178,66 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
     final showSummaryCard = _scope == StepsScope.month;
+    final timeframeFilter = TimeRangeFilter(
+      ranges: _timeRanges(AppLocalizations.of(context)!),
+      selectedIndex: _validBlocks.indexOf(_activeBlock),
+      onSelected: (index) {
+        setState(() {
+          _activeBlock = _validBlocks[index];
+          _isRolling = false;
+        });
+        _loadScopeData();
+      },
+      onPrevious: () {
+        setState(() {
+          if (_isRolling) {
+            _isRolling = false;
+            _anchorDate =
+                DateTime.now(); // anchor at now gives the current static block
+          } else {
+            _anchorDate = _activeBlock.shift(_anchorDate, -1);
+          }
+        });
+        _loadScopeData();
+      },
+      onNext: () {
+        setState(() {
+          _isRolling = false;
+          _anchorDate = _activeBlock.shift(_anchorDate, 1);
+        });
+        _loadScopeData();
+      },
+      displayDate: TimeframeLabelFormatter.format(
+          _activeBlock, _anchorDate, AppLocalizations.of(context)!),
+      onTapDateDisplay: () async {
+        final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+          context: context,
+          activeBlock: _activeBlock,
+          initialAnchor: _anchorDate,
+          earliestAvailableDay: DateTime(2020),
+          initialIsRolling: false,
+          supportRolling: false,
+        );
+        if (selected != null) {
+          setState(() {
+            _anchorDate = selected.anchorDate;
+            _isRolling = selected.isRolling;
+          });
+          _loadScopeData();
+        }
+      },
+      nextEnabled: _activeBlock
+          .getBounds(_anchorDate, DateTime(2020))
+          .end
+          .isBefore(DateTime.now()),
+    );
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(title: AppLocalizations.of(context)!.steps),
+      appBar: GlobalAppBar(
+          title: AppLocalizations.of(context)!.steps, bottom: timeframeFilter),
       body: Padding(
         padding: DesignConstants.screenPadding.copyWith(
           top: DesignConstants.screenPadding.top + topPadding,
@@ -192,60 +247,6 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TimeRangeFilter(
-              ranges: _timeRanges(AppLocalizations.of(context)!),
-              selectedIndex: _validBlocks.indexOf(_activeBlock),
-              onSelected: (index) {
-                setState(() {
-                  _activeBlock = _validBlocks[index];
-                  _isRolling = false;
-                });
-                _loadScopeData();
-              },
-              onPrevious: () {
-                setState(() {
-                  if (_isRolling) {
-                    _isRolling = false;
-                    _anchorDate = DateTime
-                        .now(); // anchor at now gives the current static block
-                  } else {
-                    _anchorDate = _activeBlock.shift(_anchorDate, -1);
-                  }
-                });
-                _loadScopeData();
-              },
-              onNext: () {
-                setState(() {
-                  _isRolling = false;
-                  _anchorDate = _activeBlock.shift(_anchorDate, 1);
-                });
-                _loadScopeData();
-              },
-              displayDate: TimeframeLabelFormatter.format(
-                  _activeBlock, _anchorDate, AppLocalizations.of(context)!),
-              onTapDateDisplay: () async {
-                final selected =
-                    await adaptive_pickers.showAdaptiveTimeframePicker(
-                  context: context,
-                  activeBlock: _activeBlock,
-                  initialAnchor: _anchorDate,
-                  earliestAvailableDay: DateTime(2020),
-                  initialIsRolling: false,
-                  supportRolling: false,
-                );
-                if (selected != null) {
-                  setState(() {
-                    _anchorDate = selected.anchorDate;
-                    _isRolling = selected.isRolling;
-                  });
-                  _loadScopeData();
-                }
-              },
-              nextEnabled: _activeBlock
-                  .getBounds(_anchorDate, DateTime(2020))
-                  .end
-                  .isBefore(DateTime.now()),
-            ),
             const SizedBox(height: DesignConstants.spacingS),
             Expanded(
               child: SeamlessLoadingOverlay(

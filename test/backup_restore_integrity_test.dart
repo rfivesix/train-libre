@@ -112,6 +112,8 @@ void main() {
       final mealId = await dbHelper.insertMeal(
         name: 'Lunch Bowl',
         notes: 'High-carb pre-workout',
+        servingCount: 2,
+        cookedWeightInGrams: 320,
       );
       await dbHelper.addMealItem(
         mealId: mealId,
@@ -129,6 +131,8 @@ void main() {
       expect(restoredMeals.length, 1);
       expect(restoredMeals.first['name'], 'Lunch Bowl');
       expect(restoredMeals.first['notes'], 'High-carb pre-workout');
+      expect(restoredMeals.first['serving_count'], 2);
+      expect(restoredMeals.first['cooked_weight_in_grams'], 320);
 
       final restoredItems =
           await dbHelper.getMealItems(restoredMeals.first['id'] as int);
@@ -1255,6 +1259,8 @@ void main() {
         'installed_food_version': '202601010001',
         'installed_cats_version': '202601010001',
         'installed_food_enrichment_v1': true,
+        'installed_bls_food_version': '202601010001',
+        'bls_food_catalog_last_remote_version': '202601010001',
         'installed_off_version': '202601010001',
         'installed_off_version_de': '202601010001',
         'last_db_sync_app_version': '80013',
@@ -1279,6 +1285,8 @@ void main() {
         'installed_food_version',
         'installed_cats_version',
         'installed_food_enrichment_v1',
+        'installed_bls_food_version',
+        'bls_food_catalog_last_remote_version',
         'installed_off_version',
         'installed_off_version_de',
         'last_db_sync_app_version',
@@ -1301,6 +1309,8 @@ void main() {
         'unit_system': 'imperial',
         'is_exercise_catalog_initialized': true,
         'installed_training_version': '202601010001',
+        'installed_bls_food_version': '202601010001',
+        'bls_food_catalog_last_remote_version': '202601010001',
         'installed_off_version_de': '202601010001',
         'last_db_sync_app_version': '80013',
       });
@@ -1318,6 +1328,8 @@ void main() {
           reason: 'ordinary preferences must still be restored');
       expect(prefs.getBool('is_exercise_catalog_initialized'), isNull);
       expect(prefs.getString('installed_training_version'), isNull);
+      expect(prefs.getString('installed_bls_food_version'), isNull);
+      expect(prefs.getString('bls_food_catalog_last_remote_version'), isNull);
       expect(prefs.getString('installed_off_version_de'), isNull);
       expect(prefs.getString('last_db_sync_app_version'), isNull);
     });
@@ -1332,6 +1344,8 @@ void main() {
         'unit_system': 'metric',
         'is_exercise_catalog_initialized': true,
         'installed_training_version': '202512310001',
+        'installed_bls_food_version': '202512310001',
+        'bls_food_catalog_last_remote_version': '202512310001',
         'installed_off_version_de': '202512310001',
       });
 
@@ -1342,6 +1356,9 @@ void main() {
       expect(prefs.getString('unit_system'), 'imperial');
       expect(prefs.getBool('is_exercise_catalog_initialized'), isTrue);
       expect(prefs.getString('installed_training_version'), '202512310001');
+      expect(prefs.getString('installed_bls_food_version'), '202512310001');
+      expect(prefs.getString('bls_food_catalog_last_remote_version'),
+          '202512310001');
       expect(prefs.getString('installed_off_version_de'), '202512310001');
     });
 

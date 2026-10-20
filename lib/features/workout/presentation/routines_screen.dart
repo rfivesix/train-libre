@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../sharing/share_service.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/routine.dart';
 import '../domain/repositories/workout_repository.dart';
@@ -76,6 +78,28 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     }
 
     return false;
+  }
+
+  Future<void> _importRoutine() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'routine',
+      warning: l10n.shareImportAddWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      await const ShareLinkRepository().importRoutine(payload);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
+    }
   }
 
   void _startWorkout(Routine routine,
@@ -198,7 +222,16 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: GlobalAppBar(title: l10n.workoutRoutinesTitle),
+      appBar: GlobalAppBar(
+        title: l10n.workoutRoutinesTitle,
+        actions: [
+          IconButton(
+            tooltip: l10n.shareImportSectionTitle,
+            onPressed: _importRoutine,
+            icon: const Icon(LucideIcons.file_down),
+          ),
+        ],
+      ),
       body: StreamBuilder<List<Routine>>(
         stream: _routinesStream,
         builder: (context, snapshot) {

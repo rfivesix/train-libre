@@ -105,6 +105,7 @@ class AdaptiveReviewCard extends StatelessWidget {
       ).format(nextDueAt!);
 
       return SummaryCard(
+        padding: EdgeInsets.zero,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.spacingL,
@@ -151,6 +152,7 @@ class AdaptiveReviewCard extends StatelessWidget {
         : recommendedCalories - currentCalories;
 
     return SummaryCard(
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: DesignConstants.cardPadding,
         child: Column(

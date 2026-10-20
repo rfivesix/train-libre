@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.6.0 (2026-10-20)
+
+{camera} Better AI meal capture: Meal analysis is faster and food matching is more reliable. On supported iPhones, Apple Intelligence can analyse meals on the device; you can still use your own API key with another provider. Review and edit every suggestion before saving.
+
+{utensils} More detailed food data: Download the BLS 4.0 catalogue for translated generic food names and nutrient details, including micronutrients. Search it offline after download; branded products remain available through Open Food Facts.
+
+{dumbbell} Bring your training history: Import workouts from Hevy, Strong, or CSV with a preview that flags duplicates and invalid dates. Find exercises you have trained before, and keep notes for an exercise, a routine, or a single workout.
+
+{rocket} Share and reuse your content: Share routines, plans, and recipes by link, text, or JSON; export completed workouts as text or JSON. Preview supported imports before adding them. Log saved recipes by serving or cooked weight.
+
+{chart_line} Clearer insights and smoother everyday use: Customise your Statistics overview, explore nutrition and recovery insights, and find health import and export settings in one place. This update also improves backup restoration, accessibility, and small-screen layouts.
+
 ## 1.5.0 (2026-10-07)
 
 {chart_line} Goals that adapt with you: Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.

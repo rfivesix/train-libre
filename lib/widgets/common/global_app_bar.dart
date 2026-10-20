@@ -22,8 +22,18 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Whether to automatically show a back button if the route allows it.
   final bool automaticallyImplyLeading;
 
+  /// Keeps the Scaffold's app-bar geometry while allowing an overlay to cover
+  /// it visually and receive its pointer events.
+  final bool hidden;
+
   /// Space between the leading widget and the title.
   final double? titleSpacing;
+
+  /// Optional content painted as an extension of the same frosted app bar.
+  /// Its height is included in the app bar's layout and hit-test area.
+  final Widget? bottom;
+
+  final double bottomHeight;
 
   const GlobalAppBar({
     super.key,
@@ -32,17 +42,23 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.leading,
     this.automaticallyImplyLeading = true,
+    this.hidden = false,
     this.titleSpacing,
+    this.bottom,
+    this.bottomHeight = 56,
   }) : assert(
           title == null || titleWidget == null,
           'Cannot provide both a title and a titleWidget',
         );
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom == null ? 0 : bottomHeight));
 
   @override
   Widget build(BuildContext context) {
+    if (hidden) return SizedBox(height: preferredSize.height);
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -72,10 +88,22 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
         : const Color(0xFFF2F2F7).withValues(alpha: 0.70);
 
     // Final structure with static blur (blur sigma preserved at 14 as requested)
+    // Scaffold reserves the toolbar height separately from the system inset.
+    // Include that inset in the painted area so SafeArea still has room for
+    // the toolbar and optional extension below it.
+    final glassHeight = MediaQuery.paddingOf(context).top +
+        kToolbarHeight +
+        (bottom == null ? 0 : bottomHeight);
+
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         // Soft top fade-out vignette shadow underneath the bar (does not affect glass blur optics)
-        Positioned.fill(
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: glassHeight,
           child: IgnorePointer(
             child: Container(
               decoration: BoxDecoration(
@@ -93,17 +121,28 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         ),
-        ClipRect(
-          child: RepaintBoundary(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: glassColor,
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: SizedBox(height: kToolbarHeight, child: appBarContent),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: glassHeight,
+          child: ClipRect(
+            child: RepaintBoundary(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: Container(
+                  decoration: BoxDecoration(color: glassColor),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(height: kToolbarHeight, child: appBarContent),
+                        if (bottom != null)
+                          SizedBox(height: bottomHeight, child: bottom),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

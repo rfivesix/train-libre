@@ -424,7 +424,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                       child: Text(
                         bullet.text,
                         style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontSize: 17,
                           height: 1.35,
                           fontWeight: FontWeight.w700,
@@ -455,7 +455,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                           child: Text(
                             note,
                             style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
+                              fontFamily: 'Inter',
                               fontSize: 14,
                               height: 1.35,
                               fontWeight: FontWeight.w500,
@@ -475,7 +475,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
             child: Text(
               summary.context!,
               style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
+                fontFamily: 'Inter',
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
                 color: muted,
@@ -555,7 +555,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
               key: ValueKey(_phase),
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
+                fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
                 color: ink,
@@ -571,7 +571,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                     key: const ValueKey('hint'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
+                      fontFamily: 'Inter',
                       fontWeight: FontWeight.w500,
                       fontSize: 12.5,
                       color: muted,
@@ -816,7 +816,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                                   ? l10n.voiceNothingHeard
                                   : l10n.voiceTranscriptHint,
                               style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
+                                fontFamily: 'Inter',
                                 fontSize: 17,
                                 height: 1.4,
                                 fontWeight: FontWeight.w600,

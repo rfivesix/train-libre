@@ -163,6 +163,21 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') == true;
 
+    // Existing installations may predate the downloadable BLS catalog. Ask
+    // those users once the app is usable; a declined first install is prompted
+    // again on a later launch because the catalog is still missing.
+    final blsCatalogInstalled =
+        await BasisDataManager.instance.isBlsFoodCatalogInitialized();
+    if (!mounted) return;
+    if (hasSeenOnboarding && !blsCatalogInstalled) {
+      try {
+        await BasisDataManager.instance
+            .promptOffDatabaseDownloadIfFirstTime(context);
+      } catch (error) {
+        debugPrint('[BLS catalog] Startup prompt failed safely: $error');
+      }
+    }
+
     if (!mounted) return;
 
     // Like the AI meal flow, the living cloud first contracts into the calm
@@ -201,6 +216,11 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   /// Converts each catalog's local 0–1 import progress into one continuous
   /// startup journey. A later stage never makes the cloud move backwards.
   double _screenProgressFor(String task, double progress) {
+    // Finalization can advance the progress while a coalesced catalog callback
+    // is still queued. Preserve that value instead of passing an invalid
+    // lower bound (> 0.94) to clamp below.
+    if (_progress >= 0.94) return _progress;
+
     final normalized = progress.clamp(0.0, 1.0);
     final (start, end) = switch (task) {
       final value when value.contains('Übungen') => (0.12, 0.40),
@@ -209,7 +229,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       final value when value.contains('Produktdatenbank') => (0.76, 0.94),
       _ => (0.12, 0.94),
     };
-    return (start + (end - start) * normalized).clamp(_progress, 0.94);
+    return (start + (end - start) * normalized)
+        .clamp(_progress, 0.94)
+        .toDouble();
   }
 
   /// Importers can report many batches per second. Retaining only the newest
@@ -542,68 +564,84 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Center(
-            child: isDownloadMode
-                ? Semantics(
-                    label: displayTask.isNotEmpty
-                        ? displayTask
-                        : l10n.offDownloadCTA,
-                    value: '$percentage%',
-                    child: OperationProgressWidget(
-                      icon: LucideIcons.download,
-                      title: displayTask,
-                      detail: displayDetail,
-                      progress: (_progress >= 0.0 && _progress <= 1.0)
-                          ? _progress
-                          : null,
-                      action: _canSkipRemoteCatalog
-                          ? TextButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _skipRemoteCatalogRequested = true;
-                                  _canSkipRemoteCatalog = false;
-                                  _currentDetail =
-                                      l10n.appInitSkippingRemoteDownload;
-                                });
-                              },
-                              icon: const Icon(LucideIcons.skip_forward),
-                              label: Text(l10n.appInitSkipDownload),
-                            )
-                          : null,
+          child: isDownloadMode
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Semantics(
+                          label: displayTask.isNotEmpty
+                              ? displayTask
+                              : l10n.offDownloadCTA,
+                          value: '$percentage%',
+                          child: OperationProgressWidget(
+                            icon: LucideIcons.download,
+                            title: displayTask,
+                            detail: displayDetail,
+                            progress: (_progress >= 0.0 && _progress <= 1.0)
+                                ? _progress
+                                : null,
+                            showCard: false,
+                            action: null,
+                          ),
+                        ),
+                      ),
                     ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Semantics(
-                        label: l10n.appInitStarting,
-                        value: '$percentage%',
-                        child: _buildStartupCloud(theme),
-                      ),
-                      const SizedBox(height: 28),
-
-                      // Main status text.
-                      Text(
-                        displayTask,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                    if (_canSkipRemoteCatalog)
+                      SafeArea(
+                        top: false,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _skipRemoteCatalogRequested = true;
+                                _canSkipRemoteCatalog = false;
+                                _currentDetail =
+                                    l10n.appInitSkippingRemoteDownload;
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  theme.colorScheme.onSurfaceVariant,
+                            ),
+                            child: Text(l10n.appInitSkipDownload),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: DesignConstants.spacingS),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Semantics(
+                      label: l10n.appInitStarting,
+                      value: '$percentage%',
+                      child: _buildStartupCloud(theme),
+                    ),
+                    const SizedBox(height: 28),
 
-                      // Secondary detail text.
-                      Text(
-                        displayDetail,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                    // Main status text.
+                    Text(
+                      displayTask,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-          ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+
+                    // Secondary detail text.
+                    Text(
+                      displayDetail,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );

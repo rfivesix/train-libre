@@ -132,29 +132,31 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
               chip = Padding(
                 padding: const EdgeInsets.only(right: DesignConstants.spacingS),
                 child: Container(
-                  height: 32, // Strictly match default ChoiceChip height
+                  constraints: const BoxConstraints(minHeight: 32),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary, // App primary color
                     borderRadius: BorderRadius.circular(
                         100), // Perfect circular pill edges
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment
-                        .stretch, // Ensure inkwells fill the 32px height
-                    children: [
-                      // Left Side: Block label
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Center(
-                          child: Text(
-                            range,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: theme.colorScheme.onPrimary,
+                  child: IntrinsicHeight(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment
+                          .stretch, // Ensure inkwells fill the height
+                      children: [
+                        // Left Side: Block label
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 4),
+                          child: Center(
+                            child: Text(
+                              range,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
 
                       // Animated expansion of inner date navigation
                       if (widget.showDateNavigation)
@@ -272,7 +274,8 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                     ],
                   ),
                 ),
-              );
+              ),
+            );
             } else {
               // Inactive standard ChoiceChip
               chip = Padding(

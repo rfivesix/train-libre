@@ -51,8 +51,41 @@ class SleepPeriodScopeLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
     final localeCode = Localizations.localeOf(context).languageCode;
+    final timeframeFilter = TimeRangeFilter(
+      ranges: [
+        l10n.sleepScopeDay,
+        l10n.sleepScopeWeek,
+        l10n.sleepScopeMonth,
+      ],
+      selectedIndex: selectedScope.index,
+      onSelected: (index) => onScopeChanged(SleepPeriodScope.values[index]),
+      onPrevious: () => onShiftPeriod(-1),
+      onNext: () => onShiftPeriod(1),
+      displayDate: isRolling
+          ? TimeframeLabelFormatter.formatRolling(selectedScope.block, l10n)
+          : _periodLabel(localeCode),
+      onTapDateDisplay: () async {
+        final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+          context: context,
+          activeBlock: selectedScope.block,
+          initialAnchor: anchorDate,
+          earliestAvailableDay: DateTime(2020),
+          supportRolling: false,
+        );
+        if (selected != null) {
+          onAnchorChanged(selected);
+        }
+      },
+      nextEnabled: isRolling
+          ? false
+          : selectedScope.block
+              .getBounds(anchorDate, DateTime(2020))
+              .end
+              .isBefore(DateTime.now()),
+    );
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
@@ -70,6 +103,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
             iconColor: Theme.of(context).colorScheme.onSurface,
           ),
         ],
+        bottom: timeframeFilter,
       ),
       body: ListView(
         padding: DesignConstants.cardPadding.copyWith(
@@ -78,41 +112,6 @@ class SleepPeriodScopeLayout extends StatelessWidget {
           right: 0,
         ),
         children: [
-          TimeRangeFilter(
-            ranges: [
-              l10n.sleepScopeDay,
-              l10n.sleepScopeWeek,
-              l10n.sleepScopeMonth,
-            ],
-            selectedIndex: selectedScope.index,
-            onSelected: (index) =>
-                onScopeChanged(SleepPeriodScope.values[index]),
-            onPrevious: () => onShiftPeriod(-1),
-            onNext: () => onShiftPeriod(1),
-            displayDate: isRolling
-                ? TimeframeLabelFormatter.formatRolling(
-                    selectedScope.block, l10n)
-                : _periodLabel(localeCode),
-            onTapDateDisplay: () async {
-              final selected =
-                  await adaptive_pickers.showAdaptiveTimeframePicker(
-                context: context,
-                activeBlock: selectedScope.block,
-                initialAnchor: anchorDate,
-                earliestAvailableDay: DateTime(2020),
-                supportRolling: false,
-              );
-              if (selected != null) {
-                onAnchorChanged(selected);
-              }
-            },
-            nextEnabled: isRolling
-                ? false
-                : selectedScope.block
-                    .getBounds(anchorDate, DateTime(2020))
-                    .end
-                    .isBefore(DateTime.now()),
-          ),
           const SizedBox(height: DesignConstants.spacingS),
           child,
         ],

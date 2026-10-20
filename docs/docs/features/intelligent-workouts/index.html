@@ -6,8 +6,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="Submaximal strength estimation heuristic, assisted &amp; bodyweight load formulas.">
-  <title>Fitness-Oriented Estimated 1-Rep Max (1RM) Heuristic | Train Libre Documentation</title>
+  <meta name="description" content="Brzycki estimated 1RM with effective-load rules for loaded and bodyweight exercises.">
+  <title>Estimated 1-Rep Max (1RM) | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/intelligent-workouts/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -15,8 +15,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Fitness-Oriented Estimated 1-Rep Max (1RM) Heuristic | Train Libre">
-  <meta property="og:description" content="Submaximal strength estimation heuristic, assisted &amp; bodyweight load formulas.">
+  <meta property="og:title" content="Estimated 1-Rep Max (1RM) | Train Libre">
+  <meta property="og:description" content="Brzycki estimated 1RM with effective-load rules for loaded and bodyweight exercises.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/intelligent-workouts/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -104,25 +104,61 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
+<li><a href="../../user-guide/sharing-and-ai/index.html" class="sidebar-link">Share Train Libre data with an AI assistant</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
 <li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../../developer/food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -134,52 +170,30 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Fitness-Oriented Estimated 1-Rep Max (1RM) Heuristic</h1>
-<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking strength performance and training progress. It does not constitute medical, diagnostic, or clinical assessment of physical capacity. All strength estimates, predicted maximums, and record progression metrics are sports-science-inspired abstractions and design choices rather than prescriptive clinical thresholds or absolute measures of structural capacity.</div></div>
-<p>The <strong>Estimated 1-Rep Max (1RM)</strong> model in Train Libre is a submaximal strength estimation heuristic based on the Brzycki equation. It allows users to track their strength capacities and progression over time in a safe manner, avoiding the musculoskeletal stress, joint strain, and safety risks associated with testing true physical failure at absolute maximum loads.</p>
-<hr class="divider">
-<h2 id="1-the-brzycki-equation" class="doc-h2">1. The Brzycki Equation<a href="#1-the-brzycki-equation" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To estimate 1-rep maximum lift capacity from submaximal training sets, Train Libre evaluates the Brzycki formula:</p>
-<div class="math-block">$$1\text{RM} \approx w_{\text{eff}} \cdot \frac{36}{37 - r}$$</div>
-<p>Where: - <span class="math-inline">$w_{\text{eff}}$</span> is the <strong>effective load placed on the muscle</strong> in kilograms (derived via <code>effectiveSetLoadKg</code>). - <span class="math-inline">$r$</span> is the number of completed repetitions.</p>
-<hr class="divider">
-<h2 id="2-effective-set-load-resolution-effectivesetloadkg" class="doc-h2">2. Effective Set Load Resolution (<code>effectiveSetLoadKg</code>)<a href="#2-effective-set-load-resolution-effectivesetloadkg" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The nominal weight recorded in the UI cannot always be plugged directly into a strength formula. Train Libre dynamically resolves the true load based on the exercise's tracking type and load mode:</p>
-<h3 id="standard-loaded-exercises" class="doc-h3">Standard Loaded Exercises<a href="#standard-loaded-exercises" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>For free weights, barbells, dumbbells, and cable stacks where the logged number represents the external load:</p>
-<div class="math-block">$$w_{\text{eff}} = w_{\text{logged}} \quad (\text{if } w_{\text{logged}} > 0)$$</div>
-<h3 id="assisted-resistance-exercises-eg-assisted-pull-up-dip" class="doc-h3">Assisted Resistance Exercises (e.g., Assisted Pull-Up / Dip)<a href="#assisted-resistance-exercises-eg-assisted-pull-up-dip" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>On assistance machines, the logged number represents the counterweight reducing the user's effort. The actual load lifted by the user is the remaining body mass:</p>
-<div class="math-block">$$w_{\text{eff}} = w_{\text{body}} - w_{\text{logged}}$$</div>
+          <h1 class="doc-title">Estimated 1-Rep Max (1RM)</h1>
+<p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p>
+<p>Train Libre estimates a one-rep maximum from a logged set using the Brzycki equation. It is a calculated training metric, not a measured maximal lift or a safety assessment.</p>
+<h2 id="formula-and-valid-range" class="doc-h2">Formula and valid range<a href="#formula-and-valid-range" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>For an effective set load <code>w</code> in kilograms and repetition count <code>r</code>, the app calculates:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code class="language-text">estimated 1RM = w × 36 / (37 − r)</code></pre></div>
+<p>The shared calculation accepts <code>1 ≤ r ≤ 12</code> and returns no estimate when repetitions are missing or outside that range, or when effective load is missing or non-positive. Some screens apply narrower display eligibility: the live set-row preview, for example, excludes sets above 10 repetitions and warm-up sets. The formula does not use RIR or effort to adjust the estimate.</p>
+<h2 id="how-effective-load-is-resolved" class="doc-h2">How effective load is resolved<a href="#how-effective-load-is-resolved" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Before applying the formula, Train Libre resolves the recorded load from the exercise tracking type and load mode:</p>
 <ul class="doc-list">
-<li><strong>Integrity Gate</strong>: If the user has never recorded a body weight measurement, <span class="math-inline">$w_{\text{eff}}$</span> returns <code>null</code>. The heuristic strictly refuses to use <span class="math-inline">$w_{\text{logged}}$</span> directly as the load, because doing so would invert the progression curve (a user needing less assistance as they grow stronger would appear to be lifting less weight).</li>
+<li>For ordinary loaded exercises, a positive logged weight is used directly.</li>
+<li>For assisted exercises, effective load is body weight minus logged assistance. If body weight is unavailable, or the resulting load is not positive, no estimate is produced.</li>
+<li>For bodyweight and weighted-bodyweight exercises, effective load is body weight plus logged added weight. If body weight is unavailable, only a positive logged added weight is used; otherwise there is no estimate.</li>
 </ul>
-<h3 id="bodyweight-weighted-bodyweight-exercises-eg-pull-ups-dips-push-ups" class="doc-h3">Bodyweight & Weighted Bodyweight Exercises (e.g., Pull-Ups, Dips, Push-Ups)<a href="#bodyweight-weighted-bodyweight-exercises-eg-pull-ups-dips-push-ups" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>When moving one's own body, the load combines body mass and any additional ballast:</p>
-<div class="math-block">$$w_{\text{eff}} = w_{\text{body}} + w_{\text{added}}$$</div>
+<p>The implementation uses the exercise's recorded load mode when available in a workout snapshot, so later catalog changes do not necessarily redefine how that set was logged.</p>
+<h2 id="bodyweight-history" class="doc-h2">Bodyweight history<a href="#bodyweight-history" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Historical statistics load positive weight measurements in date order and look up the latest measurement on or before the workout's start time. A set before the first recorded measurement has no inferred bodyweight; the app does not extrapolate backward or substitute a generic weight. If the history query fails, the statistics path treats the history as empty.</p>
+<p>Live-workout estimates instead use the latest recorded bodyweight at the time the workout loads it. Therefore a bodyweight exercise can have a different effective load in a live workout than in a historical calculation for an earlier date.</p>
+<h2 id="where-the-estimate-is-used" class="doc-h2">Where the estimate is used<a href="#where-the-estimate-is-used" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The shared estimate is used in live set previews, workout summaries and details, exercise statistics, personal-record comparisons, and workout progression. Historical statistics calculate estimates per set using that session's bodyweight lookup; live progression uses the current bodyweight value supplied by the workout view model. Personal-record and progression logic may use the estimate as one input, but the estimate alone does not guarantee a record or a recommendation.</p>
+<p>The model does not establish that a set is safe, prevent injury, or measure structural capacity. It also does not adjust for sleep, hydration, soreness, or other day-to-day conditions. Treat it as an approximate strength-tracking value and interpret changes in the context of the logged exercise and set.</p>
+<h2 id="source" class="doc-h2">Source<a href="#source" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
-<li><strong>Missing Measurement Fallback</strong>: If no bodyweight reading exists, only the entered ballast (<span class="math-inline">$w_{\text{added}} > 0$</span>) is counted, rather than silently guessing a generic default.</li>
-</ul>
-<hr class="divider">
-<h2 id="3-historical-bodyweight-dating-bodyweighthistory" class="doc-h2">3. Historical Bodyweight Dating (<code>BodyweightHistory</code>)<a href="#3-historical-bodyweight-dating-bodyweighthistory" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To ensure progression statistics remain accurate over long training cycles, <strong>historical sets are evaluated at the user's recorded body weight on the day the set was performed, not today's weight</strong>:</p>
-<ul class="doc-list">
-<li><strong>Progression Decoupling</strong>: If a user loses 10 kg during a cutting phase, their past pull-ups did not retroactively become easier. Recomputing historical sessions at today's weight would artificially deflate past tonnage and 1RM records.</li>
-<li><strong>Search Mechanism</strong>: <code>BodyweightHistory.at(date)</code> performs a binary search over chronological weight measurements to identify the most recent reading at or before the workout date.</li>
-<li><strong>No Backward Extrapolation</strong>: If a set was performed before the user's first recorded weight measurement, the system does not extrapolate backwards. It treats bodyweight as unknown to avoid invisible, speculative adjustments to older data.</li>
-</ul>
-<hr class="divider">
-<h2 id="4-repetition-range-constraints" class="doc-h2">4. Repetition Range Constraints<a href="#4-repetition-range-constraints" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The mathematical linearity of muscle fatigue and rep-to-failure ratios breaks down at higher repetitions due to cardiovascular demands, localized muscular endurance, and shifts in motor unit recruitment.</p>
-<p>Train Libre enforces a strict validity boundary: <em>   <strong>Calculation Window</strong>: <span class="math-inline">$1 \leq r \leq 12$</span>. </em>   <strong>Behavior</strong>: If a set exceeds 12 repetitions (<span class="math-inline">$r > 12$</span>), or if <span class="math-inline">$r \leq 0$</span> or <span class="math-inline">$w_{\text{eff}} \leq 0$</span>, the estimated 1RM calculation returns <code>null</code>. This keeps personal records and progression suggestions grounded in the load-dominant resistance training domain.</p>
-<hr class="divider">
-<h2 id="5-safe-progression-tracking-non-clinical-scope" class="doc-h2">5. Safe Progression Tracking & Non-Clinical Scope<a href="#5-safe-progression-tracking-non-clinical-scope" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Testing true 1-Rep Maxes requires maximal physical exertion, which poses elevated risks of connective tissue injury and systemic fatigue. Submaximal estimation offers a safe alternative: <em>   <strong>Injury Mitigation</strong>: Enables training in safe, submaximal load ranges (e.g., 70%–85% of 1RM) while maintaining visibility into strength progression. </em>   <strong>Fatigue Management</strong>: Avoids central nervous system (CNS) exhaustion from frequent true-max testing. *   <strong>Non-Clinical Heuristic</strong>: This model is a performance tracking tool and does not account for acute factors such as sleep deprivation, dehydration, or joint soreness. It should be interpreted as an indicative trend rather than an absolute measure of physical capacity.</p>
-<hr class="divider">
-<h2 id="6-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>6. Scientific References & Sources<a href="#6-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
-<ul class="doc-list">
-<li>Brzycki, M. (1993). <em>Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue</em>. Journal of Physical Education, Recreation & Dance, 64(1), 88–90.</li>
-<li>Wood, T. M., Maddalozzo, G. F., & Harter, R. A. (2002). <em>Accuracy of Seven Equations for Predicting 1-RM Performance of Apparently Healthy, Sedentary Older Adults</em>. Measurement in Physical Education and Exercise Science, 6(2), 67-94. DOI: <a href="https://doi.org/10.1207/S15327841MPEE0602_1" target="_blank" rel="noopener noreferrer">10.1207/S15327841MPEE0602_1 <span class="ext-icon">↗</span></a></li>
+<li>Brzycki, M. (1993). <em>Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue</em>. Journal of Physical Education, Recreation & Dance, 64(1), 88–90. <a href="https://doi.org/10.1080/07303084.1993.10606684" target="_blank" rel="noopener noreferrer">DOI: 10.1080/07303084.1993.10606684 <span class="ext-icon">↗</span></a>. The citation identifies the equation; it does not validate every Train Libre use case or establish clinical or safety claims.</li>
 </ul>
         </article>
 
@@ -191,15 +205,11 @@
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#1-the-brzycki-equation">1. The Brzycki Equation</a></li>
-<li class="toc-item toc-item-l2"><a href="#2-effective-set-load-resolution-effectivesetloadkg">2. Effective Set Load Resolution (effectiveSetLoadKg)</a></li>
-<li class="toc-item toc-item-l3"><a href="#standard-loaded-exercises">Standard Loaded Exercises</a></li>
-<li class="toc-item toc-item-l3"><a href="#assisted-resistance-exercises-eg-assisted-pull-up-dip">Assisted Resistance Exercises (e.g., Assisted Pull-Up / Dip)</a></li>
-<li class="toc-item toc-item-l3"><a href="#bodyweight-weighted-bodyweight-exercises-eg-pull-ups-dips-push-ups">Bodyweight &amp; Weighted Bodyweight Exercises (e.g., Pull-Ups, Dips, Push-Ups)</a></li>
-<li class="toc-item toc-item-l2"><a href="#3-historical-bodyweight-dating-bodyweighthistory">3. Historical Bodyweight Dating (BodyweightHistory)</a></li>
-<li class="toc-item toc-item-l2"><a href="#4-repetition-range-constraints">4. Repetition Range Constraints</a></li>
-<li class="toc-item toc-item-l2"><a href="#5-safe-progression-tracking-non-clinical-scope">5. Safe Progression Tracking &amp; Non-Clinical Scope</a></li>
-<li class="toc-item toc-item-l2"><a href="#6-scientific-references-sources">6. Scientific References &amp; Sources</a></li>
+<li class="toc-item toc-item-l2"><a href="#formula-and-valid-range">Formula and valid range</a></li>
+<li class="toc-item toc-item-l2"><a href="#how-effective-load-is-resolved">How effective load is resolved</a></li>
+<li class="toc-item toc-item-l2"><a href="#bodyweight-history">Bodyweight history</a></li>
+<li class="toc-item toc-item-l2"><a href="#where-the-estimate-is-used">Where the estimate is used</a></li>
+<li class="toc-item toc-item-l2"><a href="#source">Source</a></li>
 </ul></div></aside>
     </div>
 

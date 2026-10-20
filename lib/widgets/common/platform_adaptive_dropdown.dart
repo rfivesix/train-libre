@@ -8,13 +8,17 @@ class PlatformAdaptivePopupMenuItem<T> {
   final T value;
   final String label;
   final IconData? icon;
+  final Widget? customIcon;
   final bool isDestructive;
+  final bool showDividerAbove;
 
   PlatformAdaptivePopupMenuItem({
     required this.value,
     required this.label,
     this.icon,
+    this.customIcon,
     this.isDestructive = false,
+    this.showDividerAbove = false,
   });
 }
 
@@ -28,6 +32,7 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
   final ValueChanged<T> onSelected;
   final T? selectedValue;
   final double menuWidth;
+  final bool enabled;
 
   const PlatformAdaptivePopupMenu({
     super.key,
@@ -36,10 +41,15 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     required this.onSelected,
     this.selectedValue,
     this.menuWidth = 260.0,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (!enabled) {
+      return icon;
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final menuSettings = LiquidGlassSettings(
       thickness: 30,
@@ -50,6 +60,33 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       lightIntensity: isDark ? 0.55 : 0.80,
       saturation: 1.20,
     );
+
+    final menuItems = <Widget>[];
+    for (final item in items) {
+      if (item.showDividerAbove) {
+        menuItems.add(const GlassMenuDivider());
+      }
+      final isSelected = selectedValue != null && item.value == selectedValue;
+      menuItems.add(
+        GlassMenuItem(
+          title: item.label,
+          icon: item.customIcon ??
+              (item.icon != null ? Icon(item.icon, size: 20) : null),
+          isSelected: isSelected,
+          trailing: isSelected
+              ? Icon(
+                  LucideIcons.check,
+                  size: 18,
+                  color: isDark ? Colors.white : Colors.black87,
+                )
+              : null,
+          isDestructive: item.isDestructive,
+          onTap: () {
+            onSelected(item.value);
+          },
+        ),
+      );
+    }
 
     return AdaptiveLiquidGlassLayer(
       settings: menuSettings,
@@ -62,26 +99,7 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           child: icon,
         ),
-        items: items.map((item) {
-          final isSelected =
-              selectedValue != null && item.value == selectedValue;
-          return GlassMenuItem(
-            title: item.label,
-            icon: item.icon != null ? Icon(item.icon, size: 20) : null,
-            isSelected: isSelected,
-            trailing: isSelected
-                ? Icon(
-                    LucideIcons.check,
-                    size: 18,
-                    color: isDark ? Colors.white : Colors.black87,
-                  )
-                : null,
-            isDestructive: item.isDestructive,
-            onTap: () {
-              onSelected(item.value);
-            },
-          );
-        }).toList(),
+        items: menuItems,
       ),
     );
   }

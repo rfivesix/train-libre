@@ -1,117 +1,36 @@
-# Data Flow & State Lifecycle
+# Data flow and state lifecycle
 
-Train Libre utilizes a strict state management paradigm to ensure data consistency, rapid interface updates, and leak-free memory cycles. This paradigm is built around **Reactive Reads / Imperative Writes** and explicit stream subscription management.
+Many database-backed screens use reactive repository streams for reads and repository methods for commands. This is a common pattern, not a rule that every feature must use streams: some operations intentionally read a one-time snapshot, call a platform API, or use local widget state. Follow the feature's repository and view model implementation.
 
----
-
-## The "Reactive Reads / Imperative Writes" Paradigm
-
-To avoid state synchronization bugs (where the UI and the database disagree on the current values), the system separates data reading from data writing into two distinct pipelines.
-
-```
-       +--------------------------------------------+
-       |                                            |
-       v                                            |
-[Drift Database] --(Reactive Stream Update)--> [ViewModel] --> [UI Screen]
-       ^                                                            |
-       |                                                            |
-       +--------------(Asynchronous Command)------------------------+
+```text
+screen action → view model/use case → repository → data source / platform
+      ↑                                      │
+      └── state update ← watched query ← committed database change
 ```
 
-### 1. Reactive Reads (Observer Pattern)
-The user interface never queries the database on-demand for a single snapshot of data during normal render cycles. Instead, it subscribes to active streams exposed by repositories, which in turn wrap Drift's query-watching capabilities:
+## Reads and writes
 
-```dart
-// Establishing reactive stream listeners for a selected date
-_goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((goals) {
-  _activeGoals = goals;
-  _updateCalculatedState(); // Recalculates totals and triggers notifyListeners()
-});
-```
+Drift query watches rerun when relevant database tables change. Repository watch methods expose those results to consumers; view models map them into presentation state and notify listeners. For a concrete example, follow diary watch methods from their repository/data source to the screen's view model.
 
-When database records are inserted or deleted by *any* system thread, the underlying Drift engine detects which tables have changed, executes the query again under the hood, and pushes the new result list down the active Stream. The ViewModel receives the update, recalculates relevant macros, and dispatches `notifyListeners()` to rebuild the UI.
+Writes are asynchronous commands through repository APIs. A command may return an identifier, status, or computed result, so do not assume every write is `void` or that all resulting UI state arrives via a stream. A database watch is useful when multiple screens or services can change the same records; a local form may instead retain draft state until save.
 
-### 2. Imperative Writes (Action Pattern)
-All database modifications—inserts, edits, deletes, and sync imports—are executed as one-off, imperative asynchronous commands. For example, deleting a food log or updating a fluid entry:
+## Subscription and widget lifetimes
 
-```dart
-Future<void> deleteFoodEntry(int id) async {
-  await _nutritionRepo.deleteFoodEntry(id);
-}
-```
+The owner of a `StreamSubscription` must cancel it when its inputs change or its owner is disposed. When replacing a date- or filter-scoped query, guard against late events from the previous query; cancellation is asynchronous for `StreamSubscription.cancel()`, so the exact sequence and any generation guards should match the implementation. On disposal, cancel owned subscriptions and dispose owned notifiers/controllers. Do not dispose dependencies merely borrowed from Provider.
 
-Writers do **not** return the updated state list to the UI, nor do they trigger manual UI refreshes. The write completes, the transaction is committed, and Drift’s reactive stream automatically dispatches the updated rows to all active observers.
+Provider ownership matters: `ChangeNotifierProvider(create: ...)` owns and disposes the created notifier; `.value` exposes an existing object whose owner is elsewhere. `HomeWidgetSyncService`, for example, is created by the root provider and its registered provider disposer calls `dispose()`.
 
----
+## Async UI work
 
-## Subscription Lifecycles & Teardown
+Use explicit loading/error/result state for operations that outlive a synchronous frame. A boolean guard can prevent duplicate submissions when the UI disables a control while work is active, but it is not itself cancellation and does not prevent stale results from replacing newer input. Search screens should invalidate or identify requests when queries change; cancellation support depends on the underlying operation.
 
-Because active streams run indefinitely, keeping subscriptions open when switching screens or moving between calendar days results in severe memory leaks, background CPU waste, and duplicate UI renderings.
+When implementing an async callback, consider: whether the widget/view model may have been disposed before completion; whether a newer request supersedes it; whether errors reach user-visible state; and whether platform calls can be interrupted. Check `mounted` before widget context/state updates after an await, and use a request generation/token when ordering matters.
 
-### Date Switching Handlers
-When the user selects a new date inside the diary interface, the active subscriptions for the previous date must be cancelled immediately before establishing new ones. This is managed explicitly:
+## Where to trace behavior
 
-```dart
-void setSelectedDate(DateTime date) {
-  final diaryDate = normalizeDiaryDate(date);
-  selectedDateNotifier.value = diaryDate;
+- Feature-specific repositories and data sources: `lib/features/*/data/`.
+- View models and screens: `lib/features/*/application/` and `presentation/` (some features use different names/layouts).
+- Shared database/watch implementation: `lib/data/drift_database.dart` and `lib/core/infrastructure/`.
+- Root dependency ownership: `lib/main.dart`.
 
-  // Cancel all existing subscriptions
-  _goalsSubscription?.cancel();
-  _entriesSubscription?.cancel();
-  _fluidsSubscription?.cancel();
-  _supplementsSubscription?.cancel();
-  _supplementLogsSubscription?.cancel();
-  _workoutsSubscription?.cancel();
-
-  isLoading = true;
-  notifyListeners();
-
-  // Re-establish reactive stream listeners for the new selected date
-  _goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((goals) { ... });
-  // [Additional stream listeners mapped similarly...]
-}
-```
-
-### ViewModel Disposal
-When a screen is popped or closed, its associated ViewModel is removed from the widget tree. The ViewModel must override the native `dispose()` method to cancel all remaining subscriptions and prevent context leaks:
-
-```dart
-@override
-void dispose() {
-  _goalsSubscription?.cancel();
-  _entriesSubscription?.cancel();
-  _fluidsSubscription?.cancel();
-  _supplementsSubscription?.cancel();
-  _supplementLogsSubscription?.cancel();
-  _workoutsSubscription?.cancel();
-  
-  healthSyncCoordinator.removeListener(notifyListeners);
-  healthSyncCoordinator.dispose();
-  selectedDateNotifier.dispose();
-  super.dispose();
-}
-```
-
----
-
-## Input Blocking & Asynchronous Safety
-
-To prevent race conditions, duplicate writes, and double-taps during asynchronous processes (e.g., executing an AI meal capture query or running a health sync routine), ViewModels maintain strict interface-blocking flags.
-
-### Concurrency Guards
-1.  **State Flags**: Variables such as `isLoading` or `isGenerating` are set to `true` immediately upon starting an asynchronous event.
-2.  **UI Feedback**: The presentation layer reads these flags to display localized progress indicators (spinners, skeleton loaders).
-3.  **Interactive Blocking**: Interactive elements (save buttons, text fields, checkboxes) are disabled programmatically if any blocking flag is active:
-
-```dart
-// Example widget button disabling logic
-ElevatedButton(
-  onPressed: viewModel.isGenerating ? null : () => viewModel.startAiAnalysis(),
-  child: viewModel.isGenerating 
-      ? const CircularProgressIndicator() 
-      : const Text('Analyze Meal'),
-)
-```
-
-By passing `null` to `onPressed`, the Flutter framework natively disables the button and blocks tap actions, guaranteeing that only one asynchronous request can occupy the execution pipeline at a time.
+The [Home-screen Widgets guide](ios_home_screen_widgets.md) describes the separate snapshot publication path. Product rules belong in [Feature Documentation](../features/overview.md).

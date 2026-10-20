@@ -8,6 +8,7 @@ import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'set_type_chip.dart';
+import 'set_type_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
@@ -24,7 +25,8 @@ class RoutineSetRowWidget extends StatelessWidget {
   final TextEditingController repsController;
   final TextEditingController weightController;
   final TextEditingController rirController;
-  final VoidCallback onShowSetTypePicker;
+  final VoidCallback? onShowSetTypePicker;
+  final ValueChanged<String>? onSetTypeChanged;
   final VoidCallback onRemoveSet;
   final bool isEditMode;
 
@@ -39,7 +41,8 @@ class RoutineSetRowWidget extends StatelessWidget {
     required this.repsController,
     required this.weightController,
     required this.rirController,
-    required this.onShowSetTypePicker,
+    this.onShowSetTypePicker,
+    this.onSetTypeChanged,
     required this.onRemoveSet,
     required this.isEditMode,
   });
@@ -78,10 +81,17 @@ class RoutineSetRowWidget extends StatelessWidget {
             Expanded(
               flex: isCardio ? 2 : 2,
               child: Center(
-                child: SetTypeChip(
-                  setType: template.setType,
-                  setIndex: (template.setType == 'warmup') ? null : setIndex,
-                  onTap: isEditMode ? onShowSetTypePicker : null,
+                child: SetTypeMenu(
+                  currentSetType: template.setType,
+                  enabled: isEditMode && onSetTypeChanged != null,
+                  onSetTypeChanged: onSetTypeChanged ?? (_) {},
+                  child: SetTypeChip(
+                    setType: template.setType,
+                    setIndex: (template.setType == 'warmup') ? null : setIndex,
+                    onTap: (isEditMode && onSetTypeChanged == null)
+                        ? onShowSetTypePicker
+                        : null,
+                  ),
                 ),
               ),
             ),

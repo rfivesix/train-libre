@@ -44,21 +44,21 @@ DOCS_STRUCTURE = [
         "items": [
             {
                 "id": "features-overview",
-                "title": "Capabilities & Privacy",
+                "title": "Feature Capabilities & Privacy",
                 "slug": "overview",
                 "src_file": SRC_DOC_DIR / "features" / "overview.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "overview",
                 "url": "/docs/features/overview/",
-                "desc": "Smart processing boundaries, native secure storage, and opt-in telemetry."
+                "desc": "Feature behavior, optional data flows, and app telemetry boundaries."
             },
             {
                 "id": "features-sleep",
-                "title": "Sleep Health Score (SHS v3.5)",
+                "title": "Sleep Health Score (SHS v3)",
                 "slug": "sleep-scoring-engine",
                 "src_file": SRC_DOC_DIR / "features" / "sleep_scoring_engine.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "sleep-scoring-engine",
                 "url": "/docs/features/sleep-scoring-engine/",
-                "desc": "Mathematical specification of the 5-domain continuous soft-cap multiplier sleep model."
+                "desc": "Five-domain sleep heuristic, imported inputs, score caps, and limitations."
             },
             {
                 "id": "features-recovery",
@@ -67,16 +67,16 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "muscle_recovery_model.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "muscle-recovery-model",
                 "url": "/docs/features/muscle-recovery-model/",
-                "desc": "Per-set, RIR-aware residual load with muscle-specific time decay and readiness."
+                "desc": "A log-based muscle recovery estimate with time-decaying residual load and input limits."
             },
             {
                 "id": "features-tdee",
-                "title": "Bayesian TDEE Estimator",
+                "title": "Bayesian TDEE Estimate & Adaptive Calorie Target",
                 "slug": "bayesian-tdee-estimator",
                 "src_file": SRC_DOC_DIR / "features" / "bayesian_tdee_estimator.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "bayesian-tdee-estimator",
                 "url": "/docs/features/bayesian-tdee-estimator/",
-                "desc": "Kalman filter and Bayesian recursive estimation for adaptive calorie targets."
+                "desc": "Logged intake and weight-trend estimation with a separately gated target controller."
             },
             {
                 "id": "features-macro",
@@ -88,13 +88,40 @@ DOCS_STRUCTURE = [
                 "desc": "Calorie target decomposition into protein, carbohydrate, and fat targets."
             },
             {
+                "id": "features-macro-analytics",
+                "title": "Macronutrient Analytics",
+                "slug": "macro-analytics",
+                "src_file": SRC_DOC_DIR / "features" / "macro_analytics.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "macro-analytics",
+                "url": "/docs/features/macro-analytics/",
+                "desc": "Nutrition intake trends, time ranges, date navigation, and daily chart selection."
+            },
+            {
+                "id": "features-plans",
+                "title": "Manual Workout Plans",
+                "slug": "manual-workout-plans",
+                "src_file": SRC_DOC_DIR / "features" / "manual_workout_plans.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "manual-workout-plans",
+                "url": "/docs/features/manual-workout-plans/",
+                "desc": "Weekly and repeating plans, rest days, session outcomes, reminders, and restore behavior."
+            },
+            {
+                "id": "features-adaptive-goals",
+                "title": "Adaptive Nutrition Goals",
+                "slug": "adaptive-nutrition-goals",
+                "src_file": SRC_DOC_DIR / "features" / "adaptive_nutrition_goals.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "adaptive-nutrition-goals",
+                "url": "/docs/features/adaptive-nutrition-goals/",
+                "desc": "Goal setup, trajectory, weekly review gates, and user-controlled target changes."
+            },
+            {
                 "id": "features-progression",
                 "title": "Workout Progression Engine",
                 "slug": "workout-progression-engine",
                 "src_file": SRC_DOC_DIR / "features" / "workout_progression_engine.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "workout-progression-engine",
                 "url": "/docs/features/workout-progression-engine/",
-                "desc": "First-working-set load recommendation, double progression, and e1RM back-offs."
+                "desc": "First-set and later-set recommendations for eligible load-and-repetition workouts."
             },
             {
                 "id": "features-e1rm",
@@ -103,7 +130,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "intelligent_workouts.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "intelligent-workouts",
                 "url": "/docs/features/intelligent-workouts/",
-                "desc": "Submaximal strength estimation heuristic, assisted & bodyweight load formulas."
+                "desc": "Brzycki estimated 1RM with effective-load rules for loaded and bodyweight exercises."
             },
             {
                 "id": "features-capture",
@@ -112,43 +139,318 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "meal_capture_pipeline.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "meal-capture-pipeline",
                 "url": "/docs/features/meal-capture-pipeline/",
-                "desc": "Unified camera, passive barcode detection, voice dictation, and privacy boundaries."
+                "desc": "Photo, text, voice, and barcode capture, provider routing, and diary persistence."
             },
             {
                 "id": "features-byok",
-                "title": "BYOK AI Meal Validation",
+                "title": "BYOK AI Meal Capture & Validation",
                 "slug": "byok-ai-validation",
                 "src_file": SRC_DOC_DIR / "features" / "byok_ai_validation.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "byok-ai-validation",
                 "url": "/docs/features/byok-ai-validation/",
-                "desc": "Local BYOK LLM integration, fuzzy matching, and 3-pass self-repair verification."
+                "desc": "Selected-provider requests, catalog matching, heuristic validation, and up to three repair requests."
             },
             {
                 "id": "features-depth",
-                "title": "Depth Scale Hint (LiDAR)",
+                "title": "Depth Scale Hint",
                 "slug": "depth-scale-hint",
                 "src_file": SRC_DOC_DIR / "features" / "depth_scale_hint.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "depth-scale-hint",
                 "url": "/docs/features/depth-scale-hint/",
-                "desc": "LiDAR metric scale facts and false-colour depth hints for portion guidance."
+                "desc": "Depth-derived scale facts and an optional camera-distance visualization for AI input."
             },
             {
                 "id": "features-health",
-                "title": "Native Health Sync & Export",
+                "title": "Health Sync & Export",
                 "slug": "health-sync-export",
                 "src_file": SRC_DOC_DIR / "features" / "health_sync_export.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "health-sync-export",
                 "url": "/docs/features/health-sync-export/",
-                "desc": "Apple HealthKit and Health Connect bidirectional sync & SQLite idempotency."
+                "desc": "Foreground health imports and exports, platform mappings, and retry limits."
             },
             {
                 "id": "features-live-act",
-                "title": "Live Activity & Workout Session",
+                "title": "Workout Live Activity & Android Notification",
                 "slug": "live-activity-workout",
                 "src_file": SRC_DOC_DIR / "features" / "live_activity_workout.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "live-activity-workout",
                 "url": "/docs/features/live-activity-workout/",
-                "desc": "iOS Live Activity, Dynamic Island, and workout session state synchronization."
+                "desc": "iOS ActivityKit and Android workout notifications with platform-specific actions."
+            }
+        ]
+    },
+    {
+        "category": "User Guide",
+        "items": [
+            {
+                "id": "user-guide-overview",
+                "title": "User Guide Overview",
+                "slug": "overview",
+                "src_file": SRC_DOC_DIR / "user_guide" / "overview.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "overview",
+                "url": "/docs/user-guide/overview/",
+                "desc": "Practical, step-by-step guides for tracking workouts, nutrition, body weight, plans, and data."
+            },
+            {
+                "id": "user-guide-getting-started",
+                "title": "Get started with Train Libre",
+                "slug": "getting-started",
+                "src_file": SRC_DOC_DIR / "user_guide" / "getting_started.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "getting-started",
+                "url": "/docs/user-guide/getting-started/",
+                "desc": "Set up your profile, choose units and preferences, and find your way around Train Libre."
+            },
+            {
+                "id": "user-guide-settings-privacy",
+                "title": "Manage app support and privacy settings",
+                "slug": "settings-and-privacy",
+                "src_file": SRC_DOC_DIR / "user_guide" / "settings_and_privacy.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "settings-and-privacy",
+                "url": "/docs/user-guide/settings-and-privacy/",
+                "desc": "Use app support tools, manage optional usage statistics, and reset local data."
+            },
+            {
+                "id": "user-guide-workouts",
+                "title": "Track a workout",
+                "slug": "tracking-a-workout",
+                "src_file": SRC_DOC_DIR / "user_guide" / "tracking_a_workout.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "tracking-a-workout",
+                "url": "/docs/user-guide/tracking-a-workout/",
+                "desc": "Start a workout, record exercises and sets, manage rest, and save the session."
+            },
+            {
+                "id": "user-guide-supersets-editing",
+                "title": "Supersets and edit workout entries",
+                "slug": "supersets-and-editing",
+                "src_file": SRC_DOC_DIR / "user_guide" / "supersets_and_editing.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "supersets-and-editing",
+                "url": "/docs/user-guide/supersets-and-editing/",
+                "desc": "Group exercises into supersets and edit saved workout details and sets."
+            },
+            {
+                "id": "user-guide-workout-routines",
+                "title": "Create and use workout routines",
+                "slug": "workout-routines",
+                "src_file": SRC_DOC_DIR / "user_guide" / "workout_routines.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "workout-routines",
+                "url": "/docs/user-guide/workout-routines/",
+                "desc": "Create reusable workout routines, organize exercises, and update saved templates."
+            },
+            {
+                "id": "user-guide-ai-workout-routines",
+                "title": "Create a workout routine with an AI assistant",
+                "slug": "ai-workout-routines",
+                "src_file": SRC_DOC_DIR / "user_guide" / "ai_workout_routines.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-workout-routines",
+                "url": "/docs/user-guide/ai-workout-routines/",
+                "desc": "Find matching catalog exercises and prepare importable routine JSON with an AI assistant."
+            },
+            {
+                "id": "user-guide-exercise-catalog",
+                "title": "Find and create exercises",
+                "slug": "exercise-catalog",
+                "src_file": SRC_DOC_DIR / "user_guide" / "exercise_catalog.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "exercise-catalog",
+                "url": "/docs/user-guide/exercise-catalog/",
+                "desc": "Search and filter the exercise catalog, and create or edit custom exercises."
+            },
+            {
+                "id": "user-guide-workout-history",
+                "title": "Review workout history",
+                "slug": "workout-history",
+                "src_file": SRC_DOC_DIR / "user_guide" / "workout_history.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "workout-history",
+                "url": "/docs/user-guide/workout-history/",
+                "desc": "Open completed workouts, review details, share a session, or save it as a routine."
+            },
+            {
+                "id": "user-guide-training-plans",
+                "title": "Create and follow a training plan",
+                "slug": "training-plans",
+                "src_file": SRC_DOC_DIR / "user_guide" / "training_plans.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "training-plans",
+                "url": "/docs/user-guide/training-plans/",
+                "desc": "Build a weekly or repeating plan, follow sessions, set reminders, and review outcomes."
+            },
+            {
+                "id": "user-guide-food",
+                "title": "Log food and review calories and macronutrients",
+                "slug": "logging-food",
+                "src_file": SRC_DOC_DIR / "user_guide" / "logging_food.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "logging-food",
+                "url": "/docs/user-guide/logging-food/",
+                "desc": "Log food in the Diary and understand calorie and macronutrient totals."
+            },
+            {
+                "id": "user-guide-food-catalogs",
+                "title": "Choose food catalog settings",
+                "slug": "food-catalogs",
+                "src_file": SRC_DOC_DIR / "user_guide" / "food_catalogs.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "food-catalogs",
+                "url": "/docs/user-guide/food-catalogs/",
+                "desc": "Choose the food database region and catalog display language."
+            },
+            {
+                "id": "user-guide-saved-meals",
+                "title": "Create and reuse recipes",
+                "slug": "saved-meals",
+                "src_file": SRC_DOC_DIR / "user_guide" / "saved_meals.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "saved-meals",
+                "url": "/docs/user-guide/saved-meals/",
+                "desc": "Save foods as recipes, scale portions, and add saved meals to the Diary."
+            },
+            {
+                "id": "user-guide-ai-meal-capture",
+                "title": "Configure and use AI Meal Capture",
+                "slug": "ai-meal-capture",
+                "src_file": SRC_DOC_DIR / "user_guide" / "ai_meal_capture.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-meal-capture",
+                "url": "/docs/user-guide/ai-meal-capture/",
+                "desc": "Configure a provider and review photo, voice, text, or barcode meal captures."
+            },
+            {
+                "id": "user-guide-water-drinks",
+                "title": "Log water and other drinks",
+                "slug": "water-and-drinks",
+                "src_file": SRC_DOC_DIR / "user_guide" / "water_and_drinks.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "water-and-drinks",
+                "url": "/docs/user-guide/water-and-drinks/",
+                "desc": "Log fluid amounts and review water, sugar, and caffeine totals."
+            },
+            {
+                "id": "user-guide-daily-targets",
+                "title": "Set daily targets",
+                "slug": "daily-targets",
+                "src_file": SRC_DOC_DIR / "user_guide" / "daily_targets.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "daily-targets",
+                "url": "/docs/user-guide/daily-targets/",
+                "desc": "Edit daily calorie, macronutrient, water, and step targets."
+            },
+            {
+                "id": "user-guide-weight-goals",
+                "title": "Set and manage a weight goal",
+                "slug": "weight-goals",
+                "src_file": SRC_DOC_DIR / "user_guide" / "weight_goals.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "weight-goals",
+                "url": "/docs/user-guide/weight-goals/",
+                "desc": "Set a weight goal, follow reviews, and adjust or retire the goal."
+            },
+            {
+                "id": "user-guide-supplements",
+                "title": "Log caffeine and other supplements",
+                "slug": "logging-supplements",
+                "src_file": SRC_DOC_DIR / "user_guide" / "logging_supplements.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "logging-supplements",
+                "url": "/docs/user-guide/logging-supplements/",
+                "desc": "Record caffeine and supplement doses, manage supplements, and avoid duplicate caffeine entries."
+            },
+            {
+                "id": "user-guide-measurements",
+                "title": "Record body weight and other measurements",
+                "slug": "measurements",
+                "src_file": SRC_DOC_DIR / "user_guide" / "measurements.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "measurements",
+                "url": "/docs/user-guide/measurements/",
+                "desc": "Log body measurements and review saved values and trends over time."
+            },
+            {
+                "id": "user-guide-statistics",
+                "title": "Read the Statistics hub",
+                "slug": "statistics",
+                "src_file": SRC_DOC_DIR / "user_guide" / "statistics.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "statistics",
+                "url": "/docs/user-guide/statistics/",
+                "desc": "Customize pinned statistics cards, compare periods, and understand the hub's available metrics."
+            },
+            {
+                "id": "user-guide-training-statistics",
+                "title": "Read training statistics",
+                "slug": "training-statistics",
+                "src_file": SRC_DOC_DIR / "user_guide" / "training_statistics.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "training-statistics",
+                "url": "/docs/user-guide/training-statistics/",
+                "desc": "Interpret Training Rhythm, personal bests, and Muscle Groups views."
+            },
+            {
+                "id": "user-guide-body-nutrition-statistics",
+                "title": "Read Body & Nutrition statistics",
+                "slug": "body-nutrition-statistics",
+                "src_file": SRC_DOC_DIR / "user_guide" / "body_nutrition_statistics.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "body-nutrition-statistics",
+                "url": "/docs/user-guide/body-nutrition-statistics/",
+                "desc": "Review weight and nutrition trends, data coverage, and chart periods."
+            },
+            {
+                "id": "user-guide-health-data",
+                "title": "Connect health data",
+                "slug": "health-data",
+                "src_file": SRC_DOC_DIR / "user_guide" / "health_data.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "health-data",
+                "url": "/docs/user-guide/health-data/",
+                "desc": "Enable and sync steps, sleep, pulse, and body measurements from platform health services."
+            },
+            {
+                "id": "user-guide-widgets",
+                "title": "Use Train Libre widgets and quick actions",
+                "slug": "widgets",
+                "src_file": SRC_DOC_DIR / "user_guide" / "widgets.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "widgets",
+                "url": "/docs/user-guide/widgets/",
+                "desc": "Add Home Screen widgets and Android Quick Settings shortcuts."
+            },
+            {
+                "id": "user-guide-live-activities",
+                "title": "Live Activities and workout updates",
+                "slug": "live-activities",
+                "src_file": SRC_DOC_DIR / "user_guide" / "live_activities.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "live-activities",
+                "url": "/docs/user-guide/live-activities/",
+                "desc": "Use workout Live Activities on iPhone and ongoing workout updates on Android."
+            },
+            {
+                "id": "user-guide-notifications",
+                "title": "Manage notifications and reminders",
+                "slug": "notifications",
+                "src_file": SRC_DOC_DIR / "user_guide" / "notifications.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "notifications",
+                "url": "/docs/user-guide/notifications/",
+                "desc": "Choose local reminders and manage notification access and behavior."
+            },
+            {
+                "id": "user-guide-importing",
+                "title": "Import workout history and other data",
+                "slug": "importing-data",
+                "src_file": SRC_DOC_DIR / "user_guide" / "importing_data.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "importing-data",
+                "url": "/docs/user-guide/importing-data/",
+                "desc": "Import workout history, restore backups, share saved items, and read health data."
+            },
+            {
+                "id": "user-guide-csv",
+                "title": "Prepare a compatible workout CSV",
+                "slug": "prepare-csv-files",
+                "src_file": SRC_DOC_DIR / "user_guide" / "prepare_csv_files.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "prepare-csv-files",
+                "url": "/docs/user-guide/prepare-csv-files/",
+                "desc": "Prepare workout CSV columns, units, date formats, and values for import."
+            },
+            {
+                "id": "user-guide-exporting",
+                "title": "Exporting and backing up data",
+                "slug": "exporting-and-backing-up",
+                "src_file": SRC_DOC_DIR / "user_guide" / "exporting_and_backing_up.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "exporting-and-backing-up",
+                "url": "/docs/user-guide/exporting-and-backing-up/",
+                "desc": "Create full backups, export selected records, and use automatic or health-store backups."
+            },
+            {
+                "id": "user-guide-sharing-ai",
+                "title": "Share Train Libre data with an AI assistant",
+                "slug": "sharing-and-ai",
+                "src_file": SRC_DOC_DIR / "user_guide" / "sharing_and_ai.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "sharing-and-ai",
+                "url": "/docs/user-guide/sharing-and-ai/",
+                "desc": "Share selected workouts, statistics, or exports with another app or an AI assistant, and import supported items."
             }
         ]
     },
@@ -157,21 +459,21 @@ DOCS_STRUCTURE = [
         "items": [
             {
                 "id": "dev-overview",
-                "title": "Developer Overview & Tests",
+                "title": "Developer Documentation",
                 "slug": "overview",
                 "src_file": SRC_DOC_DIR / "developer" / "overview.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "overview",
                 "url": "/docs/developer/overview/",
-                "desc": "Architecture principles, testing tiers, and continuous integration strategy."
+                "desc": "Repository map, contributor checks, and links to implementation guides."
             },
             {
                 "id": "dev-arch",
-                "title": "System Architecture & Wiring",
+                "title": "System Architecture & Database Lifecycle",
                 "slug": "architecture",
                 "src_file": SRC_DOC_DIR / "developer" / "architecture.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "architecture",
                 "url": "/docs/developer/architecture/",
-                "desc": "Clean Architecture boundaries, Drift SQLite lifecycle, and DI provider graph."
+                "desc": "Startup wiring, database ownership, migrations, repair, and backup boundaries."
             },
             {
                 "id": "dev-flow",
@@ -180,7 +482,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "developer" / "data_flow_and_state.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "data-flow-and-state",
                 "url": "/docs/developer/data-flow-and-state/",
-                "desc": "Reactive reads, imperative writes, drift streams, and lock states."
+                "desc": "Repository reads and commands, subscription ownership, and async UI state."
             },
             {
                 "id": "dev-l10n",
@@ -189,7 +491,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "developer" / "localization_architecture.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "localization-architecture",
                 "url": "/docs/developer/localization-architecture/",
-                "desc": "Multi-locale catalog translation pipeline, relational tables, and fallback chains."
+                "desc": "Flutter ARB strings and separate food/exercise catalog localization systems."
             },
             {
                 "id": "dev-widgets",
@@ -198,7 +500,16 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "developer" / "ios_home_screen_widgets.md",
                 "out_dir": OUTPUT_DOCS_DIR / "developer" / "ios-home-screen-widgets",
                 "url": "/docs/developer/ios-home-screen-widgets/",
-                "desc": "WidgetKit (iOS) and Glance/AppWidgetProvider (Android) background snapshots."
+                "desc": "Shared Dart snapshot format, native bridges, storage, refresh, and deep links."
+            },
+            {
+                "id": "dev-food-search",
+                "title": "Food Search: Data Flow & Ranking",
+                "slug": "food-search",
+                "src_file": SRC_DOC_DIR / "developer" / "food_search.md",
+                "out_dir": OUTPUT_DOCS_DIR / "developer" / "food-search",
+                "url": "/docs/developer/food-search/",
+                "desc": "Catalog indexing, query normalization, matching, aliases, and result ranking."
             }
         ]
     }
@@ -839,6 +1150,7 @@ def write_sitemap(all_items: list[dict]) -> None:
     """Publish only canonical, indexable pages; redirects are intentionally excluded."""
     canonical_paths = [
         "/",
+        "/about.html",
         "/privacy.html",
         "/terms.html",
         "/support.html",

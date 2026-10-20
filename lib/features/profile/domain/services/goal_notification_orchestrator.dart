@@ -105,6 +105,14 @@ class GoalNotificationOrchestrator {
     final goal = result.goal;
     if (goal == null) return result;
 
+    if (await _preferences.weeklyReviewEnabled()) {
+      await LocalNotificationService.instance
+          .scheduleUpcomingWeeklyGoalReviews(goal: goal);
+    } else {
+      await LocalNotificationService.instance
+          .cancelWeeklyReviewNotifications(goalId: goal.id);
+    }
+
     if (await _preferences.targetDateEnabled()) {
       await _scheduler.scheduleTargetDate(goal: goal);
     } else {

@@ -1,0 +1,40 @@
+name: Feature request
+description: Propose a specific improvement to Train Libre.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        For an early-stage idea or open-ended discussion, please use
+        [Discussions](https://github.com/rfivesix/train-libre/discussions/categories/ideas)
+        first. Use this form for a concrete proposal.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What are you trying to do that is difficult or missing today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the change you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds or other approaches you have considered.
+    validations:
+      required: false
+  - type: textarea
+    id: extra-context
+    attributes:
+      label: Additional context
+      description: Add examples or mockups if they help explain the request.
+    validations:
+      required: false

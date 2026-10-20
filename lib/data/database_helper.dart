@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'drift_database.dart' as db;
 import '../features/diary/domain/models/fluid_entry.dart';
 import '../features/diary/domain/models/food_entry.dart';
+import '../features/diary/domain/models/meal_entry.dart';
 import '../features/profile/domain/models/measurement_session.dart';
 import '../features/supplements/domain/models/supplement.dart';
 import '../features/supplements/domain/models/supplement_log.dart';
@@ -224,6 +225,16 @@ class DatabaseHelper {
   }) =>
       diaryLocalDataSource.insertFoodEntry(entry,
           telemetrySource: telemetrySource);
+  Future<List<int>> insertMealEntryWithFoodEntries(
+    MealEntry mealEntry,
+    List<FoodEntry> entries, {
+    String telemetrySource = FoodLogSource.meal,
+  }) =>
+      diaryLocalDataSource.insertMealEntryWithFoodEntries(
+        mealEntry,
+        entries,
+        telemetrySource: telemetrySource,
+      );
   Future<int> insertFluidEntry(FluidEntry entry) =>
       diaryLocalDataSource.insertFluidEntry(entry);
   Future<void> deleteFluidEntryByLinkedFoodId(int id) =>
@@ -312,16 +323,48 @@ class DatabaseHelper {
       mealLocalDataSource.getMeals();
   Future<List<Map<String, dynamic>>> getMealItems(int id) =>
       mealLocalDataSource.getMealItems(id);
-  Future<int> insertMeal({dynamic name, String? notes}) => (name is String)
-      ? mealLocalDataSource.insertMeal(name: name, notes: notes)
-      : mealLocalDataSource.insertMeal(
-          name: (name as dynamic).name, notes: (name as dynamic).notes);
-  Future<void> updateMeal(dynamic id, {String? name, String? notes}) =>
+  Future<int> insertMeal({
+    dynamic name,
+    String? notes,
+    int? servingCount,
+    int? cookedWeightInGrams,
+  }) =>
+      (name is String)
+          ? mealLocalDataSource.insertMeal(
+              name: name,
+              notes: notes,
+              servingCount: servingCount,
+              cookedWeightInGrams: cookedWeightInGrams,
+            )
+          : mealLocalDataSource.insertMeal(
+              name: (name as dynamic).name,
+              notes: (name as dynamic).notes,
+              servingCount: servingCount,
+              cookedWeightInGrams: cookedWeightInGrams,
+            );
+  Future<void> updateMeal(
+    dynamic id, {
+    String? name,
+    String? notes,
+    int? servingCount,
+    int? cookedWeightInGrams,
+  }) =>
       (id is int && name != null)
-          ? mealLocalDataSource.updateMeal(id, name: name, notes: notes)
+          ? mealLocalDataSource.updateMeal(
+              id,
+              name: name,
+              notes: notes,
+              servingCount: servingCount,
+              cookedWeightInGrams: cookedWeightInGrams,
+            )
           : mealLocalDataSource.updateMeal((id as dynamic).id,
-              name: (id as dynamic).name, notes: (id as dynamic).notes);
+              name: (id as dynamic).name,
+              notes: (id as dynamic).notes,
+              servingCount: servingCount,
+              cookedWeightInGrams: cookedWeightInGrams);
   Future<void> deleteMeal(int id) => mealLocalDataSource.deleteMeal(id);
+  Future<int> duplicateMeal(int id, {required String copySuffix}) =>
+      mealLocalDataSource.duplicateMeal(id, copySuffix: copySuffix);
   Future<void> clearMealItems(int id) => mealLocalDataSource.clearMealItems(id);
   Future<int> addMealItem(
           {required int mealId,

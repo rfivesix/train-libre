@@ -62,5 +62,27 @@ void main() {
 
       controller.dispose();
     });
+
+    testWidgets('renders active model badge when provided', (tester) async {
+      final controller = MealAnalysisController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MealAnalysisScreen(
+            controller: controller,
+            activeModelName: 'Qwen-3-VL (4B) (Lokal)',
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Qwen-3-VL (4B) (Lokal)'), findsOneWidget);
+      controller.dispose();
+    });
   });
 }

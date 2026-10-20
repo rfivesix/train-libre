@@ -11,6 +11,8 @@ import '../data/manual_training_plan_repository.dart';
 import 'manual_plan_text.dart';
 import '../domain/services/workout_plan_notification_orchestrator.dart';
 import '../../sharing/share_service.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine.dart';
@@ -29,6 +31,8 @@ import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/routine_pause_time_dialog.dart';
+import 'widgets/workout_keyboard_accessory_bar.dart';
+import 'widgets/set_type_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
@@ -671,7 +675,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     final l10n = AppLocalizations.of(context)!;
     final result = await showGlassBottomMenu<String?>(
       context: context,
-      title: l10n.exerciseNoteTitle,
+      title: l10n.pinnedRoutineNoteTitle,
       contentBuilder: (ctx, close) {
         return ExerciseNotesDialog(
           initialNotes: re.notes,
@@ -730,53 +734,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   }
 
   void _showSetTypePicker(SetTemplate setTemplate) {
-    final l10n = AppLocalizations.of(context)!;
-
-    Widget buildSymbol(String char, Color color) {
-      return Text(
-        char,
-        style: TextStyle(
-          color: color,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-
-    final options = [
-      {
-        'type': 'normal',
-        'label': l10n.set_type_normal,
-        'symbol':
-            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
-      },
-      {
-        'type': 'warmup',
-        'label': l10n.set_type_warmup,
-        'symbol': buildSymbol('W', Colors.orange),
-      },
-      {
-        'type': 'failure',
-        'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Theme.of(context).colorScheme.error),
-      },
-      {
-        'type': 'dropset',
-        'label': l10n.set_type_dropset,
-        'symbol': buildSymbol('D', Colors.blue),
-      },
-    ];
-
-    showGlassBottomMenu(
+    showExplanationRichSetTypeSheet(
       context: context,
-      title: l10n.changeSetTypTitle,
-      actions: options.map((opt) {
-        return GlassMenuAction(
-          customIcon: opt['symbol'] as Widget,
-          label: opt['label'] as String,
-          onTap: () => _changeSetType(setTemplate, opt['type'] as String),
-        );
-      }).toList(),
+      onSelected: (newType) => _changeSetType(setTemplate, newType),
     );
   }
 
@@ -829,6 +789,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         if (exerciseIndex != -1) {
           _routineExercises[exerciseIndex] = re.copyWith(
             pauseSeconds: result.value,
+            clearPauseSeconds: result.value == null,
           );
         }
       });
@@ -920,6 +881,44 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     _shareService.showRoutineShareSheet(context: context, routine: routine);
   }
 
+  Future<void> _importRoutine() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'routine',
+      warning: l10n.shareImportReplaceWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      final repository = const ShareLinkRepository();
+      if (_routineId == null) {
+        final imported = await repository.importRoutine(payload);
+        _routineId = imported.id;
+        _isNewRoutine = false;
+      } else {
+        await repository.replaceRoutine(_routineId!, payload);
+      }
+      _nameController.text = payload.name;
+      _originalName = payload.name;
+      _routineChangedInSession = true;
+      setState(() {
+        _isEditMode = true;
+        _canPop = false;
+      });
+      await _loadExercisesForRoutine();
+      await _offerPlanUpdate();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.shareImportSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -963,6 +962,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     tooltip: l10n.share,
                     icon: Icon(DesignConstants.adaptiveShareIcon),
                     onPressed: _shareCurrentRoutine,
+                  ),
+                if (_isEditMode)
+                  IconButton(
+                    tooltip: l10n.shareImportSectionTitle,
+                    icon: const Icon(LucideIcons.file_down),
+                    onPressed: _importRoutine,
                   ),
                 if (_isEditMode)
                   TextButton(
@@ -1100,6 +1105,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                             onDeleteExercise: () {},
                                             onAddSet: () {},
                                             onShowSetTypePicker: (_) {},
+                                            onSetTypeChanged: (_, __) {},
                                             onRemoveSet: (_, __) {},
                                           );
                                           return buildReorderDragProxy(
@@ -1264,6 +1270,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                                 routineExercise),
                                                             onShowSetTypePicker:
                                                                 _showSetTypePicker,
+                                                            onSetTypeChanged:
+                                                                _changeSetType,
                                                             onRemoveSet: (template,
                                                                     listIndex) =>
                                                                 _removeSet(
@@ -1319,104 +1327,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                   ),
 
                 // --- Keyboard Done Accessory Bar ---
-                const _KeyboardDoneBar(),
+                const WorkoutKeyboardAccessoryBar(),
               ],
             ),
           ),
         ));
-  }
-}
-
-class _KeyboardDoneBar extends StatefulWidget {
-  const _KeyboardDoneBar();
-
-  @override
-  State<_KeyboardDoneBar> createState() => _KeyboardDoneBarState();
-}
-
-class _KeyboardDoneBarState extends State<_KeyboardDoneBar>
-    with WidgetsBindingObserver {
-  double _keyboardHeight = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateKeyboardHeight();
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    _updateKeyboardHeight();
-  }
-
-  void _updateKeyboardHeight() {
-    if (!mounted) return;
-    final view = View.of(context);
-    final newHeight = view.viewInsets.bottom / view.devicePixelRatio;
-    if (newHeight != _keyboardHeight) {
-      setState(() {
-        _keyboardHeight = newHeight;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_keyboardHeight <= 0) {
-      return const SizedBox.shrink();
-    }
-    final l10n = AppLocalizations.of(context)!;
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Material(
-        elevation: 8.0,
-        child: Container(
-          height: 44,
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF1E1E1E)
-                : const Color(0xFFF5F5F7),
-            border: Border(
-              top: BorderSide(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white10
-                    : Colors.black12,
-                width: 0.5,
-              ),
-            ),
-          ),
-          padding:
-              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: Text(
-                  l10n.doneButtonLabel,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

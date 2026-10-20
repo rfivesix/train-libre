@@ -144,7 +144,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Open Meal'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Edit'));
+    await tester.tap(find.byTooltip('Edit').first);
     await tester.pumpAndSettle();
   }
 

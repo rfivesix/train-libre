@@ -332,7 +332,6 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                   builder: (_) => const ManualPlanScreen(),
                 ),
               );
-              if (mounted) setState(() => _manualPlanRefresh++);
             }
 
             if (plan == null) {

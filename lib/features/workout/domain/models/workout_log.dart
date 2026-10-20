@@ -2,6 +2,18 @@ import 'dart:convert';
 
 import 'set_log.dart';
 
+Map<int, String> _parseExerciseNotes(dynamic raw) {
+  if (raw is! Map) return const {};
+  final result = <int, String>{};
+  for (final entry in raw.entries) {
+    final block = int.tryParse(entry.key.toString());
+    if (block != null && entry.value != null) {
+      result[block] = entry.value.toString();
+    }
+  }
+  return result;
+}
+
 /// Represents a completed or ongoing workout session.
 ///
 /// Tracks the start time, end time, and all sets performed during the session.
@@ -35,6 +47,9 @@ class WorkoutLog {
   /// A list of all [SetLog] entries recorded during this workout.
   final List<SetLog> sets;
 
+  /// Per-exercise-block workout notes, keyed by the stable block ordinal.
+  final Map<int, String> exerciseNotesByBlock;
+
   /// Every photo of this workout, relative to the application support directory.
   final List<String> photoPaths;
 
@@ -50,6 +65,7 @@ class WorkoutLog {
     this.endZoneOffsetMinutes,
     this.photoPaths = const [],
     this.sets = const [],
+    this.exerciseNotesByBlock = const {},
   });
 
   /// Creates a copy of this [WorkoutLog] with the given fields replaced.
@@ -64,6 +80,7 @@ class WorkoutLog {
     int? endZoneOffsetMinutes,
     List<String>? photoPaths,
     List<SetLog>? sets,
+    Map<int, String>? exerciseNotesByBlock,
   }) {
     return WorkoutLog(
       id: id ?? this.id,
@@ -77,6 +94,7 @@ class WorkoutLog {
       endZoneOffsetMinutes: endZoneOffsetMinutes ?? this.endZoneOffsetMinutes,
       photoPaths: photoPaths ?? this.photoPaths,
       sets: sets ?? this.sets,
+      exerciseNotesByBlock: exerciseNotesByBlock ?? this.exerciseNotesByBlock,
     );
   }
 
@@ -115,6 +133,7 @@ class WorkoutLog {
           ? DateTime.parse(map['end_time'] as String)
           : null,
       notes: map['notes'],
+      exerciseNotesByBlock: _parseExerciseNotes(map['exercise_notes_by_block']),
       photoPaths: paths,
       sets: sets,
     );
@@ -129,6 +148,11 @@ class WorkoutLog {
       'start_time': startTime.toIso8601String(),
       'end_time': endTime?.toIso8601String(),
       'notes': notes,
+      if (exerciseNotesByBlock.isNotEmpty)
+        'exercise_notes_by_block': {
+          for (final entry in exerciseNotesByBlock.entries)
+            entry.key.toString(): entry.value,
+        },
       if (photoPaths.isNotEmpty) 'photo_paths': photoPaths,
     };
   }

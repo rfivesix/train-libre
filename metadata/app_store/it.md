@@ -56,15 +56,15 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Obiettivi che si adattano a te: Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
+Acquisizione dei pasti con IA migliorata: L’analisi è più rapida e trova gli alimenti corrispondenti in modo più affidabile. Sugli iPhone compatibili, Apple Intelligence può analizzare i pasti sul dispositivo; puoi anche continuare a usare la tua chiave API con un altro provider. Controlla e modifica ogni suggerimento prima di salvarlo.
 
-Piani di allenamento personalizzati: Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.
+Dati alimentari più dettagliati: Scarica il catalogo BLS 4.0 per cercare alimenti generici con nomi tradotti e consultare i nutrienti, inclusi i micronutrienti. Dopo il download funziona offline; i prodotti di marca restano disponibili tramite Open Food Facts.
 
-Livelli di esperienza su misura: Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.
+Importa la cronologia degli allenamenti: Importa le sessioni da Hevy, Strong o CSV. L’anteprima segnala possibili duplicati e date non valide. Ritrova più facilmente gli esercizi già svolti e aggiungi note a esercizi, routine o singoli allenamenti.
 
-Timer per serie & scheda Allenamento rinnovata: Avvia e metti in pausa i timer delle serie durante l'allenamento o dall'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.
+Condividi e riutilizza i tuoi contenuti: Condividi routine, piani e ricette tramite link, testo o JSON; esporta gli allenamenti completati come testo o JSON. Controlla l’anteprima delle importazioni supportate. Registra le ricette in base alle porzioni o al peso dopo la cottura.
 
-Trend del peso attenuati & nuove analisi: Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.
+Statistiche più chiare e uso quotidiano più fluido: Personalizza la panoramica delle statistiche, esplora le analisi di nutrizione e recupero e trova le impostazioni di importazione ed esportazione dei dati sanitari in un unico posto. Questo aggiornamento migliora anche il ripristino dei backup, l’accessibilità e la visualizzazione sugli schermi piccoli.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

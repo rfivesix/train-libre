@@ -24,10 +24,11 @@ import '../../profile/domain/repositories/profile_repository.dart';
 import '../../profile/domain/models/user_gender.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../settings/presentation/ai_settings_screen.dart';
-import '../../settings/presentation/pulse_settings_screen.dart';
-import '../../settings/presentation/sleep_settings_screen.dart';
-import '../../settings/presentation/steps_settings_screen.dart';
+import '../../settings/presentation/health_settings_screen.dart';
+import '../../sleep/platform/sleep_sync_service.dart';
+import '../../workout/presentation/workout_import_flow.dart';
 import 'widgets/welcome_slide.dart';
+import 'widgets/workout_import_slide.dart';
 import 'widgets/unit_system_slide.dart';
 import 'widgets/profile_slide.dart';
 import 'widgets/region_selection_slide.dart';
@@ -108,8 +109,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _goalPaceTimelinePageIndex = 12;
   static const int _goalMotivationPageIndex = 13;
   static const int _nutritionPageIndex = 14;
-  static const int _permissionsPageIndex = 15;
-  static const int _totalPageCount = 16;
+  static const int _workoutImportPageIndex = 15;
+  static const int _permissionsPageIndex = 16;
+  static const int _totalPageCount = 17;
   static const int _lastPageIndex = _permissionsPageIndex;
 
   bool _isImportedMode = false;
@@ -148,10 +150,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     'goal_pace_timeline',
     'goal_motivation',
     'nutrition_recommendation',
+    'workout_import_prompt',
     'permissions_consent',
   ];
 
-  ExperienceLevel _selectedExperienceLevel = ExperienceLevel.pro;
+  ExperienceLevel _selectedExperienceLevel = ExperienceLevel.beginner;
   OffCatalogCountry _selectedOffCountry = OffCatalogCountry.de;
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -914,6 +917,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _nextPage() async {
     final l10n = AppLocalizations.of(context)!;
+    if (_currentPage == _workoutImportPageIndex) {
+      unawaited(TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.workoutImportPromptSkipped,
+      ));
+    }
     if (_currentPage == _regionSelectionPageIndex) {
       await OffCatalogCountryService.writeActiveCountry(_selectedOffCountry);
       if (mounted) {
@@ -1467,11 +1475,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       fatController: _fatController,
                       waterController: _waterController,
                     ),
+                    WorkoutImportSlide(
+                      onImport: () {
+                        unawaited(TelemetryService.instance.trackFeatureUsed(
+                          featureKey: FeatureKey.workoutImportPromptStarted,
+                        ));
+                        unawaited(performWorkoutImport(context));
+                      },
+                    ),
                     _OnboardingAiHealthStep(
                       onOpenAiSettings: _openAiSettings,
-                      onOpenStepsSettings: _openStepsSettings,
-                      onOpenSleepSettings: _openSleepSettings,
-                      onOpenPulseSettings: _openPulseSettings,
+                      onOpenHealthSettings: _openHealthSettings,
                     ),
                   ],
                 ),
@@ -1497,10 +1511,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             : _nextPage,
                         label: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
-                            : l10n.onboardingNext.toUpperCase(),
+                            : _currentPage == _workoutImportPageIndex
+                                ? l10n.onboardingWorkoutImportLater
+                                    .toUpperCase()
+                                : l10n.onboardingNext.toUpperCase(),
                         tooltip: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
-                            : l10n.onboardingNext.toUpperCase(),
+                            : _currentPage == _workoutImportPageIndex
+                                ? l10n.onboardingWorkoutImportLater
+                                    .toUpperCase()
+                                : l10n.onboardingNext.toUpperCase(),
                         isLoading: (_isGeneratingOnboardingRecommendation &&
                                 _currentPage == _nutritionPageIndex) ||
                             _isCheckingDatabase,
@@ -1525,22 +1545,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Future<void> _openStepsSettings() {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const StepsSettingsScreen()),
-    );
-  }
-
-  Future<void> _openSleepSettings() {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const SleepSettingsScreen()),
-    );
-  }
-
-  Future<void> _openPulseSettings() {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const PulseSettingsScreen()),
-    );
+  Future<void> _openHealthSettings() async {
+    final sleepSyncService = SleepSyncService();
+    final sleepPermissionController =
+        sleepSyncService.buildPermissionController();
+    try {
+      await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => HealthSettingsScreen(
+            sleepSyncService: sleepSyncService,
+            sleepPermissionController: sleepPermissionController,
+          ),
+        ),
+      );
+    } finally {
+      sleepPermissionController.state.dispose();
+      await sleepSyncService.dispose();
+    }
   }
 }
 
@@ -2197,15 +2218,11 @@ class _OnboardingNumberField extends StatelessWidget {
 class _OnboardingAiHealthStep extends StatelessWidget {
   const _OnboardingAiHealthStep({
     required this.onOpenAiSettings,
-    required this.onOpenStepsSettings,
-    required this.onOpenSleepSettings,
-    required this.onOpenPulseSettings,
+    required this.onOpenHealthSettings,
   });
 
   final VoidCallback onOpenAiSettings;
-  final VoidCallback onOpenStepsSettings;
-  final VoidCallback onOpenSleepSettings;
-  final VoidCallback onOpenPulseSettings;
+  final VoidCallback onOpenHealthSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -2244,24 +2261,11 @@ class _OnboardingAiHealthStep extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 _OnboardingSettingsTile(
-                  icon: LucideIcons.footprints,
-                  title: l10n.steps,
-                  subtitle: l10n.settingsStepsSubtitle,
-                  onTap: onOpenStepsSettings,
-                ),
-                const Divider(height: 1),
-                _OnboardingSettingsTile(
-                  icon: LucideIcons.moon,
-                  title: l10n.sleepSettingsSectionTitle,
-                  subtitle: l10n.settingsSleepSubtitle,
-                  onTap: onOpenSleepSettings,
-                ),
-                const Divider(height: 1),
-                _OnboardingSettingsTile(
+                  key: const Key('onboarding_health_settings_link'),
                   icon: LucideIcons.heart_pulse,
-                  title: l10n.pulseTitle,
-                  subtitle: l10n.settingsPulseSubtitle,
-                  onTap: onOpenPulseSettings,
+                  title: l10n.healthSettingsTitle,
+                  subtitle: l10n.onboardingHealthSettingsDescription,
+                  onTap: onOpenHealthSettings,
                 ),
               ],
             ),
@@ -2274,6 +2278,7 @@ class _OnboardingAiHealthStep extends StatelessWidget {
 
 class _OnboardingSettingsTile extends StatelessWidget {
   const _OnboardingSettingsTile({
+    super.key,
     required this.icon,
     required this.title,
     required this.subtitle,

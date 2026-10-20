@@ -1,15 +1,19 @@
 // lib/features/settings/presentation/developer_settings_screen.dart
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../services/experience_level_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'ai_overlay_demo_screen.dart';
 import 'developer_lab/nutrition_developer_lab_view.dart';
 import 'widgets/ai_meal_scan_logs_section.dart';
 import 'performance_diagnostics_screen.dart';
@@ -116,24 +120,48 @@ class DeveloperSettingsScreen extends StatelessWidget {
       padding: DesignConstants.cardPadding,
       children: [
         AppSectionHeader(title: l10n.settingsDeveloperTitle),
-        SummaryCard(
-          child: ListTile(
-            key: const Key('developer_performance_log'),
-            contentPadding: DesignConstants.screenPadding,
-            leading: Icon(
-              LucideIcons.activity,
-              color: theme.colorScheme.primary,
+        AppSettingsRow.navigation(
+          key: const Key('developer_ai_overlay_demo'),
+          title: l10n.developerAiOverlayDemoTitle,
+          subtitle: l10n.developerAiOverlayDemoSubtitle,
+          leading: Icon(
+            LucideIcons.sparkles,
+            size: 24,
+            color: theme.colorScheme.primary,
+          ),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AiOverlayDemoScreen(),
             ),
-            title: Text(
-              l10n.settingsPerformanceLogTitle,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        ValueListenableBuilder<AiOverlayDemoConfiguration>(
+          valueListenable: AiOverlayDemoSettings.configuration,
+          builder: (context, settings, _) => SwitchListTile.adaptive(
+            key: const Key('developer_ai_overlay_demo_enabled'),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingL,
             ),
-            subtitle: Text(l10n.settingsPerformanceLogSubtitle),
-            trailing: const Icon(LucideIcons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const PerformanceDiagnosticsScreen(),
-              ),
+            title: Text(l10n.aiOverlayDemoGlobalEnabledTitle),
+            subtitle: Text(l10n.aiOverlayDemoGlobalEnabledSubtitle),
+            value: settings.enabled,
+            onChanged: (value) =>
+                unawaited(AiOverlayDemoSettings.update(enabled: value)),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        AppSettingsRow.navigation(
+          key: const Key('developer_performance_log'),
+          title: l10n.settingsPerformanceLogTitle,
+          subtitle: l10n.settingsPerformanceLogSubtitle,
+          leading: Icon(
+            LucideIcons.activity,
+            size: 24,
+            color: theme.colorScheme.primary,
+          ),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const PerformanceDiagnosticsScreen(),
             ),
           ),
         ),
@@ -153,7 +181,7 @@ class DeveloperSettingsScreen extends StatelessWidget {
                     const SizedBox(width: DesignConstants.spacingL),
                     Expanded(
                       child: PlatformAdaptiveDropdownFormField<ExperienceLevel>(
-                        key: ValueKey(experienceLevelService.level),
+                        key: const Key('developer_experience_level'),
                         value: experienceLevelService.level,
                         decoration: InputDecoration(
                           labelText: l10n.developerLabExperienceLabel,

@@ -138,7 +138,9 @@ int _countInterruptions(
     if (!_isWake(segment.stage)) continue;
     if (!segment.startAtUtc.isAfter(sleepOnsetAt)) continue;
     if (segment.endAtUtc.difference(segment.startAtUtc) <
-        _interruptionWakeThreshold) continue;
+        _interruptionWakeThreshold) {
+      continue;
+    }
 
     if (previousQualifying == null) {
       count = 1;

@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.6.0 (2026-10-20)
+
+{camera} Capture de repas par IA améliorée : L’analyse est plus rapide et trouve plus sûrement les bons aliments. Sur les iPhone compatibles, Apple Intelligence peut analyser les repas sur l’appareil ; tu peux aussi continuer à utiliser ta propre clé API avec un autre fournisseur. Vérifie et modifie chaque suggestion avant de l’enregistrer.
+
+{utensils} Des données alimentaires plus détaillées : Télécharge le catalogue BLS 4.0 pour rechercher des aliments génériques aux noms traduits et consulter leurs nutriments, dont les micronutriments. Une fois téléchargé, il fonctionne hors ligne ; les produits de marque restent disponibles via Open Food Facts.
+
+{dumbbell} Importe ton historique d’entraînement : Importe des séances depuis Hevy, Strong ou un fichier CSV. L’aperçu signale les doublons possibles et les dates invalides. Retrouve plus facilement les exercices déjà pratiqués et ajoute des notes aux exercices, routines ou séances individuelles.
+
+{rocket} Partage et réutilise tes contenus : Partage routines, programmes et recettes par lien, texte ou JSON ; exporte les séances terminées en texte ou JSON. Prévisualise les imports compatibles avant de les ajouter. Enregistre les recettes selon les portions ou le poids après cuisson.
+
+{chart_line} Des statistiques plus claires et une utilisation plus fluide : Personnalise l’aperçu des statistiques, explore les analyses de nutrition et de récupération, et retrouve les réglages d’import et d’export de santé au même endroit. Cette version améliore aussi la restauration des sauvegardes, l’accessibilité et l’affichage sur les petits écrans.
+
 ## 1.5.0 (2026-10-07)
 
 {chart_line} Des objectifs qui évoluent avec toi : Définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.

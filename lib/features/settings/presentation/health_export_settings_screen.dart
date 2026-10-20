@@ -10,7 +10,6 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class HealthExportSettingsScreen extends StatefulWidget {
@@ -221,127 +220,109 @@ class _HealthExportSettingsScreenState
         ),
         children: [
           AppSectionHeader(title: l10n.healthExportTitle),
-          SummaryCard(
-            child: Column(
-              children: [
-                if (Platform.isIOS) ...[
-                  PlatformAdaptiveSwitchListTile(
-                    secondary: const Icon(LucideIcons.heart),
-                    title: Text(
-                      _exportPlatformTitle(
-                        HealthExportPlatform.appleHealth,
-                        l10n,
-                      ),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      l10n.healthExportAppleHealthSubtitle,
-                    ),
-                    value: _appleExportEnabled,
-                    onChanged: (value) => _toggleHealthExport(
-                      platform: HealthExportPlatform.appleHealth,
-                      enabled: value,
-                    ),
+          Column(
+            children: [
+              if (Platform.isIOS) ...[
+                AppSettingsRow.switchTile(
+                  title: _exportPlatformTitle(
+                    HealthExportPlatform.appleHealth,
+                    l10n,
                   ),
-                  ListTile(
-                    leading: Icon(
-                      _exportStateIcon(
+                  subtitle: l10n.healthExportAppleHealthSubtitle,
+                  leading: const Icon(LucideIcons.heart),
+                  value: _appleExportEnabled,
+                  onChanged: (value) => _toggleHealthExport(
+                    platform: HealthExportPlatform.appleHealth,
+                    enabled: value,
+                  ),
+                ),
+                AppSettingsRow(
+                  title: l10n.healthExportAppleHealthStatusTitle,
+                  leading: const Icon(LucideIcons.shield_check),
+                  subtitle: HealthExportDomain.values.map((domain) {
+                    final status =
                         _exportStatuses[HealthExportPlatform.appleHealth]
-                                ?.statusFor(HealthExportDomain.measurements)
-                                .state ??
-                            HealthExportState.idle,
-                      ),
-                      color: _exportStateColor(
-                        context,
-                        _exportStatuses[HealthExportPlatform.appleHealth]
-                                ?.statusFor(HealthExportDomain.measurements)
-                                .state ??
-                            HealthExportState.idle,
-                      ),
-                    ),
-                    title: Text(
-                      l10n.healthExportAppleHealthStatusTitle,
-                    ),
-                    subtitle: Text(
-                      HealthExportDomain.values.map((domain) {
-                        final status =
+                            ?.statusFor(domain);
+                    return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
+                  }).join(' · '),
+                  trailing: _isAppleExporting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          _exportStateIcon(
                             _exportStatuses[HealthExportPlatform.appleHealth]
-                                ?.statusFor(domain);
-                        return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
-                      }).join(' · '),
-                    ),
-                    trailing: _isAppleExporting
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.chevron_right),
-                    onTap: _appleExportEnabled
-                        ? () => _exportNow(HealthExportPlatform.appleHealth)
-                        : null,
-                  ),
-                ],
-                if (Platform.isAndroid) ...[
-                  PlatformAdaptiveSwitchListTile(
-                    secondary: const Icon(LucideIcons.heart),
-                    title: Text(
-                      _exportPlatformTitle(
-                        HealthExportPlatform.healthConnect,
-                        l10n,
-                      ),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      l10n.healthExportHealthConnectSubtitle,
-                    ),
-                    value: _healthConnectExportEnabled,
-                    onChanged: (value) => _toggleHealthExport(
-                      platform: HealthExportPlatform.healthConnect,
-                      enabled: value,
-                    ),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      _exportStateIcon(
-                        _exportStatuses[HealthExportPlatform.healthConnect]
-                                ?.statusFor(HealthExportDomain.measurements)
-                                .state ??
-                            HealthExportState.idle,
-                      ),
-                      color: _exportStateColor(
-                        context,
-                        _exportStatuses[HealthExportPlatform.healthConnect]
-                                ?.statusFor(HealthExportDomain.measurements)
-                                .state ??
-                            HealthExportState.idle,
-                      ),
-                    ),
-                    title: Text(
-                      l10n.healthExportHealthConnectStatusTitle,
-                    ),
-                    subtitle: Text(
-                      HealthExportDomain.values.map((domain) {
-                        final status =
-                            _exportStatuses[HealthExportPlatform.healthConnect]
-                                ?.statusFor(domain);
-                        return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
-                      }).join(' · '),
-                    ),
-                    trailing: _isHealthConnectExporting
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.chevron_right),
-                    onTap: _healthConnectExportEnabled
-                        ? () => _exportNow(HealthExportPlatform.healthConnect)
-                        : null,
-                  ),
-                ],
+                                    ?.statusFor(HealthExportDomain.measurements)
+                                    .state ??
+                                HealthExportState.idle,
+                          ),
+                          size: 20,
+                          color: _exportStateColor(
+                            context,
+                            _exportStatuses[HealthExportPlatform.appleHealth]
+                                    ?.statusFor(HealthExportDomain.measurements)
+                                    .state ??
+                                HealthExportState.idle,
+                          ),
+                        ),
+                  onTap: _appleExportEnabled
+                      ? () => _exportNow(HealthExportPlatform.appleHealth)
+                      : null,
+                ),
               ],
-            ),
+              if (Platform.isAndroid) ...[
+                AppSettingsRow.switchTile(
+                  title: _exportPlatformTitle(
+                    HealthExportPlatform.healthConnect,
+                    l10n,
+                  ),
+                  subtitle: l10n.healthExportHealthConnectSubtitle,
+                  leading: const Icon(LucideIcons.heart),
+                  value: _healthConnectExportEnabled,
+                  onChanged: (value) => _toggleHealthExport(
+                    platform: HealthExportPlatform.healthConnect,
+                    enabled: value,
+                  ),
+                ),
+                AppSettingsRow(
+                  title: l10n.healthExportHealthConnectStatusTitle,
+                  leading: const Icon(LucideIcons.shield_check),
+                  subtitle: HealthExportDomain.values.map((domain) {
+                    final status =
+                        _exportStatuses[HealthExportPlatform.healthConnect]
+                            ?.statusFor(domain);
+                    return '${_domainLabel(domain, l10n)}: ${_stateLabel(status?.state ?? HealthExportState.idle, l10n)}';
+                  }).join(' · '),
+                  trailing: _isHealthConnectExporting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          _exportStateIcon(
+                            _exportStatuses[HealthExportPlatform.healthConnect]
+                                    ?.statusFor(HealthExportDomain.measurements)
+                                    .state ??
+                                HealthExportState.idle,
+                          ),
+                          size: 20,
+                          color: _exportStateColor(
+                            context,
+                            _exportStatuses[HealthExportPlatform.healthConnect]
+                                    ?.statusFor(HealthExportDomain.measurements)
+                                    .state ??
+                                HealthExportState.idle,
+                          ),
+                        ),
+                  onTap: _healthConnectExportEnabled
+                      ? () => _exportNow(HealthExportPlatform.healthConnect)
+                      : null,
+                ),
+              ],
+            ],
           ),
         ],
       ),

@@ -15,6 +15,7 @@ import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
+import 'ai/apple_foundation_service.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -246,6 +247,20 @@ class AiService {
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
+    AiProvider.appleFoundation: AiProviderMetadata(
+      provider: AiProvider.appleFoundation,
+      displayName: 'Apple Intelligence',
+      keyHint: 'System Model (On-Device)',
+      defaultModel: 'apple-foundation-system',
+      rankingHints: [
+        'apple-foundation-system',
+      ],
+      emergencyFallbackModels: [
+        'apple-foundation-system',
+      ],
+      supportsVision: true,
+      supportsDynamicModelLoading: false,
+    ),
   };
 
   // ---------------------------------------------------------------------------
@@ -353,17 +368,50 @@ class AiService {
   }
 
   List<AiProviderMetadata> getSupportedProviders() =>
-      _providerRegistry.values.toList(growable: false);
+      _providerRegistry.values.where((p) {
+        if (p.provider == AiProvider.appleFoundation &&
+            !kIsWeb &&
+            !Platform.isIOS) {
+          return false;
+        }
+        return true;
+      }).toList(growable: false);
 
   AiProviderMetadata getProviderMetadata(AiProvider provider) =>
       _providerRegistry[provider]!;
 
-  /// Returns the currently selected provider (default: OpenAI).
+  /// Returns the currently selected provider (default: Apple Foundation if available, otherwise OpenAI).
   Future<AiProvider> getSelectedProvider() async {
-    final value = await _secureStorage.read(key: _providerKey);
-    if (value == null || value.isEmpty) return AiProvider.openai;
-    for (final provider in AiProvider.values) {
-      if (provider.name == value) return provider;
+    try {
+      final value = await _secureStorage.read(key: _providerKey);
+      if (value != null && value.isNotEmpty) {
+        for (final provider in AiProvider.values) {
+          if (provider.name == value) return provider;
+        }
+        return await _resolveDefaultProvider();
+      }
+    } catch (_) {}
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final prefValue = prefs.getString(_providerKey);
+      if (prefValue != null && prefValue.isNotEmpty) {
+        for (final provider in AiProvider.values) {
+          if (provider.name == prefValue) return provider;
+        }
+      }
+    } catch (_) {}
+
+    return await _resolveDefaultProvider();
+  }
+
+  Future<AiProvider> _resolveDefaultProvider() async {
+    if (!kIsWeb && Platform.isIOS) {
+      final appleAvailable =
+          await AppleFoundationService.instance.isAvailable();
+      if (appleAvailable) {
+        return AiProvider.appleFoundation;
+      }
     }
     return AiProvider.openai;
   }
@@ -371,9 +419,16 @@ class AiService {
   /// Persists the selected provider.
   Future<void> setSelectedProvider(AiProvider provider) async {
     await _secureStorage.write(key: _providerKey, value: provider.name);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_providerKey, provider.name);
+    } catch (_) {}
   }
 
   Future<String> getSelectedModel(AiProvider provider) async {
+    if (provider == AiProvider.appleFoundation) {
+      return getProviderMetadata(provider).defaultModel;
+    }
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       final customModel = await getCustomModel();
       if (customModel != null && customModel.isNotEmpty) return customModel;
@@ -385,6 +440,20 @@ class AiService {
     final meta = getProviderMetadata(provider);
     if (selected == null || selected.isEmpty) return meta.defaultModel;
     return selected;
+  }
+
+  /// Returns a clean, user-facing display name for the currently active model.
+  Future<String> getActiveModelDisplayName() async {
+    final provider = await getSelectedProvider();
+    if (provider == AiProvider.appleFoundation) {
+      return 'Apple Intelligence';
+    }
+    final modelId = await getSelectedModel(provider);
+    if (provider == AiProvider.custom) {
+      return 'Custom · $modelId';
+    }
+    final meta = getProviderMetadata(provider);
+    return '${meta.displayName} · $modelId';
   }
 
   @visibleForTesting
@@ -605,8 +674,22 @@ class AiService {
   }
 
   // ---------------------------------------------------------------------------
-  // Analysis
+  // Pre-warming & Analysis
   // ---------------------------------------------------------------------------
+
+  /// Pre-warms the currently selected AI provider (e.g. Apple Foundation Models)
+  /// in the background so that model weights/caches are loaded before the user initiates a scan.
+  Future<void> prewarm({String? languageCode}) async {
+    try {
+      final provider = await getSelectedProvider();
+      if (provider == AiProvider.appleFoundation) {
+        final prompt = _AiPrompts.buildSystemPrompt(
+          languageCode: languageCode,
+        );
+        await AppleFoundationService.instance.prewarm(systemPrompt: prompt);
+      }
+    } catch (_) {}
+  }
 
   Future<bool> _supportsMealSchema() async {
     final provider = await getSelectedProvider();
@@ -638,8 +721,9 @@ class AiService {
     AiUsageCollector? usageCollector,
   }) async {
     final structuredOutput = await _supportsMealSchema();
-    final userContent =
-        textHint ?? 'Analyze this meal and identify all food components.';
+    final userContent = textHint != null && textHint.trim().isNotEmpty
+        ? '$textHint. Return the identified ingredients as a JSON object.'
+        : 'Analyze this meal and identify all food components. Return ONLY a valid JSON object matching the requested format.';
     final attachDepthMap = depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;
@@ -840,101 +924,116 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     final actionable = validation.allIssues
         .where((issue) => issue.severity != AiValidationSeverity.info)
         .toList(growable: false);
-    final affectedIndices = actionable
-        .map((issue) => issue.itemIndex)
-        .whereType<int>()
-        .where((index) => index >= 0 && index < candidate.items.length)
-        .toSet()
-        .toList()
-      ..sort();
+    final scoped = actionable.isNotEmpty &&
+        actionable.every((issue) => issue.itemIndex != null);
+    final affectedIndices = scoped
+        ? (actionable.map((issue) => issue.itemIndex!).toSet().toList()..sort())
+        : List<int>.generate(candidate.items.length, (index) => index);
     final semanticOnly = actionable.isNotEmpty &&
-        affectedIndices.isNotEmpty &&
+        scoped &&
         actionable.every((issue) =>
-            issue.code == 'ambiguous_nutrition_match' &&
-            issue.itemIndex != null);
-    final itemsForPrompt = semanticOnly
-        ? [for (final index in affectedIndices) candidate.items[index]]
-        : candidate.items;
+            issue.code == 'ambiguous_nutrition_match' ||
+            issue.code == 'ambiguous_db_match');
     final userContent = '''
-Previous meal capture candidate:
-${jsonEncode(itemsForPrompt.map((item) => {
-              'name': item.name,
-              if (item.servedGrams != null) 'servedGrams': item.servedGrams,
-              'estimatedGrams': item.grams,
-              if (item.confidence != null) 'confidence': item.confidence,
-              if (item.matchedBarcode != null)
-                'matchedBarcode': item.matchedBarcode,
-              if (item.stateHint != null) 'stateHint': item.stateHint,
-              if (item.catalogSearchTerm != null)
-                'catalogSearchTerm': item.catalogSearchTerm,
-              if (item.searchTerms.isNotEmpty) 'searchTerms': item.searchTerms,
-            }).toList())}
+Requested meal items (itemIndex is zero-based and must be returned unchanged):
+${jsonEncode([
+          for (final index in affectedIndices)
+            {
+              ...candidate.items[index].toJson(),
+              'estimatedGrams': candidate.items[index].grams,
+              'itemIndex': index,
+              'catalogLocked': !validation.items[index].needsCatalogRepair,
+            },
+        ])}
 
-Deterministic validation feedback:
-${validation.toRepairFeedback()}
+Deterministic validation feedback (totals include unchanged items):
+${validation.toRepairFeedback(itemIndices: affectedIndices.toSet())}
 
-${semanticOnly ? 'Return only the listed items in the same order. Select the exact catalog name and ID from the verified candidates. Preserve servedGrams and estimatedGrams.' : 'Repair the candidate. When database candidates are listed, pick the EXACT name from the list. Adjust grams to fit the meal context anchor.'}''';
+Return exactly these ${affectedIndices.length} items, identified by itemIndex.
+${semanticOnly ? 'Select only catalog entries; preserve quantities and preparation state.' : 'Repair only the requested items. For catalogLocked items adjust only quantities to fit the meal context; their food selection is fixed.'}
+Use only the candidate IDs supplied for that particular item. If none are supplied, return matchedBarcode: null. Return catalogSearchTerm: null when it is no longer relevant. Original packaged-product evidence cannot be added or changed by this repair.
+''';
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
-      // Catalog selection needs only the verified text candidates. Visual or
-      // quantity repairs still need the original evidence from the photo.
       images: semanticOnly ? null : images,
-      systemPrompt: semanticOnly
-          ? 'Resolve only catalog selection for the listed food items. Choose an exact verified candidate name and matchedBarcode for each item. Preserve quantities, food identity and order. Return only a JSON array of items with name, matchedBarcode, servedGrams, estimatedGrams, confidence, stateHint and searchTerms.'
-          : _AiPrompts.buildRepairPrompt(
-              languageCode: languageCode,
-              appLanguage: matchingContext?.appLanguage,
-              catalogLanguage: matchingContext?.catalogLanguage,
-              mealContext: mealContext,
-              depthFacts: depthFacts,
-            ),
+      systemPrompt: _AiPrompts.buildRepairPrompt(
+        languageCode: languageCode,
+        appLanguage: matchingContext?.appLanguage,
+        catalogLanguage: matchingContext?.catalogLanguage,
+        mealContext: mealContext,
+        depthFacts: depthFacts,
+      ),
       temperature: 0.1,
       usageCollector: usageCollector,
     );
     final repaired = await _parseItemsFromContent(raw);
-
-    if (semanticOnly) {
-      if (repaired.length != affectedIndices.length) {
-        throw const AiParseException();
-      }
-      final updated = List<AiMealCandidateItem>.from(candidate.items);
-      for (var i = 0; i < affectedIndices.length; i++) {
-        final index = affectedIndices[i];
-        final selected = repaired[i];
-        final previous = updated[index];
-        updated[index] = previous.copyWith(
-          name: selected.name,
-          matchedBarcode: selected.matchedBarcode,
-          searchTerms: selected.searchTerms.isEmpty
-              ? previous.searchTerms
-              : selected.searchTerms,
-        );
-      }
-      return candidate.copyWith(items: updated);
+    final byIndex = {for (final item in repaired) item.repairItemIndex: item};
+    if (repaired.length != affectedIndices.length ||
+        byIndex.length != affectedIndices.length ||
+        !affectedIndices.every(byIndex.containsKey)) {
+      // Never guess a correspondence after an omitted or reordered response.
+      throw const AiParseException();
     }
 
-    return AiMealCandidate(
-      items: List.generate(repaired.length, (index) {
-        final item = repaired[index];
-        final previous =
-            index < candidate.items.length ? candidate.items[index] : null;
-        return AiMealCandidateItem(
-          name: item.name,
-          grams: item.estimatedGrams,
-          servedGrams: item.servedGrams ?? previous?.servedGrams,
-          confidence: item.confidence,
-          matchedBarcode: item.matchedBarcode,
-          stateHint: item.stateHint ?? previous?.stateHint,
-          catalogSearchTerm:
-              item.catalogSearchTerm ?? previous?.catalogSearchTerm,
-          searchTerms: item.searchTerms.isNotEmpty
-              ? item.searchTerms
-              : (previous?.searchTerms ?? const []),
+    final updated = List<AiMealCandidateItem>.from(candidate.items);
+    for (final index in affectedIndices) {
+      final previous = candidate.items[index];
+      final checked = validation.items[index];
+      final response = byIndex[index]!;
+      final grams = semanticOnly || response.estimatedGrams <= 0
+          ? previous.grams
+          : response.estimatedGrams;
+      final served = semanticOnly
+          ? previous.servedGrams
+          : response.servedGrams ?? previous.servedGrams;
+      if (!checked.needsCatalogRepair) {
+        // A meal-level calorie repair may change grams, never the food identity
+        // or source of a healthy item. This also preserves its BLS selection.
+        updated[index] = previous.copyWith(
+          grams: grams,
+          servedGrams: served,
+          selectedFood: checked.match.bestMatch,
         );
-      }, growable: false),
-      context: candidate.context,
-    );
+        continue;
+      }
+
+      final supplied = checked.repairFoods;
+      final requestedId = response.matchedBarcode?.trim();
+      final selections = requestedId != null && requestedId.isNotEmpty
+          ? supplied.where((food) => food.barcode == requestedId).toList()
+          : supplied
+              .where(
+                  (food) => food.getLocalizedName(null) == response.name.trim())
+              .toList();
+      if (requestedId != null &&
+          requestedId.isNotEmpty &&
+          selections.length != 1) {
+        // Reject the item's catalog change, including its new name, rather than
+        // letting an arbitrary/stale ID become a fresh unrestricted DB lookup.
+        updated[index] = previous.copyWith(
+          matchedBarcode: null,
+          selectedFood: null,
+          catalogSearchTerm: null,
+        );
+        continue;
+      }
+      final selected = selections.length == 1 ? selections.single : null;
+      updated[index] = previous.copyWith(
+        name: selected?.getLocalizedName(null) ?? response.name,
+        grams: grams,
+        servedGrams: served,
+        confidence: response.confidence,
+        stateHint: semanticOnly ? previous.stateHint : response.stateHint,
+        matchedBarcode: selected?.barcode,
+        selectedFood: selected,
+        catalogSearchTerm: response.catalogSearchTerm,
+        searchTerms: response.searchTerms,
+        // Retain only evidence and fallback permission established before
+        // repair. AI catalog selection cannot manufacture source eligibility.
+      );
+    }
+    return candidate.copyWith(items: updated);
   }
 
   Future<String> _callSelectedProviderRaw({
@@ -950,10 +1049,12 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
     try {
       final providerEnum = await getSelectedProvider();
       String? apiKey;
-      if (providerEnum != AiProvider.ollama) {
+      final isOfflineProvider = providerEnum == AiProvider.ollama ||
+          providerEnum == AiProvider.custom ||
+          providerEnum == AiProvider.appleFoundation;
+      if (!isOfflineProvider) {
         apiKey = await getApiKey(providerEnum);
-        if (providerEnum != AiProvider.custom &&
-            (apiKey == null || apiKey.isEmpty)) {
+        if (apiKey == null || apiKey.isEmpty) {
           throw const AiKeyMissingException();
         }
       }
@@ -974,6 +1075,15 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
 
       final _AiRawResponse rawResult;
       switch (providerEnum) {
+        case AiProvider.appleFoundation:
+          final response =
+              await AppleFoundationService.instance.generateMealJson(
+            prompt: userContent,
+            systemPrompt: systemPrompt,
+            imagesBase64: imageDataList,
+          );
+          rawResult = _AiRawResponse(response, null);
+          break;
         case AiProvider.openai:
           rawResult = await _callOpenAiRaw(
             apiKey!,
@@ -1056,6 +1166,10 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       }
 
       usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
+      if (kDebugMode) {
+        debugPrint(
+            '[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
+      }
       return rawResult.text;
     } catch (e) {
       usageCollector?.finishRequest(null, requestId: usageRequestId);

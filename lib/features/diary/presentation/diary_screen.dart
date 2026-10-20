@@ -474,7 +474,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       final vm = viewModel;
                       final state = key.currentState;
                       if (state == null) return;
-                      final quantity = int.tryParse(state.quantityText);
+                      final quantity = state.quantityInMl;
                       if (quantity == null || quantity <= 0) return;
 
                       final name = state.nameText;
@@ -1222,7 +1222,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       final state = key.currentState;
                       if (state == null) return;
                       final diaryDate = vm.selectedDate;
-                      final quantity = int.tryParse(state.quantityText);
+                      final quantity = state.quantityInMl;
                       if (quantity == null || quantity <= 0) return;
 
                       final name = state.nameText;

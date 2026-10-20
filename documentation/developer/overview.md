@@ -1,42 +1,32 @@
-# Developer Overview & Testing Philosophy
+# Developer Documentation
 
-This document outlines the high-level system purpose, the modular offline-first tech stack, and the comprehensive testing philosophy that maintains stability across the Train Libre codebase.
+Train Libre is a Flutter application whose durable user data is held in a local Drift/SQLite database. Platform services, optional network features, and generated catalogs add capabilities around that local data. This section describes the implementation in this repository; product behavior is covered by [Feature Documentation](../features/overview.md), and user workflows by the [User Guide](../user_guide/overview.md).
 
----
+## Start here
 
-## High-Level System Purpose
+- [System architecture and database lifecycle](architecture.md): startup wiring, persistence, migrations, and backup boundaries.
+- [Data flow and state lifecycle](data_flow_and_state.md): repository reads and writes, subscriptions, and asynchronous UI state.
+- [Localization architecture](localization_architecture.md): app strings and localized catalog data.
+- [Food search](food_search.md): indexed catalog search, ranking, and aliases.
+- [Home-screen widgets](ios_home_screen_widgets.md): Dart snapshots and native iOS/Android rendering.
 
-Train Libre is an offline-first, privacy-respecting health, nutrition, sleep, and activity tracker. Unlike traditional wellness applications that rely on persistent cloud servers, Train Libre runs entirely locally. It treats the user's mobile device as the primary computing unit and the absolute source of truth.
+## Repository map
 
-### Key Technical Pillars
-1.  **Zero Backend Dependency**: No external cloud service or account is required for registration, database writes, sync logs, or analytic graphs. The user's device remains the absolute authority.
-2.  **User-Driven Connectivity & Privacy Boundaries**: User actions initiate Bring Your Own Key (BYOK) AI capture APIs (or local/LAN Ollama endpoints), the platform speech recognizer used for meal dictation when no on-device recognizer exists, catalog downloads, and native system Health platforms (Apple HealthKit / Google Health Connect). Optional pseudonymised usage telemetry (PostHog EU) is disabled by default, uses coarse metric bucketing without person profiling, and may send its fixed event catalog only after explicit consent. A build compiled with `--dart-define=DISABLE_TELEMETRY=true` selects the no-op telemetry implementation.
-3.  **Performance and Battery Preservation**: Database access and background syncing utilize optimized local querying, reactive streams, caching, and lazy initialization to minimize battery usage and CPU overhead.
+| Area | Location |
+| --- | --- |
+| App entry point and root providers | `lib/main.dart` |
+| Feature modules (presentation, application/domain/data) | `lib/features/` |
+| Drift tables, generated database code, migrations | `lib/data/` |
+| Shared services and platform adapters | `lib/services/`, `lib/core/` |
+| Localized app string catalogs | `lib/l10n/app_*.arb` |
+| Native Android host and widgets | `android/app/src/main/` |
+| Native iOS host and widget extension | `ios/Runner/`, `ios/LiveActivity/`, `ios/TrainLibreLiveActivity/` |
+| Catalog/build tooling | `script/`, `tool/` |
 
----
+The feature directory structure is a useful guide, not an absolute dependency rule. Trace a behavior through its callers and implementations before relying on a folder name or class name as an architectural contract.
 
-## Technology Stack
+## Contributor checks
 
-The application's framework and core modules are built using the following technologies:
+Use the repository's declared Flutter/Dart toolchain and run focused checks for the code changed. The repository includes Dart tests under `test/`, native iOS tests under `ios/RunnerTests/`, and CI workflows under `.github/workflows/`; workflow triggers and commands are the source of truth for what CI enforces. For documentation changes, run `python3 tool/build_docs.py` and `python3 tool/verify_website.py`.
 
-*   **Core Framework**: Flutter (Dart) for high-performance cross-platform presentation and systems integration.
-*   **Local Persistence**: Drift (built on top of native SQLite databases) using schema version 38 with compile-time type safety, reactive streams, and additive schema self-healing (`reconcileSchema()`).
-*   **Security & Encryption**: `flutter_secure_storage` to handle sensitive local data, such as private API keys for optional AI services, utilizing iOS Keychain and Android Keystore with device-only accessibility.
-*   **Platform Integration**: Native Method Channels to bridge iOS Swift HealthKit and Android Kotlin Health Connect systems directly to Dart services.
-*   **Home Screen Widgets & Live Activity**: Shared Dart snapshot architecture (`HomeWidgetSnapshot`) feeding iOS WidgetKit and Dynamic Island / Live Activities, as well as Android AppWidget/Glance providers and Quick Settings tiles, documented in the [Home Screen Widgets guide](ios_home_screen_widgets.md).
-
----
-
-## Testing Philosophy
-
-A core tenet of the Train Libre development lifecycle is strict mathematical and logic regression checking. Due to the high sensitivity of personal health records and the mathematical nature of the TDEE (Total Daily Energy Expenditure) filter, any logic drift would result in erroneous calorie targets or synchronization corruption.
-
-To prevent regressions, the codebase maintains an automated test suite. Contributors should run the relevant tests and static analysis locally; this document does not claim that every pull request is enforced by a repository-wide test workflow.
-
-### Test Categories
-1.  **Unit Tests**: Validate mathematical engines (e.g., `BayesianTdeeEstimator` and Kalman updates, Brzycki 1RM heuristics with effective load resolution), text token fuzzy matching scores, data parsing models, and canonical health-data mapping algorithms.
-2.  **Widget & Integration Tests**: Test page transitions, loading state blocks, secure key persistence, backup/restore file integrity, and asynchronous data ingestion flows.
-3.  **Database Migration Tests**: Validate that schema transitions across all versions up to the current schema version 38 are completely lossless, and verify additive schema self-healing via `reconcileSchema()`.
-
-### Core Testing Invariant
-Changes should be validated with the relevant automated tests before merge. Database tests can inject an isolated database through `DatabaseHelper.forTesting()`, preventing them from colliding with real user storage.
+Database tests should use an injected executor or `DatabaseHelper.forTesting(...)` where applicable rather than opening a user's normal database. See [System architecture](architecture.md) for database ownership and migration details.

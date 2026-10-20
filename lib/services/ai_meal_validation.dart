@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../features/diary/data/sources/product_local_data_source.dart';
 import '../features/diary/domain/models/food_item.dart';
+import '../features/diary/domain/food_name_matching.dart';
 import 'ai_meal_context.dart';
 import 'ai_repair_candidate.dart';
 
@@ -10,30 +11,49 @@ part 'ai/validation/matching_logic.dart';
 part 'ai/validation/rules_logic.dart';
 
 class AiMealValidationEngine {
-  final AiFoodMatchLoader _matchLoader;
+  late final AiFoodMatchLoader _matchLoader;
   final Map<String, Future<List<FoodItem>>> _matchCache = {};
 
   AiMealValidationEngine({
     AiFoodMatchLoader? matchLoader,
-  }) : _matchLoader = matchLoader ?? _createDefaultMatchLoader();
-
-  static AiFoodMatchLoader _createDefaultMatchLoader() {
+  }) {
     final session = ProductLocalDataSource.instance.createAiSearchSession();
-    return (item) => defaultMatchLoader(item, aiSession: session);
+    _matchLoader = matchLoader ??
+        (item) => defaultMatchLoader(
+              item,
+              aiSession: session,
+              includeOff: item.canSearchOff,
+            );
   }
 
+  String _itemCacheKey(AiMealCandidateItem item) => jsonEncode([
+        item.name,
+        item.matchedBarcode,
+        item.catalogSearchTerm,
+        item.searchTerms,
+        item.isPackagedProduct,
+        item.allowOffFallback,
+        item.selectedFood?.barcode,
+        item.selectedFood?.id,
+      ]);
+
   static Future<List<FoodItem>> defaultMatchLoader(AiMealCandidateItem item,
-      {AiCatalogSearchSession? aiSession}) async {
+      {AiCatalogSearchSession? aiSession, bool includeOff = false}) async {
+    if (item.selectedFood case final selected?) return [selected];
     final helper = ProductLocalDataSource.instance;
     final matches = <FoodItem>[];
     final barcode = item.matchedBarcode?.trim();
+    final searchOff = includeOff || item.canSearchOff;
     final fuzzyFuture = helper.fuzzyMatchForAi(
       item.name,
       catalogSearchTerm: item.catalogSearchTerm,
       searchTerms: item.searchTerms,
       aiSession: aiSession,
+      includeOff: searchOff,
     );
-    if (barcode != null && barcode.isNotEmpty) {
+    // Only original packaged-product evidence permits an unverified barcode
+    // lookup. Repair IDs are resolved against supplied candidates beforehand.
+    if (item.isPackagedProduct && barcode != null && barcode.isNotEmpty) {
       final selected = await helper.getProductByBarcode(barcode);
       if (selected != null) {
         matches.add(selected);
@@ -64,18 +84,18 @@ class AiMealValidationEngine {
       final matchesByItem = await Future.wait([
         for (var i = start; i < end; i++)
           _matchCache.putIfAbsent(
-            jsonEncode([
-              items[i].name,
-              items[i].matchedBarcode,
-              items[i].catalogSearchTerm,
-              items[i].searchTerms,
-            ]),
+            _itemCacheKey(items[i]),
             () => _matchLoader(items[i]),
           ),
       ]);
       for (var i = start; i < end; i++) {
         final item = items[i];
-        final matches = matchesByItem[i - start];
+        final matches = matchesByItem[i - start]
+            .where((food) =>
+                food.source != FoodItemSource.off ||
+                item.canSearchOff ||
+                identical(food, item.selectedFood))
+            .toList(growable: false);
         final match = _evaluateMatch(item, matches);
         final nutrition = match.bestMatch == null
             ? AiNutritionTotals.zero
@@ -249,11 +269,7 @@ class AiMealValidationEngine {
   }
 
   static String _normalizeText(String value) {
-    return value
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9äöüß ]', unicode: true), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+    return FoodNameMatching.normalize(value);
   }
 
   static int _maxInt(int a, int b) => a > b ? a : b;
@@ -293,6 +309,8 @@ class AiRepairOrchestrator {
     void Function(
             int round, AiValidationResult result, int durationMilliseconds)?
         onRepairValidation,
+    void Function(AiValidationResult result, int durationMilliseconds)?
+        onFallbackValidation,
   }) async {
     var candidate = initialCandidate;
     var validation = initialValidation ??
@@ -316,9 +334,39 @@ class AiRepairOrchestrator {
             'other_validation',
     };
     var repairPasses = 0;
+    var validationRuns = 1;
 
     while ((!validation.passed || validation.needsSemanticSelection) &&
         repairPasses < maxPasses) {
+      // Work from the normalized item list so repair indices match validation.
+      // Eligibility travels with the item even if repair changes its wording.
+      final needsCatalogRefresh = validation.items.any((item) =>
+          item.needsCatalogRepair &&
+          (!item.candidate.canSearchOff ||
+              item.candidate.selectedFood != null));
+      candidate = validation.candidate.copyWith(items: [
+        for (final item in validation.items)
+          item.candidate.copyWith(
+            allowOffFallback: item.candidate.allowOffFallback ||
+                (item.needsCatalogRepair && !item.candidate.isPackagedProduct),
+            selectedFood: item.needsCatalogRepair ? null : item.match.bestMatch,
+          ),
+      ]);
+      if (needsCatalogRefresh) {
+        // A previously verified selection with new catalog/state issues must
+        // regain its alternatives, even if this item already used fallback.
+        final fallbackWatch = Stopwatch()..start();
+        validation = await validationEngine.validateMealCandidate(
+          candidate: candidate,
+          mode: mode,
+          targetContext: targetContext,
+        );
+        validationRuns++;
+        onFallbackValidation?.call(
+            validation, fallbackWatch.elapsedMilliseconds);
+        candidate = validation.candidate;
+        if (validation.passed && !validation.needsSemanticSelection) break;
+      }
       repairPasses += 1;
       candidate = await repairer(candidate, validation, repairPasses);
       final validationWatch = Stopwatch()..start();
@@ -328,6 +376,7 @@ class AiRepairOrchestrator {
         targetContext: targetContext,
       );
       validationWatch.stop();
+      validationRuns++;
       onRepairValidation?.call(
           repairPasses, validation, validationWatch.elapsedMilliseconds);
     }
@@ -343,7 +392,7 @@ class AiRepairOrchestrator {
       repairPassesUsed: repairPasses,
       repairLimitReached: limitReached,
       firstPassAccepted: firstPassAccepted,
-      validationRunsCount: repairPasses + 1,
+      validationRunsCount: validationRuns,
       firstPassIssueCategories:
           firstPassIssueCategories.toList(growable: false),
     );

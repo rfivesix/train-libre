@@ -112,6 +112,42 @@ class ExerciseAliasMigration {
         variables: [Variable.withString(newId), Variable.withString(oldId)],
         updates: {db.exercises},
       );
+
+      final oldPinnedNote = await (db.select(db.pinnedExerciseNotes)
+            ..where((tbl) => tbl.exerciseId.equals(oldId))
+            ..limit(1))
+          .getSingleOrNull();
+      if (oldPinnedNote != null) {
+        final targetPinnedNote = await (db.select(db.pinnedExerciseNotes)
+              ..where((tbl) => tbl.exerciseId.equals(newId))
+              ..limit(1))
+            .getSingleOrNull();
+        if (targetPinnedNote == null) {
+          await (db.update(db.pinnedExerciseNotes)
+                ..where((tbl) => tbl.localId.equals(oldPinnedNote.localId)))
+              .write(PinnedExerciseNotesCompanion(
+            exerciseId: Value(newId),
+            updatedAt: Value(DateTime.now()),
+          ));
+        } else {
+          final oldText = oldPinnedNote.notes.trim();
+          final targetText = targetPinnedNote.notes.trim();
+          final merged = oldText.isEmpty || targetText == oldText
+              ? targetPinnedNote.notes
+              : targetText.isEmpty
+                  ? oldPinnedNote.notes
+                  : '$targetText\n\n$oldText';
+          await (db.update(db.pinnedExerciseNotes)
+                ..where((tbl) => tbl.localId.equals(targetPinnedNote.localId)))
+              .write(PinnedExerciseNotesCompanion(
+            notes: Value(merged),
+            updatedAt: Value(DateTime.now()),
+          ));
+          await (db.delete(db.pinnedExerciseNotes)
+                ..where((tbl) => tbl.localId.equals(oldPinnedNote.localId)))
+              .go();
+        }
+      }
     }
 
     final duplicates = await _collapseEmptyDuplicateSlots(db);

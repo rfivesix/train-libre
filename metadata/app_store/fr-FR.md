@@ -56,15 +56,15 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Des objectifs qui évoluent avec toi: Définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
+Capture de repas par IA améliorée: L’analyse est plus rapide et trouve plus sûrement les bons aliments. Sur les iPhone compatibles, Apple Intelligence peut analyser les repas sur l’appareil ; tu peux aussi continuer à utiliser ta propre clé API avec un autre fournisseur. Vérifie et modifie chaque suggestion avant de l’enregistrer.
 
-Programmes d'entraînement personnalisés: Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.
+Des données alimentaires plus détaillées: Télécharge le catalogue BLS 4.0 pour rechercher des aliments génériques aux noms traduits et consulter leurs nutriments, dont les micronutriments. Une fois téléchargé, il fonctionne hors ligne ; les produits de marque restent disponibles via Open Food Facts.
 
-Niveaux d'expérience sur mesure: Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l'onboarding. Le détail des groupes musculaires, le RIR et les écrans d'entraînement s'adaptent à ton niveau de pratique.
+Importe ton historique d’entraînement: Importe des séances depuis Hevy, Strong ou un fichier CSV. L’aperçu signale les doublons possibles et les dates invalides. Retrouve plus facilement les exercices déjà pratiqués et ajoute des notes aux exercices, routines ou séances individuelles.
 
-Minuteur de série & onglet Entraînement repensé: Lance et mets en pause le minuteur de série directement pendant l'entraînement ou depuis l'Activité en direct sur l'écran verrouillé. L'onglet Entraînement réunit programme actif, routines et historique.
+Partage et réutilise tes contenus: Partage routines, programmes et recettes par lien, texte ou JSON ; exporte les séances terminées en texte ou JSON. Prévisualise les imports compatibles avant de les ajouter. Enregistre les recettes selon les portions ou le poids après cuisson.
 
-Tendances de poids lissées & nouvelles analyses: Le lissage métabolique avec ligne d'historique discrète révèle ta véritable évolution dans l'app et les widgets, complété par les statistiques de macros et l'import de mesures depuis Apple Santé et Health Connect.
+Des statistiques plus claires et une utilisation plus fluide: Personnalise l’aperçu des statistiques, explore les analyses de nutrition et de récupération, et retrouve les réglages d’import et d’export de santé au même endroit. Cette version améliore aussi la restauration des sauvegardes, l’accessibilité et l’affichage sur les petits écrans.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

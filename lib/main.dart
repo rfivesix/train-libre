@@ -10,6 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
+import 'features/ai_assistant/data/ai_overlay_demo_settings.dart';
+import 'features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
 import 'core/performance/device_label.dart';
@@ -63,6 +65,9 @@ import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
 import 'features/home_widgets/application/home_widget_sync_service.dart';
 import 'features/home_widgets/home_widget_deep_link.dart';
+import 'features/sharing/share_link_codec.dart';
+import 'features/sharing/share_link_preview_screen.dart';
+import 'features/sharing/share_file_import_screen.dart';
 import 'features/analytics/presentation/recovery_tracker_screen.dart';
 import 'features/steps/presentation/steps_module_screen.dart';
 import 'features/profile/presentation/measurements_screen.dart';
@@ -171,6 +176,7 @@ void main() async {
     'prefs',
     SharedPreferences.getInstance,
   );
+  AiOverlayDemoSettings.initialize(prefs);
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;
   final acceptedLegalVersion = prefs.getString('acceptedLegalVersion');
 
@@ -413,6 +419,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Future<bool> didPushRouteInformation(RouteInformation routeInformation) {
     final location = routeInformation.uri.toString();
+    if (_handledShareLink(location)) {
+      return SynchronousFuture<bool>(true);
+    }
     if (_returnedToOpenLiveWorkout(location)) {
       return SynchronousFuture<bool>(true);
     }
@@ -420,6 +429,38 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       return SynchronousFuture<bool>(true);
     }
     return super.didPushRouteInformation(routeInformation);
+  }
+
+  bool _handledShareLink(String location) {
+    final uri = Uri.tryParse(location);
+    if (uri?.scheme == 'trainlibre' && uri?.host == 'share-file') {
+      final fileUri = Uri.tryParse(uri?.queryParameters['uri'] ?? '');
+      final navigator = _navigatorKey.currentState;
+      if (navigator == null) return false;
+      navigator.push(MaterialPageRoute<void>(
+        builder: (_) => ShareFileImportScreen(uri: fileUri),
+      ));
+      return true;
+    }
+    if (uri == null ||
+        !(uri.path == '/share' ||
+            uri.path == '/share/' ||
+            (uri.scheme == 'trainlibre' && uri.host == 'share'))) {
+      return false;
+    }
+    ShareLinkPayload? payload;
+    String? error;
+    try {
+      payload = ShareLinkCodec.fromUri(uri);
+    } catch (e) {
+      error = e.toString();
+    }
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return false;
+    navigator.push(MaterialPageRoute<void>(
+      builder: (_) => ShareLinkPreviewScreen(payload: payload, error: error),
+    ));
+    return true;
   }
 
   /// Handles the URLs the iOS Home Screen widgets emit.
@@ -583,13 +624,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             AppSurfaces(summaryCard: cardLight),
             MacroColors(
               calories: Colors.orange,
-              protein: Theme.of(context).colorScheme.error,
+              protein: lightScheme.error,
               carbs: Colors.green.shade400,
               fat: Colors.purple.shade300,
               water: Colors.blue,
               sugar: Colors.pink.shade200,
               fiber: Colors.brown.shade400,
-              salt: Theme.of(context).colorScheme.onSurfaceVariant,
+              salt: lightScheme.onSurfaceVariant,
               caffeine: Colors.brown,
             ),
           ],
@@ -802,13 +843,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             AppSurfaces(summaryCard: cardDark),
             MacroColors(
               calories: Colors.orange,
-              protein: Theme.of(context).colorScheme.error,
+              protein: darkScheme.error,
               carbs: Colors.green.shade400,
               fat: Colors.purple.shade300,
               water: Colors.blue,
               sugar: Colors.pink.shade200,
               fiber: Colors.brown.shade400,
-              salt: Theme.of(context).colorScheme.onSurfaceVariant,
+              salt: darkScheme.onSurfaceVariant,
               caffeine: Colors.brown,
             ),
           ],
@@ -836,6 +877,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             filled: true,
             fillColor: const Color(0xFF2C2C2E),
             border: OutlineInputBorder(
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
@@ -1020,6 +1066,34 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           darkTheme: baseDarkTheme,
           themeMode: themeService.themeMode,
           onGenerateRoute: (settings) {
+            final uri = Uri.tryParse(settings.name ?? '');
+            if (uri?.scheme == 'trainlibre' && uri?.host == 'share-file') {
+              return MaterialPageRoute<void>(
+                settings: settings,
+                builder: (_) => ShareFileImportScreen(
+                  uri: Uri.tryParse(uri?.queryParameters['uri'] ?? ''),
+                ),
+              );
+            }
+            if (uri != null &&
+                (uri.path == '/share' ||
+                    uri.path == '/share/' ||
+                    (uri.scheme == 'trainlibre' && uri.host == 'share'))) {
+              ShareLinkPayload? payload;
+              String? error;
+              try {
+                payload = ShareLinkCodec.fromUri(uri);
+              } catch (e) {
+                error = e.toString();
+              }
+              return MaterialPageRoute<void>(
+                settings: settings,
+                builder: (_) => ShareLinkPreviewScreen(
+                  payload: payload,
+                  error: error,
+                ),
+              );
+            }
             final sleepRoute = SleepNavigation.onGenerateRoute(settings);
             if (sleepRoute != null) return sleepRoute;
 
@@ -1068,10 +1142,53 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             );
           },
           builder: (context, child) {
-            return GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: child,
+            return Overlay(
+              initialEntries: [
+                OverlayEntry(
+                  builder: (overlayContext) => GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      final focusedNode = FocusManager.instance.primaryFocus;
+                      if (focusedNode?.debugLabel == 'ai-overlay-composer') {
+                        return;
+                      }
+                      focusedNode?.unfocus();
+                    },
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (child != null) child,
+                        ValueListenableBuilder<AiOverlayDemoConfiguration>(
+                          valueListenable: AiOverlayDemoSettings.configuration,
+                          builder: (context, settings, _) => settings.enabled
+                              ? Positioned.fill(
+                                  child: Material(
+                                    type: MaterialType.transparency,
+                                    child: DraggableAiCloud(
+                                      semanticLabel:
+                                          AppLocalizations.of(context)!
+                                              .developerAiOverlayDemoTitle,
+                                      semanticHint:
+                                          AppLocalizations.of(context)!
+                                              .aiOverlayDemoCloudHint,
+                                      liveliness: settings.liveliness,
+                                      showResizeHandles:
+                                          settings.showResizeHandles,
+                                      openDirectlyFullscreen:
+                                          settings.openDirectlyFullscreen,
+                                      // Chat state remains in memory only and is
+                                      // never persisted between app launches.
+                                      useLiveAi: settings.useLiveAi,
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             );
           },
           home: widget.home,

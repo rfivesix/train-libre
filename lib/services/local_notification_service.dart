@@ -556,6 +556,108 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
     }
   }
 
+  /// Preloads upcoming weekly check-ins into the OS notification queue so
+  /// they can fire while the app process is suspended or terminated.
+  ///
+  /// Reviews are anchored to the goal's start weekday, matching the review
+  /// generator. The notification is intentionally generic: the review itself
+  /// is calculated from local data when the user next opens the app.
+  Future<void> scheduleUpcomingWeeklyGoalReviews({
+    required Goal goal,
+    int horizonWeeks = 8,
+  }) async {
+    if (!_isInitialized) await initialize();
+    if (!_isInitialized) return;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final daysUntilCheckIn = (goal.startDate.weekday - today.weekday + 7) % 7;
+    var nextCheckIn = today.add(Duration(days: daysUntilCheckIn));
+    if (!nextCheckIn.isAfter(today)) {
+      nextCheckIn = nextCheckIn.add(const Duration(days: 7));
+    }
+    final firstEligibleCheckIn = DateTime(
+      goal.startDate.year,
+      goal.startDate.month,
+      goal.startDate.day,
+    ).add(const Duration(days: 7));
+    while (nextCheckIn.isBefore(firstEligibleCheckIn)) {
+      nextCheckIn = nextCheckIn.add(const Duration(days: 7));
+    }
+
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final l10n = lookupAppLocalizations(locale);
+    final details = _weeklyGoalReviewNotificationDetails();
+    final desiredIds = <int>{};
+    final entries = <({int id, DateTime when, String reviewId})>[];
+
+    for (var week = 0; week < horizonWeeks; week++) {
+      final checkInDay = nextCheckIn.add(Duration(days: week * 7));
+      final reviewStart = checkInDay.subtract(const Duration(days: 7));
+      final reviewId =
+          'weekly-${goal.id}-${reviewStart.millisecondsSinceEpoch}';
+      final id = notificationIdForReview(reviewId);
+      final when = DateTime(
+        checkInDay.year,
+        checkInDay.month,
+        checkInDay.day,
+        9,
+      );
+      if (!when.isAfter(now)) continue;
+      desiredIds.add(id);
+      entries.add((id: id, when: when, reviewId: reviewId));
+    }
+
+    // Remove stale forecasts for this goal, but preserve unrelated pending
+    // review notifications and any already-posted notifications.
+    try {
+      final pending = await _plugin.pendingNotificationRequests();
+      for (final request in pending) {
+        final payload = AppNotificationPayload.tryParse(request.payload);
+        if (payload?.type == AppNotificationType.weeklyGoalReview &&
+            payload?.goalId == goal.id &&
+            !desiredIds.contains(request.id)) {
+          await _plugin.cancel(id: request.id);
+        }
+      }
+    } catch (_) {
+      // Pending-request enumeration is best effort on platform implementations.
+    }
+
+    for (final entry in entries) {
+      final payload = AppNotificationPayload(
+        type: AppNotificationType.weeklyGoalReview,
+        goalId: goal.id,
+        reviewId: entry.reviewId,
+      ).encode();
+      try {
+        await _plugin.zonedSchedule(
+          id: entry.id,
+          title: l10n.weeklyGoalReviewNotificationTitle,
+          body: l10n.weeklyGoalReviewNotificationBody,
+          scheduledDate: tz.TZDateTime.from(entry.when, tz.local),
+          notificationDetails: details,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          payload: payload,
+        );
+      } catch (_) {
+        try {
+          await _plugin.zonedSchedule(
+            id: entry.id,
+            title: l10n.weeklyGoalReviewNotificationTitle,
+            body: l10n.weeklyGoalReviewNotificationBody,
+            scheduledDate: tz.TZDateTime.from(entry.when, tz.local),
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            payload: payload,
+          );
+        } catch (_) {
+          // Scheduling is best effort; it must not block goal persistence.
+        }
+      }
+    }
+  }
+
   NotificationDetails _goalTargetDateNotificationDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
@@ -810,6 +912,16 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
         }
       }
     } catch (_) {}
+    try {
+      final pending = await _plugin.pendingNotificationRequests();
+      for (final notification in pending) {
+        final payload = AppNotificationPayload.tryParse(notification.payload);
+        if (payload?.goalId == goalId &&
+            payload?.type == AppNotificationType.weeklyGoalReview) {
+          await _plugin.cancel(id: notification.id);
+        }
+      }
+    } catch (_) {}
   }
 
   NotificationDetails _workoutPlanNotificationDetails() {
@@ -852,14 +964,10 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
 
     for (final reminder in reminders) {
       final local = reminder.scheduledAt;
-      final when = tz.TZDateTime(
-        tz.local,
-        local.year,
-        local.month,
-        local.day,
-        local.hour,
-        local.minute,
-      );
+      // `tz.local` is UTC until explicitly set by a timezone plugin. Build the
+      // instant from Dart's device-local DateTime instead, so iOS receives the
+      // user's intended wall-clock time (including the current DST offset).
+      final when = tz.TZDateTime.from(local, tz.local);
       final id = notificationIdForWorkoutPlan(
         reminder.planId,
         reminder.scheduledAt,

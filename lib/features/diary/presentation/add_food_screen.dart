@@ -1,3 +1,4 @@
+import 'widgets/food_search_sections.dart';
 // lib/screens/add_food_screen.dart (Final & De-Materialisiert)
 
 import 'dart:async';
@@ -9,6 +10,7 @@ import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/meal_entry.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import 'create_food_screen.dart';
@@ -22,7 +24,6 @@ import '../../../widgets/common/card_morph_route.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/app_section_header.dart';
 import 'widgets/food_item_search_tile.dart';
 import 'widgets/meal_item_card.dart';
 import 'widgets/catalog_category_tile.dart';
@@ -30,6 +31,7 @@ import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_navigation_result.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
@@ -146,6 +148,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   // String _baseSearch = '';
   Timer? _baseSearchDebounce;
   Timer? _searchDebounce;
+  int _searchGeneration = 0;
 
   List<Map<String, dynamic>> _baseCategories = [];
   final Map<String, List<FoodItem>> _catItems = {}; // key -> Produkte
@@ -258,14 +261,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     */
   }
 
-  bool _isOffDbInitialized = false;
+  bool _hasSearchableFoods = false;
 
   Future<void> _checkDbStatus() async {
     final initialized =
-        await BasisDataManager.instance.isOffDatabaseInitialized();
+        await ProductLocalDataSource.instance.hasSearchableProducts();
     if (mounted) {
       setState(() {
-        _isOffDbInitialized = initialized;
+        _hasSearchableFoods = initialized;
       });
     }
   }
@@ -291,9 +294,13 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
       await _checkDbStatus();
+      if (!mounted) return;
+      if (!_hasSearchableFoods) {
+        await BasisDataManager.instance
+            .promptOffDatabaseDownloadIfFirstTime(context);
+        await _checkDbStatus();
+      }
       // Only after the first-run database prompt has been dealt with — opening
       // the camera on top of that dialog would bury it.
       if (widget.autoOpenScanner && mounted) {
@@ -330,6 +337,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   }
 
   void _onSearchChanged(String query) {
+    _searchGeneration++;
     if (_searchDebounce?.isActive ?? false) _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
       _runFilter(query);
@@ -337,10 +345,13 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   }
 
   void _runFilter(String enteredKeyword) async {
+    _searchDebounce?.cancel();
+    final generation = ++_searchGeneration;
     final l10n = AppLocalizations.of(context)!;
-    if (enteredKeyword.isEmpty) {
+    if (enteredKeyword.trim().isEmpty) {
       setState(() {
         _foundFoodItems = [];
+        _isLoadingSearch = false;
         _searchInitialText = l10n.searchInitialHint;
       });
       return;
@@ -349,11 +360,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       _isLoadingSearch = true;
     });
 
-    final results = await ProductLocalDataSource.instance.searchProducts(
+    final results = await ProductLocalDataSource.instance.searchProductsForUser(
       enteredKeyword,
     );
 
-    if (mounted) {
+    if (mounted && generation == _searchGeneration) {
       setState(() {
         _foundFoodItems = results;
         _isLoadingSearch = false;
@@ -424,6 +435,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       setState(() {
         _customFoodItems = results;
         _isLoadingCustomFoods = false;
+        if (results.isNotEmpty) _hasSearchableFoods = true;
       });
     }
   }
@@ -597,8 +609,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                             sourceContext: fabCtx,
                             sourceBuilder: (_) => buildFab(),
                             onSourceVisibilityChanged: (hidden) {
-                              if (mounted)
+                              if (mounted) {
                                 setState(() => _isFabHidden = hidden);
+                              }
                             },
                           );
                         } else {
@@ -606,8 +619,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                             sourceContext: fabCtx,
                             sourceBuilder: (_) => buildFab(),
                             onSourceVisibilityChanged: (hidden) {
-                              if (mounted)
+                              if (mounted) {
                                 setState(() => _isFabHidden = hidden);
+                              }
                             },
                           );
                         }
@@ -741,7 +755,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   }
 
   Widget _buildCatalogSearchTab(AppLocalizations l10n) {
-    if (!_isOffDbInitialized) {
+    if (!_hasSearchableFoods) {
       return DatabasePlaceholderWidget(
         title: l10n.offDownloadTitle,
         body: l10n.offPlaceholderText,
@@ -829,7 +843,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       Text(
                         l10n.scann_barcode_capslock,
                         style: const TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
                           color: Color(0xFF12120F),
@@ -880,7 +894,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       const Text(
                         'AI',
                         style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
                           color: Color(0xFF12120F),
@@ -992,34 +1006,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       );
     }
 
-    // CASE B: With query -> base items first, then OFF/user items (prioritized)
-    // ⚡ Bolt: Single pass iteration to avoid O(3N) list allocations on every keystroke
-    final baseHits = <FoodItem>[];
-    final offHits = <FoodItem>[];
-    final customHits = <FoodItem>[];
-    for (final it in _foundFoodItems) {
-      if (it.source == FoodItemSource.base) {
-        baseHits.add(it);
-      } else if (it.source == FoodItemSource.off) {
-        offHits.add(it);
-      } else if (it.source == FoodItemSource.user) {
-        customHits.add(it);
-      }
-    }
-
-    final listItems = <dynamic>[];
-    if (customHits.isNotEmpty) {
-      listItems.add(l10n.customFoodsTitle);
-      listItems.addAll(customHits);
-    }
-    if (baseHits.isNotEmpty) {
-      listItems.add(l10n.searchSectionBase);
-      listItems.addAll(baseHits);
-    }
-    if (offHits.isNotEmpty) {
-      listItems.add(l10n.searchSectionOther);
-      listItems.addAll(offHits);
-    }
+    // BLS first; lexical ranking is retained within each section.
+    final listItems = FoodSearchSections(_foundFoodItems);
 
     return Column(
       children: [
@@ -1045,15 +1033,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           .copyWith(bottom: _bottomPadding),
                       itemCount: listItems.length,
                       itemBuilder: (context, index) {
-                        final item = listItems[index];
-                        if (item is String) {
-                          return AppSectionHeader(title: item);
-                        } else if (item is FoodItem) {
-                          return _buildFoodListItem(item);
-                        } else if (item is Widget) {
-                          return item;
-                        }
-                        return const SizedBox.shrink();
+                        return listItems.buildRow(index, l10n, _buildFoodListItem);
                       },
                     )),
         ),
@@ -1107,6 +1087,13 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         );
         await _loadMeals();
       },
+      onDuplicate: () async {
+        await DatabaseHelper.instance.duplicateMeal(
+          mealId,
+          copySuffix: l10n.mealCopySuffix,
+        );
+        await _loadMeals();
+      },
       onDelete: () => _deleteMeal(meal, l10n),
       onTap: () async {
         await Navigator.of(context).push(
@@ -1157,38 +1144,48 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
     await showGlassBottomMenu<bool>(
       context: context,
-      title: l10n.mealsAddToDiary,
       contentBuilder: (ctx, close) {
         return ConfirmLogMealBottomSheet(
           mealName: meal['name'] as String,
           rawItems: rawItems,
           products: products,
+          recipeCookedWeightInGrams:
+              (meal['cooked_weight_in_grams'] as num?)?.toInt(),
+          recipeServingCount: (meal['serving_count'] as num?)?.toInt(),
           initialDate: widget.initialDate ?? DateTime.now(),
           initialMealType: widget.initialMealType ?? 'mealtypeBreakfast',
-          onClose: close,
           onSave: (date, mealType, quantities) async {
-            for (final it in rawItems) {
-              final bc = it['barcode'] as String;
-              final qty = quantities[bc] ?? (it['quantity_in_grams'] as int);
-
-              final newFoodEntryId =
-                  await DatabaseHelper.instance.insertFoodEntry(
-                FoodEntry(
-                  barcode: bc,
-                  timestamp: date,
-                  quantityInGrams: qty,
-                  mealType: mealType,
-                ),
-                telemetrySource: FoodLogSource.meal,
+            final foodEntries = rawItems.map((item) {
+              final barcode = item['barcode'] as String;
+              return FoodEntry(
+                barcode: barcode,
+                timestamp: date,
+                quantityInGrams:
+                    quantities[item['id']?.toString() ?? barcode] ??
+                        (item['quantity_in_grams'] as int),
+                mealType: mealType,
               );
-
+            }).toList();
+            final foodEntryIds =
+                await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
+                    MealEntry(
+                      id: const Uuid().v4(),
+                      title: meal['name'] as String,
+                      consumedAt: date,
+                      mealType: mealType,
+                      source: 'template',
+                    ),
+                    foodEntries);
+            for (var i = 0; i < foodEntries.length; i++) {
+              final bc = foodEntries[i].barcode;
+              final qty = foodEntries[i].quantityInGrams;
               final fi = products[bc];
-              final c100 = fi?.caffeineMgPer100ml;
-              if (fi?.isLiquid == true && c100 != null && c100 > 0) {
+              final c100 = fi?.effectiveCaffeinePer100ml;
+              if (fi?.isFluidOrLiquid == true && c100 != null && c100 > 0) {
                 await _logCaffeineDose(
                   c100 * (qty / 100.0),
                   date,
-                  foodEntryId: newFoodEntryId,
+                  foodEntryId: foodEntryIds[i],
                 );
               }
             }

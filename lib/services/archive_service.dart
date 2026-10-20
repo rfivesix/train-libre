@@ -24,8 +24,8 @@ class ArchiveService {
     final sugar = foodItem.sugar;
     final fiber = foodItem.fiber;
     final salt = foodItem.salt;
-    final caffeine = foodItem.caffeineMgPer100ml;
-    final caffeineMgPer100g = foodItem.caffeineMgPer100g;
+    final caffeine = foodItem.caffeineMgPer100ml ?? foodItem.caffeineMgPer100g;
+    final caffeineMgPer100g = foodItem.caffeineMgPer100g ?? foodItem.caffeineMgPer100ml;
     final productQuantity = foodItem.productQuantity;
     final productQuantityUnit = foodItem.productQuantityUnit;
     final isFluid = foodItem.isFluid;

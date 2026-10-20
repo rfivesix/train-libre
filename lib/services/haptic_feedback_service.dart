@@ -47,6 +47,11 @@ class HapticFeedbackService {
     await HapticFeedback.mediumImpact();
   }
 
+  Future<void> strongImpact() async {
+    if (!_enabled) return;
+    await HapticFeedback.heavyImpact();
+  }
+
   Future<void> confirmationFeedback() async {
     if (!_enabled) return;
     await HapticFeedback.lightImpact();

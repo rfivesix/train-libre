@@ -122,11 +122,12 @@ Train Libre enforces a strict zero-PII (Personally Identifiable Information) pol
 
 ### 2. Onboarding Funnel
 * **`onboarding_step_viewed`**:
-  * `step_index` (int: `0` to `14`)
+  * `step_index` (int: `0` to `16`)
   * `step_name` (string enum identifying the funnel step)
   * `screen_name` (string enum identifying the screen currently shown; for example `"name"`, `"age_and_gender"`, or `"height"`)
   * `duration_seconds` (int: time spent on previous step)
   * `session_id` (ephemeral RAM UUID)
+  * The optional `workout_import_prompt` step is counted through `onboarding_step_viewed`; choosing import or later emits only the closed `workout_import_prompt_started` or `workout_import_prompt_skipped` feature key. File contents and workout details are never included.
 * **`onboarding_completed`**:
   * `total_duration_seconds` (int)
   * `restored_from_backup` (bool)
@@ -153,7 +154,7 @@ The closed set of values lives in `ScreenName` (`lib/services/telemetry/telemetr
 The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetry_service.dart`).
 
 * **`feature_used`**:
-  * `feature_key` (string): `"routine_created"`, `"routine_started"`, `"routine_shared"`, `"workout_imported"`, `"custom_exercise_created"`, `"barcode_scanned"`, `"custom_food_created"`, `"recipe_created"`, `"supplement_logged"`, `"voice_dictation_used"`, `"lidar_depth_captured"`, `"lidar_depth_visualized"`, `"ai_meal_correction_submitted"`, `"off_catalog_installed"`, `"off_catalog_updated"`, `"body_measurement_logged"`, `"apple_health_exported"`, `"health_connect_exported"`, `"json_backup_created"`, `"json_backup_restored"`, `"icloud_sync_triggered"`, `"csv_exported"`, `"app_tour_started"`, `"app_tour_completed"`, `"whats_new_viewed"`, `"training_plan_created"`, `"training_plan_updated"`, `"training_plan_toggled"`, `"training_plan_deleted"`, `"training_plan_session_started"`, `"nutrition_goal_created"`, `"nutrition_goal_adjusted"`, `"nutrition_goal_retired"`, `"weekly_goal_review_completed"`
+  * `feature_key` (string): `"routine_created"`, `"routine_started"`, `"routine_shared"`, `"workout_imported"`, `"workout_import_prompt_started"`, `"workout_import_prompt_skipped"`, `"custom_exercise_created"`, `"barcode_scanned"`, `"custom_food_created"`, `"recipe_created"`, `"supplement_logged"`, `"voice_dictation_used"`, `"lidar_depth_captured"`, `"lidar_depth_visualized"`, `"ai_meal_correction_submitted"`, `"off_catalog_installed"`, `"off_catalog_updated"`, `"body_measurement_logged"`, `"apple_health_exported"`, `"health_connect_exported"`, `"json_backup_created"`, `"json_backup_restored"`, `"icloud_sync_triggered"`, `"csv_exported"`, `"app_tour_started"`, `"app_tour_completed"`, `"whats_new_viewed"`, `"training_plan_created"`, `"training_plan_updated"`, `"training_plan_toggled"`, `"training_plan_deleted"`, `"training_plan_session_started"`, `"nutrition_goal_created"`, `"nutrition_goal_adjusted"`, `"nutrition_goal_retired"`, `"weekly_goal_review_completed"`
 
 > **Reconciled against the app:** `"routine_shared_qr"` became `"routine_shared"` — sharing goes through `ShareService`'s text/image sheet, there is no QR flow. `"routine_scanned_qr"` was replaced by `"workout_imported"` (CSV/XLSX import via `ImportManager`). `"fasting_timer_started"`, `"fasting_timer_completed"` and `"plate_calculator_used"` were removed: neither a fasting timer nor a plate calculator exists in the app.
 >

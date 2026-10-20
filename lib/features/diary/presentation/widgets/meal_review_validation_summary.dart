@@ -4,6 +4,7 @@ import '../../../../services/ai_meal_validation.dart';
 import '../../../../util/ai_validation_localization.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class MealReviewValidationSummary extends StatefulWidget {
@@ -153,33 +154,23 @@ class _MealReviewValidationSummaryState
     List<AiValidationIssue> issues,
     AppLocalizations l10n,
   ) {
-    showModalBottomSheet(
+    showGlassBottomMenu(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingL),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.aiValidationReviewSuggestedTitle,
-                style: Theme.of(ctx).textTheme.titleMedium,
+      title: l10n.aiValidationReviewSuggestedTitle,
+      contentBuilder: (ctx, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...issues.map(
+            (issue) => Padding(
+              padding: const EdgeInsets.only(bottom: DesignConstants.spacingXS),
+              child: Text(
+                '\u2022 ${aiValidationIssueText(l10n, issue)}',
+                style: Theme.of(ctx).textTheme.bodySmall,
               ),
-              const SizedBox(height: DesignConstants.spacingM),
-              ...issues.map(
-                (issue) => Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: DesignConstants.spacingXS),
-                  child: Text(
-                    '\u2022 ${aiValidationIssueText(l10n, issue)}',
-                    style: Theme.of(ctx).textTheme.bodySmall,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

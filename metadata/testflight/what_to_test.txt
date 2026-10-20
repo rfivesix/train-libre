@@ -1,15 +1,15 @@
-Train Libre 1.5.0
+Train Libre 1.6.0
 
-Please focus your testing on adaptive goals, workout plans, and new tracking features:
+Please focus on these flows:
 
-• Adaptive Nutrition Goals & Weekly Reviews: Create a weight goal from a real weight measurement (in onboarding or Profile -> My Goals), inspect its trajectory, and complete a weekly review. Confirm that a recommendation does not change calorie or macro targets until you explicitly apply it.
-• Training Experience Levels: Select Beginner, Advanced, or Pro in Settings or onboarding, and check the adjusted workout interface, muscle anatomy details, and RIR controls.
-• Manual Workout Plans & Reminders: Build both a fixed weekly plan and a flexible sequence from saved routines. Include a rest day, enable reminders, start the due workout from the Diary, and verify complete, partial, and skipped states.
-• Timed Sets & Live Activities: Start a workout, tap the play/stop timer on set rows, and verify pause/resume from the Lock Screen / Dynamic Island Live Activity.
-• Weight Trend Smoothing & Health Import: Check the metabolic trend smoothing curve with touch points in Measurements and Home Screen widgets. Test importing body measurements under Settings -> Health & Tracking.
-• Workout Hub & Routines: Check routine ordering after creating, editing, and starting a routine. Test edit, duplicate, share, delete, quick start, and workout history.
-• Nutrition Statistics: Inspect several time ranges, navigate between periods, and press or drag across macro bars to verify the selected day's values.
+• AI meals, replies, and food search: On a supported iPhone, scan a mixed meal with Apple Intelligence and check that all ingredients remain in the review. Edit suggested foods and portions before saving. In AI chat, copy a response as Markdown, regenerate it, and check the displayed model and response time. Search common foods in the downloaded BLS 4.0 catalog, including while offline; try everyday German names and check that AI suggestions do not match the wrong animal species. Confirm branded products still appear through Open Food Facts. An external AI provider can also be tested with your own API key.
 
-Please also report any localisation, accessibility, notification timing, backup/restore, layout, or general stability issues.
+• Workout history: Import a Hevy, Strong, or generic CSV export from onboarding or Settings > Data & Backup. Inspect the preview for units, dates, duplicates, and invalid rows. In the exercise catalog, filter for previously trained exercises and check their history labels.
+
+• Sharing and recipes: Share a routine, plan, or recipe by link, text, or JSON and check the import preview before confirming. Export a completed workout as text or JSON. Scale a saved recipe by servings or cooked weight, then log it to the diary.
+
+• Workout notes and controls: Add a pinned exercise note, a routine-specific note, and a note for one workout. Check that each appears in the right context. Try the progression toggle, set-type menu, and workout keyboard controls while logging sets.
+
+• Statistics, health, and maintenance: Reorder Statistics cards and open nutrition and recovery details. Check the consolidated Health settings and available Apple Health permissions. On Android, export a completed strength workout to Health Connect and confirm its sets include repetitions, load, and order; repeat the export to check that it does not create duplicates. If available, check that upcoming weekly goal-review reminders are scheduled and delivered while the app is closed. If you have an existing backup, restore it and confirm that goals and workout history remain intact. Please also report accessibility, localisation, and small-screen layout issues.
 
 Thank you for testing Train Libre!

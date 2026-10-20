@@ -146,6 +146,16 @@ void main() {
             workoutType: ExportWorkoutType.running,
             title: 'Morning Run',
             notes: 'Felt good',
+            segments: [
+              ExportWorkoutSegment(
+                startUtc: DateTime.utc(2026, 1, 2, 9, 10),
+                endUtc: DateTime.utc(2026, 1, 2, 9, 10, 1),
+                exerciseType: ExportWorkoutSegmentType.weightlifting,
+                repetitions: 8,
+                weightKg: 40,
+                setIndex: 0,
+              ),
+            ],
           ),
         );
 
@@ -156,6 +166,14 @@ void main() {
         expect(args['notes'], 'Felt good');
         expect(args['startZoneOffsetMinutes'], -60);
         expect(args['endZoneOffsetMinutes'], -60);
+        expect((args['segments'] as List).single, {
+          'startUtcIso': '2026-01-02T09:10:00.000Z',
+          'endUtcIso': '2026-01-02T09:10:01.000Z',
+          'exerciseType': 'weightlifting',
+          'repetitions': 8,
+          'setIndex': 0,
+          'weightKg': 40.0,
+        });
       },
     );
 

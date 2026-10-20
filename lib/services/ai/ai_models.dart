@@ -9,6 +9,7 @@ enum AiProvider {
   xai,
   ollama,
   custom,
+  appleFoundation,
 }
 
 /// Usage reported by a provider, never inferred from prompt length.
@@ -245,6 +246,8 @@ class AiSuggestedItem {
   String? stateHint;
   String? catalogSearchTerm;
   List<String> searchTerms;
+  String? packagedProductEvidence;
+  final int? repairItemIndex;
 
   AiSuggestedItem({
     required this.name,
@@ -255,18 +258,28 @@ class AiSuggestedItem {
     this.stateHint,
     this.catalogSearchTerm,
     this.searchTerms = const [],
+    this.packagedProductEvidence,
+    this.repairItemIndex,
   });
 
   factory AiSuggestedItem.fromJson(Map<String, dynamic> json) {
     return AiSuggestedItem(
       name: json['name'] as String? ?? 'Unknown',
-      estimatedGrams: (json['estimatedGrams'] as num?)?.toInt() ?? 100,
-      servedGrams: (json['servedGrams'] as num?)?.toInt(),
+      estimatedGrams: (json['estimatedGrams'] as num?)?.toInt() ??
+          (json['grams'] as num?)?.toInt() ??
+          (json['servedGrams'] as num?)?.toInt() ??
+          100,
+      servedGrams: (json['servedGrams'] as num?)?.toInt() ??
+          (json['estimatedGrams'] as num?)?.toInt() ??
+          (json['grams'] as num?)?.toInt(),
       confidence:
           (json['confidence'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.5,
       matchedBarcode: json['matchedBarcode'] as String?,
       stateHint: json['stateHint'] as String?,
       catalogSearchTerm: json['catalogSearchTerm'] as String?,
+      packagedProductEvidence: json['packagedProductEvidence'] as String?,
+      repairItemIndex:
+          json['itemIndex'] is int ? json['itemIndex'] as int : null,
       searchTerms: (json['searchTerms'] as List?)
               ?.whereType<String>()
               .map((term) => term.trim())
@@ -286,6 +299,8 @@ class AiSuggestedItem {
         if (stateHint != null) 'stateHint': stateHint,
         if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
         if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
+        if (packagedProductEvidence != null)
+          'packagedProductEvidence': packagedProductEvidence,
       };
 }
 

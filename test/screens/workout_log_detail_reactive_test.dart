@@ -248,13 +248,15 @@ void main() {
     await tester.pumpAndSettle();
 
     final firstCard = find.byType(WorkoutExerciseLogCard).first;
-    final removeButton = find
+    final menuButton = find
         .descendant(
           of: firstCard,
-          matching: find.byIcon(LucideIcons.trash),
+          matching: find.byIcon(LucideIcons.ellipsis_vertical),
         )
         .first;
-    await tester.tap(removeButton);
+    await tester.tap(menuButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove Exercise'));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('Save').last);
     await tester.pumpAndSettle();
@@ -263,6 +265,40 @@ void main() {
           ..where((table) => table.workoutLogId.equals(logUuid)))
         .get();
     expect(remaining.map((set) => set.exerciseBlock), [2]);
+
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('displays pause timer in read-only and edit mode on detail screen',
+      (tester) async {
+    await database.into(database.setLogs).insert(
+          db.SetLogsCompanion.insert(
+            workoutLogId: logUuid,
+            exerciseNameSnapshot: const drift.Value('Bench Press'),
+            setType: const drift.Value('normal'),
+            weight: const drift.Value(100),
+            reps: const drift.Value(10),
+            isCompleted: const drift.Value(true),
+            logOrder: const drift.Value(0),
+            exerciseBlock: const drift.Value(0),
+            restTimeSeconds: const drift.Value(90),
+          ),
+        );
+
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
+    await tester.pumpAndSettle();
+
+    expect(find.text('01:30'), findsOneWidget);
+    expect(find.byIcon(LucideIcons.timer), findsOneWidget);
+
+    await tester.tap(find.byIcon(LucideIcons.pencil).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('01:30'), findsOneWidget);
+    expect(find.byIcon(LucideIcons.ellipsis_vertical), findsOneWidget);
 
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();

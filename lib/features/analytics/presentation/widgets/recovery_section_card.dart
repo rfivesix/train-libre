@@ -61,6 +61,8 @@ class RecoverySectionCard extends StatelessWidget {
       context,
       state: state,
       child: SummaryCard(
+        margin: EdgeInsets.zero,
+        padding: EdgeInsets.zero,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(DesignConstants.spacingL),

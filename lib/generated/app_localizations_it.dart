@@ -202,6 +202,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get foodDetailSegment100g => '100 g';
 
   @override
+  String get foodDetailEnergyGroup => 'Energia';
+
+  @override
+  String get foodDetailMacronutrientsGroup => 'Macronutrienti';
+
+  @override
+  String get foodDetailOtherNutrientsGroup => 'Altri nutrienti';
+
+  @override
   String get sugar => 'Zucchero';
 
   @override
@@ -479,6 +488,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get restTimerLabel => 'Riposo';
 
   @override
+  String get pauseTimerLabel => 'Timer di riposo';
+
+  @override
+  String get timerOffLabel => 'Disattivato';
+
+  @override
   String get skipButton => 'Saltare';
 
   @override
@@ -586,6 +601,50 @@ class AppLocalizationsIt extends AppLocalizations {
       'Importa la cronologia dei tuoi allenamenti da un file di esportazione CSV o Excel.';
 
   @override
+  String workoutImportPreviewSummary(int workouts, int sets, int duplicates) {
+    return '$workouts allenamenti e $sets serie sono pronti. $duplicates allenamenti già presenti verranno ignorati.';
+  }
+
+  @override
+  String get workoutImportHevyInstructions =>
+      'Rilevato export Hevy. Esportalo da Profilo > Impostazioni > Export & Import Data > Export Data > Export Workouts.';
+
+  @override
+  String get workoutImportStrongInstructions =>
+      'Rilevato export Strong. In Impostazioni scegli Export Strong Data su iOS o Export Data su Android.';
+
+  @override
+  String get workoutImportGenericInstructions =>
+      'Rilevato file CSV o Excel. Controlla l’unità di peso prima dell’importazione.';
+
+  @override
+  String workoutImportPreviewInvalidRows(int count) {
+    return 'Verranno ignorate $count righe senza una data valida.';
+  }
+
+  @override
+  String get onboardingWorkoutImportHint =>
+      'Registri già gli allenamenti in un’altra app? Importa la cronologia al prossimo passaggio oppure in seguito da Impostazioni > Dati e backup.';
+
+  @override
+  String get onboardingWorkoutImportTitle =>
+      'Vuoi portare con te la cronologia degli allenamenti?';
+
+  @override
+  String get onboardingWorkoutImportDescription =>
+      'Importa la cronologia da Hevy, Strong o da un file CSV. Potrai controllare un’anteprima prima di aggiungere i dati.';
+
+  @override
+  String get onboardingWorkoutImportButton => 'Scegli file di esportazione';
+
+  @override
+  String get onboardingWorkoutImportLater => 'Lo farò più tardi';
+
+  @override
+  String get onboardingWorkoutImportPrivacy =>
+      'Il file viene elaborato su questo dispositivo. Se l’analisi anonima è attiva, registriamo solo se avvii, salti o completi un’importazione, mai i dettagli degli allenamenti.';
+
+  @override
   String get workoutImportButton => 'Importa dati di allenamento';
 
   @override
@@ -611,7 +670,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get unitImperialLabel => 'Imperiale (libbre)';
 
   @override
-  String get excelExportButton => 'Esportazione in Excel (.xlsx)';
+  String get excelExportButton => 'Esportazione completa dei dati (.xlsx)';
 
   @override
   String get exportWorkoutHistory => 'Cronologia degli allenamenti';
@@ -645,6 +704,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get filter180DaysShort => '180G';
+
+  @override
+  String get filter1DayShort => '1G';
 
   @override
   String get filter7DaysShort => '7G';
@@ -709,6 +771,101 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get shareAsText => 'Condividi come testo';
+
+  @override
+  String get shareWebLink => 'Condividi link web';
+
+  @override
+  String get shareFormattedText => 'Condividi come testo formattato';
+
+  @override
+  String get sharePortableJson => 'Esporta come JSON / dati';
+
+  @override
+  String get shareCopyJson => 'Copia JSON';
+
+  @override
+  String get shareJsonCopied => 'JSON copiato negli appunti';
+
+  @override
+  String get shareJsonFile => 'Condividi file JSON';
+
+  @override
+  String get shareImportFile => 'Importa file JSON condiviso';
+
+  @override
+  String get shareImportSectionTitle => 'Importa contenuti condivisi';
+
+  @override
+  String get shareImportSectionDescription =>
+      'Importa routine, piani di allenamento, ricette o allenamenti da un file JSON, oppure incolla testo JSON, ad esempio da una risposta dell’IA. Controlla il contenuto prima dell’importazione.';
+
+  @override
+  String get shareImportPasteButton => 'Incolla testo JSON';
+
+  @override
+  String get shareImportPasteTitle => 'Importa testo JSON';
+
+  @override
+  String get shareImportPasteDescription =>
+      'Incolla qui il contenuto JSON completo di Train Libre. Puoi controllarlo prima di salvarlo.';
+
+  @override
+  String get shareImportPasteHint => 'Incolla qui il JSON';
+
+  @override
+  String get shareImportReplaceWarning =>
+      'Il contenuto attualmente aperto verrà sostituito completamente. Gli allenamenti completati e le revisioni precedenti del piano saranno conservati.';
+
+  @override
+  String get shareImportAddWarning =>
+      'Questo contenuto verrà importato come nuovo elemento. Routine, piani, ricette e allenamenti esistenti resteranno invariati.';
+
+  @override
+  String get shareImportPreview => 'Importa elemento condiviso';
+
+  @override
+  String get shareImportConfirm => 'Importa in Train Libre';
+
+  @override
+  String get shareImportSuccess => 'Importazione riuscita';
+
+  @override
+  String get shareImportInvalid =>
+      'Impossibile importare questo elemento condiviso.';
+
+  @override
+  String get shareImportRetry => 'Riprova';
+
+  @override
+  String get sharePlanWeekly => 'Piano settimanale';
+
+  @override
+  String get sharePlanSequence => 'Sequenza di allenamento';
+
+  @override
+  String get shareRestDay => 'Giorno di riposo';
+
+  @override
+  String get shareDay => 'Giorno';
+
+  @override
+  String get shareDays => 'giorni';
+
+  @override
+  String get sharePortions => 'Porzioni';
+
+  @override
+  String get shareIngredients => 'Ingredienti';
+
+  @override
+  String get shareRestSeconds => 'Recupero (secondi)';
+
+  @override
+  String get shareTargetMuscles => 'Muscoli interessati';
+
+  @override
+  String get shareTotal => 'Totale';
 
   @override
   String get sharedFromTrainLibre => 'Condiviso da Train Libre';
@@ -1180,7 +1337,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato grafico per questo periodo';
 
   @override
-  String get amount_in_milliliters => 'Quantità in millilitri';
+  String get amount_in_milliliters => 'Quantità';
 
   @override
   String get amount_in_grams => 'Quantità in grammi';
@@ -1232,6 +1389,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get set_type_dropset => 'Dropset';
+
+  @override
+  String get set_type_info => 'Info e spiegazioni';
 
   @override
   String get set_type_normal_help =>
@@ -1817,7 +1977,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Suggerimento: avvia un allenamento vuoto per registrare una sessione veloce';
 
   @override
-  String get unitsSection => 'unità';
+  String get unitsSection => 'Unità';
 
   @override
   String get weightUnit => 'Unità di peso';
@@ -1854,7 +2014,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dataManagementBackupDescription =>
-      'Esegui il backup o ripristina tutti i dati dell\'app. Ideale per cambiare dispositivo.';
+      'Esegui il backup o ripristina i dati Train Libre e le immagini di anteprima. Le foto originali restano su questo dispositivo.';
 
   @override
   String get exportEncrypted => 'Esporta crittografato';
@@ -1870,11 +2030,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get exportFailed => 'Esportazione non riuscita.';
 
   @override
-  String get csvExportTitle => 'Esportazione dati (CSV)';
+  String get csvExportTitle => 'Esportazione dati';
 
   @override
   String get csvExportDescription =>
-      'Esporta parti dei tuoi dati come file CSV per l\'analisi in altri programmi.';
+      'Esporta dati selezionati in file CSV oppure tutti i dati personali tabellari in una cartella di lavoro Excel. Per ripristinare i dati, usa un backup.';
 
   @override
   String get snackbarSharingNutrition => 'Condivido il diario nutrizionale...';
@@ -2053,7 +2213,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'Questa app utilizza dati provenienti da fonti esterne:\n\n● Dati degli esercizi da OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), concessi in licenza CC BY-SA 4.0, derivati in parte dal progetto wger (wger.de).\n\n● Database alimentare di Open Food Facts (openfoodfacts.org), disponibile sotto la licenza Open Database License (ODbL).';
+      'Questa app utilizza dati provenienti da fonti esterne:\n\n● Dati degli esercizi da OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), concessi in licenza CC BY-SA 4.0, derivati in parte dal progetto wger (wger.de).\n\n● Database alimentare di Open Food Facts (openfoodfacts.org), disponibile sotto la licenza Open Database License (ODbL).\n\n● Dati nutrizionali degli alimenti di base dal Bundeslebensmittelschlüssel (BLS) 4.0, pubblicato dal Max Rubner-Institut, DOI 10.25826/Data20251217-134202-0, con licenza CC BY 4.0. Train Libre aggiunge traduzioni, alias di ricerca e categorie.';
 
   @override
   String get errorRoutineNotFound => 'Routine non trovata';
@@ -2300,6 +2460,72 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get mealIngredientAmountLabel => 'Quantità';
+
+  @override
+  String get mealTotalAmountLabel => 'Quantità totale della ricetta';
+
+  @override
+  String get mealWeightBasisLabel => 'Stato';
+
+  @override
+  String get mealWeightBasisRaw => 'Crudo';
+
+  @override
+  String get mealWeightBasisCooked => 'Cotto';
+
+  @override
+  String get mealPreviewBasisLabel => 'Modifica anteprima tramite';
+
+  @override
+  String get mealTotalNutrientsLabel => 'in totale';
+
+  @override
+  String mealTotalAmountHint(int grams) {
+    return 'Ricetta completa: $grams g. Gli ingredienti vengono ridimensionati proporzionalmente.';
+  }
+
+  @override
+  String get mealServingCountLabel => 'Porzioni nella ricetta';
+
+  @override
+  String get mealServingCountHint => 'Numero di porzioni dell\'intera ricetta.';
+
+  @override
+  String get mealCookedWeightLabel => 'Peso finale dopo la cottura';
+
+  @override
+  String get mealCookedWeightHint =>
+      'Facoltativo: pesa la ricetta cotta per ridimensionare con precisione le porzioni in grammi.';
+
+  @override
+  String mealServingsSummary(String count) {
+    return '$count porzioni';
+  }
+
+  @override
+  String mealCookedWeightSummary(String weight) {
+    return '$weight g cotti';
+  }
+
+  @override
+  String get mealPortionAmountLabel => 'Porzioni consumate';
+
+  @override
+  String get mealDecreasePortion => 'Riduci di 0,5 porzioni';
+
+  @override
+  String get mealIncreasePortion => 'Aumenta di 0,5 porzioni';
+
+  @override
+  String mealPortionAmountHint(int count) {
+    return 'Ricetta salvata: $count porzioni';
+  }
+
+  @override
+  String get mealDuplicate => 'Duplica ricetta';
+
+  @override
+  String get mealCopySuffix => '(copia)';
 
   @override
   String get mealDeleteConfirmTitle => 'Elimina ricetta';
@@ -2902,6 +3128,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Consente l\'uso dell\'intelligenza artificiale per il riconoscimento dei pasti. Disabilitando questa opzione si nascondono tutti i pulsanti AI nell\'app.';
 
   @override
+  String get aiStatusAndFeaturesSectionTitle => 'Stato e funzionalità';
+
+  @override
+  String get aiProviderSectionTitle => 'Modello IA e fornitore';
+
+  @override
+  String get aiAdvancedOptionsTitle => 'Opzioni avanzate';
+
+  @override
   String get aiCustomInstructionsTitle =>
       'Istruzioni globali sull\'intelligenza artificiale';
 
@@ -3289,6 +3524,36 @@ class AppLocalizationsIt extends AppLocalizations {
   String get recoveryDetailLastSession => 'Ultima sessione';
 
   @override
+  String get recoveryNoRecentLoad => 'Nessun carico significativo registrato';
+
+  @override
+  String get recoveryDetailEquivalentSets => 'serie equivalenti';
+
+  @override
+  String get recoveryDataConfidence => 'Affidabilità dei dati';
+
+  @override
+  String get recoveryDetailEligibleSets => 'serie incluse';
+
+  @override
+  String get recoveryDetailResidualLoad => 'carico residuo';
+
+  @override
+  String get recoveryDetailDirectLoad => 'carico diretto';
+
+  @override
+  String get recoveryDetailIndirectLoad => 'carico indiretto';
+
+  @override
+  String get recoveryDetailAverageRir => 'RIR medio';
+
+  @override
+  String get recoveryDetailAverageRpe => 'RPE medio';
+
+  @override
+  String get recoveryMovementPatterns => 'Schemi di movimento';
+
+  @override
   String get recoveryDetailForecast => 'Previsione';
 
   @override
@@ -3392,6 +3657,71 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statisticsSectionBody => 'Corpo';
+
+  @override
+  String get statisticsEditCardsTitle => 'Modifica statistiche';
+
+  @override
+  String get statisticsPinnedTitle => 'In evidenza';
+
+  @override
+  String get statisticsAddCardsTitle => 'Altre statistiche';
+
+  @override
+  String get statisticsMicronutrientsTitle => 'Micronutrienti';
+
+  @override
+  String get statisticsMicronutrientsCoverage =>
+      'Solo per gli alimenti BLS registrati';
+
+  @override
+  String get statisticsMicronutrientsPreviewSubtitle =>
+      'Vitamine, minerali e altri nutrienti';
+
+  @override
+  String get statisticsMicronutrientsNoData => 'Nessun alimento BLS registrato';
+
+  @override
+  String get statisticsAveragePerLoggedDay => 'Media per giorno registrato';
+
+  @override
+  String get statisticsMicronutrientsLoggedDays => 'giorni registrati';
+
+  @override
+  String statisticsMicronutrientsNutrientCoverage(int count) {
+    return 'Valore registrato in $count giorni';
+  }
+
+  @override
+  String get diaryMicronutrientsAction =>
+      'Vedi i micronutrienti di questo giorno';
+
+  @override
+  String get statisticsWaterDailyAverage => 'Media giornaliera';
+
+  @override
+  String get statisticsWaterNoData => 'Nessuna bevanda registrata';
+
+  @override
+  String statisticsWaterGoalProgress(int percent) {
+    return '$percent% dell’obiettivo giornaliero';
+  }
+
+  @override
+  String get statisticsActivityCategory => 'Attività';
+
+  @override
+  String get statisticsPinnedEmptyHint =>
+      'Aggiungi qui sotto le statistiche da visualizzare.';
+
+  @override
+  String get statisticsAllDataTitle => 'Tutti i dati';
+
+  @override
+  String get statisticsAllDataAction => 'Mostra tutti i dati';
+
+  @override
+  String get statisticsRemoveCard => 'Rimuovi statistica';
 
   @override
   String get statisticsEnableStepTrackingHint =>
@@ -5026,6 +5356,39 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settingsSectionHealthTracking => 'Salute e monitoraggio';
 
   @override
+  String get healthSettingsTitle => 'Salute';
+
+  @override
+  String get onboardingHealthSettingsDescription =>
+      'Gestisci passi, sonno, battito e Apple Salute o Health Connect';
+
+  @override
+  String get healthSettingsStepActive => 'Il monitoraggio dei passi è attivo';
+
+  @override
+  String get healthSettingsStepAvailable => 'I dati dei passi sono disponibili';
+
+  @override
+  String get healthSettingsStepUnavailable =>
+      'I dati dei passi non sono disponibili';
+
+  @override
+  String get healthSettingsSyncSteps => 'Sincronizza i passi';
+
+  @override
+  String get healthSettingsSyncExport => 'Esporta ora';
+
+  @override
+  String healthSettingsStepsSyncResult(int count) {
+    return 'Aggiornati $count segmenti di passi';
+  }
+
+  @override
+  String healthSettingsSleepSyncResult(int count) {
+    return 'Importate $count sessioni di sonno';
+  }
+
+  @override
   String get settingsStepsSubtitle =>
       'Monitoraggio, policy di origine e fornitori';
 
@@ -5905,6 +6268,36 @@ class AppLocalizationsIt extends AppLocalizations {
   String get exerciseNoteHint => 'Inserisci note o suggerimenti...';
 
   @override
+  String get editExerciseNotes => 'Aggiungi/modifica nota';
+
+  @override
+  String get workoutNoteAddHint => 'Aggiungi una nota qui...';
+
+  @override
+  String get noteTypeTitle => 'Tipo di nota';
+
+  @override
+  String get pinnedExerciseNoteTitle => 'Nota esercizio fissata';
+
+  @override
+  String get pinnedExerciseNoteDescription =>
+      'Precompilata ogni volta che registri questo esercizio.';
+
+  @override
+  String get pinnedRoutineNoteTitle => 'Nota routine fissata';
+
+  @override
+  String get pinnedRoutineNoteDescription =>
+      'Precompilata solo per questo esercizio in questa routine.';
+
+  @override
+  String get workoutExerciseNoteTitle => 'Nota allenamento';
+
+  @override
+  String get workoutExerciseNoteDescription =>
+      'Si applica solo a questo esercizio in questo allenamento.';
+
+  @override
   String get deleteNoteTooltip => 'Elimina nota';
 
   @override
@@ -6161,7 +6554,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get offDownloadBody =>
-      'Per accedere alla ricerca completa dei prodotti offline, alla scansione dei codici a barre e alle funzioni IA, inizializza i cataloghi locali. Scaricherai le ultime versioni del database da GitHub.';
+      'Scarica i cataloghi locali per usare offline alimenti di base, ricerca prodotti, codici a barre, esercizi e riconoscimento dei pasti con IA. Il catalogo BLS 4.0 è di circa 25,6 MB; i cataloghi dei prodotti e degli esercizi vengono scaricati separatamente.';
 
   @override
   String get offDownloadConfirm => 'Scarica ora';
@@ -6830,6 +7223,32 @@ class AppLocalizationsIt extends AppLocalizations {
   String get catalogFilterLaterality => 'Lati';
 
   @override
+  String get catalogFilterAlreadyDone => 'Già eseguito';
+
+  @override
+  String get catalogTrainedBadge => 'Eseguito';
+
+  @override
+  String get catalogLastTrainedToday => 'Eseguito oggi';
+
+  @override
+  String get catalogLastTrainedYesterday => 'Eseguito ieri';
+
+  @override
+  String catalogLastTrainedDaysAgo(int days) {
+    return '$days giorni fa';
+  }
+
+  @override
+  String catalogLastTrainedOn(String date) {
+    return 'Il $date';
+  }
+
+  @override
+  String get noTrainedExercisesFound =>
+      'Nessun esercizio già eseguito trovato.';
+
+  @override
   String get exerciseDifficultyBeginner => 'Principiante';
 
   @override
@@ -7130,6 +7549,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get progressionPolicy => 'Progressione delle serie';
+
+  @override
+  String get progressionToggleEnabled => 'Progressione automatica attiva';
+
+  @override
+  String get progressionToggleDisabled => 'Progressione automatica disattivata';
+
+  @override
+  String get workoutKeyboardInsertHyphen => 'Inserisci il segno meno';
+
+  @override
+  String get workoutKeyboardNextField => 'Vai al campo successivo';
+
+  @override
+  String get workoutKeyboardClose => 'Chiudi la tastiera';
 
   @override
   String get progressionSetOutcome => 'Valuta la serie come';
@@ -8496,4 +8930,171 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aiScanLogsCall => 'Chiamata';
+
+  @override
+  String get blsModificationsDetail =>
+      'Modifiche di Train Libre: traduzioni, alias di ricerca e categorie.';
+
+  @override
+  String get nutritionCatalogBls => 'Catalogo degli alimenti di base (BLS)';
+
+  @override
+  String get blsCatalogManagementDescription =>
+      'Scarica e aggiorna il catalogo offline degli ingredienti BLS 4.0 (25,6 MB).';
+
+  @override
+  String get blsCatalogRefresh => 'Controlla gli aggiornamenti del catalogo';
+
+  @override
+  String get blsCatalogUpdated => 'Catalogo BLS aggiornato.';
+
+  @override
+  String get blsCatalogCurrent => 'Il catalogo BLS è aggiornato.';
+
+  @override
+  String get blsCatalogRefreshFailed =>
+      'Impossibile aggiornare il catalogo BLS. Riprova più tardi.';
+
+  @override
+  String get blsCompleteNutrientProfile =>
+      'Profilo nutrizionale completo (BLS)';
+
+  @override
+  String blsNutrientCount(int count) {
+    return '$count valori nutrizionali per 100 g';
+  }
+
+  @override
+  String get blsNutrientsUnavailable =>
+      'I dettagli nutrizionali saranno disponibili dopo l’installazione del catalogo BLS.';
+
+  @override
+  String get blsNutrientDetails => 'Dettagli';
+
+  @override
+  String get blsNutrientOrigin => 'Misurazione o calcolo';
+
+  @override
+  String get blsNutrientReference => 'Riferimento';
+
+  @override
+  String get blsFoodSourceLabel => 'Fonte e licenza';
+
+  @override
+  String get blsFoodSource =>
+      'Bundeslebensmittelschlüssel (BLS) 4.0 — Max Rubner-Institut';
+
+  @override
+  String get blsFoodLicense => 'Dati BLS: CC BY 4.0';
+
+  @override
+  String get blsFoodModifications => 'Traduzioni e categorie di Train Libre';
+
+  @override
+  String get developerAiOverlayDemoTitle => 'AI Overlay';
+
+  @override
+  String get developerAiOverlayDemoSubtitle =>
+      'Anteprima UI scorrevole con schede di esempio';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledTitle =>
+      'Attiva AI Overlay in tutta l’app';
+
+  @override
+  String get aiOverlayDemoGlobalEnabledSubtitle =>
+      'Mostra la nuvola demo in ogni schermata. Le chat non vengono salvate.';
+
+  @override
+  String get aiOverlayDemoScreenTitle => 'Demo UI di AI Overlay';
+
+  @override
+  String get aiOverlayDemoIntroTitle => 'Un’anteprima dell’assistente';
+
+  @override
+  String get aiOverlayDemoIntroBody =>
+      'Scorri i contenuti di esempio nello stile dell’app e prova l’anteprima delle autorizzazioni.';
+
+  @override
+  String get aiOverlayDemoPreviewNote =>
+      'Solo dati di esempio. Nessuna chiamata AI e nessun accesso ai dati reali di allenamento o nutrizione.';
+
+  @override
+  String get aiOverlayDemoTodaySection => 'La tua giornata';
+
+  @override
+  String get aiOverlayDemoNutritionSection => 'Nutrizione';
+
+  @override
+  String get aiOverlayDemoActivitySection => 'Attività';
+
+  @override
+  String get aiOverlayDemoWorkoutTitle => 'Allenamento di forza';
+
+  @override
+  String get aiOverlayDemoWorkoutSubtitle => 'Parte superiore A · 2 ore fa';
+
+  @override
+  String get aiOverlayDemoWorkoutMeta => '47 min · 6 esercizi · 12 serie';
+
+  @override
+  String get aiOverlayDemoExerciseOne => 'Panca piana';
+
+  @override
+  String get aiOverlayDemoExerciseTwo => 'Rematore al cavo';
+
+  @override
+  String get aiOverlayDemoStepsValue => '7.842 su 10.000 passi';
+
+  @override
+  String get aiOverlayDemoWaterValue => '1,6 su 2,5 l';
+
+  @override
+  String get aiOverlayDemoAssistantSection => 'Azione con autorizzazione';
+
+  @override
+  String get aiOverlayNewChat => 'Nuova chat';
+
+  @override
+  String get aiOverlayChatHistory => 'Cronologia chat';
+
+  @override
+  String get aiOverlayDemoAssistantMessage =>
+      'Ti sei allenato tre volte questa settimana. Vuoi che confronti il carico di allenamento?';
+
+  @override
+  String get aiOverlayDemoRequestLabel => 'Dati necessari';
+
+  @override
+  String get aiOverlayDemoScope => 'Allenamenti degli ultimi 7 giorni';
+
+  @override
+  String get aiOverlayDemoScopeDetails => 'Durata e volume degli allenamenti';
+
+  @override
+  String get aiOverlayDemoPurpose =>
+      'Scopo: confrontare il carico di allenamento';
+
+  @override
+  String get aiOverlayDemoDeny => 'Rifiuta';
+
+  @override
+  String get aiOverlayDemoAllowOnce => 'Consenti una volta';
+
+  @override
+  String get aiOverlayDemoApprovedFeedback =>
+      'Autorizzazione simulata in questa demo.';
+
+  @override
+  String get aiOverlayDemoDeniedFeedback =>
+      'Richiesta rifiutata in questa demo.';
+
+  @override
+  String get aiOverlayDemoCloudHint =>
+      'Trascina la nuvola orizzontalmente. La posizione viene salvata.';
+
+  @override
+  String aiAssistantAskModelHint(String model) {
+    return 'Chiedi a $model';
+  }
 }

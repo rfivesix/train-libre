@@ -6,6 +6,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_link_row.dart';
@@ -20,6 +21,8 @@ import '../domain/models/routine.dart';
 import '../domain/services/workout_plan_notification_orchestrator.dart';
 import 'edit_routine_screen.dart';
 import 'manual_plan_text.dart';
+import '../../sharing/share_import_sheet.dart';
+import '../../sharing/share_link_repository.dart';
 import 'widgets/manual_plan_ui.dart';
 
 class ManualPlanEditorScreen extends StatefulWidget {
@@ -37,6 +40,7 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
   List<TrainingPlanDay> _days = List.filled(7, const TrainingPlanDay());
   List<Key> _dayKeys = List.generate(7, (_) => UniqueKey());
   bool _saving = false;
+  bool _importedPlanDraft = false;
   String? _error;
 
   @override
@@ -247,13 +251,17 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
       final restDaysCount = _days.where((day) => day.isRest).length;
       if (widget.plan == null) {
         await _repository.createPlan(
-            name: _name.text, kind: _kind, days: _days);
+          name: _name.text,
+          kind: _kind,
+          days: _days,
+          activate: !_importedPlanDraft,
+        );
         unawaited(TelemetryService.instance.trackTrainingPlanCreated(
           kind: _kind.name,
           dayCount: _days.length,
           workoutDaysCount: workoutDaysCount,
           restDaysCount: restDaysCount,
-          isActive: true,
+          isActive: !_importedPlanDraft,
         ));
       } else {
         await _repository.revisePlan(
@@ -279,6 +287,37 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
     }
   }
 
+  Future<void> _importPlan() async {
+    final l10n = AppLocalizations.of(context)!;
+    final payload = await showShareImportSheet(
+      context: context,
+      expectedType: 'plan',
+      warning: l10n.shareImportReplaceWarning,
+    );
+    if (payload == null || !mounted) return;
+    try {
+      if (widget.plan != null &&
+          payload.data['kind'] != widget.plan!.kind.name) {
+        throw const FormatException('Plan kind cannot be changed');
+      }
+      final imported =
+          await const ShareLinkRepository().decodePlanForEditor(payload);
+      setState(() {
+        _name.text = payload.name;
+        _kind = imported.kind;
+        _days = imported.days;
+        _dayKeys = List.generate(_days.length, (_) => UniqueKey());
+        _importedPlanDraft = true;
+        _error = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.shareImportInvalid),
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = ManualPlanText(context);
@@ -291,7 +330,15 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-          title: text.get(widget.plan == null ? 'create' : 'edit')),
+        title: text.get(widget.plan == null ? 'create' : 'edit'),
+        actions: [
+          IconButton(
+            tooltip: AppLocalizations.of(context)!.shareImportSectionTitle,
+            onPressed: _importPlan,
+            icon: const Icon(LucideIcons.file_down),
+          ),
+        ],
+      ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           DesignConstants.screenPaddingHorizontal,

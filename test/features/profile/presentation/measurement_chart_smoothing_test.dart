@@ -45,7 +45,7 @@ void main() {
     final smoothedLine = lineChart.data.lineBarsData[1];
 
     expect(rawLine.barWidth, smoothedLine.barWidth);
-    expect(rawLine.isCurved, true);
+    expect(rawLine.isCurved, false);
     // Dots are hidden when untouched
     expect(rawLine.dotData.checkToShowDot(rawLine.spots[0], rawLine), false);
 

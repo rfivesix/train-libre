@@ -36,12 +36,14 @@ import 'widgets/workout_heart_rate_section.dart';
 import '../domain/classification/exercise_log_mask.dart';
 import '../domain/classification/set_load.dart';
 import 'widgets/workout_exercise_log_card.dart';
+import 'widgets/set_type_menu.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
 import 'reorder_scroll_anchor.dart';
 import 'widgets/exercise_notes_dialog.dart';
+import 'widgets/routine_pause_time_dialog.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
@@ -450,7 +452,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     }
 
     final savedExerciseNotes = await WorkoutLocalDataSource.instance
-        .getWorkoutExerciseNotes(widget.logId);
+        .getWorkoutExerciseNotesByBlock(widget.logId);
 
     final heartRateFuture = _heartRateService.loadForWorkoutWindow(
       startTime: data.startTime,
@@ -523,7 +525,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     final updatedGroups = groupSetsByExerciseBlock(data.sets);
     final notesByBlock = <ExerciseBlockKey, String>{};
     for (final key in updatedGroups.keys) {
-      final note = savedExerciseNotes[key.exerciseName];
+      final note = key.exerciseBlock == null
+          ? null
+          : savedExerciseNotes[key.exerciseBlock!];
       if (note != null) notesByBlock[key] = note;
     }
 
@@ -936,10 +940,29 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         }
         for (final key in _exerciseNotes.keys) {
           final note = _exerciseNotes[key];
+          final block = key.exerciseBlock;
+          if (block == null) continue;
           await dbHelper.saveWorkoutExerciseNote(
             workoutLogId: widget.logId,
+            exerciseBlock: block,
             exerciseName: key.exerciseName,
             notes: note != null && note.isNotEmpty ? note : null,
+          );
+        }
+        for (final entry in _log!.exerciseNotesByBlock.entries) {
+          if (_exerciseNotes.keys.any(
+            (key) => key.exerciseBlock == entry.key,
+          )) {
+            continue;
+          }
+          final set = _log!.sets.firstWhere(
+            (item) => item.exerciseBlock == entry.key,
+          );
+          await dbHelper.saveWorkoutExerciseNote(
+            workoutLogId: widget.logId,
+            exerciseBlock: entry.key,
+            exerciseName: set.exerciseName,
+            notes: null,
           );
         }
       });
@@ -1091,6 +1114,75 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           });
         }
       }
+    }
+  }
+
+  int? _pauseSecondsForSets(List<SetLog> sets) {
+    for (final setLog in sets) {
+      final rest = setLog.restTimeSeconds;
+      if (rest != null && rest > 0) return rest;
+    }
+    return null;
+  }
+
+  void _editPauseTime(BuildContext context, ExerciseBlockKey key) async {
+    final l10n = AppLocalizations.of(context)!;
+    final sets = _groupedSets[key] ?? const <SetLog>[];
+    final initialPause = _pauseSecondsForSets(sets);
+
+    final result = await showGlassBottomMenu<({bool saved, int? value})>(
+      context: context,
+      title: l10n.editPauseTimeTitle,
+      headerTrailing: (initialPause != null && initialPause > 0)
+          ? TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                HapticFeedbackService.instance.selectionFeedback();
+                Navigator.of(context).pop((saved: true, value: null));
+              },
+              child: Text(
+                l10n.removeTimer,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.amber,
+                ),
+              ),
+            )
+          : null,
+      contentBuilder: (ctx, close) {
+        return RoutinePauseTimeDialog(
+          initialPauseSeconds: initialPause,
+          onSave: (seconds) {
+            close();
+            Navigator.of(ctx).pop((saved: true, value: seconds));
+          },
+          onCancel: () {
+            close();
+            Navigator.of(ctx).pop((saved: false, value: null));
+          },
+        );
+      },
+    );
+
+    if (result != null && result.saved) {
+      final newPause =
+          result.value != null && result.value! > 0 ? result.value : null;
+      setState(() {
+        final currentSets = _groupedSets[key];
+        if (currentSets != null) {
+          _groupedSets[key] = [
+            for (final setLog in currentSets)
+              setLog.copyWith(
+                restTimeSeconds: newPause,
+                clearRestTimeSeconds: newPause == null,
+              ),
+          ];
+        }
+      });
     }
   }
 
@@ -1486,6 +1578,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 repsControllers: _repsControllers,
                                 rirControllers: _rirControllers,
                                 exerciseNote: _exerciseNotes[key],
+                                pauseSeconds: _pauseSecondsForSets(sets),
+                                onEditPauseTime: () =>
+                                    _editPauseTime(context, key),
                                 onEditNotes: (_) =>
                                     _editExerciseNotes(context, key),
                                 onDeleteExercise: (_) {
@@ -1508,6 +1603,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 onAddSet: () {},
                                 onDeleteSet: (setId) {},
                                 onSetTypeTap: (setId) {},
+                                onSetTypeChanged: (setId, newType) =>
+                                    _changeSetType(setId, newType),
                                 index: -1,
                                 supersetLabel: supersetStyle?.label,
                                 supersetColor: supersetStyle?.color,
@@ -1575,11 +1672,14 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       repsControllers: _repsControllers,
                                       rirControllers: _rirControllers,
                                       exerciseNote: _exerciseNotes[key],
+                                      pauseSeconds: _pauseSecondsForSets(sets),
+                                      onEditPauseTime: () {},
                                       onEditNotes: (_) {},
                                       onDeleteExercise: (_) {},
                                       onAddSet: () {},
                                       onDeleteSet: (_) {},
                                       onSetTypeTap: (_) {},
+                                      onSetTypeChanged: (_, __) {},
                                       index: index,
                                       supersetLabel: supersetStyle?.label,
                                       supersetColor: supersetStyle?.color,
@@ -1683,6 +1783,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                           _rirControllers,
                                                       exerciseNote:
                                                           _exerciseNotes[key],
+                                                      pauseSeconds:
+                                                          _pauseSecondsForSets(
+                                                              sets),
+                                                      onEditPauseTime: () =>
+                                                          _editPauseTime(
+                                                              context, key),
                                                       onEditNotes: (_) =>
                                                           _editExerciseNotes(
                                                               context, key),
@@ -1701,6 +1807,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                           isCompleted: true,
                                                           exerciseBlock:
                                                               key.exerciseBlock,
+                                                          restTimeSeconds:
+                                                              _pauseSecondsForSets(
+                                                                  sets),
                                                         );
                                                         setState(() {
                                                           sets.add(newSet);
@@ -1735,6 +1844,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                       onSetTypeTap: (setId) =>
                                                           _showSetTypePicker(
                                                               setId),
+                                                      onSetTypeChanged: (setId,
+                                                              newType) =>
+                                                          _changeSetType(
+                                                              setId, newType),
                                                       index: index,
                                                       supersetLabel:
                                                           supersetStyle?.label,
@@ -1915,53 +2028,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   }
 
   void _showSetTypePicker(int setLogId) {
-    final l10n = AppLocalizations.of(context)!;
-
-    Widget buildSymbol(String char, Color color) {
-      return Text(
-        char,
-        style: TextStyle(
-          color: color,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-
-    final options = [
-      {
-        'type': 'normal',
-        'label': l10n.set_type_normal,
-        'symbol':
-            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
-      },
-      {
-        'type': 'warmup',
-        'label': l10n.set_type_warmup,
-        'symbol': buildSymbol('W', Colors.orange),
-      },
-      {
-        'type': 'failure',
-        'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Theme.of(context).colorScheme.error),
-      },
-      {
-        'type': 'dropset',
-        'label': l10n.set_type_dropset,
-        'symbol': buildSymbol('D', Colors.blue),
-      },
-    ];
-
-    showGlassBottomMenu(
+    showExplanationRichSetTypeSheet(
       context: context,
-      title: l10n.changeSetTypTitle,
-      actions: options.map((opt) {
-        return GlassMenuAction(
-          customIcon: opt['symbol'] as Widget,
-          label: opt['label'] as String,
-          onTap: () => _changeSetType(setLogId, opt['type'] as String),
-        );
-      }).toList(),
+      onSelected: (newType) => _changeSetType(setLogId, newType),
     );
   }
 }

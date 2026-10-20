@@ -1,11 +1,68 @@
 part of '../../ai_meal_validation.dart';
 
 extension MatchingLogic on AiMealValidationEngine {
+  static const _animalTerms = <String, List<String>>{
+    'chicken': [
+      'chicken',
+      'haehnchen',
+      'hahnchen',
+      'huehn',
+      'huhn',
+      'hen',
+      'poulet',
+      'pollo',
+    ],
+    'turkey': ['turkey', 'pute', 'truthahn', 'dinde', 'tacchino'],
+    'duck': ['duck', 'ente', 'canard', 'anatra'],
+    'goose': ['goose', 'gans', 'oie', 'oca'],
+    'deer': ['deer', 'venison', 'hirsch', 'reh', 'chevreuil', 'cervo'],
+    'beef': ['beef', 'rind', 'rinder', 'cattle', 'boeuf', 'manzo'],
+    'pork': ['pork', 'pig', 'schwein', 'porc', 'maiale'],
+    'lamb': ['lamb', 'sheep', 'lamm', 'schaf', 'agneau', 'agnello'],
+    'horse': ['horse', 'pferd', 'cheval', 'cavallo'],
+    'rabbit': ['rabbit', 'hare', 'kaninchen', 'hase', 'lapin', 'coniglio'],
+    'fish': ['fish', 'fisch', 'poisson', 'pesce'],
+  };
+
+  Set<String> _animalClasses(Iterable<String> names) {
+    final normalized = names.map(AiMealValidationEngine._normalizeText);
+    final classes = <String>{};
+    for (final name in normalized) {
+      final tokens = name.split(' ').where((token) => token.isNotEmpty).toSet();
+      for (final entry in _animalTerms.entries) {
+        if (entry.value.any((term) =>
+            tokens.contains(term) ||
+            tokens.any((token) =>
+                token.startsWith(term) && token.length > term.length))) {
+          classes.add(entry.key);
+        }
+      }
+    }
+    return classes;
+  }
+
+  bool _animalClassCompatible(AiMealCandidateItem item, FoodItem food) {
+    final queryClasses = _animalClasses([
+      item.name,
+      if (item.catalogSearchTerm != null) item.catalogSearchTerm!,
+      ...item.searchTerms,
+    ]);
+    final candidateClasses = _animalClasses(FoodNameMatching.names(food));
+    // A species-specific query requires a single, matching species on the
+    // candidate. Unknown or conflicting classes stay unresolved for review.
+    if (queryClasses.isEmpty) return true;
+    if (queryClasses.length != 1 || candidateClasses.length != 1) return false;
+    return queryClasses.single == candidateClasses.single;
+  }
+
   AiMatchResult _evaluateMatch(
     AiMealCandidateItem item,
     List<FoodItem> matches,
   ) {
     final query = item.name.trim();
+    matches = matches
+        .where((food) => _animalClassCompatible(item, food))
+        .toList(growable: false);
     if (matches.isEmpty) {
       return AiMatchResult(
         query: query,
@@ -17,8 +74,12 @@ extension MatchingLogic on AiMealValidationEngine {
       );
     }
 
-    final selectedBarcode = item.matchedBarcode?.trim();
-    if (selectedBarcode != null && selectedBarcode.isNotEmpty) {
+    final selectedBarcode =
+        item.selectedFood?.barcode ?? item.matchedBarcode?.trim();
+    final hasExplicitPackagedProduct = item.isPackagedProduct;
+    if (selectedBarcode != null &&
+        selectedBarcode.isNotEmpty &&
+        (item.selectedFood != null || hasExplicitPackagedProduct)) {
       final selectedMatches = matches
           .where((food) => food.barcode == selectedBarcode)
           .toList(growable: false);
@@ -41,16 +102,57 @@ extension MatchingLogic on AiMealValidationEngine {
             score: _matchScore(item, food),
           ),
         )
-        .toList(growable: false)
-      ..sort((a, b) {
-        final scoreCompare = b.score.compareTo(a.score);
-        if (scoreCompare != 0) return scoreCompare;
-        return _sourcePriority(a.food.source).compareTo(
+        .toList(growable: false);
+    final highestScore = scored.fold<double>(
+      0,
+      (highest, item) => item.score > highest ? item.score : highest,
+    );
+    scored.sort((a, b) {
+      // For generic ingredients, prefer canonical base-food candidates that
+      // are close to the strongest text match. A weak base-food coincidence
+      // cannot displace a clearly better match.
+      final aIsNearBest =
+          !hasExplicitPackagedProduct && a.score >= highestScore - 0.18;
+      final bIsNearBest =
+          !hasExplicitPackagedProduct && b.score >= highestScore - 0.18;
+      if (aIsNearBest != bIsNearBest) {
+        return aIsNearBest ? -1 : 1;
+      }
+      if (aIsNearBest && bIsNearBest) {
+        final sourceCompare = _sourcePriority(a.food.source).compareTo(
           _sourcePriority(b.food.source),
         );
-      });
+        if (sourceCompare != 0) return sourceCompare;
+      }
+      final scoreCompare = b.score.compareTo(a.score);
+      if (scoreCompare != 0) return scoreCompare;
+      final sourceCompare = _sourcePriority(a.food.source).compareTo(
+        _sourcePriority(b.food.source),
+      );
+      if (sourceCompare != 0) return sourceCompare;
+      final nameCompare = a.food.name.compareTo(b.food.name);
+      return nameCompare != 0
+          ? nameCompare
+          : a.food.barcode.compareTo(b.food.barcode);
+    });
 
     final best = scored.first;
+    final bestAliasIsUnreviewed = best.food.catalogMatchAlias != null &&
+        best.food.catalogMatchReviewStatus != 'approved';
+    if (bestAliasIsUnreviewed && best.score <= 0.54) {
+      // An unreviewed/broad alias is retrieval evidence only. Keep every
+      // candidate available to the repair/clarification flow without silently
+      // assigning nutrients to one preparation or variant.
+      return AiMatchResult(
+        query: query,
+        bestMatch: null,
+        alternatives: scored.map((entry) => entry.food).toList(growable: false),
+        quality: AiMatchQuality.unmatched,
+        isAmbiguous: scored.length > 1,
+        score: 0,
+      );
+    }
+
     final alternatives = scored.map((e) => e.food).toList(growable: false);
     final secondScore = scored.length > 1 ? scored[1].score : 0.0;
     final isAmbiguous = scored.length > 1 &&
@@ -86,16 +188,23 @@ extension MatchingLogic on AiMealValidationEngine {
   }
 
   double _matchScore(AiMealCandidateItem item, FoodItem food) {
-    final queries = <String>{
-      item.name,
-      item.catalogSearchTerm ?? '',
-      ...item.searchTerms,
-    };
+    final productQuery = item.catalogSearchTerm?.trim();
+    // Once packaging is evidenced, a specific product query must not tie with
+    // an exact generic name merely because the ingredient label is shorter.
+    final queries = item.isPackagedProduct &&
+            productQuery != null &&
+            productQuery.isNotEmpty
+        ? <String>{productQuery}
+        : <String>{
+            item.name,
+            item.catalogSearchTerm ?? '',
+            ...item.searchTerms
+          };
     var bestScore = 0.0;
     for (final query in queries) {
       bestScore = AiMealValidationEngine._maxDouble(
         bestScore,
-        _matchScoreForQuery(query, food),
+        _matchScoreForQuery(query, food, includeBrand: item.isPackagedProduct),
       );
     }
 
@@ -127,37 +236,44 @@ extension MatchingLogic on AiMealValidationEngine {
     return bestScore;
   }
 
-  double _matchScoreForQuery(String query, FoodItem food) {
+  double _matchScoreForQuery(String query, FoodItem food,
+      {bool includeBrand = false}) {
     final normalizedQuery = AiMealValidationEngine._normalizeText(query);
     if (normalizedQuery.isEmpty) return 0;
-    final names = {
-      food.name,
-      food.nameDe,
-      food.nameEn,
-    }
-        .where((name) => name.trim().isNotEmpty)
-        .map(AiMealValidationEngine._normalizeText)
-        .toSet();
+    final rawNames = FoodNameMatching.names(food, includeBrand: includeBrand);
+
+    final names = rawNames.map(AiMealValidationEngine._normalizeText).toSet();
 
     if (names.any((name) => name == normalizedQuery)) return 1.0;
-    if (names.any((name) => name.startsWith(normalizedQuery))) return 0.86;
-    if (names.any((name) => normalizedQuery.startsWith(name))) return 0.78;
 
-    final queryTokens = normalizedQuery.split(' ').where((t) => t.length > 1);
+    // Preparation qualifiers remain meaningful to the AI validation rules.
+    // Only that domain treats a base food's parenthetical stem as identity.
+    if (food.source == FoodItemSource.base &&
+        rawNames.any((name) =>
+            FoodNameMatching.normalize(
+                name.replaceAll(RegExp(r'\s*\([^)]*\)'), '')) ==
+            normalizedQuery)) {
+      return 1.0;
+    }
     var best = 0.0;
-    for (final name in names) {
-      if (name.contains(normalizedQuery)) {
-        best = AiMealValidationEngine._maxDouble(best, 0.70);
-      }
-      final nameTokens = name.split(' ').where((t) => t.length > 1).toSet();
-      if (nameTokens.isEmpty) continue;
-      final overlap = queryTokens.where(nameTokens.contains).length;
-      if (overlap > 0) {
-        best = AiMealValidationEngine._maxDouble(
-          best,
-          overlap / queryTokens.length * 0.65,
-        );
-      }
+    for (final name in rawNames) {
+      final rank = FoodNameMatching.textRank(query, name,
+          compactNames: food.source == FoodItemSource.base);
+      final score = switch (rank) {
+        0 => 1.0,
+        1 => food.source == FoodItemSource.base ? 0.88 : 0.82,
+        2 || 3 => 0.70,
+        _ => 0.0,
+      };
+      best = AiMealValidationEngine._maxDouble(best, score);
+    }
+    if (food.catalogMatchAlias != null &&
+        FoodNameMatching.compact(food.catalogMatchAlias!) ==
+            FoodNameMatching.compact(query)) {
+      final approvedIdentity = food.catalogMatchScope == 'identity' &&
+          food.catalogMatchReviewStatus == 'approved';
+      return AiMealValidationEngine._maxDouble(
+          best, approvedIdentity ? 1.0 : 0.50);
     }
     return best;
   }

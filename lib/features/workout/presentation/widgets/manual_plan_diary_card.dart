@@ -84,70 +84,82 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
                   onTap: onTap,
                   borderRadius:
                       BorderRadius.circular(DesignConstants.borderRadiusL),
-                  child: Padding(
-                    // Keep every edge identical, like the Weight card.
-                    padding: const EdgeInsets.all(DesignConstants.spacingM),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                day.day.routineName ?? text.get('rest'),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: theme.brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.bold,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: day.day.isRest ? 54 : 0,
+                    ),
+                    child: Padding(
+                      // Keep every edge identical, like the Weight card.
+                      padding: EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingM,
+                        vertical: day.day.isRest
+                            ? DesignConstants.spacingXS
+                            : DesignConstants.spacingM,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  day.day.routineName ?? text.get('rest'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.brightness == Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(
-                                height: DesignConstants.spacingXS,
-                              ),
-                              Text(
-                                subtitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
+                                SizedBox(
+                                  height: day.day.isRest
+                                      ? 2
+                                      : DesignConstants.spacingXS,
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  subtitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        canStart
-                            ? FilledButton(
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size(0, 44),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: DesignConstants.spacingM,
-                                  ),
-                                  textStyle:
-                                      theme.textTheme.labelLarge?.copyWith(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.1,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      DesignConstants.borderRadiusM,
+                          const SizedBox(width: DesignConstants.spacingM),
+                          canStart
+                              ? FilledButton(
+                                  style: FilledButton.styleFrom(
+                                    minimumSize: const Size(0, 44),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: DesignConstants.spacingM,
+                                    ),
+                                    textStyle:
+                                        theme.textTheme.labelLarge?.copyWith(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.1,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        DesignConstants.borderRadiusM,
+                                      ),
                                     ),
                                   ),
+                                  onPressed: onStart,
+                                  child: Text(l10n.startButton),
+                                )
+                              : Icon(
+                                  LucideIcons.chevron_right,
+                                  color: theme.colorScheme.onSurface,
                                 ),
-                                onPressed: onStart,
-                                child: Text(l10n.startButton),
-                              )
-                            : Icon(
-                                LucideIcons.chevron_right,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

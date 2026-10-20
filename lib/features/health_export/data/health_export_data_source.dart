@@ -164,6 +164,8 @@ class HealthExportDataSource {
       start: start,
       end: end,
       updatedSinceUtc: options.updatedSinceUtc,
+      includeHealthConnectSegments:
+          options.platform == HealthExportPlatform.healthConnect,
     );
   }
 
@@ -420,6 +422,7 @@ class HealthExportDataSource {
     required DateTime start,
     required DateTime end,
     required DateTime? updatedSinceUtc,
+    required bool includeHealthConnectSegments,
   }) async {
     final workouts = await _loadCompletedWorkoutLogs(
       start: start,
@@ -434,11 +437,19 @@ class HealthExportDataSource {
               // positive duration window; zero-length sessions are dropped.
               workout.endTime!.toUtc().isAfter(workout.startTime.toUtc()),
         )
-        .map(_mapWorkout)
+        .map(
+          (workout) => _mapWorkout(
+            workout,
+            includeHealthConnectSegments: includeHealthConnectSegments,
+          ),
+        )
         .toList(growable: false);
   }
 
-  ExportWorkoutRecord _mapWorkout(WorkoutLog workout) {
+  ExportWorkoutRecord _mapWorkout(
+    WorkoutLog workout, {
+    required bool includeHealthConnectSegments,
+  }) {
     final id = workout.id;
     if (id == null) {
       throw StateError('Workout session is missing persistent id');
@@ -452,7 +463,109 @@ class HealthExportDataSource {
       workoutType: _mapWorkoutType(workout),
       title: workout.routineName,
       notes: _buildWorkoutExportNotes(workout),
+      segments: includeHealthConnectSegments &&
+              _mapWorkoutType(workout) == ExportWorkoutType.strength
+          ? _mapWorkoutSegments(workout)
+          : const <ExportWorkoutSegment>[],
     );
+  }
+
+  List<ExportWorkoutSegment> _mapWorkoutSegments(WorkoutLog workout) {
+    final eligibleSets = workout.sets.where((set) {
+      if (set.isCompleted != true) return false;
+      final modality = set.exerciseModality?.trim().toLowerCase();
+      return modality == null || modality.isEmpty || modality == 'strength';
+    }).toList(growable: false);
+    if (eligibleSets.isEmpty) return const <ExportWorkoutSegment>[];
+
+    final timeRanges = _segmentTimeRanges(workout, eligibleSets);
+    final segments = <ExportWorkoutSegment>[];
+    String? previousExerciseBlock;
+    var setIndex = -1;
+    for (var index = 0; index < eligibleSets.length; index++) {
+      final set = eligibleSets[index];
+      final exerciseBlock = _exerciseBlockKey(set);
+      if (exerciseBlock != previousExerciseBlock) {
+        previousExerciseBlock = exerciseBlock;
+        setIndex = 0;
+      } else {
+        setIndex += 1;
+      }
+
+      final weightKg = set.weightKg;
+      final validWeight = weightKg != null && weightKg.isFinite && weightKg >= 0
+          ? weightKg
+          : null;
+      final timeRange = timeRanges[index];
+      segments.add(
+        ExportWorkoutSegment(
+          startUtc: timeRange.$1,
+          endUtc: timeRange.$2,
+          exerciseType: ExportWorkoutSegmentType.weightlifting,
+          repetitions: set.reps == null || set.reps! < 0 ? 0 : set.reps!,
+          weightKg: validWeight,
+          setIndex: setIndex,
+        ),
+      );
+    }
+    return segments;
+  }
+
+  String _exerciseBlockKey(SetLog set) {
+    final block = set.exerciseBlock;
+    if (block != null) {
+      return 'block:$block:${set.exerciseId ?? set.exerciseName.trim().toLowerCase()}';
+    }
+    final exerciseId = set.exerciseId;
+    return exerciseId == null || exerciseId.isEmpty
+        ? 'name:${set.exerciseName.trim().toLowerCase()}'
+        : 'exercise:$exerciseId';
+  }
+
+  List<(DateTime, DateTime)> _segmentTimeRanges(
+    WorkoutLog workout,
+    List<SetLog> sets,
+  ) {
+    final start = workout.startTime.toUtc();
+    final end = workout.endTime!.toUtc();
+    var previousEnd = start;
+    final recordedRanges = <(DateTime, DateTime)>[];
+    var allCreationTimesFit = true;
+
+    for (final set in sets) {
+      final setStart = set.performedAt?.toUtc();
+      if (setStart == null ||
+          setStart.isBefore(start) ||
+          !setStart.isBefore(end)) {
+        allCreationTimesFit = false;
+        break;
+      }
+      final setEnd = setStart.add(const Duration(seconds: 1));
+      if (setStart.isBefore(previousEnd) || setEnd.isAfter(end)) {
+        allCreationTimesFit = false;
+        break;
+      }
+      recordedRanges.add((setStart, setEnd));
+      previousEnd = setEnd;
+    }
+    if (allCreationTimesFit && recordedRanges.length == sets.length) {
+      return recordedRanges;
+    }
+
+    final durationMicros = end.difference(start).inMicroseconds;
+    if (durationMicros < sets.length) {
+      throw StateError(
+        'Workout duration is too short for ${sets.length} non-overlapping set segments',
+      );
+    }
+    return List<(DateTime, DateTime)>.generate(sets.length, (index) {
+      final fromMicros = durationMicros * index ~/ sets.length;
+      final toMicros = durationMicros * (index + 1) ~/ sets.length;
+      return (
+        start.add(Duration(microseconds: fromMicros)),
+        start.add(Duration(microseconds: toMicros)),
+      );
+    }, growable: false);
   }
 
   ExportWorkoutType _mapWorkoutType(WorkoutLog workout) {
@@ -526,6 +639,17 @@ class HealthExportDataSource {
             (tbl) => OrderingTerm(expression: tbl.localId),
           ]))
         .get();
+    final exerciseIds =
+        setRows.map((row) => row.exerciseId).whereType<String>().toSet();
+    final exerciseModalities = <String, String?>{};
+    if (exerciseIds.isNotEmpty) {
+      final exerciseRows = await (dbInstance.select(dbInstance.exercises)
+            ..where((tbl) => tbl.id.isIn(exerciseIds)))
+          .get();
+      for (final exercise in exerciseRows) {
+        exerciseModalities[exercise.id] = exercise.modality;
+      }
+    }
     final changedWorkoutIdsBySet = <String>{};
     if (updatedSinceUtc != null) {
       for (final setRow in setRows) {
@@ -545,6 +669,10 @@ class HealthExportDataSource {
       final setLog = SetLog(
         id: setRow.localId,
         workoutLogId: localWorkoutId,
+        exerciseId: setRow.exerciseId,
+        exerciseModality: setRow.exerciseId == null
+            ? null
+            : exerciseModalities[setRow.exerciseId],
         exerciseName: (setRow.exerciseNameSnapshot ?? '').trim().isEmpty
             ? 'Unknown'
             : setRow.exerciseNameSnapshot!.trim(),
@@ -559,6 +687,8 @@ class HealthExportDataSource {
         durationSeconds: setRow.durationSeconds,
         rpe: setRow.rpe,
         rir: setRow.rir,
+        exerciseBlock: setRow.exerciseBlock,
+        performedAt: setRow.createdAt,
       );
       setsByWorkoutId
           .putIfAbsent(setRow.workoutLogId, () => <SetLog>[])

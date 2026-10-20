@@ -42,8 +42,8 @@ void main() {
     // Verify widget builds without crashing
     expect(find.byType(WeeklyIntakeVsTargetChart), findsOneWidget);
 
-    // Verify Target bar label text is displayed (Ziel)
-    expect(find.text('Ziel'), findsOneWidget);
+    // Verify the target bar uses the active English locale.
+    expect(find.text('Target'), findsOneWidget);
 
     // Verify target calorie badge is displayed
     expect(find.text('2750'), findsOneWidget);
@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(WeeklyIntakeVsTargetChart), findsOneWidget);
-    expect(find.text('Ziel'), findsOneWidget);
+    expect(find.text('Target'), findsOneWidget);
     expect(find.text('2000'), findsOneWidget);
   });
 }

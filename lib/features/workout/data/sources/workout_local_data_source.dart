@@ -178,6 +178,7 @@ class WorkoutLocalDataSource {
   WorkoutLog _mapWorkoutLogWithSets(
     db.WorkoutLog logRow,
     List<db.SetLog> setRows,
+    Map<int, String> exerciseNotesByBlock,
   ) {
     return WorkoutLog(
       id: logRow.localId,
@@ -194,6 +195,7 @@ class WorkoutLocalDataSource {
           .map((row) => _mapSetLogToModel(row, logRow.localId,
               performedAt: logRow.startTime))
           .toList(),
+      exerciseNotesByBlock: exerciseNotesByBlock,
     );
   }
 
@@ -231,10 +233,28 @@ class WorkoutLocalDataSource {
       setsByWorkoutUuid.putIfAbsent(setRow.workoutLogId, () => []).add(setRow);
     }
 
+    final noteRows = <db.WorkoutExerciseLog>[];
+    for (var i = 0; i < allUuids.length; i += chunkSize) {
+      final chunk = allUuids.sublist(
+        i,
+        i + chunkSize > allUuids.length ? allUuids.length : i + chunkSize,
+      );
+      noteRows.addAll(await (dbInstance.select(dbInstance.workoutExerciseLogs)
+            ..where((tbl) => tbl.workoutLogId.isIn(chunk)))
+          .get());
+    }
+    final notesByWorkoutUuid = <String, Map<int, String>>{};
+    for (final note in noteRows) {
+      if (note.exerciseBlock == null || note.notes == null) continue;
+      notesByWorkoutUuid.putIfAbsent(
+          note.workoutLogId, () => {})[note.exerciseBlock!] = note.notes!;
+    }
+
     return logRows
         .map((row) => _mapWorkoutLogWithSets(
               row,
               setsByWorkoutUuid[row.id] ?? const <db.SetLog>[],
+              notesByWorkoutUuid[row.id] ?? const <int, String>{},
             ))
         .toList();
   }

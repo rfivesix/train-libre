@@ -5,6 +5,8 @@ import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/summary_card.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -113,8 +115,9 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.mealsEdit),
+      extendBodyBehindAppBar: true,
+      appBar: GlobalAppBar(
+        title: l10n.mealsEdit,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -129,7 +132,14 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
+        padding: EdgeInsets.fromLTRB(
+          DesignConstants.spacingL,
+          MediaQuery.paddingOf(context).top +
+              kToolbarHeight +
+              DesignConstants.spacingL,
+          DesignConstants.spacingL,
+          DesignConstants.spacingL,
+        ),
         children: [
           TextField(
             controller: _nameCtrl,
@@ -154,7 +164,8 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           // Placeholder: later ingredients/per-ingredient display
-          Card(
+          SummaryCard(
+            padding: EdgeInsets.zero,
             child: ListTile(
               title: Text(l10n.mealIngredientsTitle),
               subtitle: Text(l10n.mealEditorNoIngredientsYet),

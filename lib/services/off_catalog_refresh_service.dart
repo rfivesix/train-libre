@@ -274,11 +274,12 @@ class OffCatalogRefreshService {
         manifest.version,
       );
 
-      final shouldDownload = force ||
-          isRemoteVersionNewer(
-            remoteVersion: manifest.version,
-            installedVersion: installedVersion,
-          );
+      // `force` bypasses the check interval; it does not mean that a catalog
+      // with the same installed version should be downloaded again.
+      final shouldDownload = isRemoteVersionNewer(
+        remoteVersion: manifest.version,
+        installedVersion: installedVersion,
+      );
       if (!shouldDownload) {
         await prefs.remove(_countryScopedKey(_keyLastErrorPrefix, countryCode));
         onProgress?.call(

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../data/sources/product_local_data_source.dart';
@@ -12,18 +13,23 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/app_section_header.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/value_summary_card.dart';
+import '../../../theme/app_colors.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/bls_food_catalog_refresh_service.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -54,20 +60,66 @@ class FoodDetailScreen extends StatefulWidget {
 }
 
 class _FoodDetailScreenState extends State<FoodDetailScreen> {
+  static const Set<String> _sugarBlsNames = {
+    'sugar',
+    'sugars',
+    'sugartotal',
+    'sugarstotal',
+    'totalsugar',
+    'totalsugars',
+    'zucker',
+    'zuckergesamt',
+    'gesamtzucker',
+    'davonzucker',
+  };
+  static const Set<String> _fiberBlsNames = {
+    'fiber',
+    'fibre',
+    'dietaryfiber',
+    'dietaryfibre',
+    'ballaststoffe',
+    'ballaststoff',
+    'rohfaser',
+  };
+  static const Set<String> _saltBlsNames = {
+    'salt',
+    'tablesalt',
+    'sodiumchloride',
+    'natriumchlorid',
+    'salz',
+    'kochsalz',
+  };
+  static const Set<String> _caffeineBlsNames = {
+    'caffeine',
+    'koffein',
+  };
+  static const Set<String> _coreBlsCodes = {
+    'ENERCC',
+    'PROT625',
+    'CHO',
+    'FAT',
+  };
+
   bool _isFavorite = false;
   bool _showPer100g = false;
   bool _isLoading = false;
+  bool _isLoadingBlsNutrients = false;
+  List<BlsNutrientFact> _blsNutrients = const [];
+  String? _loadedBlsNutrientKey;
+  final ScrollController _scrollController = ScrollController();
 
   late FoodItem _displayItem;
   int? _trackedQuantity;
   bool get _hasPortionInfo => _trackedQuantity != null;
+  bool get _hasBlsMicronutrients =>
+      _blsNutrients.any((fact) => !_isCommonBlsNutrient(fact));
 
-  /// True when the food item carries a declared serving size > 1g.
-  /// Controls visibility of the portion ↔ 100g toggle across both diary
-  /// and catalog contexts.
+  /// True when the current entry has a positive logged quantity or the food
+  /// item declares a serving size > 1g.
   bool get _hasPortionToggle =>
-      _displayItem.productQuantity != null &&
-      _displayItem.productQuantity! > 1.0;
+      (_trackedQuantity != null && _trackedQuantity! > 0) ||
+      (_displayItem.productQuantity != null &&
+          _displayItem.productQuantity! > 1.0);
 
   // ---------- DEV: Inline editing ----------
   bool _devEditing = false; // toggled via secret tap
@@ -105,7 +157,32 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_displayItem.barcode.startsWith('bls:')) return;
+    final language = Localizations.localeOf(context).languageCode;
+    final loadKey = '${_displayItem.barcode}:$language';
+    if (_loadedBlsNutrientKey == loadKey) return;
+    _loadedBlsNutrientKey = loadKey;
+    unawaited(_loadBlsNutrients(language));
+  }
+
+  Future<void> _loadBlsNutrients(String language) async {
+    setState(() => _isLoadingBlsNutrients = true);
+    try {
+      final facts = await const BlsNutrientRepository()
+          .getFacts(_displayItem.barcode, language);
+      if (mounted) setState(() => _blsNutrients = facts);
+    } catch (error) {
+      debugPrint('[BLS food detail] Nutrient read failed: $error');
+    } finally {
+      if (mounted) setState(() => _isLoadingBlsNutrients = false);
+    }
+  }
+
+  @override
   void dispose() {
+    _scrollController.dispose();
     _deCtrl.dispose();
     _enCtrl.dispose();
     _catCtrl.dispose();
@@ -249,12 +326,37 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     _checkIfFavorite();
   }
 
-  double _getDisplayValue(double? valuePer100g) {
-    if (valuePer100g == null) return 0.0;
+  double? _getDisplayValue(double? valuePer100g) {
+    if (valuePer100g == null) return null;
     if (_showPer100g || !_hasPortionInfo) {
       return valuePer100g;
     }
     return (valuePer100g / 100 * _trackedQuantity!);
+  }
+
+  ({double? value, String? marker}) _getCoreNutrientDisplay(
+    String componentCode,
+    double fallbackValue,
+  ) {
+    if (!_displayItem.barcode.startsWith('bls:')) {
+      return (value: _getDisplayValue(fallbackValue), marker: null);
+    }
+    BlsNutrientFact? fact;
+    for (final candidate in _blsNutrients) {
+      if (candidate.code == componentCode) {
+        fact = candidate;
+        break;
+      }
+    }
+    if (fact == null) return (value: null, marker: '-');
+    if (fact.value != null) {
+      return (value: _getDisplayValue(fact.value), marker: null);
+    }
+    final marker = fact.valueText?.trim();
+    return (
+      value: null,
+      marker: marker == null || marker.isEmpty ? '-' : marker,
+    );
   }
 
   String _getCopyPrefix(String languageCode) {
@@ -519,6 +621,20 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final calories = _getCoreNutrientDisplay(
+      'ENERCC',
+      _displayItem.calories.toDouble(),
+    );
+    final protein = _getCoreNutrientDisplay('PROT625', _displayItem.protein);
+    final carbs = _getCoreNutrientDisplay('CHO', _displayItem.carbs);
+    final fat = _getCoreNutrientDisplay('FAT', _displayItem.fat);
+    final isBlsFood = _displayItem.barcode.startsWith('bls:');
+    final hasVeganTag =
+        _displayItem.ingredientsAnalysisTags?.contains('en:vegan') == true;
+    final hasVegetarianTag = !hasVeganTag &&
+        _displayItem.ingredientsAnalysisTags?.contains('en:vegetarian') == true;
+    final hasFoodMetadata =
+        _displayItem.brand.isNotEmpty || hasVeganTag || hasVegetarianTag;
 
     // Explicit top spacing avoids content colliding with status bar/app bar.
     final double topInset = MediaQuery.of(context).padding.top;
@@ -612,228 +728,178 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            // Use explicit padding instead of copyWith to avoid inherited edge bugs.
-            padding: EdgeInsets.fromLTRB(
-              DesignConstants.cardPaddingInternal,
-              totalTopPadding,
-              DesignConstants.cardPaddingInternal,
-              DesignConstants.cardPaddingInternal +
-                  80.0, // + space for the FAB at the bottom
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (_displayItem.brand.isNotEmpty)
-                  Text(_displayItem.brand, style: textTheme.bodySmall),
-                // Dietary Badges
-                if (_displayItem.ingredientsAnalysisTags != null &&
-                    _displayItem.ingredientsAnalysisTags!.isNotEmpty) ...[
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      if (_displayItem.ingredientsAnalysisTags!.contains(
-                        'en:vegan',
-                      ))
-                        _GlassBadge(label: l10n.vegan),
-                      if (_displayItem.ingredientsAnalysisTags!.contains(
-                            'en:vegetarian',
-                          ) &&
-                          !_displayItem.ingredientsAnalysisTags!.contains(
-                            'en:vegan',
-                          ))
-                        _GlassBadge(label: l10n.vegetarian),
-                    ],
-                  ),
-                ],
-                // Keep vertical rhythm even when brand text is absent.
-                Divider(
-                  height: 32,
-                  thickness: 1,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                ),
-                // ── Compact nutrition heading + optional portion toggle ────────
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        (_showPer100g || !_hasPortionInfo)
-                            ? l10n.nutritionPer100g
-                            : l10n.nutritionPerPortion(
-                                _trackedQuantity ??
-                                    _displayItem.productQuantity?.round() ??
-                                    100,
-                              ),
-                        style: textTheme.titleLarge,
-                      ),
-                    ),
-                    if (_hasPortionToggle) ...[
-                      const SizedBox(width: DesignConstants.spacingM),
-                      _PortionToggleBar(
-                        showPer100g: _showPer100g,
-                        onChanged: (val) => setState(() => _showPer100g = val),
-                        labelPortion: l10n.foodDetailSegmentPortion,
-                        label100g: l10n.foodDetailSegment100g,
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
-                SummaryCard(
-                  child: Column(
-                    children: [
-                      _buildAnimatedNutrientRow(
-                        l10n.calories,
-                        _getDisplayValue(_displayItem.calories.toDouble()),
-                        unit: 'kcal',
-                        isInt: true,
-                      ),
-                      _buildAnimatedNutrientRow(
-                        l10n.protein,
-                        _getDisplayValue(_displayItem.protein),
-                      ),
-                      _buildAnimatedNutrientRow(
-                        l10n.carbs,
-                        _getDisplayValue(_displayItem.carbs),
-                      ),
-                      _buildAnimatedNutrientRow(
-                        l10n.fat,
-                        _getDisplayValue(_displayItem.fat),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_displayItem.sugar != null ||
-                    _displayItem.fiber != null ||
-                    _displayItem.salt != null ||
-                    (_displayItem.caffeineMgPer100g ?? 0) > 0 ||
-                    (_displayItem.caffeineMgPer100ml ?? 0) > 0) ...[
-                  const SizedBox(height: DesignConstants.spacingM),
-                  SummaryCard(
-                    child: Column(
+          CupertinoScrollbar(
+            controller: _scrollController,
+            thumbVisibility: _hasBlsMicronutrients,
+            thickness: 4,
+            thicknessWhileDragging: 8,
+            mainAxisMargin: 0,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              // Use explicit padding instead of copyWith to avoid inherited edge bugs.
+              padding: EdgeInsets.fromLTRB(
+                DesignConstants.cardPaddingInternal,
+                totalTopPadding,
+                DesignConstants.cardPaddingInternal,
+                DesignConstants.cardPaddingInternal +
+                    160.0, // + space for the FAB and source/license text
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_displayItem.brand.isNotEmpty)
+                    Text(_displayItem.brand, style: textTheme.bodySmall),
+                  // Dietary Badges
+                  if (hasVeganTag || hasVegetarianTag) ...[
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Wrap(
+                      spacing: 8,
                       children: [
-                        if (_displayItem.sugar != null)
-                          _buildAnimatedNutrientRow(
-                            l10n.sugar,
-                            _getDisplayValue(_displayItem.sugar!),
-                          ),
-                        if (_displayItem.fiber != null)
-                          _buildAnimatedNutrientRow(
-                            l10n.fiber,
-                            _getDisplayValue(_displayItem.fiber!),
-                          ),
-                        if (_displayItem.salt != null)
-                          _buildAnimatedNutrientRow(
-                            l10n.salt,
-                            _getDisplayValue(_displayItem.salt!),
-                          ),
-                        if ((_displayItem.caffeineMgPer100g ?? 0) > 0 ||
-                            (_displayItem.caffeineMgPer100ml ?? 0) > 0)
-                          _buildAnimatedNutrientRow(
-                            l10n.caffeine,
-                            _getDisplayValue(_displayItem.caffeineMgPer100g ??
-                                _displayItem.caffeineMgPer100ml!),
-                            unit: 'mg',
-                            isInt: true,
-                          ),
+                        if (hasVeganTag) _GlassBadge(label: l10n.vegan),
+                        if (hasVegetarianTag)
+                          _GlassBadge(label: l10n.vegetarian),
                       ],
                     ),
+                  ],
+                  if (hasFoodMetadata)
+                    Divider(
+                      height: 32,
+                      thickness: 1,
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                    ),
+                  // ── Compact nutrition heading + optional portion toggle ────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          (_showPer100g || !_hasPortionInfo)
+                              ? l10n.nutritionPer100g
+                              : l10n.nutritionPerPortion(
+                                  _trackedQuantity ??
+                                      _displayItem.productQuantity?.round() ??
+                                      100,
+                                ),
+                          style: textTheme.titleLarge,
+                        ),
+                      ),
+                      if (_hasPortionToggle) ...[
+                        const SizedBox(width: DesignConstants.spacingM),
+                        _PortionToggleBar(
+                          showPer100g: _showPer100g,
+                          onChanged: (val) =>
+                              setState(() => _showPer100g = val),
+                          labelPortion: l10n.foodDetailSegmentPortion,
+                          label100g: l10n.foodDetailSegment100g,
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-                if (_displayItem.ingredientsText != null &&
-                    _displayItem.ingredientsText!.isNotEmpty) ...[
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Theme(
-                    data: Theme.of(
-                      context,
-                    ).copyWith(dividerColor: Colors.transparent),
-                    child: SummaryCard(
-                      child: ExpansionTile(
-                        title: Text(l10n.ingredients),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(
-                              DesignConstants.spacingL,
+                  const SizedBox(height: DesignConstants.spacingS),
+                  ..._buildNutritionSections(
+                    l10n: l10n,
+                    calories: calories,
+                    protein: protein,
+                    carbs: carbs,
+                    fat: fat,
+                  ),
+                  if (isBlsFood) _buildBlsSourceAttribution(),
+                  if (_displayItem.ingredientsText != null &&
+                      _displayItem.ingredientsText!.isNotEmpty) ...[
+                    const SizedBox(height: DesignConstants.spacingM),
+                    Theme(
+                      data: Theme.of(
+                        context,
+                      ).copyWith(dividerColor: Colors.transparent),
+                      child: SummaryCard(
+                        child: ExpansionTile(
+                          title: Text(l10n.ingredients),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(
+                                DesignConstants.spacingL,
+                              ),
+                              child: Text(
+                                _displayItem.ingredientsText!,
+                                style: textTheme.bodyMedium,
+                              ),
                             ),
-                            child: Text(
-                              _displayItem.ingredientsText!,
-                              style: textTheme.bodyMedium,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
 
-                // ---------- DEV: Inline edit panel ----------
-                if (kDevEditEnabled && _devEditing) ...[
-                  const SizedBox(height: DesignConstants.spacingM),
-                  SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(DesignConstants.spacingM),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'DEV: Eintrag bearbeiten',
-                            style: textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          _row('Name (DE)', _deCtrl),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          _row('Name (EN)', _enCtrl),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          _row('Kategorie-Key', _catCtrl),
-                          const SizedBox(height: DesignConstants.spacingM),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _num('kcal/100g', _calCtrl),
-                              _num('Protein/100g', _proCtrl),
-                              _num('Carbs/100g', _carbCtrl),
-                              _num('Fett/100g', _fatCtrl),
-                              _num('kJ/100g', _kjCtrl),
-                              _num('Ballastst./100g', _fibCtrl),
-                              _num('Zucker/100g', _sugCtrl),
-                              _num('Salz/100g', _saltCtrl),
-                              _num('Natrium/100g', _sodCtrl),
-                              _num('Calcium/100g', _calciumCtrl),
-                            ],
-                          ),
-                          const SizedBox(height: DesignConstants.spacingM),
-                          Row(
-                            children: [
-                              AppButton.primary(
-                                onPressed: _saveDevEdits,
-                                label: l10n.save,
-                                tooltip: l10n.save,
-                                icon: LucideIcons.save,
-                              ),
-                              const SizedBox(width: DesignConstants.spacingM),
-                              TextButton.icon(
-                                onPressed: () =>
-                                    setState(() => _devEditing = false),
-                                icon: const Icon(LucideIcons.x),
-                                label: Text(l10n.doneButtonLabel),
-                              ),
-                              const Spacer(),
-                              IconButton(
-                                tooltip: l10n.devExportBaseDb,
-                                onPressed: _exportBaseDb,
-                                icon: Icon(DesignConstants.adaptiveShareIcon),
-                              ),
-                            ],
-                          ),
-                        ],
+                  // ---------- DEV: Inline edit panel ----------
+                  if (kDevEditEnabled && _devEditing) ...[
+                    const SizedBox(height: DesignConstants.spacingM),
+                    SummaryCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(DesignConstants.spacingM),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'DEV: Eintrag bearbeiten',
+                              style: textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            _row('Name (DE)', _deCtrl),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            _row('Name (EN)', _enCtrl),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            _row('Kategorie-Key', _catCtrl),
+                            const SizedBox(height: DesignConstants.spacingM),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _num('kcal/100g', _calCtrl),
+                                _num('Protein/100g', _proCtrl),
+                                _num('Carbs/100g', _carbCtrl),
+                                _num('Fett/100g', _fatCtrl),
+                                _num('kJ/100g', _kjCtrl),
+                                _num('Ballastst./100g', _fibCtrl),
+                                _num('Zucker/100g', _sugCtrl),
+                                _num('Salz/100g', _saltCtrl),
+                                _num('Natrium/100g', _sodCtrl),
+                                _num('Calcium/100g', _calciumCtrl),
+                              ],
+                            ),
+                            const SizedBox(height: DesignConstants.spacingM),
+                            Row(
+                              children: [
+                                AppButton.primary(
+                                  onPressed: _saveDevEdits,
+                                  label: l10n.save,
+                                  tooltip: l10n.save,
+                                  icon: LucideIcons.save,
+                                ),
+                                const SizedBox(
+                                  width: DesignConstants.spacingM,
+                                ),
+                                TextButton.icon(
+                                  onPressed: () =>
+                                      setState(() => _devEditing = false),
+                                  icon: const Icon(LucideIcons.x),
+                                  label: Text(l10n.doneButtonLabel),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  tooltip: l10n.devExportBaseDb,
+                                  onPressed: _exportBaseDb,
+                                  icon: Icon(DesignConstants.adaptiveShareIcon),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           if (_isLoading)
@@ -846,29 +912,495 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     );
   }
 
-  Widget _buildAnimatedNutrientRow(
-    String label,
-    double value, {
+  List<Widget> _buildNutritionSections({
+    required AppLocalizations l10n,
+    required ({double? value, String? marker}) calories,
+    required ({double? value, String? marker}) protein,
+    required ({double? value, String? marker}) carbs,
+    required ({double? value, String? marker}) fat,
+  }) {
+    final isBlsFood = _displayItem.barcode.startsWith('bls:');
+    final sugarFact = isBlsFood ? _findBlsNutrient(_sugarBlsNames) : null;
+    final fiberFact = isBlsFood ? _findBlsNutrient(_fiberBlsNames) : null;
+    final saltFact = isBlsFood ? _findBlsNutrient(_saltBlsNames) : null;
+    final caffeineFact = isBlsFood ? _findBlsNutrient(_caffeineBlsNames) : null;
+    final additionalRows = <Widget>[];
+    final macroColors = Theme.of(context).extension<MacroColors>();
+    final sugar = _getDisplayValue(_displayItem.sugar);
+    final fiber = _getDisplayValue(_displayItem.fiber);
+    final salt = _getDisplayValue(_displayItem.salt);
+
+    final caffeineValue =
+        _displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml;
+    if (caffeineFact != null && (caffeineFact.value ?? 0) > 0) {
+      additionalRows.add(_buildBlsNutrientRow(caffeineFact, l10n));
+    } else if (caffeineFact == null && (caffeineValue ?? 0) > 0) {
+      additionalRows.add(_buildNutritionValueRow(
+        label: l10n.caffeine,
+        value: _getDisplayValue(caffeineValue),
+        unit: 'mg',
+        isInt: true,
+      ));
+    }
+
+    return [
+      _buildNutritionMetricGrid([
+        _NutritionMetric(l10n.calories, calories.value, calories.marker, 'kcal',
+            macroColors?.calories ?? Colors.orange,
+            decimals: 0),
+        _NutritionMetric(l10n.protein, protein.value, protein.marker, 'g',
+            macroColors?.protein ?? Colors.red),
+        _NutritionMetric(l10n.carbs, carbs.value, carbs.marker, 'g',
+            macroColors?.carbs ?? Colors.green),
+        _NutritionMetric(l10n.fat, fat.value, fat.marker, 'g',
+            macroColors?.fat ?? Colors.purple),
+      ]),
+      if (sugarFact != null ||
+          _displayItem.sugar != null ||
+          fiberFact != null ||
+          _displayItem.fiber != null ||
+          saltFact != null ||
+          _displayItem.salt != null) ...[
+        const SizedBox(height: DesignConstants.spacingS),
+        _buildNutritionMetricGrid([
+          if (sugarFact != null)
+            _NutritionMetric(
+                l10n.sugar,
+                _getDisplayValue(sugarFact.value),
+                sugarFact.valueText,
+                sugarFact.unit,
+                macroColors?.sugar ?? Colors.pink)
+          else if (sugar != null)
+            _NutritionMetric(l10n.sugar, sugar, null, 'g',
+                macroColors?.sugar ?? Colors.pink),
+          if (fiberFact != null)
+            _NutritionMetric(
+                l10n.fiber,
+                _getDisplayValue(fiberFact.value),
+                fiberFact.valueText,
+                fiberFact.unit,
+                macroColors?.fiber ?? Colors.brown)
+          else if (fiber != null)
+            _NutritionMetric(l10n.fiber, fiber, null, 'g',
+                macroColors?.fiber ?? Colors.brown),
+          if (saltFact != null)
+            _NutritionMetric(
+                l10n.salt,
+                _getDisplayValue(saltFact.value),
+                saltFact.valueText,
+                saltFact.unit,
+                macroColors?.salt ?? Colors.blueGrey)
+          else if (salt != null)
+            _NutritionMetric(l10n.salt, salt, null, 'g',
+                macroColors?.salt ?? Colors.blueGrey),
+        ]),
+      ],
+      if (additionalRows.isNotEmpty) ...[
+        _buildNutritionSectionHeader(l10n.foodDetailOtherNutrientsGroup),
+        ...additionalRows,
+      ],
+      if (isBlsFood) ..._buildBlsNutrientGroups(l10n),
+    ];
+  }
+
+  List<Widget> _buildBlsNutrientGroups(AppLocalizations l10n) {
+    final groups = <String, List<BlsNutrientFact>>{};
+    for (final fact in _blsNutrients) {
+      if (_isCommonBlsNutrient(fact)) continue;
+      groups.putIfAbsent(fact.group, () => []).add(fact);
+    }
+    if (groups.isEmpty) {
+      if (_blsNutrients.isNotEmpty) return const [];
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: DesignConstants.spacingM,
+          ),
+          child: _isLoadingBlsNutrients
+              ? Row(
+                  children: [
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Text(l10n.initLoadingRemoteManifest),
+                  ],
+                )
+              : Text(l10n.blsNutrientsUnavailable),
+        ),
+      ];
+    }
+    final orderedGroups = groups.entries.toList()
+      ..sort((a, b) {
+        final rankA = _blsNutrientGroupRank(a.key);
+        final rankB = _blsNutrientGroupRank(b.key);
+        final rankOrder = rankA.compareTo(rankB);
+        return rankOrder != 0 ? rankOrder : a.key.compareTo(b.key);
+      });
+    return orderedGroups
+        .expand((entry) => [
+              _buildNutritionSectionHeader(
+                entry.key,
+                topSpacing: DesignConstants.spacingXXL,
+              ),
+              for (final fact in entry.value) _buildBlsNutrientRow(fact, l10n),
+            ])
+        .toList(growable: false);
+  }
+
+  BlsNutrientFact? _findBlsNutrient(Set<String> normalizedNames) {
+    for (final fact in _blsNutrients) {
+      if (normalizedNames.contains(_normalizeBlsNutrientName(fact.name))) {
+        return fact;
+      }
+    }
+    return null;
+  }
+
+  String _normalizeBlsNutrientName(String name) =>
+      name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9äöüß]'), '');
+
+  Widget _buildNutritionMetricGrid(
+    List<_NutritionMetric> metrics,
+  ) {
+    if (metrics.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final valueTextColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
+    final labelTextColor = isDark
+        ? Colors.white.withValues(alpha: 0.9)
+        : const Color(0xFF1C1C1E).withValues(alpha: 0.85);
+    final diaryBarShadows = isDark
+        ? const [
+            Shadow(
+              color: Color.fromRGBO(0, 0, 0, 0.35),
+              offset: Offset(0, 1),
+              blurRadius: 2,
+            ),
+          ]
+        : null;
+    final diaryBarGradient = isDark
+        ? LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Colors.black.withValues(alpha: 0.15), Colors.transparent],
+            stops: const [0.0, 1.0],
+          )
+        : null;
+    final cards = metrics.map((metric) {
+      final displayValue = metric.value == null
+          ? metric.missingValue ?? '-'
+          : '${metric.decimals == 0 ? metric.value!.round() : metric.value!.toStringAsFixed(metric.decimals)} ${metric.unit}'
+              .trim();
+      return ValueSummaryCard(
+        label: metric.label,
+        value: displayValue,
+        valueColor: valueTextColor,
+        labelColor: labelTextColor,
+        backgroundColor: metric.color,
+        backgroundOverlayGradient: diaryBarGradient,
+        textShadows: diaryBarShadows,
+        showShadow: true,
+      );
+    }).toList();
+
+    final rows = <Widget>[];
+    for (var i = 0; i < cards.length; i += 2) {
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: cards[i]),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: i + 1 < cards.length ? cards[i + 1] : const SizedBox(),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (i + 2 < cards.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
+  }
+
+  Widget _buildNutritionSectionHeader(
+    String title, {
+    bool isFirst = false,
+    double? topSpacing,
+  }) {
+    return AppSectionHeader(
+      title: title,
+      padding: EdgeInsets.only(
+        top: topSpacing ?? (isFirst ? 4 : DesignConstants.spacingXL),
+        bottom: DesignConstants.spacingS,
+      ),
+    );
+  }
+
+  bool _isCommonBlsNutrient(BlsNutrientFact fact) {
+    return _coreBlsCodes.contains(fact.code) ||
+        _sugarBlsNames.contains(_normalizeBlsNutrientName(fact.name)) ||
+        _fiberBlsNames.contains(_normalizeBlsNutrientName(fact.name)) ||
+        _saltBlsNames.contains(_normalizeBlsNutrientName(fact.name)) ||
+        _caffeineBlsNames.contains(_normalizeBlsNutrientName(fact.name));
+  }
+
+  Widget _buildNutritionValueRow({
+    required String label,
+    double? value,
+    String? missingValue,
     String unit = 'g',
     int decimals = 1,
     bool isInt = false,
   }) {
-    return ListTile(
-      dense: true,
-      title: Text(label),
-      trailing: TweenAnimationBuilder<double>(
-        tween: Tween<double>(end: value),
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        builder: (context, val, _) {
-          final formatted = isInt
-              ? '${val.round()} $unit'
-              : '${val.toStringAsFixed(decimals)} $unit';
-          return Text(
-            formatted,
-            style: Theme.of(context).textTheme.labelLarge,
+    final displayValue = value == null
+        ? missingValue ?? '-'
+        : '${isInt ? value.round() : value.toStringAsFixed(decimals)} $unit';
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(width: DesignConstants.spacingM),
+          Text(
+            displayValue,
+            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            textAlign: TextAlign.end,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlsNutrientRow(BlsNutrientFact fact, AppLocalizations l10n) {
+    final displayNumber = fact.value == null
+        ? (fact.valueText?.isNotEmpty == true ? fact.valueText! : '-')
+        : '${_getDisplayValue(fact.value)!.toStringAsFixed(3)} ${fact.unit}'
+            .trim();
+    final provenance = [
+      if (fact.origin != null && fact.origin != '-') fact.origin!,
+      if (fact.reference != null && fact.reference != '-') fact.reference!,
+    ].join(' · ');
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              fact.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(width: DesignConstants.spacingM),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (provenance.isNotEmpty) ...[
+                  IconButton(
+                    tooltip: l10n.blsNutrientDetails,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 32,
+                      height: 32,
+                    ),
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(LucideIcons.info, size: 18),
+                    onPressed: () => _showBlsNutrientDetails(fact),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingXS),
+                ],
+                Flexible(
+                  child: Text(
+                    displayNumber,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _blsNutrientGroupRank(String group) {
+    final normalized = group.toLowerCase();
+    if (normalized.contains('vitamin')) {
+      return normalized.contains('fat-soluble') ||
+              normalized.contains('fettlöslich')
+          ? 0
+          : 1;
+    }
+    if (normalized.contains('element') || normalized.contains('mineral')) {
+      return 2;
+    }
+    if (normalized.contains('fatty acid') || normalized.contains('fettsäure')) {
+      return 3;
+    }
+    if (normalized.contains('amino')) return 4;
+    if (normalized.contains('carbohydrate') ||
+        normalized.contains('kohlenhydrat')) {
+      return 5;
+    }
+    if (normalized.contains('fiber') || normalized.contains('ballaststoff')) {
+      return 6;
+    }
+    if (normalized.contains('organic acid') ||
+        normalized.contains('organische säure')) {
+      return 7;
+    }
+    if (normalized.contains('sugar alcohol') ||
+        normalized.contains('zuckeralkohol')) {
+      return 8;
+    }
+    if (normalized.contains('macro') ||
+        normalized.contains('energy') ||
+        normalized.contains('energie')) {
+      return 9;
+    }
+    return 10;
+  }
+
+  Future<void> _showBlsNutrientDetails(BlsNutrientFact fact) async {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: fact.name,
+      contentBuilder: (context, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (fact.origin != null && fact.origin != '-') ...[
+            _buildNutrientMetadataRow(
+              label: l10n.blsNutrientOrigin,
+              value: fact.origin!,
+              theme: theme,
+            ),
+          ],
+          if (fact.reference != null && fact.reference != '-') ...[
+            if (fact.origin != null && fact.origin != '-')
+              const SizedBox(height: DesignConstants.spacingM),
+            _buildNutrientMetadataRow(
+              label: l10n.blsNutrientReference,
+              value: fact.reference!,
+              theme: theme,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNutrientMetadataRow({
+    required String label,
+    required String value,
+    required ThemeData theme,
+  }) {
+    final labelStyle = theme.textTheme.labelLarge;
+    final valueStyle = theme.textTheme.bodyMedium;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final labelWidth = (TextPainter(
+          text: TextSpan(text: label, style: labelStyle),
+          textDirection: Directionality.of(context),
+          maxLines: 1,
+        )..layout(maxWidth: constraints.maxWidth))
+            .width;
+        final valueWidth = (TextPainter(
+          text: TextSpan(text: value, style: valueStyle),
+          textDirection: Directionality.of(context),
+          maxLines: 1,
+        )..layout(maxWidth: constraints.maxWidth))
+            .width;
+        final fitsInOneLine =
+            labelWidth + valueWidth + DesignConstants.spacingM <=
+                constraints.maxWidth;
+
+        if (fitsInOneLine) {
+          return Row(
+            children: [
+              Text(label, style: labelStyle),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: SelectableText(
+                  value,
+                  textAlign: TextAlign.end,
+                  style: valueStyle,
+                ),
+              ),
+            ],
           );
-        },
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: labelStyle),
+            SelectableText(value, style: valueStyle),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBlsSourceAttribution() {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignConstants.spacingXXL),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildNutritionSectionHeader(
+            AppLocalizations.of(context)!.blsFoodSourceLabel,
+            topSpacing: DesignConstants.spacingXXL,
+          ),
+          InkWell(
+            onTap: () => launchUrl(Uri.parse(
+              'https://doi.org/10.25826/Data20251217-134202-0',
+            )),
+            child: Text(
+              '${AppLocalizations.of(context)!.blsFoodSource} · DOI 10.25826/Data20251217-134202-0',
+              style: theme.textTheme.bodySmall?.copyWith(
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXS),
+          InkWell(
+            onTap: () => launchUrl(Uri.parse(
+              'https://creativecommons.org/licenses/by/4.0/',
+            )),
+            child: Text(
+              '${AppLocalizations.of(context)!.blsFoodLicense} · ${AppLocalizations.of(context)!.blsFoodModifications}',
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -899,6 +1431,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ),
         ),
       );
+}
+
+class _NutritionMetric {
+  final String label;
+  final double? value;
+  final String? missingValue;
+  final String unit;
+  final Color color;
+  final int decimals;
+
+  const _NutritionMetric(
+    this.label,
+    this.value,
+    this.missingValue,
+    this.unit,
+    this.color, {
+    this.decimals = 1,
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

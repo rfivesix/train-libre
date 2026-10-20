@@ -352,9 +352,11 @@ class DiaryLocalDataSource {
       final pSugar = override?.sugar ?? product.sugar;
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
-      final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g =
+      final rawCaffeine = override?.caffeine ?? product.caffeine;
+      final rawCaffeineMgPer100g =
           override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pCaffeine = rawCaffeine ?? rawCaffeineMgPer100g;
+      final pCaffeineMgPer100g = rawCaffeineMgPer100g ?? rawCaffeine;
       final pProductQuantity =
           override?.productQuantity ?? product.productQuantity;
       final pProductQuantityUnit =
@@ -500,9 +502,11 @@ class DiaryLocalDataSource {
       final pSugar = override?.sugar ?? product.sugar;
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
-      final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g =
+      final rawCaffeine = override?.caffeine ?? product.caffeine;
+      final rawCaffeineMgPer100g =
           override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pCaffeine = rawCaffeine ?? rawCaffeineMgPer100g;
+      final pCaffeineMgPer100g = rawCaffeineMgPer100g ?? rawCaffeine;
       final pProductQuantity =
           override?.productQuantity ?? product.productQuantity;
       final pProductQuantityUnit =
@@ -962,6 +966,27 @@ class DiaryLocalDataSource {
     );
     await _db.into(_db.mealEntries).insert(companion);
     return companion.id.value;
+  }
+
+  /// Saves the parent meal and all of its food logs together, so a failed
+  /// insert cannot leave a partial group in the diary.
+  Future<List<int>> insertMealEntryWithFoodEntries(
+    MealEntry mealEntry,
+    List<FoodEntry> entries, {
+    required String telemetrySource,
+  }) async {
+    if (entries.isEmpty) throw ArgumentError('A meal must contain food items');
+    return _db.transaction(() async {
+      final mealEntryId = await insertMealEntry(mealEntry);
+      final ids = <int>[];
+      for (final entry in entries) {
+        ids.add(await insertFoodEntry(
+          entry.copyWith(mealEntryId: mealEntryId),
+          telemetrySource: telemetrySource,
+        ));
+      }
+      return ids;
+    });
   }
 
   Future<void> updateMealEntry(MealEntry entry) async {

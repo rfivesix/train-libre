@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="iOS Live Activity, Dynamic Island, and workout session state synchronization.">
+  <meta name="description" content="iOS ActivityKit and Android workout notifications with platform-specific actions.">
   <title>Workout Live Activity | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/live-activity-workout/">
 
@@ -16,7 +16,7 @@
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
   <meta property="og:title" content="Workout Live Activity | Train Libre">
-  <meta property="og:description" content="iOS Live Activity, Dynamic Island, and workout session state synchronization.">
+  <meta property="og:description" content="iOS ActivityKit and Android workout notifications with platform-specific actions.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/live-activity-workout/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -104,25 +104,61 @@
 <li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
-<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
-<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
-<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
 <li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
 <li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
-<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
-<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
-<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
-<li><a href="index.html" class="sidebar-link active" aria-current="page">Live Activity &amp; Workout Session</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
+<li><a href="../../user-guide/sharing-and-ai/index.html" class="sidebar-link">Share Train Libre data with an AI assistant</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
-<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
-<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
 <li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
 <li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
 <li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../../developer/food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
 </ul></div>
         </div>
       </aside>
@@ -135,84 +171,52 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Workout Live Activity</h1>
-<p>The <strong>Workout Live Activity</strong> puts the current workout on the Lock Screen and in the Dynamic Island for as long as a session is running. It answers one question at a glance — <em>what am I lifting next, and how much rest is left</em> — so the phone can stay in a pocket, on a bench, or on a music screen without the workout disappearing from view.</p>
-<p>Available on iOS 16.2 and newer. The Dynamic Island presentations require an iPhone 14 Pro or newer; every device gets the Lock Screen card. Interactive buttons require iOS 17.</p>
-<blockquote><p>Like everything else in Train Libre, this runs entirely on the device. Live Activities are commonly driven by remote push notifications; this one never is. There is no server, no APNs certificate and no network round-trip — the app updates the card directly, and the system animates the timers on its own.</p></blockquote>
-<hr class="divider">
+<p>The Workout Live Activity keeps a compact view of an active workout on iOS. It can show the current exercise and set, a rest or duration timer, and controls supported by the OS. Android uses an ongoing workout notification; on Android 16 (API 36) the app asks the system to promote that notification to a Live Update. Promotion and the exact presentation are controlled by Android and device policy.</p>
+<blockquote><p>Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.</p></blockquote>
+<p>On iOS, ActivityKit support starts at iOS 16.2. Interactive App Intent buttons require iOS 17; on iOS 16.2–16, the activity still displays but those controls are unavailable. Android displays the ongoing notification when notifications are enabled. Its Live Update promotion is requested only on API 36 or newer and is not guaranteed. The app does not request remote ActivityKit pushes: it starts the iOS activity with <code>pushType: nil</code> and updates it from the app or its local intents.</p>
 <h2 id="what-it-shows" class="doc-h2">What it shows<a href="#what-it-shows" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The card always carries the same four pieces of information:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>[icon]  Push Day                                          17:06
-        Bench Press                                 Set 3 of 5
-        W  72.5 kg  ×  8 reps  (RIR 2)                     [✓]</code></pre></div>
-<ul class="doc-list">
-<li><strong>Header</strong> — routine name and the elapsed workout duration, counting up on its own.</li>
-<li><strong>Exercise and position</strong> — which exercise, and where in it you are.</li>
-<li><strong>The set</strong> — set type, weight, reps and RIR, led by a coloured set-type badge.</li>
-<li><strong>The checkmark</strong> — completes the set with the values shown.</li>
-</ul>
-<p>The <strong>set-type badge</strong> uses the same letters and colours as the app's own set rows: <code>W</code> warm-up in orange, <code>F</code> failure in red, <code>D</code> drop set in blue, <code>S</code> superset and <code>O</code> other in neutral grey. Normal working sets show <code>N</code> — the position is already spelled out as "Set 3 of 5" beside it, so repeating the number would add nothing.</p>
-<p>While a rest timer runs, a control row appears beneath the set:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>        [ −15s ]        1:07        [ +15s ]        [ Skip ]</code></pre></div>
-<p>For a duration-based exercise, the set also carries its own timer controls. It starts at zero and counts up. Stop pauses the elapsed time, and Play resumes it; completing the set stores the accumulated duration. Start and stop are also available from the iOS Live Activity (interactive on iOS 17+) and Android workout Live Update. Those controls update the activity without foregrounding the app; their database commands are applied when the app next resumes.</p>
-<p>When there are no sets left the card offers <strong>Add exercise</strong>; if a workout is running with no exercises at all, it offers <strong>Open app</strong>. The workout is never finished from the card — that stays a deliberate action inside the app.</p>
-<h3 id="cardio" class="doc-h3">Cardio<a href="#cardio" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Cardio sets use the same card with different numbers: duration, distance and RPE instead of weight, reps and RIR, separated by <code>·</code> instead of <code>×</code>, and without a set-type badge.</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>        Treadmill                                   Set 1 of 1
-        20:00  ·  5.00 km  (RPE 7)                         [✓]</code></pre></div>
-<p>Routines currently store no target duration or distance for cardio, so a cardio set shows values only once they have been entered. Until then the line reads <code>–</code> and the set cannot be completed from the card.</p>
-<hr class="divider">
-<h2 id="the-four-surfaces" class="doc-h2">The four surfaces<a href="#the-four-surfaces" class="header-anchor" aria-label="Link to section">#</a></h2>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>Surface</th><th>What it shows</th></tr></thead><tbody><tr><td><strong>Lock Screen / banner</strong></td><td>The full card described above</td></tr><tr><td><strong>Dynamic Island, expanded</strong></td><td>The same content, laid out for the narrower island</td></tr><tr><td><strong>Dynamic Island, compact</strong></td><td>Rest timer on the left, <code>72.5 kg / × 8</code> on the right</td></tr><tr><td><strong>Dynamic Island, minimal</strong></td><td>One element: the rest timer, or <code>115×9</code>, or the app icon</td></tr></tbody></table></div>
-<p>Which of the compact and minimal forms you see is decided by iOS, not by the app. When a second Live Activity is on screen — a music player, a timer — both are reduced to their minimal circle. Because that circle is then the only place the set appears at all, it shows the numbers rather than the app icon.</p>
-<hr class="divider">
-<h2 id="interactions" class="doc-h2">Interactions<a href="#interactions" class="header-anchor" aria-label="Link to section">#</a></h2>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>Element</th><th>Effect</th></tr></thead><tbody><tr><td>Tapping the card</td><td>Opens the running workout. Never stacks a second copy of the screen.</td></tr><tr><td><code>−15s</code> / <code>+15s</code></td><td>Extends or shortens the running pause</td></tr><tr><td><code>Skip</code></td><td>Ends the pause immediately</td></tr><tr><td><code>✓</code></td><td>Completes the set with the values shown and starts the next pause</td></tr><tr><td><strong>Add exercise</strong></td><td>Opens the exercise picker</td></tr></tbody></table></div>
-<p>The buttons work while the app is closed. They run in the widget's own process, which has no access to the app's database — so a completed set is recorded as a pending command in the shared App Group and applied by the app the next time it runs. Because of that, the checkmark also brings the app to the foreground; the timer buttons do not need to.</p>
-<p><strong>A set with missing values cannot be completed from the card.</strong> If weight or reps are unknown, the checkmark is grey and inert, and tapping it opens the app instead. Missing numbers are shown as <code>–</code>; nothing is ever filled in from the plan or guessed.</p>
-<hr class="divider">
-<h2 id="the-rest-timer" class="doc-h2">The rest timer<a href="#the-rest-timer" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The rest countdown is the part of the card people look at most, and the part with the most subtlety behind it.</p>
-<p><strong>It never stops.</strong> The number counts down to zero and then keeps counting <em>up</em>, so an overdue pause shows how long it has been overdue rather than sitting frozen at <code>0:00</code>.</p>
-<p><strong>The field turns red the moment the pause ends</strong> — not a second later. This matters more than it sounds: a Live Activity cannot change its own layout, text or colour while the app is asleep. Only a handful of system-drawn views update on their own, and the red backdrop is built from one of them, so it flips exactly on time without the app being woken at all.</p>
-<p><strong>The sound is what actually reaches you</strong> when the phone is in a pocket and music is playing. It is scheduled ahead of time and moves along when the pause is changed from the card, so <code>+15s</code> really does mean fifteen seconds more. While the card is visible, the app does not additionally post a banner — the card already says it.</p>
-<hr class="divider">
-<h2 id="behaviour-worth-knowing" class="doc-h2">Behaviour worth knowing<a href="#behaviour-worth-knowing" class="header-anchor" aria-label="Link to section">#</a></h2>
-<ul class="doc-list">
-<li>The Live Activity ends when the workout is finished or discarded. A workout left over from a crash or force quit is cleaned up when the next one starts.</li>
-<li>iOS ends Live Activities after about eight hours and removes them from the Lock Screen after twelve. A very long session will lose the card before the workout ends.</li>
-<li>If Live Activities are switched off in Settings, the workout is unaffected; the card simply never appears.</li>
-<li>Editing the workout in the app — adding, removing or reordering sets and exercises — is reflected on the card immediately.</li>
-<li>Text is fully localized (DE, EN, FR, IT, JA) and follows the chosen unit system, including lbs and miles.</li>
-</ul>
-<hr class="divider">
-<h2 id="how-it-fits-together" class="doc-h2">How it fits together<a href="#how-it-fits-together" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Everything the card displays is prepared in Dart and handed over ready to draw: numbers already formatted, units already converted, words already translated, badge colours already resolved. The Swift side formats nothing — it lays out strings it does not interpret. That keeps a single source of truth for how a set is written, shared with the rest of the app.</p>
-<p>Times are the exception, and deliberately so: they cross over as absolute dates rather than counters, which lets the system animate them without an update every second. A running workout needs roughly one update per set.</p>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th>Path</th><th>Role</th></tr></thead><tbody><tr><td><code>lib/features/workout/domain/live_activity/</code></td><td>Builds the card's content from the session</td></tr><tr><td><code>lib/features/workout/data/live_activity/</code></td><td>Channel to the platform</td></tr><tr><td><code>ios/LiveActivity/</code></td><td>Shared model, bridge, rest-sound scheduler</td></tr><tr><td><code>ios/TrainLibreLiveActivity/</code></td><td>The widget extension: views, App Intents, theme</td></tr><tr><td><code>test/features/workout/live_activity_content_test.dart</code></td><td>Content, badges, cardio, guard rails</td></tr></tbody></table></div>
-<hr class="divider">
+<p>The view depends on workout state and platform surface. During a set or rest, the iOS Lock Screen card shows the routine title and elapsed workout time, exercise and set position, metrics, and a checkmark when the displayed values are sufficient to complete the set. While resting, iOS 17+ also shows rest controls. An empty workout and a workout with no remaining sets have separate states. Compact and minimal Dynamic Island layouts omit or rearrange details to fit.</p>
+<p>Android uses a notification title and text instead of duplicating the iOS card. The title is the exercise name when present, otherwise the workout title. During rest or a running duration timer, the notification uses the system chronometer. It exposes the relevant timer/rest controls and a complete-set action only when the set is eligible. Its exact display depends on the notification shade, device, and—on API 36+—whether Android promotes it to a Live Update.</p>
+<h3 id="set-values-and-timer-behavior" class="doc-h3">Set values and timer behavior<a href="#set-values-and-timer-behavior" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>For strength sets, entered values take precedence over the routine's planned weight, reps, and RIR. Missing required values are displayed as a dash; the feature does not invent values. The completion action is disabled or omitted until the required fields are available. On iOS, tapping the activity outside an enabled button opens the workout through its deep link.</p>
+<p>Duration-tracked exercises (which can include exercises other than catalogued cardio) use the duration metrics path. Depending on the exercise's logging fields, the card may show duration, distance, weight, and RPE. Routine set templates do not currently provide planned duration or distance, so those values appear only after they have been logged. Whether the set can be completed depends on the fields required by that exercise's logging mask; it is not universally blocked until both duration and distance are present.</p>
+<p>For a duration-based set, the timer starts at zero and counts up. Starting, stopping, and completing it from the activity records commands; the app applies those commands to the workout when it next runs. On iOS the App Intent updates the visible activity immediately and queues the database command in the shared App Group. On Android a <code>BroadcastReceiver</code> queues the command, updates its stored notification content, and redraws the notification. These actions do not themselves open the workout screen.</p>
+<h2 id="interactions-and-state-updates" class="doc-h2">Interactions and state updates<a href="#interactions-and-state-updates" class="header-anchor" aria-label="Link to section">#</a></h2>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Action</th><th>Behavior</th></tr></thead><tbody><tr><td>Tap the iOS activity or Android notification</td><td>Opens the active workout using its deep link.</td></tr><tr><td><code>−15s</code> / <code>+15s</code> on iOS 17+ and Android</td><td>Adjusts the displayed rest end time and queues an adjustment for the app.</td></tr><tr><td>Skip rest</td><td>Clears the displayed countdown and queues the skip. The app resolves the next workout state when it applies the command.</td></tr><tr><td>Complete set</td><td>Queues completion with the current displayed values/timer state and advances the locally displayed snapshot when a following set is available.</td></tr><tr><td>Start/stop a duration timer</td><td>Updates the visible timer and queues the corresponding timer change for the app.</td></tr><tr><td>Add exercise / Open app on iOS</td><td>Opens the app by deep link; these are links, not database actions performed by the widget.</td></tr></tbody></table></div>
+<p>The iOS App Intent controls are available from iOS 17. On earlier supported iOS versions, the activity remains visible but the interactive rest and set-timer controls are not shown. Android actions are notification actions handled by the receiver. On both platforms, a button can update the lightweight activity/notification state before the app has applied the queued command, so the app is the source of truth when it resumes.</p>
+<p>The iOS widget uses a <code>widgetURL</code> for tapping the activity. An enabled checkmark is an App Intent and queues completion without forcing the app to foreground. A checkmark with missing required values is rendered as a disabled image; tapping the surrounding activity opens the app. Android does not offer the complete-set action when its <code>canCompleteSet</code> state is false; a separate notification action opens the app when available.</p>
+<h2 id="rest-timer-and-notification-sound" class="doc-h2">Rest timer and notification sound<a href="#rest-timer-and-notification-sound" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The displayed countdown is based on an absolute end time. iOS renders it with a system timer, and Android renders it with a notification chronometer; neither requires a Dart update every second. On iOS, the countdown continues past zero and the view uses a timed progress fill for its overdue background. <code>staleDate</code> is also set to the rest end as a fallback for ActivityKit state refresh. On Android, the implementation configures a countdown chronometer; the code does not promise a particular overdue presentation after zero.</p>
+<p>The rest alert is scheduled separately from the Live Activity/notification. On iOS, a native <code>UNUserNotificationCenter</code> request with the default sound is scheduled at the rest end and rescheduled or canceled when the user changes/skips the rest. That request may also present a notification banner according to system notification settings; it is not suppressed just because the Live Activity is visible. While the app is foregrounded, the workout screen plays its own sound and haptic, and suppresses its additional foreground completion notification when a Live Activity is running. On Android, the app's local notification service schedules the rest alert; the workout notification itself is configured as low-importance and non-interrupting. Delivery, sound, and banner timing remain subject to OS notification settings and scheduling behavior.</p>
+<h2 id="lifecycle-and-limits" class="doc-h2">Lifecycle and limits<a href="#lifecycle-and-limits" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The app starts the activity/notification for an active workout, updates it when visible workout content changes, and ends or hides it when the workout is ended. The iOS bridge also ends stale activities before starting a new one. This does not document an independent crash-recovery guarantee for every possible OS termination path.</p>
+<p>The activity content is a snapshot prepared by Dart: localized labels, converted units, and formatted metric strings are sent to the native UI. Timers are sent as dates so the platform can render them. iOS bounds the number of future set snapshots to fit ActivityKit's content-state size; after the included snapshots are exhausted, the app must resume to provide fresh state. Android persists the workout activity/notification attributes and content locally for its receiver to update. On either platform, notifications/activities can be unavailable when the user or OS disables them, and the native surfaces may truncate or rearrange content.</p>
+<h2 id="implementation-map" class="doc-h2">Implementation map<a href="#implementation-map" class="header-anchor" aria-label="Link to section">#</a></h2>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Path</th><th>Role</th></tr></thead><tbody><tr><td><code>lib/features/workout/domain/live_activity/</code></td><td>Builds display content, state, and localized strings from the workout.</td></tr><tr><td><code>lib/features/workout/data/live_activity/</code></td><td>Sends updates and consumes queued commands through the platform channel.</td></tr><tr><td><code>lib/features/workout/presentation/live_workout_view_model.dart</code></td><td>Starts, updates, ends, and reconciles the activity with workout state and rest alerts.</td></tr><tr><td><code>ios/LiveActivity/</code></td><td>ActivityKit bridge, shared state, queued intents, and rest-sound notification.</td></tr><tr><td><code>ios/TrainLibreLiveActivity/</code></td><td>Lock Screen and Dynamic Island views and iOS App Intents.</td></tr><tr><td><code>android/app/src/main/kotlin/com/rfivesix/trainlibre/liveupdate/</code></td><td>Ongoing notification, API 36 promotion request, and action receiver.</td></tr></tbody></table></div>
 <h2 id="known-limits" class="doc-h2">Known limits<a href="#known-limits" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
-<li><strong>Android uses its workout Live Update notification.</strong> Its set timer runs in the notification chronometer; system promotion to the Live Update surface depends on Android 16 and device policy.</li>
-<li><strong>Cardio targets do not exist yet.</strong> Routines store no planned duration or distance, so cardio sets stay empty until values are entered.</li>
-<li><strong>The numbers cannot be edited from the card.</strong> Weight and reps are shown as planned; changing them means opening the app.</li>
+<li>iOS 16.2 is the ActivityKit minimum; interactive controls require iOS 17.</li>
+<li>Android's Live Update is an API 36+ promotion request. The ordinary ongoing notification is the fallback, and the system decides whether to promote it.</li>
+<li>Dynamic Island and notification surfaces do not show identical content. The available space, OS version, and device presentation affect what is visible.</li>
+<li>Planned routine targets for duration and distance are not currently supplied by set templates; values are shown after they are logged.</li>
+<li>The activity is not an editor for set metrics. To change weight, reps, or other logged values, open the workout in the app.</li>
 </ul>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
-<a href="../health-sync-export/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Native Health Sync &amp; Export</span></a>
-<a href="../../developer/overview/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Developer Overview &amp; Tests</span></a>
+<a href="../health-sync-export/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Health Sync &amp; Export</span></a>
+<a href="../../user-guide/overview/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">User Guide Overview</span></a>
 </nav>
       </main>
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
 <li class="toc-item toc-item-l2"><a href="#what-it-shows">What it shows</a></li>
-<li class="toc-item toc-item-l3"><a href="#cardio">Cardio</a></li>
-<li class="toc-item toc-item-l2"><a href="#the-four-surfaces">The four surfaces</a></li>
-<li class="toc-item toc-item-l2"><a href="#interactions">Interactions</a></li>
-<li class="toc-item toc-item-l2"><a href="#the-rest-timer">The rest timer</a></li>
-<li class="toc-item toc-item-l2"><a href="#behaviour-worth-knowing">Behaviour worth knowing</a></li>
-<li class="toc-item toc-item-l2"><a href="#how-it-fits-together">How it fits together</a></li>
+<li class="toc-item toc-item-l3"><a href="#set-values-and-timer-behavior">Set values and timer behavior</a></li>
+<li class="toc-item toc-item-l2"><a href="#interactions-and-state-updates">Interactions and state updates</a></li>
+<li class="toc-item toc-item-l2"><a href="#rest-timer-and-notification-sound">Rest timer and notification sound</a></li>
+<li class="toc-item toc-item-l2"><a href="#lifecycle-and-limits">Lifecycle and limits</a></li>
+<li class="toc-item toc-item-l2"><a href="#implementation-map">Implementation map</a></li>
 <li class="toc-item toc-item-l2"><a href="#known-limits">Known limits</a></li>
 </ul></div></aside>
     </div>

@@ -117,23 +117,37 @@ class _LongRunningOperationOverlayState
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Center(
-              child: OperationProgressWidget(
-                icon: widget.icon,
-                title: displayTitle,
-                detail: displayDetail,
-                progress: _progress >= 0 && _progress <= 1.0 ? _progress : null,
-                action: TextButton(
-                  onPressed: _isCanceling ? null : _cancel,
-                  child: Text(
-                    _isCanceling ? "${l10n.cancel}..." : l10n.cancel,
-                    style: TextStyle(
-                      color: theme.colorScheme.error,
-                      fontWeight: FontWeight.bold,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: OperationProgressWidget(
+                      icon: widget.icon,
+                      title: displayTitle,
+                      detail: displayDetail,
+                      progress:
+                          _progress >= 0 && _progress <= 1.0 ? _progress : null,
+                      showCard: false,
                     ),
                   ),
                 ),
-              ),
+                SafeArea(
+                  top: false,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: TextButton(
+                      onPressed: _isCanceling ? null : _cancel,
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                      ),
+                      child: Text(
+                        _isCanceling ? "${l10n.cancel}..." : l10n.cancel,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

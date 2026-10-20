@@ -1,89 +1,48 @@
 # Meal Capture Pipeline
 
-Logging a meal is one action with several entrances: a barcode, a photo, spoken words, a catalog search or a saved template. This document describes how those entrances work, what they have in common, and how the result is stored. The analysis and validation that happens *inside* an AI capture is described separately in [BYOK AI Meal Capture & Validation](byok_ai_validation.md); the LiDAR measurement that can accompany a photo is described in [Depth Scale Hint](depth_scale_hint.md).
+> Fitness, nutrition, recovery, sleep, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions, including eating or sleep disorders.
 
----
+Train Libre can create a diary entry from a barcode, a photo, typed meal text, or dictated text. The paths have different network and storage behavior. This page follows the capture into the diary; [BYOK AI Meal Capture & Validation](byok_ai_validation.md) explains AI matching and validation, and [Depth Scale Hint](depth_scale_hint.md) explains the optional camera depth input.
 
-## 1. A Meal as a Logged Event
+## Capture paths
 
-A single AI scan of a plate produces several ingredients. Historically each one was an independent row in `NutritionLogs` that shared nothing but the string `'Lunch'` — so there was no object the photo, the meal name or a re-analysis could hang on.
-
-`MealEntries` is that object. It records what happened, not what may be reused:
-
-| Column | Meaning |
+| Input | What happens |
 |---|---|
-| `consumedAt`, `mealType` | when it was eaten and under which meal slot |
-| `title` | the meal's name, e.g. "Chicken with rice" |
-| `source` | how it was captured: `aiPhoto`, `aiVoice`, `aiText`, `barcode`, `manual`, `template` |
-| `photoPath`, `photoThumbPath` | the photo and its preview, **relative** to the application support directory |
-| `voiceTranscript` | the dictated text, when there was one |
-| `captureMeta` | JSON side-car: LiDAR scale facts, AI provider and model, additional photos |
+| Barcode | The camera detects a code and looks up a product in the local product data source. The user opens its quantity flow and confirms logging. If the product is missing locally, the screen reports that it was not found. |
+| Photo | The camera captures a photo where a native capture session is available; otherwise the system camera picker is used. Gallery selection is also available. Up to four images can be added to one AI scan. |
+| Typed text | The text is sent to the selected AI provider for a suggested meal. |
+| Dictated text | Speech recognition produces editable text. Local cleanup runs first. If AI tidy-up is enabled, that transcript is also sent to the selected AI provider for optional restructuring; the locally cleaned transcript remains available if the request fails or times out. |
+| Search, manual entry, template | These are separate diary-entry flows and do not require AI meal analysis. |
 
-`NutritionLogs.mealEntryId` is the one column that connects the two. It is **nullable** and cleared rather than cascaded (`onDelete: setNull`), which is what keeps the change additive: every entry logged before this existed, and every entry logged without a group today, behaves exactly as before.
+The active AI capture writer labels an image-less result `aiText`, including a voice-only capture; with images it uses `aiPhoto`. Although the database schema recognizes `aiVoice`, this writer does not currently set that source value. It stores dictated content in `voiceTranscript` when present.
 
-> **Naming caveat.** `Meals` / `MealItems` are *templates* to reuse. `MealEntries` are *events* that happened. The similar names are historical and are a known wart.
+## What leaves the device
 
-`captureMeta` is deliberately schemaless — a nullable text column costs nothing while the shape of the feature is still moving, and malformed or outdated metadata degrades to "no extras" rather than breaking the meal it belongs to.
+An AI scan uses the provider selected in settings. The app constructs the meal request with its prompt, typed or dictated text, and any captured photos, then dispatches it to that provider. Cloud providers send the request to their service. The custom provider sends it to the configured URL; Ollama is addressed at `http://localhost:11434/v1`. Apple Foundation Models uses a separate native service path, so the app’s code does not send that request through the cloud-provider HTTP branches. The platform and model requirements for Apple’s local path are described in the BYOK page; this distinction does not establish a Neural Engine guarantee.
 
----
+For photo analysis, the app prepares and encodes the images before building the provider request. If scale hints are enabled and a depth attachment is available, the request can also include scale facts and a rendered depth-map image. See [Depth Scale Hint](depth_scale_hint.md) for its limits. No photos or meal text are included in the AI scan telemetry described below.
 
-## 2. The Unified Camera
+Dictation is a separate boundary from meal analysis. The speech recognizer is asked to run on-device when the service reports that this is supported; on iOS this is checked for the selected locale. If it cannot start locally, the service tries the platform recognizer without the on-device option and the UI displays a network notice for that run. The resulting transcript may then go to the selected AI provider for tidy-up and/or meal analysis. A local text-cleanup pass runs before optional AI tidy-up.
 
-On iOS a single `AVCaptureSession` can deliver a preview, barcode metadata, still photos and depth at the same time. `AiMealCaptureScreen` uses exactly that: one native session that runs preview, passive barcode detection, photo capture and (where available) LiDAR depth together.
+Barcode detection itself performs a local product lookup. After the user confirms the quantity, the product and amount are logged in the diary. This article makes no claim that unrelated app telemetry or operating-system services are disabled during these flows; see [Capabilities & Privacy](overview.md) for app telemetry controls and boundaries.
 
-### Passive Barcode Detection
-Barcode detection runs continuously while the meal camera is open and is on by default — most packaged foods are logged by barcode, and requiring the user to decide *in advance* whether the thing in front of them is a barcode or a plate is a decision the app can make itself. A detected code opens the normal quantity-logging flow for that product.
+## Diary records and photos
 
-### Fallbacks
-Nothing depends on the unified session succeeding:
-*   If the native session cannot start, the screen falls back silently to the `qr_code_scanner_plus` preview.
-*   `ScannerScreen` remains as a standalone barcode entrance.
-*   `image_picker` remains the path for photos from the gallery.
+An AI review save creates a `MealEntries` row for the meal and links each matched food log to it through `mealEntryId`. The link is nullable, so older or ungrouped food logs remain valid. The entry records its time, meal slot, title, capture source, optional transcript, and photo paths. The current save path writes depth facts and additional photo paths to `captureMeta`; although the metadata type can represent a provider and model, this save path does not populate those fields.
 
-Camera hardware is suspended and resumed with the route lifecycle, so a backgrounded or covered screen holds no camera or depth sensor.
+Captured photos begin as temporary camera or picker files. On save, the app copies each photo to the app’s media directory under application support, stores relative paths, and creates a smaller preview when image processing succeeds. If storing a photo fails, its path is omitted. The first photo and preview use the entry’s photo columns; additional photo paths are kept in `captureMeta`. Images sent for AI analysis are separately prepared for provider requests, so the persisted photo is not necessarily the same encoded image payload used for analysis.
 
----
+`MealEntries` are meal events. `Meals` and `MealItems` are reusable templates. Their names are similar, but they serve different purposes.
 
-## 3. Voice Dictation
+## Capture telemetry and local diagnostics
 
-Dictation is available both on its own ("describe your meal") and as an addition to a photo, where the transcript is passed to the analysis as a text hint.
+When telemetry is enabled by the user, meal-scan events report fields such as provider, input mode, photo count, whether text, voice, or LiDAR was present, duration, validation outcome, and token usage. The event properties do not include meal text or image contents. Barcode logging and depth captures with valid scale facts or a depth buffer also have feature-use events.
 
-*   **On-device first.** `VoiceDictationService` prefers on-device recognition and reports up front whether the device can do it, so the consent copy is accurate *before* the user speaks rather than after.
-*   **Network disclosure.** When the platform has no local recognizer, recognition falls back to the platform's network recognizer (Apple or Google). `lastRunUsedNetwork` reports this so the interface can disclose it. This is a platform service, not a Train Libre endpoint, and it carries audio for the duration of the dictation only.
-*   **Permissions.** Microphone and speech recognition are requested at the point of use (`NSMicrophoneUsageDescription`, `NSSpeechRecognitionUsageDescription`); the microphone is live only while the dictation control is held.
-*   **Tidy pass.** The raw transcript is restructured by a small AI prompt that fixes misheard food names and drops filler, without inventing foods, amounts or preparation. Without a configured AI provider, dictation is simply not offered.
+Separately, AI scan diagnostics are stored on-device in a bounded history (up to 20 scans). The diagnostic export includes provider/model where available, input mode, counts, timing, validation outcomes, and usage totals; it excludes prompts, meal contents, photos, file paths, API keys, and raw error messages. The diagnostics are distinct from network telemetry.
 
----
+## Related documentation
 
-## 4. Photo Storage
-
-Meal photos are the first thing in the app that can grow without bound, so they are handled by shared infrastructure rather than by the diary itself.
-
-*   `AppMediaStore` owns the files for every feature under one set of rules; `MealPhotoStore` is the meal-shaped face of it.
-*   Every save writes a full-size photo and a downscaled preview, both stored **relative** to the application support directory — absolute paths would break on the next app update.
-*   If a copy fails, no path is stored at all rather than a path into a temporary file that will vanish.
-*   `pruneOrphans` removes files that no database row references any more, which is what keeps the folder from growing forever.
-
-Photos are local files, not database blobs; treat them accordingly when reasoning about backup size and export contents.
-
----
-
-## 5. What Is Sent Where
-
-| Capture path | Leaves the device? |
-|---|---|
-| Catalog search, template, manual entry | No |
-| Barcode | No — matched against the locally installed Open Food Facts catalog |
-| AI photo / text | Photo and text go to the user's own configured BYOK provider only |
-| AI photo with depth | Additionally a few centimetre measurements and, if enabled, a false-colour depth image |
-| Voice dictation | Audio to the platform recognizer only when the device has no on-device recognizer; the resulting text then follows the AI text path |
-
-Without a configured AI provider, none of the AI paths exist and nothing is transmitted.
-
----
-
-## 6. Related Documentation
-
-*   [BYOK AI Meal Capture & Validation](byok_ai_validation.md) — prompts, matching and the self-repair loop.
-*   [Depth Scale Hint](depth_scale_hint.md) — the LiDAR measurement attached to a photo.
-*   [Localization Architecture](../developer/localization_architecture.md) — the Open Food Facts catalogs that barcode and search resolve against.
+- [BYOK AI Meal Capture & Validation](byok_ai_validation.md) — provider-specific request and response behavior, matching, and repair.
+- [Depth Scale Hint](depth_scale_hint.md) — camera depth facts and the optional image attachment.
+- [Capabilities & Privacy](overview.md) — app-wide telemetry controls and privacy boundaries.
+- [Localization Architecture](../developer/localization_architecture.md) — local product catalogs used by barcode and search flows.

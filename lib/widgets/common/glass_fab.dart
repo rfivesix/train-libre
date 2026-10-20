@@ -122,6 +122,10 @@ class _GlassFabState extends State<GlassFab>
     );
 
     Widget result = GestureDetector(
+      // GlassContainer's visual surface can render beyond its child hit test.
+      // Keep the full FAB bounds tappable, including the glass around the icon
+      // and label.
+      behavior: HitTestBehavior.opaque,
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: () => _controller.reverse(),

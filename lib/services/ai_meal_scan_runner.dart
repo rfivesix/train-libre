@@ -215,6 +215,18 @@ class AiMealScanRunner {
           return repaired;
         });
       },
+      onFallbackValidation: (validation, durationMilliseconds) {
+        onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
+        onProgress?.call(
+            AiMealScanLogStage.validationFinished, runWatch.elapsedMilliseconds,
+            durationMilliseconds: durationMilliseconds,
+            result: validation.passed && !validation.needsSemanticSelection
+                ? AiMealScanLogResult.accepted
+                : AiMealScanLogResult.needsRepair,
+            candidate: selected.source,
+            validationScore: validation.score,
+            issueCategories: _issueCategories(validation));
+      },
       onRepairValidation: (round, validation, durationMilliseconds) {
         onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
         onProgress?.call(
@@ -260,7 +272,8 @@ class AiMealScanRunner {
         if (hedge != null) hedge,
       ]).then((checks) =>
           checks.where((check) => check.validation != null).length +
-          outcome.repairPassesUsed),
+          outcome.validationRunsCount -
+          1),
       providerSeconds: Future.wait([
         primary,
         if (hedge != null) hedge,

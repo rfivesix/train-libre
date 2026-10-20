@@ -38,6 +38,9 @@ class GlassProgressBar extends StatefulWidget {
   /// Optional custom subtitle to display instead of the default "value / target unit".
   final String? customSubtitle;
 
+  /// Number of decimal digits to format the value with. Defaults to 0 (no post-comma).
+  final int decimalDigits;
+
   const GlassProgressBar({
     super.key,
     required this.label,
@@ -49,6 +52,7 @@ class GlassProgressBar extends StatefulWidget {
     this.borderRadius = DesignConstants.borderRadiusL,
     this.disableShadow = false,
     this.customSubtitle,
+    this.decimalDigits = 0,
   });
 
   @override
@@ -103,6 +107,7 @@ class _GlassProgressBarState extends State<GlassProgressBar> {
               borderRadius: widget.borderRadius,
               disableShadow: widget.disableShadow,
               customSubtitle: widget.customSubtitle,
+              decimalDigits: widget.decimalDigits,
             );
           },
         );
@@ -122,6 +127,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
   final double borderRadius;
   final bool disableShadow;
   final String? customSubtitle;
+  final int decimalDigits;
 
   const _GlassProgressBarPainter({
     required this.label,
@@ -133,6 +139,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
     required this.borderRadius,
     required this.disableShadow,
     this.customSubtitle,
+    required this.decimalDigits,
   });
 
   @override
@@ -159,6 +166,11 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
     final clipper = ShapeBorderClipper(shape: squircle);
 
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final effectiveHeight = (textScale > 1.15)
+        ? (height * textScale.clamp(1.0, 1.4))
+        : height;
+
     return Container(
       decoration: ShapeDecoration(
         shape: squircle,
@@ -169,7 +181,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
       child: ClipPath(
         clipper: clipper,
         child: Container(
-          height: height,
+          height: effectiveHeight,
           decoration: ShapeDecoration(
             color: isDark ? DesignConstants.summaryCardDarkMode : Colors.white,
             shape: squircle.copyWith(
@@ -203,33 +215,38 @@ class _GlassProgressBarPainter extends StatelessWidget {
                     horizontal: DesignConstants.spacingM,
                     vertical: DesignConstants.spacingXS,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: primaryColor,
-                          shadows: shadows,
-                          fontWeight: FontWeight.bold,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: primaryColor,
+                            shadows: shadows,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        customSubtitle ??
-                            (hasTarget
-                                ? '${value.toStringAsFixed(1)} / ${target.toStringAsFixed(0)} $unit'
-                                : '${value.toStringAsFixed(1)} $unit'),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: secondaryColor,
-                          shadows: shadows,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 2),
+                        Text(
+                          customSubtitle ??
+                              (hasTarget
+                                  ? '${value.toStringAsFixed(decimalDigits)} / ${target.toStringAsFixed(0)}${unit.isEmpty ? '' : ' $unit'}'
+                                  : '${value.toStringAsFixed(decimalDigits)}${unit.isEmpty ? '' : ' $unit'}'),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: secondaryColor,
+                            shadows: shadows,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               }

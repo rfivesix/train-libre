@@ -337,8 +337,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             (t) => drift.OrderingTerm(expression: t.localId),
           ]))
         .get();
+    final noteRows = await (dbInstance.select(dbInstance.workoutExerciseLogs)
+          ..where((tbl) => tbl.workoutLogId.equals(logRow.id)))
+        .get();
+    final notesByBlock = <int, String>{
+      for (final row in noteRows)
+        if (row.exerciseBlock != null && row.notes != null)
+          row.exerciseBlock!: row.notes!,
+    };
 
-    return _mapWorkoutLogWithSets(logRow, setRows);
+    return _mapWorkoutLogWithSets(logRow, setRows, notesByBlock);
   }
 
   Future<void> updateSetLogs(List<SetLog> updatedSets) async {
@@ -728,6 +736,27 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                     photoExtraPaths: drift.Value(extraPhotos),
                   ),
                 );
+
+        for (final entry in w.exerciseNotesByBlock.entries) {
+          if (entry.value.trim().isEmpty) continue;
+          final blockSet = w.sets.where(
+            (set) => set.exerciseBlock == entry.key,
+          );
+          final firstBlockSet = blockSet.isEmpty ? null : blockSet.first;
+          final mappedExercise = firstBlockSet == null
+              ? null
+              : await getExerciseByName(firstBlockSet.exerciseName);
+          await dbInstance.into(dbInstance.workoutExerciseLogs).insert(
+                db.WorkoutExerciseLogsCompanion(
+                  workoutLogId: drift.Value(wRow.id),
+                  exerciseId: drift.Value(mappedExercise?.uuid),
+                  exerciseNameSnapshot:
+                      drift.Value(firstBlockSet?.exerciseName),
+                  exerciseBlock: drift.Value(entry.key),
+                  notes: drift.Value(entry.value.trim()),
+                ),
+              );
+        }
 
         for (final s in w.sets) {
           final exercise = await getExerciseByName(s.exerciseName);

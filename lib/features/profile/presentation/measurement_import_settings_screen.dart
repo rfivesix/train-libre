@@ -10,7 +10,6 @@ import '../../../services/health/health_connect_weight_import.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
 
 /// Health reads belong with body measurements, not with the one-way export.
 /// The import is opt-in and then runs again when the app next cold-starts.
@@ -140,41 +139,47 @@ class _MeasurementImportSettingsScreenState
         ),
         children: [
           AppSectionHeader(title: l10n.measurementsScreenTitle),
-          SummaryCard(
-            child: Column(
-              children: [
-                PlatformAdaptiveSwitchListTile(
-                  secondary: const Icon(LucideIcons.download),
-                  title: Text(title,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(subtitle),
-                  value: _enabled,
-                  onChanged: _importing ? null : _toggle,
-                ),
-                const Divider(),
-                ListTile(
-                  leading: _importing
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(LucideIcons.download),
-                  title: Text(l10n.healthConnectWeightImportNow),
-                  subtitle: Text(
-                    _status?.available != true
-                        ? isIos
-                            ? l10n.healthExportPlatformUnavailable
-                            : l10n.healthConnectWeightImportUnavailable
-                        : (_status?.isLimited ?? true)
-                            ? l10n.healthConnectWeightImportLimited
-                            : l10n.healthConnectWeightImportReady,
-                  ),
-                  enabled: _enabled && !_importing,
-                  onTap: _enabled && !_importing ? _importNow : null,
-                ),
-              ],
-            ),
+          Column(
+            children: [
+              AppSettingsRow.switchTile(
+                title: title,
+                subtitle: subtitle,
+                leading: const Icon(LucideIcons.download),
+                value: _enabled,
+                onChanged: _importing ? null : _toggle,
+              ),
+              AppSettingsRow(
+                title: l10n.healthConnectWeightImportNow,
+                leading: const Icon(LucideIcons.download),
+                subtitle: _status?.available != true
+                    ? isIos
+                        ? l10n.healthExportPlatformUnavailable
+                        : l10n.healthConnectWeightImportUnavailable
+                    : (_status?.isLimited ?? true)
+                        ? l10n.healthConnectWeightImportLimited
+                        : l10n.healthConnectWeightImportReady,
+                trailing: _importing
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        LucideIcons.download,
+                        size: 20,
+                        color: (_enabled && !_importing)
+                            ? Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.4)
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.2),
+                      ),
+                onTap: _enabled && !_importing ? _importNow : null,
+              ),
+            ],
           ),
         ],
       ),

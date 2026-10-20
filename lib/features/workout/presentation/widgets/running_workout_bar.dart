@@ -35,32 +35,41 @@ class RunningWorkoutBar extends StatelessWidget {
         // Time (left)
         Expanded(
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(LucideIcons.timer, size: 20),
               const SizedBox(width: 6),
-              Text(
-                timeText,
-                style: const TextStyle(
-                  fontFeatures: [FontFeature.tabularFigures()],
+              Flexible(
+                child: Text(
+                  timeText,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ],
           ),
         ),
+        const SizedBox(width: DesignConstants.spacingS),
         // Resume (accent, small)
-        AppButton.primary(
-          onPressed: onResume,
-          label: l10n.continue_workout_button,
-          tooltip: l10n.continue_workout_button,
-          size: AppButtonSize.small,
+        Flexible(
+          child: AppButton.primary(
+            onPressed: onResume,
+            label: l10n.continue_workout_button,
+            tooltip: l10n.continue_workout_button,
+            size: AppButtonSize.small,
+          ),
         ),
         const SizedBox(width: DesignConstants.spacingS),
         // Discard (danger, small)
-        AppButton.danger(
-          onPressed: onDiscard,
-          label: l10n.discard_button,
-          tooltip: l10n.discard_button,
-          size: AppButtonSize.small,
+        Flexible(
+          child: AppButton.danger(
+            onPressed: onDiscard,
+            label: l10n.discard_button,
+            tooltip: l10n.discard_button,
+            size: AppButtonSize.small,
+          ),
         ),
       ],
     );

@@ -374,7 +374,7 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
                           height: 6,
                           decoration: BoxDecoration(
                             color: isActive
-                                ? const Color(0xFFC9EF00)
+                                ? DesignConstants.brandAccentColor
                                 : Colors.white.withValues(alpha: 0.6),
                             borderRadius: BorderRadius.circular(3),
                             boxShadow: [

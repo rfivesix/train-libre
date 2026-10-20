@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="description" content="Choose local reminders and manage notification access and behavior.">
+  <title>Manage notifications and reminders | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/user-guide/notifications/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Manage notifications and reminders | Train Libre">
+  <meta property="og:description" content="Choose local reminders and manage notification access and behavior.">
+  <meta property="og:url" content="https://trainlibre.com/docs/user-guide/notifications/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- Theme Script (Synchronous in head to prevent theme flash) -->
+  <script src="../../../theme.js"></script>
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
+
+  <!-- Dedicated Docs Client Interactions -->
+  <script src="../../docs.js" defer></script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../../features/overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../../features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
+<li><a href="../../features/muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../../features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
+<li><a href="../../features/macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../../features/macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../../features/manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../../features/adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
+<li><a href="../../features/workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../../features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../../features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Manage notifications and reminders</a></li>
+<li><a href="../importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
+<li><a href="../sharing-and-ai/index.html" class="sidebar-link">Share Train Libre data with an AI assistant</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../../developer/food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Manage notifications and reminders</h1>
+<p>Choose which local reminders Train Libre can send, and use your device settings to control notification access and previews.</p>
+<h2 id="open-notification-settings" class="doc-h2">Open notification settings<a href="#open-notification-settings" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ol class="doc-list">
+<li>Tap your profile button, then open <strong>Settings</strong> > <strong>Notifications</strong>.</li>
+<li>Under <strong>Goals & reviews</strong>, turn on or off <strong>Weekly review ready</strong>, <strong>Adaptive recommendation due</strong>, or <strong>Target date guidance</strong>.</li>
+<li>Under <strong>Workout plan</strong>, turn on <strong>Remind me on workout days</strong> and set <strong>Reminder time</strong> if you want a reminder for planned sessions. For how workout-day reminders follow a plan, see <a href="../training-plans/index.html#set-workout-reminders">Create and follow a training plan</a>.</li>
+</ol>
+<p>Workout-plan reminders are scheduled only for upcoming planned workout days in the active plan. Rest days, past sessions, and sessions already resolved do not generate reminders. The app keeps upcoming reminders synchronized when the active plan or reminder settings change.</p>
+<h2 id="what-the-reminders-do" class="doc-h2">What the reminders do<a href="#what-the-reminders-do" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li><strong>Weekly review ready</strong> alerts you when a 7-day goal review is available.</li>
+<li><strong>Adaptive recommendation due</strong> alerts you when an update to daily targets is due.</li>
+<li><strong>Target date guidance</strong> schedules a reminder seven days before an active goal's target date and another on the target date, both at 9:00 a.m. local time. A reminder is only scheduled if its date is still in the future.</li>
+<li>When a workout rest timer ends, Train Libre shows a <strong>Rest finished</strong> notification. There is no separate rest-timer notification switch in <strong>Notifications</strong>; use the rest timer in a workout as usual.</li>
+</ul>
+<h2 id="allow-notifications-on-your-device" class="doc-h2">Allow notifications on your device<a href="#allow-notifications-on-your-device" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Train Libre's switches control individual reminders inside the app. Your operating system also controls whether Train Libre may display notifications. If workout reminders cannot be enabled, or reminders do not appear, allow notifications for Train Libre in your device's system settings. The app requests notification permission, but a denied system permission can prevent notifications even when an in-app option is on.</p>
+<p>Goal and review reminder switches do not prompt for permission themselves. Weekly reviews that become available while their reminder is off or system notifications are denied are not sent later if you turn notifications on; the setting applies to future reviews. Device settings also control lock-screen previews and quiet hours.</p>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../live-activities/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Live Activities and workout updates</span></a>
+<a href="../importing-data/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Import workout history and other data</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#open-notification-settings">Open notification settings</a></li>
+<li class="toc-item toc-item-l2"><a href="#what-the-reminders-do">What the reminders do</a></li>
+<li class="toc-item toc-item-l2"><a href="#allow-notifications-on-your-device">Allow notifications on your device</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

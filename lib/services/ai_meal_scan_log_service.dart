@@ -284,7 +284,8 @@ class AiMealScanLogService extends ChangeNotifier {
         'mistral',
         'xai',
         'ollama',
-        'custom'
+        'custom',
+        'appleFoundation',
       }.contains(value)
           ? value
           : 'unknown';

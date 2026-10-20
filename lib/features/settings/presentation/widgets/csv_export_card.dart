@@ -25,7 +25,7 @@ class CsvExportCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: DesignConstants.cardPadding,
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -36,7 +36,12 @@ class CsvExportCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          Text(l10n.csvExportDescription, style: theme.textTheme.bodyMedium),
+          Text(
+            l10n.csvExportDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
           const SizedBox(height: DesignConstants.spacingS),
           _buildExportTile(
             title: l10n.excelExportButton,
@@ -68,6 +73,9 @@ class CsvExportCard extends StatelessWidget {
     required String title,
     required VoidCallback? onTap,
   }) {
-    return AppLinkRow(title: title, onTap: onTap ?? () {});
+    return AppLinkRow(
+      title: title,
+      onTap: onTap ?? () {},
+    );
   }
 }

@@ -95,8 +95,18 @@ class SimpleProgressionEngine {
       );
     }
     if (reps < target.min) {
+      final projected = _projectLoadForReps(
+        loggedLoadKg: previousLoadKg,
+        reps: reps,
+        rir: previousRir,
+        targetReps: target.min,
+        mode: mode,
+        bodyweightKg: bodyweightKg,
+      );
       return _suggest(
-        load: previousLoadKg!,
+        load: projected == null
+            ? previousLoadKg!
+            : _roundForMode(projected, increment, mode),
         reps: target.min,
         reason: ProgressionReason.repsBelowRangeMin,
       );

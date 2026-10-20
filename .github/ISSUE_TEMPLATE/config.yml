@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question or get help
+    url: https://github.com/rfivesix/train-libre/discussions/categories/q-a
+    about: Use Discussions for usage questions and troubleshooting.
+  - name: Suggest or discuss an idea
+    url: https://github.com/rfivesix/train-libre/discussions/categories/ideas
+    about: Discuss ideas with the community before opening an implementation issue.

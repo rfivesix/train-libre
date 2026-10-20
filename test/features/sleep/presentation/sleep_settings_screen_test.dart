@@ -154,8 +154,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final requestAccessTile =
-        find.widgetWithText(ListTile, 'Health connection status');
+    final requestAccessTile = find.text('Health connection status');
     await tester.scrollUntilVisible(
       requestAccessTile,
       300,
@@ -206,7 +205,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final importTile = find.widgetWithText(ListTile, 'Import sleep data now');
+    final importTile = find.text('Import sleep data now');
     await tester.scrollUntilVisible(
       importTile,
       300,

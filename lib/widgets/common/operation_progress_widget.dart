@@ -8,7 +8,7 @@ import 'summary_card.dart';
 ///
 /// Designed to provide a consistent visual presentation across operations such as
 /// database downloads, backup imports/exports, and sync tasks.
-class OperationProgressWidget extends StatelessWidget {
+class OperationProgressWidget extends StatefulWidget {
   final IconData icon;
   final Color? iconColor;
   final double iconSize;
@@ -17,6 +17,7 @@ class OperationProgressWidget extends StatelessWidget {
   final double? progress;
   final Widget? action;
   final EdgeInsetsGeometry padding;
+  final bool showCard;
 
   const OperationProgressWidget({
     super.key,
@@ -28,19 +29,49 @@ class OperationProgressWidget extends StatelessWidget {
     this.progress,
     this.action,
     this.padding = const EdgeInsets.all(DesignConstants.spacingXL),
+    this.showCard = true,
   });
 
   @override
+  State<OperationProgressWidget> createState() =>
+      _OperationProgressWidgetState();
+}
+
+class _OperationProgressWidgetState extends State<OperationProgressWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _dotsController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dotsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _dotsController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final widget = this.widget;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isDeterminate =
-        progress != null && progress! >= 0.0 && progress! <= 1.0;
-    final normalizedProgress = isDeterminate ? progress!.clamp(0.0, 1.0) : null;
+    final isDeterminate = widget.progress != null &&
+        widget.progress! >= 0.0 &&
+        widget.progress! <= 1.0;
+    final normalizedProgress =
+        isDeterminate ? widget.progress!.clamp(0.0, 1.0) : null;
     final percentageText =
         isDeterminate ? '${(normalizedProgress! * 100).round()}%' : null;
     final statusText =
-        (detail != null && detail!.trim().isNotEmpty) ? detail! : null;
+        (widget.detail != null && widget.detail!.trim().isNotEmpty)
+            ? widget.detail!.trim().replaceFirst(RegExp(r'(\.{1,3}|…)\s*$'), '')
+            : null;
     final hasStatusRow = statusText != null || percentageText != null;
 
     return ConstrainedBox(
@@ -85,88 +116,115 @@ class OperationProgressWidget extends StatelessWidget {
                         ],
                 ),
                 child: Icon(
-                  icon,
-                  size: iconSize,
-                  color: iconColor ?? theme.colorScheme.primary,
+                  widget.icon,
+                  size: widget.iconSize,
+                  color: widget.iconColor ?? theme.colorScheme.primary,
                 ),
               ),
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
-          SummaryCard(
-            padding: padding,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (hasStatusRow) ...[
-                  const SizedBox(height: DesignConstants.spacingL),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      if (statusText != null)
-                        Expanded(
-                          child: Text(
-                            statusText,
-                            textAlign: TextAlign.left,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-                      else
-                        const Spacer(),
-                      if (percentageText != null) ...[
-                        const SizedBox(width: DesignConstants.spacingS),
-                        Text(
-                          percentageText,
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                ] else ...[
-                  const SizedBox(height: DesignConstants.spacingL),
-                ],
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    value: normalizedProgress,
-                    minHeight: 8,
-                    backgroundColor: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : theme.colorScheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-                if (action != null) ...[
-                  const SizedBox(height: DesignConstants.spacingL),
-                  Center(child: action!),
-                ],
-              ],
-            ),
-          ),
+          _buildProgressContent(context, theme, widget, statusText,
+              percentageText, normalizedProgress, isDark, hasStatusRow),
         ],
       ),
     );
+  }
+
+  Widget _buildProgressContent(
+    BuildContext context,
+    ThemeData theme,
+    OperationProgressWidget widget,
+    String? statusText,
+    String? percentageText,
+    double? normalizedProgress,
+    bool isDark,
+    bool hasStatusRow,
+  ) {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          widget.title,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        if (hasStatusRow) ...[
+          const SizedBox(height: DesignConstants.spacingL),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              if (statusText != null)
+                Expanded(
+                  child: AnimatedBuilder(
+                    animation: _dotsController,
+                    builder: (context, _) => Text.rich(
+                      TextSpan(
+                        text: statusText,
+                        children: [
+                          TextSpan(
+                            text: '.' *
+                                ((_dotsController.value * 4)
+                                    .floor()
+                                    .clamp(0, 3)),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.left,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+              else
+                const Spacer(),
+              if (percentageText != null) ...[
+                const SizedBox(width: DesignConstants.spacingS),
+                Text(
+                  percentageText,
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+        ] else ...[
+          const SizedBox(height: DesignConstants.spacingL),
+        ],
+        ClipRRect(
+          borderRadius: BorderRadius.circular(99),
+          child: LinearProgressIndicator(
+            value: normalizedProgress,
+            minHeight: 8,
+            backgroundColor: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : theme.colorScheme.surfaceContainerHighest,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              theme.colorScheme.primary,
+            ),
+          ),
+        ),
+        if (widget.action != null) ...[
+          const SizedBox(height: DesignConstants.spacingL),
+          Center(child: widget.action!),
+        ],
+      ],
+    );
+    return widget.showCard
+        ? SummaryCard(padding: widget.padding, child: content)
+        : Padding(padding: widget.padding, child: content);
   }
 }
