@@ -135,6 +135,33 @@ log_info "Scanning staged files in: $SEARCH_ROOT"
 if [ ${#EDITOR_PNGS[@]} -gt 0 ]; then
   log_info "Found ${#EDITOR_PNGS[@]} screenshot images. Grouping by locale..."
 
+  # Reject byte-identical screenshots in the same App Store display group before
+  # replacing the local staging directory or asking Fastlane to overwrite ASC.
+  EDITOR_BUCKETS=()
+  EDITOR_HASHES=()
+  EDITOR_COUNT=0
+  for file in "${EDITOR_PNGS[@]}"; do
+    parent_dir=$(basename "$(dirname "$file")")
+    target_locale=$(normalize_locale "$parent_dir")
+    res_dir=$(basename "$(dirname "$(dirname "$file")")")
+    file_hash=$(shasum -a 256 "$file" | awk '{print $1}')
+    bucket="$target_locale|$res_dir"
+
+    for ((index = 0; index < EDITOR_COUNT; index++)); do
+      if [ "${EDITOR_BUCKETS[$index]:-}" = "$bucket" ] && [ "${EDITOR_HASHES[$index]:-}" = "$file_hash" ]; then
+        log_error "Duplicate screenshots in the same locale/display group:"
+        log_error "  ${EDITOR_PNGS[$index]}"
+        log_error "  $file"
+        log_error "Re-export the bundle before uploading; App Store Connect may omit duplicate images."
+        exit 1
+      fi
+    done
+
+    EDITOR_BUCKETS+=("$bucket")
+    EDITOR_HASHES+=("$file_hash")
+    EDITOR_COUNT=$((EDITOR_COUNT + 1))
+  done
+
   # Reset fastlane target screenshots dir for clean stage
   rm -rf "$FASTLANE_SCREENSHOTS_DIR"/*
 

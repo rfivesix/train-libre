@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { flushSync } from "react-dom";
 import JSZip from "jszip";
 import { toPng } from "html-to-image";
 import { Toaster, toast } from "sonner";
@@ -420,18 +421,23 @@ export function ScreenshotEditor() {
     let unit = 0;
     let okCount = 0;
     let failed = 0;
+    let duplicateDetected = false;
+    const duplicateErrors: string[] = [];
     const errors: string[] = [];
 
     for (const locale of locales) {
-      setExportLocaleOverride(locale);
+      flushSync(() => setExportLocaleOverride(locale));
       await waitForPaint();
 
       for (const size of sizes) {
+        const fingerprints = new Map<string, number>();
         for (let i = 0; i < currentSlides.length; i++) {
           const slide = currentSlides[i];
           unit += 1;
-          setExporting(`${unit}/${totalUnits}`);
-          setExportSlideIndex(i);
+          flushSync(() => {
+            setExporting(`${unit}/${totalUnits}`);
+            setExportSlideIndex(i);
+          });
           await waitForPaint();
           const el = exportRef.current;
           if (!el) {
@@ -442,6 +448,23 @@ export function ScreenshotEditor() {
           try {
             const dataUrl = await captureSlide(el, cW, cH, size.w, size.h);
             const base64 = dataUrl.split(",")[1] || "";
+            const digest = await crypto.subtle.digest(
+              "SHA-256",
+              new TextEncoder().encode(base64),
+            );
+            const fingerprint = Array.from(new Uint8Array(digest), (byte) =>
+              byte.toString(16).padStart(2, "0"),
+            ).join("");
+            const previousIndex = fingerprints.get(fingerprint);
+            if (previousIndex !== undefined) {
+              duplicateDetected = true;
+              failed += 1;
+              duplicateErrors.push(
+                `${locale} ${size.w}×${size.h} screens ${previousIndex + 1} and ${i + 1} rendered identically`,
+              );
+              continue;
+            }
+            fingerprints.set(fingerprint, i);
             const filename = `${String(i + 1).padStart(2, "0")}-${slide.layout}.png`;
             const path = `${platform}/${state.device}/${size.w}x${size.h}/${locale}/${filename}`;
             zip.file(path, base64, { base64: true });
@@ -456,8 +479,18 @@ export function ScreenshotEditor() {
       }
     }
 
-    setExportLocaleOverride(null);
-    setExporting(null);
+    flushSync(() => {
+      setExportLocaleOverride(null);
+      setExporting(null);
+    });
+
+    if (duplicateDetected) {
+      toast.error("Export stopped: duplicate screenshots detected", {
+        description: duplicateErrors.slice(0, 3).join("\n"),
+        duration: 10000,
+      });
+      return;
+    }
 
     if (okCount > 0) {
       try {
