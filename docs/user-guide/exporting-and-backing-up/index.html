@@ -150,6 +150,7 @@
 <li><a href="../importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
 <li><a href="../prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
 <li><a href="index.html" class="sidebar-link active" aria-current="page">Exporting and backing up data</a></li>
+<li><a href="../sharing-and-ai/index.html" class="sidebar-link">Share Train Libre data with an AI assistant</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
 <li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
@@ -170,22 +171,24 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Exporting and backing up data</h1>
-<p>Save a complete Train Libre backup for safekeeping or moving your data, or export selected history for use in another app.</p>
+<p>Save a Train Libre backup that you can restore later, or export personal tabular data for analysis in another app.</p>
 <h2 id="create-a-full-backup" class="doc-h2">Create a full backup<a href="#create-a-full-backup" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ol class="doc-list">
 <li>Open <strong>Profile</strong> > <strong>Settings</strong> > <strong>Data backup & import</strong> to open the <strong>Data Hub</strong>.</li>
 <li>Under <strong>Train Libre Data Backup</strong>, tap <strong>Export</strong>.</li>
 <li>Choose a destination in the system share sheet, such as a files app or a cloud storage app, and save or send the <code>.zip</code> file.</li>
 </ol>
-<p>The full backup contains your profile and app settings, workout history and plans, food and fluid logs, supplements, measurements, and supported activity and sleep records. It also includes meal and workout preview images. A full backup is for restoring Train Libre data; it is not the same as exporting a spreadsheet. To restore one, see <a href="../importing-data/index.html#restore-a-train-libre-backup">Import workout history and other data</a>. Restore replaces the data currently in Train Libre.</p>
+<p>The full backup contains your profile and app settings, workout history and plans, food and fluid logs, supplements, measurements, goals, meals, and supported activity, sleep, and pulse records. It also includes meal and workout preview images. Original photos stay on the device and are not included. Installed catalog status stays with each device and is not transferred by a backup. A full backup is for restoring Train Libre data; it is not the same as exporting a spreadsheet. To restore one, see <a href="../importing-data/index.html#restore-a-train-libre-backup">Import workout history and other data</a>. Restore replaces the data currently in Train Libre.</p>
 <p>To make a password-protected backup, tap <strong>Export Encrypted</strong>, enter a password, and save the <code>.zip</code> from the share sheet. Keep the password somewhere safe: it is required to restore the backup. The regular <strong>Export</strong> option does not ask for a password.</p>
 <h2 id="export-selected-history" class="doc-h2">Export selected history<a href="#export-selected-history" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ol class="doc-list">
 <li>In <strong>Profile</strong> > <strong>Settings</strong> > <strong>Data backup & import</strong> > <strong>Data Hub</strong>, scroll to the export options below the backup and automatic backup sections.</li>
-<li>Choose <strong>Excel Export (.xlsx)</strong>, <strong>Nutrition Diary</strong>, <strong>Measurements</strong>, or <strong>Workout History</strong>.</li>
+<li>Choose <strong>Complete Data Export (.xlsx)</strong>, <strong>Nutrition Diary</strong>, <strong>Measurements</strong>, or <strong>Workout History</strong>.</li>
 <li>Choose where to save or send the generated file in the system share sheet.</li>
 </ol>
-<p><strong>Excel Export (.xlsx)</strong> creates one workbook with separate sheets for nutrition, workouts and exercises, sleep, activity and health data, and measurements. The other options share focused CSV files: <strong>Nutrition Diary</strong> includes food and fluid entries; <strong>Workout History</strong> includes set-level workout history; <strong>Measurements</strong> can share measurement, sleep, steps, and heart-rate history files. These exports are useful for analysis, but do not contain everything needed to restore Train Libre.</p>
+<p><strong>Complete Data Export (.xlsx)</strong> creates one workbook for personal tabular data. It contains convenient analysis sheets and separate data sheets for your profile and preferences, food and drink logs, saved and custom foods, meals, supplements, measurements, workouts, routines, training plans, goals, and supported activity, sleep, and pulse records. The data sheets retain record IDs and links between related records. Local catalogs, credentials, device identifiers, file paths, and original photos are excluded. This workbook is for analysis, not restoration; use a full backup to restore Train Libre.</p>
+<p>The workbook's <strong>Micronutrients</strong> sheet lists available nutrient facts for logged foods in the installed BLS catalog, including the per-100-g value, the amount for the logged portion, units, and source details. <strong>Micronutrient Coverage</strong> shows which logged BLS foods had facts available. Other foods do not have BLS micronutrient values, and these values reflect the catalog available when you export.</p>
+<p>The other options share focused CSV files: <strong>Nutrition Diary</strong> includes food and fluid entries; <strong>Workout History</strong> includes set-level workout history; <strong>Measurements</strong> can share measurement, sleep, steps, and heart-rate history files. These CSV exports are focused on their named data areas; the complete tabular export is the Excel workbook.</p>
 <h2 id="automatic-backups-on-android-and-other-non-apple-platforms" class="doc-h2">Automatic backups on Android and other non-Apple platforms<a href="#automatic-backups-on-android-and-other-non-apple-platforms" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>The Data Hub's <strong>Automatic Backups</strong> section saves a full <code>.zip</code> backup about once a day when Train Libre runs. It keeps up to seven recent automatic backups in the destination folder. On Android, tap <strong>Choose Folder</strong> to select a storage folder; if no folder is selected or it cannot be used, the backup may be saved in the app's documents folder instead. The last backup path is shown in the section. Tap <strong>Check & Run Auto-Backup Now</strong> to create one immediately. These files are local unless you choose a folder that is itself provided or synced by another storage app.</p>
 <h2 id="automatic-icloud-backup-on-apple-platforms" class="doc-h2">Automatic iCloud backup on Apple platforms<a href="#automatic-icloud-backup-on-apple-platforms" class="header-anchor" aria-label="Link to section">#</a></h2>
@@ -197,7 +200,7 @@
 
         <nav class="docs-pager" aria-label="Documentation navigation">
 <a href="../prepare-csv-files/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Prepare a compatible workout CSV</span></a>
-<a href="../../developer/overview/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Developer Documentation</span></a>
+<a href="../sharing-and-ai/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Share Train Libre data with an AI assistant</span></a>
 </nav>
       </main>
 

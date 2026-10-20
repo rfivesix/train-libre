@@ -6,8 +6,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="Navigate the Statistics hub and understand its sections and date ranges.">
-  <title>Read the Statistics hub | Train Libre Documentation</title>
+  <meta name="description" content="Customize pinned statistics cards, compare periods, and understand the hub&#x27;s available metrics.">
+  <title>Read and customize the Statistics hub | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/user-guide/statistics/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -15,8 +15,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Read the Statistics hub | Train Libre">
-  <meta property="og:description" content="Navigate the Statistics hub and understand its sections and date ranges.">
+  <meta property="og:title" content="Read and customize the Statistics hub | Train Libre">
+  <meta property="og:description" content="Customize pinned statistics cards, compare periods, and understand the hub&#x27;s available metrics.">
   <meta property="og:url" content="https://trainlibre.com/docs/user-guide/statistics/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -150,6 +150,7 @@
 <li><a href="../importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
 <li><a href="../prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
 <li><a href="../exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
+<li><a href="../sharing-and-ai/index.html" class="sidebar-link">Share Train Libre data with an AI assistant</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
 <li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
@@ -169,27 +170,38 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Read the Statistics hub</h1>
-<p>Use the <strong>Statistics</strong> hub to scan your workout, body, nutrition, and enabled health summaries, then open a card for more detail.</p>
-<h2 id="choose-a-period" class="doc-h2">Choose a period<a href="#choose-a-period" class="header-anchor" aria-label="Link to section">#</a></h2>
+          <h1 class="doc-title">Read and customize the Statistics hub</h1>
+<p>Use <strong>Statistics</strong> to review activity, recovery, body, training, and nutrition. Choose which cards appear first, reorder them, or open the all-data view to see every available statistic, including cards with no records yet.</p>
+<h2 id="choose-and-arrange-statistics" class="doc-h2">Choose and arrange statistics<a href="#choose-and-arrange-statistics" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ol class="doc-list">
 <li>Open <strong>Statistics</strong>. The hub starts with <strong>7D</strong> selected.</li>
-<li>Choose <strong>7D</strong>, <strong>1M</strong>, <strong>3M</strong>, <strong>6M</strong>, <strong>1Y</strong>, or <strong>MAX</strong>. This changes the period shown by the hub cards that follow the selected range.</li>
+<li>Tap the sliders button in the top bar to open <strong>Edit Statistics</strong>.</li>
+<li>In <strong>Pinned</strong>, drag the handle beside a card to change its order. Tap the minus button to remove a card from the hub.</li>
+<li>Under <strong>More Statistics</strong>, choose a card from its category to add it to <strong>Pinned</strong>. Your selection and order are saved automatically. Tap <strong>Done</strong> when you finish.</li>
+<li>Back in the hub, scroll to <strong>Show All Data</strong> to open every card grouped by category, even when it has no data. This view does not change your pinned selection.</li>
+</ol>
+<h2 id="choose-a-period" class="doc-h2">Choose a period<a href="#choose-a-period" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ol class="doc-list">
+<li>Choose <strong>7D</strong>, <strong>1M</strong>, <strong>3M</strong>, <strong>6M</strong>, <strong>1Y</strong>, or <strong>MAX</strong> in the hub. Cards that use the hub period update to that selection.</li>
 <li>For a period other than <strong>MAX</strong>, use the arrows beside the date label to move backward or forward. Tap the date label to choose a date and either a rolling period or a calendar period. The date picker starts at 2020. Forward navigation stops at the current period.</li>
 <li>Tap a card to open its detail screen. Check that screen’s date controls: several detail views have their own period and do not follow the hub selection.</li>
 </ol>
 <p><strong>MAX</strong> shows the available history for that view and has no date navigation. A detail screen may offer different ranges from the hub.</p>
-<h2 id="scan-the-sections-and-cards" class="doc-h2">Scan the sections and cards<a href="#scan-the-sections-and-cards" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h2 id="available-cards" class="doc-h2">Available cards<a href="#available-cards" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Cards are grouped under <strong>Activity</strong>, <strong>Recovery</strong>, <strong>Body</strong>, <strong>Training</strong>, and <strong>Nutrition</strong> in <strong>Edit Statistics</strong> and <strong>Show All Data</strong>. The hub can show these cards:</p>
 <ul class="doc-list">
-<li><strong>Steps</strong> appears when step tracking is enabled. Its card shows the selected-period label and step count. With <strong>7D</strong> selected, the large count is for <strong>Today</strong>; with another hub range selected, it is <strong>Total steps</strong> for that range. Tap the card to open <strong>Steps</strong>, which starts at today’s <strong>Day</strong> view regardless of the hub range. See <a href="../health-data/index.html#find-imported-data">steps and health data</a>.</li>
-<li><strong>Recovery</strong> appears when sleep or pulse tracking is enabled. It contains <strong>Sleep score</strong> and/or <strong>Pulse</strong>, depending on which tracking options are on. These cards show the hub period label, but tapping opens the current day in the separate Sleep or Pulse view. See <a href="../health-data/index.html#find-imported-data">steps, sleep, and pulse</a>.</li>
-<li><strong>Body</strong> contains <strong>Body & Nutrition</strong> and the <strong>Body measurements</strong> shortcut. The summary card follows the hub’s selected period and opens its own detail view with that period selected. The shortcut opens <strong>Measurements</strong>, which has a separate date range. See <a href="../body-nutrition-statistics/index.html">Body & Nutrition statistics</a> and <a href="../measurements/index.html">record body measurements</a>.</li>
-<li><strong>Training</strong> contains <strong>Training Rhythm</strong>, <strong>New Personal Bests</strong>, and <strong>Muscle Groups</strong>. Their hub summaries do not all use the selected range: Training Rhythm shows <strong>Last 6 weeks</strong>, and Muscle Groups shows <strong>Last 8 weeks</strong>. <strong>New Personal Bests</strong> follows the selected range. Tap a card for its detail screen; the ranges and controls differ by screen. See <a href="../training-statistics/index.html">training statistics</a>.</li>
-<li><strong>Nutrition</strong> shows a macronutrient summary for the selected hub period. Tap it to open the Nutrition detail view, which has its own range controls. See <a href="../body-nutrition-statistics/index.html">Body & Nutrition statistics</a> and <a href="../../features/macro-analytics/index.html">Macronutrient Analytics</a>.</li>
+<li><strong>Activity:</strong> <strong>Steps</strong> appears when step tracking is enabled. With <strong>7D</strong> selected, its large count is for <strong>Today</strong>; with another hub range selected, it is <strong>Total steps</strong> for that range. Tapping it opens <strong>Steps</strong> at today’s <strong>Day</strong> view. See <a href="../health-data/index.html#find-imported-data">steps and health data</a>.</li>
+<li><strong>Recovery:</strong> <strong>Sleep score</strong>, <strong>Pulse</strong>, and <strong>Muscle Readiness</strong>. Sleep and pulse depend on their tracking options. The sleep and pulse cards open their detail views at today; Muscle Readiness opens the recovery tracker. See <a href="../health-data/index.html#find-imported-data">steps, sleep, and pulse</a> and <a href="../training-statistics/index.html">training statistics</a>.</li>
+<li><strong>Body:</strong> <strong>Body & Nutrition</strong> follows the selected hub period and opens a detail view with that period selected. <strong>Body measurements</strong> is a shortcut to Measurements, which has its own date range. See <a href="../body-nutrition-statistics/index.html">Body & Nutrition statistics</a> and <a href="../measurements/index.html">record body measurements</a>.</li>
+<li><strong>Training:</strong> <strong>Training Rhythm</strong>, <strong>New Personal Bests</strong>, and <strong>Muscle Groups</strong>. The hub summary for Training Rhythm is fixed to <strong>Last 6 weeks</strong>, and Muscle Groups to <strong>Last 8 weeks</strong>. New Personal Bests follows the selected hub period. Their detail screens have separate date controls. See <a href="../training-statistics/index.html">training statistics</a>.</li>
+<li><strong>Nutrition:</strong> <strong>Nutrition</strong> summarizes calories and macronutrients; <strong>Water</strong> summarizes logged fluid; <strong>Micronutrients</strong> summarizes vitamins, minerals, and other nutrients from BLS catalog foods logged in the Diary. These cards use the selected hub period and open their own detail views. See <a href="../body-nutrition-statistics/index.html">Body & Nutrition statistics</a>, <a href="#review-micronutrients">micronutrients</a>, and <a href="../water-and-drinks/index.html">log water and drinks</a>.</li>
 </ul>
+<h2 id="review-micronutrients" class="doc-h2">Review micronutrients<a href="#review-micronutrients" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Add <strong>Micronutrients</strong> from <strong>Edit Statistics</strong> if it is not already pinned, then tap its card. Choose <strong>1D</strong>, <strong>7D</strong>, <strong>1M</strong>, <strong>3M</strong>, <strong>6M</strong>, <strong>1Y</strong>, or <strong>MAX</strong> in the detail view. Use the arrows to move between periods or tap the date label to select a day. The summary shows averages per logged day for multi-day periods, the number of days with BLS foods, and the number of BLS food entries. Nutrients are grouped by type; each row includes its unit and the number of days with a recorded value. Tap the share icon to share the displayed summary as text.</p>
+<p>Only foods from the BLS catalog are included in these calculations. Other catalog foods, branded products, and custom foods do not contribute, even if they contain nutrient values. A period with no logged BLS foods shows an empty-state message. Nutrient details are unavailable until the BLS catalog is installed; see <a href="../food-catalogs/index.html#update-the-databases-manually">food catalog settings</a> to update databases. The displayed averages describe logged days and are not a complete estimate of every day in the selected period.</p>
 <h2 id="when-a-card-has-little-or-no-data" class="doc-h2">When a card has little or no data<a href="#when-a-card-has-little-or-no-data" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Some cards depend on tracking being enabled; others need recorded workouts, body measurements, or Diary entries. A card with no data can show an empty overlay over a faint example layout. Treat only unobscured values as your records. If an enabled health card is empty, check its access and tracking settings in <a href="../health-data/index.html#connect-a-health-source">Health settings</a>. If a workout or nutrition card is empty, log the relevant data and revisit Statistics.</p>
-<p>The hub is a summary. For individual charts, confirm the displayed period and units on the detail screen before comparing values.</p>
+<p>Some cards depend on tracking being enabled; others need recorded workouts, body measurements, or Diary entries. In the regular hub, cards can show an empty overlay over a faint example layout. Treat only unobscured values as your records. <strong>Show All Data</strong> keeps every statistic visible so you can find a card before it has records. If an enabled health card is empty, check its access and tracking settings in <a href="../health-data/index.html#connect-a-health-source">Health settings</a>. If a workout or nutrition card is empty, log the relevant data and revisit Statistics.</p>
+<p>The hub is a summary. For individual charts, confirm the displayed period and units on the detail screen before comparing values. To share selected records or summaries with another app, including an AI assistant, see <a href="../sharing-and-ai/index.html">Share Train Libre data with an AI assistant</a>.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -200,8 +212,10 @@
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#choose-and-arrange-statistics">Choose and arrange statistics</a></li>
 <li class="toc-item toc-item-l2"><a href="#choose-a-period">Choose a period</a></li>
-<li class="toc-item toc-item-l2"><a href="#scan-the-sections-and-cards">Scan the sections and cards</a></li>
+<li class="toc-item toc-item-l2"><a href="#available-cards">Available cards</a></li>
+<li class="toc-item toc-item-l2"><a href="#review-micronutrients">Review micronutrients</a></li>
 <li class="toc-item toc-item-l2"><a href="#when-a-card-has-little-or-no-data">When a card has little or no data</a></li>
 </ul></div></aside>
     </div>

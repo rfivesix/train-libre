@@ -150,6 +150,7 @@
 <li><a href="../importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
 <li><a href="../prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
 <li><a href="../exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
+<li><a href="../sharing-and-ai/index.html" class="sidebar-link">Share Train Libre data with an AI assistant</a></li>
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
 <li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
@@ -185,6 +186,7 @@
 <li><strong>Target date guidance</strong> schedules a reminder seven days before an active goal's target date and another on the target date, both at 9:00 a.m. local time. A reminder is only scheduled if its date is still in the future.</li>
 <li>When a workout rest timer ends, Train Libre shows a <strong>Rest finished</strong> notification. There is no separate rest-timer notification switch in <strong>Notifications</strong>; use the rest timer in a workout as usual.</li>
 </ul>
+<p>Train Libre preloads weekly goal-review reminders for the next eight check-in dates on the device. iOS can deliver these while the app is closed. The review details are calculated from the app's local data when Train Libre is opened; without a server, the app cannot recalculate them while it is closed. If you change a goal or its reminder setting, the queue is refreshed the next time that change is saved in the app.</p>
 <h2 id="allow-notifications-on-your-device" class="doc-h2">Allow notifications on your device<a href="#allow-notifications-on-your-device" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>Train Libre's switches control individual reminders inside the app. Your operating system also controls whether Train Libre may display notifications. If workout reminders cannot be enabled, or reminders do not appear, allow notifications for Train Libre in your device's system settings. The app requests notification permission, but a denied system permission can prevent notifications even when an in-app option is on.</p>
 <p>Goal and review reminder switches do not prompt for permission themselves. Weekly reviews that become available while their reminder is off or system notifications are denied are not sent later if you turn notifications on; the setting applies to future reviews. Device settings also control lock-screen previews and quiet hours.</p>
