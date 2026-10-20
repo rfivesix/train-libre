@@ -386,6 +386,7 @@ class ExportManager {
     final sheets = <WorkbookTableDto>[];
 
     for (final spec in _completeWorkbookTables) {
+      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(spec.tableName)) continue;
       final query = spec.query ?? 'SELECT * FROM ${spec.tableName}';
       final rows = await dbInst.customSelect(query).get();
       final pragmaRows = await dbInst
