@@ -152,8 +152,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.aiMealCapture));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.aiMealCapture,
+      ),
+    );
     WidgetsBinding.instance.addObserver(this);
     _checkDbStatus();
     unawaited(_prepareCamera());
@@ -166,8 +169,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final tourCompleted =
-          await AiMealCaptureTourService.instance.isTourCompleted();
+      final tourCompleted = await AiMealCaptureTourService.instance
+          .isTourCompleted();
       if (!tourCompleted && mounted) {
         _startTour();
       }
@@ -310,8 +313,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized = await BasisDataManager.instance
+        .isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -346,8 +349,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
 
     _barcodeSubscription?.cancel();
-    _barcodeSubscription =
-        DepthScanChannel.instance.barcodes.listen(_onBarcodeDetected);
+    _barcodeSubscription = DepthScanChannel.instance.barcodes.listen(
+      _onBarcodeDetected,
+    );
   }
 
   Future<void> _onBarcodeDetected(String code) async {
@@ -361,8 +365,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     });
 
     try {
-      final item =
-          await ProductLocalDataSource.instance.getProductByBarcode(code);
+      final item = await ProductLocalDataSource.instance.getProductByBarcode(
+        code,
+      );
       if (item != null && mounted && _detectedBarcode == code) {
         setState(() => _detectedProduct = item);
       }
@@ -381,7 +386,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (code == null || _isLoggingBarcode) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final product = _detectedProduct ??
+    final product =
+        _detectedProduct ??
         await ProductLocalDataSource.instance.getProductByBarcode(code);
     if (!mounted) return;
 
@@ -403,14 +409,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         context,
         product,
         initialDate: widget.initialDate,
-        initialMealType: widget.initialMealType ??
+        initialMealType:
+            widget.initialMealType ??
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey,
         telemetrySource: 'ai_meal_capture_barcode',
       );
       if (!mounted) return;
       if (logged) {
-        unawaited(TelemetryService.instance
-            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        unawaited(
+          TelemetryService.instance.trackFeatureUsed(
+            featureKey: FeatureKey.barcodeScanned,
+          ),
+        );
         Navigator.of(context).pop(true);
         return;
       }
@@ -444,11 +454,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     _qrController = controller;
-    controller.getFlashStatus().then((status) {
-      if (mounted && status != null) {
-        setState(() => _isFlashOn = status);
-      }
-    }).catchError((_) {});
+    controller
+        .getFlashStatus()
+        .then((status) {
+          if (mounted && status != null) {
+            setState(() => _isFlashOn = status);
+          }
+        })
+        .catchError((_) {});
     controller.scannedDataStream.listen((scanData) async {
       final code = scanData.code;
       if (!_barcodeDetectionEnabled || !mounted) return;
@@ -461,8 +474,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
         // Lookup product name asynchronously in background
         try {
-          final item =
-              await ProductLocalDataSource.instance.getProductByBarcode(code);
+          final item = await ProductLocalDataSource.instance
+              .getProductByBarcode(code);
           if (item != null && mounted && _detectedBarcode == code) {
             setState(() {
               _detectedProduct = item;
@@ -548,20 +561,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           _lastDepthCapture = capture;
           _depthCaptures[capture.imageFile.path] = capture;
           _images.add(capture.imageFile);
-          _distanceHint =
-              _distanceHintFor(AppLocalizations.of(context)!, capture);
+          _distanceHint = _distanceHintFor(
+            AppLocalizations.of(context)!,
+            capture,
+          );
         });
         if (capture.scaleFacts?.isValid == true ||
             capture.depthBuffer != null) {
-          unawaited(TelemetryService.instance
-              .trackFeatureUsed(featureKey: FeatureKey.lidarDepthCaptured));
+          unawaited(
+            TelemetryService.instance.trackFeatureUsed(
+              featureKey: FeatureKey.lidarDepthCaptured,
+            ),
+          );
         }
         _preProcessor.processImages([capture.imageFile]);
         return;
       }
       if (!mounted) return;
-      debugPrint('[AiMealCapture] native capture unavailable, '
-          'falling back to the system camera without depth');
+      debugPrint(
+        '[AiMealCapture] native capture unavailable, '
+        'falling back to the system camera without depth',
+      );
     }
 
     // Fallback: Camera image picker
@@ -588,8 +608,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         maxWidth: 1440,
       );
       if (picked.isNotEmpty && mounted) {
-        final newFiles =
-            picked.take(remaining).map((x) => File(x.path)).toList();
+        final newFiles = picked
+            .take(remaining)
+            .map((x) => File(x.path))
+            .toList();
         setState(() {
           _images.addAll(newFiles);
         });
@@ -631,17 +653,23 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final startedAt = DateTime.now();
     final requestId = const Uuid().v4();
     final scanLog = AiMealScanLogService.instance;
-    final usageCollector = AiUsageCollector(onRequestCompleted: (report) {
-      unawaited(scanLog.event(
-          requestId, AiMealScanLogStage.providerUsageReported,
-          elapsedMilliseconds: stopwatch.elapsedMilliseconds,
-          durationMilliseconds: report.durationMilliseconds,
-          callIndex: report.requestIndex,
-          inputTokens: report.usage?.inputTokens,
-          outputTokens: report.usage?.outputTokens,
-          totalTokens: report.usage?.totalTokens,
-          usageComplete: report.usage?.isComplete ?? false));
-    });
+    final usageCollector = AiUsageCollector(
+      onRequestCompleted: (report) {
+        unawaited(
+          scanLog.event(
+            requestId,
+            AiMealScanLogStage.providerUsageReported,
+            elapsedMilliseconds: stopwatch.elapsedMilliseconds,
+            durationMilliseconds: report.durationMilliseconds,
+            callIndex: report.requestIndex,
+            inputTokens: report.usage?.inputTokens,
+            outputTokens: report.usage?.outputTokens,
+            totalTokens: report.usage?.totalTokens,
+            usageComplete: report.usage?.isComplete ?? false,
+          ),
+        );
+      },
+    );
     var completionScheduled = false;
     var requestedSent = false;
     var provider = 'unknown';
@@ -666,27 +694,36 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final inputMode = hasImages && hasText
         ? 'multimodal'
         : (hasImages ? 'photo' : 'text_only');
-    unawaited(scanLog.start(
-      id: requestId,
-      provider: provider,
-      inputMode: inputMode,
-      photoCount: _images.length,
-      startedAt: startedAt,
-    ));
-    unawaited(scanLog.event(requestId, AiMealScanLogStage.requested,
-        elapsedMilliseconds: 0));
-    void sendRequested() {
-      if (requestedSent) return;
-      requestedSent = true;
-      unawaited(TelemetryService.instance.trackAiMealScanRequested(
-        requestId: requestId,
+    unawaited(
+      scanLog.start(
+        id: requestId,
         provider: provider,
         inputMode: inputMode,
         photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+        startedAt: startedAt,
+      ),
+    );
+    unawaited(
+      scanLog.event(
+        requestId,
+        AiMealScanLogStage.requested,
+        elapsedMilliseconds: 0,
+      ),
+    );
+    void sendRequested() {
+      if (requestedSent) return;
+      requestedSent = true;
+      unawaited(
+        TelemetryService.instance.trackAiMealScanRequested(
+          requestId: requestId,
+          provider: provider,
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
     }
 
     var usageScheduled = false;
@@ -695,22 +732,26 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       usageScheduled = true;
       unawaited(() async {
         await usageCollector.whenIdle;
-        await scanLog.usage(requestId,
-            calls: usageCollector.requestCount,
-            inputTokens: usageCollector.inputTokens,
-            outputTokens: usageCollector.outputTokens,
-            totalTokens: usageCollector.totalTokens,
-            complete: usageCollector.usageComplete);
-        await TelemetryService.instance
-            .track('ai_meal_scan_usage', properties: {
-          'request_id': requestId,
-          'provider': provider,
-          'input_tokens': usageCollector.inputTokens,
-          'output_tokens': usageCollector.outputTokens,
-          'total_tokens': usageCollector.totalTokens,
-          'usage_complete': usageCollector.usageComplete,
-          'provider_calls_count': usageCollector.requestCount,
-        });
+        await scanLog.usage(
+          requestId,
+          calls: usageCollector.requestCount,
+          inputTokens: usageCollector.inputTokens,
+          outputTokens: usageCollector.outputTokens,
+          totalTokens: usageCollector.totalTokens,
+          complete: usageCollector.usageComplete,
+        );
+        await TelemetryService.instance.track(
+          'ai_meal_scan_usage',
+          properties: {
+            'request_id': requestId,
+            'provider': provider,
+            'input_tokens': usageCollector.inputTokens,
+            'output_tokens': usageCollector.outputTokens,
+            'total_tokens': usageCollector.totalTokens,
+            'usage_complete': usageCollector.usageComplete,
+            'provider_calls_count': usageCollector.requestCount,
+          },
+        );
       }());
     }
 
@@ -724,8 +765,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final controller = MealAnalysisController();
     _analysisController?.dispose();
     _analysisController = controller;
-    final sourceRect =
-        MealAnalysisMorphRoute.measureRect(_keyAnalyze.currentContext);
+    final sourceRect = MealAnalysisMorphRoute.measureRect(
+      _keyAnalyze.currentContext,
+    );
     _analysisRoute = MealAnalysisScreen.route(
       controller: controller,
       sourceContext: _keyAnalyze.currentContext,
@@ -736,23 +778,29 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         if (!completionScheduled) {
           completionScheduled = true;
           stopwatch.stop();
-          unawaited(scanLog.finish(requestId,
+          unawaited(
+            scanLog.finish(
+              requestId,
               result: AiMealScanLogResult.cancelled,
-              durationMilliseconds: stopwatch.elapsedMilliseconds));
+              durationMilliseconds: stopwatch.elapsedMilliseconds,
+            ),
+          );
           sendRequested();
           scheduleUsage();
-          unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-            requestId: requestId,
-            provider: provider,
-            durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-            success: false,
-            errorCode: 'cancelled',
-            inputMode: inputMode,
-            photoCount: _images.length,
-            hasLidar: hasLidar,
-            hasVoiceInput: hasVoice,
-            hasTextInput: hasText,
-          ));
+          unawaited(
+            TelemetryService.instance.trackAiMealScanCompleted(
+              requestId: requestId,
+              provider: provider,
+              durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+              success: false,
+              errorCode: 'cancelled',
+              inputMode: inputMode,
+              photoCount: _images.length,
+              hasLidar: hasLidar,
+              hasVoiceInput: hasVoice,
+              hasTextInput: hasText,
+            ),
+          );
         }
         _stopAiWaitingHaptics();
         _dismissAnalysisScreen();
@@ -773,8 +821,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       unawaited(scanLog.setProvider(requestId, provider));
       unawaited(() async {
         try {
-          final model =
-              await AiService.instance.getSelectedModel(selectedProvider);
+          final model = await AiService.instance.getSelectedModel(
+            selectedProvider,
+          );
           await scanLog.setModel(requestId, model);
         } catch (_) {
           // Diagnostic metadata must not affect the scan.
@@ -799,10 +848,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       // Switchable so the same meal can be shot with and without the hint;
       // otherwise there is no way to tell whether the measurement helps.
-      final scaleHintEnabled =
-          await DepthScanSettings.instance.isScaleHintEnabled();
-      final depthFacts =
-          scaleHintEnabled ? _lastDepthCapture?.scaleFacts : null;
+      final scaleHintEnabled = await DepthScanSettings.instance
+          .isScaleHintEnabled();
+      final depthFacts = scaleHintEnabled
+          ? _lastDepthCapture?.scaleFacts
+          : null;
 
       // The relief of the meal, as a second image. Rendered here rather than kept
       // around: the band scale is fitted to the frame, so it only exists once the
@@ -815,17 +865,26 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       final preparationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
       final runBaseMilliseconds = stopwatch.elapsedMilliseconds;
-      unawaited(scanLog.event(requestId, AiMealScanLogStage.preparationFinished,
+      unawaited(
+        scanLog.event(
+          requestId,
+          AiMealScanLogStage.preparationFinished,
           elapsedMilliseconds: runBaseMilliseconds,
-          durationMilliseconds: runBaseMilliseconds));
+          durationMilliseconds: runBaseMilliseconds,
+        ),
+      );
       final fastMode = await AiService.instance.isFastModeEnabled();
       final cloudProvider = provider != 'ollama' && provider != 'custom';
       final engine = AiMealValidationEngine();
       final validationCompleter = Completer<AiValidationResult>();
       pendingValidation = validationCompleter;
       // The route may not have built yet when a fast validation fails.
-      unawaited(validationCompleter.future
-          .then<void>((_) {}, onError: (Object _, StackTrace __) {}));
+      unawaited(
+        validationCompleter.future.then<void>(
+          (_) {},
+          onError: (Object _, StackTrace __) {},
+        ),
+      );
       final progressiveValidation = ValueNotifier<AiValidationResult?>(null);
       final savedCompleter = Completer<bool?>();
       int revealStartedMilliseconds = 0;
@@ -853,7 +912,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         controller.isFinished.value = true;
 
         final detectedType = _detectMealTypeFromText(text);
-        final resolvedMealType = widget.initialMealType ??
+        final resolvedMealType =
+            widget.initialMealType ??
             detectedType ??
             MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
@@ -875,8 +935,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 )
                 .toList(growable: false),
             initialValidation: validation,
-            validationFuture:
-                validation == null ? validationCompleter.future : null,
+            validationFuture: validation == null
+                ? validationCompleter.future
+                : null,
             progressiveValidation: progressiveValidation,
             mealContext: mealContext,
             originalImages: _images,
@@ -895,13 +956,15 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _analysisRoute = null;
         revealStartedMilliseconds = stopwatch.elapsedMilliseconds;
         final navFuture = Navigator.of(context).push<bool>(reviewRoute);
-        navFuture.then((v) {
-          if (!savedCompleter.isCompleted) savedCompleter.complete(v);
-        }).catchError((e, s) {
-          if (!savedCompleter.isCompleted) {
-            savedCompleter.completeError(e, s);
-          }
-        });
+        navFuture
+            .then((v) {
+              if (!savedCompleter.isCompleted) savedCompleter.complete(v);
+            })
+            .catchError((e, s) {
+              if (!savedCompleter.isCompleted) {
+                savedCompleter.completeError(e, s);
+              }
+            });
         if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
           Navigator.of(context).removeRoute(oldAnalysisRoute);
         }
@@ -914,8 +977,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           if (!reviewVisibleCompleter.isCompleted) {
             reviewVisibleCompleter.complete();
           }
-          unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewVisible,
-              elapsedMilliseconds: durationMilliseconds));
+          unawaited(
+            scanLog.event(
+              requestId,
+              AiMealScanLogStage.reviewVisible,
+              elapsedMilliseconds: durationMilliseconds,
+            ),
+          );
         });
       }
 
@@ -923,10 +991,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         fastMode: fastMode && cloudProvider,
         isCancelled: () => _analysisCancelled || !mounted,
         onCandidateReady: (candidate) {
-          unawaited(navigateToReview(
-            items: candidate.items,
-            mealContext: candidate.context,
-          ));
+          unawaited(
+            navigateToReview(
+              items: candidate.items,
+              mealContext: candidate.context,
+            ),
+          );
         },
         onValidationReady: (validation, _) {
           if (!reviewNavigated || !mounted) return;
@@ -936,9 +1006,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           progressiveValidation.value = validation;
           if (preliminaryNutritionMilliseconds == null) {
             preliminaryNutritionMilliseconds = stopwatch.elapsedMilliseconds;
-            unawaited(scanLog.event(
-                requestId, AiMealScanLogStage.preliminaryNutritionReady,
-                elapsedMilliseconds: preliminaryNutritionMilliseconds!));
+            unawaited(
+              scanLog.event(
+                requestId,
+                AiMealScanLogStage.preliminaryNutritionReady,
+                elapsedMilliseconds: preliminaryNutritionMilliseconds!,
+              ),
+            );
           }
         },
         onValidating: () {
@@ -948,22 +1022,32 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             controller.value = MealAnalysisPhase.matching;
           }
         },
-        onProgress: (stage, elapsedMilliseconds,
-            {durationMilliseconds,
-            result,
-            round,
-            candidate,
-            validationScore,
-            issueCategories}) {
-          unawaited(scanLog.event(requestId, stage,
-              elapsedMilliseconds: runBaseMilliseconds + elapsedMilliseconds,
-              durationMilliseconds: durationMilliseconds,
-              result: result,
-              round: round,
-              candidate: candidate,
-              validationScore: validationScore,
-              issueCategories: issueCategories));
-        },
+        onProgress:
+            (
+              stage,
+              elapsedMilliseconds, {
+              durationMilliseconds,
+              result,
+              round,
+              candidate,
+              validationScore,
+              issueCategories,
+            }) {
+              unawaited(
+                scanLog.event(
+                  requestId,
+                  stage,
+                  elapsedMilliseconds:
+                      runBaseMilliseconds + elapsedMilliseconds,
+                  durationMilliseconds: durationMilliseconds,
+                  result: result,
+                  round: round,
+                  candidate: candidate,
+                  validationScore: validationScore,
+                  issueCategories: issueCategories,
+                ),
+              );
+            },
         analyze: () => _images.isNotEmpty
             ? AiService.instance.analyzeImages(
                 _images,
@@ -996,8 +1080,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         validationCompleter.complete(validationOutcome.validation);
       }
       final readyMilliseconds = stopwatch.elapsedMilliseconds;
-      unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewReady,
-          elapsedMilliseconds: readyMilliseconds));
+      unawaited(
+        scanLog.event(
+          requestId,
+          AiMealScanLogStage.reviewReady,
+          elapsedMilliseconds: readyMilliseconds,
+        ),
+      );
       if (!reviewNavigated) {
         await navigateToReview(
           items: validationOutcome.validation.candidate.items,
@@ -1012,7 +1101,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (_analysisCancelled) return;
 
       final itemCountBucket = TelemetryBuckets.getItemCountBucket(
-          validationOutcome.validation.candidate.items.length);
+        validationOutcome.validation.candidate.items.length,
+      );
 
       final durationSeconds = (readyMilliseconds / 1000).round();
       final durationMilliseconds = readyMilliseconds;
@@ -1021,8 +1111,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           : (reviewVisibleMilliseconds! / 1000).round();
       final preliminaryNutritionSeconds =
           preliminaryNutritionMilliseconds == null
-              ? null
-              : (preliminaryNutritionMilliseconds! / 1000).round();
+          ? null
+          : (preliminaryNutritionMilliseconds! / 1000).round();
       final revealSeconds = revealDurationMilliseconds == null
           ? null
           : (revealDurationMilliseconds! / 1000).round();
@@ -1032,16 +1122,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         final validationRuns = await runResult.validationRunsTotalCount;
         final providerSeconds = await runResult.providerSeconds;
         final validationSeconds = await runResult.validationSeconds;
-        await scanLog.finish(requestId,
-            result: validationOutcome.validation.passed
-                ? AiMealScanLogResult.accepted
-                : AiMealScanLogResult.needsRepair,
-            durationMilliseconds: durationMilliseconds,
-            selectedValidationRounds: validationOutcome.validationRunsCount,
-            totalValidationRuns: validationRuns,
-            repairRounds: validationOutcome.repairPassesUsed,
-            primaryFirstPassAccepted: firstPass,
-            hedgeStarted: runResult.hedgeStarted);
+        await scanLog.finish(
+          requestId,
+          result: validationOutcome.validation.passed
+              ? AiMealScanLogResult.accepted
+              : AiMealScanLogResult.needsRepair,
+          durationMilliseconds: durationMilliseconds,
+          selectedValidationRounds: validationOutcome.validationRunsCount,
+          totalValidationRuns: validationRuns,
+          repairRounds: validationOutcome.repairPassesUsed,
+          primaryFirstPassAccepted: firstPass,
+          hedgeStarted: runResult.hedgeStarted,
+        );
         await TelemetryService.instance.trackAiMealScanCompleted(
           requestId: requestId,
           provider: provider,
@@ -1083,29 +1175,35 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
-      unawaited(scanLog.finish(requestId,
+      unawaited(
+        scanLog.finish(
+          requestId,
           result: AiMealScanLogResult.failed,
-          durationMilliseconds: stopwatch.elapsedMilliseconds));
+          durationMilliseconds: stopwatch.elapsedMilliseconds,
+        ),
+      );
       completionScheduled = true;
       sendRequested();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-        reviewVisibleSeconds: reviewVisibleMilliseconds == null
-            ? null
-            : (reviewVisibleMilliseconds! / 1000).round(),
-        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
-            ? null
-            : (preliminaryNutritionMilliseconds! / 1000).round(),
-        success: false,
-        errorCode: 'key_missing',
-        inputMode: inputMode,
-        photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+      unawaited(
+        TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          reviewVisibleSeconds: reviewVisibleMilliseconds == null
+              ? null
+              : (reviewVisibleMilliseconds! / 1000).round(),
+          preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round(),
+          success: false,
+          errorCode: 'key_missing',
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
       _dismissAnalysisScreen();
       if (!mounted) return;
       if (!reviewNavigated) _showKeyMissingDialog();
@@ -1113,29 +1211,35 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
-      unawaited(scanLog.finish(requestId,
+      unawaited(
+        scanLog.finish(
+          requestId,
           result: AiMealScanLogResult.failed,
-          durationMilliseconds: stopwatch.elapsedMilliseconds));
+          durationMilliseconds: stopwatch.elapsedMilliseconds,
+        ),
+      );
       completionScheduled = true;
       sendRequested();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-        reviewVisibleSeconds: reviewVisibleMilliseconds == null
-            ? null
-            : (reviewVisibleMilliseconds! / 1000).round(),
-        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
-            ? null
-            : (preliminaryNutritionMilliseconds! / 1000).round(),
-        success: false,
-        errorCode: aiServiceErrorCode(e),
-        inputMode: inputMode,
-        photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+      unawaited(
+        TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          reviewVisibleSeconds: reviewVisibleMilliseconds == null
+              ? null
+              : (reviewVisibleMilliseconds! / 1000).round(),
+          preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round(),
+          success: false,
+          errorCode: aiServiceErrorCode(e),
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
       _dismissAnalysisScreen();
       if (!mounted) return;
       if (!reviewNavigated) {
@@ -1151,29 +1255,35 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
-      unawaited(scanLog.finish(requestId,
+      unawaited(
+        scanLog.finish(
+          requestId,
           result: AiMealScanLogResult.failed,
-          durationMilliseconds: stopwatch.elapsedMilliseconds));
+          durationMilliseconds: stopwatch.elapsedMilliseconds,
+        ),
+      );
       completionScheduled = true;
       sendRequested();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-        reviewVisibleSeconds: reviewVisibleMilliseconds == null
-            ? null
-            : (reviewVisibleMilliseconds! / 1000).round(),
-        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
-            ? null
-            : (preliminaryNutritionMilliseconds! / 1000).round(),
-        success: false,
-        errorCode: 'unexpected',
-        inputMode: inputMode,
-        photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-      ));
+      unawaited(
+        TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          reviewVisibleSeconds: reviewVisibleMilliseconds == null
+              ? null
+              : (reviewVisibleMilliseconds! / 1000).round(),
+          preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round(),
+          success: false,
+          errorCode: 'unexpected',
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+        ),
+      );
       _dismissAnalysisScreen();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
@@ -1190,14 +1300,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       sendRequested();
       scheduleUsage();
       if (!completionScheduled) {
-        unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-          requestId: requestId,
-          provider: provider,
-          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
-          success: false,
-          errorCode: 'cancelled',
-          inputMode: inputMode,
-        ));
+        unawaited(
+          TelemetryService.instance.trackAiMealScanCompleted(
+            requestId: requestId,
+            provider: provider,
+            durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+            success: false,
+            errorCode: 'cancelled',
+            inputMode: inputMode,
+          ),
+        );
       }
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
@@ -1220,10 +1332,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       contentBuilder: (ctx, close) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            l10n.aiErrorNoKey,
-            textAlign: TextAlign.center,
-          ),
+          Text(l10n.aiErrorNoKey, textAlign: TextAlign.center),
           const SizedBox(height: DesignConstants.spacingM),
           Row(
             children: [
@@ -1241,7 +1350,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     Navigator.of(ctx).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => const AiSettingsScreen()),
+                        builder: (_) => const AiSettingsScreen(),
+                      ),
                     );
                   },
                   label: l10n.aiSettingsTitle,
@@ -1307,8 +1417,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               child: Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.18)
@@ -1373,12 +1485,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                               child: Center(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 6),
+                                    horizontal: 14,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withValues(alpha: 0.65),
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
-                                        color: Colors.white24, width: 1),
+                                      color: Colors.white24,
+                                      width: 1,
+                                    ),
                                   ),
                                   child: Text(
                                     _distanceHint!,
@@ -1429,18 +1545,33 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   Positioned(
                                     top: 2,
                                     right: 2,
-                                    child: GestureDetector(
-                                      onTap: () => _removeImage(idx),
-                                      child: Container(
-                                        width: 18,
-                                        height: 18,
-                                        alignment: Alignment.center,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xCC000000),
-                                          shape: BoxShape.circle,
+                                    child: Tooltip(
+                                      message: MaterialLocalizations.of(
+                                        context,
+                                      ).deleteButtonTooltip,
+                                      excludeFromSemantics: true,
+                                      child: Semantics(
+                                        button: true,
+                                        label: MaterialLocalizations.of(
+                                          context,
+                                        ).deleteButtonTooltip,
+                                        child: GestureDetector(
+                                          onTap: () => _removeImage(idx),
+                                          child: Container(
+                                            width: 18,
+                                            height: 18,
+                                            alignment: Alignment.center,
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xCC000000),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              LucideIcons.x,
+                                              size: 11,
+                                              color: Colors.white,
+                                            ),
+                                          ),
                                         ),
-                                        child: const Icon(LucideIcons.x,
-                                            size: 11, color: Colors.white),
                                       ),
                                     ),
                                   ),
@@ -1454,20 +1585,23 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       if (_showTextInput)
                         Padding(
                           padding: const EdgeInsets.only(
-                              bottom: DesignConstants.spacingS),
+                            bottom: DesignConstants.spacingS,
+                          ),
                           child: Container(
                             decoration: BoxDecoration(
                               color: isDark
                                   ? const Color(0xFF1E1E1E)
                                   : const Color(0xFFE8E8E0),
                               borderRadius: BorderRadius.circular(
-                                  DesignConstants.borderRadiusL),
+                                DesignConstants.borderRadiusL,
+                              ),
                               border: Border.all(
-                                  color:
-                                      isDark ? Colors.white12 : Colors.black12),
+                                color: isDark ? Colors.white12 : Colors.black12,
+                              ),
                             ),
                             padding: const EdgeInsets.only(
-                                left: DesignConstants.spacingL),
+                              left: DesignConstants.spacingL,
+                            ),
                             child: TextField(
                               controller: _textController,
                               onChanged: (_) => _textCameFromVoice = false,
@@ -1478,36 +1612,42 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                               textInputAction: TextInputAction.newline,
                               textCapitalization: TextCapitalization.sentences,
                               style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF12120F)),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF12120F),
+                              ),
                               decoration: InputDecoration(
                                 hintText: l10n.aiCaptureDescribeHint,
                                 hintStyle: TextStyle(
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.black45),
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black45,
+                                ),
                                 filled: false,
                                 isDense: true,
                                 contentPadding: const EdgeInsets.symmetric(
-                                    vertical: DesignConstants.spacingM),
+                                  vertical: DesignConstants.spacingM,
+                                ),
                                 border: InputBorder.none,
                                 enabledBorder: InputBorder.none,
                                 focusedBorder: InputBorder.none,
                                 suffixIconConstraints: const BoxConstraints(
-                                    minWidth: 44, minHeight: 44),
+                                  minWidth: 44,
+                                  minHeight: 44,
+                                ),
                                 suffixIcon: Align(
                                   alignment: Alignment.topCenter,
                                   widthFactor: 1,
                                   heightFactor: 1,
                                   child: IconButton(
                                     tooltip: l10n.doneButtonLabel,
-                                    icon: Icon(LucideIcons.check,
-                                        color: isDark
-                                            ? Colors.white
-                                                .withValues(alpha: 0.8)
-                                            : Colors.black87,
-                                        size: 18),
+                                    icon: Icon(
+                                      LucideIcons.check,
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.8)
+                                          : Colors.black87,
+                                      size: 18,
+                                    ),
                                     onPressed: () =>
                                         setState(() => _showTextInput = false),
                                   ),
@@ -1573,8 +1713,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                 border: Border.all(
                                   color: isDark
                                       ? Colors.white.withValues(alpha: 0.9)
-                                      : const Color(0xFF12120F)
-                                          .withValues(alpha: 0.8),
+                                      : const Color(
+                                          0xFF12120F,
+                                        ).withValues(alpha: 0.8),
                                   width: 3.5,
                                 ),
                               ),
@@ -1607,7 +1748,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                 _buildFrostedButton(
                                   key: _keyText,
                                   icon: LucideIcons.pencil,
-                                  isActive: _showTextInput ||
+                                  isActive:
+                                      _showTextInput ||
                                       _textController.text.isNotEmpty,
                                   tooltip: l10n.aiCaptureTabText,
                                   onTap: () {
@@ -1648,16 +1790,19 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(LucideIcons.sparkles,
-                                        size: 18,
-                                        color: isDark
-                                            ? const Color(0xFF12120F)
-                                            : Colors.white),
+                                    Icon(
+                                      LucideIcons.sparkles,
+                                      size: 18,
+                                      color: isDark
+                                          ? const Color(0xFF12120F)
+                                          : Colors.white,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       _images.isNotEmpty
                                           ? l10n.aiCaptureAnalyzeMeal(
-                                              _images.length)
+                                              _images.length,
+                                            )
                                           : l10n.aiCaptureAnalyzeText,
                                       style: TextStyle(
                                         fontFamily: 'Inter',
@@ -1769,8 +1914,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final overlayBox =
         _overlayKey.currentContext?.findRenderObject() as RenderBox?;
     if (overlayBox == null || !overlayBox.hasSize) return null;
-    final localTopLeft =
-        overlayBox.globalToLocal(renderBox.localToGlobal(Offset.zero));
+    final localTopLeft = overlayBox.globalToLocal(
+      renderBox.localToGlobal(Offset.zero),
+    );
     return localTopLeft & renderBox.size;
   }
 
@@ -1900,8 +2046,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               ),
               const SizedBox(width: 12),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: primaryAccent,
                   borderRadius: BorderRadius.circular(12),
@@ -1961,11 +2109,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 backgroundColor: DesignConstants.brandAccentColor,
                 foregroundColor: const Color(0xFF12120F),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               onPressed: openAppSettings,
-              child: Text(l10n.aiCaptureOpenSettings,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              child: Text(
+                l10n.aiCaptureOpenSettings,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ],
         ),
@@ -1975,7 +2126,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   Widget _buildBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final label = _detectedProduct?.name ??
+    final label =
+        _detectedProduct?.name ??
         l10n.aiCaptureBarcodeFallback(_detectedBarcode!);
 
     return Padding(
@@ -1991,7 +2143,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                  color: primaryAccent.withValues(alpha: 0.8), width: 2),
+                color: primaryAccent.withValues(alpha: 0.8),
+                width: 2,
+              ),
             ),
             child: Row(
               children: [
@@ -2019,8 +2173,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
-                          color:
-                              isDark ? Colors.white : const Color(0xFF12120F),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF12120F),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -2030,8 +2185,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: primaryAccent,
                     borderRadius: BorderRadius.circular(12),
@@ -2042,8 +2199,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.2,
-                            color:
-                                isDark ? const Color(0xFF12120F) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF12120F)
+                                : Colors.white,
                           ),
                         )
                       : Text(
@@ -2052,8 +2210,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w800,
                             fontSize: 14,
-                            color:
-                                isDark ? const Color(0xFF12120F) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF12120F)
+                                : Colors.white,
                           ),
                         ),
                 ),
@@ -2090,8 +2249,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               color: isActive
                   ? primaryAccent.withValues(alpha: isDark ? 0.3 : 0.15)
                   : (isDark
-                      ? Colors.white.withValues(alpha: 0.14)
-                      : Colors.black.withValues(alpha: 0.08)),
+                        ? Colors.white.withValues(alpha: 0.14)
+                        : Colors.black.withValues(alpha: 0.08)),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isActive
