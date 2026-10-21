@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
 import '../../../application/assistant_chat_service.dart';
 import '../../../data/assistant_history_repository.dart';
+import '../../../domain/assistant_change_proposal.dart';
 import 'ai_chat_turn.dart';
 import 'cloud_overlay_formatters.dart';
 
@@ -105,7 +107,25 @@ class CloudHistoryManager {
             ..access = accessByMessage[message.id],
         );
       } else if (turns.isNotEmpty) {
-        turns.last.response = message.content;
+        if (message.status.startsWith('proposal_')) {
+          try {
+            final decoded = jsonDecode(message.content);
+            if (decoded is Map && decoded['proposal'] is Map) {
+              turns.last.changeProposal = AssistantChangeProposal.fromJson(
+                Map<String, dynamic>.from(decoded['proposal'] as Map),
+              );
+              turns.last.proposalStatus = message.status;
+              turns.last.response = decoded['summary'] as String? ??
+                  turns.last.changeProposal!.summary;
+            } else {
+              turns.last.response = message.content;
+            }
+          } catch (_) {
+            turns.last.response = message.content;
+          }
+        } else {
+          turns.last.response = message.content;
+        }
         turns.last.modelName =
             formatModelDisplayName(message.providerId, message.modelId);
         turns.last.assistantMessageId = message.id;

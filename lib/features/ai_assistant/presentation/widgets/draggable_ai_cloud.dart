@@ -958,6 +958,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         onFillPrompt: (p) => _chatInputController.text = p,
                       ),
                       onShowAccessAudit: _chatCoordinator.showAccessAudit,
+                      onResolveProposal: _chatCoordinator.resolveChangeProposal,
                       onIncrementUserScrollRevision:
                           _scrollSidebarController.incrementUserScrollRevision,
                       onPermissionCardSizeEnd: () {

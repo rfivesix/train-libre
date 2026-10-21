@@ -1,10 +1,10 @@
 # Create a workout routine with an AI assistant
 
-Use the OpenExerciseDB catalog to choose real exercises, then ask an AI assistant to prepare a Train Libre routine JSON file. The app’s import preview is the final check before saving.
+This guide covers two workflows. For an external AI assistant, use the OpenExerciseDB catalog and import the resulting JSON through Train Libre’s preview. The built-in Train Libre assistant can use the approved local exercise catalog and presents routine changes as an in-app draft for review.
 
-AI-generated routines use the same versioned JSON format that Train Libre already accepts for shared-item imports. There is no separate AI import or app-side catalog integration: OpenExerciseDB is the reference for matching exercise IDs and names, which are copied into the existing `uuid` and `name` fields.
+Both workflows use the same versioned JSON format that Train Libre accepts for shared-item imports. External assistants do not have access to the app’s local database, so use OpenExerciseDB as their reference for matching exercise IDs and names. The built-in assistant can read the local catalog after approval and does not need web search or an online catalog.
 
-## Find exercises in the catalog
+## Find exercises for an external assistant
 
 - [Search and browse OpenExerciseDB](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) for names in any listed language, IDs, muscles, or equipment. The page works without JavaScript; use your browser’s Find command.
 - [Download the machine-readable JSON catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) to search records programmatically. Each record includes a stable string `id`, canonical English `name`, localized names, status, muscles, equipment, and classification fields.
@@ -51,8 +51,12 @@ Each set requires `type` (string). Optional `reps` is a string; `weight` and `ri
 
 The codec ignores additional object keys, but omit unsupported fields to keep the file clear. Do not add root keys such as `name` or `exercises`; the routine name and exercise list belong at `n` and `d.exercises` respectively.
 
-## Import and review
+## Import and review with an external assistant
 
 In Train Libre, open **Data & Backup** and choose the import action for JSON or pasted text. The exact menu wording can vary by platform/version. Review the parsed routine and every exercise in the in-app preview. Confirm that names, exercise matches, sets, targets, and rest times are correct before importing. The user should review and approve the completed routine; the assistant should never treat a valid JSON parse as approval.
 
-The catalog is discoverable from both [the search page](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and the [direct JSON download](https://rfivesix.github.io/OpenExerciseDB/exercises.json). Provide these links together with any existing routine export when asking an AI assistant to make a routine.
+The catalog is discoverable from both [the search page](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and the [direct JSON download](https://rfivesix.github.io/OpenExerciseDB/exercises.json). Provide these links together with any existing routine export when asking an external AI assistant to make a routine.
+
+## Create or change a routine with the built-in assistant
+
+When the built-in assistant asks for access to routines or the exercise catalog, approve only the categories needed for the request. The assistant uses the app's local catalog and approved routine records; it does not depend on web search. It creates a draft using the same share/import payload format described above. Review the routine name, exercises, and prescriptions in the in-app proposal, then choose **Apply** to save or **Discard** to leave saved data unchanged. For updates, the assistant must identify the exact routine from the approved records before it can propose a replacement.

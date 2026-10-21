@@ -58,7 +58,10 @@ class AssistantSqlSandbox {
   AssistantSqlSandbox._(this._responses);
 
   static const int maxSnapshotRows = 50000;
-  static const int maxSnapshotBytes = 5 * 1024 * 1024;
+  // Current snapshots can include the local exercise catalog alongside plan
+  // and routine records. Keep a hard ceiling, with room for those approved
+  // catalog tables to be prepared together.
+  static const int maxSnapshotBytes = 20 * 1024 * 1024;
   static const int maxQueryRows = 200;
   static const int maxResultCharacters = 12000;
   static const int maxSqlCharacters = 8000;

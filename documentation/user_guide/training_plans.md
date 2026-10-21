@@ -2,6 +2,8 @@
 
 Create a weekly schedule or repeating sequence from your saved routines, then start and review planned sessions.
 
+The built-in AI assistant can prepare a new plan or a revision from your saved routines. Approve access to the relevant plan and routine data when asked, review the proposed days and routines, and apply the draft only when it is correct. New plans are saved inactive; revisions to an active plan preserve the current cycle by default.
+
 ## Create a plan
 
 1. Open **Workout** and tap the **Plan** card. If you have no plan yet, tap **Create**; otherwise tap the plus button in the plan screen.

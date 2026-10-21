@@ -2,6 +2,8 @@
 
 Save a combination of foods as a recipe, then log a portion to your Diary whenever you eat it.
 
+The built-in AI assistant can prepare or revise a recipe using foods from Train Libre's local catalog. Approve access to saved recipes when asked, review the proposed ingredients and amounts, and apply the draft only when it is correct. External AI assistants do not have access to this local catalog, so their ingredient data must be checked during the app's import preview.
+
 ## Create a recipe
 
 1. Open **Nutrition** and find **My recipes**, or open **Nutrition Explorer** and select **Recipes**.

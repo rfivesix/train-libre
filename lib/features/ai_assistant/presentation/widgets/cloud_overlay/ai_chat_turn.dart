@@ -1,4 +1,5 @@
 import '../../../data/assistant_history_repository.dart';
+import '../../../domain/assistant_change_proposal.dart';
 
 /// Represents a single turn in the AI assistant chat conversation.
 class AiChatTurn {
@@ -12,4 +13,7 @@ class AiChatTurn {
   String? modelName;
   Duration? duration;
   DateTime? generationStartedAt;
+  AssistantChangeProposal? changeProposal;
+  String? proposalStatus;
+  bool isApplyingProposal = false;
 }

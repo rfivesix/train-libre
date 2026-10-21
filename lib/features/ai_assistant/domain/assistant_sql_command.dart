@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'assistant_change_proposal.dart';
+
 sealed class AssistantSqlCommand {
   const AssistantSqlCommand();
 
@@ -9,7 +11,16 @@ sealed class AssistantSqlCommand {
       text = text.replaceFirst(RegExp(r'^```(?:json)?\s*'), '');
       text = text.replaceFirst(RegExp(r'\s*```$'), '');
     }
-    final decoded = jsonDecode(text);
+    Object? decoded;
+    try {
+      decoded = jsonDecode(text);
+    } on FormatException {
+      final objectStart = text.indexOf('{');
+      if (objectStart < 0) rethrow;
+      final objectEnd = _jsonObjectEnd(text, objectStart);
+      if (objectEnd == null) rethrow;
+      decoded = jsonDecode(text.substring(objectStart, objectEnd + 1));
+    }
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('Expected a JSON object.');
     }
@@ -50,9 +61,51 @@ sealed class AssistantSqlCommand {
           dateExpression: expression as String?,
           scope: scope as Map<String, dynamic>?,
         );
+      case 'proposal':
+        return AssistantSqlChangeProposalCommand(
+          AssistantChangeProposal.fromJson(decoded),
+        );
+      case 'search_catalog':
+        final catalog = decoded['catalog'];
+        final query = decoded['query'];
+        if (catalog != 'food' ||
+            query is! String ||
+            query.trim().length < 2 ||
+            query.length > 100) {
+          throw const FormatException('Invalid catalog search command.');
+        }
+        return AssistantSqlCatalogSearchCommand(query.trim());
       default:
         throw const FormatException('Unknown SQL assistant command.');
     }
+  }
+
+  static int? _jsonObjectEnd(String text, int start) {
+    var depth = 0;
+    var inString = false;
+    var escaped = false;
+    for (var index = start; index < text.length; index++) {
+      final character = text[index];
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (character == r'\') {
+          escaped = true;
+        } else if (character == '"') {
+          inString = false;
+        }
+        continue;
+      }
+      if (character == '"') {
+        inString = true;
+      } else if (character == '{') {
+        depth++;
+      } else if (character == '}') {
+        depth--;
+        if (depth == 0) return index;
+      }
+    }
+    return null;
   }
 }
 
@@ -72,4 +125,14 @@ class AssistantSqlDataRequestCommand extends AssistantSqlCommand {
   final List<String> categories;
   final String? dateExpression;
   final Map<String, dynamic>? scope;
+}
+
+class AssistantSqlChangeProposalCommand extends AssistantSqlCommand {
+  const AssistantSqlChangeProposalCommand(this.proposal);
+  final AssistantChangeProposal proposal;
+}
+
+class AssistantSqlCatalogSearchCommand extends AssistantSqlCommand {
+  const AssistantSqlCatalogSearchCommand(this.query);
+  final String query;
 }

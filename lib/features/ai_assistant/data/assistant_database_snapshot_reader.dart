@@ -309,6 +309,67 @@ class AssistantDatabaseSnapshotReader {
               AND latest.deleted_at IS NULL)''',
           ),
         };
+      case AssistantDataCategory.recipes:
+        const meals = 'SELECT id FROM meals WHERE deleted_at IS NULL';
+        return {
+          'meals': await _select('meals', ' WHERE deleted_at IS NULL'),
+          'meal_items': await _select(
+            'meal_items',
+            ' WHERE meal_id IN ($meals)',
+          ),
+          'products': await _select(
+            'products',
+            ''' WHERE deleted_at IS NULL AND (
+              id IN (SELECT product_id FROM meal_items WHERE meal_id IN ($meals))
+              OR barcode IN (SELECT product_barcode FROM meal_items WHERE meal_id IN ($meals)))''',
+          ),
+          'off_products_archive': await _select(
+            'off_products_archive',
+            ''' WHERE deleted_at IS NULL AND barcode IN (
+              SELECT product_barcode FROM meal_items WHERE meal_id IN ($meals))''',
+          ),
+        };
+      case AssistantDataCategory.exerciseCatalog:
+        const exerciseIds =
+            'SELECT id FROM exercises WHERE deleted_at IS NULL AND (status IS NULL OR status = \'active\')';
+        return {
+          'exercises': await _select(
+            'exercises',
+            ' WHERE deleted_at IS NULL AND (status IS NULL OR status = \'active\')',
+          ),
+          'exercise_translations': await _select(
+            'exercise_translations',
+            ' WHERE deleted_at IS NULL AND exercise_id IN ($exerciseIds)',
+          ),
+          'exercise_muscles': await _select(
+            'exercise_muscles',
+            ' WHERE exercise_id IN ($exerciseIds)',
+          ),
+          'muscles': await _select(
+            'muscles',
+            ' WHERE id IN (SELECT muscle_id FROM exercise_muscles WHERE exercise_id IN ($exerciseIds))',
+          ),
+          'muscle_translations': await _select(
+            'muscle_translations',
+            ' WHERE muscle_id IN (SELECT muscle_id FROM exercise_muscles WHERE exercise_id IN ($exerciseIds))',
+          ),
+          'exercise_equipment': await _select(
+            'exercise_equipment',
+            ' WHERE exercise_id IN ($exerciseIds)',
+          ),
+          'equipment': await _select(
+            'equipment',
+            ' WHERE id IN (SELECT equipment_id FROM exercise_equipment WHERE exercise_id IN ($exerciseIds))',
+          ),
+          'equipment_translations': await _select(
+            'equipment_translations',
+            ' WHERE equipment_id IN (SELECT equipment_id FROM exercise_equipment WHERE exercise_id IN ($exerciseIds))',
+          ),
+          'exercise_tags': await _select(
+            'exercise_tags',
+            ' WHERE exercise_id IN ($exerciseIds)',
+          ),
+        };
       case AssistantDataCategory.recovery:
         return const {};
     }

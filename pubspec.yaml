@@ -122,6 +122,8 @@ flutter:
     - assets/legal/
     - assets/sounds/
     - documentation/features/
+    - documentation/user_guide/
+    - documentation/developer/
 
   fonts:
     - family: Inter

@@ -10,7 +10,8 @@ import 'cloud_overlay_permission_card.dart';
 
 /// Renders the scrollable list of chat turns with gradient edge fading and permission card.
 class CloudChatTurnListView extends StatelessWidget {
-  static const permissionCardKey = ValueKey<String>('ai-overlay-permission-card');
+  static const permissionCardKey =
+      ValueKey<String>('ai-overlay-permission-card');
 
   final ScrollController scrollController;
   final List<AiChatTurn> chatTurns;
@@ -38,6 +39,8 @@ class CloudChatTurnListView extends StatelessWidget {
   final VoidCallback onCopyFullChat;
   final ValueChanged<AiChatTurn> onRetryPrompt;
   final ValueChanged<AssistantAccessRecord> onShowAccessAudit;
+  final Future<void> Function(AiChatTurn turn, {required bool approved})
+      onResolveProposal;
   final VoidCallback onIncrementUserScrollRevision;
   final VoidCallback onPermissionCardSizeEnd;
 
@@ -69,6 +72,7 @@ class CloudChatTurnListView extends StatelessWidget {
     required this.onCopyFullChat,
     required this.onRetryPrompt,
     required this.onShowAccessAudit,
+    required this.onResolveProposal,
     required this.onIncrementUserScrollRevision,
     required this.onPermissionCardSizeEnd,
   });
@@ -78,10 +82,12 @@ class CloudChatTurnListView extends StatelessWidget {
     return ShaderMask(
       blendMode: BlendMode.dstIn,
       shaderCallback: (bounds) {
-        final topFadeEndStop =
-            ((topFadeEnd - topFadeStart) / bounds.height).clamp(0.0, 1.0).toDouble();
-        final topFadeOpaqueStartStop =
-            (topFadeEndStop * topFadeHoldStop).clamp(0.0, topFadeEndStop).toDouble();
+        final topFadeEndStop = ((topFadeEnd - topFadeStart) / bounds.height)
+            .clamp(0.0, 1.0)
+            .toDouble();
+        final topFadeOpaqueStartStop = (topFadeEndStop * topFadeHoldStop)
+            .clamp(0.0, topFadeEndStop)
+            .toDouble();
         final bottomFadeStartStop =
             ((chatBottom - bottomFadeHeight - topFadeStart) / bounds.height)
                 .clamp(topFadeEndStop, 1.0)
@@ -160,7 +166,8 @@ class CloudChatTurnListView extends StatelessWidget {
                         theme: theme,
                         contrastColor: contrastColor,
                         surfaceColor: surfaceColor,
-                        isVisible: (permissionPending || permissionApproved != null),
+                        isVisible:
+                            (permissionPending || permissionApproved != null),
                         pendingAccess: pendingAccess,
                         permissionPending: permissionPending,
                         permissionApproved: permissionApproved,
@@ -190,6 +197,8 @@ class CloudChatTurnListView extends StatelessWidget {
                       onCopyFullChat: onCopyFullChat,
                       onRetryPrompt: () => onRetryPrompt(turn),
                       onShowAccessAudit: onShowAccessAudit,
+                      onResolveProposal: (approved) =>
+                          onResolveProposal(turn, approved: approved),
                     ),
                   );
                 },

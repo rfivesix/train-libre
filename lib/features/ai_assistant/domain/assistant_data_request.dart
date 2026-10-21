@@ -9,6 +9,8 @@ enum AssistantDataCategory {
   goals,
   profile,
   supplements,
+  recipes,
+  exerciseCatalog,
   routines,
   trainingPlans;
 
@@ -16,6 +18,8 @@ enum AssistantDataCategory {
       this == goals ||
       this == profile ||
       this == supplements ||
+      this == recipes ||
+      this == exerciseCatalog ||
       this == routines ||
       this == trainingPlans;
 
@@ -35,6 +39,9 @@ enum AssistantDataCategory {
       AssistantDataCategory.profile =>
         isDe ? 'Profil & Tagesziele' : 'profile & daily targets',
       AssistantDataCategory.supplements => isDe ? 'Supplemente' : 'supplements',
+      AssistantDataCategory.recipes => isDe ? 'Rezepte' : 'recipes',
+      AssistantDataCategory.exerciseCatalog =>
+        isDe ? 'Übungskatalog' : 'exercise catalog',
       AssistantDataCategory.routines => isDe ? 'Routinen' : 'routines',
       AssistantDataCategory.trainingPlans =>
         isDe ? 'Trainingspläne' : 'training plans',

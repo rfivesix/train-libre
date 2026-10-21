@@ -25,6 +25,8 @@ class AssistantHealthActions implements AssistantDataAction {
         AssistantDataCategory.goals,
         AssistantDataCategory.profile,
         AssistantDataCategory.supplements,
+        AssistantDataCategory.recipes,
+        AssistantDataCategory.exerciseCatalog,
       };
 
   @override
@@ -123,6 +125,8 @@ class AssistantHealthActions implements AssistantDataAction {
             ]);
       case AssistantDataCategory.profile:
       case AssistantDataCategory.supplements:
+      case AssistantDataCategory.recipes:
+      case AssistantDataCategory.exerciseCatalog:
         return AssistantActionResult(
           category: category,
           status: AssistantActionStatus.success,

@@ -79,6 +79,26 @@ class ShareLinkRepository {
         .transaction(() => _importRoutine(payload));
   }
 
+  /// Appends an immutable plan revision while preserving the plan identity.
+  Future<void> replacePlan(
+    String planId,
+    ShareLinkPayload payload, {
+    bool nextCycle = true,
+  }) async {
+    payload = ShareLinkPayload.fromJson(payload.toJson());
+    if (payload.type != 'plan') {
+      throw const FormatException('Expected a training plan');
+    }
+    final decoded = await decodePlanForEditor(payload);
+    await ManualTrainingPlanRepository().revisePlan(
+      planId: planId,
+      name: payload.name,
+      kind: decoded.kind,
+      days: decoded.days,
+      nextCycle: nextCycle,
+    );
+  }
+
   /// Replaces only the saved routine template. Workout logs and their
   /// routine reference remain attached to the same stable routine ID.
   Future<void> replaceRoutine(int routineId, ShareLinkPayload payload) async {
@@ -240,7 +260,8 @@ class ShareLinkRepository {
     return (await source.getRoutineById(routine.id!))!;
   }
 
-  Future<void> _importPlan(ShareLinkPayload payload) async {
+  Future<void> _importPlan(ShareLinkPayload payload,
+      {bool activate = false}) async {
     final kind = TrainingPlanKind.values.byName(payload.data['kind'] as String);
     final rows = payload.data['days'] as List;
     if (rows.isEmpty ||
@@ -273,7 +294,7 @@ class ShareLinkRepository {
       name: payload.name,
       kind: kind,
       days: days,
-      activate: false,
+      activate: activate,
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../application/assistant_chat_service.dart';
 import '../../../data/assistant_history_repository.dart';
+import '../../../domain/assistant_change_proposal.dart';
 import 'cloud_loading_animation_controller.dart';
 
 /// Manages submitting live AI assistant prompts, streaming token chunks, and data-access approvals.
@@ -45,6 +46,8 @@ class CloudLiveAssistantRunner {
     required void Function(String text) onAppendText,
     required Future<bool> Function(AssistantAccessRecord access)
         onAdditionalAccess,
+    required void Function(String messageId, AssistantChangeProposal proposal)
+        onProposalAvailable,
     required void Function(Object error) onError,
     required VoidCallback onDone,
   }) {
@@ -82,7 +85,9 @@ class CloudLiveAssistantRunner {
 
     _liveResponseSubscription = service
         .approveAndAnswer(accessId, question,
-            locale: locale, onAdditionalAccess: onAdditionalAccess)
+            locale: locale,
+            onAdditionalAccess: onAdditionalAccess,
+            onProposalAvailable: onProposalAvailable)
         .listen(
       (chunk) {
         if (!isStillActive()) return;
@@ -121,6 +126,20 @@ class CloudLiveAssistantRunner {
     final service = _assistant;
     if (service == null) return null;
     return service.deny(accessId, locale: locale);
+  }
+
+  Future<String?> resolveProposal({
+    required String messageId,
+    required bool approved,
+    required String locale,
+  }) async {
+    final service = _assistant;
+    if (service == null) return null;
+    return service.resolveProposal(
+      messageId,
+      approved: approved,
+      locale: locale,
+    );
   }
 
   void cancelActiveResponseSubscription() {

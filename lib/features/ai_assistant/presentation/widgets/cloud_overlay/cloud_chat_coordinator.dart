@@ -556,6 +556,14 @@ class CloudChatCoordinator extends ChangeNotifier {
       },
       onAdditionalAccess: (extraAccess) =>
           _waitForAdditionalAccess(extraAccess, question, generationId),
+      onProposalAvailable: (messageId, proposal) {
+        if (_chatTurns.isEmpty) return;
+        final turn = _chatTurns.last;
+        turn.assistantMessageId = messageId;
+        turn.changeProposal = proposal;
+        turn.proposalStatus = 'proposal_pending';
+        notifyListeners();
+      },
       onError: (error) {
         if (_chatTurns.isNotEmpty) {
           _chatTurns.last.response += '\n\n$error';
@@ -570,6 +578,37 @@ class CloudChatCoordinator extends ChangeNotifier {
         unawaited(_loadAssistantHistory());
       },
     );
+  }
+
+  Future<void> resolveChangeProposal(
+    AiChatTurn turn, {
+    required bool approved,
+  }) async {
+    final messageId = turn.assistantMessageId;
+    if (messageId == null ||
+        turn.proposalStatus != 'proposal_pending' ||
+        turn.isApplyingProposal) {
+      return;
+    }
+    turn.isApplyingProposal = true;
+    notifyListeners();
+    try {
+      final message = await _liveRunner.resolveProposal(
+        messageId: messageId,
+        approved: approved,
+        locale: localeGetter(),
+      );
+      if (_isDisposed || message == null) return;
+      turn.proposalStatus = approved ? 'proposal_applied' : 'proposal_rejected';
+      turn.response = message;
+    } catch (error) {
+      if (!_isDisposed) {
+        turn.response = '${turn.changeProposal?.summary ?? ''}\n\n$error';
+      }
+    } finally {
+      turn.isApplyingProposal = false;
+      if (!_isDisposed) notifyListeners();
+    }
   }
 
   Future<bool> _waitForAdditionalAccess(

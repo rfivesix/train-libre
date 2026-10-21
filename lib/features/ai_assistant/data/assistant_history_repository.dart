@@ -137,6 +137,25 @@ class AssistantHistoryRepository {
         .toList();
   }
 
+  Future<AssistantMessage?> message(String id) async {
+    final row = await database.customSelect(
+      'SELECT * FROM assistant_messages WHERE id = ?',
+      variables: [drift.Variable.withString(id)],
+    ).getSingleOrNull();
+    if (row == null) return null;
+    return AssistantMessage(
+      id: row.read<String>('id'),
+      conversationId: row.read<String>('conversation_id'),
+      role: row.read<String>('role'),
+      content: row.read<String>('content'),
+      createdAt: DateTime.parse(row.read<String>('created_at')),
+      status: row.read<String>('status'),
+      providerId: row.read<String?>('provider_id'),
+      modelId: row.read<String?>('model_id'),
+      error: row.read<String?>('error'),
+    );
+  }
+
   /// Replaces response rows left in flight by a stopped or terminated app
   /// with a retryable assistant message. Pending access requests are preserved.
   Future<void> recoverInterruptedConversation(
