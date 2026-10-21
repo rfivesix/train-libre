@@ -6,6 +6,9 @@ import '../../../../../util/design_constants.dart';
 /// The four corners of the adjustable safe area rectangle.
 enum SafeSpaceCorner { topLeft, topRight, bottomLeft, bottomRight }
 
+/// Material's standard easing for smooth, deliberate UI transitions.
+const Curve overlayMorphCurve = Cubic(0.2, 0.0, 0.0, 1.0);
+
 /// Clips the expanded overlay controls to the animated reveal boundary.
 class CloudControlsClipper extends CustomClipper<Rect> {
   const CloudControlsClipper(this.revealBounds);
@@ -25,7 +28,7 @@ double openingAppearanceProgress(double progress) {
   const transitionRange = 0.5;
   final transitionProgress =
       (progress / transitionRange).clamp(0.0, 1.0).toDouble();
-  return Curves.easeInOutCubic.transform(transitionProgress);
+  return overlayMorphCurve.transform(transitionProgress);
 }
 
 /// Computes the overlay surface background color based on theme and progress.

@@ -127,7 +127,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   CurvedAnimation get _morphProgressAnimation =>
       _curvedMorphAnimation ??= CurvedAnimation(
         parent: _morphAnimation,
-        curve: Curves.easeInOutCubic,
+        curve: overlayMorphCurve,
       );
 
   @override
@@ -521,7 +521,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     return LayoutBuilder(
       builder: (context, constraints) {
         final morphAnimation = _morphAnimation;
-        final fullscreenProgress = Curves.easeInOutCubic.transform(
+        final fullscreenProgress = overlayMorphCurve.transform(
           _fullscreenAnimation.value,
         );
         final rawMorphProgress =
