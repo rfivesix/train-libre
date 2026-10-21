@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -9,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../../data/database_helper.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../util/permission_dialogs.dart';
 import '../../../diary/domain/repositories/diary_repository.dart';
 import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 import '../../../profile/domain/repositories/goal_repository.dart';
@@ -16,6 +18,7 @@ import '../../../profile/domain/repositories/profile_repository.dart';
 import '../../../steps/data/steps_aggregation_repository.dart';
 import '../../../workout/domain/repositories/workout_repository.dart';
 import '../../application/assistant_chat_service.dart';
+import '../../../../services/voice/voice_dictation_service.dart';
 import '../../data/assistant_diary_actions.dart';
 import '../../data/assistant_database_snapshot_reader.dart';
 import '../../data/assistant_health_actions.dart';
@@ -82,6 +85,19 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _showChatPreview = false;
   bool _isFullscreen = false;
   bool _assistantInitialized = false;
+  Timer? _cloudHoldTimer;
+  int? _cloudHoldPointer;
+  Offset? _cloudHoldOrigin;
+  bool _cloudPointerIsDown = false;
+  bool _holdToTalkActivated = false;
+  bool _holdToTalkPermissionFlow = false;
+  bool _holdReleasedBeforeRecording = false;
+  bool _holdToTalkConversationPending = false;
+  bool _suppressNextOrbTap = false;
+  final Stopwatch _holdRecordingDuration = Stopwatch();
+
+  static const Duration _holdToTalkDelay = Duration(milliseconds: 360);
+  static const Duration _holdToTalkSafeWindow = Duration(milliseconds: 1500);
 
   final _chatInputController = TextEditingController();
   final _chatFocusNode = FocusNode(debugLabel: 'ai-overlay-composer');
@@ -162,6 +178,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       onUnfocus: () => _chatFocusNode.unfocus(),
       getBaseText: () => _chatInputController.text,
       onCommitText: (text, {required bool sendNow}) {
+        if (sendNow && _holdToTalkConversationPending) {
+          _holdToTalkConversationPending = false;
+          _chatCoordinator.startNewChat();
+        }
         _chatInputController.value = TextEditingValue(
           text: text,
           selection: TextSelection.collapsed(offset: text.length),
@@ -243,6 +263,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   @override
   void dispose() {
+    _cloudHoldTimer?.cancel();
     _voiceController.dispose();
     _chatCoordinator.dispose();
     _scrollSidebarController.dispose();
@@ -265,6 +286,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   void _toggleExpanded() {
     _dockingController.stopInitialDock();
     final expanding = !_isExpanded;
+    if (expanding && _chatCoordinator.hasCompletedResponse) {
+      _chatCoordinator.clearCompletedPulse();
+    }
     final wasFullscreen = _isFullscreen;
     final openFullscreen = expanding && widget.openDirectlyFullscreen;
     if (expanding) {
@@ -329,6 +353,134 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         if (mounted) widget.onFullscreenChanged?.call(false);
       });
     }
+  }
+
+  void _handleCloudPointerDown(PointerDownEvent event) {
+    if (_isExpanded || _cloudHoldPointer != null) return;
+    _cloudHoldPointer = event.pointer;
+    _cloudHoldOrigin = event.position;
+    _cloudPointerIsDown = true;
+    _holdToTalkActivated = false;
+    _holdReleasedBeforeRecording = false;
+    _cloudHoldTimer?.cancel();
+    _cloudHoldTimer = Timer(_holdToTalkDelay, () {
+      if (!mounted || !_cloudPointerIsDown || _holdToTalkActivated) return;
+      _holdToTalkActivated = true;
+      _holdToTalkConversationPending = true;
+      unawaited(_startCloudHoldRecording(context));
+    });
+  }
+
+  void _handleCloudPointerMove(PointerMoveEvent event) {
+    if (event.pointer != _cloudHoldPointer || _holdToTalkActivated) return;
+    final origin = _cloudHoldOrigin;
+    if (origin != null && (event.position - origin).distance > kTouchSlop) {
+      _cloudHoldTimer?.cancel();
+    }
+  }
+
+  void _handleCloudPointerEnd(PointerEvent event, {required bool cancelled}) {
+    if (event.pointer != _cloudHoldPointer) return;
+    _cloudPointerIsDown = false;
+    _cloudHoldTimer?.cancel();
+    _cloudHoldTimer = null;
+    _cloudHoldPointer = null;
+    _cloudHoldOrigin = null;
+    if (!_holdToTalkActivated) return;
+
+    _suppressNextOrbTap = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _suppressNextOrbTap = false;
+    });
+
+    if (_holdToTalkPermissionFlow) {
+      // Permission sheets interrupt the original pointer sequence. Once
+      // permission is granted, keep recording in the expanded composer where
+      // the user can see the transcript and explicitly send or cancel it.
+      _holdReleasedBeforeRecording = true;
+      return;
+    }
+    if (cancelled || _voiceController.isStarting) {
+      _holdReleasedBeforeRecording = true;
+      if (_voiceController.isStarting) return;
+      unawaited(_voiceController.cancel());
+      _resetHoldToTalk();
+      return;
+    }
+    if (_voiceController.isRecording) {
+      unawaited(_finishHoldToTalk());
+    } else {
+      _resetHoldToTalk();
+    }
+  }
+
+  Future<void> _startCloudHoldRecording(BuildContext sourceContext) async {
+    if (!sourceContext.mounted || !_holdToTalkActivated) return;
+    final needsPermission =
+        !await VoiceDictationService.instance.hasPermissions();
+    if (!sourceContext.mounted) return;
+
+    if (needsPermission) {
+      _holdToTalkPermissionFlow = true;
+      if (!_isExpanded) _toggleExpanded();
+      final l10n = AppLocalizations.of(sourceContext)!;
+      final proceed = await showPrePermissionDialog(
+        context: sourceContext,
+        title: l10n.voicePermissionTitle,
+        body: l10n.voicePermissionBody,
+        continueLabel: l10n.voicePermissionContinue,
+        cancelLabel: l10n.cancel,
+      );
+      if (!sourceContext.mounted || !proceed) {
+        _holdToTalkPermissionFlow = false;
+        _resetHoldToTalk();
+        return;
+      }
+    }
+
+    await _voiceController.start(sourceContext);
+    if (!mounted) return;
+    _holdToTalkPermissionFlow = false;
+    if (!_voiceController.isRecording) {
+      _resetHoldToTalk();
+      return;
+    }
+    _holdRecordingDuration
+      ..reset()
+      ..start();
+    if (_holdReleasedBeforeRecording && !needsPermission) {
+      // A release during recognizer startup is not a useful dictated prompt.
+      await _voiceController.cancel();
+      _resetHoldToTalk();
+    } else if (needsPermission && !_isExpanded) {
+      _toggleExpanded();
+    }
+  }
+
+  Future<void> _finishHoldToTalk() async {
+    _holdRecordingDuration.stop();
+    if (_holdRecordingDuration.elapsed < _holdToTalkSafeWindow) {
+      await _voiceController.cancel();
+      _resetHoldToTalk();
+      return;
+    }
+
+    await _voiceController.send();
+    _resetHoldToTalk();
+  }
+
+  void _resetHoldToTalk() {
+    _cloudHoldTimer?.cancel();
+    _cloudHoldTimer = null;
+    _cloudHoldPointer = null;
+    _cloudHoldOrigin = null;
+    _cloudPointerIsDown = false;
+    _holdToTalkActivated = false;
+    _holdToTalkPermissionFlow = false;
+    _holdReleasedBeforeRecording = false;
+    _holdToTalkConversationPending = false;
+    _holdRecordingDuration.stop();
+    _holdRecordingDuration.reset();
   }
 
   Future<void> _navigateFromOverlay(WidgetBuilder builder) async {
@@ -453,38 +605,53 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                             frameRect: layout.activeSafeRect,
                             baseColor: overlaySurface,
                             frameMorphAnimation: _morphProgressAnimation,
-                            showAmbientGlow: false,
                             edgeBlurSigma: 4,
                             showDetachedSatellite: false,
                             flowSpeed: _dockingController.isDragging
                                 ? 1.55
-                                : _chatCoordinator.isGenerating
-                                    ? 0.9
-                                    : (1.0 * widget.liveliness.clamp(0.0, 1.0))
-                                        .clamp(0.1, 1.2),
+                                : _voiceController.isActive
+                                    ? 0.55 + _voiceController.latestVoiceLevel
+                                    : _chatCoordinator.isGenerating
+                                        ? 0.9
+                                        : (1.0 *
+                                                widget.liveliness
+                                                    .clamp(0.0, 1.0))
+                                            .clamp(0.1, 1.2),
                             forceHighFrameRate: _dockingController.isDragging ||
                                 _chatCoordinator.isGenerating ||
                                 _voiceController.isActive ||
                                 _chatCoordinator.completionPulse ||
                                 !isSettledOrb,
                             animate: !_isClosing,
-                            accentColor: _chatCoordinator.permissionPending &&
-                                    isSettledOrb
-                                ? Colors.amber.shade700
-                                : null,
-                            tint: !isSettledOrb
-                                ? null
-                                : _chatCoordinator.isGenerating
-                                    ? 0.4
-                                    : _chatCoordinator.permissionPending
-                                        ? 0.62
-                                        : _chatCoordinator.hasCompletedResponse
-                                            ? 1.0
-                                            : null,
-                            energy:
-                                _chatCoordinator.completionPulse && isSettledOrb
+                            accentColor: _voiceController.isActive
+                                ? DesignConstants.brandRedColor
+                                : _chatCoordinator.permissionPending &&
+                                        isSettledOrb
+                                    ? Colors.amber.shade700
+                                    : null,
+                            // Keep the normal organic cloud silhouette while
+                            // speaking; morph 0 collapses this widget to a circle.
+                            morph: 1,
+                            energy: _voiceController.isActive
+                                ? _voiceController.latestVoiceLevel
+                                : _chatCoordinator.completionPulse &&
+                                        isSettledOrb
                                     ? 0.75
                                     : 0,
+                            tint: _voiceController.isActive
+                                ? 0.4
+                                : !isSettledOrb
+                                    ? null
+                                    : _chatCoordinator.isGenerating
+                                        ? 0.4
+                                        : _chatCoordinator.permissionPending
+                                            ? 0.62
+                                            : _chatCoordinator
+                                                    .hasCompletedResponse
+                                                ? 1.0
+                                                : null,
+                            tintEnergyGain: _voiceController.isActive ? 0.4 : 0,
+                            showAmbientGlow: _voiceController.isActive,
                             enableInteraction: false,
                           );
                           return Positioned(
@@ -495,54 +662,76 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                               child: Semantics(
                                 label: widget.semanticLabel,
                                 hint: widget.semanticHint,
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: morphAnimation.value > 0.001
-                                      ? null
-                                      : _toggleExpanded,
-                                  onPanStart: morphAnimation.value > 0.001
-                                      ? null
-                                      : (_) =>
-                                          _dockingController.handleDragStart(
-                                            initialHorizontalPosition:
-                                                layout.position,
-                                            initialVerticalPosition:
-                                                layout.verticalPosition,
-                                            onTakeoverAttention: () {
-                                              if (_chatCoordinator
-                                                      .permissionPending ||
+                                child: Listener(
+                                  onPointerDown: _handleCloudPointerDown,
+                                  onPointerMove: _handleCloudPointerMove,
+                                  onPointerUp: (event) =>
+                                      _handleCloudPointerEnd(event,
+                                          cancelled: false),
+                                  onPointerCancel: (event) =>
+                                      _handleCloudPointerEnd(event,
+                                          cancelled: true),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: morphAnimation.value > 0.001
+                                        ? null
+                                        : () {
+                                            if (_suppressNextOrbTap) {
+                                              _suppressNextOrbTap = false;
+                                              return;
+                                            }
+                                            _toggleExpanded();
+                                          },
+                                    onPanStart: morphAnimation.value > 0.001
+                                        ? null
+                                        : (_) {
+                                            if (!_holdToTalkActivated) {
+                                              _cloudHoldTimer?.cancel();
+                                            }
+                                            _dockingController.handleDragStart(
+                                              initialHorizontalPosition:
+                                                  layout.position,
+                                              initialVerticalPosition:
+                                                  layout.verticalPosition,
+                                              onTakeoverAttention: () {
+                                                if (_chatCoordinator
+                                                        .permissionPending ||
+                                                    _chatCoordinator
+                                                        .hasCompletedResponse) {
                                                   _chatCoordinator
-                                                      .hasCompletedResponse) {
-                                                _chatCoordinator
-                                                    .markAttentionPeekDismissed();
-                                              }
-                                            },
-                                          ),
-                                  onPanUpdate: morphAnimation.value > 0.001
-                                      ? null
-                                      : (details) =>
-                                          _dockingController.handleDragUpdate(
-                                            details,
-                                            horizontalTravelDistance:
-                                                layout.travelDistance,
-                                            verticalTravelDistance:
-                                                layout.verticalTravelDistance,
-                                          ),
-                                  onPanEnd: morphAnimation.value > 0.001
-                                      ? null
-                                      : (_) => _dockingController.handleDragEnd(
-                                            minLeft: layout.minLeft,
-                                            maxLeft: layout.maxLeft,
-                                            isExpanded: _isExpanded,
-                                          ),
-                                  onPanCancel: morphAnimation.value > 0.001
-                                      ? null
-                                      : () => _dockingController.handleDragEnd(
-                                            minLeft: layout.minLeft,
-                                            maxLeft: layout.maxLeft,
-                                            isExpanded: _isExpanded,
-                                          ),
-                                  child: cloud,
+                                                      .markAttentionPeekDismissed();
+                                                }
+                                              },
+                                            );
+                                          },
+                                    onPanUpdate: morphAnimation.value > 0.001
+                                        ? null
+                                        : (details) =>
+                                            _dockingController.handleDragUpdate(
+                                              details,
+                                              horizontalTravelDistance:
+                                                  layout.travelDistance,
+                                              verticalTravelDistance:
+                                                  layout.verticalTravelDistance,
+                                            ),
+                                    onPanEnd: morphAnimation.value > 0.001
+                                        ? null
+                                        : (_) =>
+                                            _dockingController.handleDragEnd(
+                                              minLeft: layout.minLeft,
+                                              maxLeft: layout.maxLeft,
+                                              isExpanded: _isExpanded,
+                                            ),
+                                    onPanCancel: morphAnimation.value > 0.001
+                                        ? null
+                                        : () =>
+                                            _dockingController.handleDragEnd(
+                                              minLeft: layout.minLeft,
+                                              maxLeft: layout.maxLeft,
+                                              isExpanded: _isExpanded,
+                                            ),
+                                    child: cloud,
+                                  ),
                                 ),
                               ),
                             ),

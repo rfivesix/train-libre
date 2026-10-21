@@ -67,6 +67,7 @@ class CloudVoiceController extends ChangeNotifier {
   bool get isRecording => _voiceRecording;
   bool get isStopping => _voiceStopping;
   bool get isActive => _voiceStarting || _voiceRecording || _voiceStopping;
+  double get latestVoiceLevel => _latestVoiceLevel;
   List<VoiceWaveSample> get levelHistory => _voiceLevelHistory;
   ValueNotifier<double> get waveOffset => _voiceWaveOffset;
 
