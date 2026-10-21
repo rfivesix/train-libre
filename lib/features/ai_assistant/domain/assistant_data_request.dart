@@ -7,11 +7,17 @@ enum AssistantDataCategory {
   recovery,
   measurements,
   goals,
+  profile,
+  supplements,
   routines,
   trainingPlans;
 
   bool get isCurrentSnapshot =>
-      this == goals || this == routines || this == trainingPlans;
+      this == goals ||
+      this == profile ||
+      this == supplements ||
+      this == routines ||
+      this == trainingPlans;
 
   String localizedLabel(String locale) {
     final isDe = locale.toLowerCase().startsWith('de');
@@ -26,6 +32,9 @@ enum AssistantDataCategory {
       AssistantDataCategory.measurements =>
         isDe ? 'Körpermessungen' : 'measurements',
       AssistantDataCategory.goals => isDe ? 'Ziele' : 'goals',
+      AssistantDataCategory.profile =>
+        isDe ? 'Profil & Tagesziele' : 'profile & daily targets',
+      AssistantDataCategory.supplements => isDe ? 'Supplemente' : 'supplements',
       AssistantDataCategory.routines => isDe ? 'Routinen' : 'routines',
       AssistantDataCategory.trainingPlans =>
         isDe ? 'Trainingspläne' : 'training plans',

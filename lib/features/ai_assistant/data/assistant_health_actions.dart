@@ -23,6 +23,8 @@ class AssistantHealthActions implements AssistantDataAction {
         AssistantDataCategory.sleep,
         AssistantDataCategory.measurements,
         AssistantDataCategory.goals,
+        AssistantDataCategory.profile,
+        AssistantDataCategory.supplements,
       };
 
   @override
@@ -119,6 +121,12 @@ class AssistantHealthActions implements AssistantDataAction {
                   'targetUnit': goal.targetUnit,
                 }
             ]);
+      case AssistantDataCategory.profile:
+      case AssistantDataCategory.supplements:
+        return AssistantActionResult(
+          category: category,
+          status: AssistantActionStatus.success,
+        );
       default:
         throw ArgumentError.value(category);
     }
