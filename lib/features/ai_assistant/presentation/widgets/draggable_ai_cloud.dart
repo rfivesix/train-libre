@@ -337,10 +337,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         final fullscreenProgress = Curves.easeInOutCubic.transform(
           _fullscreenAnimation.value,
         );
-        final morphProgress = morphAnimation.value.clamp(0.0, 1.0).toDouble();
+        final rawMorphProgress =
+            morphAnimation.value.clamp(0.0, 1.0).toDouble();
+        final morphProgress =
+            Curves.easeInOutCubic.transform(rawMorphProgress);
         final openingClosingProgress = math.min(
           _fullscreenAnimation.value.clamp(0.0, 1.0).toDouble(),
-          morphProgress,
+          rawMorphProgress,
         );
         final isWholeCloudTransition =
             (_isFullscreen || _isClosingFromFullscreen) &&
@@ -632,9 +635,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             AnimatedBuilder(
               animation: morphAnimation,
               builder: (context, _) {
-                final revealProgress = Curves.easeInOutCubic.transform(
-                  morphAnimation.value.clamp(0.0, 1.0),
-                );
+                final revealProgress = morphProgress;
                 final collapsedBounds = Rect.fromCenter(
                   center: layout.cloudCenter,
                   width: 120,
