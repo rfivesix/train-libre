@@ -11,11 +11,18 @@ class AssistantActionResult {
     required this.category,
     required this.status,
     this.records = const [],
+    this.tables = const {},
+    this.tableColumns = const {},
     this.error,
   });
   final AssistantDataCategory category;
   final AssistantActionStatus status;
   final List<Map<String, dynamic>> records;
+
+  /// Optional physical-table snapshots. These are the full approved database
+  /// rows; [records] remains the compact, user-facing interpretation.
+  final Map<String, List<Map<String, dynamic>>> tables;
+  final Map<String, Map<String, String>> tableColumns;
   final String? error;
 
   Map<String, dynamic> get manifest => {
@@ -40,6 +47,21 @@ class AssistantActionResult {
         ],
         'fields': records.expand((record) => record.keys).toSet().toList()
           ..sort(),
+        'tables': {
+          for (final entry in tables.entries)
+            entry.key: {
+              'count': entry.value.length,
+              'fields': {
+                ...?tableColumns[entry.key],
+                for (final field in entry.value.expand((row) => row.keys))
+                  field: tableColumns[entry.key]?[field] ?? 'unknown',
+              }.keys.toList()
+                ..sort(),
+              'payloadSha256': sha256
+                  .convert(utf8.encode(jsonEncode(entry.value)))
+                  .toString(),
+            },
+        },
       };
 }
 

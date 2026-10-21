@@ -17,6 +17,7 @@ import '../../../steps/data/steps_aggregation_repository.dart';
 import '../../../workout/domain/repositories/workout_repository.dart';
 import '../../application/assistant_chat_service.dart';
 import '../../data/assistant_diary_actions.dart';
+import '../../data/assistant_database_snapshot_reader.dart';
 import '../../data/assistant_health_actions.dart';
 import '../../data/assistant_history_repository.dart';
 import '../../data/assistant_training_actions.dart';
@@ -36,7 +37,8 @@ import 'cloud_overlay/header_glass_button.dart';
 
 export 'cloud_overlay/ai_chat_turn.dart';
 export 'cloud_overlay/cloud_overlay_geometry.dart' show SafeSpaceCorner;
-export 'cloud_overlay/cloud_overlay_header_toolbar.dart' show AssistantMenuAction;
+export 'cloud_overlay/cloud_overlay_header_toolbar.dart'
+    show AssistantMenuAction;
 
 class DraggableAiCloud extends StatefulWidget {
   final String semanticLabel;
@@ -197,16 +199,21 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       final assistant = AssistantChatService(
         history: history,
         data: AssistantDataGateway([
-          AssistantTrainingActions(
-            workouts: context.read<IWorkoutRepository>(),
-            database: database,
-          ),
-          AssistantDiaryActions(context.read<IDiaryRepository>()),
-          AssistantHealthActions(
-            database: database,
-            steps: HealthStepsAggregationRepository(),
-            profile: context.read<IProfileRepository>(),
-            goals: context.read<IGoalRepository>(),
+          AssistantComprehensiveDataAction(
+            reader: AssistantDatabaseSnapshotReader(database),
+            actions: [
+              AssistantTrainingActions(
+                workouts: context.read<IWorkoutRepository>(),
+                database: database,
+              ),
+              AssistantDiaryActions(context.read<IDiaryRepository>()),
+              AssistantHealthActions(
+                database: database,
+                steps: HealthStepsAggregationRepository(),
+                profile: context.read<IProfileRepository>(),
+                goals: context.read<IGoalRepository>(),
+              ),
+            ],
           ),
         ]),
         model: widget.modelClient ?? const ConfiguredAssistantModelClient(),
@@ -414,11 +421,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           final cloud = AiNeuralCloudOrbWidget(
                             size: CloudDockingController.cloudSize *
                                 _dockingController.scale *
-                                (_chatCoordinator.completionPulse && isSettledOrb
+                                (_chatCoordinator.completionPulse &&
+                                        isSettledOrb
                                     ? 1.12
                                     : 1.0),
                             rotation: _dockingController.rotationRadians,
-                            canvasSize: isSettledOrb ? null : layout.viewportSize,
+                            canvasSize:
+                                isSettledOrb ? null : layout.viewportSize,
                             cloudCenter:
                                 isSettledOrb ? null : animatedCloudCenter,
                             frameRect: layout.activeSafeRect,
@@ -452,10 +461,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                         : _chatCoordinator.hasCompletedResponse
                                             ? 1.0
                                             : null,
-                            energy: _chatCoordinator.completionPulse &&
-                                    isSettledOrb
-                                ? 0.75
-                                : 0,
+                            energy:
+                                _chatCoordinator.completionPulse && isSettledOrb
+                                    ? 0.75
+                                    : 0,
                             enableInteraction: false,
                           );
                           return Positioned(
@@ -473,7 +482,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                       : _toggleExpanded,
                                   onPanStart: morphAnimation.value > 0.001
                                       ? null
-                                      : (_) => _dockingController.handleDragStart(
+                                      : (_) =>
+                                          _dockingController.handleDragStart(
                                             initialHorizontalPosition:
                                                 layout.position,
                                             initialVerticalPosition:
@@ -694,10 +704,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                   ),
                                   appearanceProgress: appearanceProgress,
                                   useLiveAi: widget.useLiveAi,
-                                  conversations:
-                                      _chatCoordinator.conversations,
-                                  selectedIndex: _chatCoordinator
-                                      .selectedSidebarExample,
+                                  conversations: _chatCoordinator.conversations,
+                                  selectedIndex:
+                                      _chatCoordinator.selectedSidebarExample,
                                   onSelectConversation: (index) {
                                     _scrollSidebarController.closeSidebar();
                                     _chatCoordinator
@@ -841,9 +850,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final appIsDark = theme.brightness == Brightness.dark;
     final contrastColor = overlayForegroundColor(theme, appearanceProgress);
     final surfaceColor = overlaySurfaceColor(theme, appearanceProgress);
-    final selectionBlue = appIsDark
-        ? const Color(0xFF0A84FF)
-        : const Color(0xFF007AFF);
+    final selectionBlue =
+        appIsDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF);
     final cloudSurfaceDark = surfaceColor.computeLuminance() < 0.5;
     final softColor = contrastColor.withValues(
       alpha: cloudSurfaceDark ? 0.10 : 0.08,
@@ -950,8 +958,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         onFillPrompt: (p) => _chatInputController.text = p,
                       ),
                       onShowAccessAudit: _chatCoordinator.showAccessAudit,
-                      onIncrementUserScrollRevision: _scrollSidebarController
-                          .incrementUserScrollRevision,
+                      onIncrementUserScrollRevision:
+                          _scrollSidebarController.incrementUserScrollRevision,
                       onPermissionCardSizeEnd: () {
                         if (_scrollSidebarController.followChatTail) {
                           _scrollSidebarController.scrollChatToBottom();

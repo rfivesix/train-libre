@@ -80,12 +80,46 @@ class AssistantSqlSandbox {
     final successful = results
         .where((result) => result.status == AssistantActionStatus.success)
         .toList();
-    var snapshotRows = 0;
-    var snapshotBytes = 0;
+    final tableRows = <String, List<Map<String, dynamic>>>{};
+    final tableColumns = <String, Map<String, String>>{};
     for (final result in successful) {
-      snapshotRows += _countRows(result.records);
-      snapshotBytes += utf8.encode(jsonEncode(result.records)).length;
+      if (result.tables.isEmpty) {
+        if (result.records.isNotEmpty) {
+          tableRows['data_${result.category.name}'] = result.records;
+        }
+        continue;
+      }
+      for (final entry in result.tables.entries) {
+        tableColumns
+            .putIfAbsent(entry.key, () => <String, String>{})
+            .addAll(result.tableColumns[entry.key] ?? const {});
+        final rows = tableRows.putIfAbsent(entry.key, () => []);
+        final known = rows
+            .map((row) => row['id'] ?? row['local_id'] ?? jsonEncode(row))
+            .toSet();
+        for (final row in entry.value) {
+          final key = row['id'] ?? row['local_id'] ?? jsonEncode(row);
+          if (known.add(key)) rows.add(row);
+        }
+      }
+      if (result.tables.isNotEmpty &&
+          result.tableColumns.values.every((columns) => columns.isEmpty) &&
+          result.records.isNotEmpty) {
+        tableRows['data_${result.category.name}'] = result.records;
+      }
     }
+    final datasets = [
+      for (final entry in tableRows.entries)
+        {
+          'table': entry.key,
+          'records': entry.value,
+          'columns': tableColumns[entry.key] ?? const <String, String>{},
+        },
+    ];
+    final snapshotRows =
+        tableRows.values.fold<int>(0, (sum, rows) => sum + rows.length);
+    final snapshotBytes = tableRows.values.fold<int>(
+        0, (sum, rows) => sum + utf8.encode(jsonEncode(rows)).length);
     if (snapshotRows > maxSnapshotRows || snapshotBytes > maxSnapshotBytes) {
       throw const AssistantSqlQueryException(
           'The approved data set is too large to prepare safely. Please choose a shorter date range.');
@@ -95,14 +129,6 @@ class AssistantSqlSandbox {
     sandbox._ready = Completer<Map<String, Object?>>();
     sandbox._responseSubscription =
         sandbox._responses.listen(sandbox._onMessage);
-    final datasets = [
-      for (final result in successful)
-        if (result.records.isNotEmpty)
-          {
-            'category': result.category.name,
-            'records': result.records,
-          },
-    ];
     try {
       sandbox._isolate = await Isolate.spawn<Map<String, Object?>>(
         _assistantSqlSandboxWorker,
@@ -213,18 +239,6 @@ class AssistantSqlSandbox {
     await _responseSubscription.cancel();
     _responses.close();
   }
-
-  static int _countRows(List<Map<String, dynamic>> records) {
-    var count = records.length;
-    for (final record in records) {
-      for (final value in record.values) {
-        if (value is List && value.isNotEmpty && value.first is Map) {
-          count += value.length;
-        }
-      }
-    }
-    return count;
-  }
 }
 
 void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
@@ -236,12 +250,21 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
   try {
     for (final dataset in init['datasets'] as List) {
       final map = Map<String, Object?>.from(dataset as Map);
-      final category = map['category'] as String;
+      final table = map['table'] as String;
       final records = (map['records'] as List)
           .map((row) => Map<String, dynamic>.from(row as Map))
           .toList();
+      final declaredColumns = Map<String, String>.from(
+          map['columns'] as Map? ?? const <String, String>{});
+      if (records.isEmpty && declaredColumns.isEmpty) continue;
       await _createRecordsTable(
-          database, 'data_$category', records, tableNames, schemas);
+        database,
+        table,
+        records,
+        tableNames,
+        schemas,
+        declaredColumns: declaredColumns,
+      );
     }
     if (tableNames.isEmpty) {
       throw const AssistantSqlQueryException(
@@ -250,7 +273,9 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
     database.execute('PRAGMA query_only = ON');
     final schema = [
       schemas.join('\n'),
-      'Child tables contain `_parent_ref`, which joins to the parent row `ref`. '
+      'Physical table and column names match the approved local database in snake_case. '
+          'Rows are complete database rows. Foreign keys can be joined by their *_id columns. '
+          'Child tables contain `_parent_ref`, which joins to the parent row `ref`. '
           'Maps and lists of scalar values stay as JSON text in the parent table.',
       'Timestamps are ISO-8601 strings in the device time zone. Date-only values use YYYY-MM-DD.',
       'Known units: weightKg is kilograms; caloriesKcal is kilocalories; '
@@ -411,9 +436,9 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
       repeatedTables.add(name);
     }
   }
-  if (referenced.length > 3 || repeatedTables.isNotEmpty) {
+  if (referenced.length > 10 || repeatedTables.isNotEmpty) {
     throw const AssistantSqlQueryException(
-        'A query can use at most three approved tables and cannot self-join a table.');
+        'A query can use at most ten approved tables and cannot self-join a table.');
   }
   if (referenced.isEmpty) {
     throw const AssistantSqlQueryException(
@@ -429,8 +454,12 @@ Future<void> _createRecordsTable(
   Set<String> tableNames,
   List<String> schemas, {
   String? parentRef,
+  Map<String, String> declaredColumns = const {},
 }) async {
-  final fields = <String, String>{};
+  final fields = <String, String>{
+    for (final entry in declaredColumns.entries)
+      entry.key: _safeSqlType(entry.value),
+  };
   final childLists = <String, List<Map<String, dynamic>>>{};
   for (final record in records) {
     for (final entry in record.entries) {
@@ -493,6 +522,13 @@ Future<void> _createRecordsTable(
     }
   }
 }
+
+String _safeSqlType(String value) => switch (value.toUpperCase()) {
+      'INTEGER' => 'INTEGER',
+      'REAL' => 'REAL',
+      'BLOB' => 'BLOB',
+      _ => 'TEXT',
+    };
 
 Object? _sqliteValue(Object? value) {
   if (value is bool) return value ? 1 : 0;
