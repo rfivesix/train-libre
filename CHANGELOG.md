@@ -12,9 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added an ignored planning document for the AI assistant's product idea, user experience, action inventory, and architecture.
 
 ### Changed
+- Changed the background color of user chat bubbles in the draggable AI assistant overlay to use the app's primary accent color (with lowered brightness/intensity in Dark mode via lerp towards black for contrast with white text, and `theme.colorScheme.onPrimary` in Light mode).
+- Moved the default resting and docking position of the draggable AI cloud orb to the bottom-left corner of the screen.
 - The AI assistant now lets the configured model answer ordinary chat without a data prompt and infer narrow, reviewable data scopes from natural language. The app validates model proposals and still requires fresh approval before reading records.
 
 ### Fixed
+- Fixed touch offset and unresponsiveness of the draggable AI cloud widget: resolved hit-test obstruction where the invisible expanded control layer was intercepting pointer events in its collapsed state, unified horizontal and vertical position interpolations to eliminate desynchronization between the rendered orb and its hitbox during docking, drag, and snap animations, and ensured tap and drag gestures reliably register on-screen even when docked at display boundaries.
 - Optimized AI assistant cloud animation and rendering battery efficiency: replaced unbounded full-screen offscreen `saveLayer` image filter blur passes with tight bounding rectangles, implemented adaptive framerate throttling (~30 FPS during idle resting states with dynamic 60/120Hz switching during interactions, streaming, voice, or morph transitions), added lifecycle observation to pause cloud tickers when the app is backgrounded or inactive, and tuned resting flow speed for calmer, energy-efficient idle motion.
 - Localized AI assistant permission cards, audit details, status messages, and category/scope labels in German and English, and added contextual AI-generated chat titles.
 - Replaced the custom Data Access audit modal with the app's canonical `GlassBottomMenuSheet` widget and actions, reverted horizontal text centering, and vertically centered the placeholder text in the compact AI composer bar.

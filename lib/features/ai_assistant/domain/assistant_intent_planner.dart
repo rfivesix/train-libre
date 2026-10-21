@@ -136,6 +136,14 @@ Current user message: ${jsonEncode(message)}''';
     }
     scope ??= _defaultScope(categories, now);
 
+    final hasHistoricalCategory = categories.any((c) => !c.isCurrentSnapshot);
+    if (!hasHistoricalCategory &&
+        categories.any((category) => category.isCurrentSnapshot) &&
+        scope != null &&
+        (!_sameDay(scope.start, now) || !_sameDay(scope.end, now))) {
+      throw ArgumentError('Current snapshot cannot use a historical period');
+    }
+
     if (categories.contains(AssistantDataCategory.recovery) &&
         scope != null &&
         !_sameDay(scope.end, now)) {

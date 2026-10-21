@@ -136,11 +136,16 @@ void main() {
 
     // Tapping "Data access" opens the in-overlay audit modal without requiring
     // a Navigator ancestor above DraggableAiCloud.
+    await tester.tap(find.bySemanticsLabel('More options'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('Data access'));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.textContaining('Status: denied'), findsOneWidget);
     await tester.tap(find.text('Close'));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.textContaining('Status: denied'), findsNothing);
   });
 }

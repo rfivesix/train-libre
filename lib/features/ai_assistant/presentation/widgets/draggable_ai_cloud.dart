@@ -602,6 +602,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
     setState(() {
       _horizontalPosition ??= _displayedHorizontalPosition;
+      _verticalPosition ??= 0.0;
       _isExpanded = expanding;
       _isClosing = !expanding;
       _isClosingFromFullscreen = !expanding && wasFullscreen;
@@ -922,6 +923,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _stopDemoGeneration();
     final cancellation = _activeGenerationCancellation;
     if (cancellation != null) await cancellation;
+    if (!mounted) return;
     final locale = Localizations.localeOf(context).toLanguageTag();
     await _history!.recoverInterruptedConversation(id, locale: locale);
     var messages = await _history!.messages(id);
@@ -1120,13 +1122,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
     setState(() {
       if (horizontalTravelDistance > 0) {
-        _horizontalPosition = ((_horizontalPosition ?? 0) +
+        _horizontalPosition = ((_horizontalPosition ?? 0.0) +
                 details.delta.dx / horizontalTravelDistance)
             .clamp(0.0, 1.0)
             .toDouble();
       }
       if (verticalTravelDistance > 0) {
-        _verticalPosition = ((_verticalPosition ?? 1) -
+        _verticalPosition = ((_verticalPosition ?? 0.0) -
                 details.delta.dy / verticalTravelDistance)
             .clamp(0.0, 1.0)
             .toDouble();
@@ -1192,9 +1194,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
         // Start with the full cloud visible and align its resting position
         // with the cards. At either stop, a small part remains on screen.
-        final defaultLeft = (width - _horizontalInset - _cloudSize)
-            .clamp(minLeft, maxLeft)
-            .toDouble();
+        final defaultLeft = _horizontalInset.clamp(minLeft, maxLeft).toDouble();
         final defaultPosition = travelDistance == 0
             ? 0.0
             : ((defaultLeft - minLeft) / travelDistance)
@@ -1228,7 +1228,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           _initialDockController.value,
         );
         final requestedPosition = _horizontalPosition ??
-            (defaultPosition + (1 - defaultPosition) * dockProgress);
+            (defaultPosition + (0.0 - defaultPosition) * dockProgress);
         final requestedLeft = minLeft + requestedPosition * travelDistance;
         final hasAttentionState = _permissionPending || _hasCompletedResponse;
         // An attention state temporarily peeks the cloud out from its dock.
@@ -1257,7 +1257,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         final verticalTravelDistance =
             math.max(0.0, maxTop - minTop).toDouble();
         final verticalPosition =
-            (_verticalPosition ?? 1.0).clamp(0.0, 1.0).toDouble();
+            (_verticalPosition ?? 0.0).clamp(0.0, 1.0).toDouble();
         final top = maxTop - verticalPosition * verticalTravelDistance;
         final viewportSize = Size(width, viewportHeight);
         final panelRect = Rect.fromLTRB(
@@ -1322,15 +1322,22 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: left, end: left),
-                duration: _isDragging
+              child: TweenAnimationBuilder<Offset>(
+                tween: Tween<Offset>(
+                  begin: Offset(left, top),
+                  end: Offset(left, top),
+                ),
+                duration: _isDragging || _initialDockController.isAnimating
                     ? Duration.zero
                     : const Duration(milliseconds: 260),
                 curve: Curves.easeOutCubic,
-                builder: (context, animatedLeft, _) {
-                  final animatedCloudCenter =
-                      Offset(animatedLeft + _cloudSize / 2, cloudCenter.dy);
+                builder: (context, animatedOffset, _) {
+                  final animatedLeft = animatedOffset.dx;
+                  final animatedTop = animatedOffset.dy;
+                  final animatedCloudCenter = Offset(
+                    animatedLeft + _cloudSize / 2,
+                    animatedTop + _cloudSize / 2,
+                  );
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -1384,7 +1391,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           );
                           return Positioned(
                             left: isSettledOrb ? animatedLeft : 0,
-                            top: isSettledOrb ? top : 0,
+                            top: isSettledOrb ? animatedTop : 0,
                             child: IgnorePointer(
                               ignoring: morphAnimation.value > 0.001,
                               child: Semantics(
@@ -1535,68 +1542,76 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   revealProgress,
                 )!;
                 return Positioned.fill(
-                  child: ClipRect(
-                    clipper: _CloudControlsClipper(contentRevealBounds),
-                    // Keep text at a stable scale while the cloud opens. The
-                    // expanding clip already reveals the controls, and
-                    // animated text scaling can invalidate Impeller glyph
-                    // atlas bounds for individual frames.
-                    child: Opacity(
-                      opacity: revealProgress,
-                      child: Listener(
-                        behavior: HitTestBehavior.translucent,
-                        onPointerDown: _handleSidebarPointerDown,
-                        onPointerMove: (event) => _handleSidebarPointerMove(
-                          event,
-                          _sidebarWidth(width),
-                        ),
-                        onPointerUp: _finishSidebarPointer,
-                        onPointerCancel: _finishSidebarPointer,
-                        child: Stack(
-                          children: [
-                            if (_sidebarController.value > 0.001)
-                              _buildDemoSidebar(
-                                theme,
-                                width,
-                                appearanceProgress: appearanceProgress,
-                              ),
-                            Positioned.fill(
-                              child: Transform.translate(
-                                offset: Offset(
-                                  _sidebarController.value *
-                                      _sidebarWidth(width),
-                                  0,
+                  child: IgnorePointer(
+                    ignoring: morphAnimation.value <= 0.001,
+                    child: ClipRect(
+                      clipper: _CloudControlsClipper(contentRevealBounds),
+                      // Keep text at a stable scale while the cloud opens. The
+                      // expanding clip already reveals the controls, and
+                      // animated text scaling can invalidate Impeller glyph
+                      // atlas bounds for individual frames.
+                      child: Opacity(
+                        opacity: revealProgress,
+                        child: Listener(
+                          behavior: HitTestBehavior.translucent,
+                          onPointerDown: _handleSidebarPointerDown,
+                          onPointerMove: (event) => _handleSidebarPointerMove(
+                            event,
+                            _sidebarWidth(width),
+                          ),
+                          onPointerUp: _finishSidebarPointer,
+                          onPointerCancel: _finishSidebarPointer,
+                          child: Stack(
+                            children: [
+                              if (_sidebarController.value > 0.001)
+                                _buildDemoSidebar(
+                                  theme,
+                                  width,
+                                  appearanceProgress: appearanceProgress,
                                 ),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: _sidebarController.value > 0
-                                      ? _closeSidebar
-                                      : null,
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      _buildChatPreview(
-                                        activeSafeRect,
-                                        theme,
-                                        viewportHeight,
-                                        bottomOcclusion: bottomOcclusion,
-                                        fullscreenProgress: fullscreenProgress,
-                                        appearanceProgress: appearanceProgress,
-                                      ),
-                                      _buildExpandedToolbar(
-                                        activeSafeRect,
-                                        theme,
-                                        fullscreenProgress: fullscreenProgress,
-                                        appearanceProgress: appearanceProgress,
-                                        surfaceColor: overlaySurfaceColor,
-                                        foregroundColor: overlayForegroundColor,
-                                      ),
-                                    ],
+                              Positioned.fill(
+                                child: Transform.translate(
+                                  offset: Offset(
+                                    _sidebarController.value *
+                                        _sidebarWidth(width),
+                                    0,
+                                  ),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: _sidebarController.value > 0
+                                        ? _closeSidebar
+                                        : null,
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        _buildChatPreview(
+                                          activeSafeRect,
+                                          theme,
+                                          viewportHeight,
+                                          bottomOcclusion: bottomOcclusion,
+                                          fullscreenProgress:
+                                              fullscreenProgress,
+                                          appearanceProgress:
+                                              appearanceProgress,
+                                        ),
+                                        _buildExpandedToolbar(
+                                          activeSafeRect,
+                                          theme,
+                                          fullscreenProgress:
+                                              fullscreenProgress,
+                                          appearanceProgress:
+                                              appearanceProgress,
+                                          surfaceColor: overlaySurfaceColor,
+                                          foregroundColor:
+                                              overlayForegroundColor,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -2629,6 +2644,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     required bool showLoadingCloud,
   }) {
     final isCompactPrompt = turn.prompt.trim().runes.length <= 2;
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+    final userBubbleColor = isDark
+        ? Color.lerp(Colors.black, primary, 0.42)!
+        : primary;
+    final userBubbleTextColor =
+        isDark ? Colors.white : theme.colorScheme.onPrimary;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -2647,7 +2669,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-                color: softColor,
+                color: userBubbleColor,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: isCompactPrompt
@@ -2657,14 +2679,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         turn.prompt,
                         textAlign: TextAlign.start,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: contrastColor,
+                          color: userBubbleTextColor,
                         ),
                       ),
                     )
                   : Text(
                       turn.prompt,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: contrastColor,
+                        color: userBubbleTextColor,
                       ),
                     ),
             ),
