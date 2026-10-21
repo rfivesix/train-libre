@@ -43,6 +43,7 @@ class CloudChatCoordinator extends ChangeNotifier {
   AssistantAccessRecord? _pendingAccess;
   AssistantAccessRecord? _activeAuditRecord;
   String? _pendingQuestion;
+  Completer<bool>? _additionalAccessGate;
   bool _assistantInitialized = false;
 
   int _activeGenerationId = 0;
@@ -90,7 +91,8 @@ class CloudChatCoordinator extends ChangeNotifier {
 
   // --- Getters ---
   List<AiChatTurn> get chatTurns => _chatTurns;
-  List<AssistantConversation> get conversations => _historyManager.conversations;
+  List<AssistantConversation> get conversations =>
+      _historyManager.conversations;
   String? get conversationId => _conversationId;
   int get selectedSidebarExample => _historyManager.selectedSidebarExample;
   AssistantAccessRecord? get pendingAccess => _pendingAccess;
@@ -311,7 +313,10 @@ class CloudChatCoordinator extends ChangeNotifier {
       enterFuture.then((_) {
         return _demoRunner.startStreamingAfterLoadingCloud(
           loadingCloud: _loadingCloud,
-          isStillActive: () => !_isDisposed && _activeGenerationId == generationId && _isGenerating,
+          isStillActive: () =>
+              !_isDisposed &&
+              _activeGenerationId == generationId &&
+              _isGenerating,
           onWord: _handleDemoWordEmitted,
         );
       }).catchError((_) {}),
@@ -326,11 +331,14 @@ class CloudChatCoordinator extends ChangeNotifier {
 
     if (_permissionPending) {
       final skippedAccess = _pendingAccess;
+      final gate = _additionalAccessGate;
+      _additionalAccessGate = null;
+      if (gate != null && !gate.isCompleted) gate.complete(false);
       _pendingAccess = null;
       _pendingQuestion = null;
       _permissionPending = false;
       _showPermissionBadge = false;
-      if (skippedAccess != null) {
+      if (skippedAccess != null && gate == null) {
         unawaited(
           _liveRunner
               .denyAccess(accessId: skippedAccess.id, locale: locale)
@@ -449,6 +457,24 @@ class CloudChatCoordinator extends ChangeNotifier {
     if (access == null || question == null) return;
     final locale = localeGetter();
 
+    final additionalGate = _additionalAccessGate;
+    if (additionalGate != null) {
+      _additionalAccessGate = null;
+      _permissionPending = false;
+      _showPermissionBadge = false;
+      _permissionApproved = null;
+      _pendingAccess = null;
+      _pendingQuestion = null;
+      _isGenerating = true;
+      notifyListeners();
+      _waitingHaptics.sync(isGenerating: true);
+      _loadingCloud.show();
+      onGenerationChanged?.call(true);
+      onScrollToBottom?.call(force: true);
+      if (!additionalGate.isCompleted) additionalGate.complete(approved);
+      return;
+    }
+
     _permissionPending = false;
     _showPermissionBadge = false;
     _permissionApproved = approved;
@@ -466,8 +492,8 @@ class CloudChatCoordinator extends ChangeNotifier {
             _chatTurns.last.response = message.content;
           }
           if (_chatTurns.last.generationStartedAt != null) {
-            _chatTurns.last.duration = DateTime.now()
-                .difference(_chatTurns.last.generationStartedAt!);
+            _chatTurns.last.duration =
+                DateTime.now().difference(_chatTurns.last.generationStartedAt!);
           }
           _chatTurns.last.modelName ??=
               formatModelDisplayName(access.providerId, access.modelId) ??
@@ -528,6 +554,8 @@ class CloudChatCoordinator extends ChangeNotifier {
         _waitingHaptics.triggerWordHapticIfNeeded(_chatTurns.last.response);
         onScrollToBottom?.call();
       },
+      onAdditionalAccess: (extraAccess) =>
+          _waitForAdditionalAccess(extraAccess, question, generationId),
       onError: (error) {
         if (_chatTurns.isNotEmpty) {
           _chatTurns.last.response += '\n\n$error';
@@ -542,6 +570,34 @@ class CloudChatCoordinator extends ChangeNotifier {
         unawaited(_loadAssistantHistory());
       },
     );
+  }
+
+  Future<bool> _waitForAdditionalAccess(
+    AssistantAccessRecord access,
+    String question,
+    int generationId,
+  ) async {
+    if (_isDisposed || _activeGenerationId != generationId) return false;
+    await _loadingCloud.hide();
+    if (_isDisposed || _activeGenerationId != generationId) return false;
+    final gate = Completer<bool>();
+    _additionalAccessGate = gate;
+    _pendingAccess = access;
+    _pendingQuestion = question;
+    _permissionPending = true;
+    _showPermissionBadge = true;
+    _permissionApproved = null;
+    _isGenerating = false;
+    _attentionPeekDismissed = false;
+    notifyListeners();
+    _waitingHaptics.sync(isGenerating: false);
+    unawaited(HapticFeedbackService.instance.strongImpact());
+    onGenerationChanged?.call(false);
+    onScrollToBottom?.call(force: true);
+    if (_autoApproveDataRequests) {
+      scheduleMicrotask(() => resolvePermission(true));
+    }
+    return gate.future;
   }
 
   void _resolveDemoPermission(bool approved) {
@@ -559,7 +615,8 @@ class CloudChatCoordinator extends ChangeNotifier {
       unawaited(HapticFeedbackService.instance.lightImpact());
       onGenerationChanged?.call(true);
       _demoRunner.startWordTicker(onWord: _handleDemoWordEmitted);
-      _demoRunner.scheduleContinuationTimer(onComplete: _completeDemoGeneration);
+      _demoRunner.scheduleContinuationTimer(
+          onComplete: _completeDemoGeneration);
       onScrollToBottom?.call();
       return;
     }
@@ -613,8 +670,7 @@ class CloudChatCoordinator extends ChangeNotifier {
         lastTurn.duration =
             DateTime.now().difference(lastTurn.generationStartedAt!);
       }
-      lastTurn.modelName ??=
-          useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
+      lastTurn.modelName ??= useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
       if (lastTurn.response.isEmpty) {
         final isDe = localeGetter().toLowerCase().startsWith('de');
         lastTurn.response = isDe
@@ -646,8 +702,7 @@ class CloudChatCoordinator extends ChangeNotifier {
         lastTurn.duration =
             DateTime.now().difference(lastTurn.generationStartedAt!);
       }
-      lastTurn.modelName ??=
-          useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
+      lastTurn.modelName ??= useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
     }
 
     final wasDocked = isDockedSettledGetter();
@@ -716,7 +771,8 @@ class CloudChatCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
-  void syncDemoWaitingHaptics() => _waitingHaptics.sync(isGenerating: _isGenerating);
+  void syncDemoWaitingHaptics() =>
+      _waitingHaptics.sync(isGenerating: _isGenerating);
 
   Future<void> copyResponseMarkdown(AiChatTurn turn) async {
     await Clipboard.setData(ClipboardData(text: turn.response));
@@ -779,6 +835,9 @@ class CloudChatCoordinator extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    final gate = _additionalAccessGate;
+    _additionalAccessGate = null;
+    if (gate != null && !gate.isCompleted) gate.complete(false);
     AiService.instance.configurationRevision
         .removeListener(_handleAiConfigurationChanged);
     _liveRunner.dispose();

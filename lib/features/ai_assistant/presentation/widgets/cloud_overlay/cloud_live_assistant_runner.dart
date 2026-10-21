@@ -13,7 +13,8 @@ class CloudLiveAssistantRunner {
   Future<void>? _activeGenerationCancellation;
 
   AssistantChatService? get assistant => _assistant;
-  Future<void>? get activeGenerationCancellation => _activeGenerationCancellation;
+  Future<void>? get activeGenerationCancellation =>
+      _activeGenerationCancellation;
 
   void setAssistant(AssistantChatService assistant) {
     _assistant = assistant;
@@ -42,6 +43,8 @@ class CloudLiveAssistantRunner {
     required CloudLoadingAnimationController loadingCloud,
     required bool Function() isStillActive,
     required void Function(String text) onAppendText,
+    required Future<bool> Function(AssistantAccessRecord access)
+        onAdditionalAccess,
     required void Function(Object error) onError,
     required VoidCallback onDone,
   }) {
@@ -78,7 +81,8 @@ class CloudLiveAssistantRunner {
     }
 
     _liveResponseSubscription = service
-        .approveAndAnswer(accessId, question, locale: locale)
+        .approveAndAnswer(accessId, question,
+            locale: locale, onAdditionalAccess: onAdditionalAccess)
         .listen(
       (chunk) {
         if (!isStillActive()) return;

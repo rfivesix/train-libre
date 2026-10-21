@@ -154,6 +154,15 @@ Current user message: ${jsonEncode(message)}''';
     return request;
   }
 
+  /// Validates a model-proposed follow-up request using the same rules as the
+  /// initial user request. Callers must still obtain the user's approval.
+  AssistantDataRequest parseAdditionalRequest(
+    Map<String, dynamic> value, {
+    required DateTime now,
+    required String locale,
+  }) =>
+      _parseRequest(value, now, locale);
+
   AssistantDateScope? _defaultScope(
       Set<AssistantDataCategory> categories, DateTime now) {
     if (categories.every((category) => category.isCurrentSnapshot)) return null;

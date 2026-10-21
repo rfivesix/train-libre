@@ -28,6 +28,28 @@ sealed class AssistantSqlCommand {
           throw const FormatException('Invalid final answer command.');
         }
         return AssistantSqlAnswerCommand(answer.trim());
+      case 'request_data':
+        final categories = decoded['categories'];
+        if (categories is! List ||
+            categories.isEmpty ||
+            categories.length > 10 ||
+            categories.any((value) => value is! String)) {
+          throw const FormatException('Invalid additional data request.');
+        }
+        final expression = decoded['dateExpression'];
+        if (expression != null &&
+            (expression is! String || expression.length > 100)) {
+          throw const FormatException('Invalid additional date expression.');
+        }
+        final scope = decoded['scope'];
+        if (scope != null && scope is! Map<String, dynamic>) {
+          throw const FormatException('Invalid additional data scope.');
+        }
+        return AssistantSqlDataRequestCommand(
+          categories.cast<String>(),
+          dateExpression: expression as String?,
+          scope: scope as Map<String, dynamic>?,
+        );
       default:
         throw const FormatException('Unknown SQL assistant command.');
     }
@@ -42,4 +64,12 @@ class AssistantSqlQueryCommand extends AssistantSqlCommand {
 class AssistantSqlAnswerCommand extends AssistantSqlCommand {
   const AssistantSqlAnswerCommand(this.answer);
   final String answer;
+}
+
+class AssistantSqlDataRequestCommand extends AssistantSqlCommand {
+  const AssistantSqlDataRequestCommand(this.categories,
+      {this.dateExpression, this.scope});
+  final List<String> categories;
+  final String? dateExpression;
+  final Map<String, dynamic>? scope;
 }
