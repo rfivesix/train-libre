@@ -187,15 +187,25 @@ class _WaterSparkline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final values = summary.dailyIntakes;
-    final tracked = values.where((day) => day.isTracked).toList();
-    if (tracked.isEmpty) return const SizedBox(height: 38);
-    final minimum = tracked
-        .map((day) => day.milliliters / 1000)
-        .reduce((a, b) => a < b ? a : b);
-    final maximum = tracked
-        .map((day) => day.milliliters / 1000)
-        .reduce((a, b) => a > b ? a : b);
-    final spread = (maximum - minimum).clamp(0.0, double.infinity);
+
+    // BOLT OPTIMIZATION: Replaced chained .where().toList(), .map(), and .reduce()
+    // calls with a single-pass loop to avoid intermediate list allocations and
+    // multiple O(N) iterations.
+    bool hasData = false;
+    double? minimum;
+    double? maximum;
+
+    for (final day in values) {
+      if (!day.isTracked) continue;
+      hasData = true;
+      final val = day.milliliters / 1000;
+      if (minimum == null || val < minimum) minimum = val;
+      if (maximum == null || val > maximum) maximum = val;
+    }
+
+    if (!hasData) return const SizedBox(height: 38);
+
+    final spread = (maximum! - minimum!).clamp(0.0, double.infinity);
     final padding = spread == 0 ? 0.5 : spread * 0.18;
     final color = Theme.of(context).colorScheme.primary;
     return SizedBox(
