@@ -68,13 +68,16 @@ sealed class AssistantSqlCommand {
       case 'search_catalog':
         final catalog = decoded['catalog'];
         final query = decoded['query'];
-        if (catalog != 'food' ||
+        if (!const {'food', 'exercises'}.contains(catalog) ||
             query is! String ||
             query.trim().length < 2 ||
             query.length > 100) {
           throw const FormatException('Invalid catalog search command.');
         }
-        return AssistantSqlCatalogSearchCommand(query.trim());
+        return AssistantSqlCatalogSearchCommand(
+          catalog as String,
+          query.trim(),
+        );
       default:
         throw const FormatException('Unknown SQL assistant command.');
     }
@@ -133,6 +136,7 @@ class AssistantSqlChangeProposalCommand extends AssistantSqlCommand {
 }
 
 class AssistantSqlCatalogSearchCommand extends AssistantSqlCommand {
-  const AssistantSqlCatalogSearchCommand(this.query);
+  const AssistantSqlCatalogSearchCommand(this.catalog, this.query);
+  final String catalog;
   final String query;
 }

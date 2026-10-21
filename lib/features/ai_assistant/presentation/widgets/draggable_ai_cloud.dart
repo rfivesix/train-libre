@@ -51,6 +51,8 @@ class DraggableAiCloud extends StatefulWidget {
   final bool openDirectlyFullscreen;
   final bool useLiveAi;
   final AssistantModelClient? modelClient;
+  final GlobalKey<NavigatorState>? navigatorKey;
+  final NavigatorState? navigator;
 
   const DraggableAiCloud({
     super.key,
@@ -64,6 +66,8 @@ class DraggableAiCloud extends StatefulWidget {
     this.openDirectlyFullscreen = false,
     this.useLiveAi = false,
     this.modelClient,
+    this.navigatorKey,
+    this.navigator,
   });
 
   @override
@@ -325,6 +329,22 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         if (mounted) widget.onFullscreenChanged?.call(false);
       });
     }
+  }
+
+  Future<void> _navigateFromOverlay(WidgetBuilder builder) async {
+    final wasFullscreen = _isFullscreen;
+    if (_isExpanded) {
+      _toggleExpanded();
+      await _morphAnimation.reverse();
+      if (wasFullscreen) await _fullscreenAnimation.reverse();
+    }
+    if (!mounted) return;
+    final routeNavigator =
+        widget.navigatorKey?.currentState ?? widget.navigator;
+    if (routeNavigator == null) return;
+    await routeNavigator.push<void>(
+      MaterialPageRoute<void>(builder: builder),
+    );
   }
 
   void _sendPromptFromComposer() {
@@ -938,6 +958,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           _chatCoordinator.loadingCloudAnimation,
                       copiedTurn: _chatCoordinator.copiedTurn,
                       useLiveAi: widget.useLiveAi,
+                      onNavigate: _navigateFromOverlay,
                       theme: theme,
                       contrastColor: contrastColor,
                       surfaceColor: surfaceColor,
@@ -961,6 +982,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       onResolveProposal: _chatCoordinator.resolveChangeProposal,
                       onIncrementUserScrollRevision:
                           _scrollSidebarController.incrementUserScrollRevision,
+                      onScrollMetricsChanged: _scrollSidebarController
+                          .refreshChatScrollStateAfterLayout,
                       onPermissionCardSizeEnd: () {
                         if (_scrollSidebarController.followChatTail) {
                           _scrollSidebarController.scrollChatToBottom();

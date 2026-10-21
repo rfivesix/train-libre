@@ -97,6 +97,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                         type: MaterialType.transparency,
                         child: DraggableAiCloud(
                           key: _cloudKey,
+                          navigator: Navigator.of(context),
                           semanticLabel: l10n.developerAiOverlayDemoTitle,
                           semanticHint: l10n.aiOverlayDemoCloudHint,
                           liveliness: settings.liveliness,

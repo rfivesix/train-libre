@@ -23,6 +23,7 @@ class CloudChatTurnListView extends StatelessWidget {
   final Animation<double> loadingCloudAnimation;
   final AiChatTurn? copiedTurn;
   final bool useLiveAi;
+  final Future<void> Function(WidgetBuilder builder) onNavigate;
   final ThemeData theme;
   final Color contrastColor;
   final Color surfaceColor;
@@ -42,6 +43,7 @@ class CloudChatTurnListView extends StatelessWidget {
   final Future<void> Function(AiChatTurn turn, {required bool approved})
       onResolveProposal;
   final VoidCallback onIncrementUserScrollRevision;
+  final VoidCallback onScrollMetricsChanged;
   final VoidCallback onPermissionCardSizeEnd;
 
   const CloudChatTurnListView({
@@ -56,6 +58,7 @@ class CloudChatTurnListView extends StatelessWidget {
     required this.loadingCloudAnimation,
     required this.copiedTurn,
     required this.useLiveAi,
+    required this.onNavigate,
     required this.theme,
     required this.contrastColor,
     required this.surfaceColor,
@@ -74,11 +77,13 @@ class CloudChatTurnListView extends StatelessWidget {
     required this.onShowAccessAudit,
     required this.onResolveProposal,
     required this.onIncrementUserScrollRevision,
+    required this.onScrollMetricsChanged,
     required this.onPermissionCardSizeEnd,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (chatTurns.isEmpty) onScrollMetricsChanged();
     return ShaderMask(
       blendMode: BlendMode.dstIn,
       shaderCallback: (bounds) {
@@ -131,77 +136,84 @@ class CloudChatTurnListView extends StatelessWidget {
       },
       child: chatTurns.isEmpty
           ? const SizedBox.shrink()
-          : NotificationListener<UserScrollNotification>(
-              onNotification: (notification) {
-                if (notification.direction != ScrollDirection.idle) {
-                  onIncrementUserScrollRevision();
-                }
+          : NotificationListener<ScrollMetricsNotification>(
+              onNotification: (_) {
+                onScrollMetricsChanged();
                 return false;
               },
-              child: ListView.builder(
-                key: const PageStorageKey<String>('ai-overlay-chat-history'),
-                controller: scrollController,
-                findChildIndexCallback: (key) {
-                  if (key == permissionCardKey) {
-                    return chatTurns.length + 1;
+              child: NotificationListener<UserScrollNotification>(
+                onNotification: (notification) {
+                  if (notification.direction != ScrollDirection.idle) {
+                    onIncrementUserScrollRevision();
                   }
-                  if (key is ValueKey<AiChatTurn>) {
-                    final turnIndex = chatTurns.indexOf(key.value);
-                    return turnIndex < 0 ? null : turnIndex + 1;
-                  }
-                  return null;
+                  return false;
                 },
-                padding: const EdgeInsets.only(bottom: 104),
-                itemCount: chatTurns.length + 2,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return SizedBox(
-                      height: math.max(0.0, chatTop - topFadeStart + 16),
-                    );
-                  }
-                  if (index == chatTurns.length + 1) {
+                child: ListView.builder(
+                  key: const PageStorageKey<String>('ai-overlay-chat-history'),
+                  controller: scrollController,
+                  findChildIndexCallback: (key) {
+                    if (key == permissionCardKey) {
+                      return chatTurns.length + 1;
+                    }
+                    if (key is ValueKey<AiChatTurn>) {
+                      final turnIndex = chatTurns.indexOf(key.value);
+                      return turnIndex < 0 ? null : turnIndex + 1;
+                    }
+                    return null;
+                  },
+                  padding: const EdgeInsets.only(bottom: 104),
+                  itemCount: chatTurns.length + 2,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return SizedBox(
+                        height: math.max(0.0, chatTop - topFadeStart + 16),
+                      );
+                    }
+                    if (index == chatTurns.length + 1) {
+                      return KeyedSubtree(
+                        key: permissionCardKey,
+                        child: CloudOverlayPermissionCard(
+                          theme: theme,
+                          contrastColor: contrastColor,
+                          surfaceColor: surfaceColor,
+                          isVisible:
+                              (permissionPending || permissionApproved != null),
+                          pendingAccess: pendingAccess,
+                          permissionPending: permissionPending,
+                          permissionApproved: permissionApproved,
+                          useLiveAi: useLiveAi,
+                          onResolvePermission: onResolvePermission,
+                          onAnimatedSizeEnd: onPermissionCardSizeEnd,
+                        ),
+                      );
+                    }
+                    final turn = chatTurns[index - 1];
+                    final isLastTurn = index == chatTurns.length;
                     return KeyedSubtree(
-                      key: permissionCardKey,
-                      child: CloudOverlayPermissionCard(
-                        theme: theme,
+                      key: ValueKey<AiChatTurn>(turn),
+                      child: CloudChatTurnView(
+                        turn: turn,
                         contrastColor: contrastColor,
-                        surfaceColor: surfaceColor,
-                        isVisible:
-                            (permissionPending || permissionApproved != null),
-                        pendingAccess: pendingAccess,
-                        permissionPending: permissionPending,
-                        permissionApproved: permissionApproved,
+                        softColor: softColor,
+                        isStreaming: isGenerating && isLastTurn,
+                        showLoadingCloud: isLastTurn &&
+                            isLoadingCloudVisible &&
+                            turn.response.isEmpty,
+                        loadingCloudAnimation: loadingCloudAnimation,
+                        isCopied: copiedTurn == turn,
+                        isGenerating: isGenerating,
                         useLiveAi: useLiveAi,
-                        onResolvePermission: onResolvePermission,
-                        onAnimatedSizeEnd: onPermissionCardSizeEnd,
+                        onCopyResponse: () => onCopyResponse(turn),
+                        onCopyFullChat: onCopyFullChat,
+                        onRetryPrompt: () => onRetryPrompt(turn),
+                        onShowAccessAudit: onShowAccessAudit,
+                        onResolveProposal: (approved) =>
+                            onResolveProposal(turn, approved: approved),
+                        onNavigate: onNavigate,
                       ),
                     );
-                  }
-                  final turn = chatTurns[index - 1];
-                  final isLastTurn = index == chatTurns.length;
-                  return KeyedSubtree(
-                    key: ValueKey<AiChatTurn>(turn),
-                    child: CloudChatTurnView(
-                      turn: turn,
-                      contrastColor: contrastColor,
-                      softColor: softColor,
-                      isStreaming: isGenerating && isLastTurn,
-                      showLoadingCloud: isLastTurn &&
-                          isLoadingCloudVisible &&
-                          turn.response.isEmpty,
-                      loadingCloudAnimation: loadingCloudAnimation,
-                      isCopied: copiedTurn == turn,
-                      isGenerating: isGenerating,
-                      useLiveAi: useLiveAi,
-                      onCopyResponse: () => onCopyResponse(turn),
-                      onCopyFullChat: onCopyFullChat,
-                      onRetryPrompt: () => onRetryPrompt(turn),
-                      onShowAccessAudit: onShowAccessAudit,
-                      onResolveProposal: (approved) =>
-                          onResolveProposal(turn, approved: approved),
-                    ),
-                  );
-                },
+                  },
+                ),
               ),
             ),
     );

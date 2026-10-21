@@ -1165,6 +1165,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                                   child: Material(
                                     type: MaterialType.transparency,
                                     child: DraggableAiCloud(
+                                      navigatorKey: _navigatorKey,
                                       semanticLabel:
                                           AppLocalizations.of(context)!
                                               .developerAiOverlayDemoTitle,

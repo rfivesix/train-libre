@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../../data/database_helper.dart';
 import '../../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+import '../../../../diary/presentation/meal_screen.dart';
+import '../../../../workout/data/sources/workout_local_data_source.dart';
+import '../../../../workout/presentation/routines_screen.dart';
 import '../../../data/assistant_history_repository.dart';
+import '../../../domain/assistant_change_proposal.dart';
 import 'ai_chat_turn.dart';
 import 'cloud_overlay_markdown.dart';
 
@@ -35,6 +40,7 @@ class CloudChatTurnView extends StatelessWidget {
     required this.onRetryPrompt,
     required this.onShowAccessAudit,
     required this.onResolveProposal,
+    required this.onNavigate,
   });
 
   final AiChatTurn turn;
@@ -51,6 +57,7 @@ class CloudChatTurnView extends StatelessWidget {
   final VoidCallback onRetryPrompt;
   final ValueChanged<AssistantAccessRecord> onShowAccessAudit;
   final ValueChanged<bool> onResolveProposal;
+  final Future<void> Function(WidgetBuilder builder) onNavigate;
 
   @override
   Widget build(BuildContext context) {
@@ -294,16 +301,66 @@ class CloudChatTurnView extends StatelessWidget {
                 ],
               )
             else
-              Text(
-                turn.proposalStatus == 'proposal_applied'
-                    ? (isDe ? 'Gespeichert' : 'Saved')
-                    : (isDe ? 'Verworfen' : 'Discarded'),
-                style: theme.textTheme.labelLarge?.copyWith(color: color),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    turn.proposalStatus == 'proposal_applied'
+                        ? (isDe ? 'Gespeichert' : 'Saved')
+                        : (isDe ? 'Verworfen' : 'Discarded'),
+                    style: theme.textTheme.labelLarge?.copyWith(color: color),
+                  ),
+                  if (turn.proposalStatus == 'proposal_applied' &&
+                      const {'routine', 'recipe'}
+                          .contains(proposal.payload.type)) ...[
+                    const SizedBox(width: 12),
+                    TextButton.icon(
+                      onPressed: () => _openSavedItem(proposal),
+                      icon: Icon(LucideIcons.external_link, size: 16),
+                      label: Text(isDe ? 'Öffnen' : 'Open'),
+                    ),
+                  ],
+                ],
               ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _openSavedItem(
+    AssistantChangeProposal proposal,
+  ) async {
+    final expectedName = proposal.payload.name.trim().toLowerCase();
+    switch (proposal.payload.type) {
+      case 'routine':
+        final routines = await WorkoutLocalDataSource.instance.getAllRoutines();
+        int? matchingRoutineId;
+        for (final routine in routines) {
+          if (routine.name.trim().toLowerCase() == expectedName) {
+            matchingRoutineId = routine.id;
+            break;
+          }
+        }
+        await onNavigate(
+          (_) => RoutinesScreen(initialRoutineId: matchingRoutineId),
+        );
+      case 'recipe':
+        final meals = await DatabaseHelper.instance.getMeals();
+        Map<String, dynamic>? matchingMeal;
+        for (final meal in meals) {
+          if ((meal['name'] as String? ?? '').trim().toLowerCase() ==
+              expectedName) {
+            matchingMeal = meal;
+            break;
+          }
+        }
+        if (matchingMeal != null) {
+          await onNavigate((_) => MealScreen(meal: matchingMeal!));
+        }
+      default:
+        return;
+    }
   }
 
   String _proposalMetadata(String type, Map<String, dynamic> data, bool isDe) {

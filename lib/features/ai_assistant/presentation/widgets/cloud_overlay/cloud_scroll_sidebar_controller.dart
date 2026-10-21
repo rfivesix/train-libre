@@ -32,6 +32,7 @@ class CloudScrollSidebarController extends ChangeNotifier {
 
   bool _followChatTail = true;
   bool _showScrollToBottom = false;
+  bool _scrollStateRefreshScheduled = false;
   int _chatUserScrollRevision = 0;
   int _chatContentRevision = 0;
   bool _isDisposed = false;
@@ -205,11 +206,31 @@ class CloudScrollSidebarController extends ChangeNotifier {
   }
 
   void _handleChatScroll() {
-    if (!chatScrollController.hasClients) return;
+    _updateChatScrollState();
+  }
+
+  void refreshChatScrollStateAfterLayout() {
+    if (_scrollStateRefreshScheduled || _isDisposed) return;
+    _scrollStateRefreshScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollStateRefreshScheduled = false;
+      if (!_isDisposed) _updateChatScrollState();
+    });
+  }
+
+  void _updateChatScrollState() {
+    if (!chatScrollController.hasClients) {
+      _followChatTail = true;
+      _setShowScrollToBottom(false);
+      return;
+    }
     final position = chatScrollController.position;
     final distanceToBottom = position.maxScrollExtent - position.pixels;
     _followChatTail = distanceToBottom < 80;
-    final showButton = distanceToBottom > _scrollToBottomThreshold;
+    _setShowScrollToBottom(distanceToBottom > _scrollToBottomThreshold);
+  }
+
+  void _setShowScrollToBottom(bool showButton) {
     if (_showScrollToBottom != showButton && !_isDisposed) {
       _showScrollToBottom = showButton;
       notifyListeners();
@@ -233,9 +254,7 @@ class CloudScrollSidebarController extends ChangeNotifier {
       _chatContentRevision++;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isDisposed ||
-          !chatScrollController.hasClients ||
-          !_followChatTail) {
+      if (_isDisposed || !chatScrollController.hasClients || !_followChatTail) {
         return;
       }
       chatScrollController.jumpTo(
@@ -260,8 +279,8 @@ class CloudScrollSidebarController extends ChangeNotifier {
 
   void handleHeaderDragEnd(DragEndDetails details) {
     final morph = morphAnimationGetter();
-    final shouldCollapse = morph.value < 0.55 ||
-        details.velocity.pixelsPerSecond.dy > 900;
+    final shouldCollapse =
+        morph.value < 0.55 || details.velocity.pixelsPerSecond.dy > 900;
     if (shouldCollapse) {
       onToggleExpanded?.call();
     } else {
