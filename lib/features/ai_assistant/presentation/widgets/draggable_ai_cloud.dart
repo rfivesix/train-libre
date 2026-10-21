@@ -83,6 +83,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   AnimationController? _morphController;
   AnimationController? _fullscreenController;
+  CurvedAnimation? _curvedMorphAnimation;
 
   late final CloudDockingController _dockingController;
   late final CloudVoiceController _voiceController;
@@ -100,6 +101,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         vsync: this,
         duration: const Duration(milliseconds: 480),
       )..addListener(_onFullscreenAnimationTick);
+
+  CurvedAnimation get _morphProgressAnimation =>
+      _curvedMorphAnimation ??= CurvedAnimation(
+        parent: _morphAnimation,
+        curve: Curves.easeInOutCubic,
+      );
 
   @override
   void initState() {
@@ -232,6 +239,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _chatInputController.dispose();
     _chatFocusNode.dispose();
     _chatInputScrollController.dispose();
+    _curvedMorphAnimation?.dispose();
     _morphController?.dispose();
     _fullscreenController?.dispose();
     super.dispose();
@@ -339,8 +347,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         );
         final rawMorphProgress =
             morphAnimation.value.clamp(0.0, 1.0).toDouble();
-        final morphProgress =
-            Curves.easeInOutCubic.transform(rawMorphProgress);
+        final morphProgress = _morphProgressAnimation.value;
         final openingClosingProgress = math.min(
           _fullscreenAnimation.value.clamp(0.0, 1.0).toDouble(),
           rawMorphProgress,
@@ -416,7 +423,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                 isSettledOrb ? null : animatedCloudCenter,
                             frameRect: layout.activeSafeRect,
                             baseColor: overlaySurface,
-                            frameMorphAnimation: morphAnimation,
+                            frameMorphAnimation: _morphProgressAnimation,
                             showAmbientGlow: false,
                             edgeBlurSigma: 4,
                             showDetachedSatellite: false,
