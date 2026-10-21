@@ -15,6 +15,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../data/database_helper.dart';
@@ -43,7 +44,7 @@ import '../../../steps/data/steps_aggregation_repository.dart';
 ///
 /// Its horizontal and vertical position is interactive and resets when the
 /// demo screen is opened again.
-enum _AssistantMenuAction { newChat, chatHistory }
+enum _AssistantMenuAction { autoApprove }
 
 class DraggableAiCloud extends StatefulWidget {
   final String semanticLabel;
@@ -195,6 +196,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _initialDockScheduled = false;
   double _displayedHorizontalPosition = 0;
   String? _currentModelName;
+  bool _autoApproveDataRequests = false;
 
   AnimationController get _morphAnimation =>
       _morphController ??= AnimationController(
@@ -277,8 +279,23 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         ]),
         model: widget.modelClient ?? const ConfiguredAssistantModelClient(),
       );
+      unawaited(_loadAutoApprovePreference());
       unawaited(_loadAssistantHistory());
     }
+  }
+
+  Future<void> _loadAutoApprovePreference() async {
+    final preferences = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _autoApproveDataRequests =
+        preferences.getBool('ai_overlay_auto_approve_data_requests') ?? false);
+  }
+
+  Future<void> _toggleAutoApproveDataRequests() async {
+    final next = !_autoApproveDataRequests;
+    setState(() => _autoApproveDataRequests = next);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('ai_overlay_auto_approve_data_requests', next);
   }
 
   @override
@@ -1521,78 +1538,66 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 return Positioned.fill(
                   child: ClipRect(
                     clipper: _CloudControlsClipper(contentRevealBounds),
-                    child: Transform.scale(
-                      // Keep the transform origin on the orb so the contents
-                      // contract into it instead of sliding toward the top.
-                      alignment: Alignment(
-                        width <= 0 ? 0 : cloudCenter.dx / width * 2 - 1,
-                        viewportHeight <= 0
-                            ? 0
-                            : cloudCenter.dy / viewportHeight * 2 - 1,
-                      ),
-                      scale: revealProgress,
-                      child: Opacity(
-                        opacity: revealProgress,
-                        child: Listener(
-                          behavior: HitTestBehavior.translucent,
-                          onPointerDown: _handleSidebarPointerDown,
-                          onPointerMove: (event) => _handleSidebarPointerMove(
-                            event,
-                            _sidebarWidth(width),
-                          ),
-                          onPointerUp: _finishSidebarPointer,
-                          onPointerCancel: _finishSidebarPointer,
-                          child: Stack(
-                            children: [
-                              if (_sidebarController.value > 0.001)
-                                _buildDemoSidebar(
-                                  theme,
-                                  width,
-                                  appearanceProgress: appearanceProgress,
+                    // Keep text at a stable scale while the cloud opens. The
+                    // expanding clip already reveals the controls, and
+                    // animated text scaling can invalidate Impeller glyph
+                    // atlas bounds for individual frames.
+                    child: Opacity(
+                      opacity: revealProgress,
+                      child: Listener(
+                        behavior: HitTestBehavior.translucent,
+                        onPointerDown: _handleSidebarPointerDown,
+                        onPointerMove: (event) => _handleSidebarPointerMove(
+                          event,
+                          _sidebarWidth(width),
+                        ),
+                        onPointerUp: _finishSidebarPointer,
+                        onPointerCancel: _finishSidebarPointer,
+                        child: Stack(
+                          children: [
+                            if (_sidebarController.value > 0.001)
+                              _buildDemoSidebar(
+                                theme,
+                                width,
+                                appearanceProgress: appearanceProgress,
+                              ),
+                            Positioned.fill(
+                              child: Transform.translate(
+                                offset: Offset(
+                                  _sidebarController.value *
+                                      _sidebarWidth(width),
+                                  0,
                                 ),
-                              Positioned.fill(
-                                child: Transform.translate(
-                                  offset: Offset(
-                                    _sidebarController.value *
-                                        _sidebarWidth(width),
-                                    0,
-                                  ),
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: _sidebarController.value > 0
-                                        ? _closeSidebar
-                                        : null,
-                                    child: Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        _buildChatPreview(
-                                          activeSafeRect,
-                                          theme,
-                                          viewportHeight,
-                                          bottomOcclusion: bottomOcclusion,
-                                          fullscreenProgress:
-                                              fullscreenProgress,
-                                          appearanceProgress:
-                                              appearanceProgress,
-                                        ),
-                                        _buildExpandedToolbar(
-                                          activeSafeRect,
-                                          theme,
-                                          fullscreenProgress:
-                                              fullscreenProgress,
-                                          appearanceProgress:
-                                              appearanceProgress,
-                                          surfaceColor: overlaySurfaceColor,
-                                          foregroundColor:
-                                              overlayForegroundColor,
-                                        ),
-                                      ],
-                                    ),
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: _sidebarController.value > 0
+                                      ? _closeSidebar
+                                      : null,
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      _buildChatPreview(
+                                        activeSafeRect,
+                                        theme,
+                                        viewportHeight,
+                                        bottomOcclusion: bottomOcclusion,
+                                        fullscreenProgress: fullscreenProgress,
+                                        appearanceProgress: appearanceProgress,
+                                      ),
+                                      _buildExpandedToolbar(
+                                        activeSafeRect,
+                                        theme,
+                                        fullscreenProgress: fullscreenProgress,
+                                        appearanceProgress: appearanceProgress,
+                                        surfaceColor: overlaySurfaceColor,
+                                        foregroundColor: overlayForegroundColor,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -1648,24 +1653,47 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 onPressed: _isFullscreen ? _toggleSidebar : _toggleFullscreen,
               ),
             ),
-            if (!_isFullscreen)
-              Expanded(
-                child: Center(
+            if (_chatTurns.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 8),
+                child: _buildHeaderGlassButton(
+                  icon: LucideIcons.square_pen,
+                  tooltip: AppLocalizations.of(context)!.aiOverlayNewChat,
+                  isDarkSurface: !surfaceIsLight,
+                  foregroundColor: foregroundColor,
+                  backgroundColor: controlFill,
+                  onPressed: _startNewDemoChat,
+                ),
+              ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6, left: 10, right: 10),
+                child: ShaderMask(
+                  blendMode: BlendMode.dstIn,
+                  shaderCallback: (bounds) => const LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [Colors.white, Colors.white, Colors.transparent],
+                    stops: [0, 0.78, 1],
+                  ).createShader(bounds),
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onVerticalDragStart: _handleHeaderDragStart,
                     onVerticalDragUpdate: _handleHeaderDragUpdate,
                     onVerticalDragEnd: _handleHeaderDragEnd,
                     child: SizedBox(
-                      width: 72,
-                      height: 56,
-                      child: Center(
-                        child: Container(
-                          width: 38,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: foregroundColor.withValues(alpha: 0.24),
-                            borderRadius: BorderRadius.circular(5),
+                      height: 44,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _activeConversationTitle,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.fade,
+                          textAlign: TextAlign.start,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: surfaceIsLight ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -1673,7 +1701,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   ),
                 ),
               ),
-            if (_isFullscreen) const Spacer(),
+            ),
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: PlatformAdaptivePopupMenu<_AssistantMenuAction>(
@@ -1684,17 +1712,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   foregroundColor: foregroundColor,
                   backgroundColor: controlFill,
                 ),
-                menuWidth: 230,
+                menuWidth: 330,
                 items: [
                   PlatformAdaptivePopupMenuItem(
-                    value: _AssistantMenuAction.newChat,
-                    label: AppLocalizations.of(context)!.aiOverlayNewChat,
-                    icon: LucideIcons.square_pen,
-                  ),
-                  PlatformAdaptivePopupMenuItem(
-                    value: _AssistantMenuAction.chatHistory,
-                    label: AppLocalizations.of(context)!.aiOverlayChatHistory,
-                    icon: LucideIcons.rotate_ccw,
+                    value: _AssistantMenuAction.autoApprove,
+                    label: AppLocalizations.of(context)!.aiOverlayAutoApprove,
+                    customTrailing: _autoApproveDataRequests
+                        ? Icon(LucideIcons.check,
+                            color: foregroundColor, size: 18)
+                        : null,
                   ),
                 ],
                 onSelected: _handleAssistantMenuAction,
@@ -1844,15 +1870,21 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   void _handleAssistantMenuAction(_AssistantMenuAction action) {
     switch (action) {
-      case _AssistantMenuAction.newChat:
-        _sidebarController.reverse();
-        _startNewDemoChat();
-      case _AssistantMenuAction.chatHistory:
-        _toggleSidebar();
+      case _AssistantMenuAction.autoApprove:
+        unawaited(_toggleAutoApproveDataRequests());
     }
   }
 
+  String get _activeConversationTitle {
+    if (!widget.useLiveAi || _conversationId == null) return '';
+    for (final conversation in _conversations) {
+      if (conversation.id == _conversationId) return conversation.title;
+    }
+    return '';
+  }
+
   void _startNewDemoChat() {
+    _sidebarController.reverse();
     if (widget.useLiveAi) {
       _conversationId = null;
       _pendingAccess = null;
@@ -2192,14 +2224,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               onPressed: recording ? _cancelVoiceInput : _startVoiceInput,
             );
 
-        Widget sendButton() => _buildHeaderGlassButton(
-              icon: _isGenerating ? LucideIcons.square : LucideIcons.arrow_up,
-              tooltip: _isGenerating ? 'Stopp' : 'Senden',
-              isDarkSurface: !surfaceIsLight,
-              backgroundColor: sendButtonBackground,
-              foregroundColor: sendButtonForeground,
-              onPressed: _isGenerating ? _stopDemoGeneration : _sendDemoPrompt,
-            );
+        Widget sendButton() {
+          final hasDraft = inputValue.text.trim().isNotEmpty;
+          final isStopAction = _isGenerating && !hasDraft;
+          return _buildHeaderGlassButton(
+            icon: isStopAction ? LucideIcons.square : LucideIcons.arrow_up,
+            tooltip: isStopAction ? 'Stopp' : 'Senden',
+            isDarkSurface: !surfaceIsLight,
+            backgroundColor: sendButtonBackground,
+            foregroundColor: sendButtonForeground,
+            onPressed: isStopAction ? _stopDemoGeneration : _sendDemoPrompt,
+          );
+        }
 
         Widget messageField({required bool compact}) => Scrollbar(
               key: const ValueKey('ai-composer-scrollbar'),
@@ -2237,11 +2273,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       ? TextAlignVertical.center
                       : TextAlignVertical.top,
                   minLines: 1,
-                  maxLines: (!compact || inputValue.text.isEmpty) ? 6 : 1,
+                  maxLines: compact ? 1 : 6,
                   textInputAction: TextInputAction.send,
-                  onSubmitted: (_) {
-                    if (!_isGenerating) _sendDemoPrompt();
-                  },
+                  onSubmitted: (_) => _sendDemoPrompt(),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: contrastColor,
                   ),
@@ -2323,31 +2357,30 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       : Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (!_isGenerating)
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ConstrainedBox(
-                                      constraints:
-                                          const BoxConstraints(maxHeight: 156),
-                                      child: messageField(
-                                        compact: !expandedInput,
-                                      ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxHeight: 156),
+                                    child: messageField(
+                                      compact: !expandedInput,
                                     ),
                                   ),
-                                  if (!expandedInput) ...[
-                                    const SizedBox(width: 6),
-                                    // With an empty draft the mic occupies the
-                                    // send button's usual trailing position and
-                                    // uses its exact filled circular treatment.
+                                ),
+                                if (!expandedInput) ...[
+                                  const SizedBox(width: 6),
+                                  if (_isGenerating)
+                                    sendButton()
+                                  else
                                     voiceButton(filled: true),
-                                  ],
                                 ],
-                              ),
-                            if (expandedInput || _isGenerating)
+                              ],
+                            ),
+                            if (expandedInput)
                               Row(
                                 children: [
-                                  if (!_isGenerating)
+                                  if (!_isGenerating || expandedInput)
                                     Expanded(
                                       child: GestureDetector(
                                         behavior: HitTestBehavior.opaque,
@@ -2694,19 +2727,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 theme: theme,
                 contrastColor: contrastColor,
               ),
-            if (widget.useLiveAi && turn.access != null && !isStreaming)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () => _showAccessAudit(turn.access!),
-                  icon: const Icon(LucideIcons.shield_check, size: 14),
-                  label: Text(
-                    Localizations.localeOf(context).languageCode == 'de'
-                        ? 'Datenzugriff'
-                        : 'Data access',
-                  ),
-                ),
-              ),
           ],
         ],
       ),
@@ -2789,15 +2809,30 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           subtitle: access.sharedAt!.toLocal().toString().split('.').first,
           onTap: () {},
         ),
+      if (manifest['sqlAnalysis'] is Map)
+        for (final query
+            in ((manifest['sqlAnalysis'] as Map)['queries'] as List? ??
+                const []))
+          if (query is Map)
+            GlassMenuAction(
+              icon: LucideIcons.database,
+              label: isDe ? 'SQL-Abfrage' : 'SQL query',
+              subtitle:
+                  '${(query['tables'] as List? ?? const []).join(', ')} · '
+                  '${query['rowCount'] ?? 0} ${isDe ? 'Ergebnisse' : 'result rows'}'
+                  '${query['truncated'] == true ? (isDe ? ' · gekürzt' : ' · truncated') : ''}',
+              onTap: () {},
+            ),
       for (final entry in manifest.entries)
-        GlassMenuAction(
-          icon: LucideIcons.database,
-          label: AssistantDataCategory.localizeName(entry.key, locale),
-          subtitle:
-              '${(entry.value as Map)['count']} ${isDe ? 'Einträge' : 'records'}\n'
-              '${((entry.value as Map)['references'] as List).join(', ')}',
-          onTap: () {},
-        ),
+        if (entry.key != 'sqlAnalysis')
+          GlassMenuAction(
+            icon: LucideIcons.database,
+            label: AssistantDataCategory.localizeName(entry.key, locale),
+            subtitle:
+                '${(entry.value as Map)['count']} ${isDe ? 'Einträge' : 'records'}\n'
+                '${((entry.value as Map)['references'] as List).join(', ')}',
+            onTap: () {},
+          ),
     ];
 
     final Color barrierColor = isDark
@@ -2831,12 +2866,16 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   String _localizeAccessStatus(String status, {required bool isDe}) {
+    if (status == 'not_shared') {
+      return isDe ? 'Keine Datensätze übertragen' : 'No records shared';
+    }
     if (!isDe) return status;
     return switch (status) {
       'pending' => 'Ausstehend',
       'approved' => 'Freigegeben',
       'denied' => 'Abgelehnt',
       'shared' => 'Übertragen',
+      'not_shared' => 'Keine Datensätze übertragen',
       'no_data' => 'Keine Daten im Zeitraum (nichts übertragen)',
       'unresolved' => 'Rückfrage offen (nichts übertragen)',
       'expired' => 'Abgelaufen (nichts übertragen)',
@@ -3051,6 +3090,38 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             onTap: _isGenerating ? null : () => _retryTurnPrompt(turn),
             foregroundColor: subtleColor,
           ),
+          if (widget.useLiveAi && turn.access != null) ...[
+            const SizedBox(width: 4),
+            PlatformAdaptivePopupMenu<String>(
+              icon: Semantics(
+                button: true,
+                label: Localizations.localeOf(context).languageCode == 'de'
+                    ? 'Weitere Optionen'
+                    : 'More options',
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: Center(
+                    child: Icon(
+                      LucideIcons.ellipsis,
+                      size: 18,
+                      color: subtleColor,
+                    ),
+                  ),
+                ),
+              ),
+              menuWidth: 220,
+              items: [
+                PlatformAdaptivePopupMenuItem(
+                  value: 'dataAccess',
+                  label: Localizations.localeOf(context).languageCode == 'de'
+                      ? 'Datenzugriff'
+                      : 'Data access',
+                ),
+              ],
+              onSelected: (_) => _showAccessAudit(turn.access!),
+            ),
+          ],
           if (metaText.isNotEmpty) ...[
             const SizedBox(width: 8),
             Text(
@@ -3443,9 +3514,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       unawaited(_sendAssistantPrompt());
       return;
     }
-    if (_isGenerating) return;
+    if (_isGenerating) _stopDemoGeneration();
     final prompt = _chatInputController.text.trim();
     if (prompt.isEmpty) return;
+    _dismissComposerKeyboard();
 
     final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
@@ -3481,9 +3553,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   Future<void> _sendAssistantPrompt() async {
-    if (_isGenerating) return;
+    if (_isGenerating) _stopDemoGeneration();
     final prompt = _chatInputController.text.trim();
     if (prompt.isEmpty) return;
+    _dismissComposerKeyboard();
     final service = _assistant;
     if (service == null) return;
     final locale = Localizations.localeOf(context).toLanguageTag();
@@ -3562,6 +3635,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         widget.onGenerationChanged?.call(false);
         unawaited(_loadAssistantHistory());
         _scrollChatToBottom(force: true);
+        if (_autoApproveDataRequests) {
+          scheduleMicrotask(() => _resolveAssistantPermission(true));
+        }
         return;
       }
       setState(() {
@@ -3587,6 +3663,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _syncDemoWaitingHaptics();
       widget.onGenerationChanged?.call(false);
     }
+  }
+
+  void _dismissComposerKeyboard() {
+    _chatFocusNode.unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
   }
 
   void _resolveAssistantPermission(bool approved) {

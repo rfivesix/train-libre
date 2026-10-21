@@ -1,0 +1,891 @@
+{
+  "reviewed": "2026-10-21",
+  "apps": [
+    {
+      "id": "train-libre",
+      "name": "Train Libre",
+      "url": "https://trainlibre.com/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "partial",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "yes",
+        "health_sync": "yes",
+        "sleep_recovery": "yes",
+        "offline": "yes",
+        "open_source": "yes",
+        "social_feed": "no",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_free",
+      "evidence": [
+        {
+          "label": "App Store listing, free price and product features",
+          "url": "https://apps.apple.com/de/app/train-libre/id6767055511"
+        },
+        {
+          "label": "AI meal capture",
+          "url": "https://trainlibre.com/docs/features/meal-capture-pipeline/"
+        },
+        {
+          "label": "Data export and backups",
+          "url": "https://trainlibre.com/docs/user-guide/exporting-and-backing-up/"
+        }
+      ]
+    },
+    {
+      "id": "hevy",
+      "name": "Hevy",
+      "url": "https://www.hevyapp.com/features/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "partial",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "yes",
+        "adaptive_energy": "na",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "yes",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Pro and pricing model",
+          "url": "https://help.hevyapp.com/hc/en-us/articles/35119778922263-Hevy-Pro-Subscription-How-to-get-Pro-and-What-Does-It-Include"
+        },
+        {
+          "label": "Social feed",
+          "url": "https://www.hevyapp.com/features/content-feed/"
+        },
+        {
+          "label": "Data export",
+          "url": "https://help.hevyapp.com/hc/en-us/articles/43708290987415-Exporting-Your-Data-from-Hevy"
+        }
+      ]
+    },
+    {
+      "id": "strong",
+      "name": "Strong",
+      "url": "https://help.strongapp.io/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "yes",
+        "adaptive_energy": "na",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Pricing, free tier, and sharing",
+          "url": "https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577"
+        },
+        {
+          "label": "Data export",
+          "url": "https://help.strongapp.io/article/235-export-workout-data"
+        }
+      ]
+    },
+    {
+      "id": "fitbod",
+      "name": "Fitbod",
+      "url": "https://help.fitbod.me/hc/en-us/sections/360012732693-App-Features",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "yes",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "yes",
+        "adaptive_energy": "na",
+        "health_sync": "yes",
+        "sleep_recovery": "yes",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "partial",
+        "data_export": "nd"
+      },
+      "price": "comparison_price_subscription",
+      "evidence": [
+        {
+          "label": "Subscription plans",
+          "url": "https://help.fitbod.me/hc/en-us/sections/1500000506081-Subscriptions"
+        },
+        {
+          "label": "Clubs and activity feed",
+          "url": "https://help.fitbod.me/hc/en-us/sections/360012732693-App-Features"
+        }
+      ]
+    },
+    {
+      "id": "boostcamp",
+      "name": "Boostcamp",
+      "url": "https://www.boostcamp.app/features",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "partial",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "nd",
+        "adaptive_energy": "na",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "yes",
+        "data_export": "nd"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Free and Pro plans",
+          "url": "https://www.boostcamp.app/pro"
+        },
+        {
+          "label": "Community feed",
+          "url": "https://www.boostcamp.app/features/community"
+        }
+      ]
+    },
+    {
+      "id": "caliber",
+      "name": "Caliber",
+      "url": "https://caliberstrong.com/workout-app/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "partial",
+        "workout_analytics": "yes",
+        "food_logging": "nd",
+        "macro_targets": "yes",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "partial",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Plans and pricing",
+          "url": "https://caliberstrong.freshdesk.com/support/solutions/articles/48001257778-account-management-user-guide"
+        },
+        {
+          "label": "Workout data export",
+          "url": "https://feedback.caliberstrong.com/announcements/caliber-570-export-workout-data-plans-section-rebuild-dark-mode"
+        }
+      ]
+    },
+    {
+      "id": "cal-ai",
+      "name": "Cal AI",
+      "url": "https://calai.app/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "na",
+        "workout_plans": "na",
+        "workout_guidance": "na",
+        "workout_analytics": "na",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Subscription and export FAQ",
+          "url": "https://www.calai.app/faq"
+        },
+        {
+          "label": "App Store listing and in-app purchases",
+          "url": "https://apps.apple.com/us/app/cal-ai-calorie-tracker/id6480417616"
+        }
+      ]
+    },
+    {
+      "id": "macrofactor",
+      "name": "MacroFactor",
+      "url": "https://help.macrofactorapp.com/en/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "yes",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_subscription",
+      "evidence": [
+        {
+          "label": "Plans and pricing",
+          "url": "https://help.macrofactorapp.com/en/articles/393-how-macrofactor-subscriptions-and-bundles-work"
+        },
+        {
+          "label": "Data export",
+          "url": "https://macrofactor.com/privacy/"
+        }
+      ]
+    },
+    {
+      "id": "yazio",
+      "name": "YAZIO",
+      "url": "https://www.yazio.com/en",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "partial",
+        "workout_plans": "nd",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "yes",
+        "data_export": "nd"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Free and Pro plans",
+          "url": "https://filecontent.yazio.com/press/factsheet-yazio-en.pdf"
+        },
+        {
+          "label": "Buddies feature",
+          "url": "https://help.yazio.com/hc/en-us/articles/8083386986897-What-is-the-Yazio-Buddies-Feature"
+        }
+      ]
+    },
+    {
+      "id": "myfitnesspal",
+      "name": "MyFitnessPal",
+      "url": "https://support.myfitnesspal.com/hc/en-us",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "partial",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "yes",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Premium plan",
+          "url": "https://www.myfitnesspal.com/premium?legacy=true"
+        },
+        {
+          "label": "Data export",
+          "url": "https://support.myfitnesspal.com/hc/en-us/articles/360032273352-Export-your-nutrition-progress-and-exercise-data"
+        }
+      ]
+    },
+    {
+      "id": "cronometer",
+      "name": "Cronometer",
+      "url": "https://cronometer.com/features/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "partial",
+        "workout_plans": "nd",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "nd",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "partial",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "partial",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Basic and Gold plans",
+          "url": "https://cronometer.com/gold/"
+        },
+        {
+          "label": "Subscriptions and export options",
+          "url": "https://support.cronometer.com/hc/en-us/related/click?data=BAh7CjobZGVzdGluYXRpb25fYXJ0aWNsZV9pZGwrCFu4V9NTADoYcmVmZXJyZXJfYXJ0aWNsZV9pZGwrCAgb%2FtJTADoLbG9jYWxlSSIKZW4tdXMGOgZFVDoIdXJsSSI3L2hjL2VuLXVzL2FydGljbGVzLzM2MDAyODAyNjk3MS1TdWJzY3JpcHRpb24tVHlwZXMGOwhUOglyYW5raQc%3D--1736238cd0cb8ee6e2ffc2b8933faf751958a617"
+        }
+      ]
+    },
+    {
+      "id": "lose-it",
+      "name": "Lose It!",
+      "url": "https://www.loseit.com/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "partial",
+        "workout_plans": "nd",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "yes",
+        "data_export": "nd"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Membership tiers",
+          "url": "https://loseit.zendesk.com/hc/en-us/articles/51906523474708-Lose-It-Membership-Tiers-Pricing"
+        },
+        {
+          "label": "Social settings and activity stream",
+          "url": "https://loseit.zendesk.com/hc/en-us/articles/47492563276820-How-to-Manage-Privacy-Settings"
+        },
+        {
+          "label": "Groups and community",
+          "url": "https://loseit.zendesk.com/hc/en-us/p/tutorial"
+        }
+      ]
+    },
+    {
+      "id": "lifesum",
+      "name": "Lifesum",
+      "url": "https://lifesum.com/features/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "partial",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Free and Premium plans",
+          "url": "https://apps.apple.com/us/app/lifesum-ai-calorie-counter/id286906691"
+        },
+        {
+          "label": "Data export",
+          "url": "https://help.lifesum.com/en/article/is-it-possible-to-invite-my-pt-doctor-nutritionist-to-my-account-gs5nzx/"
+        }
+      ]
+    },
+    {
+      "id": "noom",
+      "name": "Noom",
+      "url": "https://www.noom.com/support/faqs/using-the-app/logging-and-tracking/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "partial",
+        "workout_plans": "nd",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "yes",
+        "macro_targets": "partial",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "yes",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "yes",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Free features and subscriptions",
+          "url": "https://www.noom.com/support/faqs/using-the-app/daily-features/2025/10/free-features-in-the-noom-app/"
+        },
+        {
+          "label": "Data export",
+          "url": "https://www.noom.com/support/faqs/privacy-and-data/2025/10/how-to-export-and-delete-your-noom-data/"
+        },
+        {
+          "label": "Community features",
+          "url": "https://assets.noom.com/"
+        }
+      ]
+    },
+    {
+      "id": "opengym",
+      "name": "openGym",
+      "url": "https://opengym.ch/docs.html",
+      "platforms": {
+        "ios": "partial",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "yes",
+        "adaptive_energy": "na",
+        "health_sync": "yes",
+        "sleep_recovery": "partial",
+        "offline": "yes",
+        "open_source": "yes",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_free",
+      "evidence": [
+        {
+          "label": "Free and self-hosted editions",
+          "url": "https://opengym.ch/"
+        },
+        {
+          "label": "Open source, no subscription, and JSON export",
+          "url": "https://github.com/olgv/opengym/blob/main/README.md"
+        }
+      ]
+    },
+    {
+      "id": "wger",
+      "name": "wger",
+      "url": "https://github.com/wger-project/flutter",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "partial",
+        "macro_targets": "partial",
+        "barcode": "nd",
+        "photo_meals": "nd",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "nd",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "yes",
+        "social_feed": "nd",
+        "data_export": "nd"
+      },
+      "price": "comparison_price_free",
+      "evidence": [
+        {
+          "label": "Open-source project and app",
+          "url": "https://github.com/wger-project/flutter"
+        }
+      ]
+    },
+    {
+      "id": "fud-ai",
+      "name": "Fud AI",
+      "url": "https://www.fud-ai.app/",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "partial",
+        "food_logging": "yes",
+        "macro_targets": "yes",
+        "barcode": "yes",
+        "photo_meals": "yes",
+        "body_metrics": "yes",
+        "adaptive_energy": "nd",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "partial",
+        "open_source": "yes",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_free",
+      "evidence": [
+        {
+          "label": "Free, open-source app and product features",
+          "url": "https://www.fud-ai.app/"
+        },
+        {
+          "label": "App listing and data export",
+          "url": "https://apps.apple.com/us/app/fud-ai-calorie-tracker/id6758935726"
+        }
+      ]
+    },
+    {
+      "id": "librefit",
+      "name": "LibreFit (LibreFitOrg)",
+      "url": "https://github.com/LibreFitOrg/LibreFit",
+      "platforms": {
+        "ios": "nd",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "nd",
+        "adaptive_energy": "na",
+        "health_sync": "nd",
+        "sleep_recovery": "nd",
+        "offline": "yes",
+        "open_source": "yes",
+        "social_feed": "nd",
+        "data_export": "nd"
+      },
+      "price": "comparison_price_free",
+      "evidence": [
+        {
+          "label": "Free open-source Android tracker",
+          "url": "https://github.com/LibreFitOrg/LibreFit"
+        }
+      ]
+    },
+    {
+      "id": "fitnotes",
+      "name": "FitNotes",
+      "url": "https://play.google.com/store/apps/details?id=com.github.jamesgay.fitnotes",
+      "platforms": {
+        "ios": "na",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "nd",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "nd",
+        "adaptive_energy": "na",
+        "health_sync": "nd",
+        "sleep_recovery": "nd",
+        "offline": "nd",
+        "open_source": "nd",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_free",
+      "evidence": [
+        {
+          "label": "Free app and platform",
+          "url": "https://www.fitnotesapp.com/"
+        },
+        {
+          "label": "CSV export and backups",
+          "url": "https://www.fitnotesapp.com/settings/"
+        }
+      ]
+    },
+    {
+      "id": "alpha-progression",
+      "name": "Alpha Progression",
+      "url": "https://alphaprogression.com/en/fact-sheet",
+      "platforms": {
+        "ios": "yes",
+        "android": "yes"
+      },
+      "features": {
+        "workout_log": "yes",
+        "workout_plans": "yes",
+        "workout_guidance": "yes",
+        "workout_analytics": "yes",
+        "food_logging": "na",
+        "macro_targets": "na",
+        "barcode": "na",
+        "photo_meals": "na",
+        "body_metrics": "yes",
+        "adaptive_energy": "na",
+        "health_sync": "yes",
+        "sleep_recovery": "nd",
+        "offline": "yes",
+        "open_source": "nd",
+        "social_feed": "nd",
+        "data_export": "yes"
+      },
+      "price": "comparison_price_freemium",
+      "evidence": [
+        {
+          "label": "Free and Pro plans, pricing, and CSV export",
+          "url": "https://alphaprogression.com/en/"
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "category": "comparison_cat_pricing",
+      "category_label": "Pricing",
+      "id": "price",
+      "label": "comparison_feature_price",
+      "label_text": "Price model",
+      "type": "price"
+    },
+    {
+      "category": "comparison_cat_training",
+      "category_label": "Training",
+      "id": "workout_log",
+      "label": "comparison_feature_workout_log",
+      "label_text": "Workout logging (sets, reps, load)"
+    },
+    {
+      "category": "comparison_cat_training",
+      "category_label": "Training",
+      "id": "workout_plans",
+      "label": "comparison_feature_workout_plans",
+      "label_text": "Routines and training plans"
+    },
+    {
+      "category": "comparison_cat_training",
+      "category_label": "Training",
+      "id": "workout_guidance",
+      "label": "comparison_feature_workout_guidance",
+      "label_text": "Generated workouts or progression suggestions"
+    },
+    {
+      "category": "comparison_cat_training",
+      "category_label": "Training",
+      "id": "workout_analytics",
+      "label": "comparison_feature_workout_analytics",
+      "label_text": "Workout history and strength analytics"
+    },
+    {
+      "category": "comparison_cat_nutrition",
+      "category_label": "Nutrition",
+      "id": "food_logging",
+      "label": "comparison_feature_food_logging",
+      "label_text": "Food diary and calorie tracking"
+    },
+    {
+      "category": "comparison_cat_nutrition",
+      "category_label": "Nutrition",
+      "id": "macro_targets",
+      "label": "comparison_feature_macro_targets",
+      "label_text": "Macronutrient targets and tracking"
+    },
+    {
+      "category": "comparison_cat_nutrition",
+      "category_label": "Nutrition",
+      "id": "barcode",
+      "label": "comparison_feature_barcode",
+      "label_text": "Barcode food lookup"
+    },
+    {
+      "category": "comparison_cat_nutrition",
+      "category_label": "Nutrition",
+      "id": "photo_meals",
+      "label": "comparison_feature_photo_meals",
+      "label_text": "Photo or AI meal logging"
+    },
+    {
+      "category": "comparison_cat_tracking",
+      "category_label": "Health and body data",
+      "id": "body_metrics",
+      "label": "comparison_feature_body_metrics",
+      "label_text": "Weight and body measurements"
+    },
+    {
+      "category": "comparison_cat_tracking",
+      "category_label": "Health and body data",
+      "id": "adaptive_energy",
+      "label": "comparison_feature_adaptive_energy",
+      "label_text": "Adaptive energy or calorie targets"
+    },
+    {
+      "category": "comparison_cat_tracking",
+      "category_label": "Health and body data",
+      "id": "health_sync",
+      "label": "comparison_feature_health_sync",
+      "label_text": "Apple Health or Health Connect integration"
+    },
+    {
+      "category": "comparison_cat_tracking",
+      "category_label": "Health and body data",
+      "id": "sleep_recovery",
+      "label": "comparison_feature_sleep_recovery",
+      "label_text": "Sleep, recovery, or readiness insights"
+    },
+    {
+      "category": "comparison_cat_ownership",
+      "category_label": "Data and ownership",
+      "id": "offline",
+      "label": "comparison_feature_offline",
+      "label_text": "Local or offline use documented"
+    },
+    {
+      "category": "comparison_cat_ownership",
+      "category_label": "Data and ownership",
+      "id": "open_source",
+      "label": "comparison_feature_open_source",
+      "label_text": "Open-source code or self-hosting"
+    },
+    {
+      "category": "comparison_cat_ownership",
+      "category_label": "Data and ownership",
+      "id": "social_feed",
+      "label": "comparison_feature_social_feed",
+      "label_text": "In-app social feed or community"
+    },
+    {
+      "category": "comparison_cat_ownership",
+      "category_label": "Data and ownership",
+      "id": "data_export",
+      "label": "comparison_feature_data_export",
+      "label_text": "Export your data"
+    }
+  ]
+}

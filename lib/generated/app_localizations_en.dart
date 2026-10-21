@@ -8942,6 +8942,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiOverlayChatHistory => 'Chat history';
 
   @override
+  String get aiOverlayAutoApprove => 'Automatically approve data requests';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       'You trained three times this week. Would you like me to compare your training load?';
 

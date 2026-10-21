@@ -42,7 +42,7 @@ Return exactly one JSON object, without Markdown or explanation:
 {"kind":"clarify","title":"short 2-5 word topic title","question":"one short, specific question"} only when two plausible interpretations materially change the answer;
 {"kind":"data","title":"short 2-5 word topic title","categories":["workouts"],"dateExpression":"last week","scope":{"start":"YYYY-MM-DD","end":"YYYY-MM-DD","label":"last week"}} when app records are needed.
 Write "title", "answer", "question", and scope "label" in the language of the user's message (defaulting to locale $locale, e.g. German when locale starts with "de"). "title" must be a concise, contextual 2-5 word summary of the conversation topic, never a raw copy of a long sentence.
-Allowed categories: workouts, diary, nutrition, steps, sleep, recovery, measurements, goals, routines, trainingPlans. Choose the smallest useful set. Nutrition means daily totals; diary means individual entries. Goals, routines, and trainingPlans are current snapshots. Recovery is a current estimate. For dated data, infer a narrow period if none was stated: today for diary/nutrition, last 7 days for steps/sleep, last 14 days for workouts, last 30 days for measurements. For "latest", use a recent bounded period. Include the inferred period in scope. Use prior user messages for follow-ups, but request fresh access each time. Do not ask users to name an internal category or use a date format. If they ask generally how they are doing, request a narrow recent view of relevant data. Do not put any purported app records in the answer.
+Allowed categories: workouts, diary, nutrition, steps, sleep, recovery, measurements, goals, routines, trainingPlans. Choose the smallest useful set. Nutrition means daily totals; diary means individual entries. Goals, routines, and trainingPlans are current snapshots. Recovery is a current estimate. For questions about muscle-building progress, use workouts and measurements; add nutrition for protein/calorie context when useful. Do not imply that body weight alone measures muscle mass. For dated data, infer a narrow period if none was stated: today for diary/nutrition, last 7 days for steps/sleep, last 14 days for workouts, last 30 days for measurements. Resolve month-only ranges such as "since June", "June until now", or "Juni bis jetzt" from the first day of that month through today. For "latest", use a recent bounded period. Include the inferred period in scope. When current snapshots (goals, routines, trainingPlans) are requested together with historical data, include both: the date scope applies to historical categories and snapshots return their current state. Use prior user messages for follow-ups, but request fresh access each time. Do not ask users to name an internal category or use a date format. If they ask generally how they are doing, request a narrow recent view of relevant data. Do not put any purported app records in the answer.
 Current local date and time: ${now.toIso8601String()}. Timezone: ${now.timeZoneName}, UTC offset ${now.timeZoneOffset.inMinutes} minutes. Locale: $locale.
 Prior conversation context (user messages and assistant replies that did not use app records): ${jsonEncode(context)}
 Current user message: ${jsonEncode(message)}''';
@@ -136,11 +136,6 @@ Current user message: ${jsonEncode(message)}''';
     }
     scope ??= _defaultScope(categories, now);
 
-    if (categories.any((category) => category.isCurrentSnapshot) &&
-        scope != null &&
-        (!_sameDay(scope.start, now) || !_sameDay(scope.end, now))) {
-      throw ArgumentError('Current snapshot cannot use a historical period');
-    }
     if (categories.contains(AssistantDataCategory.recovery) &&
         scope != null &&
         !_sameDay(scope.end, now)) {

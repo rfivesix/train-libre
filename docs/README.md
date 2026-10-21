@@ -20,9 +20,11 @@ The source folders above remain the canonical organisation of their content.
 ## Public documentation pages
 
 The documentation site publishes the suite overview, user guide, developer
-documentation, and 15 Feature & Heuristics pages under [`docs/`](docs/). Start
+documentation, and Feature & Heuristics pages under [`docs/`](docs/). Start
 with the [Feature Capabilities & Privacy overview](docs/features/overview/),
-then browse:
+or open the [Fitness App Feature Comparison](docs/features/app-comparison/) for
+a sourced iOS and Android matrix covering Train Libre and 19 other apps. Then
+browse:
 
 - [Bayesian TDEE Estimate and Adaptive Calorie Target](docs/features/bayesian-tdee-estimator/)
 - [Macronutrient Distribution](docs/features/macro-distribution/)

@@ -3689,6 +3689,7 @@
   "aiOverlayDemoAssistantSection": "Vorschlag mit Freigabe",
   "aiOverlayNewChat": "Neuer Chat",
   "aiOverlayChatHistory": "Chatverlauf",
+  "aiOverlayAutoApprove": "Datenanfragen automatisch freigeben",
   "aiOverlayDemoAssistantMessage": "Du hast diese Woche dreimal trainiert. Soll ich deine Trainingslast vergleichen?",
   "aiOverlayDemoRequestLabel": "Dafür benötigte Daten",
   "aiOverlayDemoScope": "Trainingseinheiten der letzten 7 Tage",

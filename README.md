@@ -187,6 +187,8 @@ For AI-assisted routine creation, see the [public AI routine guide](https://trai
 
 For the full interlinked documentation map, see the main [Documentation Entry Point](documentation/README.md).
 
+The [public fitness app comparison](https://trainlibre.com/docs/features/app-comparison/) compares Train Libre with 19 training and nutrition apps using linked public sources.
+
 ## Roadmap
 
 The long-term vision, future modules, and planned features are maintained in the [ROADMAP.md](ROADMAP.md) file.

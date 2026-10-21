@@ -8622,6 +8622,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiOverlayChatHistory => 'チャット履歴';
 
   @override
+  String get aiOverlayAutoApprove => 'データ要求を自動的に承認';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       '今週は3回トレーニングしました。トレーニング負荷を比較しますか？';
 

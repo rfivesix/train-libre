@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
 from xml.etree import ElementTree
+import json
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -42,6 +43,34 @@ class MetadataParser(HTMLParser):
                 self.referrer = content
         elif tag == "a" and attributes.get("href"):
             self.links.append(attributes["href"])
+
+
+class ComparisonParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.in_comparison_table = False
+        self.column_headers = 0
+        self.app_headers = 0
+        self.source_links: set[str] = set()
+        self.all_links: set[str] = set()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = dict(attrs)
+        classes = (attributes.get("class") or "").split()
+        if tag == "a" and attributes.get("href"):
+            self.all_links.add(attributes["href"])
+        if tag == "table" and "comparison-table" in classes:
+            self.in_comparison_table = True
+        elif self.in_comparison_table and tag == "th" and attributes.get("scope") == "col":
+            self.column_headers += 1
+            if "comparison-app-column" in classes:
+                self.app_headers += 1
+        elif self.in_comparison_table and tag == "a" and attributes.get("href"):
+            self.source_links.add(attributes["href"])
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "table" and self.in_comparison_table:
+            self.in_comparison_table = False
 
 
 def public_path_to_file(path: str) -> Path:
@@ -147,9 +176,60 @@ def validate_security_headers() -> None:
             assert "unsafe-inline" not in script_directive, f"Page has unsafe-inline in script-src: {path}"
 
 
+def validate_app_comparison() -> None:
+    source = REPO_ROOT / "documentation" / "features" / "app_comparison.json"
+    data = json.loads(source.read_text(encoding="utf-8"))
+    assert len(data["apps"]) == 20, "Comparison must contain Train Libre and all 19 named apps"
+    assert len(data["features"]) >= 17, "Comparison matrix is missing requested feature rows"
+    assert data["features"][0]["id"] == "price", "Price model must be the first comparison row"
+    feature_ids = {feature["id"] for feature in data["features"]}
+    assert {"photo_meals", "social_feed", "data_export"} <= feature_ids, "Comparison is missing a requested feature"
+
+    home = (DOCS_DIR / "index.html").read_text(encoding="utf-8")
+    docs_page = public_path_to_file("/docs/features/app-comparison/")
+    assert docs_page.is_file(), "Missing generated app comparison page"
+    docs_html = docs_page.read_text(encoding="utf-8")
+    assert 'id="comparison"' in home, "Homepage comparison section is missing"
+
+    home_parser = ComparisonParser()
+    home_parser.feed(home)
+    docs_parser = ComparisonParser()
+    docs_parser.feed(docs_html)
+    for label, parser in [("homepage", home_parser), ("documentation", docs_parser)]:
+        assert parser.app_headers == 20, f"{label} comparison has {parser.app_headers} app columns, expected 20"
+        for app in data["apps"]:
+            assert app["url"] in parser.source_links, f"{label} comparison is missing source link for {app['name']}"
+            if label == "documentation":
+                for evidence in app.get("evidence", []):
+                    assert evidence["url"] in parser.all_links, f"{label} comparison is missing evidence link for {app['name']}: {evidence['label']}"
+
+    sitemap = ElementTree.parse(DOCS_DIR / "sitemap.xml").getroot()
+    sitemap_paths = {element.text for element in sitemap.iter() if element.tag.endswith("loc")}
+    assert f"{SITE_ORIGIN}/docs/features/app-comparison/" in sitemap_paths, "Comparison page is missing from the sitemap"
+
+    stylesheet = (DOCS_DIR / "style.css").read_text(encoding="utf-8")
+    assert ".comparison-table-scroll" in stylesheet and "overflow: auto" in stylesheet, "Comparison matrix needs a scrollable responsive container"
+    translations = (DOCS_DIR / "script.js").read_text(encoding="utf-8")
+    translation_keys = {
+        "comparison_nav", "comparison_heading", "comparison_intro", "comparison_scroll_hint",
+        "comparison_docs_link", "comparison_feature_column", "comparison_platform_ios",
+        "comparison_platform_android", "comparison_cat_training", "comparison_cat_nutrition",
+        "comparison_cat_pricing", "comparison_cat_tracking", "comparison_cat_ownership", "comparison_status_yes",
+        "comparison_status_partial", "comparison_status_unknown", "comparison_status_na", "comparison_status_no",
+        "comparison_legend", "comparison_table_region_home", "comparison_table_region_docs",
+        "comparison_review_note",
+    }
+    translation_keys.update(feature["label"] for feature in data["features"])
+    translation_keys.update(feature["category"] for feature in data["features"])
+    translation_keys.update(app["price"] for app in data["apps"])
+    for key in translation_keys:
+        assert translations.count(key) >= 5, f"Comparison translation {key} is missing from one or more homepage languages"
+
+
 def main() -> None:
     validate_sitemap()
     validate_security_headers()
+    validate_app_comparison()
     validate_404()
     validate_noindex("/privacy-policy/")
     validate_redirect("/ai-nutrition/", "/docs/features/meal-capture-pipeline/")

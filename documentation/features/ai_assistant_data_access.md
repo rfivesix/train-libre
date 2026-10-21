@@ -28,16 +28,28 @@ requested categories and date scope. **Allow once** approves that one request;
 Follow-up questions require a new approval. Prior answers are not included in
 later model requests, because they may contain data from an earlier scope.
 
+After approval, the selected records are copied into a separate, in-memory
+SQLite database in a disposable isolate. The model first receives the schema
+and column meanings, not the complete record set. It can request up to five
+read-only SQL queries; the app validates and runs each query locally and sends
+only the bounded result back to the model. Each query is limited to 200 rows
+and 12,000 serialized characters. The full snapshot is limited to 50,000 rows
+and 5 MiB, and a query that takes more than three seconds destroys the
+temporary snapshot. Only the approved categories and period are available to
+queries. Writes, recursive CTEs, cross joins, table-valued functions, and
+references outside the snapshot are rejected.
+
 After a response, **Data access** shows the local audit entry: request and
-decision times, provider/model, status, field names, counts, stable record
-references, and a SHA-256 hash of each shared category payload. The audit
-stores this manifest rather than a second copy of the personal payload. If a
-read service is unavailable, the assistant reports the
-error and does not send a partial data set. The selected existing provider is
-used; on-device generation is available only when that provider is actually
-available on the device.
+decision times, provider/model, status, tables queried, result fields and row
+counts, truncation state, and SHA-256 hashes of the SQL and each result sent
+to the provider. The audit stores this manifest rather than a second copy of
+the personal payload. If a read service is unavailable, the assistant reports
+the error and does not send a partial data set. The selected existing provider
+is used; on-device generation is available only when that provider is actually
+available on the device. If the model answers without requesting data, the
+audit records that no app records were shared.
 
 This version reads app data only. It does not create or change records, start
 workouts, or execute model-generated commands. Invalid or unsupported model
-proposals prompt for clarification. Very large results prompt for a
-shorter range before any app records are sent to a model.
+proposals prompt for clarification. Very large snapshots prompt for a shorter
+range before a temporary database is created.

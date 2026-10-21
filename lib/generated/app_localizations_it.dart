@@ -9059,6 +9059,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get aiOverlayChatHistory => 'Cronologia chat';
 
   @override
+  String get aiOverlayAutoApprove =>
+      'Approva automaticamente le richieste di dati';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       'Ti sei allenato tre volte questa settimana. Vuoi che confronti il carico di allenamento?';
 

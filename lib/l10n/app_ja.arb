@@ -3689,6 +3689,7 @@
   "aiOverlayDemoAssistantSection": "確認が必要な操作",
   "aiOverlayNewChat": "新しいチャット",
   "aiOverlayChatHistory": "チャット履歴",
+  "aiOverlayAutoApprove": "データ要求を自動的に承認",
   "aiOverlayDemoAssistantMessage": "今週は3回トレーニングしました。トレーニング負荷を比較しますか？",
   "aiOverlayDemoRequestLabel": "必要なデータ",
   "aiOverlayDemoScope": "過去7日間のトレーニング",

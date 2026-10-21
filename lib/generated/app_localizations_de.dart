@@ -9011,6 +9011,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiOverlayChatHistory => 'Chatverlauf';
 
   @override
+  String get aiOverlayAutoApprove => 'Datenanfragen automatisch freigeben';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       'Du hast diese Woche dreimal trainiert. Soll ich deine Trainingslast vergleichen?';
 

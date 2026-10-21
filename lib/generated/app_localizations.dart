@@ -15711,6 +15711,12 @@ abstract class AppLocalizations {
   /// **'Chat history'**
   String get aiOverlayChatHistory;
 
+  /// No description provided for @aiOverlayAutoApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically approve data requests'**
+  String get aiOverlayAutoApprove;
+
   /// No description provided for @aiOverlayDemoAssistantMessage.
   ///
   /// In en, this message translates to:

@@ -9085,6 +9085,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiOverlayChatHistory => 'Historique des discussions';
 
   @override
+  String get aiOverlayAutoApprove =>
+      'Approuver automatiquement les demandes de données';
+
+  @override
   String get aiOverlayDemoAssistantMessage =>
       'Vous vous êtes entraîné trois fois cette semaine. Voulez-vous comparer votre charge d’entraînement ?';
 

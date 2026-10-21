@@ -12,6 +12,8 @@ For AI-assisted routines, see [Create a workout routine with an AI assistant](us
 
 These pages explain how user-facing features work, what inputs and rules they use, and where their limitations are. They are not step-by-step user instructions or developer implementation guides. Start with [Feature Capabilities and Privacy Boundaries](features/overview.md), then choose a topic:
 
+- [Fitness App Feature Comparison](features/app_comparison.md): a sourced iOS and Android feature matrix for Train Libre and 19 other fitness and nutrition apps.
+
 - [Bayesian TDEE Estimate and Adaptive Calorie Target](features/bayesian_tdee_estimator.md)
 - [Macronutrient Distribution](features/macro_distribution.md)
 - [Adaptive Nutrition Goals](features/adaptive_nutrition_goals.md)

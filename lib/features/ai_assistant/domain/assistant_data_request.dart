@@ -321,6 +321,33 @@ class AssistantDateResolver {
       return AssistantDateScope(named.first, named.last, 'explicit range');
     }
     if (named.length > 2) return null;
+
+    // Month-only requests such as "since June", "June until now", and
+    // "Juni bis jetzt" are common follow-ups. Treat a month paired with an
+    // until-now phrase as a range from its first day through today. A bare
+    // month means that calendar month (through today for the current month).
+    final monthOnly = RegExp(
+      '\\b($monthWord)(?:\\s+(\\d{4}))?\\b',
+    ).firstMatch(text);
+    if (monthOnly != null) {
+      final month = namedMonths[monthOnly.group(1)]!;
+      final yearText = monthOnly.group(2);
+      var year = yearText == null ? today.year : int.parse(yearText);
+      if (yearText == null && month > today.month) year--;
+      final start = DateTime(year, month, 1);
+      final untilNow = RegExp(
+        r'\b(from|since|ab|seit|bis jetzt|bis heute|bis nun|until now|through today|to date|so far)\b',
+      ).hasMatch(text);
+      if (untilNow) {
+        return AssistantDateScope(start, today, 'since ${monthOnly.group(1)}');
+      }
+      final monthEnd = DateTime(year, month + 1, 0);
+      return AssistantDateScope(
+        start,
+        monthEnd.isAfter(today) ? today : monthEnd,
+        monthOnly.group(1)!,
+      );
+    }
     if (RegExp(r'\b(today|heute)\b').hasMatch(text)) {
       return AssistantDateScope(today, today, 'today');
     }

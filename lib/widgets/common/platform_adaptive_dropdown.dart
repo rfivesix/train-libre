@@ -9,6 +9,7 @@ class PlatformAdaptivePopupMenuItem<T> {
   final String label;
   final IconData? icon;
   final Widget? customIcon;
+  final Widget? customTrailing;
   final bool isDestructive;
   final bool showDividerAbove;
 
@@ -17,6 +18,7 @@ class PlatformAdaptivePopupMenuItem<T> {
     required this.label,
     this.icon,
     this.customIcon,
+    this.customTrailing,
     this.isDestructive = false,
     this.showDividerAbove = false,
   });
@@ -73,13 +75,14 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
           icon: item.customIcon ??
               (item.icon != null ? Icon(item.icon, size: 20) : null),
           isSelected: isSelected,
-          trailing: isSelected
-              ? Icon(
-                  LucideIcons.check,
-                  size: 18,
-                  color: isDark ? Colors.white : Colors.black87,
-                )
-              : null,
+          trailing: item.customTrailing ??
+              (isSelected
+                  ? Icon(
+                      LucideIcons.check,
+                      size: 18,
+                      color: isDark ? Colors.white : Colors.black87,
+                    )
+                  : null),
           isDestructive: item.isDestructive,
           onTap: () {
             onSelected(item.value);

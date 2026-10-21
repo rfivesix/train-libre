@@ -241,8 +241,13 @@ class AssistantHistoryRepository {
 
   Future<void> markShared(String id, Map<String, dynamic> manifest) =>
       database.customStatement(
-        "UPDATE assistant_data_access SET status='shared', shared_at=?, shared_manifest_json=? WHERE id=? AND status='approved'",
+        "UPDATE assistant_data_access SET status='shared', shared_at=COALESCE(shared_at, ?), shared_manifest_json=? WHERE id=? AND status IN ('approved','shared')",
         [DateTime.now().toUtc().toIso8601String(), jsonEncode(manifest), id],
+      );
+
+  Future<void> markNotShared(String id) => database.customStatement(
+        "UPDATE assistant_data_access SET status='not_shared' WHERE id=? AND status='approved'",
+        [id],
       );
 
   Future<void> setAccessProvider(
@@ -253,7 +258,7 @@ class AssistantHistoryRepository {
       );
 
   Future<void> failAccess(String id, String error) => database.customStatement(
-        "UPDATE assistant_data_access SET status='error', error=? WHERE id=? AND status IN ('pending','approved')",
+        "UPDATE assistant_data_access SET status='error', error=? WHERE id=? AND status IN ('pending','approved','shared')",
         [error, id],
       );
 

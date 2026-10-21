@@ -3689,6 +3689,7 @@
   "aiOverlayDemoAssistantSection": "Action avec autorisation",
   "aiOverlayNewChat": "Nouvelle discussion",
   "aiOverlayChatHistory": "Historique des discussions",
+  "aiOverlayAutoApprove": "Approuver automatiquement les demandes de données",
   "aiOverlayDemoAssistantMessage": "Vous vous êtes entraîné trois fois cette semaine. Voulez-vous comparer votre charge d’entraînement ?",
   "aiOverlayDemoRequestLabel": "Données nécessaires",
   "aiOverlayDemoScope": "Séances des 7 derniers jours",

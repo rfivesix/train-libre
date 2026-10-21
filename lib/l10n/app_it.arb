@@ -3689,6 +3689,7 @@
   "aiOverlayDemoAssistantSection": "Azione con autorizzazione",
   "aiOverlayNewChat": "Nuova chat",
   "aiOverlayChatHistory": "Cronologia chat",
+  "aiOverlayAutoApprove": "Approva automaticamente le richieste di dati",
   "aiOverlayDemoAssistantMessage": "Ti sei allenato tre volte questa settimana. Vuoi che confronti il carico di allenamento?",
   "aiOverlayDemoRequestLabel": "Dati necessari",
   "aiOverlayDemoScope": "Allenamenti degli ultimi 7 giorni",

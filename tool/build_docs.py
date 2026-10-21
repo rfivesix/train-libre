@@ -16,6 +16,7 @@ import re
 import sys
 from xml.sax.saxutils import escape as xml_escape
 from pathlib import Path
+from build_comparison import read_data as read_comparison_data, render_matrix as render_comparison_matrix
 
 # Base paths
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -50,6 +51,15 @@ DOCS_STRUCTURE = [
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "overview",
                 "url": "/docs/features/overview/",
                 "desc": "Feature behavior, optional data flows, and app telemetry boundaries."
+            },
+            {
+                "id": "features-app-comparison",
+                "title": "Fitness App Feature Comparison",
+                "slug": "app-comparison",
+                "src_file": SRC_DOC_DIR / "features" / "app_comparison.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "app-comparison",
+                "url": "/docs/features/app-comparison/",
+                "desc": "A sourced comparison of Train Libre and 19 fitness and nutrition apps across iOS and Android."
             },
             {
                 "id": "features-sleep",
@@ -1190,6 +1200,12 @@ def main():
         raw_md = src_file.read_text(encoding="utf-8")
         parser = MarkdownParser(current_out_dir=out_dir)
         content_html = parser.parse(raw_md)
+        if item["id"] == "features-app-comparison":
+            token = "<p>[APP_COMPARISON_MATRIX]</p>"
+            if content_html.count(token) != 1:
+                raise ValueError("App comparison page must contain exactly one matrix placeholder")
+            matrix = render_comparison_matrix(read_comparison_data(), include_sources=True, standalone=True)
+            content_html = content_html.replace(token, matrix)
 
         prev_item = all_items[idx - 1] if idx > 0 else None
         next_item = all_items[idx + 1] if idx < len(all_items) - 1 else None

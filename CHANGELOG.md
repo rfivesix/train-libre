@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.0] - unreleased
 
 ### Added
+- Expanded the sourced comparison matrix with a price-model row, in-app social/community and data-export rows, plus official evidence links; clarified that Train Libre photo meal capture is documented and confirmed its lack of a social feed.
 - Added persistent AI assistant conversations and scoped, per-request approval for read-only Train Libre data access. The overlay now records provider/model identity and a local audit of the records shared for each approved request.
 - Added an ignored planning document for the AI assistant's product idea, user experience, action inventory, and architecture.
 

@@ -75,7 +75,9 @@ class _OtherAction implements AssistantDataAction {
 
 class _FakeModel implements AssistantModelClient {
   final decisions = Queue<String>();
+  final answerResponses = Queue<String>();
   final interpretationPrompts = <String>[];
+  final answerPrompts = <String>[];
   int answers = 0;
   String? answerPrompt;
   bool dispatch = true;
@@ -102,9 +104,12 @@ class _FakeModel implements AssistantModelClient {
       required Future<void> Function() onDispatch}) async* {
     answers++;
     answerPrompt = prompt;
+    answerPrompts.add(prompt);
     if (!dispatch) throw StateError('Network unavailable');
     await onDispatch();
-    yield 'Grounded answer';
+    yield answerResponses.isEmpty
+        ? jsonEncode({'type': 'answer', 'answer': 'Grounded answer'})
+        : answerResponses.removeFirst();
   }
 }
 
@@ -285,6 +290,13 @@ void main() {
   });
 
   test('audit describes only the records actually transmitted', () async {
+    model.answerResponses.addAll([
+      jsonEncode({
+        'type': 'query',
+        'sql': 'SELECT ref, startedAt FROM data_workouts',
+      }),
+      jsonEncode({'type': 'answer', 'answer': 'Grounded answer'}),
+    ]);
     final submission =
         await chat.submit('My workouts last Sunday', now: now, locale: 'en');
     await chat
@@ -296,15 +308,42 @@ void main() {
     expect(audit.sharedAt, isNotNull);
     expect(audit.providerId, 'test-provider');
     expect(audit.modelId, 'test-model');
-    expect((audit.sharedManifest['workouts'] as Map)['references'],
-        ['workout:42', 'set:7']);
-    expect((audit.sharedManifest['workouts'] as Map)['payloadSha256'],
-        hasLength(64));
-    expect(model.answerPrompt, contains('workout:42'));
+    final analysis = audit.sharedManifest['sqlAnalysis'] as Map;
+    expect(analysis['queryCount'], 1);
+    final queryAudit = (analysis['queries'] as List).single as Map;
+    expect(queryAudit['tables'], ['data_workouts']);
+    expect(queryAudit['rowCount'], 1);
+    expect(queryAudit['payloadSha256'], hasLength(64));
+    expect(model.answerPrompts.first, contains('Table data_workouts'));
+    expect(model.answerPrompts.first, isNot(contains('workout:42')));
+    expect(model.answerPrompts.last, contains('workout:42'));
+  });
+
+  test('schema-only analysis is audited without claiming records were shared',
+      () async {
+    final submission = await chat.submit('How many workouts do I have?',
+        now: now, locale: 'en');
+    await chat
+        .approveAndAnswer(submission.access!.id, submission.userMessage.content)
+        .drain<void>();
+
+    final audit = await history.access(submission.access!.id);
+    expect(audit!.status, 'not_shared');
+    expect(audit.sharedAt, isNull);
+    expect(audit.sharedManifest, isEmpty);
+    expect(model.answerPrompts.single, contains('Schema and column meanings'));
+    expect(model.answerPrompts.single, isNot(contains('workout:42')));
   });
 
   test('approval reads and sends only proposed categories and period',
       () async {
+    model.answerResponses.addAll([
+      jsonEncode({
+        'type': 'query',
+        'sql': 'SELECT ref FROM data_workouts',
+      }),
+      jsonEncode({'type': 'answer', 'answer': 'Grounded answer'}),
+    ]);
     final other = _OtherAction();
     chat = AssistantChatService(
         history: history,
@@ -319,10 +358,16 @@ void main() {
     expect(action.lastScope!.start, DateTime(2026, 10, 18));
     expect(action.lastScope!.end, DateTime(2026, 10, 18));
     expect(other.reads, 0);
-    expect(model.answerPrompt, contains('workout:42'));
+    expect(model.answerPrompts.first, contains('data_workouts'));
+    expect(model.answerPrompts.first, isNot(contains('workout:42')));
+    expect(model.answerPrompts.last, contains('workout:42'));
     expect(model.answerPrompt, isNot(contains('nutrition:private')));
     final audit = await history.access(submission.access!.id);
-    expect(audit!.sharedManifest.keys, ['workouts']);
+    expect(audit!.sharedManifest.keys, ['sqlAnalysis']);
+    expect(
+        ((audit.sharedManifest['sqlAnalysis'] as Map)['queries'] as List)
+            .single['tables'],
+        ['data_workouts']);
   });
 
   test('missing records produce a local answer without transmission', () async {
@@ -413,6 +458,13 @@ void main() {
     model.decisions.add(dataDecision(['workouts'], expression: 'last Sunday'));
     final second = await chat.submit('2',
         conversationId: first.conversationId, now: now, locale: 'en');
+    model.answerResponses.addAll([
+      jsonEncode({
+        'type': 'query',
+        'sql': 'SELECT ref FROM data_workouts',
+      }),
+      jsonEncode({'type': 'answer', 'answer': 'Grounded answer'}),
+    ]);
     await chat
         .approveAndAnswer(second.access!.id, second.userMessage.content)
         .drain<void>();
