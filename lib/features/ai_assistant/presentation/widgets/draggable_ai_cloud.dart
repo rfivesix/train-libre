@@ -143,6 +143,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _assistantInitialized = false;
   Timer? _responseTimer;
   StreamSubscription<String>? _liveResponseSubscription;
+  Future<void>? _activeGenerationCancellation;
   int _activeGenerationId = 0;
   bool _isLoadingCloudVisible = false;
   Future<void>? _loadingCloudEnterFuture;
@@ -566,7 +567,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       unawaited(VoiceDictationService.instance.cancel());
     }
     _responseTimer?.cancel();
-    _liveResponseSubscription?.cancel();
+    _cancelActiveResponseSubscription();
     _copiedTurnTimer?.cancel();
     _permissionContinuationTimer?.cancel();
     _completionPulseTimer?.cancel();
@@ -918,6 +919,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   Future<void> _openConversation(String id) async {
+    _stopDemoGeneration();
+    final cancellation = _activeGenerationCancellation;
+    if (cancellation != null) await cancellation;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    await _history!.recoverInterruptedConversation(id, locale: locale);
     var messages = await _history!.messages(id);
     var pending = await _history!.latestAccess(id, status: 'pending');
     if (pending != null &&
@@ -941,7 +947,6 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       for (final access in accesses) access.messageId: access,
     };
     if (!mounted) return;
-    _stopDemoGeneration();
     final turns = <_DemoChatTurn>[];
     for (final message in messages) {
       if (message.role == 'user') {
@@ -1326,112 +1331,106 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 builder: (context, animatedLeft, _) {
                   final animatedCloudCenter =
                       Offset(animatedLeft + _cloudSize / 2, cloudCenter.dy);
-                  return AnimatedBuilder(
-                    animation: morphAnimation,
-                    builder: (context, _) {
-                      final isSettledOrb =
-                          !_isExpanded && morphAnimation.value <= 0.005;
-                      return IgnorePointer(
-                        child: AiNeuralCloudOrbWidget(
-                          size: _cloudSize *
-                              _scale *
-                              (_completionPulse && isSettledOrb ? 1.12 : 1.0),
-                          rotation: _rotationRadians,
-                          canvasSize: viewportSize,
-                          cloudCenter: animatedCloudCenter,
-                          frameRect: activeSafeRect,
-                          baseColor: overlaySurfaceColor,
-                          frameMorphAnimation: morphAnimation,
-                          showAmbientGlow: false,
-                          edgeBlurSigma: 4,
-                          showDetachedSatellite: false,
-                          flowSpeed: _isDragging
-                              ? 1.55
-                              : _isGenerating
-                                  ? 0.9
-                                  : (1.0 * widget.liveliness.clamp(0.0, 1.0))
-                                      .clamp(0.1, 1.2),
-                          forceHighFrameRate: _isDragging ||
-                              _isGenerating ||
-                              _voiceRecording ||
-                              _voiceStarting ||
-                              _voiceStopping ||
-                              _completionPulse ||
-                              !isSettledOrb,
-                          animate: !_isClosing,
-                          accentColor: _permissionPending && isSettledOrb
-                              ? Colors.amber.shade700
-                              : null,
-                          tint: !isSettledOrb
-                              ? null
-                              : _isGenerating
-                                  ? 0.4
-                                  : _permissionPending
-                                      ? 0.62
-                                      : _hasCompletedResponse
-                                          ? 1.0
-                                          : null,
-                          energy: _completionPulse && isSettledOrb ? 0.75 : 0,
-                          enableInteraction: false,
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            AnimatedPositioned(
-              duration: _isDragging || _initialDockController.isAnimating
-                  ? Duration.zero
-                  : const Duration(milliseconds: 260),
-              curve: Curves.easeOutCubic,
-              left: left,
-              top: top,
-              child: AnimatedBuilder(
-                animation: morphAnimation,
-                builder: (context, child) {
-                  return IgnorePointer(
-                    ignoring: morphAnimation.value > 0.001,
-                    child: Semantics(
-                      label: widget.semanticLabel,
-                      hint: widget.semanticHint,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: morphAnimation.value > 0.001
-                            ? null
-                            : _toggleExpanded,
-                        onPanStart: morphAnimation.value > 0.001
-                            ? null
-                            : (_) => _handleDragStart(
-                                  initialHorizontalPosition: position,
-                                  initialVerticalPosition: verticalPosition,
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      AnimatedBuilder(
+                        animation: morphAnimation,
+                        builder: (context, _) {
+                          final isSettledOrb =
+                              !_isExpanded && morphAnimation.value <= 0.005;
+                          final cloud = AiNeuralCloudOrbWidget(
+                            size: _cloudSize *
+                                _scale *
+                                (_completionPulse && isSettledOrb ? 1.12 : 1.0),
+                            rotation: _rotationRadians,
+                            canvasSize: isSettledOrb ? null : viewportSize,
+                            cloudCenter:
+                                isSettledOrb ? null : animatedCloudCenter,
+                            frameRect: activeSafeRect,
+                            baseColor: overlaySurfaceColor,
+                            frameMorphAnimation: morphAnimation,
+                            showAmbientGlow: false,
+                            edgeBlurSigma: 4,
+                            showDetachedSatellite: false,
+                            flowSpeed: _isDragging
+                                ? 1.55
+                                : _isGenerating
+                                    ? 0.9
+                                    : (1.0 * widget.liveliness.clamp(0.0, 1.0))
+                                        .clamp(0.1, 1.2),
+                            forceHighFrameRate: _isDragging ||
+                                _isGenerating ||
+                                _voiceRecording ||
+                                _voiceStarting ||
+                                _voiceStopping ||
+                                _completionPulse ||
+                                !isSettledOrb,
+                            animate: !_isClosing,
+                            accentColor: _permissionPending && isSettledOrb
+                                ? Colors.amber.shade700
+                                : null,
+                            tint: !isSettledOrb
+                                ? null
+                                : _isGenerating
+                                    ? 0.4
+                                    : _permissionPending
+                                        ? 0.62
+                                        : _hasCompletedResponse
+                                            ? 1.0
+                                            : null,
+                            energy: _completionPulse && isSettledOrb ? 0.75 : 0,
+                            enableInteraction: false,
+                          );
+                          return Positioned(
+                            left: isSettledOrb ? animatedLeft : 0,
+                            top: isSettledOrb ? top : 0,
+                            child: IgnorePointer(
+                              ignoring: morphAnimation.value > 0.001,
+                              child: Semantics(
+                                label: widget.semanticLabel,
+                                hint: widget.semanticHint,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: morphAnimation.value > 0.001
+                                      ? null
+                                      : _toggleExpanded,
+                                  onPanStart: morphAnimation.value > 0.001
+                                      ? null
+                                      : (_) => _handleDragStart(
+                                            initialHorizontalPosition: position,
+                                            initialVerticalPosition:
+                                                verticalPosition,
+                                          ),
+                                  onPanUpdate: morphAnimation.value > 0.001
+                                      ? null
+                                      : (details) => _handleDragUpdate(
+                                            details,
+                                            horizontalTravelDistance:
+                                                travelDistance,
+                                            verticalTravelDistance:
+                                                verticalTravelDistance,
+                                          ),
+                                  onPanEnd: morphAnimation.value > 0.001
+                                      ? null
+                                      : (_) => _handleDragEnd(
+                                            minLeft: minLeft,
+                                            maxLeft: maxLeft,
+                                          ),
+                                  onPanCancel: morphAnimation.value > 0.001
+                                      ? null
+                                      : () => _handleDragEnd(
+                                            minLeft: minLeft,
+                                            maxLeft: maxLeft,
+                                          ),
+                                  child: cloud,
                                 ),
-                        onPanUpdate: morphAnimation.value > 0.001
-                            ? null
-                            : (details) => _handleDragUpdate(
-                                  details,
-                                  horizontalTravelDistance: travelDistance,
-                                  verticalTravelDistance:
-                                      verticalTravelDistance,
-                                ),
-                        onPanEnd: morphAnimation.value > 0.001
-                            ? null
-                            : (_) => _handleDragEnd(
-                                  minLeft: minLeft,
-                                  maxLeft: maxLeft,
-                                ),
-                        onPanCancel: morphAnimation.value > 0.001
-                            ? null
-                            : () => _handleDragEnd(
-                                  minLeft: minLeft,
-                                  maxLeft: maxLeft,
-                                ),
-                        child: const SizedBox(
-                          width: _cloudSize,
-                          height: _cloudSize,
-                        ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
+                    ],
                   );
                 },
               ),
@@ -1893,8 +1892,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     _activeGenerationId++;
     _responseTimer?.cancel();
     _responseTimer = null;
-    _liveResponseSubscription?.cancel();
-    _liveResponseSubscription = null;
+    _cancelActiveResponseSubscription();
     _loadingCloudEnterFuture = null;
     _loadingCloudController.value = 0;
     _permissionContinuationTimer?.cancel();
@@ -3522,8 +3520,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
     _responseTimer = null;
-    _liveResponseSubscription?.cancel();
-    _liveResponseSubscription = null;
+    _cancelActiveResponseSubscription();
     _lastHapticWordCount = 0;
     _lastWordHapticAt = null;
 
@@ -3894,8 +3891,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
     _responseTimer = null;
-    _liveResponseSubscription?.cancel();
-    _liveResponseSubscription = null;
+    _cancelActiveResponseSubscription();
     _permissionContinuationTimer?.cancel();
     _permissionContinuationTimer = null;
     if (_chatTurns.isNotEmpty) {
@@ -3906,6 +3902,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       }
       lastTurn.modelName ??=
           widget.useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
+      if (lastTurn.response.isEmpty) {
+        lastTurn.response = _interruptedGenerationMessage;
+      }
     }
     setState(() => _isGenerating = false);
     if (_isLoadingCloudVisible) {
@@ -3917,13 +3916,26 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     widget.onGenerationChanged?.call(false);
   }
 
+  void _cancelActiveResponseSubscription() {
+    final subscription = _liveResponseSubscription;
+    _liveResponseSubscription = null;
+    if (subscription != null) {
+      _activeGenerationCancellation =
+          subscription.cancel().catchError((Object _) {});
+    }
+  }
+
+  String get _interruptedGenerationMessage =>
+      Localizations.localeOf(context).languageCode == 'de'
+          ? 'Anfrage abgebrochen. Du kannst es erneut versuchen.'
+          : 'Request interrupted. You can try again.';
+
   void _completeDemoGeneration() {
     if (!_isGenerating) return;
     final generationId = ++_activeGenerationId;
     _responseTimer?.cancel();
     _responseTimer = null;
-    _liveResponseSubscription?.cancel();
-    _liveResponseSubscription = null;
+    _cancelActiveResponseSubscription();
     _permissionContinuationTimer?.cancel();
     _permissionContinuationTimer = null;
     if (_chatTurns.isNotEmpty) {

@@ -137,6 +137,92 @@ class AssistantHistoryRepository {
         .toList();
   }
 
+  /// Replaces response rows left in flight by a stopped or terminated app
+  /// with a retryable assistant message. Pending access requests are preserved.
+  Future<void> recoverInterruptedConversation(
+    String conversationId, {
+    required String locale,
+  }) async {
+    final entries = await messages(conversationId);
+    final accesses = await accessForConversation(conversationId);
+    final accessByMessage = {
+      for (final access in accesses) access.messageId: access
+    };
+    final isDe = locale.toLowerCase().startsWith('de');
+    final interruptedReply = isDe
+        ? 'Anfrage abgebrochen. Du kannst es erneut versuchen.'
+        : 'Request interrupted. You can try again.';
+
+    for (var index = 0; index < entries.length; index++) {
+      final user = entries[index];
+      if (user.role != 'user') continue;
+
+      var end = index + 1;
+      while (end < entries.length && entries[end].role != 'user') {
+        end++;
+      }
+      final replies = entries
+          .getRange(index + 1, end)
+          .where((message) => message.role == 'assistant')
+          .toList();
+      final access = accessByMessage[user.id];
+
+      // A pending request has completed model planning and is waiting for the
+      // user's decision; it is not an interrupted answer.
+      if (access?.status == 'pending') {
+        if (user.status == 'generating') {
+          await updateMessage(user.id,
+              content: user.content, status: 'complete');
+        }
+        continue;
+      }
+
+      final generatingReply = replies.where((message) =>
+          message.status == 'generating' ||
+          (message.status == 'interrupted' && message.content.trim().isEmpty));
+      if (generatingReply.isNotEmpty) {
+        final reply = generatingReply.last;
+        await updateMessage(
+          reply.id,
+          content: reply.content.trim().isEmpty
+              ? interruptedReply
+              : '${reply.content}\n\n$interruptedReply',
+          status: 'interrupted',
+          error: 'Generation interrupted',
+        );
+        await updateMessage(user.id,
+            content: user.content, status: 'interrupted');
+        continue;
+      }
+
+      if (replies.isNotEmpty) {
+        // The reply was saved just before a crash, but the user row's state
+        // update may not have completed yet.
+        if (user.status == 'generating') {
+          await updateMessage(user.id,
+              content: user.content, status: 'complete');
+        }
+        continue;
+      }
+
+      final approvedAccessWasInterrupted =
+          access?.status == 'approved' || access?.status == 'shared';
+      if (user.status != 'generating' && !approvedAccessWasInterrupted) {
+        continue;
+      }
+
+      await addMessage(
+        conversationId: conversationId,
+        role: 'assistant',
+        content: interruptedReply,
+        status: 'interrupted',
+        error: 'Generation interrupted',
+      );
+      await updateMessage(user.id,
+          content: user.content, status: 'interrupted');
+    }
+  }
+
   Future<AssistantMessage> addMessage({
     required String conversationId,
     required String role,

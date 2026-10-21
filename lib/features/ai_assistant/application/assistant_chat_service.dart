@@ -119,7 +119,10 @@ class AssistantChatService {
     final id = conversation?.id ?? conversationId!;
     final priorMessages = await history.messages(id);
     final user = await history.addMessage(
-        conversationId: id, role: 'user', content: prompt, status: 'complete');
+        conversationId: id,
+        role: 'user',
+        content: prompt,
+        status: 'generating');
     final safeContext = priorMessages
         .where((message) =>
             message.role == 'user' ||
@@ -163,6 +166,7 @@ class AssistantChatService {
           providerId: identity?.providerId,
           modelId: identity?.modelId,
           error: error.toString());
+      await history.updateMessage(user.id, content: prompt, status: 'complete');
       return AssistantSubmission(
         conversationId: id,
         userMessage: user,
@@ -193,6 +197,7 @@ class AssistantChatService {
               : 'clarification',
           providerId: identity.providerId,
           modelId: identity.modelId);
+      await history.updateMessage(user.id, content: prompt, status: 'complete');
       return AssistantSubmission(
         conversationId: id,
         userMessage: user,
@@ -213,6 +218,7 @@ class AssistantChatService {
           status: 'clarification',
           providerId: identity.providerId,
           modelId: identity.modelId);
+      await history.updateMessage(user.id, content: prompt, status: 'complete');
       return AssistantSubmission(
         conversationId: id,
         userMessage: user,
@@ -229,6 +235,7 @@ class AssistantChatService {
       providerId: identity.providerId,
       modelId: identity.modelId,
     );
+    await history.updateMessage(user.id, content: prompt, status: 'complete');
     return AssistantSubmission(
       conversationId: id,
       userMessage: user,
@@ -554,8 +561,11 @@ class AssistantChatService {
       rethrow;
     } finally {
       if (!finished && assistant != null) {
+        final interruptedReply = isDe
+            ? 'Anfrage abgebrochen. Du kannst es erneut versuchen.'
+            : 'Request interrupted. You can try again.';
         await history.updateMessage(assistant.id,
-            content: response,
+            content: interruptedReply,
             status: 'interrupted',
             error: 'Generation interrupted');
       }
