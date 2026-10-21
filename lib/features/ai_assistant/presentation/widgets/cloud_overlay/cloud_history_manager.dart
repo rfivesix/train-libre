@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../application/assistant_chat_service.dart';
 import '../../../data/assistant_history_repository.dart';
 import 'ai_chat_turn.dart';
-import 'cloud_overlay_access_audit_modal.dart' show formatModelDisplayName;
+import 'cloud_overlay_formatters.dart';
 
 /// Holds the restored turn history and pending access state for a loaded conversation.
 class LoadedConversationData {

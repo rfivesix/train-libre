@@ -4,18 +4,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../data/assistant_history_repository.dart';
 import '../../../domain/assistant_data_request.dart';
-
-/// Formats a provider and model id into a clean display label.
-String? formatModelDisplayName(String? providerId, String? modelId) {
-  if (providerId == 'appleFoundation' ||
-      modelId == 'apple-foundation-system') {
-    return 'Apple Intelligence';
-  }
-  if (modelId != null && modelId.trim().isNotEmpty) {
-    return modelId.trim();
-  }
-  return null;
-}
+import 'cloud_overlay_formatters.dart';
+export 'cloud_overlay_formatters.dart' show formatModelDisplayName;
 
 /// Localizes data access status strings.
 String localizeAccessStatus(String status, {required bool isDe}) {

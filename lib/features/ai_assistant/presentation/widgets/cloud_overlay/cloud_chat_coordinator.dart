@@ -13,7 +13,7 @@ import 'cloud_demo_generation_runner.dart';
 import 'cloud_history_manager.dart';
 import 'cloud_live_assistant_runner.dart';
 import 'cloud_loading_animation_controller.dart';
-import 'cloud_overlay_access_audit_modal.dart' show formatModelDisplayName;
+import 'cloud_overlay_formatters.dart';
 import 'cloud_waiting_haptics_handler.dart';
 
 /// Coordinates chat turns, live AI and demo responses, permissions, and history for the AI overlay.
@@ -320,6 +320,7 @@ class CloudChatCoordinator extends ChangeNotifier {
 
   Future<void> _sendAssistantPrompt(String prompt) async {
     if (_isGenerating) stopGeneration();
+    if (_liveRunner.assistant == null) return;
     final locale = localeGetter();
     final isDe = locale.toLowerCase().startsWith('de');
 
@@ -371,7 +372,9 @@ class CloudChatCoordinator extends ChangeNotifier {
         now: DateTime.now(),
         locale: locale,
       );
-      if (_isDisposed || _activeGenerationId != generationId || submission == null) {
+      if (_isDisposed ||
+          _activeGenerationId != generationId ||
+          submission == null) {
         return;
       }
 
@@ -630,6 +633,9 @@ class CloudChatCoordinator extends ChangeNotifier {
 
   void _completeDemoGeneration() {
     if (!_isGenerating) return;
+    // Invalidate callbacks from the completed generation before cancelling its
+    // stream. A late token must not be appended to a later turn.
+    ++_activeGenerationId;
     _demoRunner.stopWordTicker();
     _demoRunner.cancelContinuationTimer();
     _liveRunner.cancelActiveResponseSubscription();
@@ -667,6 +673,9 @@ class CloudChatCoordinator extends ChangeNotifier {
 
   void requestDemoPermission() {
     if (useLiveAi || !_isGenerating || _chatTurns.isEmpty) return;
+    // Invalidate delayed demo startup work before changing the state. Otherwise
+    // a fast approval can make an old startup callback look current again.
+    ++_activeGenerationId;
     _demoRunner.stopWordTicker();
 
     _isGenerating = false;
