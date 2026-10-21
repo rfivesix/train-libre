@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added an ignored planning document for the AI assistant's product idea, user experience, action inventory, and architecture.
 
 ### Changed
+- Refactored `DraggableAiCloud` into modular components and controllers under `cloud_overlay/` (`CloudDockingController`, `CloudVoiceController`, `CloudChatCoordinator`, `CloudScrollSidebarController`, `CloudOverlayComposer`, `CloudChatTurnListView`) with decoupled responsibilities for docking physics, voice recording lifecycle, chat coordination, history, streaming, and permission flows while reducing the entry point widget to under 1,000 lines and preserving full interactive behavior, gesture hit-testing, state preservation, and public APIs.
 - Changed the background color of user chat bubbles in the draggable AI assistant overlay to use the app's primary accent color (with lowered brightness/intensity in Dark mode via lerp towards black for contrast with white text, and `theme.colorScheme.onPrimary` in Light mode).
 - Moved the default resting and docking position of the draggable AI cloud orb to the bottom-left corner of the screen.
 - The AI assistant now lets the configured model answer ordinary chat without a data prompt and infer narrow, reviewable data scopes from natural language. The app validates model proposals and still requires fresh approval before reading records.

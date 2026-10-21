@@ -1,50 +1,42 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollDirection;
-import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import 'package:markdown/markdown.dart' as md;
-import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../generated/app_localizations.dart';
 import '../../../../data/database_helper.dart';
-import '../../../../services/ai_service.dart';
-import '../../../../services/haptic_feedback_service.dart';
-import '../../../../services/voice/voice_dictation_service.dart';
-import '../../../../services/voice/voice_dictation_settings.dart';
+import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/platform_adaptive_dropdown.dart';
+import '../../../diary/domain/repositories/diary_repository.dart';
 import '../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
-import '../../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../../profile/domain/repositories/goal_repository.dart';
+import '../../../profile/domain/repositories/profile_repository.dart';
+import '../../../steps/data/steps_aggregation_repository.dart';
+import '../../../workout/domain/repositories/workout_repository.dart';
 import '../../application/assistant_chat_service.dart';
-import '../../data/assistant_history_repository.dart';
-import '../../data/assistant_training_actions.dart';
 import '../../data/assistant_diary_actions.dart';
 import '../../data/assistant_health_actions.dart';
+import '../../data/assistant_history_repository.dart';
+import '../../data/assistant_training_actions.dart';
 import '../../domain/assistant_data_action.dart';
-import '../../domain/assistant_data_request.dart';
-import '../../../workout/domain/repositories/workout_repository.dart';
-import '../../../diary/domain/repositories/diary_repository.dart';
-import '../../../profile/domain/repositories/profile_repository.dart';
-import '../../../profile/domain/repositories/goal_repository.dart';
-import '../../../steps/data/steps_aggregation_repository.dart';
 
-/// The existing animated AI cloud, made draggable for the overlay demo.
-///
-/// Its horizontal and vertical position is interactive and resets when the
-/// demo screen is opened again.
-enum _AssistantMenuAction { autoApprove }
+import 'cloud_overlay/cloud_chat_coordinator.dart';
+import 'cloud_overlay/cloud_chat_turn_list_view.dart';
+import 'cloud_overlay/cloud_docking_controller.dart';
+import 'cloud_overlay/cloud_overlay_access_audit_modal.dart';
+import 'cloud_overlay/cloud_overlay_composer.dart';
+import 'cloud_overlay/cloud_overlay_geometry.dart';
+import 'cloud_overlay/cloud_overlay_header_toolbar.dart';
+import 'cloud_overlay/cloud_overlay_sidebar.dart';
+import 'cloud_overlay/cloud_scroll_sidebar_controller.dart';
+import 'cloud_overlay/cloud_voice_controller.dart';
+import 'cloud_overlay/header_glass_button.dart';
+
+export 'cloud_overlay/ai_chat_turn.dart';
+export 'cloud_overlay/cloud_overlay_geometry.dart' show SafeSpaceCorner;
+export 'cloud_overlay/cloud_overlay_header_toolbar.dart' show AssistantMenuAction;
 
 class DraggableAiCloud extends StatefulWidget {
   final String semanticLabel;
@@ -78,126 +70,24 @@ class DraggableAiCloud extends StatefulWidget {
 
 class DraggableAiCloudState extends State<DraggableAiCloud>
     with TickerProviderStateMixin {
-  static const _horizontalInset = DesignConstants.spacingL;
-  static const _cloudSize = 160.0;
-  static const _visibleEdge = 64.0;
-  static const _topGap = 2.0;
-  static const _topVisualInset = 28.0;
-  // Release within this many logical pixels of a card edge docks the cloud.
-  static const _snapThreshold = 48.0;
-  static const _scrollToBottomThreshold = 120.0;
-  static const _demoWords = <String>[
-    '**Lorem',
-    'ipsum**',
-    'dolor',
-    'sit',
-    '*amet*,',
-    'consectetur',
-    '`adipiscing`',
-    'elit,',
-    'sed',
-    'do',
-    'eiusmod',
-    'tempor',
-    'incididunt',
-    'ut',
-    'labore',
-    'et',
-    'dolore',
-    'magna',
-    'aliqua.',
-  ];
-
-  double? _horizontalPosition;
-  double? _verticalPosition;
-  double _rotationRadians = 0;
-  double _scale = 1;
-  bool _isDragging = false;
   bool _isExpanded = false;
   bool _isClosing = false;
   bool _isClosingFromFullscreen = false;
   bool _showChatPreview = false;
   bool _isFullscreen = false;
-  int _selectedSidebarExample = 0;
-  double _headerDragDistance = 0;
-  double _headerDragStartProgress = 1;
-  double _sidebarDragStartProgress = 0;
-  Offset? _sidebarPointerStart;
-  int? _sidebarPointerId;
-  bool _sidebarPointerDragging = false;
-  bool _sidebarPastSnapPoint = false;
-  double? _sidebarDragStartScrollOffset;
-  bool _sidebarDragStartFollowChatTail = true;
+  bool _assistantInitialized = false;
+
   final _chatInputController = TextEditingController();
   final _chatFocusNode = FocusNode(debugLabel: 'ai-overlay-composer');
   final _chatInputScrollController = ScrollController();
-  final _chatScrollController = ScrollController();
-  final List<_DemoChatTurn> _chatTurns = [];
-  AssistantChatService? _assistant;
-  AssistantHistoryRepository? _history;
-  String? _conversationId;
-  List<AssistantConversation> _conversations = const [];
-  AssistantAccessRecord? _pendingAccess;
-  AssistantAccessRecord? _activeAuditRecord;
-  String? _pendingQuestion;
-  bool _assistantInitialized = false;
-  Timer? _responseTimer;
-  StreamSubscription<String>? _liveResponseSubscription;
-  Future<void>? _activeGenerationCancellation;
-  int _activeGenerationId = 0;
-  bool _isLoadingCloudVisible = false;
-  Future<void>? _loadingCloudEnterFuture;
-  _DemoChatTurn? _copiedTurn;
-  Timer? _copiedTurnTimer;
-  Timer? _permissionContinuationTimer;
-  Timer? _completionPulseTimer;
-  Timer? _permissionBadgeDelayTimer;
-  Timer? _collapsedWaitingHapticTimer;
-  int _lastHapticWordCount = 0;
-  DateTime? _lastWordHapticAt;
-  bool _isGenerating = false;
-  bool _voiceStarting = false;
-  bool _voiceRecording = false;
-  bool _voiceStopping = false;
-  bool _voiceSimulation = false;
-  bool _voiceFinalizing = false;
-  bool _sendVoiceAfterStop = false;
-  int _voiceSessionId = 0;
-  String _voiceBaseText = '';
-  String _voiceTranscript = '';
-  final List<_VoiceWaveSample> _voiceLevelHistory = <_VoiceWaveSample>[];
-  Timer? _voiceSimulationTimer;
-  double _latestVoiceLevel = 0;
-  int _lastVoiceWaveSampleIndex = 0;
-  late final Ticker _voiceWaveTicker;
-  late final ValueNotifier<double> _voiceWaveOffset;
-  Future<bool>? _iosSimulatorCheck;
-  bool _hasCompletedResponse = false;
-  bool _permissionPending = false;
-  bool _showPermissionBadge = false;
-  bool _attentionPeekDismissed = false;
-  bool? _permissionApproved;
-  bool _expandedWaitingHapticsActive = false;
-  bool _completionPulse = false;
-  bool _followChatTail = true;
-  bool _showScrollToBottom = false;
-  int _chatUserScrollRevision = 0;
-  int _chatContentRevision = 0;
-  int _demoWordIndex = 0;
-  double _safeLeft = 0.14;
-  double _safeTop = 0.10;
-  double _safeRight = 0.86;
-  double _safeBottom = 0.90;
+
   AnimationController? _morphController;
   AnimationController? _fullscreenController;
-  late final AnimationController _sidebarController;
-  late final AnimationController _initialDockController;
-  late final AnimationController _loadingCloudController;
-  Timer? _initialDockStartTimer;
-  bool _initialDockScheduled = false;
-  double _displayedHorizontalPosition = 0;
-  String? _currentModelName;
-  bool _autoApproveDataRequests = false;
+
+  late final CloudDockingController _dockingController;
+  late final CloudVoiceController _voiceController;
+  late final CloudScrollSidebarController _scrollSidebarController;
+  late final CloudChatCoordinator _chatCoordinator;
 
   AnimationController get _morphAnimation =>
       _morphController ??= AnimationController(
@@ -214,44 +104,76 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void initState() {
     super.initState();
-    AiService.instance.configurationRevision
-        .addListener(_handleAiConfigurationChanged);
-    unawaited(_refreshCurrentModelName());
-    _chatScrollController.addListener(_handleChatScroll);
-    _initialDockController = AnimationController(
+
+    _dockingController = CloudDockingController(vsync: this)
+      ..addListener(_handleControllerTick);
+
+    _scrollSidebarController = CloudScrollSidebarController(
       vsync: this,
-      duration: const Duration(milliseconds: 420),
-    )..addListener(_handleInitialDockAnimationTick);
-    _sidebarController = AnimationController(
+      isFullscreenGetter: () => _isFullscreen,
+      morphAnimationGetter: () => _morphAnimation,
+      onUnfocus: () => _chatFocusNode.unfocus(),
+      onToggleExpanded: _toggleExpanded,
+    )..addListener(_handleControllerTick);
+
+    _chatCoordinator = CloudChatCoordinator(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
-    )..addListener(_onSidebarAnimationTick);
-    _loadingCloudController = AnimationController(
+      useLiveAi: widget.useLiveAi,
+      modelClient: widget.modelClient,
+      onGenerationChanged: widget.onGenerationChanged,
+      onScrollToBottom: ({bool force = false}) =>
+          _scrollSidebarController.scrollChatToBottom(force: force),
+      onShowMessage: (message, {actionLabel, onAction}) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            duration: const Duration(milliseconds: 2500),
+            behavior: SnackBarBehavior.floating,
+            action: actionLabel != null && onAction != null
+                ? SnackBarAction(label: actionLabel, onPressed: onAction)
+                : null,
+          ),
+        );
+      },
+      isExpandedGetter: () => _isExpanded,
+      isDockedSettledGetter: () =>
+          !_isExpanded && _morphAnimation.value <= 0.005,
+      localeGetter: () =>
+          mounted ? Localizations.localeOf(context).toLanguageTag() : 'de',
+    )..addListener(_handleControllerTick);
+
+    _voiceController = CloudVoiceController(
       vsync: this,
-      duration: const Duration(milliseconds: 420),
-      reverseDuration: const Duration(milliseconds: 320),
-    );
-    _voiceWaveOffset = ValueNotifier<double>(0);
-    _voiceWaveTicker = createTicker((elapsed) {
-      const sampleSpacing = 6.0;
-      // Scroll continuously at a fixed speed. Samples are placed on exact
-      // spacing boundaries derived from this same monotonic position.
-      final position = elapsed.inMicroseconds * 0.000045;
-      _voiceWaveOffset.value = position;
-      final sampleIndex = (position / sampleSpacing).floor();
-      if (sampleIndex > _lastVoiceWaveSampleIndex &&
-          mounted &&
-          (_voiceRecording || _voiceStarting)) {
-        setState(() {
-          for (var index = _lastVoiceWaveSampleIndex + 1;
-              index <= sampleIndex;
-              index++) {
-            _appendVoiceLevel(_latestVoiceLevel, index * sampleSpacing);
-          }
-          _lastVoiceWaveSampleIndex = sampleIndex;
-        });
-      }
-    });
+      onUnfocus: () => _chatFocusNode.unfocus(),
+      getBaseText: () => _chatInputController.text,
+      onCommitText: (text, {required bool sendNow}) {
+        _chatInputController.value = TextEditingValue(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+        );
+        if (sendNow) _sendPromptFromComposer();
+      },
+      onShowMessage: (message) {
+        if (!mounted) return;
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      },
+    )..addListener(_handleControllerTick);
+  }
+
+  void _handleControllerTick() {
+    if (mounted) setState(() {});
+  }
+
+  void _onFullscreenAnimationTick() {
+    if (mounted) setState(() {});
+  }
+
+  void _onMorphAnimationTick() {
+    if (mounted && _isFullscreen) setState(() {});
   }
 
   @override
@@ -264,12 +186,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (widget.useLiveAi && !_assistantInitialized) {
       _assistantInitialized = true;
       final database = DatabaseHelper.instance.dbInstance;
-      _history = AssistantHistoryRepository(database);
-      _assistant = AssistantChatService(
-        history: _history!,
+      final history = AssistantHistoryRepository(database);
+      final assistant = AssistantChatService(
+        history: history,
         data: AssistantDataGateway([
           AssistantTrainingActions(
-              workouts: context.read<IWorkoutRepository>(), database: database),
+            workouts: context.read<IWorkoutRepository>(),
+            database: database,
+          ),
           AssistantDiaryActions(context.read<IDiaryRepository>()),
           AssistantHealthActions(
             database: database,
@@ -280,23 +204,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         ]),
         model: widget.modelClient ?? const ConfiguredAssistantModelClient(),
       );
-      unawaited(_loadAutoApprovePreference());
-      unawaited(_loadAssistantHistory());
+      _chatCoordinator.initializeAssistant(assistant, history);
     }
-  }
-
-  Future<void> _loadAutoApprovePreference() async {
-    final preferences = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() => _autoApproveDataRequests =
-        preferences.getBool('ai_overlay_auto_approve_data_requests') ?? false);
-  }
-
-  Future<void> _toggleAutoApproveDataRequests() async {
-    final next = !_autoApproveDataRequests;
-    setState(() => _autoApproveDataRequests = next);
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool('ai_overlay_auto_approve_data_requests', next);
   }
 
   @override
@@ -308,314 +217,51 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           if (mounted) _ensureAssistantInitialized();
         });
       }
-      if (_isGenerating) {
-        _stopDemoGeneration();
-      }
-      if (widget.useLiveAi &&
-          (_permissionPending ||
-              _showPermissionBadge ||
-              _permissionApproved != null)) {
-        _permissionBadgeDelayTimer?.cancel();
-        _permissionBadgeDelayTimer = null;
-        _permissionContinuationTimer?.cancel();
-        _permissionContinuationTimer = null;
-        setState(() {
-          _permissionPending = false;
-          _showPermissionBadge = false;
-          _permissionApproved = null;
-          _attentionPeekDismissed = false;
-        });
+      if (_chatCoordinator.isGenerating) {
+        _chatCoordinator.stopGeneration();
       }
     }
-  }
-
-  Future<bool> _isIosSimulator() {
-    if (!kDebugMode || defaultTargetPlatform != TargetPlatform.iOS) {
-      return Future<bool>.value(false);
-    }
-    return _iosSimulatorCheck ??= DeviceInfoPlugin()
-        .iosInfo
-        .then((info) => !info.isPhysicalDevice)
-        .catchError((Object _) => false);
-  }
-
-  Future<void> _startSimulatedVoiceInput(int sessionId) async {
-    // Simulate partial speech results and microphone levels only in debug
-    // builds running on the iOS Simulator. Physical devices always use the
-    // platform recognizer.
-    await Future<void>.delayed(const Duration(milliseconds: 180));
-    if (!mounted || sessionId != _voiceSessionId) return;
-
-    _voiceSimulation = true;
-    setState(() {
-      _voiceStarting = false;
-      _voiceRecording = true;
-    });
-    _startVoiceWaveAnimation();
-
-    const sample = 'Das ist eine simulierte Spracheingabe im iOS-Simulator.';
-    var elapsedMs = 0;
-    _voiceSimulationTimer?.cancel();
-    _voiceSimulationTimer = Timer.periodic(
-      const Duration(milliseconds: 80),
-      (timer) {
-        if (!mounted || sessionId != _voiceSessionId || !_voiceSimulation) {
-          timer.cancel();
-          return;
-        }
-        elapsedMs += 80;
-        final transcriptCharacters =
-            ((elapsedMs - 450) / 34).floor().clamp(0, sample.length);
-        final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
-        final variation = (math.sin(elapsedMs / 73) + 1) / 2;
-        final level = 0.12 + pulse * 0.58 + variation * 0.22;
-        setState(() {
-          _latestVoiceLevel = level;
-          _voiceTranscript = sample.substring(0, transcriptCharacters);
-        });
-      },
-    );
-  }
-
-  Future<void> _startVoiceInput() async {
-    if (_voiceStarting || _voiceRecording || _voiceStopping) return;
-
-    final sessionId = ++_voiceSessionId;
-    _chatFocusNode.unfocus();
-    _voiceBaseText = _chatInputController.text.trim();
-    _voiceTranscript = '';
-    _voiceLevelHistory.clear();
-    _latestVoiceLevel = 0;
-    _sendVoiceAfterStop = false;
-    setState(() {
-      _voiceStarting = true;
-      _voiceStopping = false;
-    });
-
-    final simulateVoice = await _isIosSimulator();
-    if (!mounted || sessionId != _voiceSessionId) return;
-    if (simulateVoice) {
-      await _startSimulatedVoiceInput(sessionId);
-      return;
-    }
-
-    final service = VoiceDictationService.instance;
-    final availability = await service.prepare();
-    if (!mounted || sessionId != _voiceSessionId) return;
-    if (!availability.available) {
-      setState(() => _voiceStarting = false);
-      final l10n = AppLocalizations.of(context)!;
-      final message = switch (availability.reason) {
-        VoiceUnavailableReason.permissionDenied =>
-          l10n.voiceUnavailablePermission,
-        VoiceUnavailableReason.unsupported => l10n.voiceUnavailableUnsupported,
-        _ => l10n.voiceUnavailableFailed,
-      };
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-      return;
-    }
-
-    final localeId = await VoiceDictationSettings.instance.localeId();
-    if (!mounted || sessionId != _voiceSessionId) return;
-    final started = await service.start(
-      localeId: localeId,
-      onPartial: (text) {
-        if (!mounted || sessionId != _voiceSessionId) return;
-        setState(() => _voiceTranscript = text);
-      },
-      onFinal: (text) {
-        if (!mounted || sessionId != _voiceSessionId) return;
-        setState(() => _voiceTranscript = text);
-      },
-      onSoundLevel: (level) {
-        if (!mounted || sessionId != _voiceSessionId) return;
-        setState(() {
-          _latestVoiceLevel = level;
-        });
-      },
-      onStopped: () => unawaited(_stopVoiceInput(sessionId)),
-    );
-    if (!mounted || sessionId != _voiceSessionId) {
-      if (started) unawaited(service.cancel());
-      return;
-    }
-    if (!started) {
-      setState(() => _voiceStarting = false);
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.voiceUnavailableFailed),
-        ),
-      );
-      return;
-    }
-    if (!service.isListening) {
-      unawaited(_stopVoiceInput(sessionId));
-      return;
-    }
-    setState(() {
-      _voiceStarting = false;
-      _voiceRecording = true;
-    });
-    _startVoiceWaveAnimation();
-    if (service.lastRunUsedNetwork) {
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.voiceNetworkNotice),
-        ),
-      );
-    }
-  }
-
-  Future<void> _stopVoiceInput([int? requestedSessionId]) async {
-    final sessionId = requestedSessionId ?? _voiceSessionId;
-    if (sessionId != _voiceSessionId || _voiceFinalizing) return;
-    if (!_voiceStarting && !_voiceRecording) return;
-
-    _voiceFinalizing = true;
-    setState(() {
-      _voiceStarting = false;
-      _voiceStopping = true;
-    });
-    _voiceSimulationTimer?.cancel();
-    _voiceWaveTicker.stop();
-    if (!_voiceSimulation) {
-      await VoiceDictationService.instance.stop();
-    }
-    await Future<void>.delayed(
-      Duration(milliseconds: _voiceSimulation ? 120 : 450),
-    );
-    if (!mounted || sessionId != _voiceSessionId) return;
-
-    final dictatedText = _voiceTranscript.trim();
-    final combinedText = [
-      if (_voiceBaseText.isNotEmpty) _voiceBaseText,
-      if (dictatedText.isNotEmpty) dictatedText,
-    ].join(' ');
-    _chatInputController.value = TextEditingValue(
-      text: combinedText,
-      selection: TextSelection.collapsed(offset: combinedText.length),
-    );
-    setState(() {
-      _voiceRecording = false;
-      _voiceStopping = false;
-      _voiceSimulation = false;
-    });
-    _voiceFinalizing = false;
-    final shouldSend = _sendVoiceAfterStop;
-    _sendVoiceAfterStop = false;
-    if (shouldSend) _sendDemoPrompt();
-  }
-
-  void _appendVoiceLevel(double level, double position) {
-    _voiceLevelHistory.add(
-      _VoiceWaveSample(
-        position: position,
-        level: level.clamp(0.0, 1.0).toDouble(),
-      ),
-    );
-    if (_voiceLevelHistory.length > 120) _voiceLevelHistory.removeAt(0);
-  }
-
-  void _startVoiceWaveAnimation() {
-    _voiceWaveOffset.value = 0;
-    _voiceLevelHistory.clear();
-    _lastVoiceWaveSampleIndex = 0;
-    _appendVoiceLevel(_latestVoiceLevel, 0);
-    _voiceWaveTicker.start();
-  }
-
-  Future<void> _sendVoiceInput() async {
-    if (_voiceStopping || (!_voiceStarting && !_voiceRecording)) return;
-    if (_voiceFinalizing) {
-      _sendVoiceAfterStop = true;
-      return;
-    }
-    _sendVoiceAfterStop = true;
-    await _stopVoiceInput();
-  }
-
-  Future<void> _cancelVoiceInput() async {
-    if (!_voiceStarting && !_voiceRecording && !_voiceStopping) return;
-    ++_voiceSessionId;
-    _voiceFinalizing = false;
-    _sendVoiceAfterStop = false;
-    _voiceSimulationTimer?.cancel();
-    _voiceWaveTicker.stop();
-    final wasSimulating = _voiceSimulation;
-    setState(() {
-      _voiceStarting = false;
-      _voiceRecording = false;
-      _voiceStopping = false;
-      _latestVoiceLevel = 0;
-      _voiceTranscript = '';
-      _voiceSimulation = false;
-    });
-    if (!wasSimulating) await VoiceDictationService.instance.cancel();
   }
 
   @override
   void dispose() {
-    AiService.instance.configurationRevision
-        .removeListener(_handleAiConfigurationChanged);
-    _voiceSimulationTimer?.cancel();
-    _voiceWaveTicker.dispose();
-    _voiceWaveOffset.dispose();
-    if ((_voiceStarting || _voiceRecording || _voiceStopping) &&
-        !_voiceSimulation) {
-      unawaited(VoiceDictationService.instance.cancel());
-    }
-    _responseTimer?.cancel();
-    _cancelActiveResponseSubscription();
-    _copiedTurnTimer?.cancel();
-    _permissionContinuationTimer?.cancel();
-    _completionPulseTimer?.cancel();
-    _permissionBadgeDelayTimer?.cancel();
-    _collapsedWaitingHapticTimer?.cancel();
-    if (_expandedWaitingHapticsActive) {
-      HapticFeedbackService.instance.stopAiWaiting();
-    }
+    _voiceController.dispose();
+    _chatCoordinator.dispose();
+    _scrollSidebarController.dispose();
+    _dockingController.dispose();
     _chatInputController.dispose();
     _chatFocusNode.dispose();
     _chatInputScrollController.dispose();
-    _chatScrollController.dispose();
-    _initialDockStartTimer?.cancel();
-    _initialDockController.dispose();
-    _sidebarController.dispose();
-    _loadingCloudController.dispose();
     _morphController?.dispose();
     _fullscreenController?.dispose();
     super.dispose();
   }
 
+  /// Ends the current demo response without requesting more permissions.
+  void finishDemoGeneration() => _chatCoordinator.finishDemoGeneration();
+
+  /// Pauses the current demo response and shows a simulated permission request.
+  void requestDemoPermission() => _chatCoordinator.requestDemoPermission();
+
   void _toggleExpanded() {
-    _initialDockStartTimer?.cancel();
-    _initialDockStartTimer = null;
-    _initialDockController.stop();
+    _dockingController.stopInitialDock();
     final expanding = !_isExpanded;
     final wasFullscreen = _isFullscreen;
     final openFullscreen = expanding && widget.openDirectlyFullscreen;
     if (expanding) {
       FocusManager.instance.primaryFocus?.unfocus();
-      unawaited(_refreshCurrentModelName());
+      unawaited(_chatCoordinator.refreshCurrentModelName());
     }
     setState(() {
-      _horizontalPosition ??= _displayedHorizontalPosition;
-      _verticalPosition ??= 0.0;
       _isExpanded = expanding;
       _isClosing = !expanding;
       _isClosingFromFullscreen = !expanding && wasFullscreen;
-      if (!expanding) _activeAuditRecord = null;
-      _isDragging = false;
-      _rotationRadians = 0;
-      _scale = 1;
+      if (!expanding) _chatCoordinator.clearActiveAudit();
       _isFullscreen = expanding ? openFullscreen : wasFullscreen;
       _showChatPreview = expanding;
-      _hasCompletedResponse = false;
-      _completionPulse = false;
     });
-    _syncDemoWaitingHaptics();
+    _dockingController.onExpandToggle(expanding: expanding);
+    _chatCoordinator.syncDemoWaitingHaptics();
     if (expanding) {
       widget.onExpandedChanged?.call(true);
       widget.onFullscreenChanged?.call(openFullscreen);
@@ -623,9 +269,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       final fullscreenOpening = openFullscreen
           ? _fullscreenAnimation.forward(from: 0)
           : Future<void>.value();
-      unawaited(
-        Future.wait<void>([morphOpening, fullscreenOpening]),
-      );
+      unawaited(Future.wait<void>([morphOpening, fullscreenOpening]));
     } else {
       _morphAnimation.reverse().whenComplete(() {
         if (!mounted) return;
@@ -633,372 +277,17 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           _isClosing = false;
           if (wasFullscreen) _isFullscreen = false;
         });
-        _sidebarController.value = 0;
+        _scrollSidebarController.sidebarAnimation.value = 0;
         if (wasFullscreen) {
           _fullscreenAnimation.reverse().whenComplete(() {
             if (mounted) setState(() => _isClosingFromFullscreen = false);
           });
         }
         FocusManager.instance.primaryFocus?.unfocus();
-        if (_hasCompletedResponse) {
-          setState(() => _completionPulse = true);
-          _scheduleCompletionPulseReset();
-        }
         widget.onFullscreenChanged?.call(false);
         widget.onExpandedChanged?.call(false);
       });
     }
-  }
-
-  void _syncDemoWaitingHaptics() {
-    final haptics = HapticFeedbackService.instance;
-    if (!_isGenerating) {
-      _collapsedWaitingHapticTimer?.cancel();
-      _collapsedWaitingHapticTimer = null;
-      if (_expandedWaitingHapticsActive) {
-        _expandedWaitingHapticsActive = false;
-        haptics.stopAiWaiting();
-      }
-      return;
-    }
-
-    if (_isExpanded) {
-      _collapsedWaitingHapticTimer?.cancel();
-      _collapsedWaitingHapticTimer = null;
-      if (_expandedWaitingHapticsActive) {
-        _expandedWaitingHapticsActive = false;
-        haptics.stopAiWaiting();
-      }
-      return;
-    }
-
-    if (_expandedWaitingHapticsActive) {
-      _expandedWaitingHapticsActive = false;
-      haptics.stopAiWaiting();
-    }
-    if (_collapsedWaitingHapticTimer == null) {
-      unawaited(haptics.lightImpact());
-      _collapsedWaitingHapticTimer = Timer.periodic(
-        const Duration(milliseconds: 1450),
-        (_) => unawaited(haptics.lightImpact()),
-      );
-    }
-  }
-
-  static final RegExp _wordPattern = RegExp(r'\S+');
-
-  void _triggerWordHapticIfNeeded(String responseText) {
-    final wordCount = _wordPattern.allMatches(responseText).length;
-    if (wordCount <= _lastHapticWordCount) return;
-    _lastHapticWordCount = wordCount;
-    if (!_isExpanded) return;
-    final now = DateTime.now();
-    final last = _lastWordHapticAt;
-    if (last != null && now.difference(last).inMilliseconds < 28) {
-      return;
-    }
-    _lastWordHapticAt = now;
-    unawaited(HapticFeedbackService.instance.selectionFeedback());
-  }
-
-  /// Ends the current demo response without requesting more permissions.
-  void finishDemoGeneration() => _completeDemoGeneration();
-
-  /// Pauses the current demo response and shows a simulated permission request.
-  void requestDemoPermission() => _requestDemoPermission();
-
-  void _onFullscreenAnimationTick() {
-    if (mounted) setState(() {});
-  }
-
-  void _onMorphAnimationTick() {
-    if (mounted && _isFullscreen) setState(() {});
-  }
-
-  void _onSidebarAnimationTick() {
-    if (mounted) setState(() {});
-  }
-
-  double _sidebarWidth(double viewportWidth) =>
-      math.min(viewportWidth * 0.82, 340.0);
-
-  double _openingAppearanceProgress(double progress) {
-    const transitionRange = 0.5;
-    final transitionProgress =
-        (progress / transitionRange).clamp(0.0, 1.0).toDouble();
-    return Curves.easeInOutCubic.transform(transitionProgress);
-  }
-
-  Color _overlaySurfaceColor(ThemeData theme, double appearanceProgress) {
-    final appIsDark = theme.brightness == Brightness.dark;
-    final cloudSurface = appIsDark ? Colors.white : Colors.black;
-    return Color.lerp(
-      cloudSurface,
-      theme.scaffoldBackgroundColor,
-      appearanceProgress,
-    )!;
-  }
-
-  Color _overlayForegroundColor(ThemeData theme, double appearanceProgress) {
-    final appIsDark = theme.brightness == Brightness.dark;
-    final cloudForeground = appIsDark ? Colors.black : Colors.white;
-    return Color.lerp(
-      cloudForeground,
-      theme.colorScheme.onSurface,
-      appearanceProgress,
-    )!;
-  }
-
-  Color _overlayControlFill(ThemeData theme, double appearanceProgress) {
-    final appIsDark = theme.brightness == Brightness.dark;
-    final cloudFill = appIsDark
-        ? DesignConstants.glassNeutralTint(true)
-        : Colors.black.withValues(alpha: 0.04);
-    final appFill = appIsDark
-        ? Colors.white.withValues(alpha: 0.10)
-        : Colors.black.withValues(alpha: 0.04);
-    return Color.lerp(cloudFill, appFill, appearanceProgress)!;
-  }
-
-  void _openSidebar() {
-    if (!_isFullscreen) return;
-    final chatScrollOffset = _captureChatScrollOffset();
-    final shouldFollowChatTail = _followChatTail;
-    _chatFocusNode.unfocus();
-    _sidebarController.animateTo(
-      1,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
-    );
-    _restoreChatScrollOffsetAfterLayout(
-      chatScrollOffset,
-      shouldFollowChatTail: shouldFollowChatTail,
-    );
-  }
-
-  void _toggleSidebar() {
-    if (_sidebarController.value > 0.5) {
-      final chatScrollOffset = _captureChatScrollOffset();
-      final shouldFollowChatTail = _followChatTail;
-      _sidebarController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 240),
-        curve: Curves.easeOutCubic,
-      );
-      _restoreChatScrollOffsetAfterLayout(
-        chatScrollOffset,
-        shouldFollowChatTail: shouldFollowChatTail,
-      );
-    } else {
-      _openSidebar();
-    }
-  }
-
-  double? _captureChatScrollOffset() => _chatScrollController.hasClients
-      ? _chatScrollController.position.pixels
-      : null;
-
-  void _restoreChatScrollOffsetAfterLayout(
-    double? offset, {
-    bool? shouldFollowChatTail,
-  }) {
-    if (offset == null) return;
-    final userScrollRevision = _chatUserScrollRevision;
-    final contentRevision = _chatContentRevision;
-    final shouldFollowTail = shouldFollowChatTail ?? _followChatTail;
-
-    void restore() {
-      if (!mounted ||
-          !_chatScrollController.hasClients ||
-          _chatUserScrollRevision != userScrollRevision ||
-          _chatContentRevision != contentRevision) {
-        return;
-      }
-      final position = _chatScrollController.position;
-      final target = shouldFollowTail
-          ? position.maxScrollExtent
-          : offset
-              .clamp(position.minScrollExtent, position.maxScrollExtent)
-              .toDouble();
-      if ((position.pixels - target).abs() > 0.5) {
-        _chatScrollController.jumpTo(target);
-      }
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      restore();
-      // The keyboard and the safe-area layout can finish resizing after the
-      // sidebar starts moving. Reapply once the viewport has settled too.
-      Future<void>.delayed(const Duration(milliseconds: 420), restore);
-    });
-  }
-
-  void _handleSidebarPointerDown(PointerDownEvent event) {
-    if (!_isFullscreen) return;
-    _sidebarPointerId = event.pointer;
-    _sidebarPointerStart = event.position;
-    _sidebarDragStartProgress = _sidebarController.value;
-    _sidebarDragStartScrollOffset = _captureChatScrollOffset();
-    _sidebarDragStartFollowChatTail = _followChatTail;
-    _sidebarPointerDragging = false;
-    _sidebarPastSnapPoint = _sidebarController.value >= 0.5;
-    _sidebarController.stop();
-  }
-
-  void _handleSidebarPointerMove(PointerMoveEvent event, double width) {
-    if (event.pointer != _sidebarPointerId || !_isFullscreen) return;
-    final start = _sidebarPointerStart;
-    if (start == null) return;
-    final offset = event.position - start;
-    if (!_sidebarPointerDragging) {
-      if (offset.dx.abs() < gestures.kTouchSlop ||
-          offset.dx.abs() < offset.dy.abs()) {
-        return;
-      }
-      _sidebarPointerDragging = true;
-      _chatFocusNode.unfocus();
-    }
-    final nextProgress = (_sidebarDragStartProgress + offset.dx / width)
-        .clamp(0.0, 1.0)
-        .toDouble();
-    final isPastSnapPoint = nextProgress >= 0.5;
-    if (isPastSnapPoint != _sidebarPastSnapPoint) {
-      _sidebarPastSnapPoint = isPastSnapPoint;
-      unawaited(HapticFeedbackService.instance.selectionFeedback());
-    }
-    _sidebarController.value = nextProgress;
-  }
-
-  void _finishSidebarPointer(PointerEvent event) {
-    if (event.pointer != _sidebarPointerId) return;
-    if (_sidebarPointerDragging) {
-      _sidebarController.animateTo(
-        _sidebarController.value >= 0.5 ? 1 : 0,
-        duration: const Duration(milliseconds: 240),
-        curve: Curves.easeOutCubic,
-      );
-      _restoreChatScrollOffsetAfterLayout(
-        _sidebarDragStartScrollOffset,
-        shouldFollowChatTail: _sidebarDragStartFollowChatTail,
-      );
-    }
-    _sidebarPointerId = null;
-    _sidebarPointerStart = null;
-    _sidebarPointerDragging = false;
-    _sidebarDragStartScrollOffset = null;
-    _sidebarDragStartFollowChatTail = true;
-  }
-
-  void _selectSidebarExample(int index) {
-    if (widget.useLiveAi) {
-      if (index >= 0 && index < _conversations.length) {
-        unawaited(_openConversation(_conversations[index].id));
-      }
-      return;
-    }
-    final chatScrollOffset = _captureChatScrollOffset();
-    final shouldFollowChatTail = _followChatTail;
-    setState(() => _selectedSidebarExample = index);
-    _sidebarController.reverse();
-    _restoreChatScrollOffsetAfterLayout(
-      chatScrollOffset,
-      shouldFollowChatTail: shouldFollowChatTail,
-    );
-  }
-
-  Future<void> _loadAssistantHistory() async {
-    try {
-      final conversations = await _history!.conversations();
-      if (!mounted) return;
-      setState(() => _conversations = conversations);
-      if (_conversationId == null && conversations.isNotEmpty) {
-        await _openConversation(conversations.first.id);
-      }
-    } catch (error) {
-      if (mounted) debugPrint('[Assistant] Could not load history: $error');
-    }
-  }
-
-  Future<void> _openConversation(String id) async {
-    _stopDemoGeneration();
-    final cancellation = _activeGenerationCancellation;
-    if (cancellation != null) await cancellation;
-    if (!mounted) return;
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    await _history!.recoverInterruptedConversation(id, locale: locale);
-    var messages = await _history!.messages(id);
-    var pending = await _history!.latestAccess(id, status: 'pending');
-    if (pending != null &&
-        DateTime.now().toUtc().difference(pending.requestedAt) >
-            AssistantChatService.approvalLifetime) {
-      final isDe =
-          mounted && Localizations.localeOf(context).languageCode == 'de';
-      await _history!.expireAccess(pending.id);
-      await _history!.addMessage(
-          conversationId: id,
-          role: 'assistant',
-          content: isDe
-              ? 'Die Datenanfrage ist abgelaufen. Es wurden keine App-Daten gesendet.'
-              : 'Data request expired. No app data was sent.',
-          status: 'complete');
-      messages = await _history!.messages(id);
-      pending = null;
-    }
-    final accesses = await _history!.accessForConversation(id);
-    final accessByMessage = {
-      for (final access in accesses) access.messageId: access,
-    };
-    if (!mounted) return;
-    final turns = <_DemoChatTurn>[];
-    for (final message in messages) {
-      if (message.role == 'user') {
-        turns.add(_DemoChatTurn(message.content)
-          ..userMessageId = message.id
-          ..access = accessByMessage[message.id]);
-      } else if (turns.isNotEmpty) {
-        turns.last.response = message.content;
-        turns.last.modelName =
-            _formatModelDisplayName(message.providerId, message.modelId);
-        turns.last.assistantMessageId = message.id;
-      }
-    }
-    final restoredPending = pending;
-    setState(() {
-      _conversationId = id;
-      _activeAuditRecord = null;
-      _chatTurns
-        ..clear()
-        ..addAll(turns);
-      _pendingAccess = restoredPending;
-      _pendingQuestion = restoredPending == null
-          ? null
-          : turns
-              .where((turn) => turn.userMessageId == restoredPending.messageId)
-              .map((turn) => turn.prompt)
-              .firstOrNull;
-      _permissionPending = restoredPending != null;
-      _showPermissionBadge = restoredPending != null;
-      _permissionApproved = null;
-      _selectedSidebarExample =
-          _conversations.indexWhere((item) => item.id == id);
-      _followChatTail = true;
-    });
-    _sidebarController.reverse();
-    _scrollChatToBottom(force: true);
-  }
-
-  void _closeSidebar() {
-    final chatScrollOffset = _captureChatScrollOffset();
-    final shouldFollowChatTail = _followChatTail;
-    _sidebarController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 240),
-      curve: Curves.easeOutCubic,
-    );
-    _restoreChatScrollOffsetAfterLayout(
-      chatScrollOffset,
-      shouldFollowChatTail: shouldFollowChatTail,
-    );
   }
 
   void _toggleFullscreen() {
@@ -1023,269 +312,31 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
   }
 
-  void _handleHeaderDragStart(DragStartDetails details) {
-    _headerDragDistance = 0;
-    _headerDragStartProgress = _morphAnimation.value;
-    _morphAnimation.stop();
+  void _sendPromptFromComposer() {
+    final text = _chatInputController.text.trim();
+    if (text.isEmpty) return;
+    _chatFocusNode.unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
+    _chatInputController.clear();
+    _chatCoordinator.sendPrompt(text);
   }
 
-  void _handleHeaderDragUpdate(DragUpdateDetails details) {
-    _headerDragDistance += details.delta.dy;
-    _morphAnimation.value =
-        (_headerDragStartProgress - _headerDragDistance / 250).clamp(0.0, 1.0);
-  }
-
-  void _handleHeaderDragEnd(DragEndDetails details) {
-    final shouldCollapse = _morphAnimation.value < 0.55 ||
-        details.velocity.pixelsPerSecond.dy > 900;
-    if (shouldCollapse) {
-      _toggleExpanded();
-    } else {
-      _morphAnimation.forward();
-    }
-    _headerDragDistance = 0;
-  }
-
-  void _resizeSafeSpace(
-    _SafeSpaceCorner corner,
-    DragUpdateDetails details,
-    Size size,
-  ) {
-    if (size.width <= 0 || size.height <= 0) return;
-    final dx = details.delta.dx / size.width;
-    final dy = details.delta.dy / size.height;
-    const minWidth = 0.34;
-    const minHeight = 0.42;
-    const edgeInset = 0.04;
-
-    setState(() {
-      switch (corner) {
-        case _SafeSpaceCorner.topLeft:
-          _safeLeft = (_safeLeft + dx)
-              .clamp(edgeInset, _safeRight - minWidth)
-              .toDouble();
-          _safeTop = (_safeTop + dy)
-              .clamp(edgeInset, _safeBottom - minHeight)
-              .toDouble();
-        case _SafeSpaceCorner.topRight:
-          _safeRight = (_safeRight + dx)
-              .clamp(_safeLeft + minWidth, 1 - edgeInset)
-              .toDouble();
-          _safeTop = (_safeTop + dy)
-              .clamp(edgeInset, _safeBottom - minHeight)
-              .toDouble();
-        case _SafeSpaceCorner.bottomLeft:
-          _safeLeft = (_safeLeft + dx)
-              .clamp(edgeInset, _safeRight - minWidth)
-              .toDouble();
-          _safeBottom = (_safeBottom + dy)
-              .clamp(_safeTop + minHeight, 1 - edgeInset)
-              .toDouble();
-        case _SafeSpaceCorner.bottomRight:
-          _safeRight = (_safeRight + dx)
-              .clamp(_safeLeft + minWidth, 1 - edgeInset)
-              .toDouble();
-          _safeBottom = (_safeBottom + dy)
-              .clamp(_safeTop + minHeight, 1 - edgeInset)
-              .toDouble();
-      }
-    });
-  }
-
-  void _handleDragStart({
-    required double initialHorizontalPosition,
-    required double initialVerticalPosition,
-  }) {
-    _initialDockStartTimer?.cancel();
-    _initialDockStartTimer = null;
-    _initialDockController.stop();
-    setState(() {
-      _horizontalPosition = initialHorizontalPosition;
-      _verticalPosition = initialVerticalPosition;
-      if (_permissionPending || _hasCompletedResponse) {
-        // A manual drag takes over from the automatic attention peek. This
-        // lets the user park the cloud at either edge without it sliding back.
-        _attentionPeekDismissed = true;
-      }
-      _isDragging = true;
-      _rotationRadians = 0;
-      _scale = 1.035;
-    });
-  }
-
-  void _handleDragUpdate(
-    DragUpdateDetails details, {
-    required double horizontalTravelDistance,
-    required double verticalTravelDistance,
-  }) {
-    if (horizontalTravelDistance <= 0 && verticalTravelDistance <= 0) return;
-
-    setState(() {
-      if (horizontalTravelDistance > 0) {
-        _horizontalPosition = ((_horizontalPosition ?? 0.0) +
-                details.delta.dx / horizontalTravelDistance)
-            .clamp(0.0, 1.0)
-            .toDouble();
-      }
-      if (verticalTravelDistance > 0) {
-        _verticalPosition = ((_verticalPosition ?? 0.0) -
-                details.delta.dy / verticalTravelDistance)
-            .clamp(0.0, 1.0)
-            .toDouble();
-      }
-      _rotationRadians = (_rotationRadians +
-              (details.delta.dx + details.delta.dy * 0.35) * 0.0024)
-          .clamp(-0.16, 0.16)
-          .toDouble();
-      final movement = math.max(
-        details.delta.dx.abs(),
-        details.delta.dy.abs(),
-      );
-      _scale = 1.035 + math.min(movement / 1000, 0.025).toDouble();
-    });
-  }
-
-  void _handleInitialDockAnimationTick() {
-    if (mounted) setState(() {});
-  }
-
-  void _handleDragEnd({required double minLeft, required double maxLeft}) {
-    if (_isExpanded) return;
-
-    setState(() {
-      final position = _horizontalPosition;
-      if (position != null) {
-        final currentLeft = minLeft + position * (maxLeft - minLeft);
-        if (currentLeft - minLeft <= _snapThreshold) {
-          _horizontalPosition = 0;
-        } else if (maxLeft - currentLeft <= _snapThreshold) {
-          _horizontalPosition = 1;
-        }
-      }
-      _isDragging = false;
-      _rotationRadians = 0;
-      _scale = 1;
-    });
+  String? get _askModelHint {
+    final modelName = _chatCoordinator.composerModelName;
+    if (modelName == null || modelName.isEmpty) return null;
+    return AppLocalizations.of(context)!.aiAssistantAskModelHint(modelName);
   }
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final bottomInset = mediaQuery.padding.bottom + DesignConstants.spacingL;
-    final topBoundary = mediaQuery.padding.top + kToolbarHeight + _topGap;
-    final panelTop =
-        mediaQuery.padding.top + kToolbarHeight + DesignConstants.spacingS;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = math.max(0.0, constraints.maxWidth).toDouble();
-        final viewportHeight = math
-            .min(
-              constraints.maxHeight,
-              mediaQuery.size.height - mediaQuery.viewInsets.bottom,
-            )
-            .clamp(0.0, double.infinity)
-            .toDouble();
-        final bottomOcclusion = constraints.maxHeight - viewportHeight;
-        final visibleEdge = math.min(_visibleEdge, width / 2).toDouble();
-        final minLeft = visibleEdge - _cloudSize;
-        final maxLeft = math.max(minLeft, width - visibleEdge).toDouble();
-        final travelDistance = math.max(0.0, maxLeft - minLeft).toDouble();
-
-        // Start with the full cloud visible and align its resting position
-        // with the cards. At either stop, a small part remains on screen.
-        final defaultLeft = _horizontalInset.clamp(minLeft, maxLeft).toDouble();
-        final defaultPosition = travelDistance == 0
-            ? 0.0
-            : ((defaultLeft - minLeft) / travelDistance)
-                .clamp(0.0, 1.0)
-                .toDouble();
-        if (!_initialDockScheduled) {
-          _initialDockScheduled = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted ||
-                _isExpanded ||
-                _isDragging ||
-                _horizontalPosition != null) {
-              return;
-            }
-            _initialDockStartTimer = Timer(
-              const Duration(milliseconds: 650),
-              () {
-                _initialDockStartTimer = null;
-                if (!mounted ||
-                    _isExpanded ||
-                    _isDragging ||
-                    _horizontalPosition != null) {
-                  return;
-                }
-                _initialDockController.forward();
-              },
-            );
-          });
-        }
-        final dockProgress = Curves.easeOutCubic.transform(
-          _initialDockController.value,
-        );
-        final requestedPosition = _horizontalPosition ??
-            (defaultPosition + (0.0 - defaultPosition) * dockProgress);
-        final requestedLeft = minLeft + requestedPosition * travelDistance;
-        final hasAttentionState = _permissionPending || _hasCompletedResponse;
-        // An attention state temporarily peeks the cloud out from its dock.
-        // Keep the requested/drag position untouched; only offset the display
-        // position, and allow the cloud to extend past the screen edge.
-        const attentionPeekInset = 20.0;
-        final isDockedLeft = requestedLeft <= minLeft + 8;
-        final isDockedRight = requestedLeft >= maxLeft - 8;
-        final left =
-            hasAttentionState && !_attentionPeekDismissed && width > _cloudSize
-                ? isDockedLeft
-                    ? -attentionPeekInset
-                    : isDockedRight
-                        ? width - _cloudSize + attentionPeekInset
-                        : requestedLeft
-                : requestedLeft;
-        final position = travelDistance == 0
-            ? 0.0
-            : ((left - minLeft) / travelDistance).clamp(0.0, 1.0).toDouble();
-        _displayedHorizontalPosition = position;
-        final minTop =
-            math.min(topBoundary - _topVisualInset, viewportHeight).toDouble();
-        final maxTop = math
-            .max(minTop, viewportHeight - bottomInset - _cloudSize)
-            .toDouble();
-        final verticalTravelDistance =
-            math.max(0.0, maxTop - minTop).toDouble();
-        final verticalPosition =
-            (_verticalPosition ?? 0.0).clamp(0.0, 1.0).toDouble();
-        final top = maxTop - verticalPosition * verticalTravelDistance;
-        final viewportSize = Size(width, viewportHeight);
-        final panelRect = Rect.fromLTRB(
-          DesignConstants.spacingS,
-          panelTop,
-          width - DesignConstants.spacingS,
-          viewportHeight - mediaQuery.padding.bottom - DesignConstants.spacingS,
-        );
-        final safeRect = Rect.fromLTRB(
-          panelRect.left + panelRect.width * _safeLeft,
-          panelRect.top + panelRect.height * _safeTop,
-          panelRect.left + panelRect.width * _safeRight,
-          panelRect.top + panelRect.height * _safeBottom,
-        );
-        final fullscreenRect = Rect.fromLTRB(
-          0,
-          0,
-          width,
-          viewportHeight,
-        );
         final morphAnimation = _morphAnimation;
         final fullscreenProgress = Curves.easeInOutCubic.transform(
           _fullscreenAnimation.value,
         );
-        // Keep the half-expanded cloud unchanged. For a direct fullscreen
-        // opening, keep its palette in step with whichever animation is still
-        // running. During close the morph reverses first, so it also drives the
-        // palette smoothly back to the cloud colors.
         final morphProgress = morphAnimation.value.clamp(0.0, 1.0).toDouble();
         final openingClosingProgress = math.min(
           _fullscreenAnimation.value.clamp(0.0, 1.0).toDouble(),
@@ -1295,28 +346,31 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             (_isFullscreen || _isClosingFromFullscreen) &&
                 morphProgress < 0.999;
         final appearanceProgress = isWholeCloudTransition
-            ? _openingAppearanceProgress(openingClosingProgress)
+            ? openingAppearanceProgress(openingClosingProgress)
             : fullscreenProgress;
-        final activeSafeRect =
-            Rect.lerp(safeRect, fullscreenRect, fullscreenProgress)!;
-        const handleOutset = 44.0;
-        final cloudCenter = Offset(left + _cloudSize / 2, top + _cloudSize / 2);
+
+        final hasAttentionState = _chatCoordinator.permissionPending ||
+            _chatCoordinator.hasCompletedResponse;
+
+        final layout = _dockingController.computeLayout(
+          constraints: constraints,
+          mediaQuery: mediaQuery,
+          hasAttentionState: hasAttentionState,
+          attentionPeekDismissed: _chatCoordinator.attentionPeekDismissed,
+          fullscreenProgress: fullscreenProgress,
+        );
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _dockingController.scheduleInitialDockIfNeeded(
+            isExpanded: _isExpanded,
+          );
+        });
+
         final theme = Theme.of(context);
-        final overlaySurfaceColor =
-            _overlaySurfaceColor(theme, appearanceProgress);
-        final overlayForegroundColor =
-            _overlayForegroundColor(theme, appearanceProgress);
-        Offset handlePosition(Offset corner, Offset direction) => Offset(
-              (corner.dx + direction.dx * handleOutset)
-                  .clamp(28.0, width - 28.0)
-                  .toDouble(),
-              (corner.dy + direction.dy * handleOutset)
-                  .clamp(
-                    mediaQuery.padding.top + 28.0,
-                    viewportHeight - mediaQuery.padding.bottom - 28.0,
-                  )
-                  .toDouble(),
-            );
+        final overlaySurface = overlaySurfaceColor(theme, appearanceProgress);
+        final overlayForeground =
+            overlayForegroundColor(theme, appearanceProgress);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -1324,10 +378,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             Positioned.fill(
               child: TweenAnimationBuilder<Offset>(
                 tween: Tween<Offset>(
-                  begin: Offset(left, top),
-                  end: Offset(left, top),
+                  begin: Offset(layout.left, layout.top),
+                  end: Offset(layout.left, layout.top),
                 ),
-                duration: _isDragging || _initialDockController.isAnimating
+                duration: _dockingController.isDragging ||
+                        _dockingController.initialDockAnimation.isAnimating
                     ? Duration.zero
                     : const Duration(milliseconds: 260),
                 curve: Curves.easeOutCubic,
@@ -1335,8 +390,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   final animatedLeft = animatedOffset.dx;
                   final animatedTop = animatedOffset.dy;
                   final animatedCloudCenter = Offset(
-                    animatedLeft + _cloudSize / 2,
-                    animatedTop + _cloudSize / 2,
+                    animatedLeft + CloudDockingController.cloudSize / 2,
+                    animatedTop + CloudDockingController.cloudSize / 2,
                   );
                   return Stack(
                     clipBehavior: Clip.none,
@@ -1347,46 +402,50 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           final isSettledOrb =
                               !_isExpanded && morphAnimation.value <= 0.005;
                           final cloud = AiNeuralCloudOrbWidget(
-                            size: _cloudSize *
-                                _scale *
-                                (_completionPulse && isSettledOrb ? 1.12 : 1.0),
-                            rotation: _rotationRadians,
-                            canvasSize: isSettledOrb ? null : viewportSize,
+                            size: CloudDockingController.cloudSize *
+                                _dockingController.scale *
+                                (_chatCoordinator.completionPulse && isSettledOrb
+                                    ? 1.12
+                                    : 1.0),
+                            rotation: _dockingController.rotationRadians,
+                            canvasSize: isSettledOrb ? null : layout.viewportSize,
                             cloudCenter:
                                 isSettledOrb ? null : animatedCloudCenter,
-                            frameRect: activeSafeRect,
-                            baseColor: overlaySurfaceColor,
+                            frameRect: layout.activeSafeRect,
+                            baseColor: overlaySurface,
                             frameMorphAnimation: morphAnimation,
                             showAmbientGlow: false,
                             edgeBlurSigma: 4,
                             showDetachedSatellite: false,
-                            flowSpeed: _isDragging
+                            flowSpeed: _dockingController.isDragging
                                 ? 1.55
-                                : _isGenerating
+                                : _chatCoordinator.isGenerating
                                     ? 0.9
                                     : (1.0 * widget.liveliness.clamp(0.0, 1.0))
                                         .clamp(0.1, 1.2),
-                            forceHighFrameRate: _isDragging ||
-                                _isGenerating ||
-                                _voiceRecording ||
-                                _voiceStarting ||
-                                _voiceStopping ||
-                                _completionPulse ||
+                            forceHighFrameRate: _dockingController.isDragging ||
+                                _chatCoordinator.isGenerating ||
+                                _voiceController.isActive ||
+                                _chatCoordinator.completionPulse ||
                                 !isSettledOrb,
                             animate: !_isClosing,
-                            accentColor: _permissionPending && isSettledOrb
+                            accentColor: _chatCoordinator.permissionPending &&
+                                    isSettledOrb
                                 ? Colors.amber.shade700
                                 : null,
                             tint: !isSettledOrb
                                 ? null
-                                : _isGenerating
+                                : _chatCoordinator.isGenerating
                                     ? 0.4
-                                    : _permissionPending
+                                    : _chatCoordinator.permissionPending
                                         ? 0.62
-                                        : _hasCompletedResponse
+                                        : _chatCoordinator.hasCompletedResponse
                                             ? 1.0
                                             : null,
-                            energy: _completionPulse && isSettledOrb ? 0.75 : 0,
+                            energy: _chatCoordinator.completionPulse &&
+                                    isSettledOrb
+                                ? 0.75
+                                : 0,
                             enableInteraction: false,
                           );
                           return Positioned(
@@ -1404,31 +463,44 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                       : _toggleExpanded,
                                   onPanStart: morphAnimation.value > 0.001
                                       ? null
-                                      : (_) => _handleDragStart(
-                                            initialHorizontalPosition: position,
+                                      : (_) => _dockingController.handleDragStart(
+                                            initialHorizontalPosition:
+                                                layout.position,
                                             initialVerticalPosition:
-                                                verticalPosition,
+                                                layout.verticalPosition,
+                                            onTakeoverAttention: () {
+                                              if (_chatCoordinator
+                                                      .permissionPending ||
+                                                  _chatCoordinator
+                                                      .hasCompletedResponse) {
+                                                _chatCoordinator
+                                                    .markAttentionPeekDismissed();
+                                              }
+                                            },
                                           ),
                                   onPanUpdate: morphAnimation.value > 0.001
                                       ? null
-                                      : (details) => _handleDragUpdate(
+                                      : (details) =>
+                                          _dockingController.handleDragUpdate(
                                             details,
                                             horizontalTravelDistance:
-                                                travelDistance,
+                                                layout.travelDistance,
                                             verticalTravelDistance:
-                                                verticalTravelDistance,
+                                                layout.verticalTravelDistance,
                                           ),
                                   onPanEnd: morphAnimation.value > 0.001
                                       ? null
-                                      : (_) => _handleDragEnd(
-                                            minLeft: minLeft,
-                                            maxLeft: maxLeft,
+                                      : (_) => _dockingController.handleDragEnd(
+                                            minLeft: layout.minLeft,
+                                            maxLeft: layout.maxLeft,
+                                            isExpanded: _isExpanded,
                                           ),
                                   onPanCancel: morphAnimation.value > 0.001
                                       ? null
-                                      : () => _handleDragEnd(
-                                            minLeft: minLeft,
-                                            maxLeft: maxLeft,
+                                      : () => _dockingController.handleDragEnd(
+                                            minLeft: layout.minLeft,
+                                            maxLeft: layout.maxLeft,
+                                            isExpanded: _isExpanded,
                                           ),
                                   child: cloud,
                                 ),
@@ -1447,29 +519,27 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
               builder: (context, _) {
                 final isSettledOrb =
                     !_isExpanded && morphAnimation.value <= 0.005;
-                if (!_permissionPending ||
-                    !_showPermissionBadge ||
+                if (!_chatCoordinator.permissionPending ||
+                    !_chatCoordinator.showPermissionBadge ||
                     !isSettledOrb ||
-                    width < 100) {
+                    layout.width < 100) {
                   return const SizedBox.shrink();
                 }
                 final l10n = AppLocalizations.of(context)!;
                 const badgeSize = 48.0;
-                // This follows the cloud's actual center, even when the icon
-                // itself is clipped by the screen edge while the cloud is
-                // docked there.
-                final badgeLeft = cloudCenter.dx - badgeSize / 2;
-                final badgeTop = (cloudCenter.dy - badgeSize / 2)
+                final badgeLeft = layout.cloudCenter.dx - badgeSize / 2;
+                final badgeTop = (layout.cloudCenter.dy - badgeSize / 2)
                     .clamp(
                       mediaQuery.padding.top + 4,
-                      viewportHeight -
+                      layout.viewportHeight -
                           mediaQuery.padding.bottom -
                           badgeSize -
                           4,
                     )
                     .toDouble();
                 return AnimatedPositioned(
-                  duration: _isDragging || _initialDockController.isAnimating
+                  duration: _dockingController.isDragging ||
+                          _dockingController.initialDockAnimation.isAnimating
                       ? Duration.zero
                       : const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
@@ -1478,10 +548,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   child: IgnorePointer(
                     child: Semantics(
                       label: l10n.aiOverlayDemoAssistantSection,
-                      child: SizedBox(
+                      child: const SizedBox(
                         width: badgeSize,
                         height: badgeSize,
-                        child: const Icon(
+                        child: Icon(
                           LucideIcons.shield_alert,
                           size: 38,
                           color: Colors.black,
@@ -1494,35 +564,69 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             ),
             if (widget.showResizeHandles &&
                 _fullscreenAnimation.value < 0.02) ...[
-              _buildResizeHandle(
-                _SafeSpaceCorner.topLeft,
-                handlePosition(activeSafeRect.topLeft, const Offset(-1, -1)),
-                panelRect.size,
-                theme,
+              CloudResizeHandle(
+                corner: SafeSpaceCorner.topLeft,
+                position: layout.handlePosition(
+                  layout.activeSafeRect.topLeft,
+                  const Offset(-1, -1),
+                  mediaQuery,
+                ),
+                panelSize: layout.panelRect.size,
+                isExpanded: _isExpanded,
+                morphAnimation: morphAnimation,
+                onPanUpdate: (details) => _dockingController.resizeSafeSpace(
+                  SafeSpaceCorner.topLeft,
+                  details,
+                  layout.panelRect.size,
+                ),
               ),
-              _buildResizeHandle(
-                _SafeSpaceCorner.topRight,
-                handlePosition(activeSafeRect.topRight, const Offset(1, -1)),
-                panelRect.size,
-                theme,
+              CloudResizeHandle(
+                corner: SafeSpaceCorner.topRight,
+                position: layout.handlePosition(
+                  layout.activeSafeRect.topRight,
+                  const Offset(1, -1),
+                  mediaQuery,
+                ),
+                panelSize: layout.panelRect.size,
+                isExpanded: _isExpanded,
+                morphAnimation: morphAnimation,
+                onPanUpdate: (details) => _dockingController.resizeSafeSpace(
+                  SafeSpaceCorner.topRight,
+                  details,
+                  layout.panelRect.size,
+                ),
               ),
-              _buildResizeHandle(
-                _SafeSpaceCorner.bottomLeft,
-                handlePosition(
-                  activeSafeRect.bottomLeft,
+              CloudResizeHandle(
+                corner: SafeSpaceCorner.bottomLeft,
+                position: layout.handlePosition(
+                  layout.activeSafeRect.bottomLeft,
                   const Offset(-1, 1),
+                  mediaQuery,
                 ),
-                panelRect.size,
-                theme,
+                panelSize: layout.panelRect.size,
+                isExpanded: _isExpanded,
+                morphAnimation: morphAnimation,
+                onPanUpdate: (details) => _dockingController.resizeSafeSpace(
+                  SafeSpaceCorner.bottomLeft,
+                  details,
+                  layout.panelRect.size,
+                ),
               ),
-              _buildResizeHandle(
-                _SafeSpaceCorner.bottomRight,
-                handlePosition(
-                  activeSafeRect.bottomRight,
+              CloudResizeHandle(
+                corner: SafeSpaceCorner.bottomRight,
+                position: layout.handlePosition(
+                  layout.activeSafeRect.bottomRight,
                   const Offset(1, 1),
+                  mediaQuery,
                 ),
-                panelRect.size,
-                theme,
+                panelSize: layout.panelRect.size,
+                isExpanded: _isExpanded,
+                morphAnimation: morphAnimation,
+                onPanUpdate: (details) => _dockingController.resizeSafeSpace(
+                  SafeSpaceCorner.bottomRight,
+                  details,
+                  layout.panelRect.size,
+                ),
               ),
             ],
             AnimatedBuilder(
@@ -1532,78 +636,153 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   morphAnimation.value.clamp(0.0, 1.0),
                 );
                 final collapsedBounds = Rect.fromCenter(
-                  center: cloudCenter,
+                  center: layout.cloudCenter,
                   width: 120,
                   height: 120,
                 );
                 final contentRevealBounds = Rect.lerp(
                   collapsedBounds,
-                  activeSafeRect.inflate(64),
+                  layout.activeSafeRect.inflate(64),
                   revealProgress,
                 )!;
+                final sidebarWidth =
+                    _scrollSidebarController.sidebarWidth(layout.width);
+
                 return Positioned.fill(
                   child: IgnorePointer(
                     ignoring: morphAnimation.value <= 0.001,
                     child: ClipRect(
-                      clipper: _CloudControlsClipper(contentRevealBounds),
-                      // Keep text at a stable scale while the cloud opens. The
-                      // expanding clip already reveals the controls, and
-                      // animated text scaling can invalidate Impeller glyph
-                      // atlas bounds for individual frames.
+                      clipper: CloudControlsClipper(contentRevealBounds),
                       child: Opacity(
                         opacity: revealProgress,
                         child: Listener(
                           behavior: HitTestBehavior.translucent,
-                          onPointerDown: _handleSidebarPointerDown,
-                          onPointerMove: (event) => _handleSidebarPointerMove(
+                          onPointerDown:
+                              _scrollSidebarController.handleSidebarPointerDown,
+                          onPointerMove: (event) =>
+                              _scrollSidebarController.handleSidebarPointerMove(
                             event,
-                            _sidebarWidth(width),
+                            sidebarWidth,
                           ),
-                          onPointerUp: _finishSidebarPointer,
-                          onPointerCancel: _finishSidebarPointer,
+                          onPointerUp:
+                              _scrollSidebarController.finishSidebarPointer,
+                          onPointerCancel:
+                              _scrollSidebarController.finishSidebarPointer,
                           child: Stack(
                             children: [
-                              if (_sidebarController.value > 0.001)
-                                _buildDemoSidebar(
-                                  theme,
-                                  width,
+                              if (_scrollSidebarController
+                                      .sidebarAnimation.value >
+                                  0.001)
+                                CloudOverlaySidebar(
+                                  viewportWidth: layout.width,
+                                  sidebarProgress: _scrollSidebarController
+                                      .sidebarAnimation.value,
+                                  sidebarWidth: sidebarWidth,
+                                  surfaceColor: overlaySurface,
+                                  foregroundColor: overlayForeground,
+                                  controlFill: overlayControlFill(
+                                    theme,
+                                    appearanceProgress,
+                                  ),
                                   appearanceProgress: appearanceProgress,
+                                  useLiveAi: widget.useLiveAi,
+                                  conversations:
+                                      _chatCoordinator.conversations,
+                                  selectedIndex: _chatCoordinator
+                                      .selectedSidebarExample,
+                                  onSelectConversation: (index) {
+                                    _scrollSidebarController.closeSidebar();
+                                    _chatCoordinator
+                                        .selectSidebarExample(index);
+                                  },
+                                  onToggleSidebar:
+                                      _scrollSidebarController.toggleSidebar,
                                 ),
                               Positioned.fill(
                                 child: Transform.translate(
                                   offset: Offset(
-                                    _sidebarController.value *
-                                        _sidebarWidth(width),
+                                    _scrollSidebarController
+                                            .sidebarAnimation.value *
+                                        sidebarWidth,
                                     0,
                                   ),
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
-                                    onTap: _sidebarController.value > 0
-                                        ? _closeSidebar
+                                    onTap: _scrollSidebarController
+                                                .sidebarAnimation.value >
+                                            0
+                                        ? _scrollSidebarController.closeSidebar
                                         : null,
                                     child: Stack(
                                       clipBehavior: Clip.none,
                                       children: [
-                                        _buildChatPreview(
-                                          activeSafeRect,
-                                          theme,
-                                          viewportHeight,
-                                          bottomOcclusion: bottomOcclusion,
+                                        _buildChatContent(
+                                          layout: layout,
+                                          theme: theme,
                                           fullscreenProgress:
                                               fullscreenProgress,
                                           appearanceProgress:
                                               appearanceProgress,
                                         ),
-                                        _buildExpandedToolbar(
-                                          activeSafeRect,
-                                          theme,
+                                        CloudOverlayHeaderToolbar(
+                                          safeRect: layout.activeSafeRect,
                                           fullscreenProgress:
                                               fullscreenProgress,
                                           appearanceProgress:
                                               appearanceProgress,
-                                          surfaceColor: overlaySurfaceColor,
-                                          foregroundColor:
-                                              overlayForegroundColor,
+                                          surfaceColor: overlaySurface,
+                                          foregroundColor: overlayForeground,
+                                          controlFill: overlayControlFill(
+                                            theme,
+                                            appearanceProgress,
+                                          ),
+                                          isExpanded: _isExpanded,
+                                          isFullscreen: _isFullscreen,
+                                          hasChatTurns: _chatCoordinator
+                                              .chatTurns.isNotEmpty,
+                                          activeConversationTitle:
+                                              _chatCoordinator
+                                                  .activeConversationTitle,
+                                          autoApproveDataRequests:
+                                              _chatCoordinator
+                                                  .autoApproveDataRequests,
+                                          useStaticGlass: _isClosing ||
+                                              (_isExpanded &&
+                                                  morphAnimation.value < 1),
+                                          onToggleSidebar:
+                                              _scrollSidebarController
+                                                  .toggleSidebar,
+                                          onToggleFullscreen: _toggleFullscreen,
+                                          onStartNewChat: () {
+                                            _scrollSidebarController
+                                                .closeSidebar();
+                                            _chatCoordinator.startNewChat();
+                                            _chatInputController.clear();
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                              if (_scrollSidebarController
+                                                  .chatScrollController
+                                                  .hasClients) {
+                                                _scrollSidebarController
+                                                    .chatScrollController
+                                                    .jumpTo(0);
+                                              }
+                                            });
+                                          },
+                                          onToggleAutoApprove: () => unawaited(
+                                            _chatCoordinator
+                                                .toggleAutoApproveDataRequests(),
+                                          ),
+                                          onToggleExpanded: _toggleExpanded,
+                                          onHeaderDragStart:
+                                              _scrollSidebarController
+                                                  .handleHeaderDragStart,
+                                          onHeaderDragUpdate:
+                                              _scrollSidebarController
+                                                  .handleHeaderDragUpdate,
+                                          onHeaderDragEnd:
+                                              _scrollSidebarController
+                                                  .handleHeaderDragEnd,
                                         ),
                                       ],
                                     ),
@@ -1619,555 +798,40 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 );
               },
             ),
-            if (_activeAuditRecord != null)
-              _buildAccessAuditModal(_activeAuditRecord!, theme),
+            if (_chatCoordinator.activeAuditRecord != null)
+              CloudOverlayAccessAuditModal(
+                access: _chatCoordinator.activeAuditRecord!,
+                onClose: _chatCoordinator.clearActiveAudit,
+              ),
           ],
         );
       },
     );
   }
 
-  Widget _buildExpandedToolbar(
-    Rect safeRect,
-    ThemeData theme, {
-    required double fullscreenProgress,
-    required double appearanceProgress,
-    required Color surfaceColor,
-    required Color foregroundColor,
-  }) {
-    final surfaceIsLight = surfaceColor.computeLuminance() >= 0.5;
-    final controlFill = _overlayControlFill(theme, appearanceProgress);
-    final viewportWidth = MediaQuery.sizeOf(context).width;
-    final safeSpaceOutset = 44.0 * (1 - fullscreenProgress);
-    final fullscreenInset = 12.0 * fullscreenProgress;
-    final expandedToolbarTop = safeRect.top - 62;
-    final fullscreenToolbarTop = MediaQuery.paddingOf(context).top + 10;
-    final toolbarTop = expandedToolbarTop +
-        (fullscreenToolbarTop - expandedToolbarTop) * fullscreenProgress;
-
-    return Positioned(
-      left: safeRect.left - safeSpaceOutset + fullscreenInset,
-      right: viewportWidth - safeRect.right - safeSpaceOutset + fullscreenInset,
-      top: toolbarTop,
-      height: 52,
-      child: IgnorePointer(
-        ignoring: !_isExpanded,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: _buildHeaderGlassButton(
-                icon: _isFullscreen
-                    ? LucideIcons.panel_left
-                    : LucideIcons.maximize_2,
-                tooltip: _isFullscreen ? 'Seitenleiste' : 'Vollbild',
-                isDarkSurface: !surfaceIsLight,
-                foregroundColor: foregroundColor,
-                backgroundColor: controlFill,
-                onPressed: _isFullscreen ? _toggleSidebar : _toggleFullscreen,
-              ),
-            ),
-            if (_chatTurns.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6, left: 8),
-                child: _buildHeaderGlassButton(
-                  icon: LucideIcons.square_pen,
-                  tooltip: AppLocalizations.of(context)!.aiOverlayNewChat,
-                  isDarkSurface: !surfaceIsLight,
-                  foregroundColor: foregroundColor,
-                  backgroundColor: controlFill,
-                  onPressed: _startNewDemoChat,
-                ),
-              ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 6, left: 10, right: 10),
-                child: ShaderMask(
-                  blendMode: BlendMode.dstIn,
-                  shaderCallback: (bounds) => const LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [Colors.white, Colors.white, Colors.transparent],
-                    stops: [0, 0.78, 1],
-                  ).createShader(bounds),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onVerticalDragStart: _handleHeaderDragStart,
-                    onVerticalDragUpdate: _handleHeaderDragUpdate,
-                    onVerticalDragEnd: _handleHeaderDragEnd,
-                    child: SizedBox(
-                      height: 44,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          _activeConversationTitle,
-                          maxLines: 1,
-                          softWrap: false,
-                          overflow: TextOverflow.fade,
-                          textAlign: TextAlign.start,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: surfaceIsLight ? Colors.black : Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: PlatformAdaptivePopupMenu<_AssistantMenuAction>(
-                icon: _buildHeaderGlassButton(
-                  icon: LucideIcons.ellipsis,
-                  tooltip: 'Chat-Menü',
-                  isDarkSurface: !surfaceIsLight,
-                  foregroundColor: foregroundColor,
-                  backgroundColor: controlFill,
-                ),
-                menuWidth: 330,
-                items: [
-                  PlatformAdaptivePopupMenuItem(
-                    value: _AssistantMenuAction.autoApprove,
-                    label: AppLocalizations.of(context)!.aiOverlayAutoApprove,
-                    customTrailing: _autoApproveDataRequests
-                        ? Icon(LucideIcons.check,
-                            color: foregroundColor, size: 18)
-                        : null,
-                  ),
-                ],
-                onSelected: _handleAssistantMenuAction,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6, left: 8),
-              child: _buildHeaderGlassButton(
-                icon: LucideIcons.x,
-                tooltip: 'Schließen',
-                isDarkSurface: !surfaceIsLight,
-                foregroundColor: foregroundColor,
-                backgroundColor: controlFill,
-                onPressed: _toggleExpanded,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderGlassButton({
-    required IconData icon,
-    required String tooltip,
-    required bool isDarkSurface,
-    VoidCallback? onPressed,
-    Color? backgroundColor,
-    Color? foregroundColor,
-    bool showBorder = true,
-  }) {
-    final theme = Theme.of(context);
-    final foreground =
-        foregroundColor ?? (isDarkSurface ? Colors.white : Colors.black);
-    // The cloud can have the opposite appearance from the app while it opens
-    // or closes. Let the glass renderer use the cloud's current surface too.
-    final glassTheme = theme.copyWith(
-      brightness: isDarkSurface ? Brightness.dark : Brightness.light,
-    );
-    final settings = DesignConstants.liquidGlassSettings(isDarkSurface);
-    final buttonSurface = Container(
-      decoration: BoxDecoration(
-        color: showBorder
-            ? backgroundColor ??
-                (isDarkSurface
-                    ? DesignConstants.glassNeutralTint(true)
-                    : Colors.black.withValues(alpha: 0.04))
-            : Colors.transparent,
-        shape: BoxShape.circle,
-        border: showBorder
-            ? Border.all(color: foreground.withValues(alpha: 0.14), width: 0.5)
-            : null,
-      ),
-      child: Center(child: Icon(icon, size: 20, color: foreground)),
-    );
-    final useStaticGlass =
-        _isClosing || (_isExpanded && _morphAnimation.value < 1);
-    final glassContent = !showBorder || useStaticGlass
-        ? buttonSurface
-        : Theme(
-            data: glassTheme,
-            child: GlassAdaptiveScope(
-              maxQuality: DesignConstants.defaultGlassQuality,
-              minQuality: DesignConstants.minGlassQuality,
-              child: AdaptiveGlass(
-                settings: settings,
-                quality: DesignConstants.defaultGlassQuality,
-                useOwnLayer: true,
-                allowElevation: false,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 22),
-                child: GlassGlow(
-                  glowColor: Colors.white.withValues(
-                    alpha: isDarkSurface ? 0.24 : 0.18,
-                  ),
-                  glowRadius: 1,
-                  child: buttonSurface,
-                ),
-              ),
-            ),
-          );
-    final button = SizedBox.square(
-      dimension: 44,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow:
-              showBorder ? DesignConstants.glassShadow(isDarkSurface) : null,
-        ),
-        child: glassContent,
-      ),
-    );
-    // This widget is also mounted through a root OverlayEntry, whose subtree
-    // does not consistently expose an Overlay ancestor on every platform.
-    // Tooltip tries to insert a RawTooltip entry and throws in that case.
-    return Semantics(
-      button: onPressed != null,
-      label: tooltip,
-      child: onPressed == null
-          ? button
-          : GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onPressed,
-              child: button,
-            ),
-    );
-  }
-
-  Widget _buildVoiceRecordingContent(Color foregroundColor) {
-    if (_voiceStarting) {
-      return Center(
-        child: SizedBox(
-          width: 96,
-          child: LinearProgressIndicator(
-            minHeight: 2,
-            color: foregroundColor.withValues(alpha: 0.72),
-            backgroundColor: foregroundColor.withValues(alpha: 0.16),
-          ),
-        ),
-      );
-    }
-    if (_voiceStopping) {
-      return Center(
-        child: SizedBox(
-          width: 96,
-          child: LinearProgressIndicator(
-            minHeight: 2,
-            color: foregroundColor.withValues(alpha: 0.72),
-            backgroundColor: foregroundColor.withValues(alpha: 0.16),
-          ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 44,
-      width: double.infinity,
-      child: CustomPaint(
-        painter: _VoiceWaveformPainter(
-          samples: List<_VoiceWaveSample>.of(_voiceLevelHistory),
-          color: foregroundColor.withValues(alpha: 0.82),
-          scrollOffset: _voiceWaveOffset,
-        ),
-        willChange: true,
-      ),
-    );
-  }
-
-  void _handleAssistantMenuAction(_AssistantMenuAction action) {
-    switch (action) {
-      case _AssistantMenuAction.autoApprove:
-        unawaited(_toggleAutoApproveDataRequests());
-    }
-  }
-
-  String get _activeConversationTitle {
-    if (!widget.useLiveAi || _conversationId == null) return '';
-    for (final conversation in _conversations) {
-      if (conversation.id == _conversationId) return conversation.title;
-    }
-    return '';
-  }
-
-  void _startNewDemoChat() {
-    _sidebarController.reverse();
-    if (widget.useLiveAi) {
-      _conversationId = null;
-      _pendingAccess = null;
-      _pendingQuestion = null;
-    }
-    _activeGenerationId++;
-    _responseTimer?.cancel();
-    _responseTimer = null;
-    _cancelActiveResponseSubscription();
-    _loadingCloudEnterFuture = null;
-    _loadingCloudController.value = 0;
-    _permissionContinuationTimer?.cancel();
-    _permissionContinuationTimer = null;
-    _permissionBadgeDelayTimer?.cancel();
-    _completionPulseTimer?.cancel();
-    _lastHapticWordCount = 0;
-    _lastWordHapticAt = null;
-    setState(() {
-      _chatTurns.clear();
-      _isLoadingCloudVisible = false;
-      _isGenerating = false;
-      _hasCompletedResponse = false;
-      _permissionPending = false;
-      _showPermissionBadge = false;
-      _permissionApproved = null;
-      _attentionPeekDismissed = false;
-      _completionPulse = false;
-      _showScrollToBottom = false;
-      _followChatTail = true;
-      _demoWordIndex = 0;
-      _selectedSidebarExample = -1;
-      _chatInputController.clear();
-    });
-    _syncDemoWaitingHaptics();
-    widget.onGenerationChanged?.call(false);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_chatScrollController.hasClients) {
-        _chatScrollController.jumpTo(0);
-      }
-    });
-  }
-
-  Widget _buildSidebarChatButton({
+  Widget _buildChatContent({
+    required CloudOverlayLayout layout,
     required ThemeData theme,
-    required bool isDark,
-    required Color foregroundColor,
-    required double appearanceProgress,
-  }) {
-    final glassTheme = theme.copyWith(
-      brightness: isDark ? Brightness.dark : Brightness.light,
-    );
-    final radius = 24.0;
-    final settings = DesignConstants.liquidGlassSettings(isDark);
-    final button = Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: _overlayControlFill(theme, appearanceProgress),
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: foregroundColor.withValues(alpha: 0.14),
-          width: 0.5,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        children: [
-          Icon(LucideIcons.square_pen, size: 19, color: foregroundColor),
-          const SizedBox(width: 12),
-          Text(
-            'Chat',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: foregroundColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return IntrinsicWidth(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(radius),
-          boxShadow: DesignConstants.glassShadow(isDark),
-        ),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _toggleSidebar,
-          child: Theme(
-            data: glassTheme,
-            child: GlassAdaptiveScope(
-              maxQuality: DesignConstants.defaultGlassQuality,
-              minQuality: DesignConstants.minGlassQuality,
-              child: AdaptiveGlass(
-                settings: settings,
-                quality: DesignConstants.defaultGlassQuality,
-                useOwnLayer: true,
-                allowElevation: false,
-                shape: LiquidRoundedSuperellipse(borderRadius: radius),
-                child: GlassGlow(
-                  glowColor: Colors.white.withValues(
-                    alpha: isDark ? 0.24 : 0.18,
-                  ),
-                  glowRadius: 1,
-                  child: button,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDemoSidebar(
-    ThemeData theme,
-    double viewportWidth, {
-    required double appearanceProgress,
-  }) {
-    final surfaceColor = _overlaySurfaceColor(theme, appearanceProgress);
-    final foregroundColor = _overlayForegroundColor(theme, appearanceProgress);
-    final surfaceIsLight = surfaceColor.computeLuminance() >= 0.5;
-    final drawerWidth = _sidebarWidth(viewportWidth);
-
-    return Positioned(
-      // Keep the drawer's trailing edge attached to the chat pane while the
-      // user drags. At progress 0 it is fully offscreen; at 1 it is settled
-      // against the translated chat surface.
-      left: -drawerWidth * (1 - _sidebarController.value),
-      top: 0,
-      bottom: 0,
-      width: drawerWidth,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: surfaceColor,
-          border: Border(
-            right: BorderSide(
-              color: foregroundColor.withValues(alpha: 0.14),
-              width: 1,
-            ),
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 20, 12, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Chats',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: foregroundColor,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: foregroundColor.withValues(alpha: 0.12),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    ListView.separated(
-                      padding: EdgeInsets.fromLTRB(
-                        12,
-                        12,
-                        12,
-                        MediaQuery.paddingOf(context).bottom + 84,
-                      ),
-                      itemCount: widget.useLiveAi ? _conversations.length : 16,
-                      separatorBuilder: (_, __) => const SizedBox(height: 4),
-                      itemBuilder: (context, index) {
-                        final selected = index == _selectedSidebarExample;
-                        return Material(
-                          color: selected
-                              ? foregroundColor.withValues(alpha: 0.08)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () => _selectSidebarExample(index),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 13,
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      widget.useLiveAi
-                                          ? _conversations[index].title
-                                          : 'Example ${index + 1}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style:
-                                          theme.textTheme.bodyMedium?.copyWith(
-                                        color: foregroundColor,
-                                        fontWeight: selected
-                                            ? FontWeight.w600
-                                            : FontWeight.w400,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    Positioned(
-                      left: 12,
-                      bottom: MediaQuery.paddingOf(context).bottom + 12,
-                      child: _buildSidebarChatButton(
-                        theme: theme,
-                        isDark: !surfaceIsLight,
-                        foregroundColor: foregroundColor,
-                        appearanceProgress: appearanceProgress,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChatPreview(
-    Rect safeRect,
-    ThemeData theme,
-    double viewportHeight, {
-    required double bottomOcclusion,
     required double fullscreenProgress,
     required double appearanceProgress,
   }) {
     final appIsDark = theme.brightness == Brightness.dark;
-    final contrastColor = _overlayForegroundColor(theme, appearanceProgress);
-    final surfaceColor = _overlaySurfaceColor(theme, appearanceProgress);
-    final selectionBlue = theme.brightness == Brightness.dark
+    final contrastColor = overlayForegroundColor(theme, appearanceProgress);
+    final surfaceColor = overlaySurfaceColor(theme, appearanceProgress);
+    final selectionBlue = appIsDark
         ? const Color(0xFF0A84FF)
         : const Color(0xFF007AFF);
     final cloudSurfaceDark = surfaceColor.computeLuminance() < 0.5;
     final softColor = contrastColor.withValues(
       alpha: cloudSurfaceDark ? 0.10 : 0.08,
     );
-    final composerGlassSettings =
-        DesignConstants.liquidGlassSettings(cloudSurfaceDark);
-    final glassTheme = theme.copyWith(
-      brightness: cloudSurfaceDark ? Brightness.dark : Brightness.light,
-    );
     final isGlassTransitioning =
         _isClosing || (_isExpanded && _morphAnimation.value < 1);
     const contentInset = 8.0;
-    const permissionCardKey = ValueKey<String>('ai-overlay-permission-card');
+
     final chatBounds = Rect.lerp(
-      safeRect.inflate(44),
-      safeRect.deflate(12),
+      layout.safeRect.inflate(44),
+      layout.fullscreenRect.deflate(12),
       fullscreenProgress,
     )!;
     final contentLeft = chatBounds.left + contentInset;
@@ -2176,26 +840,25 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final composerLeft = chatBounds.left;
     final composerRight = MediaQuery.sizeOf(context).width - chatBounds.right;
     final fullscreenContentTop = MediaQuery.paddingOf(context).top + 70;
-    final chatTop = safeRect.top +
+    final chatTop = layout.safeRect.top +
         16 +
-        (fullscreenContentTop - safeRect.top - 16) * fullscreenProgress;
-    // Keep the scroll viewport flush with the animated chat window's outer
-    // top edge so messages can scroll right up to it without painting beyond.
+        (fullscreenContentTop - layout.safeRect.top - 16) * fullscreenProgress;
     final scrollViewportTop = chatBounds.top;
-    final toolbarTop = (safeRect.top - 62) +
-        (MediaQuery.paddingOf(context).top + 10 - (safeRect.top - 62)) *
+    final toolbarTop = (layout.safeRect.top - 62) +
+        (MediaQuery.paddingOf(context).top + 10 - (layout.safeRect.top - 62)) *
             fullscreenProgress;
     final toolbarButtonCenter = toolbarTop + 28;
     final topFadeEnd = toolbarButtonCenter +
         (chatTop - toolbarButtonCenter) * fullscreenProgress;
-    final clippedTop = safeRect.top - 64;
+    final clippedTop = layout.safeRect.top - 64;
     final topFadeStart =
         clippedTop + (scrollViewportTop - clippedTop) * fullscreenProgress;
     final topFadeHoldStop = 0.45 * (1 - fullscreenProgress);
     final bottomFadeHeight = 104.0 * (1 - fullscreenProgress);
     final chatBottom = chatBounds.bottom - contentInset;
     final contentViewportBottom = chatBounds.bottom +
-        (viewportHeight - chatBounds.bottom) * fullscreenProgress;
+        (layout.viewportHeight - chatBounds.bottom) * fullscreenProgress;
+
     final composerBaseColor = appIsDark
         ? DesignConstants.glassNeutralTint(true)
         : Colors.black.withValues(alpha: 0.04);
@@ -2210,360 +873,67 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final surfaceIsLight = surfaceColor.computeLuminance() >= 0.5;
     final sendButtonBackground = surfaceIsLight ? Colors.black : Colors.white;
     final sendButtonForeground = surfaceIsLight ? Colors.white : Colors.black;
-    final controlFillColor = _overlayControlFill(theme, appearanceProgress);
-    final composerSurface = AnimatedBuilder(
-      animation: Listenable.merge([
-        _chatInputController,
-        _chatFocusNode,
-        _chatInputScrollController,
-      ]),
-      builder: (context, _) {
-        final inputValue = _chatInputController.value;
-        final hasText = inputValue.text.trim().isNotEmpty;
-        final inputIsScrolled = _chatInputScrollController.hasClients &&
-            _chatInputScrollController.offset > 0.5;
-        final recording = _voiceStarting || _voiceRecording || _voiceStopping;
-        final expandedInput = hasText || _chatFocusNode.hasFocus;
-
-        Widget voiceButton({bool filled = false}) => _buildHeaderGlassButton(
-              icon: recording ? LucideIcons.x : LucideIcons.mic,
-              tooltip: recording
-                  ? AppLocalizations.of(context)!.cancel
-                  : AppLocalizations.of(context)!.voiceTapToRecord,
-              isDarkSurface: !surfaceIsLight,
-              foregroundColor: filled ? sendButtonForeground : contrastColor,
-              backgroundColor: filled ? sendButtonBackground : controlFillColor,
-              showBorder: recording || filled,
-              onPressed: recording ? _cancelVoiceInput : _startVoiceInput,
-            );
-
-        Widget sendButton() {
-          final hasDraft = inputValue.text.trim().isNotEmpty;
-          final isStopAction = _isGenerating && !hasDraft;
-          return _buildHeaderGlassButton(
-            icon: isStopAction ? LucideIcons.square : LucideIcons.arrow_up,
-            tooltip: isStopAction ? 'Stopp' : 'Senden',
-            isDarkSurface: !surfaceIsLight,
-            backgroundColor: sendButtonBackground,
-            foregroundColor: sendButtonForeground,
-            onPressed: isStopAction ? _stopDemoGeneration : _sendDemoPrompt,
-          );
-        }
-
-        Widget messageField({required bool compact}) => Scrollbar(
-              key: const ValueKey('ai-composer-scrollbar'),
-              controller: _chatInputScrollController,
-              thumbVisibility: !compact,
-              thickness: 2,
-              radius: const Radius.circular(2),
-              child: TextSelectionTheme(
-                data: TextSelectionThemeData(
-                  cursorColor: selectionBlue,
-                  selectionColor: selectionBlue.withValues(alpha: 0.32),
-                  selectionHandleColor: selectionBlue,
-                ),
-                child: TextField(
-                  key: const ValueKey('ai-composer-text-field'),
-                  controller: _chatInputController,
-                  scrollController: _chatInputScrollController,
-                  focusNode: _chatFocusNode,
-                  keyboardType: TextInputType.text,
-                  onTapOutside: (_) => _chatFocusNode.unfocus(),
-                  onTap: () {
-                    if (!_voiceStarting &&
-                        !_voiceRecording &&
-                        !_voiceStopping) {
-                      _chatFocusNode.requestFocus();
-                      unawaited(
-                        SystemChannels.textInput.invokeMethod<void>(
-                          'TextInput.show',
-                        ),
-                      );
-                    }
-                  },
-                  textAlign: TextAlign.start,
-                  textAlignVertical: compact
-                      ? TextAlignVertical.center
-                      : TextAlignVertical.top,
-                  minLines: 1,
-                  maxLines: compact ? 1 : 6,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _sendDemoPrompt(),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: contrastColor,
-                  ),
-                  cursorColor: selectionBlue,
-                  decoration: InputDecoration(
-                    hintText: _askModelHint,
-                    hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                      color: contrastColor.withValues(alpha: 0.52),
-                    ),
-                    filled: false,
-                    fillColor: Colors.transparent,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.only(
-                      top: compact ? 0 : (inputIsScrolled ? 0 : 8),
-                    ),
-                  ),
-                ),
-              ),
-            );
-
-        return TextFieldTapRegion(
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.bottomCenter,
-            child: ClipRRect(
-              // TextField's internal scroll viewport can paint at its rounded
-              // top edge. Clip the entire composer so content always follows the
-              // card's outer contour, including its rounded corners.
-              borderRadius: BorderRadius.circular(28),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: composerFillColor,
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: contrastColor.withValues(alpha: 0.14),
-                    width: 0.5,
-                  ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(recording ? 6 : 10, 6, 6, 6),
-                  child: recording
-                      ? Row(
-                          children: [
-                            voiceButton(),
-                            const SizedBox(width: 6),
-                            Expanded(
-                                child:
-                                    _buildVoiceRecordingContent(contrastColor)),
-                            const SizedBox(width: 6),
-                            _buildHeaderGlassButton(
-                              icon: LucideIcons.square,
-                              tooltip: AppLocalizations.of(context)!
-                                  .voiceTapToFinish,
-                              isDarkSurface: !surfaceIsLight,
-                              backgroundColor: controlFillColor,
-                              foregroundColor: contrastColor,
-                              onPressed:
-                                  _voiceStopping ? null : _stopVoiceInput,
-                            ),
-                            const SizedBox(width: 6),
-                            _buildHeaderGlassButton(
-                              icon: LucideIcons.arrow_up,
-                              tooltip: 'Senden',
-                              isDarkSurface: !surfaceIsLight,
-                              backgroundColor: sendButtonBackground,
-                              foregroundColor: sendButtonForeground,
-                              onPressed:
-                                  _voiceStopping ? null : _sendVoiceInput,
-                            ),
-                          ],
-                        )
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ConstrainedBox(
-                                    constraints:
-                                        const BoxConstraints(maxHeight: 156),
-                                    child: messageField(
-                                      compact: !expandedInput,
-                                    ),
-                                  ),
-                                ),
-                                if (!expandedInput) ...[
-                                  const SizedBox(width: 6),
-                                  if (_isGenerating)
-                                    sendButton()
-                                  else
-                                    voiceButton(filled: true),
-                                ],
-                              ],
-                            ),
-                            if (expandedInput)
-                              Row(
-                                children: [
-                                  if (!_isGenerating || expandedInput)
-                                    Expanded(
-                                      child: GestureDetector(
-                                        behavior: HitTestBehavior.opaque,
-                                        onTap: () {
-                                          _chatFocusNode.requestFocus();
-                                          unawaited(
-                                            SystemChannels.textInput
-                                                .invokeMethod<void>(
-                                              'TextInput.show',
-                                            ),
-                                          );
-                                        },
-                                        child: const SizedBox(height: 44),
-                                      ),
-                                    )
-                                  else
-                                    const Spacer(),
-                                  if (!_isGenerating) ...[
-                                    voiceButton(),
-                                    const SizedBox(width: 6),
-                                  ],
-                                  sendButton(),
-                                ],
-                              ),
-                          ],
-                        ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    final controlFillColor = overlayControlFill(theme, appearanceProgress);
 
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: !_isExpanded ||
             !_showChatPreview ||
-            _sidebarController.value > 0.001,
+            _scrollSidebarController.sidebarAnimation.value > 0.001,
         child: Stack(
           children: [
             Positioned(
               left: contentLeft,
               right: contentRight,
               top: topFadeStart,
-              bottom: bottomOcclusion + viewportHeight - contentViewportBottom,
+              bottom: layout.bottomOcclusion +
+                  layout.viewportHeight -
+                  contentViewportBottom,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
-                    child: ShaderMask(
-                      blendMode: BlendMode.dstIn,
-                      shaderCallback: (bounds) {
-                        final topFadeEndStop =
-                            ((topFadeEnd - topFadeStart) / bounds.height)
-                                .clamp(0.0, 1.0)
-                                .toDouble();
-                        final topFadeOpaqueStartStop =
-                            (topFadeEndStop * topFadeHoldStop)
-                                .clamp(0.0, topFadeEndStop)
-                                .toDouble();
-                        final bottomFadeStartStop =
-                            ((chatBottom - bottomFadeHeight - topFadeStart) /
-                                    bounds.height)
-                                .clamp(topFadeEndStop, 1.0)
-                                .toDouble();
-                        if (fullscreenProgress >= 0.999) {
-                          return LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: const [
-                              Colors.transparent,
-                              Colors.transparent,
-                              Colors.white,
-                              Colors.white,
-                            ],
-                            stops: [
-                              0,
-                              topFadeOpaqueStartStop,
-                              topFadeEndStop,
-                              1,
-                            ],
-                          ).createShader(bounds);
+                    child: CloudChatTurnListView(
+                      scrollController:
+                          _scrollSidebarController.chatScrollController,
+                      chatTurns: _chatCoordinator.chatTurns,
+                      permissionPending: _chatCoordinator.permissionPending,
+                      permissionApproved: _chatCoordinator.permissionApproved,
+                      pendingAccess: _chatCoordinator.pendingAccess,
+                      isGenerating: _chatCoordinator.isGenerating,
+                      isLoadingCloudVisible:
+                          _chatCoordinator.isLoadingCloudVisible,
+                      loadingCloudAnimation:
+                          _chatCoordinator.loadingCloudAnimation,
+                      copiedTurn: _chatCoordinator.copiedTurn,
+                      useLiveAi: widget.useLiveAi,
+                      theme: theme,
+                      contrastColor: contrastColor,
+                      surfaceColor: surfaceColor,
+                      softColor: softColor,
+                      chatTop: chatTop,
+                      topFadeStart: topFadeStart,
+                      topFadeEnd: topFadeEnd,
+                      topFadeHoldStop: topFadeHoldStop,
+                      chatBottom: chatBottom,
+                      bottomFadeHeight: bottomFadeHeight,
+                      fullscreenProgress: fullscreenProgress,
+                      onResolvePermission: _chatCoordinator.resolvePermission,
+                      onCopyResponse: (turn) =>
+                          _chatCoordinator.copyResponseMarkdown(turn),
+                      onCopyFullChat: _chatCoordinator.copyFullChatMarkdown,
+                      onRetryPrompt: (turn) => _chatCoordinator.retryTurnPrompt(
+                        turn,
+                        onFillPrompt: (p) => _chatInputController.text = p,
+                      ),
+                      onShowAccessAudit: _chatCoordinator.showAccessAudit,
+                      onIncrementUserScrollRevision: _scrollSidebarController
+                          .incrementUserScrollRevision,
+                      onPermissionCardSizeEnd: () {
+                        if (_scrollSidebarController.followChatTail) {
+                          _scrollSidebarController.scrollChatToBottom();
                         }
-                        return LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: const [
-                            Colors.transparent,
-                            Colors.transparent,
-                            Colors.white,
-                            Colors.white,
-                            Colors.transparent,
-                          ],
-                          stops: [
-                            0,
-                            topFadeOpaqueStartStop,
-                            topFadeEndStop,
-                            bottomFadeStartStop,
-                            1,
-                          ],
-                        ).createShader(bounds);
                       },
-                      child: _chatTurns.isEmpty
-                          ? const SizedBox.shrink()
-                          : NotificationListener<UserScrollNotification>(
-                              onNotification: (notification) {
-                                if (notification.direction !=
-                                    ScrollDirection.idle) {
-                                  _chatUserScrollRevision++;
-                                }
-                                return false;
-                              },
-                              child: ListView.builder(
-                                key: const PageStorageKey<String>(
-                                  'ai-overlay-chat-history',
-                                ),
-                                controller: _chatScrollController,
-                                findChildIndexCallback: (key) {
-                                  if (key == permissionCardKey) {
-                                    return _chatTurns.length + 1;
-                                  }
-                                  if (key is ValueKey<_DemoChatTurn>) {
-                                    final turnIndex =
-                                        _chatTurns.indexOf(key.value);
-                                    return turnIndex < 0 ? null : turnIndex + 1;
-                                  }
-                                  return null;
-                                },
-                                padding: const EdgeInsets.only(bottom: 104),
-                                itemCount: _chatTurns.length + 2,
-                                itemBuilder: (context, index) {
-                                  if (index == 0) {
-                                    return SizedBox(
-                                      height: math.max(
-                                        0.0,
-                                        chatTop - topFadeStart + 16,
-                                      ),
-                                    );
-                                  }
-                                  if (index == _chatTurns.length + 1) {
-                                    return KeyedSubtree(
-                                      key: permissionCardKey,
-                                      child: _buildDemoPermissionCard(
-                                        theme: theme,
-                                        contrastColor: contrastColor,
-                                        surfaceColor: surfaceColor,
-                                        isVisible: (_permissionPending ||
-                                            _permissionApproved != null),
-                                      ),
-                                    );
-                                  }
-                                  final turn = _chatTurns[index - 1];
-                                  final isLastTurn = index == _chatTurns.length;
-                                  return KeyedSubtree(
-                                    key: ValueKey<_DemoChatTurn>(turn),
-                                    child: _buildChatTurn(
-                                      turn,
-                                      theme: theme,
-                                      contrastColor: contrastColor,
-                                      softColor: softColor,
-                                      isStreaming: _isGenerating && isLastTurn,
-                                      showLoadingCloud: isLastTurn &&
-                                          _isLoadingCloudVisible &&
-                                          turn.response.isEmpty,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
                     ),
                   ),
                 ],
@@ -2572,8 +942,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             Positioned(
               left: composerLeft,
               right: composerRight,
-              bottom: bottomOcclusion +
-                  viewportHeight -
+              bottom: layout.bottomOcclusion +
+                  layout.viewportHeight -
                   chatBounds.bottom +
                   contentInset,
               child: Column(
@@ -2582,49 +952,40 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   AnimatedSize(
                     duration: const Duration(milliseconds: 160),
                     alignment: Alignment.bottomCenter,
-                    child: _showScrollToBottom
+                    child: _scrollSidebarController.showScrollToBottom
                         ? Padding(
                             padding: const EdgeInsets.only(bottom: 8),
-                            child: _buildHeaderGlassButton(
+                            child: HeaderGlassButton(
                               icon: LucideIcons.arrow_down,
                               tooltip: 'Zum neuesten Beitrag',
                               isDarkSurface: !surfaceIsLight,
                               backgroundColor: controlFillColor,
                               foregroundColor: contrastColor,
-                              onPressed: _scrollToLatestMessage,
+                              useStaticGlass: isGlassTransitioning,
+                              onPressed: _scrollSidebarController
+                                  .scrollToLatestMessage,
                             ),
                           )
                         : const SizedBox.shrink(),
                   ),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: DesignConstants.glassShadow(cloudSurfaceDark),
-                    ),
-                    child: isGlassTransitioning
-                        ? composerSurface
-                        : Theme(
-                            data: glassTheme,
-                            child: GlassAdaptiveScope(
-                              maxQuality: DesignConstants.defaultGlassQuality,
-                              minQuality: DesignConstants.minGlassQuality,
-                              child: AdaptiveGlass(
-                                settings: composerGlassSettings,
-                                quality: DesignConstants.defaultGlassQuality,
-                                useOwnLayer: true,
-                                allowElevation: false,
-                                shape: const LiquidRoundedSuperellipse(
-                                  borderRadius: 28,
-                                ),
-                                child: GlassGlow(
-                                  glowColor:
-                                      contrastColor.withValues(alpha: 0.12),
-                                  glowRadius: 1,
-                                  child: composerSurface,
-                                ),
-                              ),
-                            ),
-                          ),
+                  CloudOverlayComposer(
+                    chatInputController: _chatInputController,
+                    chatFocusNode: _chatFocusNode,
+                    chatInputScrollController: _chatInputScrollController,
+                    voiceController: _voiceController,
+                    isGenerating: _chatCoordinator.isGenerating,
+                    isGlassTransitioning: isGlassTransitioning,
+                    cloudSurfaceDark: cloudSurfaceDark,
+                    surfaceIsLight: surfaceIsLight,
+                    contrastColor: contrastColor,
+                    composerFillColor: composerFillColor,
+                    controlFillColor: controlFillColor,
+                    sendButtonBackground: sendButtonBackground,
+                    sendButtonForeground: sendButtonForeground,
+                    selectionBlue: selectionBlue,
+                    askModelHint: _askModelHint,
+                    onSendPrompt: _sendPromptFromComposer,
+                    onStopGeneration: _chatCoordinator.stopGeneration,
                   ),
                 ],
               ),
@@ -2634,1623 +995,4 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       ),
     );
   }
-
-  Widget _buildChatTurn(
-    _DemoChatTurn turn, {
-    required ThemeData theme,
-    required Color contrastColor,
-    required Color softColor,
-    required bool isStreaming,
-    required bool showLoadingCloud,
-  }) {
-    final isCompactPrompt = turn.prompt.trim().runes.length <= 2;
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
-    final userBubbleColor = isDark
-        ? Color.lerp(Colors.black, primary, 0.42)!
-        : primary;
-    final userBubbleTextColor =
-        isDark ? Colors.white : theme.colorScheme.onPrimary;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              constraints: BoxConstraints(
-                minWidth: isCompactPrompt ? 56 : 0,
-                maxWidth: MediaQuery.sizeOf(context).width * 0.62,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: userBubbleColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: isCompactPrompt
-                  ? Center(
-                      widthFactor: 1,
-                      child: Text(
-                        turn.prompt,
-                        textAlign: TextAlign.start,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: userBubbleTextColor,
-                        ),
-                      ),
-                    )
-                  : Text(
-                      turn.prompt,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: userBubbleTextColor,
-                      ),
-                    ),
-            ),
-          ),
-          if (showLoadingCloud)
-            Padding(
-              padding: const EdgeInsets.only(left: 4, top: 12),
-              child: AnimatedBuilder(
-                animation: _loadingCloudController,
-                builder: (context, _) {
-                  // 0.0 -> 0.44: nichts -> Kreis (sizeFactor 0 -> 1, morph 0)
-                  // 0.44 -> 1.0: Kreis -> Wolke (sizeFactor 1, morph 0 -> 1)
-                  // Reverse runs Wolke -> Kreis -> nichts.
-                  const split = 0.44;
-                  final progress =
-                      _loadingCloudController.value.clamp(0.0, 1.0);
-                  final circleScale = progress <= split
-                      ? Curves.easeInOutCubic.transform(
-                          (progress / split).clamp(0.0, 1.0),
-                        )
-                      : 1.0;
-                  final cloudMorph = progress <= split
-                      ? 0.0
-                      : Curves.easeInOutCubic.transform(
-                          ((progress - split) / (1.0 - split)).clamp(0.0, 1.0),
-                        );
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: AiNeuralCloudOrbWidget(
-                      size: 68,
-                      canvasSize: const Size(42, 42),
-                      cloudCenter: const Offset(21, 21),
-                      sizeFactor: circleScale,
-                      morph: 0,
-                      instantaneousMorph: cloudMorph,
-                      baseColor: contrastColor,
-                      showAmbientGlow: false,
-                      enableInteraction: false,
-                    ),
-                  );
-                },
-              ),
-            )
-          else if (turn.response.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 4, top: 12),
-              child: _buildMarkdownResponse(
-                turn.response,
-                theme: theme,
-                contrastColor: contrastColor,
-                softColor: softColor,
-                isStreaming: isStreaming,
-              ),
-            ),
-            if (!isStreaming)
-              _buildChatTurnActionBar(
-                turn,
-                theme: theme,
-                contrastColor: contrastColor,
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  void _showAccessAudit(AssistantAccessRecord access) {
-    setState(() => _activeAuditRecord = access);
-  }
-
-  Widget _buildAccessAuditModal(AssistantAccessRecord access, ThemeData theme) {
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final isDe = locale.toLowerCase().startsWith('de');
-    final manifest = access.sharedManifest;
-    final categoriesText = access.categories
-        .map((c) => AssistantDataCategory.localizeName(c, locale))
-        .join(', ');
-    final rawScopeLabel = access.scope['label']?.toString() ?? 'current';
-    final localizedScopeLabel =
-        localizeAssistantScopeLabel(rawScopeLabel, locale);
-    final start = access.scope['start']?.toString();
-    final end = access.scope['end']?.toString();
-    final scopeText = start == null
-        ? localizedScopeLabel
-        : isDe
-            ? '$localizedScopeLabel ($start bis ${end ?? start})'
-            : '$localizedScopeLabel ($start to ${end ?? start})';
-    final statusText = _localizeAccessStatus(access.status, isDe: isDe);
-    final modelDisplay =
-        _formatModelDisplayName(access.providerId, access.modelId);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final actions = <GlassMenuAction>[
-      GlassMenuAction(
-        icon: access.status == 'approved' || access.status == 'shared'
-            ? LucideIcons.shield_check
-            : (access.status == 'denied'
-                ? LucideIcons.shield_x
-                : LucideIcons.shield_alert),
-        label: isDe ? 'Status: $statusText' : 'Status: $statusText',
-        subtitle: isDe ? 'Datenfreigabestatus' : 'Data access status',
-        onTap: () {},
-      ),
-      GlassMenuAction(
-        icon: LucideIcons.clock,
-        label: isDe ? 'Angefragt' : 'Requested',
-        subtitle: access.requestedAt.toLocal().toString().split('.').first,
-        onTap: () {},
-      ),
-      if (access.decidedAt != null)
-        GlassMenuAction(
-          icon: LucideIcons.circle_check,
-          label: isDe ? 'Entschieden' : 'Decided',
-          subtitle: access.decidedAt!.toLocal().toString().split('.').first,
-          onTap: () {},
-        ),
-      GlassMenuAction(
-        icon: LucideIcons.layout_grid,
-        label: isDe ? 'Kategorien' : 'Categories',
-        subtitle: categoriesText,
-        onTap: () {},
-      ),
-      GlassMenuAction(
-        icon: LucideIcons.calendar,
-        label: isDe ? 'Zeitraum' : 'Scope',
-        subtitle: scopeText,
-        onTap: () {},
-      ),
-      if (access.providerId != null)
-        GlassMenuAction(
-          icon: LucideIcons.bot,
-          label: isDe ? 'Modell' : 'Provider',
-          subtitle: modelDisplay ?? access.providerId!,
-          onTap: () {},
-        ),
-      if (access.sharedAt != null)
-        GlassMenuAction(
-          icon: LucideIcons.send,
-          label: isDe ? 'Übertragen' : 'Shared',
-          subtitle: access.sharedAt!.toLocal().toString().split('.').first,
-          onTap: () {},
-        ),
-      if (manifest['sqlAnalysis'] is Map)
-        for (final query
-            in ((manifest['sqlAnalysis'] as Map)['queries'] as List? ??
-                const []))
-          if (query is Map)
-            GlassMenuAction(
-              icon: LucideIcons.database,
-              label: isDe ? 'SQL-Abfrage' : 'SQL query',
-              subtitle:
-                  '${(query['tables'] as List? ?? const []).join(', ')} · '
-                  '${query['rowCount'] ?? 0} ${isDe ? 'Ergebnisse' : 'result rows'}'
-                  '${query['truncated'] == true ? (isDe ? ' · gekürzt' : ' · truncated') : ''}',
-              onTap: () {},
-            ),
-      for (final entry in manifest.entries)
-        if (entry.key != 'sqlAnalysis')
-          GlassMenuAction(
-            icon: LucideIcons.database,
-            label: AssistantDataCategory.localizeName(entry.key, locale),
-            subtitle:
-                '${(entry.value as Map)['count']} ${isDe ? 'Einträge' : 'records'}\n'
-                '${((entry.value as Map)['references'] as List).join(', ')}',
-            onTap: () {},
-          ),
-    ];
-
-    final Color barrierColor = isDark
-        ? Colors.black.withValues(alpha: 0.5)
-        : Colors.black.withValues(alpha: 0.3);
-
-    return Positioned.fill(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() => _activeAuditRecord = null),
-        child: ColoredBox(
-          color: barrierColor,
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: GestureDetector(
-              onTap: () {}, // Prevent taps inside sheet from dismissing
-              child: GlassBottomMenuSheet(
-                title: isDe ? 'Datenzugriff' : 'Data access',
-                headerTrailing: TextButton(
-                  onPressed: () => setState(() => _activeAuditRecord = null),
-                  child: Text(isDe ? 'Schließen' : 'Close'),
-                ),
-                actions: actions,
-                onClose: () => setState(() => _activeAuditRecord = null),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _localizeAccessStatus(String status, {required bool isDe}) {
-    if (status == 'not_shared') {
-      return isDe ? 'Keine Datensätze übertragen' : 'No records shared';
-    }
-    if (!isDe) return status;
-    return switch (status) {
-      'pending' => 'Ausstehend',
-      'approved' => 'Freigegeben',
-      'denied' => 'Abgelehnt',
-      'shared' => 'Übertragen',
-      'not_shared' => 'Keine Datensätze übertragen',
-      'no_data' => 'Keine Daten im Zeitraum (nichts übertragen)',
-      'unresolved' => 'Rückfrage offen (nichts übertragen)',
-      'expired' => 'Abgelaufen (nichts übertragen)',
-      'error' => 'Fehler (nichts übertragen)',
-      _ => status,
-    };
-  }
-
-  Widget _buildMarkdownResponse(
-    String rawResponse, {
-    required ThemeData theme,
-    required Color contrastColor,
-    required Color softColor,
-    required bool isStreaming,
-  }) {
-    final normalized = _normalizeStreamingMarkdown(
-      rawResponse,
-      isStreaming: isStreaming,
-    );
-    final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
-      color: contrastColor,
-      height: 1.5,
-    );
-    final codeStyle = bodyStyle?.copyWith(
-      fontFamily: 'monospace',
-      fontSize: 13,
-      color: contrastColor,
-      backgroundColor: softColor,
-    );
-
-    return MarkdownBody(
-      data: normalized,
-      selectable: false,
-      onTapLink: (text, href, title) {
-        if (href == null || href.trim().isEmpty) return;
-        final uri = Uri.tryParse(href.trim());
-        if (uri != null) {
-          unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
-        }
-      },
-      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-        p: bodyStyle,
-        pPadding: const EdgeInsets.only(bottom: 8),
-        h1: theme.textTheme.titleLarge?.copyWith(
-          color: contrastColor,
-          fontWeight: FontWeight.w700,
-          height: 1.3,
-        ),
-        h2: theme.textTheme.titleMedium?.copyWith(
-          color: contrastColor,
-          fontWeight: FontWeight.w700,
-          height: 1.35,
-        ),
-        h3: theme.textTheme.titleSmall?.copyWith(
-          color: contrastColor,
-          fontWeight: FontWeight.w700,
-          height: 1.4,
-        ),
-        h4: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
-        h5: bodyStyle?.copyWith(fontWeight: FontWeight.w600),
-        h6: bodyStyle?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: contrastColor.withValues(alpha: 0.82),
-        ),
-        strong: bodyStyle?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: contrastColor,
-        ),
-        em: bodyStyle?.copyWith(
-          fontStyle: FontStyle.italic,
-          color: contrastColor,
-        ),
-        del: bodyStyle?.copyWith(
-          decoration: TextDecoration.lineThrough,
-          color: contrastColor.withValues(alpha: 0.72),
-        ),
-        a: bodyStyle?.copyWith(
-          color: theme.colorScheme.primary,
-          decoration: TextDecoration.underline,
-        ),
-        listBullet: bodyStyle,
-        listIndent: 18,
-        code: codeStyle,
-        codeblockPadding: const EdgeInsets.all(12),
-        codeblockDecoration: BoxDecoration(
-          color: softColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: contrastColor.withValues(alpha: 0.12),
-            width: 0.5,
-          ),
-        ),
-        blockquote: bodyStyle?.copyWith(
-          color: contrastColor.withValues(alpha: 0.84),
-        ),
-        blockquotePadding: const EdgeInsets.only(left: 12, top: 2, bottom: 2),
-        blockquoteDecoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: contrastColor.withValues(alpha: 0.35),
-              width: 3,
-            ),
-          ),
-        ),
-        tableHead: bodyStyle?.copyWith(fontWeight: FontWeight.w700),
-        tableBody: bodyStyle,
-        tableBorder: TableBorder.all(
-          color: contrastColor.withValues(alpha: 0.18),
-          width: 0.5,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        horizontalRuleDecoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: contrastColor.withValues(alpha: 0.16),
-              width: 1,
-            ),
-          ),
-        ),
-      ),
-      builders: {
-        'latex': LatexElementBuilder(
-          textStyle: bodyStyle,
-        ),
-      },
-      extensionSet: md.ExtensionSet(
-        [
-          ...md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-          LatexBlockSyntax(),
-        ],
-        [
-          ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
-          LatexInlineSyntax(),
-        ],
-      ),
-    );
-  }
-
-  String _normalizeStreamingMarkdown(String raw, {required bool isStreaming}) {
-    if (!isStreaming || raw.isEmpty) return raw;
-    var text = raw;
-    // Strip a lone trailing '**' before the first character of the bold span
-    // arrives so raw syntax markers never flash for a frame.
-    if (text.endsWith('**') && !text.endsWith('***')) {
-      final withoutTrailing = text.substring(0, text.length - 2);
-      if ('**'.allMatches(withoutTrailing).length.isEven) {
-        return withoutTrailing;
-      }
-    }
-    // Auto-close an active '**bold**' span while words are streaming inside it.
-    final boldMatches = '**'.allMatches(text).length;
-    if (boldMatches.isOdd) {
-      final trimmed = text.trimRight();
-      if (!trimmed.endsWith('*')) {
-        text = '$trimmed**';
-      }
-    }
-    // Auto-close an active inline '`code`' span when not inside a fenced block.
-    final fenceMatches = '```'.allMatches(text).length;
-    if (fenceMatches.isEven) {
-      final withoutFences = text.replaceAll('```', '');
-      final backtickMatches = '`'.allMatches(withoutFences).length;
-      if (backtickMatches.isOdd) {
-        final trimmed = text.trimRight();
-        if (trimmed.endsWith('`')) {
-          text = trimmed.substring(0, trimmed.length - 1);
-        } else {
-          text = '$trimmed`';
-        }
-      }
-    }
-    return text;
-  }
-
-  Widget _buildChatTurnActionBar(
-    _DemoChatTurn turn, {
-    required ThemeData theme,
-    required Color contrastColor,
-  }) {
-    final isCopied = _copiedTurn == turn;
-    final subtleColor = contrastColor.withValues(alpha: 0.52);
-    final modelLabel = turn.modelName;
-    final durationLabel = turn.duration != null
-        ? _formatGenerationDuration(turn.duration!)
-        : null;
-
-    final metaText = [
-      if (modelLabel != null && modelLabel.isNotEmpty) modelLabel,
-      if (durationLabel != null) durationLabel,
-    ].join(' · ');
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, top: 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildActionIconButton(
-            icon: isCopied ? LucideIcons.check : LucideIcons.copy,
-            tooltip: 'Antwort kopieren (Lange drücken: Gesamten Chat kopieren)',
-            onTap: () => _copyResponseMarkdown(turn),
-            onLongPress: _copyFullChatMarkdown,
-            foregroundColor: isCopied
-                ? (theme.brightness == Brightness.dark
-                    ? Colors.greenAccent
-                    : Colors.green.shade700)
-                : subtleColor,
-          ),
-          const SizedBox(width: 4),
-          _buildActionIconButton(
-            icon: LucideIcons.rotate_cw,
-            tooltip: 'Erneut versuchen',
-            onTap: _isGenerating ? null : () => _retryTurnPrompt(turn),
-            foregroundColor: subtleColor,
-          ),
-          if (widget.useLiveAi && turn.access != null) ...[
-            const SizedBox(width: 4),
-            PlatformAdaptivePopupMenu<String>(
-              icon: Semantics(
-                button: true,
-                label: Localizations.localeOf(context).languageCode == 'de'
-                    ? 'Weitere Optionen'
-                    : 'More options',
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: Center(
-                    child: Icon(
-                      LucideIcons.ellipsis,
-                      size: 18,
-                      color: subtleColor,
-                    ),
-                  ),
-                ),
-              ),
-              menuWidth: 220,
-              items: [
-                PlatformAdaptivePopupMenuItem(
-                  value: 'dataAccess',
-                  label: Localizations.localeOf(context).languageCode == 'de'
-                      ? 'Datenzugriff'
-                      : 'Data access',
-                ),
-              ],
-              onSelected: (_) => _showAccessAudit(turn.access!),
-            ),
-          ],
-          if (metaText.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Text(
-              metaText,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: 12,
-                color: subtleColor,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionIconButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback? onTap,
-    VoidCallback? onLongPress,
-    required Color foregroundColor,
-  }) {
-    return Semantics(
-      button: onTap != null,
-      label: tooltip,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(14),
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: Center(
-              child: Icon(
-                icon,
-                size: 15,
-                color: foregroundColor,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatGenerationDuration(Duration duration) {
-    final seconds = duration.inMilliseconds / 1000.0;
-    if (seconds < 10) {
-      return '${seconds.toStringAsFixed(1).replaceAll('.', ',')} s';
-    } else {
-      return '${seconds.toStringAsFixed(0)} s';
-    }
-  }
-
-  Future<void> _copyResponseMarkdown(_DemoChatTurn turn) async {
-    await Clipboard.setData(ClipboardData(text: turn.response));
-    unawaited(HapticFeedbackService.instance.selectionFeedback());
-    setState(() => _copiedTurn = turn);
-    _copiedTurnTimer?.cancel();
-    _copiedTurnTimer = Timer(const Duration(milliseconds: 1800), () {
-      if (mounted) setState(() => _copiedTurn = null);
-    });
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Antwort im Markdown-Format kopiert'),
-        duration: const Duration(milliseconds: 2500),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'Gesamten Chat',
-          onPressed: _copyFullChatMarkdown,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _copyFullChatMarkdown() async {
-    if (_chatTurns.isEmpty) return;
-    final buffer = StringBuffer();
-    for (var i = 0; i < _chatTurns.length; i++) {
-      final t = _chatTurns[i];
-      buffer.writeln('### Benutzer');
-      buffer.writeln(t.prompt);
-      buffer.writeln();
-      buffer.writeln('### Assistent');
-      buffer.writeln(t.response);
-      if (i < _chatTurns.length - 1) {
-        buffer.writeln();
-        buffer.writeln('---');
-        buffer.writeln();
-      }
-    }
-    await Clipboard.setData(ClipboardData(text: buffer.toString()));
-    unawaited(HapticFeedbackService.instance.selectionFeedback());
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Kompletter Chat im Markdown-Format kopiert'),
-        duration: Duration(milliseconds: 2000),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _retryTurnPrompt(_DemoChatTurn turn) {
-    if (_isGenerating) return;
-    final prompt = turn.prompt.trim();
-    if (prompt.isEmpty) return;
-    final index = _chatTurns.indexOf(turn);
-    if (index != -1 && !widget.useLiveAi) {
-      setState(() {
-        _chatTurns.removeRange(index, _chatTurns.length);
-      });
-    }
-    _chatInputController.text = prompt;
-    _sendDemoPrompt();
-  }
-
-  void _handleAiConfigurationChanged() {
-    unawaited(_refreshCurrentModelName());
-  }
-
-  Future<void> _refreshCurrentModelName() async {
-    final name = await _resolveCurrentModelName();
-    if (mounted && _currentModelName != name) {
-      setState(() => _currentModelName = name);
-    }
-  }
-
-  String? _formatModelDisplayName(String? providerId, String? modelId) {
-    if (providerId == AiProvider.appleFoundation.name ||
-        modelId == 'apple-foundation-system') {
-      return 'Apple Intelligence';
-    }
-    if (modelId != null && modelId.trim().isNotEmpty) {
-      return modelId.trim();
-    }
-    return null;
-  }
-
-  Future<String> _resolveCurrentModelName() async {
-    if (!widget.useLiveAi) return 'Demo';
-    if (widget.modelClient != null) {
-      try {
-        final identity = await widget.modelClient!.identity();
-        final formatted =
-            _formatModelDisplayName(identity.providerId, identity.modelId);
-        if (formatted != null) return formatted;
-      } catch (_) {}
-    }
-    try {
-      final provider = await AiService.instance.getSelectedProvider();
-      if (provider == AiProvider.appleFoundation) {
-        return 'Apple Intelligence';
-      }
-      final model = await AiService.instance.getSelectedModel(provider);
-      if (model.isNotEmpty) {
-        return model;
-      }
-      return AiService.instance.getProviderMetadata(provider).displayName;
-    } catch (_) {
-      return 'KI';
-    }
-  }
-
-  String? get _composerModelName => !widget.useLiveAi
-      ? 'Demo'
-      : _currentModelName ??
-          (_chatTurns.isNotEmpty ? _chatTurns.last.modelName : null);
-
-  String? get _askModelHint {
-    final modelName = _composerModelName;
-    if (modelName == null || modelName.isEmpty) return null;
-    return AppLocalizations.of(context)!.aiAssistantAskModelHint(modelName);
-  }
-
-  Widget _buildDemoPermissionCard({
-    required ThemeData theme,
-    required Color contrastColor,
-    required Color surfaceColor,
-    required bool isVisible,
-  }) {
-    final l10n = AppLocalizations.of(context)!;
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final isDe = locale.toLowerCase().startsWith('de');
-    final isDarkSurface = surfaceColor.computeLuminance() < 0.5;
-    final cardTextColor = contrastColor;
-    final actionColor =
-        isDarkSurface ? Colors.amber.shade300 : Colors.amber.shade700;
-    final glassTheme = theme.copyWith(
-      brightness: isDarkSurface ? Brightness.dark : Brightness.light,
-    );
-    const radius = 18.0;
-    final localizedCategories = _pendingAccess?.categories
-            .map((c) => AssistantDataCategory.localizeName(c, locale))
-            .join(', ') ??
-        '';
-    final rawScopeLabel =
-        _pendingAccess?.scope['label']?.toString() ?? 'current';
-    final localizedScopeLabel =
-        localizeAssistantScopeLabel(rawScopeLabel, locale);
-    final scopeStart = _pendingAccess?.scope['start']?.toString();
-    final scopeEnd = _pendingAccess?.scope['end']?.toString();
-    final periodLine = isDe
-        ? 'Zeitraum: $localizedScopeLabel'
-            '${scopeStart == null ? '' : ' — $scopeStart bis ${scopeEnd ?? scopeStart}'}'
-        : 'Period: $localizedScopeLabel'
-            '${scopeStart == null ? '' : ' — $scopeStart to ${scopeEnd ?? scopeStart}'}';
-    final card = Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(radius),
-          boxShadow: DesignConstants.glassShadow(isDarkSurface),
-        ),
-        child: Theme(
-          data: glassTheme,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(
-                alpha: isDarkSurface ? 0.12 : 0.08,
-              ),
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(
-                color: Colors.amber.withValues(
-                  alpha: isDarkSurface ? 0.48 : 0.34,
-                ),
-                width: 0.8,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.useLiveAi
-                      ? (isDe ? 'Datenzugriffsanfrage' : 'Data access request')
-                      : l10n.aiOverlayDemoRequestLabel,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: cardTextColor,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildPermissionScope(
-                  widget.useLiveAi
-                      ? '${isDe ? 'Kategorien' : 'Categories'}: $localizedCategories'
-                      : l10n.aiOverlayDemoScope,
-                  theme,
-                  cardTextColor,
-                ),
-                const SizedBox(height: 4),
-                _buildPermissionScope(
-                  widget.useLiveAi
-                      ? periodLine
-                      : l10n.aiOverlayDemoScopeDetails,
-                  theme,
-                  cardTextColor,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  widget.useLiveAi
-                      ? (isDe
-                          ? 'Einmalig freigeben. Nur diese Einträge werden an das ausgewählte Modell gesendet.'
-                          : 'Allow this request once. Only these records will be sent to the selected model.')
-                      : l10n.aiOverlayDemoPurpose,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: cardTextColor.withValues(alpha: 0.72),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                if (_permissionPending)
-                  Wrap(
-                    alignment: WrapAlignment.end,
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      TextButton(
-                        onPressed: () => widget.useLiveAi
-                            ? _resolveAssistantPermission(false)
-                            : _resolveDemoPermission(false),
-                        style: TextButton.styleFrom(
-                          foregroundColor:
-                              cardTextColor.withValues(alpha: 0.72),
-                        ),
-                        child: Text(l10n.aiOverlayDemoDeny),
-                      ),
-                      FilledButton(
-                        onPressed: () => widget.useLiveAi
-                            ? _resolveAssistantPermission(true)
-                            : _resolveDemoPermission(true),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: actionColor,
-                          foregroundColor: Colors.black,
-                        ),
-                        child: Text(l10n.aiOverlayDemoAllowOnce),
-                      ),
-                    ],
-                  )
-                else
-                  Text(
-                    widget.useLiveAi
-                        ? (_permissionApproved == true
-                            ? (isDe
-                                ? 'Datenzugriff einmalig freigegeben.'
-                                : 'Data access approved once.')
-                            : (isDe
-                                ? 'Datenzugriff abgelehnt.'
-                                : 'Data access declined.'))
-                        : (_permissionApproved == true
-                            ? l10n.aiOverlayDemoApprovedFeedback
-                            : l10n.aiOverlayDemoDeniedFeedback),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: cardTextColor.withValues(alpha: 0.72),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeInOutCubic,
-      alignment: Alignment.topCenter,
-      clipBehavior: Clip.hardEdge,
-      onEnd: () {
-        if (_followChatTail) _scrollChatToBottom();
-      },
-      child: Align(
-        alignment: Alignment.topCenter,
-        heightFactor: isVisible ? 1 : 0,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          opacity: isVisible ? 1 : 0,
-          child: IgnorePointer(
-            ignoring: !isVisible,
-            child: ExcludeSemantics(
-              excluding: !isVisible,
-              child: card,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPermissionScope(
-    String text,
-    ThemeData theme,
-    Color contrastColor,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 9, right: 9),
-            child: Container(
-              width: 5,
-              height: 5,
-              decoration: BoxDecoration(
-                color: contrastColor.withValues(alpha: 0.76),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: theme.textTheme.bodyMedium?.copyWith(color: contrastColor),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _sendDemoPrompt() {
-    if (widget.useLiveAi) {
-      unawaited(_sendAssistantPrompt());
-      return;
-    }
-    if (_isGenerating) _stopDemoGeneration();
-    final prompt = _chatInputController.text.trim();
-    if (prompt.isEmpty) return;
-    _dismissComposerKeyboard();
-
-    final generationId = ++_activeGenerationId;
-    _responseTimer?.cancel();
-    _responseTimer = null;
-    _cancelActiveResponseSubscription();
-    _lastHapticWordCount = 0;
-    _lastWordHapticAt = null;
-
-    final turn = _DemoChatTurn(prompt)
-      ..generationStartedAt = DateTime.now()
-      ..modelName = 'Demo';
-
-    setState(() {
-      _permissionBadgeDelayTimer?.cancel();
-      _chatTurns.add(turn);
-      _isLoadingCloudVisible = true;
-      _isGenerating = true;
-      _hasCompletedResponse = false;
-      _permissionPending = false;
-      _showPermissionBadge = false;
-      _permissionApproved = null;
-      _followChatTail = true;
-      _demoWordIndex = 0;
-      _chatInputController.clear();
-    });
-    _loadingCloudEnterFuture = _loadingCloudController.forward(from: 0.0);
-    _syncDemoWaitingHaptics();
-    widget.onGenerationChanged?.call(true);
-    _scrollChatToBottom(force: true);
-
-    unawaited(_startDemoStreamingAfterLoadingCloud(generationId));
-  }
-
-  Future<void> _sendAssistantPrompt() async {
-    if (_isGenerating) _stopDemoGeneration();
-    final prompt = _chatInputController.text.trim();
-    if (prompt.isEmpty) return;
-    _dismissComposerKeyboard();
-    final service = _assistant;
-    if (service == null) return;
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final isDe = locale.toLowerCase().startsWith('de');
-    if (_permissionPending) {
-      final skippedAccess = _pendingAccess;
-      _pendingAccess = null;
-      _pendingQuestion = null;
-      _permissionPending = false;
-      _showPermissionBadge = false;
-      if (skippedAccess != null) {
-        unawaited(
-          service
-              .deny(skippedAccess.id, locale: locale)
-              .then((_) => _refreshTurnAccess(skippedAccess.id))
-              .catchError((Object _) {}),
-        );
-      }
-    }
-    final generationId = ++_activeGenerationId;
-    _lastHapticWordCount = 0;
-    _lastWordHapticAt = null;
-    final turn = _DemoChatTurn(prompt)
-      ..generationStartedAt = DateTime.now()
-      ..modelName = _currentModelName;
-    setState(() {
-      _activeAuditRecord = null;
-      _chatTurns.add(turn);
-      _chatInputController.clear();
-      _followChatTail = true;
-      _isGenerating = true;
-      _isLoadingCloudVisible = true;
-      _hasCompletedResponse = false;
-      _permissionApproved = null;
-    });
-    unawaited(_resolveCurrentModelName().then((name) {
-      if (!mounted) return;
-      setState(() {
-        _currentModelName = name;
-        turn.modelName ??= name;
-      });
-    }));
-    _syncDemoWaitingHaptics();
-    widget.onGenerationChanged?.call(true);
-    _loadingCloudEnterFuture = _loadingCloudController.forward(from: 0.0);
-    _scrollChatToBottom(force: true);
-    try {
-      final submission = await service.submit(
-        prompt,
-        conversationId: _conversationId,
-        now: DateTime.now(),
-        locale: locale,
-      );
-      if (!mounted || _activeGenerationId != generationId) return;
-      turn.userMessageId = submission.userMessage.id;
-      turn.access = submission.access;
-      turn.modelName =
-          _formatModelDisplayName(submission.providerId, submission.modelId) ??
-              _currentModelName ??
-              turn.modelName;
-      await _reverseLoadingCloudToNothing(generationId);
-      if (!mounted || _activeGenerationId != generationId) return;
-      if (submission.access != null) {
-        setState(() {
-          _conversationId = submission.conversationId;
-          _pendingAccess = submission.access;
-          _pendingQuestion = prompt;
-          _permissionPending = true;
-          _showPermissionBadge = true;
-          _attentionPeekDismissed = false;
-          _isGenerating = false;
-          _isLoadingCloudVisible = false;
-        });
-        _syncDemoWaitingHaptics();
-        unawaited(HapticFeedbackService.instance.strongImpact());
-        widget.onGenerationChanged?.call(false);
-        unawaited(_loadAssistantHistory());
-        _scrollChatToBottom(force: true);
-        if (_autoApproveDataRequests) {
-          scheduleMicrotask(() => _resolveAssistantPermission(true));
-        }
-        return;
-      }
-      setState(() {
-        _conversationId = submission.conversationId;
-        _pendingAccess = null;
-        _pendingQuestion = null;
-        turn.response = submission.clarification ?? '';
-      });
-      _completeDemoGeneration();
-      unawaited(_loadAssistantHistory());
-      _scrollChatToBottom(force: true);
-    } catch (error) {
-      if (!mounted || _activeGenerationId != generationId) return;
-      await _reverseLoadingCloudToNothing(generationId);
-      if (!mounted || _activeGenerationId != generationId) return;
-      setState(() {
-        turn.response = isDe
-            ? 'Diese Anfrage konnte nicht verarbeitet werden: $error'
-            : 'Could not save this question: $error';
-        _isGenerating = false;
-        _isLoadingCloudVisible = false;
-      });
-      _syncDemoWaitingHaptics();
-      widget.onGenerationChanged?.call(false);
-    }
-  }
-
-  void _dismissComposerKeyboard() {
-    _chatFocusNode.unfocus();
-    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
-  }
-
-  void _resolveAssistantPermission(bool approved) {
-    final access = _pendingAccess;
-    final question = _pendingQuestion;
-    if (access == null || question == null || _assistant == null) return;
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    setState(() {
-      _permissionPending = false;
-      _showPermissionBadge = false;
-      _permissionApproved = approved;
-      _pendingAccess = null;
-      _pendingQuestion = null;
-    });
-    if (!approved) {
-      unawaited(
-        _assistant!.deny(access.id, locale: locale).then((message) {
-          if (!mounted || _chatTurns.isEmpty) return;
-          setState(() {
-            _chatTurns.last.response = message.content;
-            if (_chatTurns.last.generationStartedAt != null) {
-              _chatTurns.last.duration = DateTime.now()
-                  .difference(_chatTurns.last.generationStartedAt!);
-            }
-            _chatTurns.last.modelName ??=
-                _formatModelDisplayName(access.providerId, access.modelId) ??
-                    _currentModelName;
-          });
-          unawaited(_refreshTurnAccess(access.id));
-          unawaited(_loadAssistantHistory());
-          _scrollChatToBottom();
-        }).catchError((Object error) {
-          if (mounted && _chatTurns.isNotEmpty) {
-            setState(() => _chatTurns.last.response = error.toString());
-          }
-        }),
-      );
-      return;
-    }
-    final generationId = ++_activeGenerationId;
-    _lastHapticWordCount = 0;
-    _lastWordHapticAt = null;
-    setState(() {
-      _isGenerating = true;
-      _isLoadingCloudVisible = true;
-      _permissionApproved = null;
-      _hasCompletedResponse = false;
-      _attentionPeekDismissed = false;
-      if (_chatTurns.isNotEmpty) {
-        _chatTurns.last.generationStartedAt = DateTime.now();
-        _chatTurns.last.modelName ??=
-            _formatModelDisplayName(access.providerId, access.modelId) ??
-                _currentModelName;
-      }
-    });
-    unawaited(_resolveCurrentModelName().then((name) {
-      if (!mounted) return;
-      setState(() {
-        _currentModelName = name;
-        if (_chatTurns.isNotEmpty) {
-          _chatTurns.last.modelName ??= name;
-        }
-      });
-    }));
-    _loadingCloudEnterFuture = _loadingCloudController.forward(from: 0.0);
-    _syncDemoWaitingHaptics();
-    unawaited(HapticFeedbackService.instance.lightImpact());
-    widget.onGenerationChanged?.call(true);
-    _scrollChatToBottom(force: true);
-
-    final bufferedChunks = <String>[];
-    var dismissingCloud = false;
-    var streamDone = false;
-    Object? streamError;
-
-    Future<void> flushAfterCloudDismiss() async {
-      if (dismissingCloud) return;
-      dismissingCloud = true;
-      try {
-        await _reverseLoadingCloudToNothing(generationId);
-      } finally {
-        dismissingCloud = false;
-      }
-      if (!mounted || _activeGenerationId != generationId) return;
-      if (bufferedChunks.isNotEmpty && _chatTurns.isNotEmpty) {
-        setState(() {
-          _chatTurns.last.response += bufferedChunks.join();
-          bufferedChunks.clear();
-        });
-        _triggerWordHapticIfNeeded(_chatTurns.last.response);
-        _scrollChatToBottom();
-      }
-      if (streamError != null) {
-        if (_chatTurns.isNotEmpty) {
-          setState(() => _chatTurns.last.response += '\n\n$streamError');
-        }
-        _completeDemoGeneration();
-        unawaited(_refreshTurnAccess(access.id));
-      } else if (streamDone) {
-        _completeDemoGeneration();
-        unawaited(_refreshTurnAccess(access.id));
-        unawaited(_loadAssistantHistory());
-      }
-    }
-
-    _liveResponseSubscription = _assistant!
-        .approveAndAnswer(access.id, question, locale: locale)
-        .listen(
-      (chunk) {
-        if (!mounted ||
-            _activeGenerationId != generationId ||
-            _chatTurns.isEmpty) {
-          return;
-        }
-        if (_isLoadingCloudVisible || dismissingCloud) {
-          bufferedChunks.add(chunk);
-          unawaited(flushAfterCloudDismiss());
-          return;
-        }
-        setState(() => _chatTurns.last.response += chunk);
-        _triggerWordHapticIfNeeded(_chatTurns.last.response);
-        _scrollChatToBottom();
-      },
-      onError: (Object error) {
-        if (!mounted ||
-            _activeGenerationId != generationId ||
-            _chatTurns.isEmpty) {
-          return;
-        }
-        streamError = error;
-        if (_isLoadingCloudVisible || dismissingCloud) {
-          unawaited(flushAfterCloudDismiss());
-          return;
-        }
-        setState(() => _chatTurns.last.response += '\n\n$error');
-        _completeDemoGeneration();
-        unawaited(_refreshTurnAccess(access.id));
-      },
-      onDone: () {
-        if (!mounted || _activeGenerationId != generationId) return;
-        streamDone = true;
-        if (_isLoadingCloudVisible || dismissingCloud) {
-          unawaited(flushAfterCloudDismiss());
-          return;
-        }
-        _completeDemoGeneration();
-        unawaited(_refreshTurnAccess(access.id));
-        unawaited(_loadAssistantHistory());
-      },
-    );
-  }
-
-  Future<void> _refreshTurnAccess(String accessId) async {
-    final access = await _history?.access(accessId);
-    if (!mounted || access == null) return;
-    final index =
-        _chatTurns.indexWhere((turn) => turn.userMessageId == access.messageId);
-    if (index >= 0) {
-      setState(() {
-        _chatTurns[index].access = access;
-        final modelDisplay =
-            _formatModelDisplayName(access.providerId, access.modelId);
-        if (modelDisplay != null) {
-          _chatTurns[index].modelName = modelDisplay;
-        }
-      });
-    }
-  }
-
-  Future<void> _startDemoStreamingAfterLoadingCloud(int generationId) async {
-    try {
-      final enterFuture = _loadingCloudEnterFuture;
-      if (enterFuture != null) {
-        await enterFuture;
-      }
-      if (!mounted || _activeGenerationId != generationId || !_isGenerating) {
-        return;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 360));
-      if (!mounted || _activeGenerationId != generationId || !_isGenerating) {
-        return;
-      }
-      await _loadingCloudController.reverse();
-    } catch (_) {
-      // Animation disposed or interrupted.
-    }
-    if (!mounted || _activeGenerationId != generationId || !_isGenerating) {
-      return;
-    }
-    setState(() {
-      _isLoadingCloudVisible = false;
-    });
-    _startDemoResponseTicker();
-  }
-
-  Future<void> _reverseLoadingCloudToNothing(
-    int generationId, {
-    bool waitForEnter = true,
-  }) async {
-    if (!_isLoadingCloudVisible) return;
-    try {
-      if (_loadingCloudController.value > 0.001) {
-        final enterFuture = _loadingCloudEnterFuture;
-        if (waitForEnter && enterFuture != null) {
-          await enterFuture;
-        }
-        if (!mounted || _activeGenerationId != generationId) return;
-        await _loadingCloudController.reverse();
-      } else {
-        _loadingCloudController.stop();
-        _loadingCloudController.value = 0;
-      }
-    } catch (_) {
-      // Animation disposed or interrupted.
-    }
-    if (!mounted || _activeGenerationId != generationId) return;
-    setState(() {
-      _isLoadingCloudVisible = false;
-    });
-  }
-
-  void _stopDemoGeneration() {
-    if (!_isGenerating) return;
-    final generationId = ++_activeGenerationId;
-    _responseTimer?.cancel();
-    _responseTimer = null;
-    _cancelActiveResponseSubscription();
-    _permissionContinuationTimer?.cancel();
-    _permissionContinuationTimer = null;
-    if (_chatTurns.isNotEmpty) {
-      final lastTurn = _chatTurns.last;
-      if (lastTurn.generationStartedAt != null && lastTurn.duration == null) {
-        lastTurn.duration =
-            DateTime.now().difference(lastTurn.generationStartedAt!);
-      }
-      lastTurn.modelName ??=
-          widget.useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
-      if (lastTurn.response.isEmpty) {
-        lastTurn.response = _interruptedGenerationMessage;
-      }
-    }
-    setState(() => _isGenerating = false);
-    if (_isLoadingCloudVisible) {
-      unawaited(
-        _reverseLoadingCloudToNothing(generationId, waitForEnter: false),
-      );
-    }
-    _syncDemoWaitingHaptics();
-    widget.onGenerationChanged?.call(false);
-  }
-
-  void _cancelActiveResponseSubscription() {
-    final subscription = _liveResponseSubscription;
-    _liveResponseSubscription = null;
-    if (subscription != null) {
-      _activeGenerationCancellation =
-          subscription.cancel().catchError((Object _) {});
-    }
-  }
-
-  String get _interruptedGenerationMessage =>
-      Localizations.localeOf(context).languageCode == 'de'
-          ? 'Anfrage abgebrochen. Du kannst es erneut versuchen.'
-          : 'Request interrupted. You can try again.';
-
-  void _completeDemoGeneration() {
-    if (!_isGenerating) return;
-    final generationId = ++_activeGenerationId;
-    _responseTimer?.cancel();
-    _responseTimer = null;
-    _cancelActiveResponseSubscription();
-    _permissionContinuationTimer?.cancel();
-    _permissionContinuationTimer = null;
-    if (_chatTurns.isNotEmpty) {
-      final lastTurn = _chatTurns.last;
-      if (lastTurn.generationStartedAt != null) {
-        lastTurn.duration =
-            DateTime.now().difference(lastTurn.generationStartedAt!);
-      }
-      lastTurn.modelName ??=
-          widget.useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
-    }
-    final wasDocked = !_isExpanded && _morphAnimation.value <= 0.005;
-    setState(() {
-      _isGenerating = false;
-      _hasCompletedResponse = wasDocked;
-      _permissionPending = false;
-      _attentionPeekDismissed = false;
-      _showPermissionBadge = false;
-      _permissionApproved = null;
-      _completionPulse = wasDocked;
-    });
-    if (_isLoadingCloudVisible) {
-      unawaited(_reverseLoadingCloudToNothing(generationId));
-    }
-    _permissionBadgeDelayTimer?.cancel();
-    _syncDemoWaitingHaptics();
-    unawaited(HapticFeedbackService.instance.strongImpact());
-    widget.onGenerationChanged?.call(false);
-    _scrollChatToBottom();
-    if (_completionPulse) _scheduleCompletionPulseReset();
-  }
-
-  void _requestDemoPermission() {
-    if (widget.useLiveAi || !_isGenerating || _chatTurns.isEmpty) return;
-    final generationId = ++_activeGenerationId;
-    _responseTimer?.cancel();
-    _responseTimer = null;
-    setState(() {
-      _isGenerating = false;
-      _hasCompletedResponse = false;
-      _permissionPending = true;
-      _attentionPeekDismissed = false;
-      _showPermissionBadge = false;
-      _permissionApproved = null;
-    });
-    if (_isLoadingCloudVisible) {
-      unawaited(_reverseLoadingCloudToNothing(generationId));
-    }
-    _permissionBadgeDelayTimer?.cancel();
-    _permissionBadgeDelayTimer = Timer(
-      const Duration(milliseconds: 300),
-      () {
-        if (!mounted || !_permissionPending) return;
-        setState(() => _showPermissionBadge = true);
-      },
-    );
-    _syncDemoWaitingHaptics();
-    unawaited(HapticFeedbackService.instance.strongImpact());
-    widget.onGenerationChanged?.call(false);
-    _scrollChatToBottom();
-  }
-
-  void _resolveDemoPermission(bool approved) {
-    if (approved) {
-      _permissionBadgeDelayTimer?.cancel();
-      _permissionBadgeDelayTimer = null;
-      setState(() {
-        _permissionPending = false;
-        _showPermissionBadge = false;
-        _permissionApproved = true;
-        _hasCompletedResponse = false;
-        _attentionPeekDismissed = false;
-        _isGenerating = true;
-      });
-      _syncDemoWaitingHaptics();
-      unawaited(HapticFeedbackService.instance.lightImpact());
-      widget.onGenerationChanged?.call(true);
-      _startDemoResponseTicker();
-      _permissionContinuationTimer = Timer(
-        const Duration(seconds: 3),
-        _completeDemoGeneration,
-      );
-      _scrollChatToBottom();
-      return;
-    }
-
-    setState(() {
-      _permissionPending = false;
-      _showPermissionBadge = false;
-      _permissionApproved = false;
-    });
-    _permissionBadgeDelayTimer?.cancel();
-    _permissionBadgeDelayTimer = null;
-    _scrollChatToBottom();
-  }
-
-  void _startDemoResponseTicker() {
-    _responseTimer?.cancel();
-    _responseTimer = Timer.periodic(const Duration(milliseconds: 55), (timer) {
-      if (!mounted || !_isGenerating || _chatTurns.isEmpty) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        final turn = _chatTurns.last;
-        turn.response += '${_demoWords[_demoWordIndex]} ';
-        _demoWordIndex = (_demoWordIndex + 1) % _demoWords.length;
-        if (_demoWordIndex == 0) turn.response += '\n\n';
-      });
-      _triggerWordHapticIfNeeded(_chatTurns.last.response);
-      _scrollChatToBottom();
-    });
-  }
-
-  void _scheduleCompletionPulseReset() {
-    _completionPulseTimer?.cancel();
-    _completionPulseTimer = Timer(const Duration(milliseconds: 260), () {
-      if (!mounted) return;
-      setState(() => _completionPulse = false);
-    });
-  }
-
-  void _handleChatScroll() {
-    if (!_chatScrollController.hasClients) return;
-    final position = _chatScrollController.position;
-    final distanceToBottom = position.maxScrollExtent - position.pixels;
-    _followChatTail = distanceToBottom < 80;
-    final showButton = distanceToBottom > _scrollToBottomThreshold;
-    if (_showScrollToBottom != showButton && mounted) {
-      setState(() => _showScrollToBottom = showButton);
-    }
-  }
-
-  void _scrollToLatestMessage() {
-    if (!_chatScrollController.hasClients) return;
-    _chatContentRevision++;
-    _followChatTail = true;
-    _chatScrollController.animateTo(
-      _chatScrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
-  void _scrollChatToBottom({bool force = false}) {
-    if (force) {
-      _followChatTail = true;
-      _chatContentRevision++;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_chatScrollController.hasClients || !_followChatTail) {
-        return;
-      }
-      _chatScrollController.jumpTo(
-        _chatScrollController.position.maxScrollExtent,
-      );
-    });
-  }
-
-  Widget _buildResizeHandle(
-    _SafeSpaceCorner corner,
-    Offset position,
-    Size size,
-    ThemeData theme,
-  ) {
-    const hitTargetSize = 40.0;
-    final handleColor = theme.colorScheme.primary;
-
-    return Positioned(
-      left: position.dx - hitTargetSize / 2,
-      top: position.dy - hitTargetSize / 2,
-      width: hitTargetSize,
-      height: hitTargetSize,
-      child: IgnorePointer(
-        ignoring: !_isExpanded,
-        child: FadeTransition(
-          opacity: _morphAnimation,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {},
-            onPanUpdate: (details) => _resizeSafeSpace(corner, details, size),
-            child: Center(
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: handleColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: theme.colorScheme.surface,
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.28),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  LucideIcons.maximize_2,
-                  size: 10,
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
-
-class _DemoChatTurn {
-  _DemoChatTurn(this.prompt);
-
-  final String prompt;
-  String? userMessageId;
-  String? assistantMessageId;
-  AssistantAccessRecord? access;
-  String response = '';
-  String? modelName;
-  Duration? duration;
-  DateTime? generationStartedAt;
-}
-
-class _CloudControlsClipper extends CustomClipper<Rect> {
-  const _CloudControlsClipper(this.revealBounds);
-
-  final Rect revealBounds;
-
-  @override
-  Rect getClip(Size size) => revealBounds.intersect(Offset.zero & size);
-
-  @override
-  bool shouldReclip(covariant _CloudControlsClipper oldClipper) =>
-      oldClipper.revealBounds != revealBounds;
-}
-
-class _VoiceWaveformPainter extends CustomPainter {
-  const _VoiceWaveformPainter({
-    required this.samples,
-    required this.color,
-    required this.scrollOffset,
-  }) : super(repaint: scrollOffset);
-
-  final List<_VoiceWaveSample> samples;
-  final Color color;
-  final ValueListenable<double> scrollOffset;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const rightInset = 3.5;
-    const fadeWidth = 30.0;
-    final centerY = size.height / 2;
-    final paint = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 3;
-    final currentPosition = scrollOffset.value;
-
-    // A single moving waveform; no stationary baseline remains behind it.
-    for (final sample in samples) {
-      final age = currentPosition - sample.position;
-      if (age < 0 || age > size.width) continue;
-      final x = size.width - rightInset - age;
-      if (x < 2) continue;
-      final halfHeight = 2.0 + sample.level * (size.height * 0.42);
-      final leftFade = ((x - 2) / fadeWidth).clamp(0.0, 1.0);
-      final rightFade = ((size.width - x) / fadeWidth).clamp(0.0, 1.0);
-      paint.color = color.withValues(
-        alpha: color.a * math.min(leftFade, rightFade),
-      );
-      canvas.drawLine(
-        Offset(x, centerY - halfHeight),
-        Offset(x, centerY + halfHeight),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _VoiceWaveformPainter oldDelegate) =>
-      oldDelegate.color != color ||
-      !listEquals(oldDelegate.samples, samples) ||
-      oldDelegate.scrollOffset != scrollOffset;
-}
-
-class _VoiceWaveSample {
-  const _VoiceWaveSample({required this.position, required this.level});
-
-  final double position;
-  final double level;
-}
-
-enum _SafeSpaceCorner { topLeft, topRight, bottomLeft, bottomRight }
