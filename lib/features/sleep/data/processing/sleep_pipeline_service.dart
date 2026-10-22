@@ -614,6 +614,14 @@ class SleepPipelineService {
       var combinedRemSeconds = 0;
       var combinedAsleepUnspecifiedSeconds = 0;
 
+      bool hasLight = false;
+      bool hasDeep = false;
+      bool hasRem = false;
+      bool hasUnspecified = false;
+
+      // BOLT OPTIMIZATION: Merged two loops into one and replaced redundant
+      // containsKey() checks with single direct map lookups to eliminate
+      // redundant O(N) iterations and hash lookups.
       for (final s in nightSessions) {
         final m = sessionMetrics[s.id]!;
         combinedTotalSleepMinutes += m.totalSleepTime.inMinutes;
@@ -622,33 +630,29 @@ class SleepPipelineService {
         combinedWasoMinutes += m.wakeAfterSleepOnset.inMinutes;
         combinedInterruptionsCount += m.interruptionsCount;
 
-        combinedLightSeconds +=
-            m.stageDurations[CanonicalSleepStage.light]?.inSeconds ?? 0;
-        combinedDeepSeconds +=
-            m.stageDurations[CanonicalSleepStage.deep]?.inSeconds ?? 0;
-        combinedRemSeconds +=
-            m.stageDurations[CanonicalSleepStage.rem]?.inSeconds ?? 0;
-        combinedAsleepUnspecifiedSeconds += m
-                .stageDurations[CanonicalSleepStage.asleepUnspecified]
-                ?.inSeconds ??
-            0;
-      }
-
-      bool hasLight = false;
-      bool hasDeep = false;
-      bool hasRem = false;
-      bool hasUnspecified = false;
-
-      for (final s in nightSessions) {
-        final m = sessionMetrics[s.id]!;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.light))
+        final lightDur = m.stageDurations[CanonicalSleepStage.light];
+        if (lightDur != null) {
           hasLight = true;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.deep))
+          combinedLightSeconds += lightDur.inSeconds;
+        }
+
+        final deepDur = m.stageDurations[CanonicalSleepStage.deep];
+        if (deepDur != null) {
           hasDeep = true;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.rem))
+          combinedDeepSeconds += deepDur.inSeconds;
+        }
+
+        final remDur = m.stageDurations[CanonicalSleepStage.rem];
+        if (remDur != null) {
           hasRem = true;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.asleepUnspecified))
+          combinedRemSeconds += remDur.inSeconds;
+        }
+
+        final unspecDur = m.stageDurations[CanonicalSleepStage.asleepUnspecified];
+        if (unspecDur != null) {
           hasUnspecified = true;
+          combinedAsleepUnspecifiedSeconds += unspecDur.inSeconds;
+        }
       }
 
       final combinedSleepEfficiencyPct = combinedTimeInBedSeconds == 0
