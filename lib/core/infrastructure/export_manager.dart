@@ -241,6 +241,8 @@ class _WorkbookTableSpec {
 // =============================================================================
 
 class ExportManager {
+  static final RegExp _safeIdentifier = RegExp(r'^[a-zA-Z0-9_]+$');
+
   static const List<_WorkbookTableSpec> _completeWorkbookTables = [
     _WorkbookTableSpec('profiles', 'profiles', excludedColumns: {
       'profile_image_path',
@@ -386,6 +388,7 @@ class ExportManager {
     final sheets = <WorkbookTableDto>[];
 
     for (final spec in _completeWorkbookTables) {
+      if (!_safeIdentifier.hasMatch(spec.tableName)) continue;
       final query = spec.query ?? 'SELECT * FROM ${spec.tableName}';
       final rows = await dbInst.customSelect(query).get();
       final pragmaRows = await dbInst

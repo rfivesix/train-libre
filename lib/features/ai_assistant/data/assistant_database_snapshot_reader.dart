@@ -15,11 +15,14 @@ class AssistantDatabaseSnapshotReader {
 
   final AppDatabase database;
 
+  static final RegExp _safeIdentifier = RegExp(r'^[a-zA-Z0-9_]+$');
+
   Future<Map<String, Map<String, String>>> columnsFor(
       Map<String, List<Map<String, dynamic>>> tables) async {
     final result = <String, Map<String, String>>{};
     for (final entry in tables.entries) {
       final table = entry.key;
+      if (!_safeIdentifier.hasMatch(table)) continue;
       final presentFields = entry.value.expand((row) => row.keys).toSet();
       final rows =
           await database.customSelect('PRAGMA table_info($table)').get();
