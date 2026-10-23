@@ -193,22 +193,36 @@ class WorkoutProgressionService {
         continue;
       }
       final key = '${set.workoutLogId}:${set.exerciseBlock ?? 0}';
-      sessions.putIfAbsent(key, () => []).add(set);
+      // BOLT OPTIMIZATION: Replace putIfAbsent with direct lookup to prevent closure allocation per item
+      var session = sessions[key];
+      if (session == null) {
+        session = [];
+        sessions[key] = session;
+      }
+      session.add(set);
     }
     if (sessions.isEmpty) return null;
 
-    final latest = sessions.values.reduce((left, right) {
-      final leftDate = left
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      final rightDate = right
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      return leftDate.isAfter(rightDate) ? left : right;
-    });
-    latest.sort((left, right) {
+    // BOLT OPTIMIZATION: Avoid repeated .map().reduce() inside reduce comparator and DateTime allocations.
+    // Instead, use a single-pass loop over all sessions, finding the max timestamp efficiently.
+    List<SetLog>? latest;
+    int maxDateMs = -1;
+
+    for (final session in sessions.values) {
+      int sessionMaxDateMs = -1;
+      for (final set in session) {
+        final dateMs = set.performedAt?.microsecondsSinceEpoch ?? 0;
+        if (dateMs > sessionMaxDateMs) {
+          sessionMaxDateMs = dateMs;
+        }
+      }
+      if (latest == null || sessionMaxDateMs > maxDateMs) {
+        maxDateMs = sessionMaxDateMs;
+        latest = session;
+      }
+    }
+
+    latest!.sort((left, right) {
       final order = (left.logOrder ?? 0).compareTo(right.logOrder ?? 0);
       return order != 0 ? order : (left.id ?? 0).compareTo(right.id ?? 0);
     });
