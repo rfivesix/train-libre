@@ -9,12 +9,30 @@ import '../data/assistant_sql_sandbox.dart';
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../domain/assistant_change_proposal.dart';
+import '../domain/assistant_progress_status.dart';
 import '../domain/assistant_data_action.dart';
 import '../domain/assistant_data_request.dart';
 import '../domain/assistant_intent_planner.dart';
 import '../domain/assistant_sql_command.dart';
 import '../../sharing/share_link_codec.dart';
 import 'assistant_change_executor.dart';
+
+final RegExp _streamingAnswerPrefix = RegExp(
+  r'^\s*\{\s*"type"\s*:\s*"answer"\s*,\s*"answer"\s*:\s*"((?:\\.|[^"\\])*)',
+  dotAll: true,
+);
+
+String? _decodeStreamingAnswerPrefix(String rawCommand) {
+  final match = _streamingAnswerPrefix.firstMatch(rawCommand);
+  if (match == null) return null;
+  try {
+    return jsonDecode('"${match.group(1)}"') as String;
+  } on FormatException {
+    // The model may have stopped in the middle of an escape sequence. Wait
+    // for the next delta rather than rendering a malformed character.
+    return null;
+  }
+}
 
 class AssistantModelIdentity {
   const AssistantModelIdentity(
@@ -67,6 +85,7 @@ class ConfiguredAssistantModelClient implements AssistantModelClient {
       AiOverlayLiveChatService.instance.streamChat(
         prompt: prompt, configuration: identity.configuration,
         onDispatch: onDispatch,
+        smoothWords: false,
         // Previous answers may contain personal data from a different scope.
         history: const [],
       );
@@ -297,6 +316,7 @@ class AssistantChatService {
   Stream<String> approveAndAnswer(String accessId, String question,
       {String locale = 'en',
       Future<bool> Function(AssistantAccessRecord access)? onAdditionalAccess,
+      void Function(AssistantProgressStatus status)? onProgressStatus,
       void Function(String messageId, AssistantChangeProposal proposal)?
           onProposalAvailable}) async* {
     final isDe = locale.toLowerCase().startsWith('de');
@@ -318,12 +338,15 @@ class AssistantChatService {
     final request = _requestFrom(access);
     if (request == null) throw StateError('Invalid stored data request');
     await history.decideAccess(accessId, approved: true);
+    onProgressStatus?.call(AssistantProgressStatus.thinking);
     AssistantMessage? assistant;
     var response = '';
+    var streamedAnswer = '';
     var finished = false;
     final accessRecords = <AssistantAccessRecord>[access];
     try {
       var results = await data.readApproved(request, approved: true);
+      onProgressStatus?.call(AssistantProgressStatus.processingData);
       final expectedTargetIds = <String, String>{};
       final errors = results
           .where((result) => result.status != AssistantActionStatus.success)
@@ -511,6 +534,14 @@ class AssistantChatService {
               },
             )) {
               rawCommand += chunk;
+              final partialAnswer = _decodeStreamingAnswerPrefix(rawCommand);
+              if (partialAnswer != null &&
+                  partialAnswer.length > streamedAnswer.length &&
+                  partialAnswer.startsWith(streamedAnswer)) {
+                final delta = partialAnswer.substring(streamedAnswer.length);
+                streamedAnswer = partialAnswer;
+                yield delta;
+              }
             }
             if (!dispatchedThisTurn) {
               throw StateError('Provider was not invoked');
@@ -728,6 +759,8 @@ class AssistantChatService {
                   if (approved) {
                     final extraResults =
                         await data.readApproved(requested, approved: true);
+                    onProgressStatus
+                        ?.call(AssistantProgressStatus.processingData);
                     final failures = extraResults.where(
                         (item) => item.status != AssistantActionStatus.success);
                     if (failures.isEmpty) {
@@ -861,7 +894,18 @@ class AssistantChatService {
                 content: response, status: 'complete');
           }
           finished = true;
-          if (response.isNotEmpty) yield response;
+          if (response.isNotEmpty) {
+            if (streamedAnswer.isEmpty) {
+              yield response;
+            } else if (response.startsWith(streamedAnswer)) {
+              final remaining = response.substring(streamedAnswer.length);
+              if (remaining.isNotEmpty) yield remaining;
+            } else {
+              // Keep the completed persisted answer authoritative if a model
+              // rewrites its answer after beginning the stream.
+              yield '\n\n$response';
+            }
+          }
         } finally {
           await sandbox.close();
         }

@@ -1,1 +1,16 @@
-{}
+{
+  "fr": [
+    "aiAssistantThinking",
+    "aiAssistantProcessingData"
+  ],
+
+  "it": [
+    "aiAssistantThinking",
+    "aiAssistantProcessingData"
+  ],
+
+  "ja": [
+    "aiAssistantThinking",
+    "aiAssistantProcessingData"
+  ]
+}

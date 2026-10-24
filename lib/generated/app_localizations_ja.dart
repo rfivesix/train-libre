@@ -8659,4 +8659,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String aiAssistantAskModelHint(String model) {
     return '$modelに質問';
   }
+
+  @override
+  String get aiAssistantThinking => 'Thinking…';
+
+  @override
+  String get aiAssistantProcessingData => 'Analyzing approved data…';
 }

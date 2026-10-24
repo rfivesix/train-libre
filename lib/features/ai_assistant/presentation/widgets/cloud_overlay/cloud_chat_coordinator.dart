@@ -8,6 +8,7 @@ import '../../../../../services/ai_service.dart';
 import '../../../../../services/haptic_feedback_service.dart';
 import '../../../application/assistant_chat_service.dart';
 import '../../../data/assistant_history_repository.dart';
+import '../../../domain/assistant_progress_status.dart';
 import 'ai_chat_turn.dart';
 import 'cloud_demo_generation_runner.dart';
 import 'cloud_history_manager.dart';
@@ -466,6 +467,9 @@ class CloudChatCoordinator extends ChangeNotifier {
       _pendingAccess = null;
       _pendingQuestion = null;
       _isGenerating = true;
+      if (_chatTurns.isNotEmpty) {
+        _chatTurns.last.progressStatus = AssistantProgressStatus.thinking;
+      }
       notifyListeners();
       _waitingHaptics.sync(isGenerating: true);
       _loadingCloud.show();
@@ -520,6 +524,7 @@ class CloudChatCoordinator extends ChangeNotifier {
     _attentionPeekDismissed = false;
     if (_chatTurns.isNotEmpty) {
       _chatTurns.last.generationStartedAt = DateTime.now();
+      _chatTurns.last.progressStatus = AssistantProgressStatus.thinking;
       _chatTurns.last.modelName ??=
           formatModelDisplayName(access.providerId, access.modelId) ??
               _currentModelName;
@@ -556,6 +561,15 @@ class CloudChatCoordinator extends ChangeNotifier {
       },
       onAdditionalAccess: (extraAccess) =>
           _waitForAdditionalAccess(extraAccess, question, generationId),
+      onProgressStatus: (status) {
+        if (_isDisposed ||
+            _activeGenerationId != generationId ||
+            _chatTurns.isEmpty) {
+          return;
+        }
+        _chatTurns.last.progressStatus = status;
+        notifyListeners();
+      },
       onProposalAvailable: (messageId, proposal) {
         if (_chatTurns.isEmpty) return;
         final turn = _chatTurns.last;

@@ -15782,6 +15782,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask {model}'**
   String aiAssistantAskModelHint(String model);
+
+  /// No description provided for @aiAssistantThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking…'**
+  String get aiAssistantThinking;
+
+  /// No description provided for @aiAssistantProcessingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing approved data…'**
+  String get aiAssistantProcessingData;
 }
 
 class _AppLocalizationsDelegate

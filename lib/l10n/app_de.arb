@@ -3702,6 +3702,8 @@
   "aiOverlayDemoCloudHint": "Wolke horizontal ziehen. Die Position wird gespeichert.",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
   "aiAssistantAskModelHint": "Frage {model}",
+  "aiAssistantThinking": "Denkt nach …",
+  "aiAssistantProcessingData": "Wertet freigegebene Daten aus …",
   "@aiAssistantAskModelHint": {
     "placeholders": {
       "model": {

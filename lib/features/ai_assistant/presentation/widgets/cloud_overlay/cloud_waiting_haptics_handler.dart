@@ -10,8 +10,7 @@ class CloudWaitingHapticsHandler {
 
   final ValueGetter<bool> isExpandedGetter;
 
-  Timer? _collapsedWaitingHapticTimer;
-  bool _expandedWaitingHapticsActive = false;
+  bool _collapsedWaitingHapticsActive = false;
   int _lastHapticWordCount = 0;
   DateTime? _lastWordHapticAt;
 
@@ -27,25 +26,16 @@ class CloudWaitingHapticsHandler {
     final isExpanded = isExpandedGetter();
 
     if (!isGenerating || isExpanded) {
-      _collapsedWaitingHapticTimer?.cancel();
-      _collapsedWaitingHapticTimer = null;
-      if (_expandedWaitingHapticsActive) {
-        _expandedWaitingHapticsActive = false;
+      if (_collapsedWaitingHapticsActive) {
+        _collapsedWaitingHapticsActive = false;
         haptics.stopAiWaiting();
       }
       return;
     }
 
-    if (_expandedWaitingHapticsActive) {
-      _expandedWaitingHapticsActive = false;
-      haptics.stopAiWaiting();
-    }
-    if (_collapsedWaitingHapticTimer == null) {
-      unawaited(haptics.lightImpact());
-      _collapsedWaitingHapticTimer = Timer.periodic(
-        const Duration(milliseconds: 1450),
-        (_) => unawaited(haptics.lightImpact()),
-      );
+    if (!_collapsedWaitingHapticsActive) {
+      _collapsedWaitingHapticsActive = true;
+      haptics.startAiWaiting();
     }
   }
 
@@ -64,8 +54,8 @@ class CloudWaitingHapticsHandler {
   }
 
   void dispose() {
-    _collapsedWaitingHapticTimer?.cancel();
-    if (_expandedWaitingHapticsActive) {
+    if (_collapsedWaitingHapticsActive) {
+      _collapsedWaitingHapticsActive = false;
       HapticFeedbackService.instance.stopAiWaiting();
     }
   }

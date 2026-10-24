@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../../generated/app_localizations.dart';
 import '../../../../../data/database_helper.dart';
 import '../../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
@@ -9,6 +10,7 @@ import '../../../../workout/data/sources/workout_local_data_source.dart';
 import '../../../../workout/presentation/routines_screen.dart';
 import '../../../data/assistant_history_repository.dart';
 import '../../../domain/assistant_change_proposal.dart';
+import '../../../domain/assistant_progress_status.dart';
 import 'ai_chat_turn.dart';
 import 'cloud_overlay_markdown.dart';
 
@@ -132,22 +134,33 @@ class CloudChatTurnView extends StatelessWidget {
                         );
                   return Align(
                     alignment: Alignment.centerLeft,
-                    child: AiNeuralCloudOrbWidget(
-                      size: 68,
-                      canvasSize: const Size(42, 42),
-                      cloudCenter: const Offset(21, 21),
-                      sizeFactor: circleScale,
-                      morph: 0,
-                      instantaneousMorph: cloudMorph,
-                      baseColor: contrastColor,
-                      showAmbientGlow: false,
-                      enableInteraction: false,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AiNeuralCloudOrbWidget(
+                          size: 68,
+                          canvasSize: const Size(42, 42),
+                          cloudCenter: const Offset(21, 21),
+                          sizeFactor: circleScale,
+                          morph: 0,
+                          instantaneousMorph: cloudMorph,
+                          baseColor: contrastColor,
+                          showAmbientGlow: false,
+                          enableInteraction: false,
+                        ),
+                        const SizedBox(width: 10),
+                        if (turn.response.isEmpty)
+                          _AssistantProgressLabel(
+                            status: turn.progressStatus,
+                            color: softColor,
+                          ),
+                      ],
                     ),
                   );
                 },
               ),
-            )
-          else if (turn.response.isNotEmpty) ...[
+            ),
+          if (turn.response.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.only(left: 4, top: 12),
               child: CloudOverlayMarkdown(
@@ -649,6 +662,68 @@ class CloudChatTurnView extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AssistantProgressLabel extends StatefulWidget {
+  const _AssistantProgressLabel({required this.status, required this.color});
+
+  final AssistantProgressStatus status;
+  final Color color;
+
+  @override
+  State<_AssistantProgressLabel> createState() =>
+      _AssistantProgressLabelState();
+}
+
+class _AssistantProgressLabelState extends State<_AssistantProgressLabel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context)!;
+    final label = switch (widget.status) {
+      AssistantProgressStatus.thinking => strings.aiAssistantThinking,
+      AssistantProgressStatus.processingData =>
+        strings.aiAssistantProcessingData,
+    };
+    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: widget.color.withValues(alpha: 0.78),
+          fontSize: 14,
+        );
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return Text(label, style: style);
+    }
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) => ShaderMask(
+        blendMode: BlendMode.srcIn,
+        shaderCallback: (bounds) {
+          final shift = _controller.value * 2.4 - 1.2;
+          return LinearGradient(
+            begin: Alignment(shift - 0.6, 0),
+            end: Alignment(shift + 0.6, 0),
+            colors: [
+              widget.color.withValues(alpha: 0.48),
+              widget.color.withValues(alpha: 0.88),
+              widget.color.withValues(alpha: 0.48),
+            ],
+            stops: const [0.35, 0.5, 0.65],
+          ).createShader(bounds);
+        },
+        child: Text(label, style: style),
       ),
     );
   }

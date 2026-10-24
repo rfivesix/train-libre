@@ -1,5 +1,6 @@
 import '../../../data/assistant_history_repository.dart';
 import '../../../domain/assistant_change_proposal.dart';
+import '../../../domain/assistant_progress_status.dart';
 
 /// Represents a single turn in the AI assistant chat conversation.
 class AiChatTurn {
@@ -10,6 +11,7 @@ class AiChatTurn {
   String? assistantMessageId;
   AssistantAccessRecord? access;
   String response = '';
+  AssistantProgressStatus progressStatus = AssistantProgressStatus.thinking;
   String? modelName;
   Duration? duration;
   DateTime? generationStartedAt;

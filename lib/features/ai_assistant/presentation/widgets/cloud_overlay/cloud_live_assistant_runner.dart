@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../application/assistant_chat_service.dart';
 import '../../../data/assistant_history_repository.dart';
 import '../../../domain/assistant_change_proposal.dart';
+import '../../../domain/assistant_progress_status.dart';
 import 'cloud_loading_animation_controller.dart';
 
 /// Manages submitting live AI assistant prompts, streaming token chunks, and data-access approvals.
@@ -46,6 +47,7 @@ class CloudLiveAssistantRunner {
     required void Function(String text) onAppendText,
     required Future<bool> Function(AssistantAccessRecord access)
         onAdditionalAccess,
+    required void Function(AssistantProgressStatus status) onProgressStatus,
     required void Function(String messageId, AssistantChangeProposal proposal)
         onProposalAvailable,
     required void Function(Object error) onError,
@@ -56,30 +58,23 @@ class CloudLiveAssistantRunner {
 
     cancelActiveResponseSubscription();
 
-    final bufferedChunks = <String>[];
-    var dismissingCloud = false;
+    Future<void>? cloudHide;
     var streamDone = false;
     Object? streamError;
+    var terminalCallbackPending = false;
 
-    Future<void> flushAfterCloudDismiss() async {
-      if (dismissingCloud) return;
-      dismissingCloud = true;
-      try {
-        await loadingCloud.hide();
-      } finally {
-        dismissingCloud = false;
-      }
-      if (!isStillActive()) return;
+    Future<void> hideCloud() =>
+        cloudHide ??= loadingCloud.hide(waitForEnter: false);
 
-      if (bufferedChunks.isNotEmpty) {
-        final combined = bufferedChunks.join();
-        bufferedChunks.clear();
-        onAppendText(combined);
-      }
-      if (streamError != null) {
-        onError(streamError!);
-      } else if (streamDone) {
-        onDone();
+    void finishAfterCloudHide(VoidCallback callback) {
+      if (terminalCallbackPending) return;
+      terminalCallbackPending = true;
+      if (loadingCloud.isVisible || cloudHide != null) {
+        unawaited(hideCloud().whenComplete(() {
+          if (isStillActive()) callback();
+        }));
+      } else {
+        callback();
       }
     }
 
@@ -87,34 +82,33 @@ class CloudLiveAssistantRunner {
         .approveAndAnswer(accessId, question,
             locale: locale,
             onAdditionalAccess: onAdditionalAccess,
+            onProgressStatus: onProgressStatus,
             onProposalAvailable: onProposalAvailable)
         .listen(
       (chunk) {
         if (!isStillActive()) return;
-        if (loadingCloud.isVisible || dismissingCloud) {
-          bufferedChunks.add(chunk);
-          unawaited(flushAfterCloudDismiss());
-          return;
+        if (loadingCloud.isVisible && chunk.isNotEmpty) {
+          // Start revealing the answer as soon as the model emits it. The
+          // loading orb can reverse out while the streamed text appears.
+          unawaited(hideCloud());
         }
         onAppendText(chunk);
       },
       onError: (Object error) {
         if (!isStillActive()) return;
         streamError = error;
-        if (loadingCloud.isVisible || dismissingCloud) {
-          unawaited(flushAfterCloudDismiss());
-          return;
-        }
-        onError(error);
+        finishAfterCloudHide(() => onError(streamError!));
       },
       onDone: () {
         if (!isStillActive()) return;
         streamDone = true;
-        if (loadingCloud.isVisible || dismissingCloud) {
-          unawaited(flushAfterCloudDismiss());
-          return;
-        }
-        onDone();
+        finishAfterCloudHide(() {
+          if (streamError != null) {
+            onError(streamError!);
+          } else if (streamDone) {
+            onDone();
+          }
+        });
       },
     );
   }

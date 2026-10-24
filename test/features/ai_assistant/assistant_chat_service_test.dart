@@ -76,6 +76,7 @@ class _OtherAction implements AssistantDataAction {
 class _FakeModel implements AssistantModelClient {
   final decisions = Queue<String>();
   final answerResponses = Queue<String>();
+  final streamedAnswerResponses = Queue<List<String>>();
   final interpretationPrompts = <String>[];
   final answerPrompts = <String>[];
   int answers = 0;
@@ -107,6 +108,12 @@ class _FakeModel implements AssistantModelClient {
     answerPrompts.add(prompt);
     if (!dispatch) throw StateError('Network unavailable');
     await onDispatch();
+    if (streamedAnswerResponses.isNotEmpty) {
+      for (final chunk in streamedAnswerResponses.removeFirst()) {
+        yield chunk;
+      }
+      return;
+    }
     yield answerResponses.isEmpty
         ? jsonEncode({'type': 'answer', 'answer': 'Grounded answer'})
         : answerResponses.removeFirst();
@@ -266,6 +273,31 @@ void main() {
         model.interpretationPrompts.last, isNot(contains('Grounded answer')));
     expect(action.reads, 1);
     expect(model.answers, 1);
+  });
+
+  test('streams only the answer field while the model generates its JSON',
+      () async {
+    model.streamedAnswerResponses.add([
+      '{"type":"answer","answer":"Your approved ',
+      'training data shows a steady increase.',
+      ' Keep it up!"}',
+    ]);
+    model.decisions.add(dataDecision(['workouts'],
+        start: '2026-10-18', end: '2026-10-18'));
+    final submission = await chat.submit('How was my training last Sunday?',
+        now: now, locale: 'en');
+
+    final chunks = await chat
+        .approveAndAnswer(submission.access!.id, submission.userMessage.content)
+        .toList();
+
+    expect(chunks, [
+      'Your approved ',
+      'training data shows a steady increase.',
+      ' Keep it up!',
+    ]);
+    final saved = await history.messages(submission.conversationId);
+    expect(saved.last.content, chunks.join());
   });
 
   test('clearing app data removes conversations and access records', () async {

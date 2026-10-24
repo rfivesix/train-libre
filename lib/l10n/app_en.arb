@@ -3918,6 +3918,8 @@
   "aiOverlayDemoCloudHint": "Drag horizontally to move the cloud. Its position is saved.",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
   "aiAssistantAskModelHint": "Ask {model}",
+  "aiAssistantThinking": "Thinking…",
+  "aiAssistantProcessingData": "Analyzing approved data…",
   "@aiAssistantAskModelHint": {
     "placeholders": {
       "model": {

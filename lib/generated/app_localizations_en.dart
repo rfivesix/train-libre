@@ -8981,4 +8981,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String aiAssistantAskModelHint(String model) {
     return 'Ask $model';
   }
+
+  @override
+  String get aiAssistantThinking => 'Thinking…';
+
+  @override
+  String get aiAssistantProcessingData => 'Analyzing approved data…';
 }
