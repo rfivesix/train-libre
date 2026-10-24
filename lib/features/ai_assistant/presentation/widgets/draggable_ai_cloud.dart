@@ -115,19 +115,20 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   AnimationController get _morphAnimation =>
       _morphController ??= AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 760),
+        duration: const Duration(milliseconds: 900),
       )..addListener(_onMorphAnimationTick);
 
   AnimationController get _fullscreenAnimation =>
       _fullscreenController ??= AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 480),
+        duration: const Duration(milliseconds: 560),
       )..addListener(_onFullscreenAnimationTick);
 
   CurvedAnimation get _morphProgressAnimation =>
       _curvedMorphAnimation ??= CurvedAnimation(
         parent: _morphAnimation,
         curve: overlayMorphCurve,
+        reverseCurve: overlayMorphCurve,
       );
 
   @override
@@ -521,9 +522,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     return LayoutBuilder(
       builder: (context, constraints) {
         final morphAnimation = _morphAnimation;
-        final fullscreenProgress = overlayMorphCurve.transform(
-          _fullscreenAnimation.value,
-        );
+        final fullscreenProgress =
+            overlayTransitionProgress(_fullscreenAnimation.value);
         final rawMorphProgress =
             morphAnimation.value.clamp(0.0, 1.0).toDouble();
         final morphProgress = _morphProgressAnimation.value;
@@ -604,7 +604,11 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                 isSettledOrb ? null : animatedCloudCenter,
                             frameRect: layout.activeSafeRect,
                             baseColor: overlaySurface,
-                            frameMorphAnimation: _morphProgressAnimation,
+                            // The painter applies the transition curve to this
+                            // raw progress itself. Passing the already-curved
+                            // animation here would ease the cloud frame twice
+                            // and make it lag behind the overlay content.
+                            frameMorphAnimation: morphAnimation,
                             edgeBlurSigma: 4,
                             showDetachedSatellite: false,
                             flowSpeed: _dockingController.isDragging
