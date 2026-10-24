@@ -1171,9 +1171,9 @@ class BasisDataManager {
                 )
                 WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
               ''', [
-                drift.Variable.withString(legacyId),
-                drift.Variable.withString(legacyId),
-                drift.Variable.withString(targetBarcode),
+                legacyId,
+                legacyId,
+                targetBarcode,
               ]);
             }
           }
@@ -1184,9 +1184,9 @@ class BasisDataManager {
             SET caffeine = ?, caffeine_mg_per_100g = ?
             WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
           ''', [
-            drift.Variable.withReal(entry.value),
-            drift.Variable.withReal(entry.value),
-            drift.Variable.withString(entry.key),
+            entry.value,
+            entry.value,
+            entry.key,
           ]);
         }
       });
@@ -1266,7 +1266,7 @@ class BasisDataManager {
             alias['match_scope'],
             alias['review_status'],
           ])
-            drift.Variable.withString(value?.toString() ?? ''),
+            value?.toString() ?? '',
         ],
       );
     }
@@ -1274,7 +1274,7 @@ class BasisDataManager {
       'INSERT OR REPLACE INTO bls_food_alias_index_state '
       '(id, catalog_version, alias_count) VALUES (1, ?, '
       '(SELECT COUNT(*) FROM bls_food_alias_index))',
-      [drift.Variable.withString(catalogVersion)],
+      [catalogVersion],
     );
   }
 
