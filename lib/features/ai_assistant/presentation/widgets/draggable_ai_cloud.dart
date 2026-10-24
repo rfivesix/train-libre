@@ -590,6 +590,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         builder: (context, _) {
                           final isSettledOrb =
                               !_isExpanded && morphAnimation.value <= 0.005;
+                          // Keep the recording treatment strictly on the
+                          // settled compact orb. Disable it on the first frame
+                          // of opening and restore it only after closing ends.
+                          final showVoiceOrb =
+                              _voiceController.isActive && isSettledOrb;
+                          final voiceOrbIntensity = showVoiceOrb ? 1.0 : 0.0;
                           final cloud = AiNeuralCloudOrbWidget(
                             size: CloudDockingController.cloudSize *
                                 _dockingController.scale *
@@ -627,7 +633,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                 _chatCoordinator.completionPulse ||
                                 !isSettledOrb,
                             animate: !_isClosing,
-                            accentColor: _voiceController.isActive
+                            accentColor: showVoiceOrb
                                 ? DesignConstants.brandRedColor
                                 : _chatCoordinator.permissionPending &&
                                         isSettledOrb
@@ -636,14 +642,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                             // Keep the normal organic cloud silhouette while
                             // speaking; morph 0 collapses this widget to a circle.
                             morph: 1,
-                            energy: _voiceController.isActive
-                                ? _voiceController.latestVoiceLevel
+                            energy: showVoiceOrb
+                                ? _voiceController.latestVoiceLevel *
+                                    voiceOrbIntensity
                                 : _chatCoordinator.completionPulse &&
                                         isSettledOrb
                                     ? 0.75
                                     : 0,
-                            tint: _voiceController.isActive
-                                ? 0.4
+                            tint: showVoiceOrb
+                                ? 0.4 * voiceOrbIntensity
                                 : !isSettledOrb
                                     ? null
                                     : _chatCoordinator.isGenerating
@@ -654,8 +661,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                     .hasCompletedResponse
                                                 ? 1.0
                                                 : null,
-                            tintEnergyGain: _voiceController.isActive ? 0.4 : 0,
-                            showAmbientGlow: _voiceController.isActive,
+                            tintEnergyGain:
+                                showVoiceOrb ? 0.4 * voiceOrbIntensity : 0,
+                            showAmbientGlow: showVoiceOrb,
                             enableInteraction: false,
                           );
                           return Positioned(
