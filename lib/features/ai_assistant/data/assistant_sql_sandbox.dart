@@ -97,11 +97,25 @@ class AssistantSqlSandbox {
             .putIfAbsent(entry.key, () => <String, String>{})
             .addAll(result.tableColumns[entry.key] ?? const {});
         final rows = tableRows.putIfAbsent(entry.key, () => []);
-        final known = rows
-            .map((row) => row['id'] ?? row['local_id'] ?? jsonEncode(row))
-            .toSet();
+        final known = <Object>{};
+        for (final row in rows) {
+          final id = row['id']?.toString();
+          final localId = row['local_id']?.toString();
+          final key = (id != null && id.isNotEmpty)
+              ? 'id:$id'
+              : (localId != null && localId.isNotEmpty)
+                  ? 'local_id:$localId'
+                  : jsonEncode(row);
+          known.add(key);
+        }
         for (final row in entry.value) {
-          final key = row['id'] ?? row['local_id'] ?? jsonEncode(row);
+          final id = row['id']?.toString();
+          final localId = row['local_id']?.toString();
+          final key = (id != null && id.isNotEmpty)
+              ? 'id:$id'
+              : (localId != null && localId.isNotEmpty)
+                  ? 'local_id:$localId'
+                  : jsonEncode(row);
           if (known.add(key)) rows.add(row);
         }
       }
@@ -276,15 +290,44 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
     database.execute('PRAGMA query_only = ON');
     final schema = [
       schemas.join('\n'),
-      'Physical table and column names match the approved local database in snake_case. '
-          'Rows are complete database rows. Foreign keys can be joined by their *_id columns. '
+      'Tables contain approved local database rows in snake_case plus explicitly named derived columns. '
+          'Foreign keys can be joined by their documented *_id columns. '
           'Child tables contain `_parent_ref`, which joins to the parent row `ref`. '
           'Maps and lists of scalar values stay as JSON text in the parent table.',
-      'Timestamps are ISO-8601 strings in the device time zone. Date-only values use YYYY-MM-DD.',
-      'Known units: weightKg is kilograms; caloriesKcal is kilocalories; '
-          'fields ending in Grams are grams; fields ending in Milliliters are milliliters; '
-          'fields ending in Minutes are minutes; fields ending in Seconds are seconds. '
-          'Measurement values use their accompanying unit column.',
+      'Timestamps in Drift tables (e.g. consumed_at, start_time, end_time, created_at, date) '
+          'are stored as Unix epoch timestamps in seconds (UTC). '
+          'Use SQLite datetime(col, \'unixepoch\', \'localtime\') or date(col, \'unixepoch\', \'localtime\') '
+          'to group or filter by local civil date/time. '
+          'Sleep session timestamps (started_at, ended_at in sleep_canonical_sessions) are Unix epoch milliseconds; '
+          'use datetime(col / 1000, \'unixepoch\', \'localtime\'). Date-only calendar columns use YYYY-MM-DD.',
+      'Nutrition relationships & calculations: `nutrition_logs.amount` is the consumed amount in grams (or milliliters if `effective_is_fluid` is 1). '
+          'Entries link to `products` by `product_id` or `legacy_barcode` / `barcode`, or to `off_products_archive` by `archive_local_id` / `local_id`. '
+          'When archive_local_id is set, the archived values take precedence over current products and overrides. '
+          'User overrides match by `effective_barcode` / `barcode` in `user_food_overrides`. '
+          '`nutrition_logs` contains pre-calculated effective totals for consumed amounts: '
+          '`calories_kcal`, `protein_g`, `carbs_g`, `fat_g`, `sugar_g`, `fiber_g`, `salt_g`, `caffeine_mg`. '
+          'Base nutrient densities per 100g/100ml are on `nutrition_logs` (`calories_per_100g`, `protein_per_100g`, `carbs_per_100g`, etc.), '
+          '`products`, `off_products_archive`, and `user_food_overrides`. '
+          'Calculation formula: consumed_nutrient = (amount / 100.0) * nutrient_per_100g. '
+          'Unlinked products have NULL nutrients, NOT 0. Do not treat NULL as zero unless explicitly 0. '
+          'Detailed micronutrients for approved German Federal Food Key (BLS) foods live in `bls_food_nutrients` '
+          '(columns: barcode, component_code, nutrient_name, name_de, name_en, nutrient_group, '
+          'value_per_100g, value_text, unit, is_missing, origin, reference). '
+          'Join nutrition_logs.effective_barcode to bls_food_nutrients.barcode. '
+          'In `bls_food_nutrients`, numeric 0.0 has is_missing = 0. '
+          'When unmeasured or missing, value_per_100g is NULL and is_missing is 1. Consumed BLS nutrient = (nutrition_logs.amount / 100.0) * bls_food_nutrients.value_per_100g.',
+      'Workout relationships & exercise metadata: `workout_logs` (start_time, end_time, routine_id, routine_name_snapshot) joins to `set_logs` via `set_logs.workout_log_id = workout_logs.id`. '
+          '`set_logs` includes `exercise_id`, `weight`, `reps`, `rpe`, `effective_exercise_name`, `canonical_exercise_name`, and `exercise_name_snapshot`. '
+          'Exercise metadata: `exercises` (id, name, name_de, name_en, modality, tracking_type), `exercise_translations` (exercise_id, language_code, name), '
+          '`exercise_muscles` (exercise_id, muscle_id, role: primary/secondary), `muscles` (id), and `exercise_equipment` (exercise_id, equipment_id) with `equipment` (id). '
+          'Historical names: if an exercise or routine is renamed or deleted from the catalog, `set_logs.exercise_name_snapshot` '
+          'and `workout_logs.routine_name_snapshot` preserve the historical name recorded during the workout. '
+          '`effective_exercise_name` and `effective_routine_name` prefer the current name and fall back to the snapshot. '
+          'Routines: `workout_logs.routine_id = routines.id`. Saved recipes (`meals`, `meal_items`) require a separate recipes approval; meal_entries has no recipe foreign key.',
+      'Known units: weightKg and weight_kg are kilograms; caloriesKcal and calories_kcal are kilocalories; '
+          'fields ending in Grams or _g are grams; fields ending in Milliliters or _ml are milliliters; '
+          'fields ending in Minutes or _minutes are minutes; fields ending in Seconds or _seconds are seconds; '
+          'caffeine_mg is milligrams. Measurement values use their accompanying unit column.',
     ].join('\n');
     replyTo
         .send({'type': 'ready', 'port': commands.sendPort, 'schema': schema});
@@ -392,19 +435,27 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
     'coalesce',
     'count',
     'date',
+    'datetime',
     'group_concat',
     'ifnull',
+    'iif',
+    'instr',
     'julianday',
     'length',
     'lower',
+    'ltrim',
     'max',
     'min',
     'nullif',
+    'replace',
     'round',
+    'rtrim',
     'strftime',
     'substr',
     'sum',
+    'time',
     'total',
+    'trim',
     'unixepoch',
     'upper',
   };

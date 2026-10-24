@@ -97,9 +97,7 @@ class CloudVoiceController extends ChangeNotifier {
     _voiceSimulationTimer = Timer.periodic(
       const Duration(milliseconds: 80),
       (timer) {
-        if (_isDisposed ||
-            sessionId != _voiceSessionId ||
-            !_voiceSimulation) {
+        if (_isDisposed || sessionId != _voiceSessionId || !_voiceSimulation) {
           timer.cancel();
           return;
         }

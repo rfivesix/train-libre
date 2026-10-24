@@ -346,6 +346,22 @@ class AssistantChatService {
         finished = true;
         return;
       }
+      if (results.every((result) =>
+          result.records.isEmpty &&
+          (result.tables.isEmpty ||
+              result.tables.values.every((rows) => rows.isEmpty)))) {
+        await history.markNoData(accessId);
+        assistant = await history.addMessage(
+            conversationId: access.conversationId,
+            role: 'assistant',
+            content: isDe
+                ? 'Im freigegebenen Zeitraum wurden keine Einträge für diese Kategorien gefunden.'
+                : 'No records were found in the approved categories and date range.',
+            status: 'complete');
+        finished = true;
+        yield assistant.content;
+        return;
+      }
       final targeted = <AssistantActionResult>[];
       final explicitlyCreating = _explicitlyRequestsCreation(question);
       for (final result in results) {
@@ -1465,11 +1481,23 @@ ${jsonEncode([
         .toList()
       ..sort();
     if (categories.isEmpty) return null;
+    final previousScope = accesses.reversed
+        .where((record) =>
+            record.messageId == precedingUser!.id &&
+            const {'shared', 'not_shared', 'no_data'}.contains(record.status))
+        .map((record) => record.scope)
+        .firstOrNull;
+    final start = previousScope?['start']?.toString();
+    final end = previousScope?['end']?.toString();
+    final scopeDescription = start != null && end != null
+        ? ' Previous requested date scope: $start through $end. Treat this as conversation context: reuse or revise it according to the user’s current wording.'
+        : '';
     return {
       'role': 'assistant_context',
       'content': 'Earlier data-backed turn: the user asked "${precedingUser.content}". '
           'The previous answer text is withheld unless the user approves fresh data access. '
           'Categories used earlier: ${categories.join(', ')}. '
+          '$scopeDescription '
           'If the current message refers to that answer or its recommendations, request fresh access to the relevant categories and continue the follow-up instead of asking the user to repeat the recommendations.',
     };
   }

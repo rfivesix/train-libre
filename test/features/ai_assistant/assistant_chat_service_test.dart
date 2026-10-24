@@ -442,34 +442,32 @@ void main() {
     expect(intent.request!.scope!.label, contains('inferred'));
   });
 
-  test('ambiguous target offers choices without transmission', () async {
+  test('ambiguous target is clarified without choosing an unstable row number',
+      () async {
     action.records = [
       {'ref': 'workout:42', 'startedAt': '2026-10-18T09:00:00'},
       {'ref': 'workout:43', 'startedAt': '2026-10-18T18:00:00'},
     ];
     final first = await chat.submit('Show my workout last Sunday',
         now: now, locale: 'en');
-    final choices = await chat
-        .approveAndAnswer(first.access!.id, first.userMessage.content)
-        .join();
-    expect(choices, contains('Which one'));
-    expect(model.answers, 0);
-    expect((await history.access(first.access!.id))!.status, 'unresolved');
-    model.decisions.add(dataDecision(['workouts'], expression: 'last Sunday'));
-    final second = await chat.submit('2',
-        conversationId: first.conversationId, now: now, locale: 'en');
     model.answerResponses.addAll([
       jsonEncode({
         'type': 'query',
         'sql': 'SELECT ref FROM data_workouts',
       }),
-      jsonEncode({'type': 'answer', 'answer': 'Grounded answer'}),
+      jsonEncode({
+        'type': 'answer',
+        'answer': 'Do you mean the morning or evening workout?'
+      }),
     ]);
-    await chat
-        .approveAndAnswer(second.access!.id, second.userMessage.content)
-        .drain<void>();
+    final answer = await chat
+        .approveAndAnswer(first.access!.id, first.userMessage.content)
+        .join();
+    expect(answer, contains('morning or evening'));
+    expect(answer, isNot(contains('Reply with a number')));
+    expect(model.answers, greaterThan(0));
+    expect(model.answerPrompt, contains('workout:42'));
     expect(model.answerPrompt, contains('workout:43'));
-    expect(model.answerPrompt, isNot(contains('workout:42')));
   });
 
   test('read failure sends nothing and leaves no shared manifest', () async {
