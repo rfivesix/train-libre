@@ -1140,6 +1140,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     child: CloudChatTurnListView(
                       scrollController:
                           _scrollSidebarController.chatScrollController,
+                      latestMessageEndKey:
+                          _scrollSidebarController.latestMessageEndKey,
                       chatTurns: _chatCoordinator.chatTurns,
                       permissionPending: _chatCoordinator.permissionPending,
                       permissionApproved: _chatCoordinator.permissionApproved,

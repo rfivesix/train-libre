@@ -5,10 +5,12 @@ import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 
 import '../../../../../services/haptic_feedback_service.dart';
+import 'cloud_chat_scroll_constants.dart';
 
 /// Manages sidebar animations, gesture-drag tracking, and chat scroll tail-following for the AI overlay.
 class CloudScrollSidebarController extends ChangeNotifier {
   static const _scrollToBottomThreshold = 120.0;
+  static const _followChatTailThreshold = cloudChatBottomContentInset + 8.0;
 
   final TickerProvider vsync;
   final ValueGetter<bool> isFullscreenGetter;
@@ -18,6 +20,7 @@ class CloudScrollSidebarController extends ChangeNotifier {
 
   late final AnimationController _sidebarController;
   final ScrollController chatScrollController = ScrollController();
+  final GlobalKey latestMessageEndKey = GlobalKey();
 
   double _sidebarDragStartProgress = 0;
   Offset? _sidebarPointerStart;
@@ -35,6 +38,8 @@ class CloudScrollSidebarController extends ChangeNotifier {
   bool _scrollStateRefreshScheduled = false;
   int _chatUserScrollRevision = 0;
   int _chatContentRevision = 0;
+  int _latestScrollRequestRevision = 0;
+  bool _manualLatestScrollInProgress = false;
   bool _isDisposed = false;
 
   CloudScrollSidebarController({
@@ -206,7 +211,7 @@ class CloudScrollSidebarController extends ChangeNotifier {
   }
 
   void _handleChatScroll() {
-    _updateChatScrollState();
+    _updateChatScrollState(updateFollowIntent: true);
   }
 
   void refreshChatScrollStateAfterLayout() {
@@ -214,11 +219,11 @@ class CloudScrollSidebarController extends ChangeNotifier {
     _scrollStateRefreshScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollStateRefreshScheduled = false;
-      if (!_isDisposed) _updateChatScrollState();
+      if (!_isDisposed) _updateChatScrollState(updateFollowIntent: false);
     });
   }
 
-  void _updateChatScrollState() {
+  void _updateChatScrollState({required bool updateFollowIntent}) {
     if (!chatScrollController.hasClients) {
       _followChatTail = true;
       _setShowScrollToBottom(false);
@@ -226,7 +231,11 @@ class CloudScrollSidebarController extends ChangeNotifier {
     }
     final position = chatScrollController.position;
     final distanceToBottom = position.maxScrollExtent - position.pixels;
-    _followChatTail = distanceToBottom < 80;
+    // A growing response changes maxScrollExtent without user movement.
+    // Keep the user's tail-follow choice until their scroll position changes.
+    if (updateFollowIntent) {
+      _followChatTail = distanceToBottom < _followChatTailThreshold;
+    }
     _setShowScrollToBottom(distanceToBottom > _scrollToBottomThreshold);
   }
 
@@ -239,28 +248,137 @@ class CloudScrollSidebarController extends ChangeNotifier {
 
   void scrollToLatestMessage() {
     if (!chatScrollController.hasClients) return;
+    final requestRevision = ++_latestScrollRequestRevision;
+    final userScrollRevision = _chatUserScrollRevision;
     _chatContentRevision++;
-    _followChatTail = true;
-    chatScrollController.animateTo(
-      chatScrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
+    _manualLatestScrollInProgress = true;
+    unawaited(
+      _settleScrollAtLatestMessage(
+        requestRevision: requestRevision,
+        userScrollRevision: userScrollRevision,
+      ),
     );
+  }
+
+  Future<void> _settleScrollAtLatestMessage({
+    required int requestRevision,
+    required int userScrollRevision,
+  }) async {
+    double? previousMaxScrollExtent;
+
+    try {
+      // ListView.builder can estimate maxScrollExtent beyond the rendered
+      // content end. Materialize the end marker if needed, then reveal that
+      // exact render object above the composer instead of targeting the estimate.
+      for (var attempt = 0; attempt < 6; attempt++) {
+        await WidgetsBinding.instance.endOfFrame;
+        if (_isDisposed ||
+            requestRevision != _latestScrollRequestRevision ||
+            userScrollRevision != _chatUserScrollRevision ||
+            !chatScrollController.hasClients) {
+          return;
+        }
+
+        final position = chatScrollController.position;
+        final maxScrollExtent = position.maxScrollExtent;
+        final latestMessageContext = latestMessageEndKey.currentContext;
+        if (latestMessageContext == null) {
+          // Materialize a lazy-built latest turn. If the estimated extent
+          // carried us past the rendered end, back up one viewport to reveal it.
+          var target = maxScrollExtent - position.viewportDimension * 0.7;
+          if ((target - position.pixels).abs() <= 1) {
+            target = position.pixels - position.viewportDimension * 0.5;
+          }
+          target = target
+              .clamp(position.minScrollExtent, maxScrollExtent)
+              .toDouble();
+          if ((target - position.pixels).abs() > 1) {
+            await chatScrollController.animateTo(
+              target,
+              duration: Duration(milliseconds: attempt == 0 ? 280 : 180),
+              curve: Curves.easeOutCubic,
+            );
+            continue;
+          }
+          return;
+        }
+        if (!latestMessageContext.mounted) continue;
+
+        final alignment =
+            ((position.viewportDimension - cloudChatBottomContentInset) /
+                    position.viewportDimension)
+                .clamp(0.0, 1.0)
+                .toDouble();
+        await Scrollable.ensureVisible(
+          latestMessageContext,
+          alignment: alignment,
+          duration: Duration(milliseconds: attempt == 0 ? 280 : 180),
+          curve: Curves.easeOutCubic,
+        );
+        await WidgetsBinding.instance.endOfFrame;
+        if (_isDisposed ||
+            requestRevision != _latestScrollRequestRevision ||
+            userScrollRevision != _chatUserScrollRevision ||
+            !chatScrollController.hasClients) {
+          return;
+        }
+        final settledMaxScrollExtent =
+            chatScrollController.position.maxScrollExtent;
+        if (previousMaxScrollExtent != null &&
+            (settledMaxScrollExtent - previousMaxScrollExtent).abs() <= 0.5) {
+          return;
+        }
+        previousMaxScrollExtent = settledMaxScrollExtent;
+      }
+    } finally {
+      if (requestRevision == _latestScrollRequestRevision) {
+        _manualLatestScrollInProgress = false;
+        _updateChatScrollState(updateFollowIntent: true);
+      }
+    }
   }
 
   void scrollChatToBottom({bool force = false}) {
     if (force) {
+      _latestScrollRequestRevision++;
+      _manualLatestScrollInProgress = false;
       _followChatTail = true;
       _chatContentRevision++;
+    } else if (_manualLatestScrollInProgress) {
+      return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isDisposed || !chatScrollController.hasClients || !_followChatTail) {
+      if (_isDisposed ||
+          _manualLatestScrollInProgress ||
+          !chatScrollController.hasClients ||
+          !_followChatTail) {
         return;
       }
+      _jumpToLatestMessageEnd();
+    });
+  }
+
+  void _jumpToLatestMessageEnd() {
+    if (!chatScrollController.hasClients) return;
+    final context = latestMessageEndKey.currentContext;
+    if (context == null) {
       chatScrollController.jumpTo(
         chatScrollController.position.maxScrollExtent,
       );
-    });
+      return;
+    }
+    final viewportDimension = chatScrollController.position.viewportDimension;
+    final alignment =
+        ((viewportDimension - cloudChatBottomContentInset) / viewportDimension)
+            .clamp(0.0, 1.0)
+            .toDouble();
+    unawaited(
+      Scrollable.ensureVisible(
+        context,
+        alignment: alignment,
+        duration: Duration.zero,
+      ),
+    );
   }
 
   void handleHeaderDragStart(DragStartDetails details) {

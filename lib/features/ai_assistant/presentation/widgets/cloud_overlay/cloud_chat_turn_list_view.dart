@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart' show ScrollDirection;
 import '../../../data/assistant_history_repository.dart';
 import 'ai_chat_turn.dart';
 import 'cloud_chat_turn_view.dart';
+import 'cloud_chat_scroll_constants.dart';
 import 'cloud_overlay_permission_card.dart';
 
 /// Renders the scrollable list of chat turns with gradient edge fading and permission card.
@@ -14,6 +15,7 @@ class CloudChatTurnListView extends StatelessWidget {
       ValueKey<String>('ai-overlay-permission-card');
 
   final ScrollController scrollController;
+  final GlobalKey latestMessageEndKey;
   final List<AiChatTurn> chatTurns;
   final bool permissionPending;
   final bool? permissionApproved;
@@ -49,6 +51,7 @@ class CloudChatTurnListView extends StatelessWidget {
   const CloudChatTurnListView({
     super.key,
     required this.scrollController,
+    required this.latestMessageEndKey,
     required this.chatTurns,
     required this.permissionPending,
     required this.permissionApproved,
@@ -161,7 +164,9 @@ class CloudChatTurnListView extends StatelessWidget {
                     }
                     return null;
                   },
-                  padding: const EdgeInsets.only(bottom: 104),
+                  padding: const EdgeInsets.only(
+                    bottom: cloudChatBottomContentInset,
+                  ),
                   itemCount: chatTurns.length + 2,
                   itemBuilder: (context, index) {
                     if (index == 0) {
@@ -191,25 +196,32 @@ class CloudChatTurnListView extends StatelessWidget {
                     final isLastTurn = index == chatTurns.length;
                     return KeyedSubtree(
                       key: ValueKey<AiChatTurn>(turn),
-                      child: CloudChatTurnView(
-                        turn: turn,
-                        contrastColor: contrastColor,
-                        softColor: softColor,
-                        isStreaming: isGenerating && isLastTurn,
-                        showLoadingCloud: isLastTurn &&
-                            isLoadingCloudVisible &&
-                            turn.response.isEmpty,
-                        loadingCloudAnimation: loadingCloudAnimation,
-                        isCopied: copiedTurn == turn,
-                        isGenerating: isGenerating,
-                        useLiveAi: useLiveAi,
-                        onCopyResponse: () => onCopyResponse(turn),
-                        onCopyFullChat: onCopyFullChat,
-                        onRetryPrompt: () => onRetryPrompt(turn),
-                        onShowAccessAudit: onShowAccessAudit,
-                        onResolveProposal: (approved) =>
-                            onResolveProposal(turn, approved: approved),
-                        onNavigate: onNavigate,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CloudChatTurnView(
+                            turn: turn,
+                            contrastColor: contrastColor,
+                            softColor: softColor,
+                            isStreaming: isGenerating && isLastTurn,
+                            showLoadingCloud: isLastTurn &&
+                                isLoadingCloudVisible &&
+                                turn.response.isEmpty,
+                            loadingCloudAnimation: loadingCloudAnimation,
+                            isCopied: copiedTurn == turn,
+                            isGenerating: isGenerating,
+                            useLiveAi: useLiveAi,
+                            onCopyResponse: () => onCopyResponse(turn),
+                            onCopyFullChat: onCopyFullChat,
+                            onRetryPrompt: () => onRetryPrompt(turn),
+                            onShowAccessAudit: onShowAccessAudit,
+                            onResolveProposal: (approved) =>
+                                onResolveProposal(turn, approved: approved),
+                            onNavigate: onNavigate,
+                          ),
+                          if (isLastTurn)
+                            SizedBox(key: latestMessageEndKey, height: 1),
+                        ],
                       ),
                     );
                   },

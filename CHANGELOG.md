@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - The AI assistant now lets the configured model answer ordinary chat without a data prompt and infer narrow, reviewable data scopes from natural language. The app validates model proposals and still requires fresh approval before reading records.
 
 ### Fixed
+- Anchored assistant chat scrolling to the rendered end of the latest turn above the composer, avoiding inaccurate estimated list extents and preserving tail-following as streamed responses grow.
 - Kept assistant overlay header controls and the composer bar on their stable fallback surface during the cloud morph, then animated the Liquid Glass renderer's visibility in after the transition to avoid a hard visual switch.
 - Made the model responsible for translating natural-language date requests into exact ISO date scopes; the app validates and presents that scope for approval without parsing the user's language. Prior approved/requested date scopes are included as safe follow-up context for the model to reuse or revise.
 - Fixed AI assistant access to approved nutrition diary and workout records across the complete pipeline:
