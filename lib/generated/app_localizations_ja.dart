@@ -8661,6 +8661,27 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get aiStarterCheckNutritionTitle => '今日の栄養バランスを確認';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      '今日の栄養とマクロバランスはどうなっていますか？ 1日の目標と比較して、すでに摂取したカロリー、タンパク質、炭水化物、脂質と、あとどれくらい不足しているかを教えてください。';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => '回復状態を確認';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      '現在の回復状態はどうですか？ 完全に回復している筋肉部位と、次のトレーニングまでにまだ休養が必要な筋肉はどれですか？';
+
+  @override
+  String get aiStarterSuggestMealTitle => '残りのマクロに応じた食事を提案';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      '今日の食事記録と残りのマクロを確認してください：今日すでに記録した食事と、残りの目標を達成するために次の食事で何を食べたらよいかを提案してください。';
+
+  @override
   String get aiAssistantThinking => 'Thinking…';
 
   @override

@@ -33,6 +33,7 @@ import 'cloud_overlay/cloud_overlay_access_audit_modal.dart';
 import 'cloud_overlay/cloud_overlay_composer.dart';
 import 'cloud_overlay/cloud_overlay_geometry.dart';
 import 'cloud_overlay/cloud_overlay_header_toolbar.dart';
+import 'cloud_overlay/cloud_overlay_prompt_suggestions.dart';
 import 'cloud_overlay/cloud_overlay_sidebar.dart';
 import 'cloud_overlay/cloud_scroll_sidebar_controller.dart';
 import 'cloud_overlay/cloud_voice_controller.dart';
@@ -579,6 +580,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
     _chatInputController.clear();
     _chatCoordinator.sendPrompt(text);
+  }
+
+  void _handleSelectStarterPrompt(String prompt) {
+    _chatFocusNode.unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
+    _chatInputController.clear();
+    _chatCoordinator.sendPrompt(prompt);
   }
 
   String? get _askModelHint {
@@ -1259,10 +1267,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                       onCopyResponse: (turn) =>
                           _chatCoordinator.copyResponseMarkdown(turn),
                       onCopyFullChat: _chatCoordinator.copyFullChatMarkdown,
-                      onRetryPrompt: (turn) => _chatCoordinator.retryTurnPrompt(
-                        turn,
-                        onFillPrompt: (p) => _chatInputController.text = p,
-                      ),
+                      onRetryPrompt: (turn) {
+                        _chatInputController.clear();
+                        _chatCoordinator.retryTurnPrompt(turn);
+                      },
                       onShowAccessAudit: _chatCoordinator.showAccessAudit,
                       onResolveProposal: _chatCoordinator.resolveChangeProposal,
                       onIncrementUserScrollRevision:
@@ -1307,6 +1315,39 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                             ),
                           )
                         : const SizedBox.shrink(),
+                  ),
+                  AnimatedBuilder(
+                    animation: Listenable.merge([
+                      _chatCoordinator,
+                      _chatInputController,
+                      _voiceController,
+                    ]),
+                    builder: (context, _) {
+                      final showStarterPrompts =
+                          _chatCoordinator.chatTurns.isEmpty &&
+                              !_chatCoordinator.isGenerating &&
+                              !_chatCoordinator.isLoadingCloudVisible &&
+                              !_voiceController.isActive &&
+                              _chatInputController.text.trim().isEmpty;
+
+                      return AnimatedCrossFade(
+                        duration: const Duration(milliseconds: 180),
+                        sizeCurve: Curves.easeOutCubic,
+                        firstCurve: Curves.easeOut,
+                        secondCurve: Curves.easeIn,
+                        crossFadeState: showStarterPrompts
+                            ? CrossFadeState.showFirst
+                            : CrossFadeState.showSecond,
+                        firstChild: CloudOverlayPromptSuggestions(
+                          contrastColor: contrastColor,
+                          onSelectPrompt: _handleSelectStarterPrompt,
+                        ),
+                        secondChild: const SizedBox(
+                          width: double.infinity,
+                          height: 0,
+                        ),
+                      );
+                    },
                   ),
                   CloudOverlayComposer(
                     key: const ValueKey('cloud-overlay-composer'),

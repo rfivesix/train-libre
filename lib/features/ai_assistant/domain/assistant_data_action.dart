@@ -27,8 +27,9 @@ class AssistantActionResult {
 
   Map<String, dynamic> get manifest => {
         'count': records.length,
-        'payloadSha256':
-            sha256.convert(utf8.encode(jsonEncode(records))).toString(),
+        'payloadSha256': sha256
+            .convert(utf8.encode(jsonEncode(records, toEncodable: _toEncodable)))
+            .toString(),
         'references': [
           for (final record in records) ...[
             if (record['ref'] is String) record['ref'] as String,
@@ -58,11 +59,17 @@ class AssistantActionResult {
               }.keys.toList()
                 ..sort(),
               'payloadSha256': sha256
-                  .convert(utf8.encode(jsonEncode(entry.value)))
+                  .convert(utf8
+                      .encode(jsonEncode(entry.value, toEncodable: _toEncodable)))
                   .toString(),
             },
         },
       };
+
+  static Object? _toEncodable(Object? object) {
+    if (object is DateTime) return object.toIso8601String();
+    return object?.toString();
+  }
 }
 
 abstract class AssistantDataAction {

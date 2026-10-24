@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:train_libre/features/ai_assistant/presentation/widgets/cloud_overlay/header_glass_button.dart';
 import 'package:train_libre/features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 

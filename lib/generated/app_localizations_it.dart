@@ -9103,6 +9103,28 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get aiStarterCheckNutritionTitle =>
+      'Verifica valori nutrizionali di oggi';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      'Come si presenta il mio bilancio nutrizionale e dei macro per oggi? Mostrami calorie, proteine, carboidrati e grassi già assunti rispetto ai miei obiettivi giornalieri e cosa mi manca ancora.';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => 'Controlla lo stato di recupero';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      'Qual è il mio stato di recupero attuale? Quali gruppi muscolari sono completamente recuperati e quali hanno ancora bisogno di riposo prima del prossimo allenamento?';
+
+  @override
+  String get aiStarterSuggestMealTitle => 'Suggerisci pasto in base ai macro';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      'Controlla il mio diario alimentare di oggi e i macro rimanenti: quali pasti ho già registrato oggi e cosa posso mangiare al prossimo pasto per coprire al meglio i miei obiettivi residui?';
+
+  @override
   String get aiAssistantThinking => 'Thinking…';
 
   @override

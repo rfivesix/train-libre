@@ -3702,6 +3702,12 @@
   "aiOverlayDemoCloudHint": "Wolke horizontal ziehen. Die Position wird gespeichert.",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
   "aiAssistantAskModelHint": "Frage {model}",
+  "aiStarterCheckNutritionTitle": "Heutige Nährwerte prüfen",
+  "aiStarterCheckNutritionPrompt": "Wie sieht meine Nährwert- und Makrobilanz für heute aus? Zeige mir die bereits aufgenommenen Kalorien, Proteine, Kohlenhydrate und Fette im Vergleich zu meinen Tageszielen und was mir noch fehlt.",
+  "aiStarterCheckRecoveryTitle": "Erholungsstatus abfragen",
+  "aiStarterCheckRecoveryPrompt": "Wie ist mein aktueller Erholungsstatus? Welche Muskelgruppen sind vollständig regeneriert und welche Muskeln brauchen noch Erholung vor dem nächsten Training?",
+  "aiStarterSuggestMealTitle": "Mahlzeit nach Makros vorschlagen",
+  "aiStarterSuggestMealPrompt": "Prüfe mein heutiges Ernährungstagebuch und meine verbleibenden Makros: Welche Mahlzeiten habe ich heute schon erfasst und was kann ich als nächste Mahlzeit essen, um meine noch offenen Kalorien und Nährwerte optimal abzudecken?",
   "aiAssistantThinking": "Denkt nach …",
   "aiAssistantProcessingData": "Wertet freigegebene Daten aus …",
   "@aiAssistantAskModelHint": {

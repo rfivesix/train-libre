@@ -8983,6 +8983,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aiStarterCheckNutritionTitle => 'Check today\'s nutrition';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      'How do my nutrition and macro totals look for today? Show my consumed calories, protein, carbs, and fat compared to my daily targets and what is still remaining.';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => 'Check recovery status';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      'What is my current recovery status? Which muscle groups are fully recovered and which muscles still need rest before the next workout?';
+
+  @override
+  String get aiStarterSuggestMealTitle => 'Suggest meal for remaining macros';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      'Check my food diary for today and my remaining macros: Which meals have I already logged today and what can I eat for my next meal to best meet my remaining calorie and nutrition goals?';
+
+  @override
   String get aiAssistantThinking => 'Thinking…';
 
   @override

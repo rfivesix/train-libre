@@ -105,7 +105,7 @@ class AssistantSqlSandbox {
               ? 'id:$id'
               : (localId != null && localId.isNotEmpty)
                   ? 'local_id:$localId'
-                  : jsonEncode(row);
+                  : jsonEncode(row, toEncodable: _jsonEncodable);
           known.add(key);
         }
         for (final row in entry.value) {
@@ -115,7 +115,7 @@ class AssistantSqlSandbox {
               ? 'id:$id'
               : (localId != null && localId.isNotEmpty)
                   ? 'local_id:$localId'
-                  : jsonEncode(row);
+                  : jsonEncode(row, toEncodable: _jsonEncodable);
           if (known.add(key)) rows.add(row);
         }
       }
@@ -136,7 +136,7 @@ class AssistantSqlSandbox {
     final snapshotRows =
         tableRows.values.fold<int>(0, (sum, rows) => sum + rows.length);
     final snapshotBytes = tableRows.values.fold<int>(
-        0, (sum, rows) => sum + utf8.encode(jsonEncode(rows)).length);
+        0, (sum, rows) => sum + utf8.encode(jsonEncode(rows, toEncodable: _jsonEncodable)).length);
     if (snapshotRows > maxSnapshotRows || snapshotBytes > maxSnapshotBytes) {
       throw const AssistantSqlQueryException(
           'The approved data set is too large to prepare safely. Please choose a shorter date range.');
@@ -584,9 +584,17 @@ String _safeSqlType(String value) => switch (value.toUpperCase()) {
       _ => 'TEXT',
     };
 
+Object? _jsonEncodable(Object? object) {
+  if (object is DateTime) return object.toIso8601String();
+  return object?.toString();
+}
+
 Object? _sqliteValue(Object? value) {
   if (value is bool) return value ? 1 : 0;
-  if (value is Map || value is List) return jsonEncode(value);
+  if (value is Map || value is List) {
+    return jsonEncode(value, toEncodable: _jsonEncodable);
+  }
+  if (value is DateTime) return value.toIso8601String();
   if (value is String || value is num || value == null) return value;
   return value.toString();
 }

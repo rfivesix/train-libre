@@ -871,7 +871,7 @@ class CloudChatCoordinator extends ChangeNotifier {
 
   void retryTurnPrompt(
     AiChatTurn turn, {
-    required ValueChanged<String> onFillPrompt,
+    ValueChanged<String>? onFillPrompt,
   }) {
     if (_isGenerating) return;
     final prompt = turn.prompt.trim();
@@ -881,7 +881,7 @@ class CloudChatCoordinator extends ChangeNotifier {
       _chatTurns.removeRange(index, _chatTurns.length);
       notifyListeners();
     }
-    onFillPrompt(prompt);
+    onFillPrompt?.call(prompt);
     sendPrompt(prompt);
   }
 

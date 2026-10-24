@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/data/drift_database.dart' as db;
 import 'package:train_libre/features/ai_assistant/data/assistant_diary_actions.dart';
+import 'package:train_libre/features/ai_assistant/data/assistant_sql_sandbox.dart';
 import 'package:train_libre/features/ai_assistant/data/assistant_training_actions.dart';
 import 'package:train_libre/features/ai_assistant/domain/assistant_data_action.dart';
 import 'package:train_libre/features/ai_assistant/domain/assistant_data_request.dart';
@@ -94,5 +95,46 @@ void main() {
         .firstWhere((r) => r.category == AssistantDataCategory.nutrition);
     expect(nutrition.records.single['caloriesKcal'], 90);
     expect((nutrition.manifest['references'] as List), contains('foodEntry:1'));
+  });
+
+  test('recovery action records and manifest are JSON-encodable and load into sandbox', () async {
+    final database = db.AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+
+    final now = DateTime.now();
+    final workout = await database.into(database.workoutLogs).insertReturning(
+          db.WorkoutLogsCompanion.insert(
+            startTime: now.subtract(const Duration(days: 2)),
+            endTime: drift.Value(now.subtract(const Duration(days: 2, hours: -1))),
+            status: const drift.Value('completed'),
+            routineNameSnapshot: const drift.Value('Full body'),
+          ),
+        );
+    await database.into(database.setLogs).insert(db.SetLogsCompanion.insert(
+          workoutLogId: workout.id,
+          exerciseNameSnapshot: const drift.Value('Bench press'),
+          reps: const drift.Value(8),
+          weight: const drift.Value(80),
+          isCompleted: const drift.Value(true),
+        ));
+
+    final action = AssistantTrainingActions(
+      workouts: WorkoutRepository(
+          localDataSource: WorkoutLocalDataSource(database)),
+      database: database,
+    );
+
+    final result = await action.read(AssistantDataCategory.recovery, null);
+    expect(result.status, AssistantActionStatus.success);
+    expect(result.records, isNotEmpty);
+
+    // Manifest encoding must succeed without throwing "Instance of 'DateTime'"
+    expect(result.manifest, isA<Map<String, dynamic>>());
+    expect(result.manifest['payloadSha256'], isA<String>());
+
+    // Sandbox creation must also succeed without throwing "Instance of 'DateTime'"
+    final sandbox = await AssistantSqlSandbox.create([result]);
+    addTearDown(sandbox.close);
+    expect(sandbox.schema, contains('data_recovery'));
   });
 }

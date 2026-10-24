@@ -3702,6 +3702,12 @@
   "aiOverlayDemoCloudHint": "雲を左右にドラッグして移動します。位置は保存されます。",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
   "aiAssistantAskModelHint": "{model}に質問",
+  "aiStarterCheckNutritionTitle": "今日の栄養バランスを確認",
+  "aiStarterCheckNutritionPrompt": "今日の栄養とマクロバランスはどうなっていますか？ 1日の目標と比較して、すでに摂取したカロリー、タンパク質、炭水化物、脂質と、あとどれくらい不足しているかを教えてください。",
+  "aiStarterCheckRecoveryTitle": "回復状態を確認",
+  "aiStarterCheckRecoveryPrompt": "現在の回復状態はどうですか？ 完全に回復している筋肉部位と、次のトレーニングまでにまだ休養が必要な筋肉はどれですか？",
+  "aiStarterSuggestMealTitle": "残りのマクロに応じた食事を提案",
+  "aiStarterSuggestMealPrompt": "今日の食事記録と残りのマクロを確認してください：今日すでに記録した食事と、残りの目標を達成するために次の食事で何を食べたらよいかを提案してください。",
   "@aiAssistantAskModelHint": {
     "placeholders": {
       "model": {

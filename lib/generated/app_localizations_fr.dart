@@ -9128,6 +9128,28 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get aiStarterCheckNutritionTitle =>
+      'Vérifier la nutrition d\'aujourd\'hui';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      'Quel est mon bilan nutritionnel et macro pour aujourd\'hui ? Montre-moi les calories, protéines, glucides et lipides déjà consommés par rapport à mes objectifs quotidiens et ce qu\'il me reste.';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => 'Consulter l\'état de récupération';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      'Quel est mon état de récupération actuel ? Quels groupes musculaires sont totalement récupérés et lesquels ont encore besoin de repos avant le prochain entraînement ?';
+
+  @override
+  String get aiStarterSuggestMealTitle => 'Suggérer un repas selon les macros';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      'Consulte mon journal alimentaire d\'aujourd\'hui et mes macros restantes : quels repas ai-je déjà enregistrés et que puis-je manger au prochain repas pour couvrir au mieux mes objectifs restants ?';
+
+  @override
   String get aiAssistantThinking => 'Thinking…';
 
   @override

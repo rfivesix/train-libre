@@ -9053,6 +9053,27 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get aiStarterCheckNutritionTitle => 'Heutige Nährwerte prüfen';
+
+  @override
+  String get aiStarterCheckNutritionPrompt =>
+      'Wie sieht meine Nährwert- und Makrobilanz für heute aus? Zeige mir die bereits aufgenommenen Kalorien, Proteine, Kohlenhydrate und Fette im Vergleich zu meinen Tageszielen und was mir noch fehlt.';
+
+  @override
+  String get aiStarterCheckRecoveryTitle => 'Erholungsstatus abfragen';
+
+  @override
+  String get aiStarterCheckRecoveryPrompt =>
+      'Wie ist mein aktueller Erholungsstatus? Welche Muskelgruppen sind vollständig regeneriert und welche Muskeln brauchen noch Erholung vor dem nächsten Training?';
+
+  @override
+  String get aiStarterSuggestMealTitle => 'Mahlzeit nach Makros vorschlagen';
+
+  @override
+  String get aiStarterSuggestMealPrompt =>
+      'Prüfe mein heutiges Ernährungstagebuch und meine verbleibenden Makros: Welche Mahlzeiten habe ich heute schon erfasst und was kann ich als nächste Mahlzeit essen, um meine noch offenen Kalorien und Nährwerte optimal abzudecken?';
+
+  @override
   String get aiAssistantThinking => 'Denkt nach …';
 
   @override

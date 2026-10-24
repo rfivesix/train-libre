@@ -81,7 +81,7 @@ class RecoveryMuscleLoadResult {
         'state': state,
         'readinessScore': readinessScore,
         'hoursSinceLastSignificantLoad': hoursSinceLastSession,
-        'lastSignificantLoadAt': lastSessionAt,
+        'lastSignificantLoadAt': lastSessionAt?.toIso8601String(),
         // Kept for the existing payload consumers. In v2 this is strictly
         // the latest session, never a whole-lookback aggregate.
         'lastEquivalentSets': lastSessionLoad,

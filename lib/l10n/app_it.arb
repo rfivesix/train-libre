@@ -3702,6 +3702,12 @@
   "aiOverlayDemoCloudHint": "Trascina la nuvola orizzontalmente. La posizione viene salvata.",
   "@blsNutrientCount": {"placeholders": {"count": {"type": "int"}}},
   "aiAssistantAskModelHint": "Chiedi a {model}",
+  "aiStarterCheckNutritionTitle": "Verifica valori nutrizionali di oggi",
+  "aiStarterCheckNutritionPrompt": "Come si presenta il mio bilancio nutrizionale e dei macro per oggi? Mostrami calorie, proteine, carboidrati e grassi già assunti rispetto ai miei obiettivi giornalieri e cosa mi manca ancora.",
+  "aiStarterCheckRecoveryTitle": "Controlla lo stato di recupero",
+  "aiStarterCheckRecoveryPrompt": "Qual è il mio stato di recupero attuale? Quali gruppi muscolari sono completamente recuperati e quali hanno ancora bisogno di riposo prima del prossimo allenamento?",
+  "aiStarterSuggestMealTitle": "Suggerisci pasto in base ai macro",
+  "aiStarterSuggestMealPrompt": "Controlla il mio diario alimentare di oggi e i macro rimanenti: quali pasti ho già registrato oggi e cosa posso mangiare al prossimo pasto per coprire al meglio i miei obiettivi residui?",
   "@aiAssistantAskModelHint": {
     "placeholders": {
       "model": {

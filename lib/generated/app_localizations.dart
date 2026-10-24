@@ -15783,6 +15783,42 @@ abstract class AppLocalizations {
   /// **'Ask {model}'**
   String aiAssistantAskModelHint(String model);
 
+  /// No description provided for @aiStarterCheckNutritionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check today\'s nutrition'**
+  String get aiStarterCheckNutritionTitle;
+
+  /// No description provided for @aiStarterCheckNutritionPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'How do my nutrition and macro totals look for today? Show my consumed calories, protein, carbs, and fat compared to my daily targets and what is still remaining.'**
+  String get aiStarterCheckNutritionPrompt;
+
+  /// No description provided for @aiStarterCheckRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check recovery status'**
+  String get aiStarterCheckRecoveryTitle;
+
+  /// No description provided for @aiStarterCheckRecoveryPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'What is my current recovery status? Which muscle groups are fully recovered and which muscles still need rest before the next workout?'**
+  String get aiStarterCheckRecoveryPrompt;
+
+  /// No description provided for @aiStarterSuggestMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest meal for remaining macros'**
+  String get aiStarterSuggestMealTitle;
+
+  /// No description provided for @aiStarterSuggestMealPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Check my food diary for today and my remaining macros: Which meals have I already logged today and what can I eat for my next meal to best meet my remaining calorie and nutrition goals?'**
+  String get aiStarterSuggestMealPrompt;
+
   /// No description provided for @aiAssistantThinking.
   ///
   /// In en, this message translates to:
