@@ -386,6 +386,7 @@ class CloudScrollSidebarController extends ChangeNotifier {
     final morph = morphAnimationGetter();
     _headerDragStartProgress = morph.value;
     morph.stop();
+    onUnfocus?.call();
   }
 
   void handleHeaderDragUpdate(DragUpdateDetails details) {

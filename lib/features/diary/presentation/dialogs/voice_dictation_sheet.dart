@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -499,6 +500,9 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
   Future<void> _finish({required bool analyzeNow}) async {
     final text = (_editing ? _editController.text : _liveTranscript).trim();
+    _editFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
     await VoiceDictationService.instance.cancel();
     if (!mounted) return;
     Navigator.of(context).pop(

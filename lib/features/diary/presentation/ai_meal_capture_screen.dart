@@ -65,6 +65,7 @@ class AiMealCaptureScreen extends StatefulWidget {
 class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   final _textController = TextEditingController();
+  final FocusNode _textFocusNode = FocusNode(debugLabel: 'ai-meal-text-input');
   final ImagePicker _picker = ImagePicker();
 
   // Navigation & Lifecycle state
@@ -226,6 +227,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // QRView is unmounted, and calling it again is deprecated.
     _preProcessor.dispose();
     _textController.dispose();
+    _textFocusNode.dispose();
     _analyzeButtonAnimationController.dispose();
     super.dispose();
   }
@@ -617,16 +619,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final route = _analysisRoute;
     _analysisRoute = null;
     if (route != null && route.isActive) {
-      route.navigator?.removeRoute(route);
+      if (route.isCurrent) {
+        route.navigator?.pop();
+      } else {
+        route.navigator?.removeRoute(route);
+      }
     }
+    _isTopRoute = true;
   }
 
   Future<void> _analyze() async {
     if (!_hasInput) return;
     // The text field can keep the system keyboard alive while the analysis
-    // route is shown. Clear focus before pushing it so it stays dismissed
+    // route is shown. Clear focus and hide keyboard before pushing it so it stays dismissed
     // when the scan screen closes.
+    _textFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
     FocusManager.instance.primaryFocus?.unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
+    if (_showTextInput) {
+      setState(() => _showTextInput = false);
+    }
     final stopwatch = Stopwatch()..start();
     final startedAt = DateTime.now();
     final requestId = const Uuid().v4();
@@ -1202,7 +1215,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
       if (mounted) {
-        setState(() => _isAnalyzing = false);
+        setState(() {
+          _isAnalyzing = false;
+          if (!reviewNavigated && _textController.text.isNotEmpty) {
+            _showTextInput = true;
+          }
+        });
         if (_isTopRoute && !_isDictating) {
           unawaited(_resumeCamera());
         }
@@ -1470,8 +1488,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                 left: DesignConstants.spacingL),
                             child: TextField(
                               controller: _textController,
-                              onChanged: (_) => _textCameFromVoice = false,
-                              autofocus: true,
+                              focusNode: _textFocusNode,
+                              onChanged: (_) {
+                                _textCameFromVoice = false;
+                                setState(() {});
+                              },
                               minLines: 1,
                               maxLines: 4,
                               keyboardType: TextInputType.multiline,
@@ -1508,8 +1529,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                                 .withValues(alpha: 0.8)
                                             : Colors.black87,
                                         size: 18),
-                                    onPressed: () =>
-                                        setState(() => _showTextInput = false),
+                                    onPressed: () {
+                                      _textFocusNode.unfocus();
+                                      FocusScope.of(context).unfocus();
+                                      unawaited(SystemChannels.textInput
+                                          .invokeMethod<void>(
+                                              'TextInput.hide'));
+                                      setState(() => _showTextInput = false);
+                                    },
                                   ),
                                 ),
                               ),
@@ -1611,9 +1638,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                       _textController.text.isNotEmpty,
                                   tooltip: l10n.aiCaptureTabText,
                                   onTap: () {
+                                    final willShow = !_showTextInput;
                                     setState(() {
-                                      _showTextInput = !_showTextInput;
+                                      _showTextInput = willShow;
                                     });
+                                    if (willShow) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        if (mounted && _showTextInput) {
+                                          _textFocusNode.requestFocus();
+                                          unawaited(SystemChannels.textInput
+                                              .invokeMethod<void>(
+                                                  'TextInput.show'));
+                                        }
+                                      });
+                                    } else {
+                                      _textFocusNode.unfocus();
+                                      FocusScope.of(context).unfocus();
+                                      unawaited(SystemChannels.textInput
+                                          .invokeMethod<void>(
+                                              'TextInput.hide'));
+                                    }
                                   },
                                 ),
                               ],
@@ -2198,7 +2243,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (result != null) {
         _textController.text = result.text.trim();
         _textCameFromVoice = _textController.text.isNotEmpty;
-        _showTextInput = _textController.text.isNotEmpty;
+        _showTextInput = !result.analyzeNow && _textController.text.isNotEmpty;
       }
     });
 

@@ -96,6 +96,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
 
   bool _isTransitionComplete = false;
   Animation<double>? _routeAnimation;
+  Timer? _cloudMorphTimer;
   String? _activeModelName;
 
   @override
@@ -145,7 +146,8 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
     setState(() => _isTransitionComplete = true);
 
     // Pause in calm circle for 320ms, then warp to cloud!
-    Future.delayed(const Duration(milliseconds: 320), () {
+    _cloudMorphTimer?.cancel();
+    _cloudMorphTimer = Timer(const Duration(milliseconds: 320), () {
       if (mounted && !widget.controller.isFinished.value) {
         widget.controller.isCloudMorphed.value = true;
         HapticFeedbackService.instance.selectionFeedback();
@@ -155,6 +157,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
 
   @override
   void dispose() {
+    _cloudMorphTimer?.cancel();
     _routeAnimation?.removeStatusListener(_onRouteStatus);
     widget.controller.removeListener(_onPhaseChanged);
     super.dispose();

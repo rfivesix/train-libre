@@ -49,6 +49,7 @@ void main() {
     BasisDataManager.instance.invalidateCatalogPresenceCache();
     SharedPreferences.setMockInitialValues({
       'installed_off_version_de': '202608010000',
+      'ai_meal_capture_tour_completed': true,
     });
 
     await db.into(db.products).insert(const ProductsCompanion(
@@ -224,6 +225,112 @@ void main() {
 
       expect(
           find.widgetWithIcon(IconButton, LucideIcons.zap_off), findsOneWidget);
+    });
+
+    testWidgets(
+        'tapping text toggle opens input and done button hides keyboard',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: AiMealCaptureScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Initially text input is hidden
+      expect(find.byType(TextField), findsNothing);
+
+      // Tap pencil icon to open text input
+      final pencilFinder = find.byIcon(LucideIcons.pencil);
+      expect(pencilFinder, findsOneWidget);
+      await tester.tap(pencilFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Now text field is visible
+      expect(find.byType(TextField), findsOneWidget);
+
+      // Tap check/done button to collapse and dismiss keyboard
+      final checkFinder = find.byIcon(LucideIcons.check);
+      expect(checkFinder, findsOneWidget);
+      await tester.tap(checkFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets(
+        'analysis cancellation dismisses analysis screen and resumes camera',
+        (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          navigatorObservers: [appRouteObserver],
+          locale: const Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AiMealCaptureScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final uiKitFinder = find.byType(UiKitView);
+      if (uiKitFinder.evaluate().isNotEmpty) {
+        final uikit = tester.widget<UiKitView>(uiKitFinder);
+        uikit.onPlatformViewCreated?.call(0);
+      }
+      final androidFinder = find.byType(AndroidView);
+      if (androidFinder.evaluate().isNotEmpty) {
+        final android = tester.widget<AndroidView>(androidFinder);
+        android.onPlatformViewCreated?.call(0);
+      }
+      await tester.pump();
+
+      // Open text input and enter text
+      await tester.tap(find.byIcon(LucideIcons.pencil));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.enterText(find.byType(TextField), '2 Äpfel');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      qrCalls.clear();
+
+      // Find and tap "Analysieren" button
+      final analyzeButton = find.byWidgetPredicate(
+        (w) => w is ElevatedButton,
+      );
+      expect(analyzeButton, findsOneWidget);
+      await tester.tap(analyzeButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Camera was suspended
+      expect(qrCalls, contains('pauseCamera'));
+
+      // Cancel button in analysis view
+      final cancelButton = find.byWidgetPredicate(
+        (w) => w is IconButton && (w.tooltip == 'Abbrechen' || w.tooltip == 'Cancel'),
+      );
+      if (cancelButton.evaluate().isNotEmpty) {
+        await tester.tap(cancelButton.first);
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        // Camera resumed
+        expect(qrCalls, contains('resumeCamera'));
+      }
     });
   });
 

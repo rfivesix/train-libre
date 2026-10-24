@@ -142,7 +142,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       vsync: this,
       isFullscreenGetter: () => _isFullscreen,
       morphAnimationGetter: () => _morphAnimation,
-      onUnfocus: () => _chatFocusNode.unfocus(),
+      onUnfocus: () {
+        _chatFocusNode.unfocus();
+        FocusManager.instance.primaryFocus?.unfocus();
+        unawaited(
+          SystemChannels.textInput.invokeMethod<void>('TextInput.hide'),
+        );
+      },
       onToggleExpanded: _toggleExpanded,
     )..addListener(_handleControllerTick);
 
@@ -176,7 +182,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
     _voiceController = CloudVoiceController(
       vsync: this,
-      onUnfocus: () => _chatFocusNode.unfocus(),
+      onUnfocus: () {
+        _chatFocusNode.unfocus();
+        FocusManager.instance.primaryFocus?.unfocus();
+        unawaited(
+          SystemChannels.textInput.invokeMethod<void>('TextInput.hide'),
+        );
+      },
       getBaseText: () => _chatInputController.text,
       onCommitText: (text, {required bool sendNow}) {
         if (sendNow && _holdToTalkConversationPending) {
@@ -292,9 +304,24 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
     final wasFullscreen = _isFullscreen;
     final openFullscreen = expanding && widget.openDirectlyFullscreen;
+    final hasExistingMessages = _chatCoordinator.chatTurns.isNotEmpty;
+    final hasInsertedPrompt = _chatInputController.text.trim().isNotEmpty;
+    final isWorking = _chatCoordinator.isGenerating ||
+        _chatCoordinator.isLoadingCloudVisible ||
+        _voiceController.isActive;
+    final isNewChat = !hasExistingMessages && !hasInsertedPrompt && !isWorking;
+
     if (expanding) {
-      FocusManager.instance.primaryFocus?.unfocus();
+      if (!isNewChat) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      }
       unawaited(_chatCoordinator.refreshCurrentModelName());
+    } else {
+      _chatFocusNode.unfocus();
+      FocusManager.instance.primaryFocus?.unfocus();
+      unawaited(
+        SystemChannels.textInput.invokeMethod<void>('TextInput.hide'),
+      );
     }
     setState(() {
       _isExpanded = expanding;
@@ -313,7 +340,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       final fullscreenOpening = openFullscreen
           ? _fullscreenAnimation.forward(from: 0)
           : Future<void>.value();
-      unawaited(Future.wait<void>([morphOpening, fullscreenOpening]));
+      unawaited(
+        Future.wait<void>([morphOpening, fullscreenOpening]).then((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _focusNewChatComposer();
+          });
+        }).catchError((_) {
+          // Animation was cancelled or interrupted.
+        }),
+      );
     } else {
       _morphAnimation.reverse().whenComplete(() {
         if (!mounted) return;
@@ -327,9 +362,46 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             if (mounted) setState(() => _isClosingFromFullscreen = false);
           });
         }
+        _chatFocusNode.unfocus();
         FocusManager.instance.primaryFocus?.unfocus();
+        unawaited(
+          SystemChannels.textInput.invokeMethod<void>('TextInput.hide'),
+        );
         widget.onFullscreenChanged?.call(false);
         widget.onExpandedChanged?.call(false);
+      });
+    }
+  }
+
+  void _focusNewChatComposer() {
+    if (!mounted || !_isExpanded || _isClosing) return;
+    if (_morphAnimation.value < 0.99) return;
+    final hasExistingMessages = _chatCoordinator.chatTurns.isNotEmpty;
+    final hasInsertedPrompt = _chatInputController.text.trim().isNotEmpty;
+    final isWorking = _chatCoordinator.isGenerating ||
+        _chatCoordinator.isLoadingCloudVisible ||
+        _voiceController.isActive;
+    final isNewChat = !hasExistingMessages && !hasInsertedPrompt && !isWorking;
+    if (!isNewChat) return;
+
+    void requestFocusNow() {
+      if (!mounted || !_isExpanded || _isClosing) return;
+      _chatFocusNode.requestFocus();
+      unawaited(
+        SystemChannels.textInput.invokeMethod<void>('TextInput.show'),
+      );
+    }
+
+    if (_chatFocusNode.hasFocus) {
+      _chatFocusNode.unfocus();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scheduleMicrotask(() {
+          requestFocusNow();
+        });
+      });
+    } else {
+      scheduleMicrotask(() {
+        requestFocusNow();
       });
     }
   }
@@ -873,7 +945,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             AnimatedBuilder(
               animation: morphAnimation,
               builder: (context, _) {
-                final revealProgress = morphProgress;
+                final currentMorphProgress = _morphProgressAnimation.value;
+                final revealProgress = currentMorphProgress;
                 final collapsedBounds = Rect.fromCenter(
                   center: layout.cloudCenter,
                   width: 120,
@@ -937,6 +1010,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                       _scrollSidebarController.toggleSidebar,
                                 ),
                               Positioned.fill(
+                                key: const ValueKey(
+                                  'cloud-overlay-main-content',
+                                ),
                                 child: Transform.translate(
                                   offset: Offset(
                                     _scrollSidebarController
@@ -952,7 +1028,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                         ? _scrollSidebarController.closeSidebar
                                         : null,
                                     child: Transform.scale(
-                                      scale: morphProgress,
+                                      scale: currentMorphProgress,
                                       alignment: Alignment(
                                         2 *
                                                 layout.cloudCenter.dx /
@@ -1005,12 +1081,17 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                             onToggleFullscreen:
                                                 _toggleFullscreen,
                                             onStartNewChat: () {
-                                              _scrollSidebarController
-                                                  .closeSidebar();
+                                              if (_scrollSidebarController
+                                                      .sidebarAnimation.value >
+                                                  0) {
+                                                _scrollSidebarController
+                                                    .closeSidebar();
+                                              }
                                               _chatCoordinator.startNewChat();
                                               _chatInputController.clear();
                                               WidgetsBinding.instance
                                                   .addPostFrameCallback((_) {
+                                                if (!mounted || !_isExpanded) return;
                                                 if (_scrollSidebarController
                                                     .chatScrollController
                                                     .hasClients) {
@@ -1018,6 +1099,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                       .chatScrollController
                                                       .jumpTo(0);
                                                 }
+                                                _focusNewChatComposer();
                                               });
                                             },
                                             onToggleAutoApprove: () =>
@@ -1227,6 +1309,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         : const SizedBox.shrink(),
                   ),
                   CloudOverlayComposer(
+                    key: const ValueKey('cloud-overlay-composer'),
                     chatInputController: _chatInputController,
                     chatFocusNode: _chatFocusNode,
                     chatInputScrollController: _chatInputScrollController,

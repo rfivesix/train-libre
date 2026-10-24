@@ -298,33 +298,41 @@ class CloudOverlayComposer extends StatelessWidget {
         child: GlassAdaptiveScope(
           maxQuality: DesignConstants.defaultGlassQuality,
           minQuality: DesignConstants.minGlassQuality,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(
-              begin: isGlassTransitioning ? 0 : 1,
-              end: isGlassTransitioning ? 0 : 1,
-            ),
-            duration: isGlassTransitioning
-                ? Duration.zero
-                : const Duration(milliseconds: 360),
-            curve: Curves.easeOutCubic,
-            builder: (context, visibility, _) => AdaptiveGlass(
-              settings: composerGlassSettings.copyWith(
-                visibility: visibility,
-              ),
-              quality: DesignConstants.defaultGlassQuality,
-              useOwnLayer: true,
-              allowElevation: false,
-              shape: const LiquidRoundedSuperellipse(
-                borderRadius: 28,
-              ),
-              child: GlassGlow(
-                glowColor: contrastColor.withValues(
-                  alpha: 0.12 * visibility,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(
+                    begin: isGlassTransitioning ? 0 : 1,
+                    end: isGlassTransitioning ? 0 : 1,
+                  ),
+                  duration: isGlassTransitioning
+                      ? Duration.zero
+                      : const Duration(milliseconds: 360),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, visibility, _) => AdaptiveGlass(
+                    settings: composerGlassSettings.copyWith(
+                      visibility: visibility,
+                    ),
+                    quality: DesignConstants.defaultGlassQuality,
+                    useOwnLayer: true,
+                    allowElevation: false,
+                    shape: const LiquidRoundedSuperellipse(
+                      borderRadius: 28,
+                    ),
+                    child: GlassGlow(
+                      glowColor: contrastColor.withValues(
+                        alpha: 0.12 * visibility,
+                      ),
+                      glowRadius: visibility,
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
                 ),
-                glowRadius: visibility,
-                child: surface,
               ),
-            ),
+              surface,
+            ],
           ),
         ),
       ),
