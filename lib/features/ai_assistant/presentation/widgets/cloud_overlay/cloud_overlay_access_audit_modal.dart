@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../../widgets/common/app_info_row.dart';
 import '../../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../data/assistant_history_repository.dart';
 import '../../../domain/assistant_data_request.dart';
@@ -42,6 +44,9 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
+    final dateLocale = Localizations.localeOf(context).toString();
+    String formatTimestamp(DateTime timestamp) =>
+        DateFormat.yMMMd(dateLocale).add_Hm().format(timestamp.toLocal());
     final isDe = locale.toLowerCase().startsWith('de');
     final manifest = access.sharedManifest;
     final categoriesText = access.categories
@@ -62,79 +67,70 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
         formatModelDisplayName(access.providerId, access.modelId);
     final isDark = theme.brightness == Brightness.dark;
 
-    final actions = <GlassMenuAction>[
-      GlassMenuAction(
+    final rows = <Widget>[
+      _accessInfoRow(
         icon: access.status == 'approved' || access.status == 'shared'
             ? LucideIcons.shield_check
             : (access.status == 'denied'
                 ? LucideIcons.shield_x
                 : LucideIcons.shield_alert),
-        label: isDe ? 'Status: $statusText' : 'Status: $statusText',
+        title: isDe ? 'Status: $statusText' : 'Status: $statusText',
         subtitle: isDe ? 'Datenfreigabestatus' : 'Data access status',
-        onTap: () {},
       ),
-      GlassMenuAction(
+      _accessInfoRow(
         icon: LucideIcons.clock,
-        label: isDe ? 'Angefragt' : 'Requested',
-        subtitle: access.requestedAt.toLocal().toString().split('.').first,
-        onTap: () {},
+        title: isDe ? 'Angefragt' : 'Requested',
+        subtitle: formatTimestamp(access.requestedAt),
       ),
       if (access.decidedAt != null)
-        GlassMenuAction(
+        _accessInfoRow(
           icon: LucideIcons.circle_check,
-          label: isDe ? 'Entschieden' : 'Decided',
-          subtitle: access.decidedAt!.toLocal().toString().split('.').first,
-          onTap: () {},
+          title: isDe ? 'Entschieden' : 'Decided',
+          subtitle: formatTimestamp(access.decidedAt!),
         ),
-      GlassMenuAction(
+      _accessInfoRow(
         icon: LucideIcons.layout_grid,
-        label: isDe ? 'Kategorien' : 'Categories',
+        title: isDe ? 'Kategorien' : 'Categories',
         subtitle: categoriesText,
-        onTap: () {},
       ),
-      GlassMenuAction(
+      _accessInfoRow(
         icon: LucideIcons.calendar,
-        label: isDe ? 'Zeitraum' : 'Scope',
+        title: isDe ? 'Zeitraum' : 'Scope',
         subtitle: scopeText,
-        onTap: () {},
       ),
       if (access.providerId != null)
-        GlassMenuAction(
+        _accessInfoRow(
           icon: LucideIcons.bot,
-          label: isDe ? 'Modell' : 'Provider',
+          title: isDe ? 'Modell' : 'Provider',
           subtitle: modelDisplay ?? access.providerId!,
-          onTap: () {},
         ),
       if (access.sharedAt != null)
-        GlassMenuAction(
+        _accessInfoRow(
           icon: LucideIcons.send,
-          label: isDe ? 'Übertragen' : 'Shared',
-          subtitle: access.sharedAt!.toLocal().toString().split('.').first,
-          onTap: () {},
+          title: isDe ? 'Übertragen' : 'Shared',
+          subtitle: formatTimestamp(access.sharedAt!),
         ),
       if (manifest['sqlAnalysis'] is Map)
         for (final query
             in ((manifest['sqlAnalysis'] as Map)['queries'] as List? ??
                 const []))
           if (query is Map)
-            GlassMenuAction(
+            _accessInfoRow(
               icon: LucideIcons.database,
-              label: isDe ? 'SQL-Abfrage' : 'SQL query',
+              title: isDe ? 'SQL-Abfrage' : 'SQL query',
               subtitle:
                   '${(query['tables'] as List? ?? const []).join(', ')} · '
                   '${query['rowCount'] ?? 0} ${isDe ? 'Ergebnisse' : 'result rows'}'
                   '${query['truncated'] == true ? (isDe ? ' · gekürzt' : ' · truncated') : ''}',
-              onTap: () {},
             ),
       for (final entry in manifest.entries)
         if (entry.key != 'sqlAnalysis')
-          GlassMenuAction(
+          _accessInfoRow(
             icon: LucideIcons.database,
-            label: AssistantDataCategory.localizeName(entry.key, locale),
+            title: AssistantDataCategory.localizeName(entry.key, locale),
             subtitle:
                 '${(entry.value as Map)['count']} ${isDe ? 'Einträge' : 'records'}\n'
                 '${((entry.value as Map)['references'] as List).join(', ')}',
-            onTap: () {},
           ),
     ];
 
@@ -148,9 +144,14 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
         onTap: onClose,
         child: ColoredBox(
           color: barrierColor,
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: GestureDetector(
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.86,
+            minChildSize: 0.44,
+            maxChildSize: 0.94,
+            snap: true,
+            snapSizes: const [0.44, 0.86, 0.94],
+            builder: (sheetContext, scrollController) => GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {}, // Prevent taps inside sheet from dismissing
               child: GlassBottomMenuSheet(
                 title: isDe ? 'Datenzugriff' : 'Data access',
@@ -158,7 +159,12 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
                   onPressed: onClose,
                   child: Text(isDe ? 'Schließen' : 'Close'),
                 ),
-                actions: actions,
+                contentBuilder: (_, __) => ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.only(top: 4, bottom: 20),
+                  children: rows,
+                ),
+                scrollController: scrollController,
                 onClose: onClose,
               ),
             ),
@@ -168,3 +174,14 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
     );
   }
 }
+
+Widget _accessInfoRow({
+  required IconData icon,
+  required String title,
+  required String subtitle,
+}) =>
+    AppInfoRow(
+      title: title,
+      subtitle: subtitle,
+      leading: Icon(icon, size: 23),
+    );

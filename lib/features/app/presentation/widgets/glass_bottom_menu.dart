@@ -142,6 +142,7 @@ class GlassBottomMenuSheet extends StatelessWidget {
     this.actions = const <GlassMenuAction>[],
     this.applySafeAreaBottom = true,
     this.expandToFullHeight = false,
+    this.scrollController,
     this.onClose,
     this.onDisposed,
   });
@@ -155,6 +156,10 @@ class GlassBottomMenuSheet extends StatelessWidget {
   /// Fills the screen instead of hugging its content. For sheets that are a
   /// task in their own right rather than a short question.
   final bool expandToFullHeight;
+
+  /// Optional controller used when this sheet is hosted by a
+  /// [DraggableScrollableSheet].
+  final ScrollController? scrollController;
   final VoidCallback? onClose;
   final VoidCallback? onDisposed;
 
@@ -250,13 +255,14 @@ class GlassBottomMenuSheet extends StatelessWidget {
                     // A full-height sheet is a screen in its own right and lays
                     // itself out against the space it was given; wrapping it in
                     // a scroll view would hand it an unbounded height instead.
-                    return expandToFullHeight
+                    return expandToFullHeight || scrollController != null
                         ? content
                         : SingleChildScrollView(
                             clipBehavior: Clip.none,
                             padding: const EdgeInsets.only(
                               top: DesignConstants.spacingXS,
                             ),
+                            controller: scrollController,
                             child: content,
                           );
                   },
