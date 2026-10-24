@@ -21,9 +21,16 @@ class EvaluateFoodSourceUseCase {
     if (searchLowers.isEmpty) return [];
     final items = List<FoodItem>.from(candidates);
 
-    int score(FoodItem item) => searchLowers
-        .map((term) => FoodNameMatching.rank(term, item))
-        .reduce((a, b) => a < b ? a : b);
+    // BOLT OPTIMIZATION: Replace chained .map().reduce() with a single-pass loop
+    // to eliminate intermediate array allocations and closure overhead.
+    int score(FoodItem item) {
+      int minScore = 4;
+      for (final term in searchLowers) {
+        final current = FoodNameMatching.rank(term, item);
+        if (current < minScore) minScore = current;
+      }
+      return minScore;
+    }
 
     final scores = {for (final item in items) item: score(item)};
     items.removeWhere((item) => scores[item]! >= 4);
@@ -49,14 +56,20 @@ class EvaluateFoodSourceUseCase {
 
       // An exact alias can surface several BLS variants. This affects only
       // retrieval order; validation still treats unreviewed aliases as weak.
-      final aAlias = a.catalogMatchAlias != null &&
-          searchLowers.any((term) =>
-              FoodNameMatching.compact(a.catalogMatchAlias!) ==
-              FoodNameMatching.compact(term));
-      final bAlias = b.catalogMatchAlias != null &&
-          searchLowers.any((term) =>
-              FoodNameMatching.compact(b.catalogMatchAlias!) ==
-              FoodNameMatching.compact(term));
+      final aAlias =
+          a.catalogMatchAlias != null &&
+          searchLowers.any(
+            (term) =>
+                FoodNameMatching.compact(a.catalogMatchAlias!) ==
+                FoodNameMatching.compact(term),
+          );
+      final bAlias =
+          b.catalogMatchAlias != null &&
+          searchLowers.any(
+            (term) =>
+                FoodNameMatching.compact(b.catalogMatchAlias!) ==
+                FoodNameMatching.compact(term),
+          );
       if (sa == 1 && aAlias != bAlias) return aAlias ? -1 : 1;
 
       final lengthCompare = a.name.length.compareTo(b.name.length);
@@ -69,10 +82,15 @@ class EvaluateFoodSourceUseCase {
     // Each source keeps its own bounded shortlist until final validation.
     // OFF exact names can never consume the slots reserved for BLS foods.
     final counts = <FoodItemSource, int>{};
-    return items.where((item) {
-      final count =
-          counts.update(item.source, (value) => value + 1, ifAbsent: () => 1);
-      return count <= limit;
-    }).toList(growable: false);
+    return items
+        .where((item) {
+          final count = counts.update(
+            item.source,
+            (value) => value + 1,
+            ifAbsent: () => 1,
+          );
+          return count <= limit;
+        })
+        .toList(growable: false);
   }
 }
