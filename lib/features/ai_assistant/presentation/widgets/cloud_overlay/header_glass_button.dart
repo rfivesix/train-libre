@@ -52,25 +52,35 @@ class HeaderGlassButton extends StatelessWidget {
       ),
       child: Center(child: Icon(icon, size: 20, color: foreground)),
     );
-    final glassContent = !showBorder || useStaticGlass
+    final glassContent = !showBorder
         ? buttonSurface
         : Theme(
             data: glassTheme,
             child: GlassAdaptiveScope(
               maxQuality: DesignConstants.defaultGlassQuality,
               minQuality: DesignConstants.minGlassQuality,
-              child: AdaptiveGlass(
-                settings: settings,
-                quality: DesignConstants.defaultGlassQuality,
-                useOwnLayer: true,
-                allowElevation: false,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 22),
-                child: GlassGlow(
-                  glowColor: Colors.white.withValues(
-                    alpha: isDarkSurface ? 0.24 : 0.18,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(
+                  begin: useStaticGlass ? 0 : 1,
+                  end: useStaticGlass ? 0 : 1,
+                ),
+                duration: useStaticGlass
+                    ? Duration.zero
+                    : const Duration(milliseconds: 360),
+                curve: Curves.easeOutCubic,
+                builder: (context, visibility, _) => AdaptiveGlass(
+                  settings: settings.copyWith(visibility: visibility),
+                  quality: DesignConstants.defaultGlassQuality,
+                  useOwnLayer: true,
+                  allowElevation: false,
+                  shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+                  child: GlassGlow(
+                    glowColor: Colors.white.withValues(
+                      alpha: (isDarkSurface ? 0.24 : 0.18) * visibility,
+                    ),
+                    glowRadius: visibility,
+                    child: buttonSurface,
                   ),
-                  glowRadius: 1,
-                  child: buttonSurface,
                 ),
               ),
             ),

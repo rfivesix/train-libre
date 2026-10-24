@@ -293,29 +293,41 @@ class CloudOverlayComposer extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: DesignConstants.glassShadow(cloudSurfaceDark),
       ),
-      child: isGlassTransitioning
-          ? surface
-          : Theme(
-              data: glassTheme,
-              child: GlassAdaptiveScope(
-                maxQuality: DesignConstants.defaultGlassQuality,
-                minQuality: DesignConstants.minGlassQuality,
-                child: AdaptiveGlass(
-                  settings: composerGlassSettings,
-                  quality: DesignConstants.defaultGlassQuality,
-                  useOwnLayer: true,
-                  allowElevation: false,
-                  shape: const LiquidRoundedSuperellipse(
-                    borderRadius: 28,
-                  ),
-                  child: GlassGlow(
-                    glowColor: contrastColor.withValues(alpha: 0.12),
-                    glowRadius: 1,
-                    child: surface,
-                  ),
+      child: Theme(
+        data: glassTheme,
+        child: GlassAdaptiveScope(
+          maxQuality: DesignConstants.defaultGlassQuality,
+          minQuality: DesignConstants.minGlassQuality,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(
+              begin: isGlassTransitioning ? 0 : 1,
+              end: isGlassTransitioning ? 0 : 1,
+            ),
+            duration: isGlassTransitioning
+                ? Duration.zero
+                : const Duration(milliseconds: 360),
+            curve: Curves.easeOutCubic,
+            builder: (context, visibility, _) => AdaptiveGlass(
+              settings: composerGlassSettings.copyWith(
+                visibility: visibility,
+              ),
+              quality: DesignConstants.defaultGlassQuality,
+              useOwnLayer: true,
+              allowElevation: false,
+              shape: const LiquidRoundedSuperellipse(
+                borderRadius: 28,
+              ),
+              child: GlassGlow(
+                glowColor: contrastColor.withValues(
+                  alpha: 0.12 * visibility,
                 ),
+                glowRadius: visibility,
+                child: surface,
               ),
             ),
+          ),
+        ),
+      ),
     );
   }
 }
