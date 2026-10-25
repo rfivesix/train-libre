@@ -49,17 +49,17 @@ Future<void> startManualPlanDay(
   if (live.isActive) {
     final existing = live.workoutLog;
     if (existing != null && context.mounted) {
-      await Navigator.of(context).push(
-        CardMorphRoute(
-          sourceRect: sourceRect,
-          sourceBuilder: sourceBuilder,
-          onSourceVisibilityChanged: onSourceVisibilityChanged,
-          builder: (_) => LiveWorkoutScreen(
-            workoutLog: existing,
-            isFromTrainingPlan: true,
-          ),
+      final route = CardMorphRoute<void>(
+        sourceRect: sourceRect,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
+        builder: (_) => LiveWorkoutScreen(
+          workoutLog: existing,
+          isFromTrainingPlan: true,
         ),
       );
+      await Navigator.of(context).push(route);
+      await route.completed;
       if (existing.id != null) await repository.reconcileWorkout(existing.id!);
     }
     await WorkoutPlanNotificationOrchestrator().synchronize();
@@ -78,18 +78,18 @@ Future<void> startManualPlanDay(
     startTime: started.log.startTime,
   );
   if (!context.mounted) return;
-  await Navigator.of(context).push(
-    CardMorphRoute(
-      sourceRect: sourceRect,
-      sourceBuilder: sourceBuilder,
-      onSourceVisibilityChanged: onSourceVisibilityChanged,
-      builder: (_) => LiveWorkoutScreen(
-        workoutLog: log,
-        routine: started.routine,
-        isFromTrainingPlan: true,
-      ),
+  final route = CardMorphRoute<void>(
+    sourceRect: sourceRect,
+    sourceBuilder: sourceBuilder,
+    onSourceVisibilityChanged: onSourceVisibilityChanged,
+    builder: (_) => LiveWorkoutScreen(
+      workoutLog: log,
+      routine: started.routine,
+      isFromTrainingPlan: true,
     ),
   );
+  await Navigator.of(context).push(route);
+  await route.completed;
   await repository.reconcileWorkout(started.log.localId);
   await WorkoutPlanNotificationOrchestrator().synchronize();
 }

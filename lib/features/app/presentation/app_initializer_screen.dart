@@ -688,7 +688,6 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         flowSpeed: 0.35,
         showAmbientGlow: false,
         showDetachedSatellite: false,
-        baseColor: theme.colorScheme.onSurfaceVariant,
         accentColor: theme.colorScheme.primary,
       ),
     );

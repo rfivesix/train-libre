@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Prevented diary cards from briefly reloading or changing height during morph return. Meal detail no longer restarts reactive diary subscriptions for the same date, the weight card holds its current presentation until the measurement morph completes, and the training-plan card keeps its previous content while refreshing after the route animation.
+- Fixed the startup loading cloud's grey base tint by using the orb's theme-aware black (light mode) and white (dark mode) default.
 - Made taps outside the AI chat camera use the same animated close path as the back button, stopping the native capture session as the reverse animation begins.
 - Prevented the AI camera control row from overflowing during the opening animation by rendering it only once the animated panel is wide enough for all three controls.
 - Fixed square blur halos and opaque grey rendering around AI chat camera controls on iOS by routing the shutter and circular buttons through the liquid-glass platform-view backdrop renderer.

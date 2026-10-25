@@ -42,6 +42,8 @@ class _WeightCardState extends State<WeightCard>
   bool _editing = false;
   bool _saving = false;
   bool _saveFailed = false;
+  bool _morphingToMeasurements = false;
+  db.Measurement? _morphMeasurementSnapshot;
 
   /// Days without a weigh-in after which the card nudges again. Kept well
   /// below the recommendation engine's `sparse_weight_logs` threshold (fewer
@@ -173,7 +175,7 @@ class _WeightCardState extends State<WeightCard>
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        final latest = snapshot.data ??
+        final streamedLatest = snapshot.data ??
             (isSkeleton
                 ? db.Measurement(
                     localId: -1,
@@ -186,6 +188,13 @@ class _WeightCardState extends State<WeightCard>
                     unit: 'kg',
                   )
                 : null);
+        // Keep the diary source visually identical to the card copy in flight.
+        // The measurement stream can emit while its detail screen is open;
+        // applying that result during the reverse morph can change the card's
+        // content/height exactly at the source hand-over.
+        final latest = _morphingToMeasurements
+            ? _morphMeasurementSnapshot
+            : streamedLatest;
         final logged = latest != null && DateUtils.isSameDay(latest.date, _day);
         // The card's own margin sits outside the morph scope so the measured
         // source rect is the visible card, not the card plus its gap.
@@ -206,21 +215,34 @@ class _WeightCardState extends State<WeightCard>
                     // Only the collapsed, already-logged card navigates; while
                     // the ruler is open the card belongs to the inline editor.
                     onTap: logged && !open && !isSkeleton
-                        ? () => Navigator.of(context).push(
-                              CardMorphRoute<void>(
-                                sourceContext: cardCtx,
-                                // The flying copy is the same presentation
-                                // call, not a fresh WeightCard: that one would
-                                // resubscribe and take off as a spinner.
-                                sourceBuilder: (_) => _buildCard(
-                                    units, l10n, latest, logged,
-                                    onTap: null),
-                                onSourceVisibilityChanged: setHidden,
-                                builder: (_) => const MeasurementsScreen(
-                                  initialMeasurementType: 'weight',
-                                ),
+                        ? () async {
+                            _morphMeasurementSnapshot = latest;
+                            _morphingToMeasurements = true;
+                            final route = CardMorphRoute<void>(
+                              sourceContext: cardCtx,
+                              // The flying copy is the same presentation
+                              // call, not a fresh WeightCard: that one would
+                              // resubscribe and take off as a spinner.
+                              sourceBuilder: (_) => _buildCard(
+                                  units, l10n, latest, logged,
+                                  onTap: null),
+                              onSourceVisibilityChanged: setHidden,
+                              builder: (_) => const MeasurementsScreen(
+                                initialMeasurementType: 'weight',
                               ),
-                            )
+                            );
+                            try {
+                              await Navigator.of(context).push(route);
+                              await route.completed;
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _morphingToMeasurements = false;
+                                  _morphMeasurementSnapshot = null;
+                                });
+                              }
+                            }
+                          }
                         : null,
                   );
                 },

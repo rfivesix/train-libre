@@ -29,7 +29,26 @@ class ManualPlanDiaryCard extends StatefulWidget {
 
 class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
   final _repository = ManualTrainingPlanRepository();
-  int _refresh = 0;
+  late Future<(ManualTrainingPlan, PlannedCalendarDay)?> _planFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _planFuture = _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant ManualPlanDiaryCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!DateUtils.isSameDay(oldWidget.date, widget.date)) {
+      _planFuture = _load();
+    }
+  }
+
+  void _refreshPlan() {
+    if (!mounted) return;
+    setState(() => _planFuture = _load());
+  }
 
   Future<(ManualTrainingPlan, PlannedCalendarDay)?> _load() async {
     final plan = await _repository.activePlan();
@@ -43,8 +62,8 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
   Widget build(BuildContext context) {
     final text = ManualPlanText(context);
     return FutureBuilder<(ManualTrainingPlan, PlannedCalendarDay)?>(
-      key: ValueKey((widget.date, _refresh)),
-      future: _load(),
+      key: ValueKey(widget.date),
+      future: _planFuture,
       builder: (context, snapshot) {
         final result = snapshot.data;
         if (result == null) {
@@ -170,19 +189,19 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
           builder: (context, setHidden) => Builder(
             builder: (cardContext) => buildCard(
               onTap: () async {
-                await Navigator.of(context).push(
-                  CardMorphRoute(
-                    sourceContext: cardContext,
-                    sourceBuilder: (_) => buildCard(
-                      onStart: canStart ? () {} : null,
-                    ),
-                    onSourceVisibilityChanged: setHidden,
-                    builder: (_) => hasRecordedWorkout
-                        ? WorkoutLogDetailScreen(logId: workoutLogId)
-                        : const ManualPlanScreen(),
+                final route = CardMorphRoute<void>(
+                  sourceContext: cardContext,
+                  sourceBuilder: (_) => buildCard(
+                    onStart: canStart ? () {} : null,
                   ),
+                  onSourceVisibilityChanged: setHidden,
+                  builder: (_) => hasRecordedWorkout
+                      ? WorkoutLogDetailScreen(logId: workoutLogId)
+                      : const ManualPlanScreen(),
                 );
-                if (mounted) setState(() => _refresh++);
+                await Navigator.of(context).push(route);
+                await route.completed;
+                _refreshPlan();
               },
               onStart: canStart
                   ? () async {
@@ -194,7 +213,7 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
                         sourceBuilder: (_) => buildCard(onStart: () {}),
                         onSourceVisibilityChanged: setHidden,
                       );
-                      if (mounted) setState(() => _refresh++);
+                      _refreshPlan();
                     }
                   : null,
             ),

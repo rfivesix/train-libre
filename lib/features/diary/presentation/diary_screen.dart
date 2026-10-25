@@ -2104,15 +2104,6 @@ class _MealCardState extends State<_MealCard> {
                                           ),
                                         ),
                                       );
-                                      if (context.mounted) {
-                                        context
-                                            .read<DiaryViewModel>()
-                                            .loadDataForDate(
-                                              context
-                                                  .read<DiaryViewModel>()
-                                                  .selectedDate,
-                                            );
-                                      }
                                     },
                                   ),
                                 );
