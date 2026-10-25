@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../theme/app_color_choice.dart';
 import 'haptic_feedback_service.dart';
 import 'base_food_language_service.dart';
 
@@ -11,13 +12,16 @@ class ThemeService extends ChangeNotifier {
   static const _styleKey = 'visual_style';
   static const _aiEnabledKey = 'ai_enabled';
   static const _materialColorsEnabledKey = 'material_colors_enabled';
+  static const _appColorChoiceKey = 'app_color_choice';
+  static const _customAppColorKey = 'custom_app_color';
   static const _hapticsEnabledKey = 'haptics_enabled';
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
 
   ThemeMode _themeMode = ThemeMode.dark;
   int _visualStyle = 0; // 0 = Standard (Glas), 1 = Liquid
   bool _isAiEnabled = true;
-  bool _materialColorsEnabled = false;
+  AppColorChoice _appColorChoice = AppColorChoice.trainLibre;
+  Color _customAppColor = const Color(0xFF6750A4);
   bool _hapticsEnabled = true;
   bool _useColorfulMacroBadges = true;
   BaseFoodLanguage _baseFoodLanguage = BaseFoodLanguage.auto;
@@ -32,8 +36,14 @@ class ThemeService extends ChangeNotifier {
   /// Whether AI features are enabled globally.
   bool get isAiEnabled => _isAiEnabled;
 
-  /// Whether Android dynamic Material colors are enabled.
-  bool get materialColorsEnabled => _materialColorsEnabled;
+  /// The selected app accent color mode.
+  AppColorChoice get appColorChoice => _appColorChoice;
+
+  /// The user's custom accent seed color.
+  Color get customAppColor => _customAppColor;
+
+  /// Compatibility getter for the previous Android Material colors setting.
+  bool get materialColorsEnabled => _appColorChoice == AppColorChoice.system;
 
   /// Whether haptic feedback is enabled globally.
   bool get hapticsEnabled => _hapticsEnabled;
@@ -50,7 +60,7 @@ class ThemeService extends ChangeNotifier {
     _loadThemeMode();
     _loadVisualStyle();
     _loadAiEnabled();
-    _loadMaterialColorsEnabled();
+    _loadAppColorSelection();
     _loadHapticsEnabled();
     _loadUseColorfulMacroBadges();
     _loadBaseFoodLanguage();
@@ -93,9 +103,25 @@ class ThemeService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _loadMaterialColorsEnabled() async {
+  Future<void> _loadAppColorSelection() async {
     final prefs = await SharedPreferences.getInstance();
-    _materialColorsEnabled = prefs.getBool(_materialColorsEnabledKey) ?? false;
+    final savedColor = prefs.getInt(_customAppColorKey);
+    if (savedColor != null) _customAppColor = Color(savedColor);
+
+    final savedChoice = prefs.getString(_appColorChoiceKey);
+    final parsedChoice = AppColorChoice.values.where(
+      (choice) => choice.name == savedChoice,
+    );
+    if (parsedChoice.isNotEmpty) {
+      _appColorChoice = parsedChoice.first;
+    } else if (prefs.getBool(_materialColorsEnabledKey) ?? false) {
+      // Preserve users who had opted into Android Material You colors before
+      // the color picker replaced the separate switch.
+      _appColorChoice = AppColorChoice.system;
+      await prefs.setString(_appColorChoiceKey, _appColorChoice.name);
+    } else {
+      _appColorChoice = AppColorChoice.trainLibre;
+    }
     notifyListeners();
   }
 
@@ -126,13 +152,32 @@ class ThemeService extends ChangeNotifier {
     await prefs.setBool(_aiEnabledKey, enabled);
   }
 
-  /// Sets whether Android dynamic Material colors should be used.
-  Future<void> setMaterialColorsEnabled(bool enabled) async {
-    if (enabled == _materialColorsEnabled) return;
-    _materialColorsEnabled = enabled;
+  /// Selects and persists the app accent color mode.
+  Future<void> setAppColorChoice(AppColorChoice choice) async {
+    if (choice == _appColorChoice) return;
+    _appColorChoice = choice;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_materialColorsEnabledKey, enabled);
+    await prefs.setString(_appColorChoiceKey, choice.name);
+    await prefs.remove(_materialColorsEnabledKey);
+  }
+
+  /// Selects a custom accent color and persists it.
+  Future<void> setCustomAppColor(Color color) async {
+    _customAppColor = Color(color.toARGB32());
+    _appColorChoice = AppColorChoice.custom;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_appColorChoiceKey, _appColorChoice.name);
+    await prefs.setInt(_customAppColorKey, _customAppColor.toARGB32());
+    await prefs.remove(_materialColorsEnabledKey);
+  }
+
+  /// Compatibility setter for callers using the former Material colors API.
+  Future<void> setMaterialColorsEnabled(bool enabled) async {
+    await setAppColorChoice(
+      enabled ? AppColorChoice.system : AppColorChoice.trainLibre,
+    );
   }
 
   /// Sets whether haptic feedback should be used across the app.

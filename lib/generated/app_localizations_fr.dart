@@ -2632,6 +2632,65 @@ class AppLocalizationsFr extends AppLocalizations {
       'Utilisez les couleurs dynamiques du système (Material You) au lieu de l\'accent de la marque Train Libre';
 
   @override
+  String get settingsAppColorTitle => 'Couleur de l’application';
+
+  @override
+  String get settingsAppColorSubtitle =>
+      'Choisissez une couleur d’accent adaptée aux modes clair et sombre.';
+
+  @override
+  String get appColorPresetTrainLibre => 'Train Libre';
+
+  @override
+  String get appColorPresetMonochrome => 'Noir et blanc';
+
+  @override
+  String get appColorPresetBlue => 'Bleu';
+
+  @override
+  String get appColorPresetTeal => 'Turquoise';
+
+  @override
+  String get appColorPresetPurple => 'Violet';
+
+  @override
+  String get appColorPresetOrange => 'Orange';
+
+  @override
+  String get appColorPresetRose => 'Rose';
+
+  @override
+  String get appColorPresetCustom => 'Personnalisée';
+
+  @override
+  String get appColorPresetSystem => 'Couleurs du système';
+
+  @override
+  String get appColorCustomDialogTitle => 'Choisir une couleur';
+
+  @override
+  String get appColorHexLabel => 'Couleur hexadécimale';
+
+  @override
+  String get appColorHexInvalid =>
+      'Saisissez une couleur hexadécimale à 6 chiffres.';
+
+  @override
+  String get appColorHueLabel => 'Teinte';
+
+  @override
+  String get appColorSaturationLabel => 'Saturation';
+
+  @override
+  String get appColorBrightnessLabel => 'Luminosité';
+
+  @override
+  String get appColorCancel => 'Annuler';
+
+  @override
+  String get appColorApply => 'Appliquer';
+
+  @override
   String get settingsFoodDbSectionTitle => 'Base de données alimentaire';
 
   @override

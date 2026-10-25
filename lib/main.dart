@@ -33,6 +33,7 @@ import 'features/workout/presentation/workout_morph_route.dart';
 import 'package:provider/provider.dart';
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
+import 'theme/app_color_choice.dart';
 import 'package:intl/date_symbol_data_local.dart'; // FIX: Initialize intl formatting
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -575,37 +576,45 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final themeService = context.watch<ThemeService>();
         final isAndroid =
             !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-        final useDynamicMaterialColors =
-            isAndroid && themeService.materialColorsEnabled;
-
-        // Use brand accent by default; optional Android toggle enables dynamic Material colors.
-        final Color lightSeed = useDynamicMaterialColors
-            ? (lightDynamic?.primary ??
-                DesignConstants.brandAccentColorLightMode)
-            : DesignConstants.brandAccentColorLightMode;
-        final Color darkSeed = useDynamicMaterialColors
-            ? (darkDynamic?.primary ?? DesignConstants.brandAccentColor)
-            : DesignConstants.brandAccentColor;
+        final colorChoice = themeService.appColorChoice;
+        final useSystemColors =
+            isAndroid && colorChoice == AppColorChoice.system;
+        final Color lightPrimary = colorChoice.primary(
+          brightness: Brightness.light,
+          customColor: themeService.customAppColor,
+          systemColor: useSystemColors ? lightDynamic?.primary : null,
+        );
+        final Color darkPrimary = colorChoice.primary(
+          brightness: Brightness.dark,
+          customColor: themeService.customAppColor,
+          systemColor: useSystemColors ? darkDynamic?.primary : null,
+        );
 
         // --- Light scheme from seed, but without Material You UI ---
         final lightScheme = ColorScheme.fromSeed(
-          seedColor: lightSeed,
+          seedColor: lightPrimary,
           brightness: Brightness.light,
         ).copyWith(
-          primary: lightSeed,
-          onPrimary: Colors.black,
+          primary: lightPrimary,
+          onPrimary: colorChoice.onPrimary(
+            brightness: Brightness.light,
+            primary: lightPrimary,
+          ),
           surface: Colors.white,
           error: DesignConstants.brandRedColor,
         );
 
         // --- Dark scheme from seed + OLED black ---
         final seededDark = ColorScheme.fromSeed(
-          seedColor: darkSeed,
+          seedColor: darkPrimary,
           brightness: Brightness.dark,
         );
         final darkScheme = seededDark.copyWith(
-          primary: darkSeed,
-          onPrimary: Colors.black,
+          primary: darkPrimary,
+          onPrimary: colorChoice.onPrimary(
+            brightness: Brightness.dark,
+            primary: darkPrimary,
+          ),
           surface: Colors.black,
           surfaceDim: Colors.black,
           surfaceBright: Colors.black,

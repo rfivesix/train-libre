@@ -375,10 +375,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
   Widget _languageTile(BuildContext ctx, String? id, String label) {
     final isSelected = id == null ? _localeId == null : _localeId == id;
-    final isDark = Theme.of(ctx).brightness == Brightness.dark;
-    final accent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final accent = Theme.of(ctx).colorScheme.primary;
     return ListTile(
       dense: true,
       title: Text(label),
@@ -714,9 +711,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     final isDark = theme.brightness == Brightness.dark;
     final ink = isDark ? Colors.white : const Color(0xFF12120F);
     final muted = ink.withValues(alpha: 0.6);
-    final accentColor = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final accentColor = Theme.of(context).colorScheme.primary;
 
     final isListening = _phase == _DictationPhase.listening;
     final hasText = _liveTranscript.trim().isNotEmpty;

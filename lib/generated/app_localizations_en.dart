@@ -2598,6 +2598,64 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use dynamic system colors (Material You) instead of the Train Libre brand accent';
 
   @override
+  String get settingsAppColorTitle => 'App color';
+
+  @override
+  String get settingsAppColorSubtitle =>
+      'Choose an accent color that adapts to light and dark mode.';
+
+  @override
+  String get appColorPresetTrainLibre => 'Train Libre';
+
+  @override
+  String get appColorPresetMonochrome => 'Black & white';
+
+  @override
+  String get appColorPresetBlue => 'Blue';
+
+  @override
+  String get appColorPresetTeal => 'Teal';
+
+  @override
+  String get appColorPresetPurple => 'Purple';
+
+  @override
+  String get appColorPresetOrange => 'Orange';
+
+  @override
+  String get appColorPresetRose => 'Rose';
+
+  @override
+  String get appColorPresetCustom => 'Custom';
+
+  @override
+  String get appColorPresetSystem => 'System colors';
+
+  @override
+  String get appColorCustomDialogTitle => 'Choose a color';
+
+  @override
+  String get appColorHexLabel => 'Hex color';
+
+  @override
+  String get appColorHexInvalid => 'Enter a 6-digit hex color.';
+
+  @override
+  String get appColorHueLabel => 'Hue';
+
+  @override
+  String get appColorSaturationLabel => 'Saturation';
+
+  @override
+  String get appColorBrightnessLabel => 'Brightness';
+
+  @override
+  String get appColorCancel => 'Cancel';
+
+  @override
+  String get appColorApply => 'Apply';
+
+  @override
   String get settingsFoodDbSectionTitle => 'Food database';
 
   @override

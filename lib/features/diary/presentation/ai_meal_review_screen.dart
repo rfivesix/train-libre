@@ -2133,7 +2133,7 @@ class _DepthToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const lime = DesignConstants.brandAccentColor;
+    final lime = Theme.of(context).colorScheme.primary;
     return GestureDetector(
       onTap: onTap,
       child: Container(

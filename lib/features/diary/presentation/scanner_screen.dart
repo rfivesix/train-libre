@@ -285,8 +285,6 @@ class _ScannerScreenState extends State<ScannerScreen>
       );
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return PopScope(
       canPop: true,
       child: Scaffold(
@@ -310,11 +308,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                 icon: Icon(
                   _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
                   size: 20,
-                  color: _isFlashOn
-                      ? (isDark
-                          ? DesignConstants.brandAccentColor
-                          : Theme.of(context).colorScheme.primary)
-                      : null,
+                  color:
+                      _isFlashOn ? Theme.of(context).colorScheme.primary : null,
                 ),
                 tooltip: l10n.scannerToggleFlash,
                 onPressed: _toggleFlash,

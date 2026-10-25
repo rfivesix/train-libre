@@ -32,9 +32,7 @@ class AppTourOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accentColor = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final accentColor = theme.colorScheme.primary;
 
     final List<RRect> baseHoles = [];
     if (targetRect != null) {
@@ -160,9 +158,7 @@ class AppTourOverlay extends StatelessWidget {
                                   fontFamily: 'Inter',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? DesignConstants.brandAccentColor
-                                      : const Color(0xFF5B6B00),
+                                  color: accentColor,
                                 ),
                               ),
                             ),

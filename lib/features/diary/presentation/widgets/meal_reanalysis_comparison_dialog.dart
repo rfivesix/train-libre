@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
-import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../domain/models/tracked_food_item.dart';
 
@@ -62,15 +61,14 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF161616) : const Color(0xFFF7F7F4);
     final cardBg = isDark ? const Color(0xFF222220) : Colors.white;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
         isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
-    final lime = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final lime = theme.colorScheme.primary;
 
     int prevKcal = 0;
     for (final it in previousItems) {

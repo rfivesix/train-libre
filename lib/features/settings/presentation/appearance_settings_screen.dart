@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../../services/theme_service.dart';
+import '../../../theme/app_color_choice.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import 'app_color_settings_screen.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});
@@ -52,20 +54,40 @@ class AppearanceSettingsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              if (isAndroid) ...[
-                AppSettingsRow.switchTile(
-                  title: l10n.settingsMaterialColorsTitle,
-                  subtitle: l10n.settingsMaterialColorsSubtitle,
-                  leading: Icon(
-                    LucideIcons.palette,
-                    size: 24,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  value: themeService.materialColorsEnabled,
-                  onChanged: (value) =>
-                      themeService.setMaterialColorsEnabled(value),
+              AppSettingsRow(
+                title: l10n.settingsAppColorTitle,
+                subtitle: _appColorLabel(l10n, themeService),
+                leading: Icon(
+                  LucideIcons.palette,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-              ],
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AppColorSettingsScreen(
+                      showSystemColors: isAndroid,
+                    ),
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ColorPreview(
+                      choice: themeService.appColorChoice,
+                      customColor: themeService.customAppColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      LucideIcons.chevron_right,
+                      size: 20,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4),
+                    ),
+                  ],
+                ),
+              ),
               AppSettingsRow.switchTile(
                 title: l10n.settingsHapticFeedbackTitle,
                 subtitle: l10n.settingsHapticFeedbackSubtitle,
@@ -90,5 +112,74 @@ class AppearanceSettingsScreen extends StatelessWidget {
       ThemeMode.light => l10n.themeLight,
       ThemeMode.dark => l10n.themeDark,
     };
+  }
+
+  String _appColorLabel(AppLocalizations l10n, ThemeService service) {
+    if (service.appColorChoice == AppColorChoice.custom) {
+      final value = service.customAppColor.toARGB32().toRadixString(16);
+      return '#${value.substring(value.length - 6).toUpperCase()}';
+    }
+    return switch (service.appColorChoice) {
+      AppColorChoice.trainLibre => l10n.appColorPresetTrainLibre,
+      AppColorChoice.monochrome => l10n.appColorPresetMonochrome,
+      AppColorChoice.blue => l10n.appColorPresetBlue,
+      AppColorChoice.teal => l10n.appColorPresetTeal,
+      AppColorChoice.purple => l10n.appColorPresetPurple,
+      AppColorChoice.orange => l10n.appColorPresetOrange,
+      AppColorChoice.rose => l10n.appColorPresetRose,
+      AppColorChoice.custom => l10n.appColorPresetCustom,
+      AppColorChoice.system => l10n.appColorPresetSystem,
+    };
+  }
+}
+
+class _ColorPreview extends StatelessWidget {
+  const _ColorPreview({required this.choice, required this.customColor});
+
+  final AppColorChoice choice;
+  final Color customColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final light = choice.primary(
+      brightness: Brightness.light,
+      customColor: customColor,
+      systemColor: Theme.of(context).colorScheme.primary,
+    );
+    final dark = choice.primary(
+      brightness: Brightness.dark,
+      customColor: customColor,
+      systemColor: Theme.of(context).colorScheme.primary,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _ColorDot(color: light, size: 15),
+        const SizedBox(width: 4),
+        _ColorDot(color: dark, size: 15),
+      ],
+    );
+  }
+}
+
+class _ColorDot extends StatelessWidget {
+  const _ColorDot({required this.color, this.size = 18});
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.35),
+        ),
+      ),
+    );
   }
 }

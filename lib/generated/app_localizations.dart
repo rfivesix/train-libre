@@ -4718,6 +4718,120 @@ abstract class AppLocalizations {
   /// **'Use dynamic system colors (Material You) instead of the Train Libre brand accent'**
   String get settingsMaterialColorsSubtitle;
 
+  /// No description provided for @settingsAppColorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App color'**
+  String get settingsAppColorTitle;
+
+  /// No description provided for @settingsAppColorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an accent color that adapts to light and dark mode.'**
+  String get settingsAppColorSubtitle;
+
+  /// No description provided for @appColorPresetTrainLibre.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre'**
+  String get appColorPresetTrainLibre;
+
+  /// No description provided for @appColorPresetMonochrome.
+  ///
+  /// In en, this message translates to:
+  /// **'Black & white'**
+  String get appColorPresetMonochrome;
+
+  /// No description provided for @appColorPresetBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get appColorPresetBlue;
+
+  /// No description provided for @appColorPresetTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get appColorPresetTeal;
+
+  /// No description provided for @appColorPresetPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get appColorPresetPurple;
+
+  /// No description provided for @appColorPresetOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get appColorPresetOrange;
+
+  /// No description provided for @appColorPresetRose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get appColorPresetRose;
+
+  /// No description provided for @appColorPresetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get appColorPresetCustom;
+
+  /// No description provided for @appColorPresetSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System colors'**
+  String get appColorPresetSystem;
+
+  /// No description provided for @appColorCustomDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color'**
+  String get appColorCustomDialogTitle;
+
+  /// No description provided for @appColorHexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hex color'**
+  String get appColorHexLabel;
+
+  /// No description provided for @appColorHexInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a 6-digit hex color.'**
+  String get appColorHexInvalid;
+
+  /// No description provided for @appColorHueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get appColorHueLabel;
+
+  /// No description provided for @appColorSaturationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get appColorSaturationLabel;
+
+  /// No description provided for @appColorBrightnessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get appColorBrightnessLabel;
+
+  /// No description provided for @appColorCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get appColorCancel;
+
+  /// No description provided for @appColorApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get appColorApply;
+
   /// No description provided for @settingsFoodDbSectionTitle.
   ///
   /// In en, this message translates to:

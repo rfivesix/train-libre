@@ -5,8 +5,6 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-import '../../../../util/design_constants.dart';
-
 /// The photo of a meal — one image, a swipeable carousel when a capture
 /// produced several, or a LiDAR depth map.
 class MealPhotoWidget extends StatefulWidget {
@@ -260,7 +258,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
                       height: 6,
                       decoration: BoxDecoration(
                         color: isActive
-                            ? DesignConstants.brandAccentColor
+                            ? Theme.of(context).colorScheme.primary
                             : Colors.white.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(3),
                       ),

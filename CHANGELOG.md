@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.0] - unreleased
 
 ### Added
+- Added an app color selector in Appearance with the Train Libre default, monochrome and color presets, a custom color picker, and Android system colors.
 - Added DeepSeek as a selectable AI provider for meal analysis and live AI chat, with secure API-key storage and live model discovery.
 - Added a temporary debug-only native iOS platform-view test pattern when the inline camera is unavailable, so camera glass blur and clipping can be inspected in the simulator.
 - Added explicit AI chat meal logging from text or attached photos. The assistant prepares a reviewable macro-only meal proposal without food-catalog lookup; applying it stores linked diary macro entries with calories calculated by the existing 4/4/9 rule and copies attached photos into persistent meal storage.

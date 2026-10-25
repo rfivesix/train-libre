@@ -2551,6 +2551,63 @@ class AppLocalizationsJa extends AppLocalizations {
       'Train Libre ブランド アクセントの代わりにシステムのダイナミック カラー (マテリアル ユー) を使用する';
 
   @override
+  String get settingsAppColorTitle => 'アプリの色';
+
+  @override
+  String get settingsAppColorSubtitle => 'ライトモードとダークモードに合うアクセントカラーを選択します。';
+
+  @override
+  String get appColorPresetTrainLibre => 'Train Libre';
+
+  @override
+  String get appColorPresetMonochrome => '白黒';
+
+  @override
+  String get appColorPresetBlue => 'ブルー';
+
+  @override
+  String get appColorPresetTeal => 'ティール';
+
+  @override
+  String get appColorPresetPurple => 'パープル';
+
+  @override
+  String get appColorPresetOrange => 'オレンジ';
+
+  @override
+  String get appColorPresetRose => 'ローズ';
+
+  @override
+  String get appColorPresetCustom => 'カスタム';
+
+  @override
+  String get appColorPresetSystem => 'システムカラー';
+
+  @override
+  String get appColorCustomDialogTitle => '色を選択';
+
+  @override
+  String get appColorHexLabel => '16進数カラーコード';
+
+  @override
+  String get appColorHexInvalid => '6桁の16進数カラーコードを入力してください。';
+
+  @override
+  String get appColorHueLabel => '色相';
+
+  @override
+  String get appColorSaturationLabel => '彩度';
+
+  @override
+  String get appColorBrightnessLabel => '明るさ';
+
+  @override
+  String get appColorCancel => 'キャンセル';
+
+  @override
+  String get appColorApply => '適用';
+
+  @override
   String get settingsFoodDbSectionTitle => '食品データベース';
 
   @override

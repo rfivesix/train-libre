@@ -1372,11 +1372,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = Theme.of(context).scaffoldBackgroundColor;
-    final primaryAccent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = theme.scaffoldBackgroundColor;
+    final primaryAccent = theme.colorScheme.primary;
 
     if (!_isOffDbInitialized) {
       return Scaffold(
@@ -2028,8 +2027,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignConstants.brandAccentColor,
-                foregroundColor: const Color(0xFF12120F),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
@@ -2200,7 +2199,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final label = _detectedProduct?.name ??
         l10n.aiCaptureBarcodeFallback(_detectedBarcode!);
 
@@ -2323,7 +2323,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildMealVoiceControl(AppLocalizations l10n) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     final transcriptWidth = math
         .max(
           44.0,
@@ -2331,9 +2331,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         )
         .toDouble();
     final transcriptSideOffset = (transcriptWidth - 44) / 2;
-    final accent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final accent = theme.colorScheme.primary;
 
     return Listener(
       key: _keyVoice,
