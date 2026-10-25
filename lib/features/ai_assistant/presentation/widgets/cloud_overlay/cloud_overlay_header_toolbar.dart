@@ -6,7 +6,7 @@ import '../../../../../widgets/common/platform_adaptive_dropdown.dart';
 import 'header_glass_button.dart';
 
 /// Actions available in the assistant overlay header menu.
-enum AssistantMenuAction { autoApprove }
+enum AssistantMenuAction { autoApprove, settings }
 
 /// The expanded top toolbar for the draggable AI cloud overlay.
 class CloudOverlayHeaderToolbar extends StatelessWidget {
@@ -28,6 +28,7 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
     required this.onToggleFullscreen,
     required this.onStartNewChat,
     required this.onToggleAutoApprove,
+    required this.onOpenSettings,
     required this.onToggleExpanded,
     required this.onHeaderDragStart,
     required this.onHeaderDragUpdate,
@@ -50,6 +51,7 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
   final VoidCallback onToggleFullscreen;
   final VoidCallback onStartNewChat;
   final VoidCallback onToggleAutoApprove;
+  final VoidCallback onOpenSettings;
   final VoidCallback onToggleExpanded;
   final GestureDragStartCallback onHeaderDragStart;
   final GestureDragUpdateCallback onHeaderDragUpdate;
@@ -158,16 +160,24 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
                   PlatformAdaptivePopupMenuItem(
                     value: AssistantMenuAction.autoApprove,
                     label: l10n.aiOverlayAutoApprove,
+                    icon: LucideIcons.shield_check,
                     customTrailing: autoApproveDataRequests
                         ? Icon(LucideIcons.check,
                             color: foregroundColor, size: 18)
                         : null,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: AssistantMenuAction.settings,
+                    label: l10n.settingsTitle,
+                    icon: LucideIcons.settings,
                   ),
                 ],
                 onSelected: (action) {
                   switch (action) {
                     case AssistantMenuAction.autoApprove:
                       onToggleAutoApprove();
+                    case AssistantMenuAction.settings:
+                      onOpenSettings();
                   }
                 },
               ),

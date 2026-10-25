@@ -44,11 +44,11 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
     unawaited(_controller.forward());
   }
 
-  Future<void> _finish(File? image) async {
+  Future<void> _finish(File? image, {bool animate = true}) async {
     if (_isClosing) return;
     _isClosing = true;
     try {
-      await _controller.reverse().orCancel;
+      if (animate) await _controller.reverse().orCancel;
     } on TickerCanceled {
       // Removing the overlay can cancel the reverse animation. Completion
       // still needs to release the caller waiting for the capture result.
@@ -58,6 +58,13 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
         widget.onComplete(image);
       }
     }
+  }
+
+  void _finishFromBackdrop() {
+    // A tap outside the camera must never leave a native platform-view layer
+    // attached if the reverse animation is interrupted by iOS composition.
+    // Remove the overlay directly; the close button keeps its animated path.
+    unawaited(_finish(null, animate: false));
   }
 
   @override
@@ -73,7 +80,7 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
       0,
       size.height * 0.38,
       size.width,
-      size.height - 8,
+      size.height,
     );
     final origin = widget.sourceRect ??
         Rect.fromCenter(
@@ -113,7 +120,7 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
                 child: IgnorePointer(
                   ignoring: _isClosing,
                   child: GestureDetector(
-                    onTap: () => _finish(null),
+                    onTap: () => _finishFromBackdrop(),
                     child: ColoredBox(
                       color: Colors.black.withValues(alpha: 0.28 * progress),
                     ),
@@ -411,7 +418,6 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                               quality: DesignConstants.defaultGlassQuality,
                               useOwnLayer: true,
                               allowElevation: false,
-                              platformViewBackdrop: true,
                               shape: const LiquidRoundedSuperellipse(
                                 borderRadius: 40,
                               ),

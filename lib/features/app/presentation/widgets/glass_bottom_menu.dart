@@ -151,6 +151,7 @@ class GlassBottomMenuSheet extends StatefulWidget {
     this.scrollController,
     this.onClose,
     this.onDisposed,
+    this.suppressGlobalAiCloud = true,
   });
 
   final String? title;
@@ -168,23 +169,26 @@ class GlassBottomMenuSheet extends StatefulWidget {
   final ScrollController? scrollController;
   final VoidCallback? onClose;
   final VoidCallback? onDisposed;
+  final bool suppressGlobalAiCloud;
 
   @override
   State<GlassBottomMenuSheet> createState() => _GlassBottomMenuSheetState();
 }
 
 class _GlassBottomMenuSheetState extends State<GlassBottomMenuSheet> {
-  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
+  AiGlobalCloudVisibilityLease? _cloudVisibilityLease;
 
   @override
   void initState() {
     super.initState();
-    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+    if (widget.suppressGlobalAiCloud) {
+      _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+    }
   }
 
   @override
   void dispose() {
-    _cloudVisibilityLease.dispose();
+    _cloudVisibilityLease?.dispose();
     super.dispose();
   }
 

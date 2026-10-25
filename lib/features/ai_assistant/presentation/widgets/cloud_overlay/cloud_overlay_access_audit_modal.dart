@@ -155,6 +155,7 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
               onTap: () {}, // Prevent taps inside sheet from dismissing
               child: GlassBottomMenuSheet(
                 title: isDe ? 'Datenzugriff' : 'Data access',
+                suppressGlobalAiCloud: false,
                 headerTrailing: TextButton(
                   onPressed: onClose,
                   child: Text(isDe ? 'Schließen' : 'Close'),

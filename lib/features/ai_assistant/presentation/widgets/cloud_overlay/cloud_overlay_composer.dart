@@ -149,21 +149,19 @@ class CloudOverlayComposer extends StatelessWidget {
                   focusNode: chatFocusNode,
                   keyboardType: TextInputType.text,
                   onTapOutside: (_) => chatFocusNode.unfocus(),
-                  onTap: () {
+                  onTap: () async {
                     if (!voiceController.isActive) {
                       chatFocusNode.requestFocus();
                       // The first tap changes the composer from its compact
                       // row to the expanded layout. Wait until that rebuild
                       // has attached the editable client before asking the
                       // platform keyboard to appear.
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (!context.mounted || !chatFocusNode.hasFocus) return;
-                        unawaited(
-                          SystemChannels.textInput.invokeMethod<void>(
-                            'TextInput.show',
-                          ),
-                        );
-                      });
+                      await WidgetsBinding.instance.endOfFrame;
+                      if (!context.mounted || !chatFocusNode.hasFocus) return;
+                      await WidgetsBinding.instance.endOfFrame;
+                      if (!context.mounted || !chatFocusNode.hasFocus) return;
+                      await SystemChannels.textInput
+                          .invokeMethod<void>('TextInput.show');
                     }
                   },
                   textAlign: TextAlign.start,

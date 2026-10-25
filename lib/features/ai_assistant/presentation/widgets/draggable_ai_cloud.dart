@@ -19,6 +19,7 @@ import '../../../profile/domain/repositories/goal_repository.dart';
 import '../../../profile/domain/repositories/profile_repository.dart';
 import '../../../steps/data/steps_aggregation_repository.dart';
 import '../../../workout/domain/repositories/workout_repository.dart';
+import '../../../settings/presentation/ai_settings_screen.dart';
 import '../../application/assistant_chat_service.dart';
 import '../../../../services/voice/voice_dictation_service.dart';
 import '../../data/assistant_diary_actions.dart';
@@ -429,7 +430,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       unawaited(
         Future.wait<void>([morphOpening, fullscreenOpening]).then((_) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _focusNewChatComposer();
+            unawaited(_focusNewChatComposer());
           });
         }).catchError((_) {
           // Animation was cancelled or interrupted.
@@ -465,7 +466,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     }
   }
 
-  void _focusNewChatComposer() {
+  Future<void> _focusNewChatComposer() async {
     if (!mounted || !_isExpanded || _isClosing) return;
     if (_morphAnimation.value < 0.99) return;
     final hasExistingMessages = _chatCoordinator.chatTurns.isNotEmpty;
@@ -476,26 +477,19 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     final isNewChat = !hasExistingMessages && !hasInsertedPrompt && !isWorking;
     if (!isNewChat) return;
 
-    void requestFocusNow() {
-      if (!mounted || !_isExpanded || _isClosing) return;
-      _chatFocusNode.requestFocus();
-      unawaited(
-        SystemChannels.textInput.invokeMethod<void>('TextInput.show'),
-      );
+    // Wait for the composer to finish its current rebuild before requesting
+    // focus. The focus change expands the TextField, so wait one more frame for
+    // EditableText to attach its iOS input connection before explicitly showing
+    // the keyboard. Don't toggle focus off when it is already focused: that
+    // races the keyboard-dismiss animation on repeated New Chat taps.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !_isExpanded || _isClosing) return;
+    if (!_chatFocusNode.hasFocus) _chatFocusNode.requestFocus();
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !_isExpanded || _isClosing || !_chatFocusNode.hasFocus) {
+      return;
     }
-
-    if (_chatFocusNode.hasFocus) {
-      _chatFocusNode.unfocus();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        scheduleMicrotask(() {
-          requestFocusNow();
-        });
-      });
-    } else {
-      scheduleMicrotask(() {
-        requestFocusNow();
-      });
-    }
+    await SystemChannels.textInput.invokeMethod<void>('TextInput.show');
   }
 
   void _toggleFullscreen() {
@@ -1469,7 +1463,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                                 .chatScrollController
                                                                 .jumpTo(0);
                                                           }
-                                                          _focusNewChatComposer();
+                                                          unawaited(
+                                                            _focusNewChatComposer(),
+                                                          );
                                                         });
                                                       },
                                                       onToggleAutoApprove: () =>
@@ -1477,6 +1473,14 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                         _chatCoordinator
                                                             .toggleAutoApproveDataRequests(),
                                                       ),
+                                                      onOpenSettings: () {
+                                                        unawaited(
+                                                          _navigateFromOverlay(
+                                                            (_) =>
+                                                                const AiSettingsScreen(),
+                                                          ),
+                                                        );
+                                                      },
                                                       onToggleExpanded:
                                                           _toggleExpanded,
                                                       onHeaderDragStart:
