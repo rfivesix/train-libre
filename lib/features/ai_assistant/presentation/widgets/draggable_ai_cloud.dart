@@ -489,7 +489,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
     if (!mounted || !_isExpanded || _isClosing || !_chatFocusNode.hasFocus) {
       return;
     }
-    await SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+    final editableText =
+        _chatFocusNode.context?.findAncestorStateOfType<EditableTextState>();
+    if (editableText != null) {
+      editableText.requestKeyboard();
+    } else {
+      unawaited(
+        SystemChannels.textInput.invokeMethod<void>('TextInput.show'),
+      );
+    }
   }
 
   void _toggleFullscreen() {

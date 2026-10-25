@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -130,6 +129,19 @@ class CloudOverlayComposer extends StatelessWidget {
           );
         }
 
+        Future<void> requestKeyboardAfterLayout() async {
+          // Focusing expands the compact composer and rebuilds the field. Wait
+          // for that layout change before opening the platform input connection.
+          await WidgetsBinding.instance.endOfFrame;
+          if (!context.mounted || !chatFocusNode.hasFocus) return;
+          await WidgetsBinding.instance.endOfFrame;
+          if (!context.mounted || !chatFocusNode.hasFocus) return;
+
+          chatFocusNode.context
+              ?.findAncestorStateOfType<EditableTextState>()
+              ?.requestKeyboard();
+        }
+
         Widget messageField({required bool compact}) => Scrollbar(
               key: const ValueKey('ai-composer-scrollbar'),
               controller: chatInputScrollController,
@@ -149,19 +161,10 @@ class CloudOverlayComposer extends StatelessWidget {
                   focusNode: chatFocusNode,
                   keyboardType: TextInputType.text,
                   onTapOutside: (_) => chatFocusNode.unfocus(),
-                  onTap: () async {
+                  onTap: () {
                     if (!voiceController.isActive) {
                       chatFocusNode.requestFocus();
-                      // The first tap changes the composer from its compact
-                      // row to the expanded layout. Wait until that rebuild
-                      // has attached the editable client before asking the
-                      // platform keyboard to appear.
-                      await WidgetsBinding.instance.endOfFrame;
-                      if (!context.mounted || !chatFocusNode.hasFocus) return;
-                      await WidgetsBinding.instance.endOfFrame;
-                      if (!context.mounted || !chatFocusNode.hasFocus) return;
-                      await SystemChannels.textInput
-                          .invokeMethod<void>('TextInput.show');
+                      unawaited(requestKeyboardAfterLayout());
                     }
                   },
                   textAlign: TextAlign.start,
