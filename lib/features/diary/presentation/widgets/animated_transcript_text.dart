@@ -14,6 +14,7 @@ class AnimatedTranscriptText extends StatefulWidget {
   /// Text shown while nothing has been recognised yet.
   final String placeholder;
   final TextStyle? placeholderStyle;
+  final bool animateWords;
 
   const AnimatedTranscriptText({
     super.key,
@@ -21,6 +22,7 @@ class AnimatedTranscriptText extends StatefulWidget {
     required this.placeholder,
     this.style,
     this.placeholderStyle,
+    this.animateWords = true,
   });
 
   @override
@@ -73,6 +75,10 @@ class _AnimatedTranscriptTextState extends State<AnimatedTranscriptText> {
         widget.placeholder,
         style: widget.placeholderStyle ?? widget.style,
       );
+    }
+
+    if (!widget.animateWords) {
+      return Text(widget.text, style: widget.style);
     }
 
     return Wrap(

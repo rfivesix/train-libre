@@ -2,8 +2,10 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/gestures.dart' show kTouchSlop;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -116,6 +118,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _isDictating = false;
   bool _isVoiceStarting = false;
   bool _isVoiceStopping = false;
+  bool _isVoiceDemo = false;
+  bool _voiceHoldActivated = false;
+  bool _voiceReleasedBeforeStart = false;
+  bool _voicePermissionFlow = false;
+  int? _voiceHoldPointer;
+  Offset? _voiceHoldOrigin;
+  Timer? _voiceHoldTimer;
+  Timer? _voiceDemoTimer;
   double _voiceLevel = 0;
   String _voiceTranscript = '';
   String _voiceBaseText = '';
@@ -162,10 +172,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (Platform.isAndroid) {
       _qrController?.pauseCamera();
     } else if (Platform.isIOS) {
-      if (_isTopRoute &&
-          !_isCameraSuspended &&
-          !_isAnalyzing &&
-          !_isDictating) {
+      if (_isTopRoute && !_isCameraSuspended && !_isAnalyzing) {
         _qrController?.resumeCamera();
       }
     }
@@ -221,7 +228,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void didPopNext() {
     _isTopRoute = true;
-    if (!_isAnalyzing && !_isDictating) {
+    if (!_isAnalyzing) {
       unawaited(_resumeCamera());
     }
   }
@@ -240,6 +247,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
     WidgetsBinding.instance.removeObserver(this);
     _stopAiWaitingHaptics();
+    _voiceHoldTimer?.cancel();
+    _voiceDemoTimer?.cancel();
     _barcodeSubscription?.cancel();
     _analysisController?.dispose();
     unawaited(VoiceDictationService.instance.cancel());
@@ -260,10 +269,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed) {
-      if (_isTopRoute &&
-          !_isCameraSuspended &&
-          !_isAnalyzing &&
-          !_isDictating) {
+      if (_isTopRoute && !_isCameraSuspended && !_isAnalyzing) {
         unawaited(_resumeCamera());
       }
     } else if (state == AppLifecycleState.paused ||
@@ -340,8 +346,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (!mounted ||
         !_cameraPermission.isGranted ||
         !_isTopRoute ||
-        _isAnalyzing ||
-        _isDictating) {
+        _isAnalyzing) {
       return;
     }
     if (_useNativeSession) {
@@ -397,7 +402,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     });
 
     if (!capability.cameraAvailable) return;
-    if (_isCameraSuspended || !_isTopRoute || _isAnalyzing || _isDictating) {
+    if (_isCameraSuspended || !_isTopRoute || _isAnalyzing) {
       return;
     }
 
@@ -482,7 +487,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     } finally {
       if (mounted) {
         setState(() => _isLoggingBarcode = false);
-        if (_isTopRoute && !_isAnalyzing && !_isDictating) {
+        if (_isTopRoute && !_isAnalyzing) {
           unawaited(_resumeCamera());
         }
       }
@@ -661,7 +666,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _preProcessor.processImages(newFiles);
       }
     } finally {
-      if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+      if (mounted && _isTopRoute && !_isAnalyzing) {
         unawaited(_resumeCamera());
       }
     }
@@ -834,7 +839,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _dismissAnalysisScreen();
         if (mounted) {
           setState(() => _isAnalyzing = false);
-          if (_isTopRoute && !_isDictating) {
+          if (_isTopRoute) {
             unawaited(_resumeCamera());
           }
         }
@@ -1329,7 +1334,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             _showTextInput = true;
           }
         });
-        if (_isTopRoute && !_isDictating) {
+        if (_isTopRoute) {
           unawaited(_resumeCamera());
         }
       }
@@ -1379,7 +1384,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ],
       ),
     );
-    if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+    if (mounted && _isTopRoute && !_isAnalyzing) {
       unawaited(_resumeCamera());
     }
   }
@@ -1535,224 +1540,229 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 // 2. Bottom Controls Area (compact, pinned to bottom)
                 Padding(
                   padding: const EdgeInsets.only(top: 2, bottom: 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: _scannerControlSideInset,
+                  child: AnimatedSize(
+                    alignment: Alignment.bottomCenter,
+                    duration: const Duration(milliseconds: 360),
+                    curve: Curves.easeInOutCubic,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: _scannerControlSideInset,
+                          ),
+                          child: _buildScannerBottomActions(l10n),
                         ),
-                        child: _buildScannerBottomActions(l10n),
-                      ),
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Captured Photos Strip
-                            if (_images.isNotEmpty)
-                              Container(
-                                height: 48,
-                                margin: const EdgeInsets.only(bottom: 4),
-                                child: ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _images.length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(width: 8),
-                                  itemBuilder: (context, idx) {
-                                    return Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: Image.file(
-                                            _images[idx],
-                                            width: 48,
-                                            height: 48,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 2,
-                                          right: 2,
-                                          child: GestureDetector(
-                                            onTap: () => _removeImage(idx),
-                                            child: Container(
-                                              width: 18,
-                                              height: 18,
-                                              alignment: Alignment.center,
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xCC000000),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(LucideIcons.x,
-                                                  size: 11,
-                                                  color: Colors.white),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Captured Photos Strip
+                              if (_images.isNotEmpty)
+                                Container(
+                                  height: 48,
+                                  margin: const EdgeInsets.only(bottom: 4),
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: _images.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(width: 8),
+                                    itemBuilder: (context, idx) {
+                                      return Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: Image.file(
+                                              _images[idx],
+                                              width: 48,
+                                              height: 48,
+                                              fit: BoxFit.cover,
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-
-                            // Expandable Text Input Row
-                            if (_showTextInput)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    bottom: DesignConstants.spacingS),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? const Color(0xFF1E1E1E)
-                                        : const Color(0xFFE8E8E0),
-                                    borderRadius: BorderRadius.circular(
-                                        DesignConstants.borderRadiusL),
-                                    border: Border.all(
-                                        color: isDark
-                                            ? Colors.white12
-                                            : Colors.black12),
-                                  ),
-                                  padding: const EdgeInsets.only(
-                                      left: DesignConstants.spacingL),
-                                  child: TextField(
-                                    controller: _textController,
-                                    focusNode: _textFocusNode,
-                                    onChanged: (_) {
-                                      _textCameFromVoice = false;
-                                      setState(() {});
-                                    },
-                                    minLines: 1,
-                                    maxLines: 4,
-                                    keyboardType: TextInputType.multiline,
-                                    textInputAction: TextInputAction.newline,
-                                    textCapitalization:
-                                        TextCapitalization.sentences,
-                                    style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF12120F)),
-                                    decoration: InputDecoration(
-                                      hintText: l10n.aiCaptureDescribeHint,
-                                      hintStyle: TextStyle(
-                                          color: isDark
-                                              ? Colors.white54
-                                              : Colors.black45),
-                                      filled: false,
-                                      isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              vertical:
-                                                  DesignConstants.spacingM),
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      suffixIconConstraints:
-                                          const BoxConstraints(
-                                              minWidth: 44, minHeight: 44),
-                                      suffixIcon: Align(
-                                        alignment: Alignment.topCenter,
-                                        widthFactor: 1,
-                                        heightFactor: 1,
-                                        child: IconButton(
-                                          tooltip: l10n.doneButtonLabel,
-                                          icon: Icon(LucideIcons.check,
-                                              color: isDark
-                                                  ? Colors.white
-                                                      .withValues(alpha: 0.8)
-                                                  : Colors.black87,
-                                              size: 18),
-                                          onPressed: () {
-                                            _textFocusNode.unfocus();
-                                            FocusScope.of(context).unfocus();
-                                            unawaited(SystemChannels.textInput
-                                                .invokeMethod<void>(
-                                                    'TextInput.hide'));
-                                            setState(
-                                                () => _showTextInput = false);
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                            // Passive Barcode Detection Banner (if detected or during tour step 1)
-                            if (_isTourActive && _tourStep == 1)
-                              _buildDemoBarcodeBanner(l10n, primaryAccent)
-                            else if (_barcodeDetectionEnabled &&
-                                _detectedBarcode != null)
-                              _buildBarcodeBanner(l10n, primaryAccent),
-
-                            // "Analysieren" Button (Appears when input is ready or during tour step 5)
-                            if (_hasInput ||
-                                (_isTourActive && _tourStep == 5)) ...[
-                              const SizedBox(height: 8),
-                              Opacity(
-                                opacity: _isAnalyzing ? 0.0 : 1.0,
-                                child: IgnorePointer(
-                                  ignoring: _isAnalyzing,
-                                  child: SizedBox(
-                                    key: _keyAnalyze,
-                                    width: double.infinity,
-                                    height: 46,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: primaryAccent,
-                                        foregroundColor: isDark
-                                            ? const Color(0xFF12120F)
-                                            : Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      onPressed: _isAnalyzing ? null : _analyze,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(LucideIcons.sparkles,
-                                              size: 18,
-                                              color: isDark
-                                                  ? const Color(0xFF12120F)
-                                                  : Colors.white),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            _images.isNotEmpty
-                                                ? l10n.aiCaptureAnalyzeMeal(
-                                                    _images.length)
-                                                : l10n.aiCaptureAnalyzeText,
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 15,
-                                              color: isDark
-                                                  ? const Color(0xFF12120F)
-                                                  : Colors.white,
+                                          Positioned(
+                                            top: 2,
+                                            right: 2,
+                                            child: GestureDetector(
+                                              onTap: () => _removeImage(idx),
+                                              child: Container(
+                                                width: 18,
+                                                height: 18,
+                                                alignment: Alignment.center,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xCC000000),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(LucideIcons.x,
+                                                    size: 11,
+                                                    color: Colors.white),
+                                              ),
                                             ),
                                           ),
                                         ],
+                                      );
+                                    },
+                                  ),
+                                ),
+
+                              // Expandable Text Input Row
+                              if (_showTextInput)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      bottom: DesignConstants.spacingS),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF1E1E1E)
+                                          : const Color(0xFFE8E8E0),
+                                      borderRadius: BorderRadius.circular(
+                                          DesignConstants.borderRadiusL),
+                                      border: Border.all(
+                                          color: isDark
+                                              ? Colors.white12
+                                              : Colors.black12),
+                                    ),
+                                    padding: const EdgeInsets.only(
+                                        left: DesignConstants.spacingL),
+                                    child: TextField(
+                                      controller: _textController,
+                                      focusNode: _textFocusNode,
+                                      onChanged: (_) {
+                                        _textCameFromVoice = false;
+                                        setState(() {});
+                                      },
+                                      minLines: 1,
+                                      maxLines: 4,
+                                      keyboardType: TextInputType.multiline,
+                                      textInputAction: TextInputAction.newline,
+                                      textCapitalization:
+                                          TextCapitalization.sentences,
+                                      style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : const Color(0xFF12120F)),
+                                      decoration: InputDecoration(
+                                        hintText: l10n.aiCaptureDescribeHint,
+                                        hintStyle: TextStyle(
+                                            color: isDark
+                                                ? Colors.white54
+                                                : Colors.black45),
+                                        filled: false,
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                vertical:
+                                                    DesignConstants.spacingM),
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        suffixIconConstraints:
+                                            const BoxConstraints(
+                                                minWidth: 44, minHeight: 44),
+                                        suffixIcon: Align(
+                                          alignment: Alignment.topCenter,
+                                          widthFactor: 1,
+                                          heightFactor: 1,
+                                          child: IconButton(
+                                            tooltip: l10n.doneButtonLabel,
+                                            icon: Icon(LucideIcons.check,
+                                                color: isDark
+                                                    ? Colors.white
+                                                        .withValues(alpha: 0.8)
+                                                    : Colors.black87,
+                                                size: 18),
+                                            onPressed: () {
+                                              _textFocusNode.unfocus();
+                                              FocusScope.of(context).unfocus();
+                                              unawaited(SystemChannels.textInput
+                                                  .invokeMethod<void>(
+                                                      'TextInput.hide'));
+                                              setState(
+                                                  () => _showTextInput = false);
+                                            },
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
+
+                              // Passive Barcode Detection Banner (if detected or during tour step 1)
+                              if (_isTourActive && _tourStep == 1)
+                                _buildDemoBarcodeBanner(l10n, primaryAccent)
+                              else if (_barcodeDetectionEnabled &&
+                                  _detectedBarcode != null)
+                                _buildBarcodeBanner(l10n, primaryAccent),
+
+                              // "Analysieren" Button (Appears when input is ready or during tour step 5)
+                              if (_hasInput ||
+                                  (_isTourActive && _tourStep == 5)) ...[
+                                const SizedBox(height: 8),
+                                Opacity(
+                                  opacity: _isAnalyzing ? 0.0 : 1.0,
+                                  child: IgnorePointer(
+                                    ignoring: _isAnalyzing,
+                                    child: SizedBox(
+                                      key: _keyAnalyze,
+                                      width: double.infinity,
+                                      height: 46,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: primaryAccent,
+                                          foregroundColor: isDark
+                                              ? const Color(0xFF12120F)
+                                              : Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        onPressed:
+                                            _isAnalyzing ? null : _analyze,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(LucideIcons.sparkles,
+                                                size: 18,
+                                                color: isDark
+                                                    ? const Color(0xFF12120F)
+                                                    : Colors.white),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              _images.isNotEmpty
+                                                  ? l10n.aiCaptureAnalyzeMeal(
+                                                      _images.length)
+                                                  : l10n.aiCaptureAnalyzeText,
+                                              style: TextStyle(
+                                                fontFamily: 'Inter',
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 15,
+                                                color: isDark
+                                                    ? const Color(0xFF12120F)
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          if (_isDictating) _buildMealVoiceCloud(l10n, isDark),
           if (_isTourActive)
             AiMealCaptureTourOverlay(
               targetRects: _tourTargetRects,
@@ -2197,36 +2207,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             ),
           ),
         ),
-        Positioned(
-          left: 16,
-          top: 16,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.52),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white24),
-            ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(LucideIcons.camera_off, size: 15, color: Colors.white70),
-                  SizedBox(width: 7),
-                  Text(
-                    'Simulator-Demo',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -2326,31 +2306,158 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   Widget _buildScannerBottomActions(AppLocalizations l10n) {
     return Row(
       children: [
-        _buildFrostedButton(
-          key: _keyGallery,
-          icon: LucideIcons.image,
-          onTap: _pickFromGallery,
-          tooltip: l10n.aiCaptureTourStepGalleryTitle,
+        Opacity(
+          opacity: _isDictating ? 0.42 : 1,
+          child: _buildFrostedButton(
+            key: _keyGallery,
+            icon: LucideIcons.image,
+            onTap: _isDictating ? null : _pickFromGallery,
+            tooltip: l10n.aiCaptureTourStepGalleryTitle,
+          ),
         ),
         Expanded(
           child: Center(
-            child: _buildFrostedButton(
-              key: _keyVoice,
-              icon: LucideIcons.mic,
-              isActive: _isDictating,
-              onTap: _openVoiceDictationModal,
-              tooltip: l10n.aiCaptureTourStepVoiceTitle,
-            ),
+            child: _buildMealVoiceControl(l10n),
           ),
         ),
-        _buildFrostedButton(
-          key: _keyText,
-          icon: LucideIcons.pencil,
-          isActive: _showTextInput || _textController.text.isNotEmpty,
-          onTap: _toggleTextInput,
-          tooltip: l10n.aiCaptureTabText,
+        Opacity(
+          opacity: _isDictating ? 0.42 : 1,
+          child: _buildFrostedButton(
+            key: _keyText,
+            icon: LucideIcons.pencil,
+            isActive: _showTextInput || _textController.text.isNotEmpty,
+            onTap: _isDictating ? null : _toggleTextInput,
+            tooltip: l10n.aiCaptureTabText,
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMealVoiceControl(AppLocalizations l10n) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final transcriptWidth = math
+        .max(
+          44.0,
+          MediaQuery.sizeOf(context).width - 2 * _scannerControlSideInset,
+        )
+        .toDouble();
+    final transcriptSideOffset = (transcriptWidth - 44) / 2;
+    final accent = isDark
+        ? DesignConstants.brandAccentColor
+        : DesignConstants.brandAccentColorLightMode;
+
+    return Listener(
+      key: _keyVoice,
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: _handleVoicePointerDown,
+      onPointerMove: _handleVoicePointerMove,
+      onPointerUp: _handleVoicePointerUp,
+      onPointerCancel: _handleVoicePointerCancel,
+      child: Semantics(
+        button: true,
+        label: l10n.aiCaptureTourStepVoiceTitle,
+        hint: l10n.voiceHoldToTalk,
+        onTap: () => unawaited(
+          _isDictating ? _finishMealVoiceInput() : _startMealVoiceInput(),
+        ),
+        child: SizedBox.square(
+          dimension: 44,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              AnimatedOpacity(
+                opacity: _isDictating ? 0 : 1,
+                duration: const Duration(milliseconds: 220),
+                child: _buildFrostedButton(
+                  icon: LucideIcons.mic,
+                  isActive: _isDictating,
+                  onTap: null,
+                  tooltip: l10n.aiCaptureTourStepVoiceTitle,
+                ),
+              ),
+              IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: _isDictating ? 1 : 0,
+                  duration: const Duration(milliseconds: 260),
+                  child: SizedBox.square(
+                    dimension: 56,
+                    child: AiNeuralCloudOrbWidget(
+                      size: 56,
+                      morph: _isDictating ? 1 : 0,
+                      energy: _voiceLevel,
+                      accentColor: const Color(0xFFFF453A),
+                      showDetachedSatellite: false,
+                      tint: 0.24,
+                      tintEnergyGain: 0.2,
+                      flowSpeed: 0.55,
+                      animate: true,
+                      enableInteraction: false,
+                    ),
+                  ),
+                ),
+              ),
+              if (_isDictating)
+                Positioned(
+                  left: -transcriptSideOffset,
+                  width: transcriptWidth,
+                  bottom: 56,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 56),
+                          child: SingleChildScrollView(
+                            child: AnimatedTranscriptText(
+                              text: _voiceTranscript,
+                              animateWords: false,
+                              placeholder: _isVoiceStarting
+                                  ? l10n.voiceStarting
+                                  : (_images.isEmpty
+                                      ? l10n.voiceExampleStandalone
+                                      : l10n.voiceExampleWithPhoto),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Inter',
+                                fontSize: 14,
+                                height: 1.35,
+                              ),
+                              placeholderStyle: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.65),
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                height: 1.35,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (_isVoiceStopping)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.22),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -2504,7 +2611,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   Widget _buildFrostedButton({
     Key? key,
     required IconData icon,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     bool isActive = false,
     String? tooltip,
   }) {
@@ -2527,26 +2634,86 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
   }
 
-  /// Opens the meal-scoped voice cloud in place of the scanner controls.
-  ///
-  /// The recognized words are passed through as dictated. The meal analyzer
-  /// receives the raw transcript and can interpret it together with photos.
-  Future<void> _openVoiceDictationModal() async {
-    if (_isDictating) {
-      await _finishMealVoiceInput();
+  void _handleVoicePointerDown(PointerDownEvent event) {
+    if (_voiceHoldPointer != null || _isDictating) return;
+    _voiceHoldPointer = event.pointer;
+    _voiceHoldOrigin = event.position;
+    _voiceHoldActivated = false;
+    _voiceReleasedBeforeStart = false;
+    _voiceHoldTimer?.cancel();
+    _voiceHoldTimer = Timer(const Duration(milliseconds: 360), () {
+      if (!mounted || _voiceHoldPointer != event.pointer) return;
+      _voiceHoldActivated = true;
+      unawaited(_startMealVoiceInput());
+    });
+  }
+
+  void _handleVoicePointerMove(PointerMoveEvent event) {
+    if (event.pointer != _voiceHoldPointer || _voiceHoldActivated) return;
+    final origin = _voiceHoldOrigin;
+    if (origin != null && (event.position - origin).distance > kTouchSlop) {
+      _voiceHoldTimer?.cancel();
+      _voiceHoldPointer = null;
+      _voiceHoldOrigin = null;
+    }
+  }
+
+  void _handleVoicePointerUp(PointerUpEvent event) {
+    if (event.pointer != _voiceHoldPointer) return;
+    _voiceHoldTimer?.cancel();
+    _voiceHoldPointer = null;
+    _voiceHoldOrigin = null;
+    if (!_voiceHoldActivated) return;
+    if (_voicePermissionFlow || _isVoiceStarting || !_isDictating) {
+      _voiceReleasedBeforeStart = true;
       return;
+    }
+    if (_isDictating) {
+      unawaited(_finishMealVoiceInput());
+    }
+  }
+
+  void _handleVoicePointerCancel(PointerCancelEvent event) {
+    if (event.pointer != _voiceHoldPointer) return;
+    _voiceHoldTimer?.cancel();
+    _voiceHoldPointer = null;
+    _voiceHoldOrigin = null;
+    if (!_voiceHoldActivated) return;
+    if (_voicePermissionFlow || _isVoiceStarting || !_isDictating) {
+      _voiceReleasedBeforeStart = true;
+    } else {
+      unawaited(_finishMealVoiceInput(cancel: true));
+    }
+  }
+
+  void _resetVoiceHoldState() {
+    _voiceHoldTimer?.cancel();
+    _voiceHoldTimer = null;
+    _voiceHoldPointer = null;
+    _voiceHoldOrigin = null;
+    _voiceHoldActivated = false;
+    _voiceReleasedBeforeStart = false;
+    _voicePermissionFlow = false;
+  }
+
+  Future<void> _startMealVoiceInput() async {
+    if (_isDictating || _isVoiceStarting || !mounted) return;
+
+    if (Platform.isIOS && !_isIosSimulator) {
+      await _detectIosSimulator();
+      if (!mounted) return;
     }
 
     _voiceTextWasVisible = _showTextInput;
     _textFocusNode.unfocus();
     FocusScope.of(context).unfocus();
     unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
-    await _suspendCamera();
-    if (!await VoiceDictationService.instance.hasPermissions()) {
-      if (!mounted) {
-        await _resumeCamera();
-        return;
-      }
+
+    final simulatorDemo = _isIosSimulator;
+    if (!simulatorDemo &&
+        !await VoiceDictationService.instance.hasPermissions()) {
+      if (!mounted) return;
+      _voicePermissionFlow = true;
       final l10n = AppLocalizations.of(context)!;
       final proceed = await showPrePermissionDialog(
         context: context,
@@ -2555,33 +2722,29 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         continueLabel: l10n.voicePermissionContinue,
         cancelLabel: l10n.cancel,
       );
-      if (!proceed) {
-        await _resumeCamera();
+      _voicePermissionFlow = false;
+      if (!mounted || !proceed) {
+        _resetVoiceHoldState();
         return;
       }
     }
-    if (!mounted) {
-      await _resumeCamera();
-      return;
-    }
 
-    final availability = await VoiceDictationService.instance.prepare();
-    if (!mounted) {
-      await _resumeCamera();
-      return;
-    }
-    if (!availability.available) {
-      await _resumeCamera();
+    if (!simulatorDemo) {
+      final availability = await VoiceDictationService.instance.prepare();
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      final message = switch (availability.reason) {
-        VoiceUnavailableReason.permissionDenied =>
-          l10n.voiceUnavailablePermission,
-        VoiceUnavailableReason.unsupported => l10n.voiceUnavailableUnsupported,
-        _ => l10n.voiceUnavailableFailed,
-      };
-      _showDictationFallback(message);
-      return;
+      if (!availability.available) {
+        final l10n = AppLocalizations.of(context)!;
+        final message = switch (availability.reason) {
+          VoiceUnavailableReason.permissionDenied =>
+            l10n.voiceUnavailablePermission,
+          VoiceUnavailableReason.unsupported =>
+            l10n.voiceUnavailableUnsupported,
+          _ => l10n.voiceUnavailableFailed,
+        };
+        _resetVoiceHoldState();
+        _showDictationFallback(message);
+        return;
+      }
     }
 
     _voiceBaseText = _textController.text.trim();
@@ -2590,12 +2753,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ..start();
     setState(() {
       _isDictating = true;
-      _isVoiceStarting = true;
+      _isVoiceDemo = simulatorDemo;
+      _isVoiceStarting = !simulatorDemo;
       _isVoiceStopping = false;
       _voiceTranscript = '';
       _voiceLevel = 0;
       _showTextInput = false;
     });
+
+    if (simulatorDemo) {
+      _startSimulatorVoiceDemo();
+      return;
+    }
 
     final localeId = await VoiceDictationSettings.instance.localeId();
     if (!mounted || !_isDictating) return;
@@ -2628,8 +2797,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _isVoiceStarting = false;
         _voiceLevel = 0;
       });
-      await _resumeCamera();
-      if (!mounted) return;
+      _resetVoiceHoldState();
       _showDictationFallback(
         AppLocalizations.of(context)!.voiceUnavailableFailed,
       );
@@ -2637,36 +2805,67 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
 
     setState(() => _isVoiceStarting = false);
-    if (!VoiceDictationService.instance.isListening) {
+    if (_voiceReleasedBeforeStart) {
+      unawaited(_finishMealVoiceInput());
+    } else if (!VoiceDictationService.instance.isListening) {
       unawaited(_finishMealVoiceInput());
     }
+  }
+
+  void _startSimulatorVoiceDemo() {
+    const sample = 'Hähnchen-Dürüm mit Salat und Joghurtsauce.';
+    var elapsedMs = 0;
+    _voiceDemoTimer?.cancel();
+    _voiceDemoTimer = Timer.periodic(
+      const Duration(milliseconds: 80),
+      (timer) {
+        if (!mounted || !_isDictating || !_isVoiceDemo) {
+          timer.cancel();
+          return;
+        }
+        elapsedMs += 80;
+        final characterCount =
+            ((elapsedMs - 300) / 42).floor().clamp(0, sample.length);
+        final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
+        final variation = (math.sin(elapsedMs / 73) + 1) / 2;
+        setState(() {
+          _voiceTranscript = sample.substring(0, characterCount);
+          _voiceLevel = 0.12 + pulse * 0.58 + variation * 0.22;
+          _isVoiceStarting = false;
+        });
+      },
+    );
   }
 
   Future<void> _finishMealVoiceInput({bool cancel = false}) async {
     if (!_isDictating || _isVoiceStopping) return;
     setState(() => _isVoiceStopping = true);
     _voiceRecordingStopwatch.stop();
+    _voiceDemoTimer?.cancel();
     final durationBucket = TelemetryBuckets.getVoiceDurationBucket(
       _voiceRecordingStopwatch.elapsed,
     );
 
     if (cancel) {
-      await VoiceDictationService.instance.cancel();
+      if (!_isVoiceDemo) await VoiceDictationService.instance.cancel();
       if (!mounted) return;
       setState(() {
         _isDictating = false;
+        _isVoiceDemo = false;
         _isVoiceStarting = false;
         _isVoiceStopping = false;
         _voiceLevel = 0;
         _voiceTranscript = '';
         _showTextInput = _voiceTextWasVisible;
       });
-      await _resumeCamera();
+      _resetVoiceHoldState();
       return;
     }
 
-    await VoiceDictationService.instance.stop();
-    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (!_isVoiceDemo) await VoiceDictationService.instance.stop();
+    await Future<void>.delayed(
+      Duration(milliseconds: _isVoiceDemo ? 180 : 350),
+    );
     if (!mounted) return;
 
     final spokenText = _voiceTranscript.trim();
@@ -2676,152 +2875,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     ].join(' ');
     _textController.text = combinedText;
     _textCameFromVoice = _textCameFromVoice || spokenText.isNotEmpty;
-    unawaited(TelemetryService.instance.trackFeatureUsed(
-      featureKey: FeatureKey.voiceDictationUsed,
-    ));
-    unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
-      durationBucket: durationBucket,
-      aiTidyUpEnabled: false,
-      surface: 'ai_meal_capture',
-      success: true,
-    ));
+    if (!_isVoiceDemo) {
+      unawaited(TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.voiceDictationUsed,
+      ));
+      unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
+        durationBucket: durationBucket,
+        aiTidyUpEnabled: false,
+        surface: 'ai_meal_capture',
+        success: true,
+      ));
+    }
     setState(() {
       _isDictating = false;
+      _isVoiceDemo = false;
       _isVoiceStarting = false;
       _isVoiceStopping = false;
       _voiceLevel = 0;
       _showTextInput = combinedText.isNotEmpty;
     });
+    _resetVoiceHoldState();
     HapticFeedbackService.instance.confirmationFeedback();
-    await _resumeCamera();
-  }
-
-  Widget _buildMealVoiceCloud(AppLocalizations l10n, bool isDark) {
-    final size = MediaQuery.sizeOf(context);
-    final orbSize = (size.width * 0.62).clamp(190.0, 270.0).toDouble();
-    final accent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
-    return Positioned.fill(
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOutCubic,
-        builder: (context, value, child) => Opacity(
-          opacity: value,
-          child: Transform.scale(scale: 0.96 + value * 0.04, child: child),
-        ),
-        child: Material(
-          color: Colors.black.withValues(alpha: 0.88),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: HeaderGlassButton(
-                      icon: LucideIcons.x,
-                      tooltip: l10n.cancel,
-                      isDarkSurface: true,
-                      platformViewBackdrop: true,
-                      onPressed: _isVoiceStopping
-                          ? null
-                          : () => unawaited(
-                                _finishMealVoiceInput(cancel: true),
-                              ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AiNeuralCloudOrbWidget(
-                            size: orbSize,
-                            morph: 1,
-                            energy: _voiceLevel,
-                            tint: 0,
-                            tintEnergyGain: 0.2,
-                            flowSpeed: 0.55,
-                            animate: true,
-                            enableInteraction: false,
-                          ),
-                          const SizedBox(height: 26),
-                          Text(
-                            _isVoiceStarting
-                                ? l10n.voiceStarting
-                                : _isVoiceStopping
-                                    ? l10n.voiceStarting
-                                    : l10n.voiceTapToFinish,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.82),
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 130),
-                            child: SingleChildScrollView(
-                              child: AnimatedTranscriptText(
-                                text: _voiceTranscript,
-                                placeholder: _isVoiceStarting
-                                    ? l10n.voiceStarting
-                                    : (_images.isEmpty
-                                        ? l10n.voiceExampleStandalone
-                                        : l10n.voiceExampleWithPhoto),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'Inter',
-                                  fontSize: 18,
-                                  height: 1.45,
-                                ),
-                                placeholderStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.55),
-                                  fontFamily: 'Inter',
-                                  fontSize: 16,
-                                  height: 1.45,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: _isVoiceStarting || _isVoiceStopping
-                          ? null
-                          : () => unawaited(_finishMealVoiceInput()),
-                      icon: Icon(
-                        _isVoiceStopping
-                            ? LucideIcons.loader_circle
-                            : LucideIcons.check,
-                      ),
-                      label: Text(l10n.doneButtonLabel),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accent,
-                        foregroundColor:
-                            isDark ? const Color(0xFF12120F) : Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   /// Dictation is a convenience; when it is unavailable the typed path must
