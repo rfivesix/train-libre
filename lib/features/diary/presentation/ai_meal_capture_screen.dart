@@ -1562,7 +1562,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                               // Captured Photos Strip
                               if (_images.isNotEmpty)
                                 Container(
-                                  height: 48,
+                                  height: 88,
                                   margin: const EdgeInsets.only(bottom: 4),
                                   child: ListView.separated(
                                     scrollDirection: Axis.horizontal,
@@ -1571,33 +1571,41 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                         const SizedBox(width: 8),
                                     itemBuilder: (context, idx) {
                                       return Stack(
+                                        clipBehavior: Clip.none,
                                         children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: Image.file(
-                                              _images[idx],
-                                              width: 48,
-                                              height: 48,
-                                              fit: BoxFit.cover,
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 4),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              child: SizedBox.square(
+                                                dimension: 80,
+                                                child: Image.file(
+                                                  _images[idx],
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                           Positioned(
-                                            top: 2,
-                                            right: 2,
-                                            child: GestureDetector(
-                                              onTap: () => _removeImage(idx),
-                                              child: Container(
-                                                width: 18,
-                                                height: 18,
-                                                alignment: Alignment.center,
-                                                decoration: const BoxDecoration(
-                                                  color: Color(0xCC000000),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: const Icon(LucideIcons.x,
-                                                    size: 11,
-                                                    color: Colors.white),
+                                            top: 0,
+                                            right: -4,
+                                            child: Semantics(
+                                              button: true,
+                                              label: l10n.aiChatRemoveImage,
+                                              child: HeaderGlassButton(
+                                                key: ValueKey(
+                                                    'remove-meal-image-$idx'),
+                                                icon: LucideIcons.x,
+                                                iconSize: 12,
+                                                dimension: 26,
+                                                tooltip: l10n.aiChatRemoveImage,
+                                                isDarkSurface: true,
+                                                foregroundColor: Colors.white,
+                                                platformViewBackdrop: true,
+                                                onPressed: () =>
+                                                    _removeImage(idx),
                                               ),
                                             ),
                                           ),

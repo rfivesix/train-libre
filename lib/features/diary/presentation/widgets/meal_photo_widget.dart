@@ -201,41 +201,21 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
       ],
     );
 
-    if (widget.fadeBottom) {
-      imageLayer = ShaderMask(
-        shaderCallback: (rect) {
-          return const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.black,
-              Colors.black,
-              Colors.black87,
-              Colors.transparent,
-            ],
-            stops: [0.0, 0.50, 0.78, 1.0],
-          ).createShader(rect);
-        },
-        blendMode: BlendMode.dstIn,
-        child: imageLayer,
-      );
-    }
-
     final parallaxLayer = widget.scrollOffset == null
-        ? imageLayer
+        ? _withBottomFade(imageLayer, widget.fadeBottom ? 1 : 0)
         : ValueListenableBuilder<double>(
             valueListenable: widget.scrollOffset!,
             child: imageLayer,
             builder: (context, offset, child) {
-              final fade = (1 - offset / (frameHeight * 1.8)).clamp(0.0, 1.0);
-              return Opacity(
-                opacity: fade,
-                child: Transform.translate(
-                  offset: Offset(0, offset * 0.45),
-                  child: SizedBox(
-                    height: frameHeight,
-                    width: double.infinity,
-                    child: child,
+              final progress = (offset / (frameHeight * 0.7)).clamp(0.0, 1.0);
+              return Transform.translate(
+                offset: Offset(0, offset * 0.45),
+                child: SizedBox(
+                  height: frameHeight,
+                  width: double.infinity,
+                  child: _withBottomFade(
+                    child!,
+                    widget.fadeBottom ? progress : 0,
                   ),
                 ),
               );
@@ -304,6 +284,26 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
         size: 42,
         color: isDark ? const Color(0xFF7E7E74) : const Color(0xFF9A9A90),
       ),
+    );
+  }
+
+  Widget _withBottomFade(Widget child, double progress) {
+    if (progress <= 0) return child;
+    final fade = progress.clamp(0.0, 1.0);
+    return ShaderMask(
+      shaderCallback: (rect) => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.black,
+          Colors.black,
+          Color.lerp(Colors.black, Colors.black87, fade)!,
+          Color.lerp(Colors.black, Colors.transparent, fade)!,
+        ],
+        stops: const [0.0, 0.42, 0.64, 1.0],
+      ).createShader(rect),
+      blendMode: BlendMode.dstIn,
+      child: child,
     );
   }
 }
