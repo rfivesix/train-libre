@@ -112,9 +112,11 @@ class CloudHistoryManager {
           try {
             final decoded = jsonDecode(message.content);
             if (decoded is Map && decoded['proposal'] is Map) {
-              turns.last.changeProposal = AssistantChangeProposal.fromJson(
-                Map<String, dynamic>.from(decoded['proposal'] as Map),
-              );
+              if (message.status != 'proposal_superseded') {
+                turns.last.changeProposal = AssistantChangeProposal.fromJson(
+                  Map<String, dynamic>.from(decoded['proposal'] as Map),
+                );
+              }
               turns.last.proposalStatus = message.status;
               turns.last.response = decoded['summary'] as String? ??
                   turns.last.changeProposal!.summary;

@@ -36,6 +36,8 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
   final T? selectedValue;
   final double menuWidth;
   final bool enabled;
+  final GlassMenuAlignment? menuAlignment;
+  final bool autoAdjustToScreen;
 
   /// Whether this menu should hide the global AI cloud while it is open.
   /// Menus rendered inside the expanded AI cloud must opt out so they don't
@@ -50,6 +52,8 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     this.selectedValue,
     this.menuWidth = 260.0,
     this.enabled = true,
+    this.menuAlignment,
+    this.autoAdjustToScreen = false,
     this.hideGlobalAiCloud = true,
   });
 
@@ -105,6 +109,11 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
         hideGlobalAiCloud: hideGlobalAiCloud,
         builder: (context, onToggle, onClose) => GlassMenu(
           menuWidth: menuWidth,
+          menuAlignment: menuAlignment,
+          autoAdjustToScreen: autoAdjustToScreen,
+          menuPadding: autoAdjustToScreen
+              ? const EdgeInsets.all(8)
+              : EdgeInsets.zero,
           onClose: onClose,
           settings: menuSettings,
           triggerBuilder: (context, toggle) => GestureDetector(

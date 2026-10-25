@@ -206,6 +206,10 @@ class CloudOverlayComposer extends StatelessWidget {
           return PlatformAdaptivePopupMenu<String>(
             hideGlobalAiCloud: false,
             menuWidth: 250,
+            menuAlignment: MediaQuery.viewInsetsOf(context).bottom > 0
+                ? GlassMenuAlignment.bottomLeft
+                : null,
+            autoAdjustToScreen: true,
             icon: HeaderGlassButton(
               key: addImagesButtonKey,
               icon: LucideIcons.plus,

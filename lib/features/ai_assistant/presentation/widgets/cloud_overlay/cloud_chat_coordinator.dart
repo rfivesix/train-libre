@@ -369,6 +369,29 @@ class CloudChatCoordinator extends ChangeNotifier {
       }
     }
 
+    final obsoleteProposals = _chatTurns
+        .where((turn) =>
+            turn.changeProposal != null &&
+            !turn.isApplyingProposal &&
+            (turn.proposalStatus == 'proposal_pending' ||
+                turn.proposalStatus == 'proposal_rejected') &&
+            turn.assistantMessageId != null)
+        .toList(growable: false);
+    for (final oldTurn in obsoleteProposals) {
+      try {
+        await _liveRunner.supersedeProposal(oldTurn.assistantMessageId!);
+      } catch (error) {
+        onRetainedDraft?.call();
+        onShowMessage?.call(isDe
+            ? 'Der offene Entwurf konnte nicht geschlossen werden. Bitte versuche es erneut.'
+            : 'The open draft could not be closed. Please try again.');
+        return;
+      }
+      oldTurn.changeProposal = null;
+      oldTurn.proposalStatus = 'proposal_superseded';
+    }
+    if (obsoleteProposals.isNotEmpty) notifyListeners();
+
     final generationId = ++_activeGenerationId;
     _waitingHaptics.resetWordHaptics();
     final turn = AiChatTurn(prompt)

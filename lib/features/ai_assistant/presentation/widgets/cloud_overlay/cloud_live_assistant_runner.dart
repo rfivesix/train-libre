@@ -139,6 +139,12 @@ class CloudLiveAssistantRunner {
     );
   }
 
+  Future<bool> supersedeProposal(String messageId) async {
+    final service = _assistant;
+    if (service == null) return false;
+    return service.supersedeProposal(messageId);
+  }
+
   void cancelActiveResponseSubscription() {
     final subscription = _liveResponseSubscription;
     _liveResponseSubscription = null;

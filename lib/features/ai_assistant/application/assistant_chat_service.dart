@@ -1294,6 +1294,23 @@ class AssistantChatService {
         : 'Change saved.';
   }
 
+  /// Invalidates an unapplied draft when the user continues the conversation.
+  /// Applied proposals remain in history as records of completed changes.
+  Future<bool> supersedeProposal(String messageId) async {
+    final message = await history.message(messageId);
+    if (message == null ||
+        (message.status != 'proposal_pending' &&
+            message.status != 'proposal_rejected')) {
+      return false;
+    }
+    await history.updateMessage(
+      messageId,
+      content: message.content,
+      status: 'proposal_superseded',
+    );
+    return true;
+  }
+
   Future<List<AssistantMessageAttachment>> _proposalImageAttachments(
     AssistantMessage proposalMessage,
     AssistantChangeProposal proposal,
