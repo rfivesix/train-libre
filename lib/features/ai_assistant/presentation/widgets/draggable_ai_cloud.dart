@@ -136,13 +136,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   AnimationController get _morphAnimation =>
       _morphController ??= AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 900),
+        duration: const Duration(milliseconds: 450),
       )..addListener(_onMorphAnimationTick);
 
   AnimationController get _fullscreenAnimation =>
       _fullscreenController ??= AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 560),
+        duration: const Duration(milliseconds: 350),
       )..addListener(_onFullscreenAnimationTick);
 
   CurvedAnimation get _morphProgressAnimation =>
@@ -649,7 +649,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             (_isFullscreen || _isClosingFromFullscreen) &&
                 morphProgress < 0.999;
         final appearanceProgress = isWholeCloudTransition
-            ? openingAppearanceProgress(openingClosingProgress)
+            ? _isClosing
+                ? overlayTransitionProgress(openingClosingProgress)
+                : openingAppearanceProgress(openingClosingProgress)
             : fullscreenProgress;
 
         final hasAttentionState = _chatCoordinator.permissionPending ||
