@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -89,6 +90,39 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
   bool _isEditing = false;
   IDiaryRepository? _repo;
   final ValueNotifier<double> _mealPhotoScrollOffset = ValueNotifier<double>(0);
+  final ScrollController _mealScrollController = ScrollController();
+  double? _resolvedMealPhotoHeight;
+  bool _initialSummaryPositionScheduled = false;
+  bool _userHasScrolledMeal = false;
+
+  void _scheduleInitialSummaryPosition() {
+    if (_initialSummaryPositionScheduled ||
+        _userHasScrolledMeal ||
+        _resolvedMealPhotoHeight == null ||
+        !_mealScrollController.hasClients) {
+      return;
+    }
+    _initialSummaryPositionScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initialSummaryPositionScheduled = false;
+      if (!mounted ||
+          _userHasScrolledMeal ||
+          !_mealScrollController.hasClients ||
+          _resolvedMealPhotoHeight == null) {
+        return;
+      }
+      final position = _mealScrollController.position;
+      final target = (_resolvedMealPhotoHeight! +
+              DesignConstants.spacingL +
+              52 -
+              position.viewportDimension)
+          .clamp(0.0, position.maxScrollExtent)
+          .toDouble();
+      if ((position.pixels - target).abs() > 1) {
+        _mealScrollController.jumpTo(target);
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -100,6 +134,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
   @override
   void dispose() {
+    _mealScrollController.dispose();
     _mealPhotoScrollOffset.dispose();
     super.dispose();
   }
@@ -881,15 +916,25 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
         ),
         body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
-            if (notification is ScrollUpdateNotification ||
-                notification is ScrollMetricsNotification) {
+            if (notification.depth == 0 &&
+                notification.metrics.axis == Axis.vertical &&
+                notification is UserScrollNotification &&
+                notification.direction != ScrollDirection.idle) {
+              _userHasScrolledMeal = true;
+            }
+            if (notification.depth == 0 &&
+                notification.metrics.axis == Axis.vertical &&
+                (notification is ScrollUpdateNotification ||
+                    notification is ScrollMetricsNotification)) {
               _mealPhotoScrollOffset.value = notification.metrics.pixels
                   .clamp(0.0, double.infinity)
                   .toDouble();
+              _scheduleInitialSummaryPosition();
             }
             return false;
           },
           child: CustomScrollView(
+            controller: _mealScrollController,
             slivers: [
               if (hasPhoto)
                 SliverToBoxAdapter(
@@ -902,6 +947,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                     imageFit: BoxFit.contain,
                     scrollOffset: _mealPhotoScrollOffset,
                     matchSmallestPhotoAspectRatio: true,
+                    onHeightChanged: (height) {
+                      _resolvedMealPhotoHeight = height;
+                      _scheduleInitialSummaryPosition();
+                    },
                   ),
                 )
               else

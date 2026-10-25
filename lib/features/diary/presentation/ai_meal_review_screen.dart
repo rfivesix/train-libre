@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
@@ -127,6 +128,39 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _manualEdited = false;
   int _aiCorrectionRounds = 0;
   final AiUsageCollector _correctionUsage = AiUsageCollector();
+  final ScrollController _reviewScrollController = ScrollController();
+  double? _resolvedReviewPhotoHeight;
+  bool _initialSummaryPositionScheduled = false;
+  bool _userHasScrolledReview = false;
+
+  void _scheduleInitialSummaryPosition() {
+    if (_initialSummaryPositionScheduled ||
+        _userHasScrolledReview ||
+        _resolvedReviewPhotoHeight == null ||
+        !_reviewScrollController.hasClients) {
+      return;
+    }
+    _initialSummaryPositionScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initialSummaryPositionScheduled = false;
+      if (!mounted ||
+          _userHasScrolledReview ||
+          !_reviewScrollController.hasClients ||
+          _resolvedReviewPhotoHeight == null) {
+        return;
+      }
+      final position = _reviewScrollController.position;
+      final target = (_resolvedReviewPhotoHeight! +
+              DesignConstants.spacingL +
+              88 -
+              position.viewportDimension)
+          .clamp(0.0, position.maxScrollExtent)
+          .toDouble();
+      if ((position.pixels - target).abs() > 1) {
+        _reviewScrollController.jumpTo(target);
+      }
+    });
+  }
 
   void _onUsageChanged() {
     if (mounted) setState(() {});
@@ -356,6 +390,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   @override
   void dispose() {
+    _reviewScrollController.dispose();
     _mealPhotoScrollOffset.dispose();
     _cloudVisibilityLease.dispose();
     widget.progressiveValidation?.removeListener(_onProgressiveValidation);
@@ -1513,15 +1548,25 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
-                  if (notification is ScrollUpdateNotification ||
-                      notification is ScrollMetricsNotification) {
+                  if (notification.depth == 0 &&
+                      notification.metrics.axis == Axis.vertical &&
+                      notification is UserScrollNotification &&
+                      notification.direction != ScrollDirection.idle) {
+                    _userHasScrolledReview = true;
+                  }
+                  if (notification.depth == 0 &&
+                      notification.metrics.axis == Axis.vertical &&
+                      (notification is ScrollUpdateNotification ||
+                          notification is ScrollMetricsNotification)) {
                     _mealPhotoScrollOffset.value = notification.metrics.pixels
                         .clamp(0.0, double.infinity)
                         .toDouble();
+                    _scheduleInitialSummaryPosition();
                   }
                   return false;
                 },
                 child: CustomScrollView(
+                  controller: _reviewScrollController,
                   slivers: [
                     if (widget.originalImages.isNotEmpty) ...[
                       SliverToBoxAdapter(
@@ -1553,6 +1598,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                           imageFit: BoxFit.contain,
                           scrollOffset: _mealPhotoScrollOffset,
                           matchSmallestPhotoAspectRatio: true,
+                          onHeightChanged: (height) {
+                            _resolvedReviewPhotoHeight = height;
+                            _scheduleInitialSummaryPosition();
+                          },
                         ),
                       ),
                       const SliverToBoxAdapter(
