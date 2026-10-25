@@ -36,6 +36,7 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
     reverseDuration: const Duration(milliseconds: 320),
   );
   bool _isClosing = false;
+  bool _completionSent = false;
 
   @override
   void initState() {
@@ -46,8 +47,17 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
   Future<void> _finish(File? image) async {
     if (_isClosing) return;
     _isClosing = true;
-    await _controller.reverse();
-    if (mounted) widget.onComplete(image);
+    try {
+      await _controller.reverse().orCancel;
+    } on TickerCanceled {
+      // Removing the overlay can cancel the reverse animation. Completion
+      // still needs to release the caller waiting for the capture result.
+    } finally {
+      if (mounted && !_completionSent) {
+        _completionSent = true;
+        widget.onComplete(image);
+      }
+    }
   }
 
   @override
@@ -100,34 +110,40 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
             fit: StackFit.expand,
             children: [
               Positioned.fill(
-                child: GestureDetector(
-                  onTap: () => _finish(null),
-                  child: ColoredBox(
-                    color: Colors.black.withValues(alpha: 0.28 * progress),
+                child: IgnorePointer(
+                  ignoring: _isClosing,
+                  child: GestureDetector(
+                    onTap: () => _finish(null),
+                    child: ColoredBox(
+                      color: Colors.black.withValues(alpha: 0.28 * progress),
+                    ),
                   ),
                 ),
               ),
               Positioned.fromRect(
                 rect: rect,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(radius),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF202124),
-                      borderRadius: BorderRadius.circular(radius),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.26),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.34),
-                          blurRadius: 28,
-                          offset: const Offset(0, 12),
+                child: IgnorePointer(
+                  ignoring: _isClosing,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(radius),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF202124),
+                        borderRadius: BorderRadius.circular(radius),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.26),
+                          width: 1,
                         ),
-                      ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.34),
+                            blurRadius: 28,
+                            offset: const Offset(0, 12),
+                          ),
+                        ],
+                      ),
+                      child: child,
                     ),
-                    child: child,
                   ),
                 ),
               ),
@@ -246,9 +262,12 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
     if (mounted) widget.onCaptured(result.imageFile);
   }
 
-  Future<void> _dismiss() async {
-    await _camera.stopSession();
-    if (mounted) widget.onDismiss();
+  void _dismiss() {
+    // Start the close animation immediately. Waiting for the native capture
+    // session to stop first can leave the shrinking panel and its hit-test
+    // layer on screen if the platform channel is slow to respond.
+    widget.onDismiss();
+    unawaited(_camera.stopSession());
   }
 
   Future<void> _toggleFlash() async {
@@ -392,6 +411,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                               quality: DesignConstants.defaultGlassQuality,
                               useOwnLayer: true,
                               allowElevation: false,
+                              platformViewBackdrop: true,
                               shape: const LiquidRoundedSuperellipse(
                                 borderRadius: 40,
                               ),

@@ -84,8 +84,16 @@ class HeaderGlassButton extends StatelessWidget {
                     quality: DesignConstants.defaultGlassQuality,
                     useOwnLayer: true,
                     allowElevation: false,
+                    platformViewBackdrop: skipBackdropBlur,
                     shape: useCircularGlass
-                        ? const LiquidOval()
+                        // The liquid-glass package cannot forward a circular
+                        // clip to iOS platform views. A half-size rounded rect
+                        // has the same circular silhouette and keeps the
+                        // shader/backdrop clipped to the button bounds above
+                        // the native camera preview.
+                        ? LiquidRoundedSuperellipse(
+                            borderRadius: dimension / 2,
+                          )
                         : LiquidRoundedSuperellipse(
                             borderRadius: dimension / 2,
                           ),
