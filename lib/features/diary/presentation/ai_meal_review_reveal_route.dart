@@ -18,6 +18,10 @@ class AiMealReviewRevealRoute<T> extends PageRoute<T> {
   final Offset? originCenter;
   final double? vaporCoreRadius;
   final Duration _duration;
+  final VoidCallback? onEnterComplete;
+  Animation<double>? _entryAnimation;
+  AnimationStatusListener? _entryStatusListener;
+  bool _entryTransitionStarted = false;
 
   AiMealReviewRevealRoute({
     required this.builder,
@@ -25,10 +29,47 @@ class AiMealReviewRevealRoute<T> extends PageRoute<T> {
     this.vaporCoreRadius,
     super.settings,
     Duration? duration,
+    this.onEnterComplete,
   }) : _duration = duration ??
             Duration(
               milliseconds: (500 * kAiMealReviewRevealDebugSlowdown).round(),
             );
+
+  void _listenForEntryCompletion(Animation<double> routeAnimation) {
+    if (onEnterComplete == null) return;
+    if (_entryAnimation == routeAnimation) return;
+    _entryAnimation = routeAnimation;
+    late final AnimationStatusListener listener;
+    listener = (status) {
+      if (status == AnimationStatus.forward) {
+        _entryTransitionStarted = true;
+        return;
+      }
+      if (status != AnimationStatus.completed || !_entryTransitionStarted) {
+        return;
+      }
+      routeAnimation.removeStatusListener(listener);
+      _entryAnimation = null;
+      _entryStatusListener = null;
+      onEnterComplete?.call();
+    };
+    _entryStatusListener = listener;
+    routeAnimation.addStatusListener(listener);
+    if (routeAnimation.status == AnimationStatus.completed &&
+        _entryTransitionStarted) {
+      listener(AnimationStatus.completed);
+    }
+  }
+
+  @override
+  void dispose() {
+    final animation = _entryAnimation;
+    final listener = _entryStatusListener;
+    if (animation != null && listener != null) {
+      animation.removeStatusListener(listener);
+    }
+    super.dispose();
+  }
 
   @override
   bool get opaque => false;
@@ -67,6 +108,7 @@ class AiMealReviewRevealRoute<T> extends PageRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
+    _listenForEntryCompletion(animation);
     // When popping / saving / dismissing: clean standard soft fade out!
     if (animation.status == AnimationStatus.reverse) {
       return FadeTransition(

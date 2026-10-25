@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
 import 'features/ai_assistant/data/ai_overlay_demo_settings.dart';
+import 'features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import 'features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
@@ -1161,23 +1162,30 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                         ValueListenableBuilder<AiOverlayDemoConfiguration>(
                           valueListenable: AiOverlayDemoSettings.configuration,
                           builder: (context, settings, _) => settings.enabled
-                              ? Positioned.fill(
-                                  child: Material(
-                                    type: MaterialType.transparency,
-                                    child: DraggableAiCloud(
-                                      navigatorKey: _navigatorKey,
-                                      semanticLabel:
-                                          AppLocalizations.of(context)!
-                                              .developerAiOverlayDemoTitle,
-                                      semanticHint:
-                                          AppLocalizations.of(context)!
-                                              .aiOverlayDemoCloudHint,
-                                      liveliness: settings.liveliness,
-                                      showResizeHandles:
-                                          settings.showResizeHandles,
-                                      openDirectlyFullscreen:
-                                          settings.openDirectlyFullscreen,
-                                      useLiveAi: true,
+                              ? ValueListenableBuilder<int>(
+                                  valueListenable:
+                                      AiGlobalCloudVisibility.suppressionCount,
+                                  builder: (context, suppressionCount, _) =>
+                                      Positioned.fill(
+                                    child: Material(
+                                      type: MaterialType.transparency,
+                                      child: DraggableAiCloud(
+                                        navigatorKey: _navigatorKey,
+                                        semanticLabel:
+                                            AppLocalizations.of(context)!
+                                                .developerAiOverlayDemoTitle,
+                                        semanticHint:
+                                            AppLocalizations.of(context)!
+                                                .aiOverlayDemoCloudHint,
+                                        liveliness: settings.liveliness,
+                                        showResizeHandles:
+                                            settings.showResizeHandles,
+                                        openDirectlyFullscreen:
+                                            settings.openDirectlyFullscreen,
+                                        useLiveAi: true,
+                                        isGloballyVisible:
+                                            suppressionCount == 0,
+                                      ),
                                     ),
                                   ),
                                 )

@@ -1,4 +1,5 @@
 import '../../../core/performance/startup_trace.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -50,6 +51,8 @@ class AppInitializerScreen extends StatefulWidget {
 }
 
 class _AppInitializerScreenState extends State<AppInitializerScreen> {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
+  bool _cloudVisibilityLeaseTransferredToReveal = false;
   // UI state displayed while initialization is running.
   String _currentTask = '';
   String _currentDetail = '';
@@ -65,11 +68,20 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   @override
   void initState() {
     super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
     _isDownloading = widget.isModal;
     // Start initialization right after the first frame is rendered.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialize();
     });
+  }
+
+  @override
+  void dispose() {
+    if (!_cloudVisibilityLeaseTransferredToReveal) {
+      _cloudVisibilityLease.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _initialize() async {
@@ -198,6 +210,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     final targetScreen =
         hasSeenOnboarding ? const MainScreen() : const OnboardingScreen();
+    _cloudVisibilityLeaseTransferredToReveal = true;
     // Use the exact, proven reveal route from the AI meal scan instead of a
     // second startup-specific implementation of the vapor transition.
     Navigator.of(context).pushReplacement(
@@ -208,9 +221,15 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         ),
         vaporCoreRadius: 42,
         duration: const Duration(milliseconds: 760),
+        onEnterComplete: _cloudVisibilityLease.dispose,
         builder: (_) => targetScreen,
       ),
     );
+    // The route callback is the primary release path. Keep an idempotent
+    // fallback so an interrupted or platform-specific route transition cannot
+    // leave the app-wide cloud suppressed for the rest of the session.
+    Future<void>.delayed(
+        const Duration(seconds: 2), _cloudVisibilityLease.dispose);
   }
 
   /// Converts each catalog's local 0–1 import progress into one continuous

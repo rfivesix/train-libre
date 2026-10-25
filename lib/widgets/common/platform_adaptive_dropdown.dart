@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../util/design_constants.dart';
+import '../../features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 
 /// Configuration item for [PlatformAdaptivePopupMenu].
 class PlatformAdaptivePopupMenuItem<T> {
@@ -94,15 +95,18 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     return AdaptiveLiquidGlassLayer(
       settings: menuSettings,
       quality: DesignConstants.defaultGlassQuality,
-      child: GlassMenu(
-        menuWidth: menuWidth,
-        settings: menuSettings,
-        triggerBuilder: (context, toggle) => GestureDetector(
-          onTap: toggle,
-          behavior: HitTestBehavior.opaque,
-          child: icon,
+      child: _CloudAwareGlassMenu(
+        builder: (context, onToggle, onClose) => GlassMenu(
+          menuWidth: menuWidth,
+          onClose: onClose,
+          settings: menuSettings,
+          triggerBuilder: (context, toggle) => GestureDetector(
+            onTap: () => onToggle(toggle),
+            behavior: HitTestBehavior.opaque,
+            child: icon,
+          ),
+          items: menuItems,
         ),
-        items: menuItems,
       ),
     );
   }
@@ -230,61 +234,65 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
             return AdaptiveLiquidGlassLayer(
               settings: menuSettings,
               quality: DesignConstants.defaultGlassQuality,
-              child: GlassMenu(
-                menuWidth: menuWidth,
-                autoAdjustToScreen: true,
-                settings: menuSettings,
-                triggerBuilder: (context, toggle) {
-                  return GestureDetector(
-                    onTap: onChanged == null ? null : toggle,
-                    behavior: HitTestBehavior.opaque,
-                    child: InputDecorator(
-                      decoration: mergedDecoration,
-                      isEmpty: selectedText.isEmpty,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              selectedText,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    color:
-                                        isDark ? Colors.white : Colors.black87,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+              child: _CloudAwareGlassMenu(
+                builder: (context, onToggle, onClose) => GlassMenu(
+                  menuWidth: menuWidth,
+                  autoAdjustToScreen: true,
+                  onClose: onClose,
+                  settings: menuSettings,
+                  triggerBuilder: (context, toggle) {
+                    return GestureDetector(
+                      onTap: onChanged == null ? null : () => onToggle(toggle),
+                      behavior: HitTestBehavior.opaque,
+                      child: InputDecorator(
+                        decoration: mergedDecoration,
+                        isEmpty: selectedText.isEmpty,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                selectedText,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            color: isDark ? Colors.white70 : Colors.black54,
-                          ),
-                        ],
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-                items: items.map((item) {
-                  final isSelected = item.value == state.value;
-                  return GlassMenuItem(
-                    title: _getItemText(item.child),
-                    isSelected: isSelected,
-                    trailing: isSelected
-                        ? Icon(
-                            LucideIcons.check,
-                            size: 18,
-                            color: isDark ? Colors.white : Colors.black87,
-                          )
-                        : null,
-                    onTap: () {
-                      state.didChange(item.value);
-                      onChanged?.call(item.value);
-                    },
-                  );
-                }).toList(),
+                    );
+                  },
+                  items: items.map((item) {
+                    final isSelected = item.value == state.value;
+                    return GlassMenuItem(
+                      title: _getItemText(item.child),
+                      isSelected: isSelected,
+                      trailing: isSelected
+                          ? Icon(
+                              LucideIcons.check,
+                              size: 18,
+                              color: isDark ? Colors.white : Colors.black87,
+                            )
+                          : null,
+                      onTap: () {
+                        state.didChange(item.value);
+                        onChanged?.call(item.value);
+                      },
+                    );
+                  }).toList(),
+                ),
               ),
             );
           },
@@ -377,67 +385,110 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
         return AdaptiveLiquidGlassLayer(
           settings: menuSettings,
           quality: DesignConstants.defaultGlassQuality,
-          child: GlassMenu(
-            menuWidth: menuWidth,
-            autoAdjustToScreen: true,
-            settings: menuSettings,
-            triggerBuilder: (context, toggle) => GestureDetector(
-              onTap: toggle,
-              behavior: HitTestBehavior.opaque,
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: label,
-                  filled: true,
-                  fillColor: fillColor,
-                  border: border(),
-                  enabledBorder: border(),
-                  focusedBorder: border(theme.colorScheme.primary, 2),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingM,
-                    vertical: DesignConstants.spacingS + 2,
+          child: _CloudAwareGlassMenu(
+            builder: (context, onToggle, onClose) => GlassMenu(
+              menuWidth: menuWidth,
+              autoAdjustToScreen: true,
+              onClose: onClose,
+              settings: menuSettings,
+              triggerBuilder: (context, toggle) => GestureDetector(
+                onTap: () => onToggle(toggle),
+                behavior: HitTestBehavior.opaque,
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: label,
+                    filled: true,
+                    fillColor: fillColor,
+                    border: border(),
+                    enabledBorder: border(),
+                    focusedBorder: border(theme.colorScheme.primary, 2),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingM,
+                      vertical: DesignConstants.spacingS + 2,
+                    ),
+                  ),
+                  isEmpty: summary.isEmpty,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          summary,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ],
                   ),
                 ),
-                isEmpty: summary.isEmpty,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        summary,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_drop_down,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ],
-                ),
               ),
+              items: items.map((item) {
+                final isSelected = selected.contains(item.value);
+                return GlassMenuItem(
+                  title: item.label,
+                  isSelected: isSelected,
+                  trailing: isSelected
+                      ? Icon(
+                          LucideIcons.check,
+                          size: 18,
+                          color: isDark ? Colors.white : Colors.black87,
+                        )
+                      : null,
+                  // The menu closes itself afterwards — see the class comment.
+                  onTap: () => onToggled(item.value),
+                );
+              }).toList(),
             ),
-            items: items.map((item) {
-              final isSelected = selected.contains(item.value);
-              return GlassMenuItem(
-                title: item.label,
-                isSelected: isSelected,
-                trailing: isSelected
-                    ? Icon(
-                        LucideIcons.check,
-                        size: 18,
-                        color: isDark ? Colors.white : Colors.black87,
-                      )
-                    : null,
-                // The menu closes itself afterwards — see the class comment.
-                onTap: () => onToggled(item.value),
-              );
-            }).toList(),
           ),
         );
       },
     );
   }
+}
+
+typedef _CloudAwareGlassMenuBuilder = Widget Function(
+  BuildContext context,
+  void Function(VoidCallback toggle) onToggle,
+  VoidCallback onClose,
+);
+
+/// Keeps the global AI cloud hidden while a GlassMenu popover is open.
+class _CloudAwareGlassMenu extends StatefulWidget {
+  const _CloudAwareGlassMenu({required this.builder});
+
+  final _CloudAwareGlassMenuBuilder builder;
+
+  @override
+  State<_CloudAwareGlassMenu> createState() => _CloudAwareGlassMenuState();
+}
+
+class _CloudAwareGlassMenuState extends State<_CloudAwareGlassMenu> {
+  AiGlobalCloudVisibilityLease? _lease;
+
+  void _onToggle(VoidCallback toggle) {
+    _lease ??= AiGlobalCloudVisibility.suppress();
+    toggle();
+  }
+
+  void _onClose() {
+    _lease?.dispose();
+    _lease = null;
+  }
+
+  @override
+  void dispose() {
+    _onClose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      widget.builder(context, _onToggle, _onClose);
 }

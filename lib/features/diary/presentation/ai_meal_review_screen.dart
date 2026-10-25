@@ -34,6 +34,7 @@ import 'widgets/meal_ingredients_summary.dart';
 import 'widgets/meal_photo_widget.dart';
 import '../../depth_scan/domain/models/depth_scale_facts.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import '../../depth_scan/data/depth_map_renderer.dart';
 import '../../depth_scan/presentation/widgets/depth_legend.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -93,6 +94,7 @@ class AiMealReviewScreen extends StatefulWidget {
 }
 
 class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
   bool _showDepthMap = false;
   bool _showDepthLegend = false;
   int _currentPhotoIndex = 0;
@@ -290,6 +292,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   @override
   void initState() {
     super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
     _reviewTelemetry = AiMealReviewTelemetry(requestId: widget.scanRequestId);
     widget.usageCollector?.addListener(_onUsageChanged);
     _correctionUsage.addListener(_onUsageChanged);
@@ -333,6 +336,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   @override
   void dispose() {
+    _cloudVisibilityLease.dispose();
     widget.progressiveValidation?.removeListener(_onProgressiveValidation);
     widget.usageCollector?.removeListener(_onUsageChanged);
     _correctionUsage.removeListener(_onUsageChanged);

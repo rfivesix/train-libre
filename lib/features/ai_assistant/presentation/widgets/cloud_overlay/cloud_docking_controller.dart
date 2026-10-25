@@ -46,7 +46,8 @@ class CloudOverlayLayout {
     required this.position,
   });
 
-  Offset handlePosition(Offset corner, Offset direction, MediaQueryData mediaQuery) {
+  Offset handlePosition(
+      Offset corner, Offset direction, MediaQueryData mediaQuery) {
     const handleOutset = 44.0;
     return Offset(
       (corner.dx + direction.dx * handleOutset)
@@ -226,14 +227,16 @@ class CloudDockingController extends ChangeNotifier {
       case SafeSpaceCorner.topLeft:
         _safeLeft =
             (_safeLeft + dx).clamp(edgeInset, _safeRight - minWidth).toDouble();
-        _safeTop =
-            (_safeTop + dy).clamp(edgeInset, _safeBottom - minHeight).toDouble();
+        _safeTop = (_safeTop + dy)
+            .clamp(edgeInset, _safeBottom - minHeight)
+            .toDouble();
       case SafeSpaceCorner.topRight:
         _safeRight = (_safeRight + dx)
             .clamp(_safeLeft + minWidth, 1 - edgeInset)
             .toDouble();
-        _safeTop =
-            (_safeTop + dy).clamp(edgeInset, _safeBottom - minHeight).toDouble();
+        _safeTop = (_safeTop + dy)
+            .clamp(edgeInset, _safeBottom - minHeight)
+            .toDouble();
       case SafeSpaceCorner.bottomLeft:
         _safeLeft =
             (_safeLeft + dx).clamp(edgeInset, _safeRight - minWidth).toDouble();
@@ -297,13 +300,14 @@ class CloudDockingController extends ChangeNotifier {
     const attentionPeekInset = 20.0;
     final isDockedLeft = requestedLeft <= minLeft + 8;
     final isDockedRight = requestedLeft >= maxLeft - 8;
-    final left = hasAttentionState && !attentionPeekDismissed && width > cloudSize
-        ? isDockedLeft
-            ? -attentionPeekInset
-            : isDockedRight
-                ? width - cloudSize + attentionPeekInset
-                : requestedLeft
-        : requestedLeft;
+    final left =
+        hasAttentionState && !attentionPeekDismissed && width > cloudSize
+            ? isDockedLeft
+                ? -attentionPeekInset
+                : isDockedRight
+                    ? width - cloudSize + attentionPeekInset
+                    : requestedLeft
+            : requestedLeft;
 
     final position = travelDistance == 0
         ? 0.0

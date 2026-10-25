@@ -46,6 +46,7 @@ import '../../../services/voice/voice_dictation_service.dart';
 import '../../../services/ai_meal_capture_tour_service.dart';
 import 'widgets/ai_meal_capture_tour_overlay.dart';
 import '../../../util/permission_dialogs.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
 
 /// Screen for capturing meal input via live camera, photo(s), barcode or text (Screens A1–A6).
 class AiMealCaptureScreen extends StatefulWidget {
@@ -64,6 +65,7 @@ class AiMealCaptureScreen extends StatefulWidget {
 
 class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
   final _textController = TextEditingController();
   final FocusNode _textFocusNode = FocusNode(debugLabel: 'ai-meal-text-input');
   final ImagePicker _picker = ImagePicker();
@@ -153,6 +155,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void initState() {
     super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.aiMealCapture));
     WidgetsBinding.instance.addObserver(this);
@@ -212,6 +215,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   @override
   void dispose() {
+    _cloudVisibilityLease.dispose();
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }

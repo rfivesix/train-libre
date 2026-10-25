@@ -16,6 +16,7 @@ import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -32,6 +33,7 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
   bool _isDone = false;
   bool _isFlashOn = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
@@ -72,6 +74,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   @override
   void initState() {
     super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.barcodeScanner));
     _checkDbStatus();
@@ -138,6 +141,7 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   @override
   void dispose() {
+    _cloudVisibilityLease.dispose();
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }

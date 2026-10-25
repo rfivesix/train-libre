@@ -14,6 +14,7 @@ import '../../services/haptic_feedback_service.dart';
 import 'app_button.dart';
 import '../../features/nutrition_recommendation/domain/goal_models.dart';
 import '../../services/unit_service.dart';
+import '../../features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 
 /// Helper to get the localized date picker title.
 String _getSelectDateTitle(BuildContext context) {
@@ -40,13 +41,18 @@ Future<DateTime?> showAdaptiveDatePicker({
   Locale? locale,
   AdaptiveDatePickerView initialView = AdaptiveDatePickerView.calendar,
 }) async {
-  return _showGlassDatePicker(
-    context: context,
-    initialDate: initialDate,
-    firstDate: firstDate,
-    lastDate: lastDate,
-    initialView: initialView,
-  );
+  final cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+  try {
+    return await _showGlassDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      initialView: initialView,
+    );
+  } finally {
+    cloudVisibilityLease.dispose();
+  }
 }
 
 /// Helper to get the localized combined date+time picker title.
@@ -629,10 +635,40 @@ Future<TimeOfDay?> _showGlassTimePicker({
 }
 
 /// Reusable Glass Picker Sheet container that replicates the styling of [showGlassBottomMenu].
-class _GlassPickerSheet extends StatelessWidget {
+class _GlassPickerSheet extends StatefulWidget {
   final Widget child;
 
   const _GlassPickerSheet({required this.child});
+
+  @override
+  State<_GlassPickerSheet> createState() => _GlassPickerSheetState();
+}
+
+class _GlassPickerSheetState extends State<_GlassPickerSheet> {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
+
+  @override
+  void initState() {
+    super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+  }
+
+  @override
+  void dispose() {
+    _cloudVisibilityLease.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => _GlassPickerSheetContent(
+        child: widget.child,
+      );
+}
+
+class _GlassPickerSheetContent extends StatelessWidget {
+  final Widget child;
+
+  const _GlassPickerSheetContent({required this.child});
 
   @override
   Widget build(BuildContext context) {

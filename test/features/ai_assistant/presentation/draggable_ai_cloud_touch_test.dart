@@ -63,10 +63,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // After docking to left edge:
-      // minLeft = 64 - 160 = -96.0
-      // 64 pixels visible on-screen (x = 0 to 64)
+      // minLeft = 88 - 160 = -72.0
+      // 88 pixels visible on-screen (x = 0 to 88)
       final dockedPos = cloudBox.localToGlobal(Offset.zero);
-      expect(dockedPos.dx, equals(-96.0));
+      expect(dockedPos.dx, equals(-72.0));
       expect(dockedPos.dy, equals(initialPos.dy));
 
       // Tap on the visible on-screen region of the cloud (e.g. x = 30)
@@ -111,9 +111,9 @@ void main() {
       final cloudBox = tester.renderObject<RenderBox>(semanticsFinder);
       final currentPos = cloudBox.localToGlobal(Offset.zero);
 
-      // Position should be between 16.0 and -96.0
+      // Position should be between 16.0 and -72.0
       expect(currentPos.dx, lessThan(16.0));
-      expect(currentPos.dx, greaterThan(-96.0));
+      expect(currentPos.dx, greaterThan(-72.0));
 
       // Tap during dock animation on the visible part (e.g. x = 30)
       final midAnimTapPoint = Offset(30, currentPos.dy + 80);
@@ -157,7 +157,7 @@ void main() {
       final semanticsFinder = find.bySemanticsLabel('KI-Wolke');
       final cloudBox = tester.renderObject<RenderBox>(semanticsFinder);
       final dockedPos = cloudBox.localToGlobal(Offset.zero);
-      expect(dockedPos.dx, equals(-96.0));
+      expect(dockedPos.dx, equals(-72.0));
 
       // Drag right from visible part (x = 30) to the right
       await tester.timedDragFrom(
@@ -169,7 +169,7 @@ void main() {
 
       final draggedBox = tester.renderObject<RenderBox>(semanticsFinder);
       final draggedPos = draggedBox.localToGlobal(Offset.zero);
-      expect(draggedPos.dx, greaterThan(-96.0));
+      expect(draggedPos.dx, greaterThan(-72.0));
 
       // After settling, tapping works
       await tester.pump(const Duration(milliseconds: 400));

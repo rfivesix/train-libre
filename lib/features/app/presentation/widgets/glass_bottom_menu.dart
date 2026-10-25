@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -56,7 +57,7 @@ Future<T?> showGlassBottomMenu<T>({
   bool enableDrag = true,
   bool applySafeAreaBottom = true,
   bool expandToFullHeight = false,
-}) {
+}) async {
   assert(
     (actions != null && contentBuilder == null) ||
         (actions == null && contentBuilder != null),
@@ -70,19 +71,24 @@ Future<T?> showGlassBottomMenu<T>({
       : Colors.black.withValues(alpha: 0.3);
 
   final sheetDisposed = Completer<void>();
-  return _showGlassBottomMenuAndWaitForDismissal<T>(
-    sheetDisposed: sheetDisposed,
-    context: context,
-    title: title,
-    headerTrailing: headerTrailing,
-    actions: actions,
-    contentBuilder: contentBuilder,
-    isDismissible: isDismissible,
-    enableDrag: enableDrag,
-    applySafeAreaBottom: applySafeAreaBottom,
-    expandToFullHeight: expandToFullHeight,
-    barrierColor: barrierColor,
-  );
+  final visibilityLease = AiGlobalCloudVisibility.suppress();
+  try {
+    return await _showGlassBottomMenuAndWaitForDismissal<T>(
+      sheetDisposed: sheetDisposed,
+      context: context,
+      title: title,
+      headerTrailing: headerTrailing,
+      actions: actions,
+      contentBuilder: contentBuilder,
+      isDismissible: isDismissible,
+      enableDrag: enableDrag,
+      applySafeAreaBottom: applySafeAreaBottom,
+      expandToFullHeight: expandToFullHeight,
+      barrierColor: barrierColor,
+    );
+  } finally {
+    visibilityLease.dispose();
+  }
 }
 
 Future<T?> _showGlassBottomMenuAndWaitForDismissal<T>({
@@ -133,7 +139,7 @@ Future<T?> _showGlassBottomMenuAndWaitForDismissal<T>({
   return result;
 }
 
-class GlassBottomMenuSheet extends StatelessWidget {
+class GlassBottomMenuSheet extends StatefulWidget {
   const GlassBottomMenuSheet({
     super.key,
     this.title,
@@ -159,6 +165,64 @@ class GlassBottomMenuSheet extends StatelessWidget {
 
   /// Optional controller used when this sheet is hosted by a
   /// [DraggableScrollableSheet].
+  final ScrollController? scrollController;
+  final VoidCallback? onClose;
+  final VoidCallback? onDisposed;
+
+  @override
+  State<GlassBottomMenuSheet> createState() => _GlassBottomMenuSheetState();
+}
+
+class _GlassBottomMenuSheetState extends State<GlassBottomMenuSheet> {
+  late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
+
+  @override
+  void initState() {
+    super.initState();
+    _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
+  }
+
+  @override
+  void dispose() {
+    _cloudVisibilityLease.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _GlassBottomMenuSheetContent(
+      title: widget.title,
+      headerTrailing: widget.headerTrailing,
+      contentBuilder: widget.contentBuilder,
+      actions: widget.actions,
+      applySafeAreaBottom: widget.applySafeAreaBottom,
+      expandToFullHeight: widget.expandToFullHeight,
+      scrollController: widget.scrollController,
+      onClose: widget.onClose,
+      onDisposed: widget.onDisposed,
+    );
+  }
+}
+
+class _GlassBottomMenuSheetContent extends StatelessWidget {
+  const _GlassBottomMenuSheetContent({
+    this.title,
+    this.headerTrailing,
+    this.contentBuilder,
+    this.actions = const <GlassMenuAction>[],
+    this.applySafeAreaBottom = true,
+    this.expandToFullHeight = false,
+    this.scrollController,
+    this.onClose,
+    this.onDisposed,
+  });
+
+  final String? title;
+  final Widget? headerTrailing;
+  final Widget Function(BuildContext, VoidCallback)? contentBuilder;
+  final List<GlassMenuAction> actions;
+  final bool applySafeAreaBottom;
+  final bool expandToFullHeight;
   final ScrollController? scrollController;
   final VoidCallback? onClose;
   final VoidCallback? onDisposed;
