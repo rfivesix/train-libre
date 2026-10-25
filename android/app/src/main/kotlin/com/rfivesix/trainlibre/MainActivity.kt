@@ -47,6 +47,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.ByteArrayOutputStream
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZoneOffset
 
 class MainActivity : FlutterActivity() {
@@ -64,6 +65,7 @@ class MainActivity : FlutterActivity() {
     private val sleepHealthConnectChannelName = "trainlibre.health/sleep_health_connect"
     private val exportHealthConnectChannelName = "trainlibre.health/export_health_connect"
     private val weightImportHealthConnectChannelName = "trainlibre.health/import_weight_health_connect"
+    private val nutritionImportHealthConnectChannelName = "trainlibre.health/import_nutrition_health_connect"
     private val storageChannelName = "trainlibre.storage/saf"
     private val sharedFileChannelName = "trainlibre.app/shared_file"
     private var pendingPermissionResult: MethodChannel.Result? = null
@@ -89,6 +91,9 @@ class MainActivity : FlutterActivity() {
     private val requiredWeightImportPermissions = setOf(
         HealthPermission.getReadPermission(WeightRecord::class),
         HealthPermission.getReadPermission(BodyFatRecord::class),
+    )
+    private val requiredNutritionImportPermissions = setOf(
+        HealthPermission.getReadPermission(NutritionRecord::class),
     )
     private val preferredStepsSources = listOf(
         "com.google.android.apps.fitness",
@@ -185,6 +190,17 @@ class MainActivity : FlutterActivity() {
                 "getStatus" -> handleWeightImportStatus(result)
                 "requestPermissions" -> handleWeightImportPermissions(result)
                 "readWeights" -> handleReadWeights(call, result)
+                else -> result.notImplemented()
+            }
+        }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            nutritionImportHealthConnectChannelName,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getStatus" -> handleNutritionImportStatus(result)
+                "requestPermissions" -> handleNutritionImportPermissions(result)
+                "readNutritionDays" -> handleReadNutritionDays(call, result)
                 else -> result.notImplemented()
             }
         }
@@ -669,6 +685,142 @@ class MainActivity : FlutterActivity() {
                     }
                     pageToken = response.pageToken
                 } while (!pageToken.isNullOrEmpty())
+                withContext(Dispatchers.Main) { result.success(rows) }
+            } catch (e: SecurityException) {
+                withContext(Dispatchers.Main) { result.error("permission_denied", e.message, null) }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { result.error("read_failed", e.message, null) }
+            }
+        }
+    }
+
+    private fun handleNutritionImportStatus(result: MethodChannel.Result) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val available = HealthConnectClient.getSdkStatus(this@MainActivity) ==
+                HealthConnectClient.SDK_AVAILABLE
+            if (!available) {
+                withContext(Dispatchers.Main) {
+                    result.success(mapOf(
+                        "available" to false,
+                        "readGranted" to false,
+                        "historyAvailable" to false,
+                        "historyGranted" to false,
+                    ))
+                }
+                return@launch
+            }
+            val client = HealthConnectClient.getOrCreate(this@MainActivity)
+            val granted = client.permissionController.getGrantedPermissions()
+            val historyAvailable = client.features.getFeatureStatus(
+                HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY,
+            ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+            withContext(Dispatchers.Main) {
+                result.success(mapOf(
+                    "available" to true,
+                    "readGranted" to granted.containsAll(requiredNutritionImportPermissions),
+                    "historyAvailable" to historyAvailable,
+                    "historyGranted" to granted.contains(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY),
+                ))
+            }
+        }
+    }
+
+    private fun handleNutritionImportPermissions(result: MethodChannel.Result) {
+        if (HealthConnectClient.getSdkStatus(this) != HealthConnectClient.SDK_AVAILABLE) {
+            result.error("not_available", "Health Connect not available", null)
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            val client = HealthConnectClient.getOrCreate(this@MainActivity)
+            val historyAvailable = client.features.getFeatureStatus(
+                HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY,
+            ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+            val requested = requiredNutritionImportPermissions + if (historyAvailable) {
+                setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY)
+            } else emptySet()
+            if (client.permissionController.getGrantedPermissions().containsAll(requested)) {
+                withContext(Dispatchers.Main) { result.success(true) }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                pendingPermissionResult = object : MethodChannel.Result {
+                    override fun success(res: Any?) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val current = HealthConnectClient.getOrCreate(this@MainActivity)
+                                .permissionController.getGrantedPermissions()
+                            withContext(Dispatchers.Main) {
+                                result.success(current.containsAll(requiredNutritionImportPermissions))
+                            }
+                        }
+                    }
+                    override fun error(code: String, message: String?, details: Any?) = result.error(code, message, details)
+                    override fun notImplemented() = result.notImplemented()
+                }
+                pendingPermissionRequestSet = requested
+                permissionLauncher.launch(requested)
+            }
+        }
+    }
+
+    private fun handleReadNutritionDays(call: MethodCall, result: MethodChannel.Result) {
+        val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
+        val fromIso = args["fromUtcIso"] as? String
+        val toIso = args["toUtcIso"] as? String
+        if (fromIso == null || toIso == null) {
+            result.error("invalid_args", "Nutrition import requires a time range", null)
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val client = HealthConnectClient.getOrCreate(this@MainActivity)
+                if (!client.permissionController.getGrantedPermissions()
+                        .containsAll(requiredNutritionImportPermissions)) {
+                    withContext(Dispatchers.Main) {
+                        result.error("permission_denied", "Nutrition read permission not granted", null)
+                    }
+                    return@launch
+                }
+                val from = Instant.parse(fromIso)
+                val to = Instant.parse(toIso)
+                val days = sortedMapOf<String, MutableMap<String, Double>>()
+                var pageToken: String? = null
+                do {
+                    val response = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = NutritionRecord::class,
+                            timeRangeFilter = TimeRangeFilter.between(from, to),
+                            pageToken = pageToken,
+                        ),
+                    )
+                    response.records.forEach { record ->
+                        if (record.metadata.dataOrigin.packageName == applicationContext.packageName) return@forEach
+                        val day = record.startTime.atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                        val totals = days.getOrPut(day) { mutableMapOf() }
+                        fun add(key: String, value: Double?) {
+                            if (value != null && value.isFinite()) totals[key] = (totals[key] ?: 0.0) + value
+                        }
+                        add("calories", record.energy?.inKilocalories)
+                        add("protein", record.protein?.inGrams)
+                        add("carbs", record.totalCarbohydrate?.inGrams)
+                        add("fat", record.totalFat?.inGrams)
+                        add("sugar", record.sugar?.inGrams)
+                        add("fiber", record.dietaryFiber?.inGrams)
+                        add("salt", record.sodium?.inGrams?.times(2.5))
+                    }
+                    pageToken = response.pageToken
+                } while (!pageToken.isNullOrEmpty())
+                val rows = days.map { (day, totals) ->
+                    mapOf(
+                        "day" to day,
+                        "calories" to (totals["calories"] ?: 0.0),
+                        "protein" to (totals["protein"] ?: 0.0),
+                        "carbs" to (totals["carbs"] ?: 0.0),
+                        "fat" to (totals["fat"] ?: 0.0),
+                        "sugar" to totals["sugar"],
+                        "fiber" to totals["fiber"],
+                        "salt" to totals["salt"],
+                    )
+                }
                 withContext(Dispatchers.Main) { result.success(rows) }
             } catch (e: SecurityException) {
                 withContext(Dispatchers.Main) { result.error("permission_denied", e.message, null) }

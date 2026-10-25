@@ -9636,6 +9636,24 @@ abstract class AppLocalizations {
   /// **'Nutrition & hydration'**
   String get healthExportDomainNutritionHydration;
 
+  /// No description provided for @healthNutritionImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import nutrition'**
+  String get healthNutritionImportTitle;
+
+  /// No description provided for @healthNutritionImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import daily totals from Apple Health or Health Connect into your diary.'**
+  String get healthNutritionImportSubtitle;
+
+  /// No description provided for @healthNutritionImportPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual entries stay separate. Imported days are not overwritten after local edits or recreated after deletion.'**
+  String get healthNutritionImportPolicy;
+
   /// No description provided for @healthExportDomainWorkouts.
   ///
   /// In en, this message translates to:

@@ -297,8 +297,6 @@ class HealthExportDataSource {
       end,
       updatedSince: updatedSinceUtc,
     );
-    if (entries.isEmpty) return const <ExportNutritionRecord>[];
-
     // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
     final Set<int> archiveIdsSet = {};
     final Set<String> barcodesSet = {};
@@ -385,6 +383,46 @@ class HealthExportDataSource {
           records.add(record);
         }
       }
+    }
+
+    final database = await _db.database;
+    final macroQuery = database.select(database.macroEntries)
+      ..where((row) => row.consumedAt.isBetweenValues(start, end));
+    if (updatedSinceUtc != null) {
+      macroQuery
+          .where((row) => row.updatedAt.isBiggerOrEqualValue(updatedSinceUtc));
+    }
+    final macroRows = await macroQuery.get();
+    final importedIds = macroRows.isEmpty
+        ? <String>{}
+        : (await database.customSelect(
+            '''SELECT local_macro_entry_id FROM health_nutrition_import_records
+               WHERE sync_state = 'active'
+                 AND local_macro_entry_id IN (${List.filled(macroRows.length, '?').join(',')})''',
+            variables: macroRows
+                .map((row) => Variable.withString(row.id))
+                .toList(growable: false),
+          ).get())
+            .map((row) => row.read<String>('local_macro_entry_id'))
+            .toSet();
+    for (final entry in macroRows) {
+      if (importedIds.contains(entry.id)) continue;
+      final factor = entry.amount == null ? 1.0 : entry.amount! / 100.0;
+      final record = ExportNutritionRecord(
+        idempotencyKey: 'macro_entry:${entry.id}',
+        timestampUtc: entry.consumedAt.toUtc(),
+        zoneOffsetMinutes: entry.consumedAt.timeZoneOffset.inMinutes,
+        caloriesKcal: entry.calories * factor,
+        proteinGrams: entry.protein * factor,
+        carbsGrams: entry.carbs * factor,
+        fatGrams: entry.fat * factor,
+        fiberGrams: entry.fiber == null ? null : entry.fiber! * factor,
+        sugarGrams: entry.sugar == null ? null : entry.sugar! * factor,
+        sodiumGrams: entry.salt == null
+            ? null
+            : entry.salt! * factor / _saltToSodiumFactor,
+      );
+      if (record.hasAnyValue) records.add(record);
     }
     return records;
   }

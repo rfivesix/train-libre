@@ -5537,6 +5537,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get healthExportDomainNutritionHydration => 'Ernährung & Hydration';
 
   @override
+  String get healthNutritionImportTitle => 'Ernährung importieren';
+
+  @override
+  String get healthNutritionImportSubtitle =>
+      'Tageswerte aus Apple Health oder Health Connect ins Tagebuch übernehmen.';
+
+  @override
+  String get healthNutritionImportPolicy =>
+      'Manuelle Einträge bleiben separat. Importierte Tage werden bei Änderungen in Train Libre nicht überschrieben und nach dem Löschen nicht erneut importiert.';
+
+  @override
   String get healthExportDomainWorkouts => 'Workouts';
 
   @override

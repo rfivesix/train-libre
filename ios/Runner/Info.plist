@@ -58,9 +58,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Train Libre uses the camera for barcode scanning, AI meal analysis, and images you choose to send in AI chat.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Train Libre reads steps, sleep, heart rate, and optionally supported body measurements from Apple Health. It also reads records it previously wrote so edits can safely replace them.</string>
+	<string>Train Libre reads steps, sleep, heart rate, body measurements, and nutrition entries from Apple Health when their imports are enabled. It also reads records it previously wrote so edits can safely replace them.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Train Libre writes measurements, nutrition, hydration, and workouts to Apple Health when you enable one-way health export.</string>
+	<string>Train Libre writes measurements, nutrition, hydration, and workouts to Apple Health when you enable export.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Train Libre uses the microphone only while you record a meal or assistant dictation.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

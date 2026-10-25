@@ -5316,6 +5316,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthExportDomainNutritionHydration => '栄養と水分補給';
 
   @override
+  String get healthNutritionImportTitle => '栄養をインポート';
+
+  @override
+  String get healthNutritionImportSubtitle =>
+      'Apple Health または Health Connect の1日分の合計を日記に取り込みます。';
+
+  @override
+  String get healthNutritionImportPolicy =>
+      '手動入力は別に保持されます。取り込んだ日の値はローカル編集で上書きされず、削除後に再作成されません。';
+
+  @override
   String get healthExportDomainWorkouts => 'トレーニング';
 
   @override

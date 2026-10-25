@@ -5573,6 +5573,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get healthExportDomainNutritionHydration => 'Nutrizione e idratazione';
 
   @override
+  String get healthNutritionImportTitle => 'Importa nutrizione';
+
+  @override
+  String get healthNutritionImportSubtitle =>
+      'Importa nel diario i totali giornalieri da Apple Health o Health Connect.';
+
+  @override
+  String get healthNutritionImportPolicy =>
+      'Le voci manuali restano separate. I giorni importati non vengono sovrascritti dopo modifiche locali e non vengono ricreati dopo l’eliminazione.';
+
+  @override
   String get healthExportDomainWorkouts => 'Allenamenti';
 
   @override

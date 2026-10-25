@@ -83,6 +83,8 @@ class DatabaseHelper {
         await dbInst.customStatement('DELETE FROM health_export_records');
         await dbInst.customStatement('DELETE FROM health_export_identities');
         await dbInst.customStatement('DELETE FROM health_import_records');
+        await dbInst
+            .customStatement('DELETE FROM health_nutrition_import_records');
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
         await dbInst
             .customStatement('DELETE FROM sleep_canonical_stage_segments');

@@ -1,6 +1,6 @@
 "NSCameraUsageDescription" = "Train Libre はバーコードのスキャンと、任意の AI 食事写真解析にカメラを使用します。";
-"NSHealthShareUsageDescription" = "Train Libre は、有効にした健康画面のための歩数・睡眠・心拍数、必要に応じて Apple ヘルスケアの対応する身体測定値、および編集時に安全に置き換えるためにアプリが以前書き込んだデータを読み取ります。";
-"NSHealthUpdateUsageDescription" = "一方向のヘルスケア書き出しを有効にすると、Train Libre は測定値・栄養・水分・ワークアウトを Apple ヘルスケアに書き込みます。";
+"NSHealthShareUsageDescription" = "Train Libre は、各インポートを有効にした場合に、Apple ヘルスケアから歩数・睡眠・心拍数・身体測定値・栄養データを読み取ります。編集を安全に反映するため、アプリ自身が書き込んだデータも読み取ります。";
+"NSHealthUpdateUsageDescription" = "エクスポートを有効にすると、Train Libre は測定値・栄養・水分・ワークアウトを Apple ヘルスケアに書き込みます。";
 "NSMicrophoneUsageDescription" = "Train Libre は、食事を説明するために口述ボタンを押している間だけマイクを使用します。";
 "NSPhotoLibraryUsageDescription" = "Train Libre は、任意の AI 食事解析とプロフィール画像のために写真ライブラリにアクセスします。";
 "NSSpeechRecognitionUsageDescription" = "Train Libre は話した食事の説明をテキストに変換します。端末が対応している場合は端末内で処理します。";

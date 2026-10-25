@@ -19,6 +19,7 @@ import '../../../features/sleep/platform/sleep_sync_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/health/apple_health_weight_import.dart';
 import '../../../services/health/health_connect_weight_import.dart';
+import '../../../services/health/health_nutrition_import.dart';
 import '../../../services/health/health_models.dart';
 import '../../../services/health/health_platform_steps.dart';
 import '../../../services/health/steps_sync_service.dart';
@@ -47,6 +48,8 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   late final WeightImportService _measurement = Platform.isIOS
       ? AppleHealthWeightImportService()
       : HealthConnectWeightImportService();
+  late final HealthNutritionImportService _nutritionImport =
+      HealthNutritionImportService();
   late final HealthExportService _export = HealthExportService(
     adapters: [AppleHealthExportAdapter(), HealthConnectExportAdapter()],
   );
@@ -63,11 +66,13 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   bool _sleepEnabled = false;
   bool _pulseEnabled = false;
   bool _measurementEnabled = false;
+  bool _nutritionImportEnabled = false;
   bool _exportEnabled = false;
   bool _busy = false;
   bool _changed = false;
   StepsAvailability _stepsAvailability = StepsAvailability.notAvailable;
   HealthConnectWeightImportStatus? _measurementStatus;
+  HealthNutritionImportStatus? _nutritionImportStatus;
   Map<HealthExportPlatform, HealthExportPlatformStatus> _exportStatuses = {};
 
   HealthExportPlatform get _platform => Platform.isIOS
@@ -97,6 +102,8 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
         const HealthPlatformSteps().getAvailability(),
         _measurement.getStatus(),
         _export.getStatuses(),
+        _nutritionImport.isEnabled(),
+        _nutritionImport.getStatus(),
       ]);
       if (!mounted) return;
       setState(() {
@@ -109,6 +116,8 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
         _measurementStatus = values[6] as HealthConnectWeightImportStatus;
         _exportStatuses =
             values[7] as Map<HealthExportPlatform, HealthExportPlatformStatus>;
+        _nutritionImportEnabled = values[8] as bool;
+        _nutritionImportStatus = values[9] as HealthNutritionImportStatus;
       });
       await Future.wait([
         widget.sleepPermissionController.refresh(),
@@ -225,6 +234,43 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
         _message(_localizeExportMessage(result.message));
       } else {
         _markChanged();
+      }
+      await _load();
+    });
+  }
+
+  Future<void> _setNutritionImport(bool enabled) async {
+    if (!enabled) {
+      await _nutritionImport.setEnabled(false);
+      _markChanged();
+      await _load();
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    await _run(() async {
+      final result = await _nutritionImport.requestAccessAndImport();
+      if (result != null) {
+        _message(l10n.healthConnectWeightImportResult(
+          result.imported,
+          result.updated,
+        ));
+        _markChanged();
+      }
+      await _load();
+    });
+  }
+
+  Future<void> _syncNutritionImport() async {
+    final l10n = AppLocalizations.of(context)!;
+    await _run(() async {
+      final result = await _nutritionImport.importNow();
+      if (result == null) {
+        _message(l10n.healthExportStatePermissionRequired);
+      } else {
+        _message(l10n.healthConnectWeightImportResult(
+          result.imported,
+          result.updated,
+        ));
       }
       await _load();
     });
@@ -466,12 +512,44 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                     ? ((_measurementStatus?.isLimited ?? false)
                         ? l10n.healthConnectWeightImportLimited
                         : l10n.healthConnectWeightImportReady)
-                    : l10n.healthConnectWeightImportUnavailable,
+                    : l10n.healthExportPlatformUnavailable,
                 value: _measurementEnabled,
                 onChanged: _setMeasurement,
                 actionLabel: l10n.healthConnectWeightImportNow,
                 onAction: _syncMeasurement,
               ),
+              _row(
+                icon: LucideIcons.chart_pie,
+                title: l10n.healthNutritionImportTitle,
+                subtitle: _nutritionImportStatus?.available != true
+                    ? l10n.healthExportPlatformUnavailable
+                    : !_nutritionImportEnabled
+                        ? l10n.healthExportStateIdle
+                        : (_nutritionImportStatus?.limitedHistory ?? false)
+                            ? l10n.healthConnectWeightImportLimited
+                            : l10n.healthConnectWeightImportReady,
+                value: _nutritionImportEnabled,
+                onChanged: _setNutritionImport,
+                actionLabel: l10n.healthConnectWeightImportNow,
+                onAction: _syncNutritionImport,
+              ),
+              if (_nutritionImportEnabled)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 44,
+                    right: 16,
+                    bottom: 12,
+                  ),
+                  child: Text(
+                    l10n.healthNutritionImportPolicy,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.65),
+                        ),
+                  ),
+                ),
               _row(
                 icon: LucideIcons.heart,
                 title: Platform.isIOS

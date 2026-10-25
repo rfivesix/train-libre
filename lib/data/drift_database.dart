@@ -1081,7 +1081,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 43;
+  int get schemaVersion => 44;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1224,6 +1224,7 @@ class AppDatabase extends _$AppDatabase {
             FOREIGN KEY (local_measurement_id) REFERENCES measurements(local_id) ON DELETE CASCADE
           )
         ''');
+          await _createHealthNutritionImportTable();
           await customStatement('''
           CREATE TABLE IF NOT EXISTS health_export_identities (
             platform TEXT NOT NULL,
@@ -1263,12 +1264,14 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 44) await _createHealthNutritionImportTable();
             if (from < 42) await _createAssistantSchema(this);
             if (from < 39) {
               final cols = await _columnsOf(this, meals.actualTableName);
               if (!cols.contains('serving_count')) {
                 await m.addColumn(meals, meals.servingCount);
               }
+
               if (!cols.contains('cooked_weight_in_grams')) {
                 await m.addColumn(meals, meals.cookedWeightInGrams);
               }
@@ -2137,6 +2140,20 @@ class AppDatabase extends _$AppDatabase {
           }
         },
       );
+  Future<void> _createHealthNutritionImportTable() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS health_nutrition_import_records (
+        platform TEXT NOT NULL,
+        external_record_id TEXT NOT NULL,
+        local_macro_entry_id TEXT NOT NULL,
+        payload_fingerprint TEXT NOT NULL,
+        sync_state TEXT NOT NULL DEFAULT 'active',
+        imported_at INTEGER NOT NULL,
+        PRIMARY KEY (platform, external_record_id),
+        UNIQUE (local_macro_entry_id)
+      )
+    ''');
+  }
 }
 
 Future<void> _createPulsePersistenceSchema(GeneratedDatabase db) async {

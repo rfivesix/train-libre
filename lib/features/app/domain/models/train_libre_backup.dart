@@ -83,6 +83,9 @@ class TrainLibreBackup {
   /// Raw imported health step segments for deduplicated restoration.
   final List<Map<String, dynamic>> healthStepSegments;
 
+  /// Import identities and deletion tombstones for Health nutrition diary rows.
+  final List<Map<String, dynamic>> healthNutritionImportRecords;
+
   /// Snapshots of offline OFF products transaction history.
   final List<Map<String, dynamic>> offProductsArchive;
 
@@ -118,6 +121,7 @@ class TrainLibreBackup {
     this.userFoodOverrides = const [],
     this.userFoodOverrideTranslations = const [],
     this.healthStepSegments = const [],
+    this.healthNutritionImportRecords = const [],
     this.offProductsArchive = const [],
     this.userGoals = const [],
     this.goalEvents = const [],
@@ -270,6 +274,11 @@ class TrainLibreBackup {
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
+      healthNutritionImportRecords:
+          (json['healthNutritionImportRecords'] as List<dynamic>?)
+                  ?.map((e) => Map<String, dynamic>.from(e as Map))
+                  .toList() ??
+              [],
       offProductsArchive: (json['offProductsArchive'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
@@ -330,6 +339,7 @@ class TrainLibreBackup {
       'userFoodOverrides': userFoodOverrides,
       'userFoodOverrideTranslations': userFoodOverrideTranslations,
       'healthStepSegments': healthStepSegments,
+      'healthNutritionImportRecords': healthNutritionImportRecords,
       'offProductsArchive': offProductsArchive,
       'userGoals': userGoals,
       'goalEvents': goalEvents,

@@ -42,6 +42,7 @@ class HealthExportCoordinator {
     const watchedTables = {
       'measurements',
       'nutrition_logs',
+      'macro_entries',
       'fluid_logs',
       'workout_logs',
       'set_logs',

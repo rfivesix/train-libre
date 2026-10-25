@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/database_helper.dart';
 import '../../../services/health/steps_sync_service.dart';
+import '../../../services/health/health_nutrition_import.dart';
 import '../../sleep/data/sleep_day_repository.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
 import '../../pulse/data/pulse_repository.dart';
@@ -16,6 +17,8 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
   static const Duration _sleepSyncInterval = Duration(hours: 6);
 
   final StepsSyncService _stepsSyncService = StepsSyncService();
+  final HealthNutritionImportService _nutritionImport =
+      HealthNutritionImportService();
   final SleepSyncService _sleepSyncService = SleepSyncService();
   final SleepDayDataRepository _sleepRepository = SleepDayRepository();
   final PulseTrackingSettingsService _pulseSyncService = PulseTrackingService();
@@ -85,6 +88,15 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
         notifyListeners();
       }
     }));
+    unawaited(_syncNutritionImport(force: forceStepsRefresh));
+  }
+
+  Future<void> _syncNutritionImport({required bool force}) async {
+    try {
+      await _nutritionImport.importIfEnabled(force: force);
+    } catch (error, stackTrace) {
+      debugPrint('Health nutrition import failed: $error\n$stackTrace');
+    }
   }
 
   Future<void> _loadSleepAndSyncIfDue(

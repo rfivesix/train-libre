@@ -12,6 +12,7 @@ import UserNotifications
   private let sleepHealthKitChannelName = "trainlibre.health/sleep_healthkit"
   private let exportAppleHealthChannelName = "trainlibre.health/export_apple_health"
   private let weightImportAppleHealthChannelName = "trainlibre.health/import_weight_apple_health"
+  private let nutritionImportAppleHealthChannelName = "trainlibre.health/import_nutrition_apple_health"
   private let reviewChannelName = "trainlibre.app/review"
   private var channelsConfigured = false
   private var depthScanRegistered = false
@@ -215,6 +216,14 @@ import UserNotifications
     )
     weightImportChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleAppleHealthWeightImportCall(call: call, result: result)
+    }
+
+    let nutritionImportChannel = FlutterMethodChannel(
+      name: nutritionImportAppleHealthChannelName,
+      binaryMessenger: messenger
+    )
+    nutritionImportChannel.setMethodCallHandler { [weak self] call, result in
+      self?.handleAppleHealthNutritionImportCall(call: call, result: result)
     }
 
     let reviewChannel = FlutterMethodChannel(
@@ -554,6 +563,131 @@ import UserNotifications
       readAppleHealthWeights(call: call, result: result)
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func handleAppleHealthNutritionImportCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    switch call.method {
+    case "getStatus":
+      let available = HKHealthStore.isHealthDataAvailable()
+      result(["available": available, "readGranted": available])
+    case "requestPermissions":
+      requestAppleHealthNutritionImportPermissions(result: result)
+    case "readNutritionDays":
+      readAppleHealthNutritionDays(call: call, result: result)
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func appleHealthNutritionTypes() -> [(HKQuantityType, String, HKUnit, Double)]? {
+    guard
+      let energy = HKObjectType.quantityType(forIdentifier: .dietaryEnergyConsumed),
+      let protein = HKObjectType.quantityType(forIdentifier: .dietaryProtein),
+      let carbs = HKObjectType.quantityType(forIdentifier: .dietaryCarbohydrates),
+      let fat = HKObjectType.quantityType(forIdentifier: .dietaryFatTotal),
+      let sugar = HKObjectType.quantityType(forIdentifier: .dietarySugar),
+      let fiber = HKObjectType.quantityType(forIdentifier: .dietaryFiber),
+      let sodium = HKObjectType.quantityType(forIdentifier: .dietarySodium)
+    else { return nil }
+    return [
+      (energy, "calories", HKUnit.kilocalorie(), 1),
+      (protein, "protein", HKUnit.gram(), 1),
+      (carbs, "carbs", HKUnit.gram(), 1),
+      (fat, "fat", HKUnit.gram(), 1),
+      (sugar, "sugar", HKUnit.gram(), 1),
+      (fiber, "fiber", HKUnit.gram(), 1),
+      // HealthKit stores dietary sodium. Train Libre's optional field is salt.
+      (sodium, "salt", HKUnit.gram(), 2.5),
+    ]
+  }
+
+  private func requestAppleHealthNutritionImportPermissions(result: @escaping FlutterResult) {
+    guard HKHealthStore.isHealthDataAvailable(),
+          let types = appleHealthNutritionTypes() else {
+      result(false)
+      return
+    }
+    let readTypes = Set(types.map { $0.0 as HKObjectType })
+    healthStore.requestAuthorization(toShare: [], read: readTypes) { success, error in
+      DispatchQueue.main.async {
+        if let error {
+          result(FlutterError(code: self.healthExportErrorCode(error), message: error.localizedDescription, details: nil))
+        } else {
+          result(success)
+        }
+      }
+    }
+  }
+
+  private func readAppleHealthNutritionDays(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard let args = call.arguments as? [String: Any],
+          let fromIso = args["fromUtcIso"] as? String,
+          let toIso = args["toUtcIso"] as? String,
+          let types = appleHealthNutritionTypes() else {
+      result(FlutterError(code: "invalid_args", message: "Nutrition import requires a time range", details: nil))
+      return
+    }
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let from = formatter.date(from: fromIso), let to = formatter.date(from: toIso) else {
+      result(FlutterError(code: "invalid_args", message: "Invalid nutrition import range", details: nil))
+      return
+    }
+    let dateFormatter = DateFormatter()
+    dateFormatter.calendar = Calendar.current
+    dateFormatter.timeZone = TimeZone.current
+    dateFormatter.dateFormat = "yyyy-MM-dd"
+    let range = HKQuery.predicateForSamples(withStart: from, end: to, options: .strictStartDate)
+    let ownSource = HKQuery.predicateForObjects(from: HKSource.default())
+    let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      range,
+      NSCompoundPredicate(notPredicateWithSubpredicate: ownSource),
+    ])
+    let group = DispatchGroup()
+    let lock = DispatchQueue(label: "trainlibre.appleHealthNutritionImport")
+    var totals: [String: [String: Double]] = [:]
+    var queryError: Error?
+    for (type, key, unit, multiplier) in types {
+      group.enter()
+      let query = HKSampleQuery(
+        sampleType: type,
+        predicate: predicate,
+        limit: HKObjectQueryNoLimit,
+        sortDescriptors: nil
+      ) { _, samples, error in
+        lock.async {
+          if queryError == nil, let error { queryError = error }
+          for sample in samples as? [HKQuantitySample] ?? [] {
+            let day = dateFormatter.string(from: sample.startDate)
+            var row = totals[day] ?? [:]
+            row[key] = (row[key] ?? 0) + sample.quantity.doubleValue(for: unit) * multiplier
+            totals[day] = row
+          }
+          group.leave()
+        }
+      }
+      healthStore.execute(query)
+    }
+    group.notify(queue: .main) {
+      if let error = queryError {
+        result(FlutterError(code: self.healthExportErrorCode(error), message: error.localizedDescription, details: nil))
+        return
+      }
+      let rows = totals.keys.sorted().map { day -> [String: Any] in
+        let values = totals[day] ?? [:]
+        return [
+          "day": day,
+          "calories": values["calories"] ?? 0,
+          "protein": values["protein"] ?? 0,
+          "carbs": values["carbs"] ?? 0,
+          "fat": values["fat"] ?? 0,
+          "sugar": values["sugar"] as Any? ?? NSNull(),
+          "fiber": values["fiber"] as Any? ?? NSNull(),
+          "salt": values["salt"] as Any? ?? NSNull(),
+        ]
+      }
+      result(rows)
     }
   }
 

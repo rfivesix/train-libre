@@ -526,6 +526,12 @@ class DiaryLocalDataSource {
 
   Future<void> updateMacroEntry(MacroEntry entry) async {
     await _db.transaction(() async {
+      await _db.customStatement(
+        '''UPDATE health_nutrition_import_records
+           SET sync_state = 'modified'
+           WHERE local_macro_entry_id = ? AND sync_state = 'active' ''',
+        [entry.id],
+      );
       await (_db.update(_db.macroEntries)
             ..where((row) => row.id.equals(entry.id)))
           .write(
@@ -600,8 +606,16 @@ class DiaryLocalDataSource {
   }
 
   Future<void> deleteMacroEntry(String id) async {
-    await (_db.delete(_db.macroEntries)..where((row) => row.id.equals(id)))
-        .go();
+    await _db.transaction(() async {
+      await _db.customStatement(
+        '''UPDATE health_nutrition_import_records
+           SET sync_state = 'deleted'
+           WHERE local_macro_entry_id = ?''',
+        [id],
+      );
+      await (_db.delete(_db.macroEntries)..where((row) => row.id.equals(id)))
+          .go();
+    });
   }
 
   Future<List<MacroEntry>> getAllMacroEntries() async {

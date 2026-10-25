@@ -313,6 +313,8 @@ class BackupManager {
         userFoodOverrideTranslations:
             await _fetchTable('user_food_override_translations'),
         healthStepSegments: healthStepSegments,
+        healthNutritionImportRecords:
+            await _fetchTable('health_nutrition_import_records'),
         offProductsArchive: await _fetchTable('off_products_archive'),
         userGoals: await _fetchTable('user_goals'),
         goalEvents: await _fetchTable('goal_events'),
@@ -846,6 +848,8 @@ class BackupManager {
             await dbInst.delete(dbInst.dailyGoalsHistory).go();
             await dbInst.delete(dbInst.supplementSettingsHistory).go();
             await dbInst.customStatement('DELETE FROM health_step_segments');
+            await dbInst
+                .customStatement('DELETE FROM health_nutrition_import_records');
             await dbInst.customStatement('DELETE FROM health_export_records');
             await dbInst.delete(dbInst.supplementLogs).go();
             await dbInst.delete(dbInst.fluidLogs).go();
@@ -946,6 +950,8 @@ class BackupManager {
                     hasRawMeasurements ? [] : backup.measurementSessions,
                 supplements: backup.supplements,
                 supplementLogs: backup.supplementLogs);
+            await _importTable('health_nutrition_import_records',
+                backup.healthNutritionImportRecords);
             token?.throwIfCancelled();
 
             onProgress?.call('custom_foods', 0.50);
