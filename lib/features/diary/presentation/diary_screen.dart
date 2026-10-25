@@ -188,6 +188,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             initialDate: entry.timestamp,
             initialMealType: entry.mealType,
             initialEntry: entry,
+            allowTimestampEditing: entry.mealEntryId == null,
           ),
           const SizedBox(height: DesignConstants.spacingM),
           Row(
@@ -211,7 +212,20 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       return;
                     }
                     try {
-                      await vm.updateMacroEntry(updated);
+                      await vm.updateMacroEntry(updated.copyWith(
+                        id: entry.id,
+                        mealEntryId: entry.mealEntryId,
+                        timestamp: entry.mealEntryId == null
+                            ? updated.timestamp
+                            : (vm.mealEntriesById[entry.mealEntryId]
+                                    ?.consumedAt ??
+                                entry.timestamp),
+                        mealType: entry.mealEntryId == null
+                            ? updated.mealType
+                            : (vm.mealEntriesById[entry.mealEntryId]
+                                    ?.mealType ??
+                                entry.mealType),
+                      ));
                       if (sheetContext.mounted) {
                         Navigator.of(sheetContext).pop(true);
                       }
@@ -1927,6 +1941,9 @@ class _MealCardState extends State<_MealCard> {
                       final groupedByMealEntry =
                           <String, List<TrackedFoodItem>>{};
                       final standaloneItems = <TrackedFoodItem>[];
+                      final groupedMacrosByMealEntry =
+                          <String, List<MacroEntry>>{};
+                      final standaloneMacros = <MacroEntry>[];
 
                       for (final item in items) {
                         final mId = item.entry.mealEntryId;
@@ -1938,6 +1955,17 @@ class _MealCardState extends State<_MealCard> {
                           standaloneItems.add(item);
                         }
                       }
+                      for (final macro in macroItems) {
+                        final mealId = macro.mealEntryId;
+                        if (mealId != null &&
+                            mealEntriesById.containsKey(mealId)) {
+                          groupedMacrosByMealEntry
+                              .putIfAbsent(mealId, () => [])
+                              .add(macro);
+                        } else {
+                          standaloneMacros.add(macro);
+                        }
+                      }
 
                       // Everything inside a meal type is ordered by energy,
                       // largest first — meals and standalone entries alike, and
@@ -1947,16 +1975,28 @@ class _MealCardState extends State<_MealCard> {
                           item.calculatedCalories;
                       int kcalOfGroup(List<TrackedFoodItem> group) =>
                           group.fold(0, (sum, item) => sum + kcalOf(item));
+                      int kcalOfMacroGroup(List<MacroEntry> group) =>
+                          group.fold(0,
+                              (sum, item) => sum + item.totalCalories.round());
+                      int kcalOfMeal(String id) =>
+                          kcalOfGroup(groupedByMealEntry[id] ?? const []) +
+                          kcalOfMacroGroup(
+                              groupedMacrosByMealEntry[id] ?? const []);
 
                       for (final group in groupedByMealEntry.values) {
                         group.sort((a, b) => kcalOf(b).compareTo(kcalOf(a)));
                       }
                       standaloneItems
                           .sort((a, b) => kcalOf(b).compareTo(kcalOf(a)));
+                      standaloneMacros.sort(
+                          (a, b) => b.totalCalories.compareTo(a.totalCalories));
 
-                      final orderedMealIds = groupedByMealEntry.keys.toList()
-                        ..sort((a, b) => kcalOfGroup(groupedByMealEntry[b]!)
-                            .compareTo(kcalOfGroup(groupedByMealEntry[a]!)));
+                      final orderedMealIds = {
+                        ...groupedByMealEntry.keys,
+                        ...groupedMacrosByMealEntry.keys,
+                      }.toList()
+                        ..sort(
+                            (a, b) => kcalOfMeal(b).compareTo(kcalOfMeal(a)));
 
                       bool entryHasPhoto(MealEntry? entry) {
                         if (entry == null) return false;
@@ -1976,7 +2016,7 @@ class _MealCardState extends State<_MealCard> {
                         for (final entryId in orderedMealIds)
                           (
                             hasPhoto: entryHasPhoto(mealEntriesById[entryId]),
-                            kcal: kcalOfGroup(groupedByMealEntry[entryId]!),
+                            kcal: kcalOfMeal(entryId),
                             widget: Builder(
                               builder: (cardCtx) {
                                 Widget buildMealCard({
@@ -1987,25 +2027,27 @@ class _MealCardState extends State<_MealCard> {
                                       key: ValueKey(entryId),
                                       collapsed: collapsed,
                                       mealEntry: mealEntriesById[entryId]!,
-                                      items: groupedByMealEntry[entryId]!,
+                                      items: groupedByMealEntry[entryId] ??
+                                          const [],
+                                      macroEntries:
+                                          groupedMacrosByMealEntry[entryId] ??
+                                              const [],
                                       onTapDetail: onTapDetail,
                                       onConfirmDeleteMeal: () async {
                                         final meal = mealEntriesById[entryId]!;
                                         final childItems =
-                                            groupedByMealEntry[entryId]!;
-                                        int mealKcal = 0;
-                                        for (final it in childItems) {
-                                          final factor =
-                                              it.entry.quantityInGrams / 100.0;
-                                          mealKcal +=
-                                              (it.item.calories * factor)
-                                                  .round();
-                                        }
+                                            groupedByMealEntry[entryId] ??
+                                                const <TrackedFoodItem>[];
+                                        final childMacros =
+                                            groupedMacrosByMealEntry[entryId] ??
+                                                const <MacroEntry>[];
+                                        final mealKcal = kcalOfMeal(entryId);
                                         return await DeleteMealEntryBottomSheet
                                             .show(
                                           context,
                                           mealTitle: meal.title ?? 'Mahlzeit',
-                                          itemCount: childItems.length,
+                                          itemCount: childItems.length +
+                                              childMacros.length,
                                           totalKcal: mealKcal,
                                         );
                                       },
@@ -2022,6 +2064,9 @@ class _MealCardState extends State<_MealCard> {
                                       },
                                       onEditItem: widget.onEditFood,
                                       onDeleteItem: widget.onDeleteFood,
+                                      onEditMacroEntry: widget.onEditMacroEntry,
+                                      onDeleteMacroEntry:
+                                          widget.onDeleteMacroEntry,
                                     );
 
                                 return MorphSourceScope(
@@ -2050,7 +2095,12 @@ class _MealCardState extends State<_MealCard> {
                                             mealEntry:
                                                 mealEntriesById[entryId]!,
                                             initialItems:
-                                                groupedByMealEntry[entryId]!,
+                                                groupedByMealEntry[entryId] ??
+                                                    const [],
+                                            initialMacroEntries:
+                                                groupedMacrosByMealEntry[
+                                                        entryId] ??
+                                                    const [],
                                           ),
                                         ),
                                       );
@@ -2079,7 +2129,7 @@ class _MealCardState extends State<_MealCard> {
                               onDelete: widget.onDeleteFood,
                             ),
                           ),
-                        for (final entry in macroItems)
+                        for (final entry in standaloneMacros)
                           (
                             hasPhoto: false,
                             kcal: entry.totalCalories.round(),

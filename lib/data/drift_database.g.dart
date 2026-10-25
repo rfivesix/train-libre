@@ -11694,6 +11694,15 @@ class $MacroEntriesTable extends MacroEntries
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _mealEntryIdMeta =
+      const VerificationMeta('mealEntryId');
+  @override
+  late final GeneratedColumn<String> mealEntryId = GeneratedColumn<String>(
+      'meal_entry_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES meal_entries (id) ON DELETE SET NULL'));
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<double> amount = GeneratedColumn<double>(
@@ -11775,6 +11784,7 @@ class $MacroEntriesTable extends MacroEntries
         consumedAt,
         mealType,
         name,
+        mealEntryId,
         amount,
         amountUnit,
         isFluid,
@@ -11838,6 +11848,12 @@ class $MacroEntriesTable extends MacroEntries
     if (data.containsKey('name')) {
       context.handle(
           _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    }
+    if (data.containsKey('meal_entry_id')) {
+      context.handle(
+          _mealEntryIdMeta,
+          mealEntryId.isAcceptableOrUnknown(
+              data['meal_entry_id']!, _mealEntryIdMeta));
     }
     if (data.containsKey('amount')) {
       context.handle(_amountMeta,
@@ -11928,6 +11944,8 @@ class $MacroEntriesTable extends MacroEntries
           .read(DriftSqlType.string, data['${effectivePrefix}meal_type'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name']),
+      mealEntryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}meal_entry_id']),
       amount: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}amount']),
       amountUnit: attachedDatabase.typeMapping
@@ -11971,6 +11989,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
   final DateTime consumedAt;
   final String mealType;
   final String? name;
+  final String? mealEntryId;
 
   /// If present, nutrient fields are per 100 [amountUnit].
   final double? amount;
@@ -11998,6 +12017,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
       required this.consumedAt,
       required this.mealType,
       this.name,
+      this.mealEntryId,
       this.amount,
       this.amountUnit,
       required this.isFluid,
@@ -12027,6 +12047,9 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
     map['meal_type'] = Variable<String>(mealType);
     if (!nullToAbsent || name != null) {
       map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || mealEntryId != null) {
+      map['meal_entry_id'] = Variable<String>(mealEntryId);
     }
     if (!nullToAbsent || amount != null) {
       map['amount'] = Variable<double>(amount);
@@ -12069,6 +12092,9 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
       consumedAt: Value(consumedAt),
       mealType: Value(mealType),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      mealEntryId: mealEntryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mealEntryId),
       amount:
           amount == null && nullToAbsent ? const Value.absent() : Value(amount),
       amountUnit: amountUnit == null && nullToAbsent
@@ -12104,6 +12130,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
       consumedAt: serializer.fromJson<DateTime>(json['consumedAt']),
       mealType: serializer.fromJson<String>(json['mealType']),
       name: serializer.fromJson<String?>(json['name']),
+      mealEntryId: serializer.fromJson<String?>(json['mealEntryId']),
       amount: serializer.fromJson<double?>(json['amount']),
       amountUnit: serializer.fromJson<String?>(json['amountUnit']),
       isFluid: serializer.fromJson<bool>(json['isFluid']),
@@ -12132,6 +12159,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
       'consumedAt': serializer.toJson<DateTime>(consumedAt),
       'mealType': serializer.toJson<String>(mealType),
       'name': serializer.toJson<String?>(name),
+      'mealEntryId': serializer.toJson<String?>(mealEntryId),
       'amount': serializer.toJson<double?>(amount),
       'amountUnit': serializer.toJson<String?>(amountUnit),
       'isFluid': serializer.toJson<bool>(isFluid),
@@ -12157,6 +12185,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
           DateTime? consumedAt,
           String? mealType,
           Value<String?> name = const Value.absent(),
+          Value<String?> mealEntryId = const Value.absent(),
           Value<double?> amount = const Value.absent(),
           Value<String?> amountUnit = const Value.absent(),
           bool? isFluid,
@@ -12179,6 +12208,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
         consumedAt: consumedAt ?? this.consumedAt,
         mealType: mealType ?? this.mealType,
         name: name.present ? name.value : this.name,
+        mealEntryId: mealEntryId.present ? mealEntryId.value : this.mealEntryId,
         amount: amount.present ? amount.value : this.amount,
         amountUnit: amountUnit.present ? amountUnit.value : this.amountUnit,
         isFluid: isFluid ?? this.isFluid,
@@ -12204,6 +12234,8 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
           data.consumedAt.present ? data.consumedAt.value : this.consumedAt,
       mealType: data.mealType.present ? data.mealType.value : this.mealType,
       name: data.name.present ? data.name.value : this.name,
+      mealEntryId:
+          data.mealEntryId.present ? data.mealEntryId.value : this.mealEntryId,
       amount: data.amount.present ? data.amount.value : this.amount,
       amountUnit:
           data.amountUnit.present ? data.amountUnit.value : this.amountUnit,
@@ -12234,6 +12266,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
           ..write('consumedAt: $consumedAt, ')
           ..write('mealType: $mealType, ')
           ..write('name: $name, ')
+          ..write('mealEntryId: $mealEntryId, ')
           ..write('amount: $amount, ')
           ..write('amountUnit: $amountUnit, ')
           ..write('isFluid: $isFluid, ')
@@ -12261,6 +12294,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
         consumedAt,
         mealType,
         name,
+        mealEntryId,
         amount,
         amountUnit,
         isFluid,
@@ -12287,6 +12321,7 @@ class MacroEntry extends DataClass implements Insertable<MacroEntry> {
           other.consumedAt == this.consumedAt &&
           other.mealType == this.mealType &&
           other.name == this.name &&
+          other.mealEntryId == this.mealEntryId &&
           other.amount == this.amount &&
           other.amountUnit == this.amountUnit &&
           other.isFluid == this.isFluid &&
@@ -12311,6 +12346,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
   final Value<DateTime> consumedAt;
   final Value<String> mealType;
   final Value<String?> name;
+  final Value<String?> mealEntryId;
   final Value<double?> amount;
   final Value<String?> amountUnit;
   final Value<bool> isFluid;
@@ -12333,6 +12369,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
     this.consumedAt = const Value.absent(),
     this.mealType = const Value.absent(),
     this.name = const Value.absent(),
+    this.mealEntryId = const Value.absent(),
     this.amount = const Value.absent(),
     this.amountUnit = const Value.absent(),
     this.isFluid = const Value.absent(),
@@ -12356,6 +12393,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
     required DateTime consumedAt,
     required String mealType,
     this.name = const Value.absent(),
+    this.mealEntryId = const Value.absent(),
     this.amount = const Value.absent(),
     this.amountUnit = const Value.absent(),
     this.isFluid = const Value.absent(),
@@ -12385,6 +12423,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
     Expression<DateTime>? consumedAt,
     Expression<String>? mealType,
     Expression<String>? name,
+    Expression<String>? mealEntryId,
     Expression<double>? amount,
     Expression<String>? amountUnit,
     Expression<bool>? isFluid,
@@ -12408,6 +12447,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
       if (consumedAt != null) 'consumed_at': consumedAt,
       if (mealType != null) 'meal_type': mealType,
       if (name != null) 'name': name,
+      if (mealEntryId != null) 'meal_entry_id': mealEntryId,
       if (amount != null) 'amount': amount,
       if (amountUnit != null) 'amount_unit': amountUnit,
       if (isFluid != null) 'is_fluid': isFluid,
@@ -12433,6 +12473,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
       Value<DateTime>? consumedAt,
       Value<String>? mealType,
       Value<String?>? name,
+      Value<String?>? mealEntryId,
       Value<double?>? amount,
       Value<String?>? amountUnit,
       Value<bool>? isFluid,
@@ -12455,6 +12496,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
       consumedAt: consumedAt ?? this.consumedAt,
       mealType: mealType ?? this.mealType,
       name: name ?? this.name,
+      mealEntryId: mealEntryId ?? this.mealEntryId,
       amount: amount ?? this.amount,
       amountUnit: amountUnit ?? this.amountUnit,
       isFluid: isFluid ?? this.isFluid,
@@ -12499,6 +12541,9 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (mealEntryId.present) {
+      map['meal_entry_id'] = Variable<String>(mealEntryId.value);
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
@@ -12551,6 +12596,7 @@ class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
           ..write('consumedAt: $consumedAt, ')
           ..write('mealType: $mealType, ')
           ..write('name: $name, ')
+          ..write('mealEntryId: $mealEntryId, ')
           ..write('amount: $amount, ')
           ..write('amountUnit: $amountUnit, ')
           ..write('isFluid: $isFluid, ')
@@ -30053,6 +30099,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
             ],
           ),
           WritePropagation(
+            on: TableUpdateQuery.onTableName('meal_entries',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('macro_entries', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
             on: TableUpdateQuery.onTableName('supplements',
                 limitUpdateKind: UpdateKind.delete),
             result: [
@@ -36958,6 +37011,20 @@ final class $$MealEntriesTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$MacroEntriesTable, List<MacroEntry>>
+      _macroEntriesRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.macroEntries,
+              aliasName: 'meal_entries__id__macro_entries__meal_entry_id');
+
+  $$MacroEntriesTableProcessedTableManager get macroEntriesRefs {
+    final manager = $$MacroEntriesTableTableManager($_db, $_db.macroEntries)
+        .filter((f) => f.mealEntryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_macroEntriesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$MealEntriesTableFilterComposer
@@ -37026,6 +37093,27 @@ class $$MealEntriesTableFilterComposer
             $$NutritionLogsTableFilterComposer(
               $db: $db,
               $table: $db.nutritionLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> macroEntriesRefs(
+      Expression<bool> Function($$MacroEntriesTableFilterComposer f) f) {
+    final $$MacroEntriesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.macroEntries,
+        getReferencedColumn: (t) => t.mealEntryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MacroEntriesTableFilterComposer(
+              $db: $db,
+              $table: $db.macroEntries,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -37160,6 +37248,27 @@ class $$MealEntriesTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> macroEntriesRefs<T extends Object>(
+      Expression<T> Function($$MacroEntriesTableAnnotationComposer a) f) {
+    final $$MacroEntriesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.macroEntries,
+        getReferencedColumn: (t) => t.mealEntryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MacroEntriesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.macroEntries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$MealEntriesTableTableManager extends RootTableManager<
@@ -37173,7 +37282,7 @@ class $$MealEntriesTableTableManager extends RootTableManager<
     $$MealEntriesTableUpdateCompanionBuilder,
     (MealEntry, $$MealEntriesTableReferences),
     MealEntry,
-    PrefetchHooks Function({bool nutritionLogsRefs})> {
+    PrefetchHooks Function({bool nutritionLogsRefs, bool macroEntriesRefs})> {
   $$MealEntriesTableTableManager(_$AppDatabase db, $MealEntriesTable table)
       : super(TableManagerState(
           db: db,
@@ -37254,11 +37363,13 @@ class $$MealEntriesTableTableManager extends RootTableManager<
                     $$MealEntriesTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({nutritionLogsRefs = false}) {
+          prefetchHooksCallback: (
+              {nutritionLogsRefs = false, macroEntriesRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (nutritionLogsRefs) db.nutritionLogs
+                if (nutritionLogsRefs) db.nutritionLogs,
+                if (macroEntriesRefs) db.macroEntries
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -37272,6 +37383,19 @@ class $$MealEntriesTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) =>
                             $$MealEntriesTableReferences(db, table, p0)
                                 .nutritionLogsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.mealEntryId == item.id),
+                        typedResults: items),
+                  if (macroEntriesRefs)
+                    await $_getPrefetchedData<MealEntry, $MealEntriesTable,
+                            MacroEntry>(
+                        currentTable: table,
+                        referencedTable: $$MealEntriesTableReferences
+                            ._macroEntriesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$MealEntriesTableReferences(db, table, p0)
+                                .macroEntriesRefs,
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.mealEntryId == item.id),
@@ -37294,7 +37418,7 @@ typedef $$MealEntriesTableProcessedTableManager = ProcessedTableManager<
     $$MealEntriesTableUpdateCompanionBuilder,
     (MealEntry, $$MealEntriesTableReferences),
     MealEntry,
-    PrefetchHooks Function({bool nutritionLogsRefs})>;
+    PrefetchHooks Function({bool nutritionLogsRefs, bool macroEntriesRefs})>;
 typedef $$NutritionLogsTableCreateCompanionBuilder = NutritionLogsCompanion
     Function({
   Value<int> localId,
@@ -38011,6 +38135,7 @@ typedef $$MacroEntriesTableCreateCompanionBuilder = MacroEntriesCompanion
   required DateTime consumedAt,
   required String mealType,
   Value<String?> name,
+  Value<String?> mealEntryId,
   Value<double?> amount,
   Value<String?> amountUnit,
   Value<bool> isFluid,
@@ -38035,6 +38160,7 @@ typedef $$MacroEntriesTableUpdateCompanionBuilder = MacroEntriesCompanion
   Value<DateTime> consumedAt,
   Value<String> mealType,
   Value<String?> name,
+  Value<String?> mealEntryId,
   Value<double?> amount,
   Value<String?> amountUnit,
   Value<bool> isFluid,
@@ -38052,6 +38178,20 @@ typedef $$MacroEntriesTableUpdateCompanionBuilder = MacroEntriesCompanion
 final class $$MacroEntriesTableReferences
     extends BaseReferences<_$AppDatabase, $MacroEntriesTable, MacroEntry> {
   $$MacroEntriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $MealEntriesTable _mealEntryIdTable(_$AppDatabase db) => db.mealEntries
+      .createAlias('macro_entries__meal_entry_id__meal_entries__id');
+
+  $$MealEntriesTableProcessedTableManager? get mealEntryId {
+    final $_column = $_itemColumn<String>('meal_entry_id');
+    if ($_column == null) return null;
+    final manager = $$MealEntriesTableTableManager($_db, $_db.mealEntries)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mealEntryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static MultiTypedResultKey<$FluidLogsTable, List<FluidLog>>
       _fluidLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -38140,6 +38280,26 @@ class $$MacroEntriesTableFilterComposer
   ColumnFilters<String> get calculatedNutrient => $composableBuilder(
       column: $table.calculatedNutrient,
       builder: (column) => ColumnFilters(column));
+
+  $$MealEntriesTableFilterComposer get mealEntryId {
+    final $$MealEntriesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.mealEntryId,
+        referencedTable: $db.mealEntries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MealEntriesTableFilterComposer(
+              $db: $db,
+              $table: $db.mealEntries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<bool> fluidLogsRefs(
       Expression<bool> Function($$FluidLogsTableFilterComposer f) f) {
@@ -38235,6 +38395,26 @@ class $$MacroEntriesTableOrderingComposer
   ColumnOrderings<String> get calculatedNutrient => $composableBuilder(
       column: $table.calculatedNutrient,
       builder: (column) => ColumnOrderings(column));
+
+  $$MealEntriesTableOrderingComposer get mealEntryId {
+    final $$MealEntriesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.mealEntryId,
+        referencedTable: $db.mealEntries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MealEntriesTableOrderingComposer(
+              $db: $db,
+              $table: $db.mealEntries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$MacroEntriesTableAnnotationComposer
@@ -38309,6 +38489,26 @@ class $$MacroEntriesTableAnnotationComposer
   GeneratedColumn<String> get calculatedNutrient => $composableBuilder(
       column: $table.calculatedNutrient, builder: (column) => column);
 
+  $$MealEntriesTableAnnotationComposer get mealEntryId {
+    final $$MealEntriesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.mealEntryId,
+        referencedTable: $db.mealEntries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MealEntriesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.mealEntries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
   Expression<T> fluidLogsRefs<T extends Object>(
       Expression<T> Function($$FluidLogsTableAnnotationComposer a) f) {
     final $$FluidLogsTableAnnotationComposer composer = $composerBuilder(
@@ -38342,7 +38542,7 @@ class $$MacroEntriesTableTableManager extends RootTableManager<
     $$MacroEntriesTableUpdateCompanionBuilder,
     (MacroEntry, $$MacroEntriesTableReferences),
     MacroEntry,
-    PrefetchHooks Function({bool fluidLogsRefs})> {
+    PrefetchHooks Function({bool mealEntryId, bool fluidLogsRefs})> {
   $$MacroEntriesTableTableManager(_$AppDatabase db, $MacroEntriesTable table)
       : super(TableManagerState(
           db: db,
@@ -38363,6 +38563,7 @@ class $$MacroEntriesTableTableManager extends RootTableManager<
             Value<DateTime> consumedAt = const Value.absent(),
             Value<String> mealType = const Value.absent(),
             Value<String?> name = const Value.absent(),
+            Value<String?> mealEntryId = const Value.absent(),
             Value<double?> amount = const Value.absent(),
             Value<String?> amountUnit = const Value.absent(),
             Value<bool> isFluid = const Value.absent(),
@@ -38386,6 +38587,7 @@ class $$MacroEntriesTableTableManager extends RootTableManager<
             consumedAt: consumedAt,
             mealType: mealType,
             name: name,
+            mealEntryId: mealEntryId,
             amount: amount,
             amountUnit: amountUnit,
             isFluid: isFluid,
@@ -38409,6 +38611,7 @@ class $$MacroEntriesTableTableManager extends RootTableManager<
             required DateTime consumedAt,
             required String mealType,
             Value<String?> name = const Value.absent(),
+            Value<String?> mealEntryId = const Value.absent(),
             Value<double?> amount = const Value.absent(),
             Value<String?> amountUnit = const Value.absent(),
             Value<bool> isFluid = const Value.absent(),
@@ -38432,6 +38635,7 @@ class $$MacroEntriesTableTableManager extends RootTableManager<
             consumedAt: consumedAt,
             mealType: mealType,
             name: name,
+            mealEntryId: mealEntryId,
             amount: amount,
             amountUnit: amountUnit,
             isFluid: isFluid,
@@ -38451,11 +38655,37 @@ class $$MacroEntriesTableTableManager extends RootTableManager<
                     $$MacroEntriesTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({fluidLogsRefs = false}) {
+          prefetchHooksCallback: (
+              {mealEntryId = false, fluidLogsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [if (fluidLogsRefs) db.fluidLogs],
-              addJoins: null,
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (mealEntryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.mealEntryId,
+                    referencedTable:
+                        $$MacroEntriesTableReferences._mealEntryIdTable(db),
+                    referencedColumn:
+                        $$MacroEntriesTableReferences._mealEntryIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (fluidLogsRefs)
@@ -38489,7 +38719,7 @@ typedef $$MacroEntriesTableProcessedTableManager = ProcessedTableManager<
     $$MacroEntriesTableUpdateCompanionBuilder,
     (MacroEntry, $$MacroEntriesTableReferences),
     MacroEntry,
-    PrefetchHooks Function({bool fluidLogsRefs})>;
+    PrefetchHooks Function({bool mealEntryId, bool fluidLogsRefs})>;
 typedef $$SupplementsTableCreateCompanionBuilder = SupplementsCompanion
     Function({
   Value<int> localId,

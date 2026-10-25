@@ -3120,6 +3120,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Aktiviert KI-Funktionen wie Chat und Mahlzeitenerkennung. Bei Deaktivierung werden alle KI-Einstiegspunkte ausgeblendet.';
 
   @override
+  String get aiNutritionEngineLabel => 'Methode der Nährwertbestimmung';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      'Die direkte Schätzung legt Nährwerte ohne Abgleich mit der Lebensmitteldatenbank an. Der Katalogmodus nutzt weiterhin den lokalen Lebensmittelabgleich.';
+
+  @override
+  String get aiNutritionEngineEstimate => 'Direkte KI-Schätzung';
+
+  @override
+  String get aiNutritionEngineCatalog => 'Lokaler Lebensmittelkatalog';
+
+  @override
+  String get aiDirectEstimateLabel => 'KI-Schätzung';
+
+  @override
   String get aiFloatingAssistantTitle => 'Schwebenden KI-Assistenten anzeigen';
 
   @override

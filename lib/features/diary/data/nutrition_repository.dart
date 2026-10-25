@@ -150,6 +150,13 @@ class NutritionRepository implements IDiaryRepository {
       _localDataSource.insertMealEntry(entry);
 
   @override
+  Future<void> insertMealEntryWithMacroEntries(
+    MealEntry entry,
+    List<MacroEntry> macroEntries,
+  ) =>
+      _localDataSource.insertMealEntryWithMacroEntries(entry, macroEntries);
+
+  @override
   Future<void> updateMealEntry(MealEntry entry) =>
       _localDataSource.updateMealEntry(entry);
 

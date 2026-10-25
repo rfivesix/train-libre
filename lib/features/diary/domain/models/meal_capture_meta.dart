@@ -15,6 +15,7 @@ class MealCaptureMeta {
   final DepthScaleFacts? depthFacts;
   final String? provider;
   final String? model;
+  final String? nutritionEngine;
 
   /// Every photo of this meal, relative to the application support directory.
   ///
@@ -27,16 +28,21 @@ class MealCaptureMeta {
     this.depthFacts,
     this.provider,
     this.model,
+    this.nutritionEngine,
     this.extraPhotoPaths = const [],
   });
 
   bool get isEmpty =>
-      depthFacts == null && provider == null && extraPhotoPaths.isEmpty;
+      depthFacts == null &&
+      provider == null &&
+      nutritionEngine == null &&
+      extraPhotoPaths.isEmpty;
 
   Map<String, dynamic> toMap() => {
         if (depthFacts != null) 'depth': depthFacts!.toMap(),
         if (provider != null) 'provider': provider,
         if (model != null) 'model': model,
+        if (nutritionEngine != null) 'nutrition_engine': nutritionEngine,
         if (extraPhotoPaths.isNotEmpty) 'extra_photos': extraPhotoPaths,
       };
 
@@ -50,6 +56,7 @@ class MealCaptureMeta {
           : null,
       provider: map['provider'] as String?,
       model: map['model'] as String?,
+      nutritionEngine: map['nutrition_engine'] as String?,
       extraPhotoPaths: map['extra_photos'] is List
           ? (map['extra_photos'] as List).whereType<String>().toList()
           : const [],

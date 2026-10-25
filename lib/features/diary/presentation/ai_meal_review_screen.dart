@@ -9,6 +9,8 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/meal_entry.dart';
+import '../domain/models/macro_entry.dart';
+import '../domain/macro_entry_calculator.dart';
 import '../domain/repositories/diary_repository.dart';
 import '../data/meal_photo_store.dart';
 import '../domain/models/meal_capture_meta.dart';
@@ -24,6 +26,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'general_food_selection_screen.dart';
+import 'dialogs/macro_entry_form.dart';
 import 'food_detail_screen.dart';
 import 'util/meal_moment_format.dart';
 import 'meal_editor_screen.dart';
@@ -64,6 +67,7 @@ class AiMealReviewScreen extends StatefulWidget {
   final String? rawResponse;
   final String? scanRequestId;
   final AiUsageCollector? usageCollector;
+  final bool directNutritionMode;
 
   /// Dictated description that accompanied the capture, kept so a later
   /// re-analysis can send the same context again.
@@ -86,6 +90,7 @@ class AiMealReviewScreen extends StatefulWidget {
     this.rawResponse,
     this.scanRequestId,
     this.usageCollector,
+    this.directNutritionMode = false,
     this.voiceTranscript,
   });
 
@@ -181,6 +186,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   late DateTime _selectedTimestamp;
 
   int get _totalKcal {
+    if (widget.directNutritionMode) {
+      return _items.fold<int>(
+        0,
+        (sum, item) => sum + item.nutrition.kcalRounded,
+      );
+    }
     if (_validation != null) return _validation!.totals.kcalRounded;
     int sum = 0;
     for (final item in _items) {
@@ -306,8 +317,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       _applyValidationResult(initialValidation);
       _isMatching = false;
     } else if (widget.validationFuture != null) {
-      _items =
-          widget.suggestions.map((s) => _ReviewItem(suggestion: s)).toList();
+      _items = widget.suggestions
+          .map((s) => _ReviewItem(
+                suggestion: s,
+                nutritionPer100g: s.nutritionPer100g,
+              ))
+          .toList();
       _isMatching = true;
       widget.progressiveValidation?.addListener(_onProgressiveValidation);
       final preliminary = widget.progressiveValidation?.value;
@@ -328,8 +343,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         });
       });
     } else {
-      _items =
-          widget.suggestions.map((s) => _ReviewItem(suggestion: s)).toList();
+      _items = widget.suggestions
+          .map((s) => _ReviewItem(
+                suggestion: s,
+                nutritionPer100g: s.nutritionPer100g,
+              ))
+          .toList();
       _validateCurrentItems();
     }
   }
@@ -374,8 +393,20 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   void _updateItemNutritionLocally(int index) {
     if (index < 0 || index >= _items.length) return;
     final item = _items[index];
+    final values = _estimateForReviewItem(item);
     final food = item.matchedFood;
-    if (food != null) {
+    if (widget.directNutritionMode && values != null) {
+      final factor = item.suggestion.estimatedGrams / 100.0;
+      final protein = values['protein'] ?? 0;
+      final carbs = values['carbs'] ?? 0;
+      final fat = values['fat'] ?? 0;
+      item.nutrition = AiNutritionTotals(
+        kcal: (protein * 4 + carbs * 4 + fat * 9) * factor,
+        protein: protein * factor,
+        carbs: carbs * factor,
+        fat: fat * factor,
+      );
+    } else if (food != null) {
       final factor = item.suggestion.estimatedGrams / 100.0;
       item.nutrition = AiNutritionTotals(
         kcal: food.calories * factor,
@@ -386,13 +417,119 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     }
   }
 
+  Future<void> _editDirectNutrition(int index) async {
+    if (index < 0 || index >= _items.length) return;
+    final reviewItem = _items[index];
+    final values = _estimateForReviewItem(reviewItem);
+    if (values == null) return;
+    final calculation = MacroEntryCalculator.calculate({
+      'protein': values['protein'],
+      'carbs': values['carbs'],
+      'fat': values['fat'],
+    });
+    if (calculation == null) return;
+    final formKey = GlobalKey<MacroEntryFormState>();
+    final l10n = AppLocalizations.of(context)!;
+    final initial = MacroEntry(
+      id: const Uuid().v4(),
+      timestamp: _selectedTimestamp,
+      mealType: _selectedMealType,
+      name: reviewItem.suggestion.name,
+      amount: reviewItem.suggestion.estimatedGrams.toDouble(),
+      amountUnit: 'g',
+      calories: calculation.calories,
+      protein: calculation.protein,
+      carbs: calculation.carbs,
+      fat: calculation.fat,
+      sugar: values['sugar'],
+      fiber: values['fiber'],
+      salt: values['salt'],
+      calculatedNutrient: 'calories',
+    );
+    final updated = await showGlassBottomMenu<MacroEntry>(
+      context: context,
+      title: l10n.macroEntryTitle,
+      contentBuilder: (sheetContext, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MacroEntryForm(
+            key: formKey,
+            initialMealType: _selectedMealType,
+            initialDate: _selectedTimestamp,
+            initialEntry: initial,
+            allowTimestampEditing: false,
+            allowFluidLogging: false,
+            requireAmount: true,
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: close,
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () {
+                    final value = formKey.currentState?.createEntry();
+                    if (value == null) return;
+                    Navigator.of(sheetContext).pop(value);
+                  },
+                  label: l10n.save,
+                  tooltip: l10n.save,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (updated == null || !mounted) return;
+    final updatedNutrition = <String, double?>{
+      'protein': updated.protein,
+      'carbs': updated.carbs,
+      'fat': updated.fat,
+      if (updated.sugar != null) 'sugar': updated.sugar,
+      if (updated.fiber != null) 'fiber': updated.fiber,
+      if (updated.salt != null) 'salt': updated.salt,
+    };
+    final synthetic = FoodItem(
+      barcode: 'ai-review-$index-${const Uuid().v4()}',
+      name: updated.name ?? reviewItem.suggestion.name,
+      nameDe: updated.name ?? reviewItem.suggestion.name,
+      calories: updated.calories.round(),
+      protein: updated.protein,
+      carbs: updated.carbs,
+      fat: updated.fat,
+      sugar: updated.sugar,
+      fiber: updated.fiber,
+      salt: updated.salt,
+    );
+    _manualEdited = true;
+    setState(() {
+      reviewItem.suggestion.name = updated.name ?? reviewItem.suggestion.name;
+      reviewItem.suggestion.estimatedGrams =
+          updated.amount?.round() ?? reviewItem.suggestion.estimatedGrams;
+      reviewItem.suggestion.servedGrams = reviewItem.suggestion.estimatedGrams;
+      reviewItem.nutritionPer100g = updatedNutrition;
+      reviewItem.suggestion.nutritionPer100g = updatedNutrition;
+      reviewItem.matchedFood = synthetic;
+      _updateItemNutritionLocally(index);
+    });
+    _validateCurrentItems(showLoading: false);
+  }
+
   Future<void> _validateCurrentItems({bool showLoading = false}) async {
     if (!mounted) return;
     if (showLoading) {
       setState(() => _isMatching = true);
     }
     final candidate = _candidateFromReviewItems();
-    final result = await AiMealValidationEngine().validateMealCandidate(
+    final result = await _validationEngine().validateMealCandidate(
       candidate: candidate,
       mode: AiValidationMode.capture,
     );
@@ -401,6 +538,27 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       _applyValidationResult(result);
       _isMatching = false;
     });
+  }
+
+  AiMealValidationEngine _validationEngine() => AiMealValidationEngine(
+        matchLoader: widget.directNutritionMode
+            ? (item) async =>
+                item.selectedFood == null ? const [] : [item.selectedFood!]
+            : null,
+      );
+
+  Map<String, double?>? _estimateForReviewItem(_ReviewItem item) {
+    if (item.nutritionPer100g != null) return item.nutritionPer100g;
+    final food = item.matchedFood;
+    if (food == null) return null;
+    return {
+      'protein': food.protein,
+      'carbs': food.carbs,
+      'fat': food.fat,
+      if (food.sugar != null) 'sugar': food.sugar,
+      if (food.fiber != null) 'fiber': food.fiber,
+      if (food.salt != null) 'salt': food.salt,
+    };
   }
 
   AiMealCandidate _candidateFromReviewItems() {
@@ -413,13 +571,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               grams: item.suggestion.estimatedGrams,
               servedGrams: item.suggestion.servedGrams,
               confidence: item.suggestion.confidence,
-              matchedBarcode:
-                  item.matchedFood?.barcode ?? item.suggestion.matchedBarcode,
+              matchedBarcode: widget.directNutritionMode
+                  ? null
+                  : item.matchedFood?.barcode ?? item.suggestion.matchedBarcode,
               stateHint: item.suggestion.stateHint,
               catalogSearchTerm: item.suggestion.catalogSearchTerm,
               packagedProductEvidence: item.suggestion.packagedProductEvidence,
               selectedFood: item.matchedFood,
               searchTerms: item.suggestion.searchTerms,
+              nutritionPer100g: widget.directNutritionMode
+                  ? _estimateForReviewItem(item)
+                  : null,
             ),
           )
           .toList(growable: false),
@@ -436,19 +598,38 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               estimatedGrams: item.candidate.grams,
               servedGrams: item.candidate.servedGrams,
               confidence: item.candidate.confidence ?? 1.0,
-              matchedBarcode: item.match.bestMatch?.barcode ??
-                  item.candidate.matchedBarcode,
+              matchedBarcode: widget.directNutritionMode
+                  ? null
+                  : item.match.bestMatch?.barcode ??
+                      item.candidate.matchedBarcode,
               stateHint: item.candidate.stateHint,
               catalogSearchTerm: item.candidate.catalogSearchTerm,
               packagedProductEvidence: item.candidate.packagedProductEvidence,
               searchTerms: item.candidate.searchTerms,
+              nutritionPer100g: item.candidate.nutritionPer100g,
             ),
             matchedFood: item.match.bestMatch,
             issues: item.issues,
-            nutrition: item.nutrition,
+            nutrition: _nutritionForValidatedItem(item),
+            nutritionPer100g: item.candidate.nutritionPer100g,
           ),
         )
         .toList();
+  }
+
+  AiNutritionTotals _nutritionForValidatedItem(AiValidatedMealItem item) {
+    final values = item.candidate.nutritionPer100g;
+    if (!widget.directNutritionMode || values == null) return item.nutrition;
+    final protein = values['protein'] ?? 0;
+    final carbs = values['carbs'] ?? 0;
+    final fat = values['fat'] ?? 0;
+    final factor = item.candidate.grams / 100.0;
+    return AiNutritionTotals(
+      kcal: (protein * 4 + carbs * 4 + fat * 9) * factor,
+      protein: protein * factor,
+      carbs: carbs * factor,
+      fat: fat * factor,
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -677,34 +858,57 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         context: context,
       );
       if (!mounted || _analysisCancelled) return;
-      final candidate = await AiService.instance.retry(
-        previousResults: _items.map((e) => e.suggestion).toList(),
-        feedback: feedback,
-        images: widget.originalImages.isNotEmpty ? widget.originalImages : null,
-        matchingContext: matchingContext,
-        usageCollector: _correctionUsage,
-      );
+      final candidate = widget.directNutritionMode
+          ? await AiService.instance.retryDirectNutrition(
+              previousItems: _candidateFromReviewItems().items,
+              feedback: feedback,
+              images: widget.originalImages.isNotEmpty
+                  ? widget.originalImages
+                  : null,
+              languageCode: matchingContext.appLanguage,
+              usageCollector: _correctionUsage,
+            )
+          : await AiService.instance.retry(
+              previousResults: _items.map((e) => e.suggestion).toList(),
+              feedback: feedback,
+              images: widget.originalImages.isNotEmpty
+                  ? widget.originalImages
+                  : null,
+              matchingContext: matchingContext,
+              usageCollector: _correctionUsage,
+            );
 
       if (!mounted || _analysisCancelled) return;
       controller.value = MealAnalysisPhase.matching;
 
       final orchestrator = AiRepairOrchestrator(
-        validationEngine: AiMealValidationEngine(),
+        validationEngine: _validationEngine(),
       );
       final outcome = await orchestrator.run(
         initialCandidate: candidate,
         mode: AiValidationMode.capture,
         repairer: (candidate, validation, attempt) {
           controller.value = MealAnalysisPhase.repairing;
-          return AiService.instance.repairMealCaptureCandidate(
-            candidate: candidate,
-            validation: validation,
-            images:
-                widget.originalImages.isNotEmpty ? widget.originalImages : null,
-            matchingContext: matchingContext,
-            mealContext: candidate.context,
-            usageCollector: _correctionUsage,
-          );
+          return widget.directNutritionMode
+              ? AiService.instance.retryDirectNutrition(
+                  previousItems: candidate.items,
+                  feedback: validation.toRepairFeedback(),
+                  images: widget.originalImages.isNotEmpty
+                      ? widget.originalImages
+                      : null,
+                  languageCode: matchingContext.appLanguage,
+                  usageCollector: _correctionUsage,
+                )
+              : AiService.instance.repairMealCaptureCandidate(
+                  candidate: candidate,
+                  validation: validation,
+                  images: widget.originalImages.isNotEmpty
+                      ? widget.originalImages
+                      : null,
+                  matchingContext: matchingContext,
+                  mealContext: candidate.context,
+                  usageCollector: _correctionUsage,
+                );
         },
       );
 
@@ -822,7 +1026,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     final l10n = AppLocalizations.of(context)!;
     if (_isSaving || _items.isEmpty) return;
     final validation = _validation ??
-        await AiMealValidationEngine().validateMealCandidate(
+        await _validationEngine().validateMealCandidate(
           candidate: _candidateFromReviewItems(),
           mode: AiValidationMode.capture,
         );
@@ -856,7 +1060,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     if (!mounted) return;
     setState(() => _isSaving = true);
 
-    final db = DatabaseHelper.instance;
     final diaryRepo = context.read<IDiaryRepository>();
     var saved = false;
 
@@ -883,6 +1086,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       final captureMeta = MealCaptureMeta(
         depthFacts: widget.depthFacts,
         extraPhotoPaths: extraPhotoPaths,
+        nutritionEngine:
+            widget.directNutritionMode ? 'directEstimate' : 'localCatalog',
       );
 
       final mealEntry = MealEntry(
@@ -896,20 +1101,59 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         captureMeta: captureMeta.isEmpty ? null : captureMeta.toJson(),
         source: widget.originalImages.isEmpty ? 'aiText' : 'aiPhoto',
       );
-      await diaryRepo.insertMealEntry(mealEntry);
-
-      for (final item in savePlan.matchedItems) {
-        final food = item.match.bestMatch!;
-
-        final entry = FoodEntry(
-          barcode: food.barcode,
-          quantityInGrams: item.candidate.grams,
-          timestamp: _selectedTimestamp,
-          mealType: _selectedMealType,
-          mealEntryId: mealEntryId,
+      if (widget.directNutritionMode) {
+        final macroEntries = savePlan.matchedItems.map((item) {
+          final food = item.match.bestMatch!;
+          final values = item.candidate.nutritionPer100g ??
+              {
+                'protein': food.protein,
+                'carbs': food.carbs,
+                'fat': food.fat,
+                'sugar': food.sugar,
+                'fiber': food.fiber,
+                'salt': food.salt,
+              };
+          final protein = values['protein'] ?? food.protein;
+          final carbs = values['carbs'] ?? food.carbs;
+          final fat = values['fat'] ?? food.fat;
+          return MacroEntry(
+            id: const Uuid().v4(),
+            mealEntryId: mealEntryId,
+            timestamp: _selectedTimestamp,
+            mealType: _selectedMealType,
+            name: item.candidate.name,
+            amount: item.candidate.grams.toDouble(),
+            amountUnit: 'g',
+            calories: protein * 4 + carbs * 4 + fat * 9,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            sugar: values['sugar'],
+            fiber: values['fiber'],
+            salt: values['salt'],
+            calculatedNutrient: 'calories',
+          );
+        }).toList(growable: false);
+        await diaryRepo.insertMealEntryWithMacroEntries(
+          mealEntry,
+          macroEntries,
         );
-        await db.insertFoodEntry(entry,
-            telemetrySource: FoodLogSource.aiCapture);
+      } else {
+        final db = DatabaseHelper.instance;
+        await diaryRepo.insertMealEntry(mealEntry);
+        for (final item in savePlan.matchedItems) {
+          final food = item.match.bestMatch!;
+
+          final entry = FoodEntry(
+            barcode: food.barcode,
+            quantityInGrams: item.candidate.grams,
+            timestamp: _selectedTimestamp,
+            mealType: _selectedMealType,
+            mealEntryId: mealEntryId,
+          );
+          await db.insertFoodEntry(entry,
+              telemetrySource: FoodLogSource.aiCapture);
+        }
       }
       saved = true;
     } catch (error) {
@@ -1434,9 +1678,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                             nutrition: item.nutrition,
                                             onDismissed: () =>
                                                 _removeItem(index),
-                                            onTap: item.matchedFood != null
-                                                ? () => _inspectFood(index)
-                                                : () => _replaceWithFood(index),
+                                            isAiEstimate:
+                                                widget.directNutritionMode,
+                                            showReplace:
+                                                !widget.directNutritionMode,
+                                            onTap: widget.directNutritionMode
+                                                ? () =>
+                                                    _editDirectNutrition(index)
+                                                : item.matchedFood != null
+                                                    ? () => _inspectFood(index)
+                                                    : () =>
+                                                        _replaceWithFood(index),
                                             onReplace: () =>
                                                 _replaceWithFood(index),
                                             onEditQuantity: () =>
@@ -1744,12 +1996,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 class _ReviewItem {
   AiSuggestedItem suggestion;
   FoodItem? matchedFood;
+  Map<String, double?>? nutritionPer100g;
   List<AiValidationIssue> issues;
   AiNutritionTotals nutrition;
 
   _ReviewItem({
     required this.suggestion,
     this.matchedFood,
+    this.nutritionPer100g,
     this.issues = const [],
     this.nutrition = AiNutritionTotals.zero,
   });

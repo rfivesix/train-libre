@@ -29,6 +29,8 @@ class MealReviewComparisonCard extends StatelessWidget {
   final VoidCallback onReplace;
   final VoidCallback onEditQuantity;
   final ValueChanged<int>? onQuickAdjustQuantity;
+  final bool isAiEstimate;
+  final bool showReplace;
 
   const MealReviewComparisonCard({
     required this.dismissibleKey,
@@ -44,6 +46,8 @@ class MealReviewComparisonCard extends StatelessWidget {
     required this.onReplace,
     required this.onEditQuantity,
     this.onQuickAdjustQuantity,
+    this.isAiEstimate = false,
+    this.showReplace = true,
     super.key,
   });
 
@@ -107,7 +111,14 @@ class MealReviewComparisonCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: DesignConstants.spacingXS),
-                        if (hasMatch)
+                        if (isAiEstimate)
+                          Text(
+                            '${l10n.aiDirectEstimateLabel} · ${nutrition.kcal == 0 ? matchedFood?.calories ?? 0 : (nutrition.kcal * 100 / estimatedGrams).round()} kcal/100g',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                          )
+                        else if (hasMatch)
                           Builder(
                             builder: (context) {
                               final themeService =
@@ -216,21 +227,22 @@ class MealReviewComparisonCard extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: Icon(
-                              LucideIcons.arrow_left_right,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant,
+                          if (showReplace)
+                            IconButton(
+                              icon: Icon(
+                                LucideIcons.arrow_left_right,
+                                size: 16,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              tooltip: l10n.aiReviewReplaceItem,
+                              onPressed: onReplace,
+                              visualDensity: VisualDensity.compact,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              padding: EdgeInsets.zero,
                             ),
-                            tooltip: l10n.aiReviewReplaceItem,
-                            onPressed: onReplace,
-                            visualDensity: VisualDensity.compact,
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                            padding: EdgeInsets.zero,
-                          ),
                           const SizedBox(width: 2),
                           IconButton(
                             icon: Icon(

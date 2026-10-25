@@ -17,13 +17,16 @@ class AiMealValidationEngine {
   AiMealValidationEngine({
     AiFoodMatchLoader? matchLoader,
   }) {
-    final session = ProductLocalDataSource.instance.createAiSearchSession();
-    _matchLoader = matchLoader ??
-        (item) => defaultMatchLoader(
-              item,
-              aiSession: session,
-              includeOff: item.canSearchOff,
-            );
+    if (matchLoader != null) {
+      _matchLoader = matchLoader;
+    } else {
+      final session = ProductLocalDataSource.instance.createAiSearchSession();
+      _matchLoader = (item) => defaultMatchLoader(
+            item,
+            aiSession: session,
+            includeOff: item.canSearchOff,
+          );
+    }
   }
 
   String _itemCacheKey(AiMealCandidateItem item) => jsonEncode([

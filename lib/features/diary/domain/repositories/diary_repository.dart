@@ -45,6 +45,10 @@ abstract class IDiaryRepository {
   Future<void> insertMacroEntry(MacroEntry entry);
 
   Future<String> insertMealEntry(MealEntry entry);
+  Future<void> insertMealEntryWithMacroEntries(
+    MealEntry entry,
+    List<MacroEntry> macroEntries,
+  );
   Future<void> updateMealEntry(MealEntry entry);
 
   /// Moves a logged meal and every row linked to it to [newConsumedAt].

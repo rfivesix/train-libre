@@ -836,8 +836,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           elapsedMilliseconds: runBaseMilliseconds,
           durationMilliseconds: runBaseMilliseconds));
       final fastMode = await AiService.instance.isFastModeEnabled();
+      final nutritionMode = await AiService.instance.getMealNutritionMode();
+      final useDirectNutrition =
+          nutritionMode == AiMealNutritionMode.directEstimate;
       final cloudProvider = provider != 'ollama' && provider != 'custom';
-      final engine = AiMealValidationEngine();
+      final engine = AiMealValidationEngine(
+        matchLoader: useDirectNutrition
+            ? (item) async =>
+                item.selectedFood == null ? const [] : [item.selectedFood!]
+            : null,
+      );
       final validationCompleter = Completer<AiValidationResult>();
       pendingValidation = validationCompleter;
       // The route may not have built yet when a fast validation fails.
@@ -888,6 +896,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     catalogSearchTerm: item.catalogSearchTerm,
                     packagedProductEvidence: item.packagedProductEvidence,
                     searchTerms: item.searchTerms,
+                    nutritionPer100g: item.nutritionPer100g,
                   ),
                 )
                 .toList(growable: false),
@@ -905,6 +914,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             voiceTranscript: text.isNotEmpty ? text : null,
             scanRequestId: requestId,
             usageCollector: usageCollector,
+            directNutritionMode: useDirectNutrition,
           ),
         );
 
@@ -981,31 +991,55 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               validationScore: validationScore,
               issueCategories: issueCategories));
         },
-        analyze: () => _images.isNotEmpty
-            ? AiService.instance.analyzeImages(
-                _images,
-                textHint: text.isNotEmpty ? text : null,
-                matchingContext: matchingContext,
-                depthFacts: depthFacts,
-                depthMap: depthMap?.file,
-                depthMapLegend: depthMap?.describeForPrompt(),
-                usageCollector: usageCollector,
-              )
-            : AiService.instance.analyzeText(
-                text,
-                matchingContext: matchingContext,
-                usageCollector: usageCollector,
-              ),
+        analyze: () => useDirectNutrition
+            ? (_images.isNotEmpty
+                ? AiService.instance.analyzeDirectNutritionImages(
+                    _images,
+                    textHint: text.isNotEmpty ? text : null,
+                    languageCode: matchingContext.appLanguage,
+                    depthFacts: depthFacts,
+                    depthMap: depthMap?.file,
+                    depthMapLegend: depthMap?.describeForPrompt(),
+                    usageCollector: usageCollector,
+                  )
+                : AiService.instance.analyzeDirectNutritionText(
+                    text,
+                    languageCode: matchingContext.appLanguage,
+                    usageCollector: usageCollector,
+                  ))
+            : _images.isNotEmpty
+                ? AiService.instance.analyzeImages(
+                    _images,
+                    textHint: text.isNotEmpty ? text : null,
+                    matchingContext: matchingContext,
+                    depthFacts: depthFacts,
+                    depthMap: depthMap?.file,
+                    depthMapLegend: depthMap?.describeForPrompt(),
+                    usageCollector: usageCollector,
+                  )
+                : AiService.instance.analyzeText(
+                    text,
+                    matchingContext: matchingContext,
+                    usageCollector: usageCollector,
+                  ),
         repairer: (candidate, validation, attempt) {
           controller.value = MealAnalysisPhase.repairing;
-          return AiService.instance.repairMealCaptureCandidate(
-            candidate: candidate,
-            validation: validation,
-            images: _images.isNotEmpty ? _images : null,
-            matchingContext: matchingContext,
-            mealContext: candidate.context,
-            usageCollector: usageCollector,
-          );
+          return useDirectNutrition
+              ? AiService.instance.retryDirectNutrition(
+                  previousItems: candidate.items,
+                  feedback: validation.toRepairFeedback(),
+                  images: _images.isNotEmpty ? _images : null,
+                  languageCode: matchingContext.appLanguage,
+                  usageCollector: usageCollector,
+                )
+              : AiService.instance.repairMealCaptureCandidate(
+                  candidate: candidate,
+                  validation: validation,
+                  images: _images.isNotEmpty ? _images : null,
+                  matchingContext: matchingContext,
+                  mealContext: candidate.context,
+                  usageCollector: usageCollector,
+                );
         },
       );
       final validationOutcome = runResult.outcome;
@@ -1165,6 +1199,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         );
       }
     } catch (e, stackTrace) {
+      debugPrint('[AiMealCapture] Unexpected scan failure: $e');
+      debugPrintStack(stackTrace: stackTrace);
       failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();

@@ -3104,6 +3104,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enables AI features such as chat and meal recognition. Disabling this hides all AI entry points.';
 
   @override
+  String get aiNutritionEngineLabel => 'Nutrition estimation method';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      'Direct estimates create nutrition snapshots without matching the food database. Catalog mode keeps matching suggestions against the local food catalog.';
+
+  @override
+  String get aiNutritionEngineEstimate => 'Direct AI estimate';
+
+  @override
+  String get aiNutritionEngineCatalog => 'Local food catalog';
+
+  @override
+  String get aiDirectEstimateLabel => 'AI estimate';
+
+  @override
   String get aiFloatingAssistantTitle => 'Show floating AI assistant';
 
   @override

@@ -4,6 +4,9 @@
 /// they describe 100 g or 100 ml according to [amountUnit].
 class MacroEntry {
   final String id;
+
+  /// Optional parent meal for an estimated ingredient snapshot.
+  final String? mealEntryId;
   final DateTime timestamp;
   final String mealType;
   final String? name;
@@ -22,6 +25,7 @@ class MacroEntry {
 
   const MacroEntry({
     required this.id,
+    this.mealEntryId,
     required this.timestamp,
     required this.mealType,
     this.name,
@@ -50,8 +54,55 @@ class MacroEntry {
   double? get totalCaffeine =>
       caffeine == null ? null : caffeine! * amountFactor;
 
+  MacroEntry copyWith({
+    String? id,
+    Object? mealEntryId = _unset,
+    DateTime? timestamp,
+    String? mealType,
+    Object? name = _unset,
+    Object? amount = _unset,
+    Object? amountUnit = _unset,
+    bool? isFluid,
+    double? calories,
+    double? protein,
+    double? carbs,
+    double? fat,
+    Object? sugar = _unset,
+    Object? fiber = _unset,
+    Object? salt = _unset,
+    Object? caffeine = _unset,
+    String? calculatedNutrient,
+  }) =>
+      MacroEntry(
+        id: id ?? this.id,
+        mealEntryId: identical(mealEntryId, _unset)
+            ? this.mealEntryId
+            : mealEntryId as String?,
+        timestamp: timestamp ?? this.timestamp,
+        mealType: mealType ?? this.mealType,
+        name: identical(name, _unset) ? this.name : name as String?,
+        amount: identical(amount, _unset) ? this.amount : amount as double?,
+        amountUnit: identical(amountUnit, _unset)
+            ? this.amountUnit
+            : amountUnit as String?,
+        isFluid: isFluid ?? this.isFluid,
+        calories: calories ?? this.calories,
+        protein: protein ?? this.protein,
+        carbs: carbs ?? this.carbs,
+        fat: fat ?? this.fat,
+        sugar: identical(sugar, _unset) ? this.sugar : sugar as double?,
+        fiber: identical(fiber, _unset) ? this.fiber : fiber as double?,
+        salt: identical(salt, _unset) ? this.salt : salt as double?,
+        caffeine:
+            identical(caffeine, _unset) ? this.caffeine : caffeine as double?,
+        calculatedNutrient: calculatedNutrient ?? this.calculatedNutrient,
+      );
+
+  static const _unset = Object();
+
   Map<String, dynamic> toMap() => {
         'id': id,
+        'meal_entry_id': mealEntryId,
         'timestamp': timestamp.toIso8601String(),
         'meal_type': mealType,
         'name': name,
@@ -71,6 +122,7 @@ class MacroEntry {
 
   factory MacroEntry.fromMap(Map<String, dynamic> map) => MacroEntry(
         id: map['id'] as String,
+        mealEntryId: map['meal_entry_id'] as String?,
         timestamp: DateTime.parse(map['timestamp'] as String),
         mealType: map['meal_type'] as String,
         name: map['name'] as String?,

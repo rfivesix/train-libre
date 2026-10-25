@@ -72,6 +72,10 @@ class AiMealCandidateItem {
   final String? catalogSearchTerm;
   final List<String> searchTerms;
 
+  /// AI-estimated nutrient values per 100 g. Present only for the direct
+  /// estimate engine; the local catalog engine leaves this null.
+  final Map<String, double?>? nutritionPer100g;
+
   /// Evidence from the original input, never inferred from a catalog result.
   final String? packagedProductEvidence;
 
@@ -92,6 +96,7 @@ class AiMealCandidateItem {
     this.stateHint,
     this.catalogSearchTerm,
     this.searchTerms = const [],
+    this.nutritionPer100g,
     this.packagedProductEvidence,
     this.allowOffFallback = false,
     this.selectedFood,
@@ -106,6 +111,7 @@ class AiMealCandidateItem {
     String? stateHint,
     Object? catalogSearchTerm = _unchangedSelection,
     List<String>? searchTerms,
+    Object? nutritionPer100g = _unchangedSelection,
     Object? packagedProductEvidence = _unchangedSelection,
     bool? allowOffFallback,
     Object? selectedFood = _unchangedSelection,
@@ -123,6 +129,9 @@ class AiMealCandidateItem {
           ? this.catalogSearchTerm
           : catalogSearchTerm as String?,
       searchTerms: searchTerms ?? this.searchTerms,
+      nutritionPer100g: identical(nutritionPer100g, _unchangedSelection)
+          ? this.nutritionPer100g
+          : nutritionPer100g as Map<String, double?>?,
       packagedProductEvidence:
           identical(packagedProductEvidence, _unchangedSelection)
               ? this.packagedProductEvidence
@@ -146,6 +155,7 @@ class AiMealCandidateItem {
       if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
       if (packagedProductEvidence != null)
         'packagedProductEvidence': packagedProductEvidence,
+      if (nutritionPer100g != null) 'nutritionPer100g': nutritionPer100g,
     };
   }
 }

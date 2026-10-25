@@ -3131,6 +3131,22 @@ class AppLocalizationsIt extends AppLocalizations {
       'Attiva le funzioni IA come chat e riconoscimento dei pasti. Disattivandola, tutti i punti di accesso all’IA vengono nascosti.';
 
   @override
+  String get aiNutritionEngineLabel => 'Metodo di stima nutrizionale';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      'La stima diretta salva i nutrienti senza cercare nel database degli alimenti. La modalità catalogo continua a usare il catalogo locale.';
+
+  @override
+  String get aiNutritionEngineEstimate => 'Stima diretta AI';
+
+  @override
+  String get aiNutritionEngineCatalog => 'Catalogo alimentare locale';
+
+  @override
+  String get aiDirectEstimateLabel => 'Stima AI';
+
+  @override
   String get aiFloatingAssistantTitle => 'Mostra l’assistente IA flottante';
 
   @override

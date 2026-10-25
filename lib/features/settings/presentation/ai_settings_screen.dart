@@ -50,6 +50,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _hasKey = false;
   int _timeoutSeconds = 60;
   int _retentionDays = 180;
+  AiMealNutritionMode _mealNutritionMode = AiMealNutritionMode.directEstimate;
 
   /// Only shown on devices that can actually measure — elsewhere the switch
   /// would advertise something the hardware cannot do.
@@ -100,6 +101,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
     final customModel = await AiService.instance.getCustomModel();
     final timeout = await AiService.instance.getAiTimeoutSeconds();
+    final nutritionMode = await AiService.instance.getMealNutritionMode();
 
     final isCloud = provider != AiProvider.ollama &&
         provider != AiProvider.custom &&
@@ -124,6 +126,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         );
         _hasKey = isOffline || (key != null && key.isNotEmpty);
         _timeoutSeconds = timeout;
+        _mealNutritionMode = nutritionMode;
         if (_hasKey &&
             provider != AiProvider.ollama &&
             provider != AiProvider.appleFoundation) {
@@ -508,6 +511,42 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 if (!mounted) return;
                 setState(() => _depthImageEnabled = value);
               },
+            ),
+          ],
+
+          if (aiEnabled) ...[
+            PlatformAdaptivePopupMenu<AiMealNutritionMode>(
+              selectedValue: _mealNutritionMode,
+              onSelected: (mode) async {
+                await AiService.instance.setMealNutritionMode(mode);
+                if (mounted) setState(() => _mealNutritionMode = mode);
+              },
+              items: [
+                PlatformAdaptivePopupMenuItem(
+                  value: AiMealNutritionMode.directEstimate,
+                  label: l10n.aiNutritionEngineEstimate,
+                ),
+                PlatformAdaptivePopupMenuItem(
+                  value: AiMealNutritionMode.localCatalog,
+                  label: l10n.aiNutritionEngineCatalog,
+                ),
+              ],
+              icon: AppSettingsRow.navigation(
+                title: l10n.aiNutritionEngineLabel,
+                subtitle:
+                    _mealNutritionMode == AiMealNutritionMode.directEstimate
+                        ? l10n.aiNutritionEngineEstimate
+                        : l10n.aiNutritionEngineCatalog,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                l10n.aiNutritionEngineSubtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
           ],
 

@@ -15,6 +15,8 @@ import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
+import '../features/diary/domain/models/food_item.dart';
+import '../features/diary/domain/macro_entry_calculator.dart';
 import 'ai/apple_foundation_service.dart';
 
 part 'ai/ai_models.dart';
@@ -101,6 +103,19 @@ class AiService {
   static const _customModelKey = 'ai_custom_model';
   static const _timeoutKey = 'ai_timeout_seconds';
   static const _fastModeKey = 'ai_fast_mode_enabled';
+  static const _mealNutritionModeKey = 'ai_meal_nutrition_mode';
+
+  Future<AiMealNutritionMode> getMealNutritionMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_mealNutritionModeKey) == 'localCatalog'
+        ? AiMealNutritionMode.localCatalog
+        : AiMealNutritionMode.directEstimate;
+  }
+
+  Future<void> setMealNutritionMode(AiMealNutritionMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_mealNutritionModeKey, mode.name);
+  }
 
   Future<bool> isFastModeEnabled() async {
     final prefs = await SharedPreferences.getInstance();
@@ -779,6 +794,161 @@ class AiService {
     );
 
     return _parseMealCandidateFromContent(raw);
+  }
+
+  /// Estimates each ingredient directly from the capture without consulting
+  /// the product or base-food catalog. The response contains macros per 100 g;
+  /// calories are derived with the same 4/4/9 calculation used by macro logs.
+  Future<AiMealCandidate> analyzeDirectNutritionImages(
+    List<File> images, {
+    String? textHint,
+    String? languageCode,
+    DepthScaleFacts? depthFacts,
+    File? depthMap,
+    String? depthMapLegend,
+    AiUsageCollector? usageCollector,
+  }) async {
+    final attachDepthMap = depthMap != null &&
+        depthMapLegend != null &&
+        depthMapLegend.trim().isNotEmpty;
+    final prompt = _buildDirectNutritionPrompt(
+      languageCode: languageCode,
+      depthFacts: depthFacts,
+      depthMapLegend: attachDepthMap ? depthMapLegend : null,
+    );
+    final raw = await _callSelectedProviderRaw(
+      userContent: textHint?.trim().isNotEmpty == true
+          ? 'Meal description: $textHint. Estimate the visible ingredients and their nutrition.'
+          : 'Analyze the meal and estimate each ingredient and its nutrition.',
+      systemPrompt: prompt,
+      images: attachDepthMap ? [...images, depthMap] : images,
+      temperature: 0.25,
+      usageCollector: usageCollector,
+    );
+    return _attachDirectEstimateFoods(
+        await _parseMealCandidateFromContent(raw));
+  }
+
+  Future<AiMealCandidate> analyzeDirectNutritionText(
+    String description, {
+    String? languageCode,
+    AiUsageCollector? usageCollector,
+  }) async {
+    final raw = await _callSelectedProviderRaw(
+      userContent: description,
+      systemPrompt: _buildDirectNutritionPrompt(languageCode: languageCode),
+      temperature: 0.25,
+      usageCollector: usageCollector,
+    );
+    return _attachDirectEstimateFoods(
+        await _parseMealCandidateFromContent(raw));
+  }
+
+  Future<AiMealCandidate> retryDirectNutrition({
+    required List<AiMealCandidateItem> previousItems,
+    required String feedback,
+    List<File>? images,
+    String? languageCode,
+    AiUsageCollector? usageCollector,
+  }) async {
+    final raw = await _callSelectedProviderRaw(
+      userContent: '''Previous meal estimate:
+${jsonEncode({'items': previousItems.map((item) => item.toJson()).toList()})}
+
+User correction: $feedback
+Update the ingredient quantities and nutrient estimates to follow this correction.''',
+      systemPrompt: _buildDirectNutritionPrompt(languageCode: languageCode),
+      images: images,
+      temperature: 0.2,
+      usageCollector: usageCollector,
+    );
+    return _attachDirectEstimateFoods(
+        await _parseMealCandidateFromContent(raw));
+  }
+
+  AiMealCandidate _attachDirectEstimateFoods(AiMealCandidate candidate) {
+    if (candidate.items.isEmpty) throw const AiParseException();
+    final items = <AiMealCandidateItem>[];
+    for (var index = 0; index < candidate.items.length; index++) {
+      final item = candidate.items[index];
+      final nutrition = item.nutritionPer100g;
+      if (item.grams <= 0 || item.grams > 3000 || nutrition == null) {
+        throw const AiParseException(
+            'The direct nutrition estimate is incomplete.');
+      }
+      double core(String key) {
+        final value = nutrition[key];
+        if (value == null || !value.isFinite || value < 0 || value > 110) {
+          throw const AiParseException(
+              'The direct nutrition estimate contains invalid values.');
+        }
+        return value;
+      }
+
+      final protein = core('protein');
+      final carbs = core('carbs');
+      final fat = core('fat');
+      final calculation = MacroEntryCalculator.calculate({
+        'protein': protein,
+        'carbs': carbs,
+        'fat': fat,
+      });
+      if (calculation == null || !calculation.calories.isFinite) {
+        throw const AiParseException();
+      }
+      double? extra(String key) {
+        final value = nutrition[key];
+        if (value == null) return null;
+        if (!value.isFinite || value < 0 || value > 110) {
+          throw const AiParseException(
+              'The direct nutrition estimate contains invalid values.');
+        }
+        return value;
+      }
+
+      final syntheticFood = FoodItem(
+        barcode: 'ai-estimate-$index-${Object.hash(
+          item.name,
+          protein,
+          carbs,
+          fat,
+          nutrition['sugar'],
+          nutrition['fiber'],
+          nutrition['salt'],
+        )}',
+        name: item.name,
+        nameDe: item.name,
+        calories: calculation.calories.round(),
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        fiber: extra('fiber'),
+        sugar: extra('sugar'),
+        salt: extra('salt'),
+      );
+      items.add(item.copyWith(selectedFood: syntheticFood));
+    }
+    return candidate.copyWith(items: items);
+  }
+
+  String _buildDirectNutritionPrompt({
+    String? languageCode,
+    DepthScaleFacts? depthFacts,
+    String? depthMapLegend,
+  }) {
+    final language = languageCode ?? 'de';
+    final depth = depthFacts == null || !depthFacts.isValid
+        ? ''
+        : '\nUse the valid LiDAR portion scale as a weight cue: ${depthFacts.toMap()}.';
+    final depthMap = depthMapLegend == null
+        ? ''
+        : '\nA depth image follows the meal photos. Use it only as a portion-size cue: $depthMapLegend.';
+    return '''You are a nutrition estimation engine. Analyze the meal and return atomic ingredients with estimated eaten weight and nutrient values per 100 g. Write all food names and meal title in $language.$depth$depthMap
+
+Do not search, cite, or imitate any food database or branded catalog entry. Estimate the actual visible/prepared food. Break composite meals into useful ingredients without inventing tiny ingredients that cannot be distinguished.
+For each ingredient include `name`, `estimatedGrams` (positive integer), `servedGrams` (positive integer), `confidence` (0..1), and `nutritionPer100g` with `protein`, `carbs`, and `fat` as non-negative numbers. Include `sugar`, `fiber`, or `salt` only when you can make a reasonable estimate; otherwise use null or omit the field. Do not return calories: the app calculates calories from the three macros using 4/4/9.
+Return only JSON, with a top-level `dishType` and `items` array:
+{"dishType":"Meal title","items":[{"name":"ingredient","estimatedGrams":120,"servedGrams":120,"confidence":0.8,"nutritionPer100g":{"protein":10.2,"carbs":15.5,"fat":6.1,"sugar":2.0,"fiber":1.3,"salt":0.4}}]}''';
   }
 
   /// Turns a raw dictation transcript into bullets, correcting mishearings.

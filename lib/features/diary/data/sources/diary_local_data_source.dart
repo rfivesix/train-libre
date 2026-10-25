@@ -102,6 +102,7 @@ class DiaryLocalDataSource {
 
   MacroEntry _toMacroEntry(drift_db.MacroEntry row) => MacroEntry(
         id: row.id,
+        mealEntryId: row.mealEntryId,
         timestamp: row.consumedAt,
         mealType: row.mealType,
         name: row.name,
@@ -503,6 +504,7 @@ class DiaryLocalDataSource {
       await _db.into(_db.macroEntries).insert(
             drift_db.MacroEntriesCompanion.insert(
               id: drift.Value(entry.id),
+              mealEntryId: drift.Value(entry.mealEntryId),
               consumedAt: entry.timestamp,
               mealType: entry.mealType,
               name: drift.Value(entry.name),
@@ -537,6 +539,7 @@ class DiaryLocalDataSource {
           .write(
         drift_db.MacroEntriesCompanion(
           consumedAt: drift.Value(entry.timestamp),
+          mealEntryId: drift.Value(entry.mealEntryId),
           mealType: drift.Value(entry.mealType),
           name: drift.Value(entry.name),
           amount: drift.Value(entry.amount),
@@ -1192,6 +1195,46 @@ class DiaryLocalDataSource {
     });
   }
 
+  /// Persists a macro-only meal and all its ingredient snapshots atomically.
+  /// This is also the shared persistence boundary for other callers that
+  /// produce meal-level macro estimates.
+  Future<void> insertMealEntryWithMacroEntries(
+    MealEntry mealEntry,
+    List<MacroEntry> entries,
+  ) async {
+    if (entries.isEmpty) {
+      throw ArgumentError('A meal must contain macro entries');
+    }
+    await _db.transaction(() async {
+      final mealEntryId = await insertMealEntry(mealEntry);
+      for (final entry in entries) {
+        final linked = entry.copyWith(mealEntryId: mealEntryId);
+        await _db.into(_db.macroEntries).insert(
+              drift_db.MacroEntriesCompanion.insert(
+                id: drift.Value(linked.id),
+                mealEntryId: drift.Value(mealEntryId),
+                consumedAt: linked.timestamp,
+                mealType: linked.mealType,
+                name: drift.Value(linked.name),
+                amount: drift.Value(linked.amount),
+                amountUnit: drift.Value(linked.amountUnit),
+                isFluid: drift.Value(linked.isFluid),
+                calories: linked.calories,
+                protein: linked.protein,
+                carbs: linked.carbs,
+                fat: linked.fat,
+                sugar: drift.Value(linked.sugar),
+                fiber: drift.Value(linked.fiber),
+                salt: drift.Value(linked.salt),
+                caffeine: drift.Value(linked.caffeine),
+                calculatedNutrient: linked.calculatedNutrient,
+              ),
+            );
+        await _syncMacroFluid(linked);
+      }
+    });
+  }
+
   Future<void> updateMealEntry(MealEntry entry) async {
     final companion = drift_db.MealEntriesCompanion(
       userId: drift.Value(entry.userId),
@@ -1278,17 +1321,42 @@ class DiaryLocalDataSource {
           ));
         }
       }
+
+      final macroRows = await (_db.select(_db.macroEntries)
+            ..where((row) => row.mealEntryId.equals(mealEntryId)))
+          .get();
+      for (final row in macroRows) {
+        await (_db.update(_db.macroEntries)
+              ..where((macro) => macro.id.equals(row.id)))
+            .write(drift_db.MacroEntriesCompanion(
+          consumedAt: drift.Value(row.consumedAt.add(delta)),
+          updatedAt: drift.Value(now),
+        ));
+        if (row.isFluid) {
+          await (_db.update(_db.fluidLogs)
+                ..where((fluid) => fluid.linkedMacroEntryId.equals(row.id)))
+              .write(drift_db.FluidLogsCompanion(
+            consumedAt: drift.Value(row.consumedAt.add(delta)),
+          ));
+        }
+      }
     });
   }
 
   Future<void> deleteMealEntry(String id,
       {required bool deleteFoodLogs}) async {
+    final macroRows = await (_db.select(_db.macroEntries)
+          ..where((row) => row.mealEntryId.equals(id)))
+        .get();
     if (deleteFoodLogs) {
       final logs = await (_db.select(_db.nutritionLogs)
             ..where((t) => t.mealEntryId.equals(id)))
           .get();
       for (final log in logs) {
         await deleteFoodEntry(log.localId);
+      }
+      for (final row in macroRows) {
+        await deleteMacroEntry(row.id);
       }
     } else {
       // Unlink entries from meal entry so they remain in diary as individual items
@@ -1299,6 +1367,11 @@ class DiaryLocalDataSource {
           mealEntryId: drift.Value(null),
         ),
       );
+      await (_db.update(_db.macroEntries)
+            ..where((row) => row.mealEntryId.equals(id)))
+          .write(const drift_db.MacroEntriesCompanion(
+        mealEntryId: drift.Value(null),
+      ));
     }
     // The photo belongs to the meal entry, so it goes with it — otherwise the
     // files accumulate forever with nothing referencing them.

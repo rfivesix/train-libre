@@ -14,13 +14,16 @@ import '../../../../services/theme_service.dart';
 import '../../../../services/base_food_language_service.dart';
 import '../../domain/models/food_item.dart';
 import '../../domain/models/meal_entry.dart';
+import '../../domain/models/macro_entry.dart';
 import '../../domain/models/tracked_food_item.dart';
+import 'macro_entry_tile.dart';
 import '../../../../widgets/common/glass_actionable_card.dart';
 
 /// Card widget representing a grouped meal in the Diary screen (Screens D1, D2, D6a).
 class MealEntryCard extends StatefulWidget {
   final MealEntry mealEntry;
   final List<TrackedFoodItem> items;
+  final List<MacroEntry> macroEntries;
   final VoidCallback? onTapDetail;
 
   /// Asks the user how to handle meal ingredients when deleting.
@@ -30,6 +33,8 @@ class MealEntryCard extends StatefulWidget {
   final void Function(DeleteMealChoice choice)? onDeleteMeal;
   final ValueChanged<TrackedFoodItem>? onEditItem;
   final Future<void> Function(int)? onDeleteItem;
+  final Future<void> Function(MacroEntry)? onEditMacroEntry;
+  final Future<void> Function(String)? onDeleteMacroEntry;
 
   /// Folds the sub-item list away when it flips to true, and leaves it folded.
   ///
@@ -44,11 +49,14 @@ class MealEntryCard extends StatefulWidget {
     super.key,
     required this.mealEntry,
     required this.items,
+    this.macroEntries = const [],
     this.onTapDetail,
     this.onConfirmDeleteMeal,
     this.onDeleteMeal,
     this.onEditItem,
     this.onDeleteItem,
+    this.onEditMacroEntry,
+    this.onDeleteMacroEntry,
     this.collapsed = false,
   });
 
@@ -101,10 +109,14 @@ class _MealEntryCardState extends State<MealEntryCard> {
       final factor = it.entry.quantityInGrams / 100.0;
       totalKcal += (it.item.calories * factor).round();
     }
+    totalKcal += widget.macroEntries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.totalCalories.round(),
+    );
 
     final timeStr = DateFormat('HH:mm').format(widget.mealEntry.consumedAt);
     final countStr =
-        '${l10n.mealIngredientCount(widget.items.length)} · $timeStr';
+        '${l10n.mealIngredientCount(widget.items.length + widget.macroEntries.length)} · $timeStr';
     // The preview, not the full photo: this is a list, and decoding a 1600 px
     // JPEG per row into memory is what makes it stutter while scrolling.
     // Entries saved before thumbnails existed, and rows whose preview went
@@ -270,7 +282,8 @@ class _MealEntryCardState extends State<MealEntryCard> {
             duration: const Duration(milliseconds: 280),
             curve: Curves.easeInOutCubic,
             alignment: Alignment.topCenter,
-            child: _isExpanded && widget.items.isNotEmpty
+            child: _isExpanded &&
+                    (widget.items.isNotEmpty || widget.macroEntries.isNotEmpty)
                 ? Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 8),
                     child: Stack(
@@ -290,35 +303,47 @@ class _MealEntryCardState extends State<MealEntryCard> {
                         Padding(
                           padding: const EdgeInsets.only(left: 12),
                           child: Column(
-                            children: widget.items.map((tracked) {
-                              final factor =
-                                  tracked.entry.quantityInGrams / 100.0;
-                              final itemKcal =
-                                  (tracked.item.calories * factor).round();
+                            children: [
+                              ...widget.items.map((tracked) {
+                                final factor =
+                                    tracked.entry.quantityInGrams / 100.0;
+                                final itemKcal =
+                                    (tracked.item.calories * factor).round();
 
-                              return GlassActionableCard(
-                                dismissibleKey:
-                                    Key('meal_item_${tracked.entry.id}'),
-                                onEdit: () => widget.onEditItem?.call(tracked),
-                                onDelete: () => tracked.entry.id != null
-                                    ? widget.onDeleteItem
-                                        ?.call(tracked.entry.id!)
-                                    : null,
-                                child: DiaryFoodRow(
-                                  name: tracked.item.source ==
-                                          FoodItemSource.base
-                                      ? tracked.item.getLocalizedName(
-                                          context,
-                                          languageCode: baseFoodLang,
-                                        )
-                                      : tracked.item.getLocalizedName(context),
-                                  amountLabel:
-                                      '${tracked.entry.quantityInGrams} g',
-                                  energyLabel: '$itemKcal kcal',
-                                  isNested: true,
-                                ),
-                              );
-                            }).toList(),
+                                return GlassActionableCard(
+                                  dismissibleKey:
+                                      Key('meal_item_${tracked.entry.id}'),
+                                  onEdit: () =>
+                                      widget.onEditItem?.call(tracked),
+                                  onDelete: () => tracked.entry.id != null
+                                      ? widget.onDeleteItem
+                                          ?.call(tracked.entry.id!)
+                                      : null,
+                                  child: DiaryFoodRow(
+                                    name: tracked.item.source ==
+                                            FoodItemSource.base
+                                        ? tracked.item.getLocalizedName(
+                                            context,
+                                            languageCode: baseFoodLang,
+                                          )
+                                        : tracked.item
+                                            .getLocalizedName(context),
+                                    amountLabel:
+                                        '${tracked.entry.quantityInGrams} g',
+                                    energyLabel: '$itemKcal kcal',
+                                    isNested: true,
+                                  ),
+                                );
+                              }),
+                              ...widget.macroEntries
+                                  .map((entry) => MacroEntryTile(
+                                        entry: entry,
+                                        onEdit: widget.onEditMacroEntry ??
+                                            (_) async {},
+                                        onDelete: widget.onDeleteMacroEntry ??
+                                            (_) async {},
+                                      )),
+                            ],
                           ),
                         ),
                       ],

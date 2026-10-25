@@ -16,11 +16,17 @@ class MacroEntryForm extends StatefulWidget {
     required this.initialMealType,
     this.initialDate,
     this.initialEntry,
+    this.allowTimestampEditing = true,
+    this.allowFluidLogging = true,
+    this.requireAmount = false,
   });
 
   final String initialMealType;
   final DateTime? initialDate;
   final MacroEntry? initialEntry;
+  final bool allowTimestampEditing;
+  final bool allowFluidLogging;
+  final bool requireAmount;
 
   @override
   State<MacroEntryForm> createState() => MacroEntryFormState();
@@ -138,6 +144,7 @@ class MacroEntryFormState extends State<MacroEntryForm> {
     });
     return calculation != null &&
         extrasValid &&
+        (!widget.requireAmount || (amount != null && amount > 0)) &&
         (amountText.isEmpty || (amount != null && amount > 0)) &&
         (!_isFluid || (amount != null && amount > 0));
   }
@@ -354,12 +361,13 @@ class MacroEntryFormState extends State<MacroEntryForm> {
             ),
           ),
         const SizedBox(height: DesignConstants.spacingS),
-        PlatformAdaptiveSwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(l10n.add_to_water_intake),
-          value: _isFluid,
-          onChanged: (value) => setState(() => _isFluid = value),
-        ),
+        if (widget.allowFluidLogging)
+          PlatformAdaptiveSwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.add_to_water_intake),
+            value: _isFluid,
+            onChanged: (value) => setState(() => _isFluid = value),
+          ),
         if (_isFluid && _amountController.text.trim().isEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
@@ -417,22 +425,24 @@ class MacroEntryFormState extends State<MacroEntryForm> {
             ],
           ),
         ],
-        const SizedBox(height: DesignConstants.spacingXS),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton.icon(
-              icon: const Icon(LucideIcons.calendar, size: 18),
-              label: Text(DateFormat.yMd(locale).format(_timestamp)),
-              onPressed: _selectDate,
-            ),
-            TextButton.icon(
-              icon: const Icon(LucideIcons.clock, size: 18),
-              label: Text(DateFormat.Hm(locale).format(_timestamp)),
-              onPressed: _selectTime,
-            ),
-          ],
-        ),
+        if (widget.allowTimestampEditing) ...[
+          const SizedBox(height: DesignConstants.spacingXS),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                icon: const Icon(LucideIcons.calendar, size: 18),
+                label: Text(DateFormat.yMd(locale).format(_timestamp)),
+                onPressed: _selectDate,
+              ),
+              TextButton.icon(
+                icon: const Icon(LucideIcons.clock, size: 18),
+                label: Text(DateFormat.Hm(locale).format(_timestamp)),
+                onPressed: _selectTime,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

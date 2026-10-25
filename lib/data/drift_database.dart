@@ -663,6 +663,11 @@ class MacroEntries extends Table with HybridId, MetaColumns {
   DateTimeColumn get consumedAt => dateTime()();
   TextColumn get mealType => text()();
   TextColumn get name => text().nullable()();
+  TextColumn get mealEntryId => text().nullable().references(
+        MealEntries,
+        #id,
+        onDelete: KeyAction.setNull,
+      )();
 
   /// If present, nutrient fields are per 100 [amountUnit].
   RealColumn get amount => real().nullable()();
@@ -1081,7 +1086,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 44;
+  int get schemaVersion => 45;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1264,6 +1269,9 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 45) {
+              await m.addColumn(macroEntries, macroEntries.mealEntryId);
+            }
             if (from < 44) await _createHealthNutritionImportTable();
             if (from < 42) await _createAssistantSchema(this);
             if (from < 39) {

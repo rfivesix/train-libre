@@ -30,6 +30,29 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
       : (rawCatalog is List && rawCatalog.isNotEmpty
           ? rawCatalog.first?.toString()
           : null);
+  Map<String, double?>? nutritionPer100g;
+  final rawNutrition = e['nutritionPer100g'] ?? e['nutrition_per_100g'];
+  if (rawNutrition is Map) {
+    final parsed = <String, double?>{};
+    for (final key in const [
+      'protein',
+      'carbs',
+      'fat',
+      'sugar',
+      'fiber',
+      'salt',
+    ]) {
+      final raw = rawNutrition[key];
+      if (raw is num && raw.toDouble().isFinite && raw >= 0) {
+        parsed[key] = raw.toDouble();
+      }
+    }
+    if (parsed.containsKey('protein') &&
+        parsed.containsKey('carbs') &&
+        parsed.containsKey('fat')) {
+      nutritionPer100g = parsed;
+    }
+  }
 
   return AiMealCandidateItem(
     name: (e['name'] as String?) ?? '',
@@ -41,6 +64,7 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
     catalogSearchTerm: catalogSearchTerm,
     packagedProductEvidence: e['packagedProductEvidence'] as String?,
     searchTerms: _parseSearchTerms(e['searchTerms']),
+    nutritionPer100g: nutritionPer100g,
   );
 }
 
@@ -161,9 +185,12 @@ extension AiParsing on AiService {
   List<AiSuggestedItem> parseItemsForTesting(String content) =>
       _parseItemsFromContentSync(content);
 
-  /// Extracts the meal candidate (holistic context and items) from the AI response off the main thread.
+  /// Extracts the meal candidate (holistic context and items) from the AI response.
   Future<AiMealCandidate> _parseMealCandidateFromContent(String content) async {
-    return Isolate.run(() => _parseMealCandidateFromContentSync(content));
+    // This parser is small, and the instance method closes over AiService when
+    // used with Isolate.run. AiService owns Flutter listeners and cannot be
+    // transferred to a background isolate.
+    return _parseMealCandidateFromContentSync(content);
   }
 
   AiMealCandidate _parseMealCandidateFromContentSync(String content) {

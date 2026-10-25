@@ -3034,6 +3034,22 @@ class AppLocalizationsJa extends AppLocalizations {
       'チャットや食事認識などのAI機能を有効にします。無効にすると、アプリ内のAIへの入口がすべて非表示になります。';
 
   @override
+  String get aiNutritionEngineLabel => '栄養推定方法';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      '直接推定では食品データベースを検索せずに栄養情報を記録します。カタログモードでは従来どおりローカル食品カタログを検索します。';
+
+  @override
+  String get aiNutritionEngineEstimate => 'AI による直接推定';
+
+  @override
+  String get aiNutritionEngineCatalog => 'ローカル食品カタログ';
+
+  @override
+  String get aiDirectEstimateLabel => 'AI 推定';
+
+  @override
   String get aiFloatingAssistantTitle => 'フローティングAIアシスタントを表示';
 
   @override

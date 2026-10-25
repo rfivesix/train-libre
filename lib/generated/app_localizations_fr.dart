@@ -3145,6 +3145,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Active les fonctions d’IA comme le chat et la reconnaissance des repas. La désactivation masque tous les points d’accès à l’IA.';
 
   @override
+  String get aiNutritionEngineLabel => 'Méthode d’estimation nutritionnelle';
+
+  @override
+  String get aiNutritionEngineSubtitle =>
+      'L’estimation directe enregistre les nutriments sans rechercher dans la base alimentaire. Le mode catalogue conserve la recherche locale.';
+
+  @override
+  String get aiNutritionEngineEstimate => 'Estimation directe par l’IA';
+
+  @override
+  String get aiNutritionEngineCatalog => 'Catalogue alimentaire local';
+
+  @override
+  String get aiDirectEstimateLabel => 'Estimation IA';
+
+  @override
   String get aiFloatingAssistantTitle => 'Afficher l’assistant IA flottant';
 
   @override

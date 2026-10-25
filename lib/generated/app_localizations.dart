@@ -5624,6 +5624,36 @@ abstract class AppLocalizations {
   /// **'Enables AI features such as chat and meal recognition. Disabling this hides all AI entry points.'**
   String get aiEnableSubtitle;
 
+  /// No description provided for @aiNutritionEngineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition estimation method'**
+  String get aiNutritionEngineLabel;
+
+  /// No description provided for @aiNutritionEngineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct estimates create nutrition snapshots without matching the food database. Catalog mode keeps matching suggestions against the local food catalog.'**
+  String get aiNutritionEngineSubtitle;
+
+  /// No description provided for @aiNutritionEngineEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct AI estimate'**
+  String get aiNutritionEngineEstimate;
+
+  /// No description provided for @aiNutritionEngineCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Local food catalog'**
+  String get aiNutritionEngineCatalog;
+
+  /// No description provided for @aiDirectEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI estimate'**
+  String get aiDirectEstimateLabel;
+
   /// No description provided for @aiFloatingAssistantTitle.
   ///
   /// In en, this message translates to:

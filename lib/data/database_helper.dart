@@ -173,6 +173,7 @@ class DatabaseHelper {
           dbInst.macroEntries,
           db.MacroEntriesCompanion.insert(
             id: drift.Value(e.id),
+            mealEntryId: drift.Value(e.mealEntryId),
             consumedAt: e.timestamp,
             mealType: e.mealType,
             name: drift.Value(e.name),

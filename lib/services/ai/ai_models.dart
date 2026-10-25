@@ -12,6 +12,9 @@ enum AiProvider {
   appleFoundation,
 }
 
+/// How the meal capture flow turns an AI result into diary items.
+enum AiMealNutritionMode { directEstimate, localCatalog }
+
 /// Usage reported by a provider, never inferred from prompt length.
 class AiTokenUsage {
   final int? inputTokens;
@@ -247,6 +250,7 @@ class AiSuggestedItem {
   String? catalogSearchTerm;
   List<String> searchTerms;
   String? packagedProductEvidence;
+  Map<String, double?>? nutritionPer100g;
   final int? repairItemIndex;
 
   AiSuggestedItem({
@@ -259,6 +263,7 @@ class AiSuggestedItem {
     this.catalogSearchTerm,
     this.searchTerms = const [],
     this.packagedProductEvidence,
+    this.nutritionPer100g,
     this.repairItemIndex,
   });
 
@@ -278,6 +283,12 @@ class AiSuggestedItem {
       stateHint: json['stateHint'] as String?,
       catalogSearchTerm: json['catalogSearchTerm'] as String?,
       packagedProductEvidence: json['packagedProductEvidence'] as String?,
+      nutritionPer100g: (json['nutritionPer100g'] as Map?)?.map(
+        (key, value) => MapEntry(
+          key.toString(),
+          value is num ? value.toDouble() : null,
+        ),
+      ),
       repairItemIndex:
           json['itemIndex'] is int ? json['itemIndex'] as int : null,
       searchTerms: (json['searchTerms'] as List?)
@@ -301,6 +312,7 @@ class AiSuggestedItem {
         if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
         if (packagedProductEvidence != null)
           'packagedProductEvidence': packagedProductEvidence,
+        if (nutritionPer100g != null) 'nutritionPer100g': nutritionPer100g,
       };
 }
 
