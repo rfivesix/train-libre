@@ -60,9 +60,9 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final targetRect = Rect.fromLTRB(
-      8,
+      0,
       size.height * 0.38,
-      size.width - 8,
+      size.width,
       size.height - 8,
     );
     final origin = widget.sourceRect ??
@@ -158,6 +158,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
     with WidgetsBindingObserver {
   final _camera = DepthScanChannel.instance;
   bool _ready = false;
+  bool _previewMounted = false;
   bool _busy = false;
   bool _optionsOpen = false;
   bool _torchOn = false;
@@ -198,10 +199,17 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
         });
         return;
       }
-      final started = await _camera.startSession();
+      // Attach the native preview view to the widget tree before starting
+      // AVFoundation. The session can then render its first frame immediately
+      // instead of waiting for Flutter to create the platform view afterwards.
+      setState(() => _previewMounted = true);
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+      final started = await _camera.startChatCameraSession();
       if (!mounted) return;
       setState(() {
         _ready = started;
+        _previewMounted = started;
         _error = started
             ? null
             : AppLocalizations.of(context)!.aiChatCameraUnavailable;
@@ -225,7 +233,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
   Future<void> _capture() async {
     if (!_ready || _busy) return;
     setState(() => _busy = true);
-    final result = await _camera.capture();
+    final result = await _camera.capturePhoto();
     if (!mounted) return;
     if (result == null || !await result.imageFile.exists()) {
       setState(() {
@@ -285,7 +293,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
         return Stack(
           fit: StackFit.expand,
           children: [
-            if (_ready)
+            if (_previewMounted || _ready)
               UiKitView(
                 viewType: DepthScanChannel.previewViewType,
                 creationParams: const <String, Object>{},
@@ -359,6 +367,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                     onPressed: _dismiss,
                     isDarkSurface: true,
                     useCircularGlass: true,
+                    skipBackdropBlur: true,
                     dimension: sideButtonSize,
                     iconSize: 20,
                   ),
@@ -370,32 +379,38 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                       label: l10n.aiChatCapture,
                       child: SizedBox.square(
                         dimension: shutterSize,
-                        child: GlassAdaptiveScope(
-                          maxQuality: DesignConstants.defaultGlassQuality,
-                          minQuality: DesignConstants.minGlassQuality,
-                          child: AdaptiveGlass(
-                            settings: DesignConstants.liquidGlassSettings(true),
-                            quality: DesignConstants.defaultGlassQuality,
-                            useOwnLayer: true,
-                            allowElevation: false,
-                            shape: const LiquidRoundedSuperellipse(
-                              borderRadius: 40,
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 58,
-                                height: 58,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.22,
+                        child: InheritedLiquidGlass(
+                          settings: DesignConstants.liquidGlassSettings(true),
+                          quality: DesignConstants.defaultGlassQuality,
+                          isBlurProvidedByAncestor: true,
+                          child: GlassAdaptiveScope(
+                            maxQuality: DesignConstants.defaultGlassQuality,
+                            minQuality: DesignConstants.minGlassQuality,
+                            child: AdaptiveGlass(
+                              settings:
+                                  DesignConstants.liquidGlassSettings(true),
+                              quality: DesignConstants.defaultGlassQuality,
+                              useOwnLayer: true,
+                              allowElevation: false,
+                              shape: const LiquidRoundedSuperellipse(
+                                borderRadius: 40,
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 58,
+                                  height: 58,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.22,
+                                        ),
+                                        blurRadius: 10,
                                       ),
-                                      blurRadius: 10,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -423,6 +438,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                               onPressed: _switchCamera,
                               isDarkSurface: true,
                               useCircularGlass: true,
+                              skipBackdropBlur: true,
                               dimension: sideButtonSize,
                               iconSize: 20,
                             ),
@@ -446,6 +462,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                                   ? Colors.white.withValues(alpha: 0.45)
                                   : Colors.white,
                               useCircularGlass: true,
+                              skipBackdropBlur: true,
                               dimension: sideButtonSize,
                               iconSize: 20,
                             ),
@@ -465,6 +482,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                             ),
                             isDarkSurface: true,
                             useCircularGlass: true,
+                            skipBackdropBlur: true,
                             dimension: sideButtonSize,
                             iconSize: 20,
                           ),

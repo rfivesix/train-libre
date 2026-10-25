@@ -7,11 +7,9 @@ import UIKit
 
 /// Bridges the unified capture session to Flutter.
 ///
-/// One `AVCaptureSession` drives all three outputs the meal capture screen needs:
-/// the live preview (via a platform view), passive barcode detection (via an
-/// event channel) and the still photo with its depth map (via a method call).
-/// Running separate sessions per feature does not work — only one client can own
-/// the back camera at a time.
+/// One `AVCaptureSession` is configured for either meal scanning (preview,
+/// barcodes and depth photos) or the lighter chat photo flow (preview and
+/// regular photos). Reusing the session avoids competing for camera ownership.
 public class DepthScanPlugin: NSObject {
   public static let channelName = "com.trainlibre.app/depth_scan"
   public static let barcodeChannelName = "com.trainlibre.app/depth_scan/barcodes"
@@ -58,6 +56,11 @@ public class DepthScanPlugin: NSObject {
         result(started)
       }
 
+    case "startChatCamera":
+      DepthScanController.shared.startChatCamera { started in
+        result(started)
+      }
+
     case "stop":
       DepthScanController.shared.stop()
       result(true)
@@ -84,6 +87,21 @@ public class DepthScanPlugin: NSObject {
           // failure here as "this device has no capture session" and quietly
           // opened the system camera instead, which is exactly how a broken
           // session turned into permanently missing depth data.
+          result(
+            FlutterError(
+              code: "capture_failed",
+              message: failure ?? "Photo capture failed",
+              details: nil
+            )
+          )
+        }
+      }
+
+    case "capturePhoto":
+      DepthScanController.shared.captureChatPhoto { response, failure in
+        if let response {
+          result(response)
+        } else {
           result(
             FlutterError(
               code: "capture_failed",
@@ -299,6 +317,11 @@ public class DepthScanController: NSObject {
   /// configuration blocks the caller, so it must stay off the main thread.
   private let sessionQueue = DispatchQueue(label: "com.trainlibre.app.depth_scan.session")
 
+  private enum SessionMode: Equatable {
+    case scanner
+    case chatPhoto
+  }
+
   /// Barcode metadata has its own serial queue. Sharing `sessionQueue` meant the
   /// 1.2 s focus wait before a photo blocked barcode delivery, and a barcode in
   /// frame delayed the shutter by however many frames had queued up behind it.
@@ -308,6 +331,7 @@ public class DepthScanController: NSObject {
   private var photoOutput: AVCapturePhotoOutput?
   private var videoDevice: AVCaptureDevice?
   private var isConfigured = false
+  private var configuredMode: SessionMode?
   private var depthSupported = false
 
   private var pendingCompletion: (([String: Any]?) -> Void)?
@@ -364,6 +388,11 @@ public class DepthScanController: NSObject {
       ?? AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
   }
 
+  private static func chatBackCamera() -> AVCaptureDevice? {
+    AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
+      ?? bestBackCamera()
+  }
+
   // MARK: Preview attachment
 
   func attach(previewLayer: AVCaptureVideoPreviewLayer) {
@@ -395,14 +424,29 @@ public class DepthScanController: NSObject {
   }
 
   public func start(completion: @escaping (Bool) -> Void) {
+    start(mode: .scanner, completion: completion)
+  }
+
+  public func startChatCamera(completion: @escaping (Bool) -> Void) {
+    start(mode: .chatPhoto, completion: completion)
+  }
+
+  private func start(mode: SessionMode, completion: @escaping (Bool) -> Void) {
     sessionQueue.async { [weak self] in
       guard let self else {
         DispatchQueue.main.async { completion(false) }
         return
       }
 
-      if !self.isConfigured {
-        guard self.configureSession() else {
+      if self.isConfigured && self.configuredMode != mode {
+        if self.session.isRunning {
+          self.guarded("stopBeforeReconfigure") { self.session.stopRunning() }
+        }
+        self.clearConfiguration()
+      }
+
+      if !self.isConfigured || self.configuredMode != mode {
+        guard self.configureSession(mode: mode) else {
           DispatchQueue.main.async { completion(false) }
           return
         }
@@ -414,6 +458,21 @@ public class DepthScanController: NSObject {
 
       DispatchQueue.main.async { completion(self.session.isRunning) }
     }
+  }
+
+  /// Removes the previous feature's outputs before configuring the camera for
+  /// another flow. The chat only needs a regular photo preview; the meal
+  /// scanner additionally needs depth and barcode outputs.
+  private func clearConfiguration() {
+    session.beginConfiguration()
+    for output in session.outputs { session.removeOutput(output) }
+    for input in session.inputs { session.removeInput(input) }
+    session.commitConfiguration()
+    isConfigured = false
+    configuredMode = nil
+    photoOutput = nil
+    videoDevice = nil
+    depthSupported = false
   }
 
   public func stop() {
@@ -469,9 +528,14 @@ public class DepthScanController: NSObject {
         DispatchQueue.main.async { completion(false) }
         return
       }
-      let device = current.position == .back
-        ? Self.bestFrontCamera()
-        : Self.bestBackCamera()
+      let device: AVCaptureDevice?
+      if current.position == .back {
+        device = Self.bestFrontCamera()
+      } else if configuredMode == .chatPhoto {
+        device = Self.chatBackCamera()
+      } else {
+        device = Self.bestBackCamera()
+      }
       guard let device,
             let input = try? AVCaptureDeviceInput(device: device)
       else {
@@ -504,9 +568,11 @@ public class DepthScanController: NSObject {
           self.session.addInput(input)
           self.videoDevice = device
           if let photo = self.photoOutput {
-            photo.isDepthDataDeliveryEnabled =
-              device.position == .back && photo.isDepthDataDeliverySupported
-            self.depthSupported = photo.isDepthDataDeliveryEnabled
+            self.configurePhotoOutput(
+              photo,
+              for: device,
+              mode: self.configuredMode ?? .scanner
+            )
           }
           self.configureFocus(for: device)
           switched = true
@@ -524,25 +590,35 @@ public class DepthScanController: NSObject {
     }
   }
 
-  private func configureSession() -> Bool {
+  private func configureSession(mode: SessionMode) -> Bool {
     var configured = false
     let completed = guarded("configureSession") {
-      configured = self.applyConfiguration()
+      configured = self.applyConfiguration(mode: mode)
     }
     if !completed {
       // The block bailed out mid-configuration; the session must not be left
       // between begin and commit or every later start/stop raises as well.
       guarded("commitConfiguration") { self.session.commitConfiguration() }
+      clearConfiguration()
       return false
+    }
+    if configured {
+      configuredMode = mode
+    } else {
+      clearConfiguration()
     }
     return configured
   }
 
-  private func applyConfiguration() -> Bool {
+  private func applyConfiguration(mode: SessionMode) -> Bool {
     session.beginConfiguration()
-    session.sessionPreset = .photo
+    let isChatCamera = mode == .chatPhoto
+    session.sessionPreset = isChatCamera ? .high : .photo
 
-    guard let device = DepthScanController.bestBackCamera(),
+    let camera = isChatCamera
+      ? DepthScanController.chatBackCamera()
+      : DepthScanController.bestBackCamera()
+    guard let device = camera,
       let input = try? AVCaptureDeviceInput(device: device),
       session.canAddInput(input)
     else {
@@ -562,21 +638,22 @@ public class DepthScanController: NSObject {
       return false
     }
     session.addOutput(photo)
-    photo.isDepthDataDeliveryEnabled = photo.isDepthDataDeliverySupported
-    depthSupported = photo.isDepthDataDeliverySupported
+    configurePhotoOutput(photo, for: device, mode: mode)
     photoOutput = photo
 
-    // Barcode detection shares the session — this is the whole reason the
-    // capture screen can drop its separate scanner camera.
-    let metadata = AVCaptureMetadataOutput()
-    if session.canAddOutput(metadata) {
-      session.addOutput(metadata)
-      metadata.setMetadataObjectsDelegate(self, queue: metadataQueue)
-      let wanted: [AVMetadataObject.ObjectType] = [
-        .ean13, .ean8, .upce, .code128, .code39, .code93, .itf14, .dataMatrix, .qr,
-      ]
-      metadata.metadataObjectTypes = wanted.filter {
-        metadata.availableMetadataObjectTypes.contains($0)
+    if !isChatCamera {
+      // Barcode detection shares the session — this is the whole reason the
+      // capture screen can drop its separate scanner camera.
+      let metadata = AVCaptureMetadataOutput()
+      if session.canAddOutput(metadata) {
+        session.addOutput(metadata)
+        metadata.setMetadataObjectsDelegate(self, queue: metadataQueue)
+        let wanted: [AVMetadataObject.ObjectType] = [
+          .ean13, .ean8, .upce, .code128, .code39, .code93, .itf14, .dataMatrix, .qr,
+        ]
+        metadata.metadataObjectTypes = wanted.filter {
+          metadata.availableMetadataObjectTypes.contains($0)
+        }
       }
     }
 
@@ -597,9 +674,52 @@ public class DepthScanController: NSObject {
     }
   }
 
+  private func configurePhotoOutput(
+    _ output: AVCapturePhotoOutput,
+    for device: AVCaptureDevice,
+    mode: SessionMode
+  ) {
+    let isChatCamera = mode == .chatPhoto
+    output.isDepthDataDeliveryEnabled =
+      !isChatCamera && device.position == .back && output.isDepthDataDeliverySupported
+    depthSupported = output.isDepthDataDeliveryEnabled
+
+    guard isChatCamera else { return }
+
+    // Chat images do not need the camera's full sensor resolution. Capping
+    // them around 6 MP reduces still-photo processing and handoff delay while
+    // remaining ample for visual questions.
+    let supportedDimensions = device.activeFormat.supportedMaxPhotoDimensions
+    let chatDimensions = supportedDimensions
+      .filter { max($0.width, $0.height) <= 2560 }
+      .max { lhs, rhs in
+        Int64(lhs.width) * Int64(lhs.height) < Int64(rhs.width) * Int64(rhs.height)
+      } ?? supportedDimensions.min { lhs, rhs in
+        Int64(lhs.width) * Int64(lhs.height) < Int64(rhs.width) * Int64(rhs.height)
+      }
+    if let chatDimensions {
+      output.maxPhotoDimensions = chatDimensions
+    }
+    output.maxPhotoQualityPrioritization = .speed
+  }
+
   // MARK: Capture
 
   public func capturePhotoWithDepth(
+    completion: @escaping ([String: Any]?, String?) -> Void
+  ) {
+    capturePhoto(includeDepth: true, focusWait: 1.2, completion: completion)
+  }
+
+  public func captureChatPhoto(
+    completion: @escaping ([String: Any]?, String?) -> Void
+  ) {
+    capturePhoto(includeDepth: false, focusWait: 0.35, completion: completion)
+  }
+
+  private func capturePhoto(
+    includeDepth: Bool,
+    focusWait: TimeInterval,
     completion: @escaping ([String: Any]?, String?) -> Void
   ) {
     sessionQueue.async { [weak self] in
@@ -612,7 +732,7 @@ public class DepthScanController: NSObject {
       // fell through to the system camera. The session is stopped on every
       // backgrounding, so a shutter tap racing the resume hit this routinely.
       if !self.session.isRunning {
-        if !self.isConfigured, !self.configureSession() {
+        if !self.isConfigured, !self.configureSession(mode: includeDepth ? .scanner : .chatPhoto) {
           DispatchQueue.main.async { completion(nil, "Camera could not be configured") }
           return
         }
@@ -624,8 +744,12 @@ public class DepthScanController: NSObject {
         return
       }
 
-      self.waitForStableExposureAndFocus()
-      self.capture(with: output, includeDepth: output.isDepthDataDeliveryEnabled, completion: completion)
+      self.waitForStableExposureAndFocus(maxWait: focusWait)
+      self.capture(
+        with: output,
+        includeDepth: includeDepth && output.isDepthDataDeliveryEnabled,
+        completion: completion
+      )
     }
   }
 
@@ -644,6 +768,12 @@ public class DepthScanController: NSObject {
       settings = AVCapturePhotoSettings()
     }
     settings.isDepthDataDeliveryEnabled = includeDepth && output.isDepthDataDeliveryEnabled
+    if !settings.isDepthDataDeliveryEnabled {
+      settings.photoQualityPrioritization = .speed
+    }
+    if configuredMode == .chatPhoto {
+      settings.maxPhotoDimensions = output.maxPhotoDimensions
+    }
 
     let delegate = PhotoCaptureDelegate { [weak self] response, failure in
       guard let self else {
@@ -678,9 +808,9 @@ public class DepthScanController: NSObject {
   /// Blocks the session queue until the camera has settled, or the budget runs
   /// out. Firing immediately after `startRunning()` is what produced dark and
   /// blurred captures before.
-  private func waitForStableExposureAndFocus() {
+  private func waitForStableExposureAndFocus(maxWait: TimeInterval) {
     guard let device = videoDevice else { return }
-    let deadline = Date().addingTimeInterval(1.2)
+    let deadline = Date().addingTimeInterval(maxWait)
     while Date() < deadline {
       if !device.isAdjustingFocus && !device.isAdjustingExposure && !device.isAdjustingWhiteBalance
       {

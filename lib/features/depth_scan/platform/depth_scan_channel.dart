@@ -117,6 +117,19 @@ class DepthScanChannel implements IDepthScanService {
     }
   }
 
+  /// Starts a lightweight camera session for attaching a regular photo in chat.
+  /// It omits LiDAR depth and barcode outputs, which the chat composer does not
+  /// use and which add noticeable startup latency on some iPhones.
+  Future<bool> startChatCameraSession() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('startChatCamera') ?? false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] chat camera start failed: $e');
+      return false;
+    }
+  }
+
   @override
   Future<void> stopSession() async {
     if (!Platform.isIOS) return;
@@ -175,10 +188,19 @@ class DepthScanChannel implements IDepthScanService {
 
   @override
   Future<DepthCaptureResult?> capture() async {
+    return _capture(method: 'capture');
+  }
+
+  /// Captures a normal photo without generating or transferring a depth map.
+  Future<DepthCaptureResult?> capturePhoto() async {
+    return _capture(method: 'capturePhoto');
+  }
+
+  Future<DepthCaptureResult?> _capture({required String method}) async {
     if (!Platform.isIOS) return null;
 
     try {
-      final res = await _channel.invokeMapMethod<String, dynamic>('capture');
+      final res = await _channel.invokeMapMethod<String, dynamic>(method);
       if (res == null) return null;
 
       final imagePath = res['imagePath'] as String?;

@@ -16,6 +16,7 @@ class HeaderGlassButton extends StatelessWidget {
     this.showBorder = true,
     this.useStaticGlass = false,
     this.useCircularGlass = false,
+    this.skipBackdropBlur = false,
     this.dimension = 44,
     this.iconSize = 20,
   });
@@ -29,6 +30,7 @@ class HeaderGlassButton extends StatelessWidget {
   final bool showBorder;
   final bool useStaticGlass;
   final bool useCircularGlass;
+  final bool skipBackdropBlur;
   final double dimension;
   final double iconSize;
 
@@ -74,24 +76,39 @@ class HeaderGlassButton extends StatelessWidget {
                     ? Duration.zero
                     : const Duration(milliseconds: 360),
                 curve: Curves.easeOutCubic,
-                builder: (context, visibility, _) => AdaptiveGlass(
-                  settings: settings.copyWith(visibility: visibility),
-                  quality: DesignConstants.defaultGlassQuality,
-                  useOwnLayer: true,
-                  allowElevation: false,
-                  shape: useCircularGlass
-                      ? const LiquidOval()
-                      : LiquidRoundedSuperellipse(
-                          borderRadius: dimension / 2,
-                        ),
-                  child: GlassGlow(
-                    glowColor: Colors.white.withValues(
-                      alpha: (isDarkSurface ? 0.24 : 0.18) * visibility,
+                builder: (context, visibility, _) {
+                  final visibleSettings =
+                      settings.copyWith(visibility: visibility);
+                  final glass = AdaptiveGlass(
+                    settings: visibleSettings,
+                    quality: DesignConstants.defaultGlassQuality,
+                    useOwnLayer: true,
+                    allowElevation: false,
+                    shape: useCircularGlass
+                        ? const LiquidOval()
+                        : LiquidRoundedSuperellipse(
+                            borderRadius: dimension / 2,
+                          ),
+                    child: GlassGlow(
+                      glowColor: Colors.white.withValues(
+                        alpha: (isDarkSurface ? 0.24 : 0.18) * visibility,
+                      ),
+                      glowRadius: visibility,
+                      child: buttonSurface,
                     ),
-                    glowRadius: visibility,
-                    child: buttonSurface,
-                  ),
-                ),
+                  );
+                  if (!skipBackdropBlur) return glass;
+                  // AVCaptureVideoPreviewLayer is a native platform view and
+                  // cannot be sampled by Flutter's BackdropFilter. Sampling
+                  // it creates a blurred rectangular fallback patch instead.
+                  // Keep the Liquid Glass tint/rim shader but skip that blur.
+                  return InheritedLiquidGlass(
+                    settings: visibleSettings,
+                    quality: DesignConstants.defaultGlassQuality,
+                    isBlurProvidedByAncestor: true,
+                    child: glass,
+                  );
+                },
               ),
             ),
           );
