@@ -1086,7 +1086,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 45;
+  int get schemaVersion => 46;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1269,9 +1269,6 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
-            if (from < 45) {
-              await m.addColumn(macroEntries, macroEntries.mealEntryId);
-            }
             if (from < 44) await _createHealthNutritionImportTable();
             if (from < 42) await _createAssistantSchema(this);
             if (from < 39) {
@@ -2128,6 +2125,23 @@ class AppDatabase extends _$AppDatabase {
               if (!await _columnExists(
                   this, fluidLogs.actualTableName, 'linked_macro_entry_id')) {
                 await m.addColumn(fluidLogs, fluidLogs.linkedMacroEntryId);
+              }
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS idx_macro_entries_consumed_at ON macro_entries (consumed_at);',
+              );
+            }
+            // Version 45 added the meal link to macro entries. Keep this
+            // repair after the version 43 table creation: installations
+            // upgrading directly from v42 do not have macro_entries yet.
+            // A v46 database may also already contain either object (for
+            // example after a restored or partially migrated database), so
+            // make this migration safe to retry.
+            if (from < 46) {
+              if (!await _tableExists(this, macroEntries.actualTableName)) {
+                await m.createTable(macroEntries);
+              } else if (!await _columnExists(
+                  this, macroEntries.actualTableName, 'meal_entry_id')) {
+                await m.addColumn(macroEntries, macroEntries.mealEntryId);
               }
               await customStatement(
                 'CREATE INDEX IF NOT EXISTS idx_macro_entries_consumed_at ON macro_entries (consumed_at);',

@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Fixed the upgrade from database schema 42, where the new macro-entry column was added before its table existed. Schema v46 repairs this safely and idempotently, and startup now shows a retryable error instead of remaining on the splash screen if initialization fails.
 - Prevented diary cards from briefly reloading or changing height during morph return. Meal detail no longer restarts reactive diary subscriptions for the same date, the weight card holds its current presentation until the measurement morph completes, and the training-plan card keeps its previous content while refreshing after the route animation.
 - Fixed the startup loading cloud's grey base tint by using the orb's theme-aware black (light mode) and white (dark mode) default.
 - Made taps outside the AI chat camera use the same animated close path as the back button, stopping the native capture session as the reverse animation begins.

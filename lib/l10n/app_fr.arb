@@ -185,6 +185,7 @@
   "timerOffLabel": "Désactivé",
   "skipButton": "Sauter",
   "appInitStarting": "Démarrage de l'application...",
+  "appInitFailed": "Train Libre n’a pas pu démarrer. Vos données enregistrées n’ont pas été supprimées. Veuillez réessayer.",
   "appInitInitializing": "Initialisation...",
   "appInitFinalizing": "Finalisation",
   "appInitCheckingBackups": "Vérification des sauvegardes...",

@@ -185,6 +185,7 @@
   "timerOffLabel": "Off",
   "skipButton": "Skip",
   "appInitStarting": "Starting app...",
+  "appInitFailed": "Train Libre could not start. Your saved data was not deleted. Please try again.",
   "appInitInitializing": "Initializing...",
   "appInitFinalizing": "Finalizing",
   "appInitCheckingBackups": "Checking backups...",

@@ -500,6 +500,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get appInitStarting => 'Avvio dell\'app...';
 
   @override
+  String get appInitFailed =>
+      'Train Libre non è riuscita ad avviarsi. I dati salvati non sono stati eliminati. Riprova.';
+
+  @override
   String get appInitInitializing => 'Inizializzazione...';
 
   @override

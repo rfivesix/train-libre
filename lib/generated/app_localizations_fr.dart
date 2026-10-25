@@ -503,6 +503,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appInitStarting => 'Démarrage de l\'application...';
 
   @override
+  String get appInitFailed =>
+      'Train Libre n’a pas pu démarrer. Vos données enregistrées n’ont pas été supprimées. Veuillez réessayer.';
+
+  @override
   String get appInitInitializing => 'Initialisation...';
 
   @override

@@ -185,6 +185,7 @@
   "timerOffLabel": "Aus",
   "skipButton": "Überspringen",
   "appInitStarting": "App wird gestartet...",
+  "appInitFailed": "Train Libre konnte nicht gestartet werden. Deine gespeicherten Daten wurden nicht gelöscht. Bitte versuche es erneut.",
   "appInitInitializing": "Initialisierung läuft...",
   "appInitFinalizing": "Abschluss",
   "appInitCheckingBackups": "Backups werden geprüft...",

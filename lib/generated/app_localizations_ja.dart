@@ -493,6 +493,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appInitStarting => 'アプリを起動しています...';
 
   @override
+  String get appInitFailed =>
+      'Train Libreを起動できませんでした。保存済みのデータは削除されていません。もう一度お試しください。';
+
+  @override
   String get appInitInitializing => '初期化中...';
 
   @override

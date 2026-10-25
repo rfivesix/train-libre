@@ -62,6 +62,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   bool _isContractingForExit = false;
   bool _isCloudHiddenForVaporExit = false;
   bool _isDownloading = false;
+  bool _startupFailed = false;
   _PendingStartupProgress? _pendingProgress;
   bool _progressFrameScheduled = false;
 
@@ -72,8 +73,21 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     _isDownloading = widget.isModal;
     // Start initialization right after the first frame is rendered.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initialize();
+      _runInitialization();
     });
+  }
+
+  Future<void> _runInitialization() async {
+    if (mounted) {
+      setState(() => _startupFailed = false);
+    }
+    try {
+      await _initialize();
+    } catch (error, stackTrace) {
+      debugPrint('[Startup] Initialization failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) setState(() => _startupFailed = true);
+    }
   }
 
   @override
@@ -583,84 +597,107 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: isDownloadMode
+          child: _startupFailed
               ? Column(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Semantics(
-                          label: displayTask.isNotEmpty
-                              ? displayTask
-                              : l10n.offDownloadCTA,
-                          value: '$percentage%',
-                          child: OperationProgressWidget(
-                            icon: LucideIcons.download,
-                            title: displayTask,
-                            detail: displayDetail,
-                            progress: (_progress >= 0.0 && _progress <= 1.0)
-                                ? _progress
-                                : null,
-                            showCard: false,
-                            action: null,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_canSkipRemoteCatalog)
-                      SafeArea(
-                        top: false,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _skipRemoteCatalogRequested = true;
-                                _canSkipRemoteCatalog = false;
-                                _currentDetail =
-                                    l10n.appInitSkippingRemoteDownload;
-                              });
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor:
-                                  theme.colorScheme.onSurfaceVariant,
-                            ),
-                            child: Text(l10n.appInitSkipDownload),
-                          ),
-                        ),
-                      ),
-                  ],
-                )
-              : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Semantics(
-                      label: l10n.appInitStarting,
-                      value: '$percentage%',
-                      child: _buildStartupCloud(theme),
+                    Icon(
+                      Icons.error_outline,
+                      size: 52,
+                      color: theme.colorScheme.error,
                     ),
-                    const SizedBox(height: 28),
-
-                    // Main status text.
+                    const SizedBox(height: DesignConstants.spacingM),
                     Text(
-                      displayTask,
+                      l10n.appInitFailed,
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.bodyLarge,
                     ),
-                    const SizedBox(height: DesignConstants.spacingS),
-
-                    // Secondary detail text.
-                    Text(
-                      displayDetail,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    FilledButton(
+                      onPressed: _runInitialization,
+                      child: Text(l10n.retry),
                     ),
                   ],
-                ),
+                )
+              : isDownloadMode
+                  ? Column(
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Semantics(
+                              label: displayTask.isNotEmpty
+                                  ? displayTask
+                                  : l10n.offDownloadCTA,
+                              value: '$percentage%',
+                              child: OperationProgressWidget(
+                                icon: LucideIcons.download,
+                                title: displayTask,
+                                detail: displayDetail,
+                                progress: (_progress >= 0.0 && _progress <= 1.0)
+                                    ? _progress
+                                    : null,
+                                showCard: false,
+                                action: null,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_canSkipRemoteCatalog)
+                          SafeArea(
+                            top: false,
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _skipRemoteCatalogRequested = true;
+                                    _canSkipRemoteCatalog = false;
+                                    _currentDetail =
+                                        l10n.appInitSkippingRemoteDownload;
+                                  });
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      theme.colorScheme.onSurfaceVariant,
+                                ),
+                                child: Text(l10n.appInitSkipDownload),
+                              ),
+                            ),
+                          ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Semantics(
+                          label: l10n.appInitStarting,
+                          value: '$percentage%',
+                          child: _buildStartupCloud(theme),
+                        ),
+                        const SizedBox(height: 28),
+
+                        // Main status text.
+                        Text(
+                          displayTask,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingS),
+
+                        // Secondary detail text.
+                        Text(
+                          displayDetail,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
         ),
       ),
     );

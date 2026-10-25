@@ -1028,6 +1028,12 @@ abstract class AppLocalizations {
   /// **'Starting app...'**
   String get appInitStarting;
 
+  /// No description provided for @appInitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre could not start. Your saved data was not deleted. Please try again.'**
+  String get appInitFailed;
+
   /// No description provided for @appInitInitializing.
   ///
   /// In en, this message translates to:
