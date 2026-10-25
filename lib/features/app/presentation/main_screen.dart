@@ -26,6 +26,7 @@ import '../../diary/presentation/scanner_screen.dart';
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
+import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../ai_assistant/presentation/ai_global_cloud_presentation.dart';
 import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
@@ -117,12 +118,19 @@ class _MainScreenState extends State<MainScreen>
   int _tourStepIndex = 0;
   Rect? _tourTargetRect;
   late final AnimationController _menuController;
+  ThemeService? _observedThemeService;
+  bool? _lastAiChatActionAvailable;
+  Timer? _pendingQuickChatOpen;
   final StepsAggregationRepository _stepsRepository =
       HealthStepsAggregationRepository();
   StreamSubscription<AppNotificationPayload>? _notificationTapSubscription;
 
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
+
+  bool get _isAiChatActionAvailable =>
+      themeService.isAiEnabled &&
+      AiOverlayDemoSettings.configuration.value.enabled;
 
   double get kNavBarHeight => DesignConstants.bottomNavigationBarHeight;
   double kBarFabGap = 12.0;
@@ -162,6 +170,8 @@ class _MainScreenState extends State<MainScreen>
       duration: const Duration(milliseconds: 400),
     );
     _menuController.addListener(_syncAiChatActionCenter);
+    AiOverlayDemoSettings.configuration
+        .addListener(_handleAiChatAvailabilityChanged);
     AiGlobalCloudPresentation.onQuickChatTap = _handleQuickChatTap;
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
     _notificationTapSubscription = LocalNotificationService
@@ -290,6 +300,13 @@ class _MainScreenState extends State<MainScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final nextThemeService = Provider.of<ThemeService>(context, listen: false);
+    if (!identical(_observedThemeService, nextThemeService)) {
+      _observedThemeService?.removeListener(_handleAiChatAvailabilityChanged);
+      _observedThemeService = nextThemeService
+        ..addListener(_handleAiChatAvailabilityChanged);
+    }
+    _lastAiChatActionAvailable ??= _isAiChatActionAvailable;
     final route = ModalRoute.of(context);
     if (!_isRouteObserverAttached && route is PageRoute<dynamic>) {
       appRouteObserver.subscribe(this, route);
@@ -320,6 +337,10 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    AiOverlayDemoSettings.configuration
+        .removeListener(_handleAiChatAvailabilityChanged);
+    _observedThemeService?.removeListener(_handleAiChatAvailabilityChanged);
+    _pendingQuickChatOpen?.cancel();
     AiGlobalCloudPresentation.isAddMenuOpen.value = false;
     AiGlobalCloudPresentation.quickChatActionCenter.value = null;
     if (identical(
@@ -380,7 +401,7 @@ class _MainScreenState extends State<MainScreen>
     setState(() {
       _isAddMenuOpen = !_isAddMenuOpen;
       AiGlobalCloudPresentation.isAddMenuOpen.value =
-          _isAddMenuOpen && themeService.isAiEnabled;
+          _isAddMenuOpen && _isAiChatActionAvailable;
       if (_isAddMenuOpen) {
         _menuController.forward();
       } else {
@@ -390,7 +411,7 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _syncAiChatActionCenter() {
-    if (!_isAddMenuOpen || !themeService.isAiEnabled) {
+    if (!_isAddMenuOpen || !_isAiChatActionAvailable) {
       AiGlobalCloudPresentation.quickChatActionCenter.value = null;
       return;
     }
@@ -408,6 +429,7 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _handleQuickChatTap() {
+    if (!_isAiChatActionAvailable) return;
     if (_isAddMenuOpen) {
       setState(() {
         _isAddMenuOpen = false;
@@ -416,9 +438,36 @@ class _MainScreenState extends State<MainScreen>
       AiGlobalCloudPresentation.isAddMenuOpen.value = false;
       AiGlobalCloudPresentation.quickChatActionCenter.value = null;
     }
-    unawaited(Future<void>.delayed(const Duration(milliseconds: 400), () {
-      if (mounted) AiGlobalCloudPresentation.requestOpenChat();
-    }));
+    _pendingQuickChatOpen?.cancel();
+    _pendingQuickChatOpen = Timer(const Duration(milliseconds: 400), () {
+      _pendingQuickChatOpen = null;
+      if (mounted && _isAiChatActionAvailable) {
+        AiGlobalCloudPresentation.requestOpenChat();
+      }
+    });
+  }
+
+  void _handleAiChatAvailabilityChanged() {
+    if (!mounted) return;
+    final available = _isAiChatActionAvailable;
+    if (_lastAiChatActionAvailable == available) return;
+    _lastAiChatActionAvailable = available;
+    if (!available) {
+      _pendingQuickChatOpen?.cancel();
+      _pendingQuickChatOpen = null;
+    }
+    setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final shouldPresentChatAction =
+          _isAddMenuOpen && _isAiChatActionAvailable;
+      AiGlobalCloudPresentation.isAddMenuOpen.value = shouldPresentChatAction;
+      if (shouldPresentChatAction) {
+        _syncAiChatActionCenter();
+      } else {
+        AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+      }
+    });
   }
 
   void _executeAddMenuAction(String action) async {
@@ -451,8 +500,7 @@ class _MainScreenState extends State<MainScreen>
         if (result == true) _refreshHomeScreen();
         break;
       case 'ai_chat':
-        await Future<void>.delayed(const Duration(milliseconds: 400));
-        if (mounted) AiGlobalCloudPresentation.requestOpenChat();
+        _handleQuickChatTap();
         break;
     }
   }
@@ -1305,7 +1353,7 @@ class _MainScreenState extends State<MainScreen>
 
   List<Map<String, dynamic>> _getSpeedDialActions(AppLocalizations l10n) {
     return [
-      if (themeService.isAiEnabled)
+      if (_isAiChatActionAvailable)
         {
           'icon': LucideIcons.sparkles,
           'label': l10n.aiChatAction,

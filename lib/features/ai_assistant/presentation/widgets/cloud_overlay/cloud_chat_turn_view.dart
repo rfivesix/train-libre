@@ -608,6 +608,7 @@ class CloudChatTurnView extends StatelessWidget {
                 ),
               ),
               menuWidth: 220,
+              hideGlobalAiCloud: false,
               items: [
                 PlatformAdaptivePopupMenuItem(
                   value: 'dataAccess',

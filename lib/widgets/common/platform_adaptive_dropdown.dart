@@ -37,6 +37,11 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
   final double menuWidth;
   final bool enabled;
 
+  /// Whether this menu should hide the global AI cloud while it is open.
+  /// Menus rendered inside the expanded AI cloud must opt out so they don't
+  /// hide their own host overlay.
+  final bool hideGlobalAiCloud;
+
   const PlatformAdaptivePopupMenu({
     super.key,
     required this.icon,
@@ -45,6 +50,7 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
     this.selectedValue,
     this.menuWidth = 260.0,
     this.enabled = true,
+    this.hideGlobalAiCloud = true,
   });
 
   @override
@@ -96,6 +102,7 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       settings: menuSettings,
       quality: DesignConstants.defaultGlassQuality,
       child: _CloudAwareGlassMenu(
+        hideGlobalAiCloud: hideGlobalAiCloud,
         builder: (context, onToggle, onClose) => GlassMenu(
           menuWidth: menuWidth,
           onClose: onClose,
@@ -461,9 +468,13 @@ typedef _CloudAwareGlassMenuBuilder = Widget Function(
 
 /// Keeps the global AI cloud hidden while a GlassMenu popover is open.
 class _CloudAwareGlassMenu extends StatefulWidget {
-  const _CloudAwareGlassMenu({required this.builder});
+  const _CloudAwareGlassMenu({
+    required this.builder,
+    this.hideGlobalAiCloud = true,
+  });
 
   final _CloudAwareGlassMenuBuilder builder;
+  final bool hideGlobalAiCloud;
 
   @override
   State<_CloudAwareGlassMenu> createState() => _CloudAwareGlassMenuState();
@@ -473,7 +484,9 @@ class _CloudAwareGlassMenuState extends State<_CloudAwareGlassMenu> {
   AiGlobalCloudVisibilityLease? _lease;
 
   void _onToggle(VoidCallback toggle) {
-    _lease ??= AiGlobalCloudVisibility.suppress();
+    if (widget.hideGlobalAiCloud) {
+      _lease ??= AiGlobalCloudVisibility.suppress();
+    }
     toggle();
   }
 

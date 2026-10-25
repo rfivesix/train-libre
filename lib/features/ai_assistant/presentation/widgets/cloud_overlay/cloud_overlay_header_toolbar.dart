@@ -153,6 +153,7 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
                   useStaticGlass: useStaticGlass,
                 ),
                 menuWidth: 330,
+                hideGlobalAiCloud: false,
                 items: [
                   PlatformAdaptivePopupMenuItem(
                     value: AssistantMenuAction.autoApprove,

@@ -1161,35 +1161,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                         if (child != null) child,
                         ValueListenableBuilder<AiOverlayDemoConfiguration>(
                           valueListenable: AiOverlayDemoSettings.configuration,
-                          builder: (context, settings, _) => settings.enabled
-                              ? ValueListenableBuilder<int>(
-                                  valueListenable:
-                                      AiGlobalCloudVisibility.suppressionCount,
-                                  builder: (context, suppressionCount, _) =>
-                                      Positioned.fill(
-                                    child: Material(
-                                      type: MaterialType.transparency,
-                                      child: DraggableAiCloud(
-                                        navigatorKey: _navigatorKey,
-                                        semanticLabel:
-                                            AppLocalizations.of(context)!
-                                                .developerAiOverlayDemoTitle,
-                                        semanticHint:
-                                            AppLocalizations.of(context)!
-                                                .aiOverlayDemoCloudHint,
-                                        liveliness: settings.liveliness,
-                                        showResizeHandles:
-                                            settings.showResizeHandles,
-                                        openDirectlyFullscreen:
-                                            settings.openDirectlyFullscreen,
-                                        useLiveAi: true,
-                                        isGloballyVisible:
-                                            suppressionCount == 0,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
+                          builder: (context, settings, _) =>
+                              ValueListenableBuilder<int>(
+                            valueListenable:
+                                AiGlobalCloudVisibility.suppressionCount,
+                            builder: (context, suppressionCount, _) =>
+                                _GlobalAiCloudHost(
+                              settings: settings,
+                              suppressionCount: suppressionCount,
+                              navigatorKey: _navigatorKey,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -1201,6 +1183,57 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           home: widget.home,
         );
       },
+    );
+  }
+}
+
+/// Keeps an active assistant session mounted when its launcher is disabled.
+/// The cloud is created only after the user first enables it, then stays
+/// offscreen on later disables so in-flight prompts can finish and be restored.
+class _GlobalAiCloudHost extends StatefulWidget {
+  const _GlobalAiCloudHost({
+    required this.settings,
+    required this.suppressionCount,
+    required this.navigatorKey,
+  });
+
+  final AiOverlayDemoConfiguration settings;
+  final int suppressionCount;
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  @override
+  State<_GlobalAiCloudHost> createState() => _GlobalAiCloudHostState();
+}
+
+class _GlobalAiCloudHostState extends State<_GlobalAiCloudHost> {
+  late bool _hasBeenEnabled = widget.settings.enabled;
+
+  @override
+  void didUpdateWidget(covariant _GlobalAiCloudHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.settings.enabled) _hasBeenEnabled = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_hasBeenEnabled) return const SizedBox.shrink();
+
+    final l10n = AppLocalizations.of(context)!;
+    return Positioned.fill(
+      child: Material(
+        type: MaterialType.transparency,
+        child: DraggableAiCloud(
+          navigatorKey: widget.navigatorKey,
+          semanticLabel: l10n.developerAiOverlayDemoTitle,
+          semanticHint: l10n.aiOverlayDemoCloudHint,
+          liveliness: widget.settings.liveliness,
+          showResizeHandles: widget.settings.showResizeHandles,
+          openDirectlyFullscreen: widget.settings.openDirectlyFullscreen,
+          useLiveAi: true,
+          isGloballyVisible:
+              widget.settings.enabled && widget.suppressionCount == 0,
+        ),
+      ),
     );
   }
 }
