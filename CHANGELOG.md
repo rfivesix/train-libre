@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.0] - unreleased
 
 ### Added
+- Added a temporary debug-only native iOS platform-view test pattern when the inline camera is unavailable, so camera glass blur and clipping can be inspected in the simulator.
 - Added explicit AI chat meal logging from text or attached photos. The assistant prepares a reviewable macro-only meal proposal without food-catalog lookup; applying it stores linked diary macro entries with calories calculated by the existing 4/4/9 rule and copies attached photos into persistent meal storage.
 - Added Apple Health and Health Connect nutrition import and export for daily macro totals. Imports appear as separate diary entries, refresh from Diary on pull-to-refresh, update when the source totals change, and keep local edits/deletions from being overwritten or recreated; manual macro entries export without creating catalog foods.
 - Added manual macro-only food logging from the food search screen. Each entry captures exactly three of calories, protein, carbohydrates, and fat, calculates the fourth with the app's 4/4/9 factors, supports optional amount-based per-100 g/ml values and optional sugar, fiber, salt, and caffeine, and can also log a drink. Diary entries can be edited, deleted, reviewed per portion or per 100, and are included in daily summaries, statistics, assistant summaries, and backups without creating food favorites or requiring a catalog product.
@@ -29,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Made taps outside the AI chat camera use the same animated close path as the back button, stopping the native capture session as the reverse animation begins.
+- Prevented the AI camera control row from overflowing during the opening animation by rendering it only once the animated panel is wide enough for all three controls.
 - Fixed square blur halos and opaque grey rendering around AI chat camera controls on iOS by routing the shutter and circular buttons through the liquid-glass platform-view backdrop renderer.
 - Kept AI chat images available in past conversations by storing them under relative media paths, saving display previews, and including assistant history and previews in manual and iCloud backups and restores.
 - Limited the floating AI cloud's tap and drag hit area to its animated cloud silhouette instead of the full square canvas.

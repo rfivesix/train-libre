@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -44,11 +45,16 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
     unawaited(_controller.forward());
   }
 
-  Future<void> _finish(File? image, {bool animate = true}) async {
+  Future<void> _finish(File? image) async {
     if (_isClosing) return;
     _isClosing = true;
+    if (image == null) {
+      // Stop capture as soon as any cancel path begins, while keeping the
+      // preview mounted for the reverse animation.
+      unawaited(DepthScanChannel.instance.stopSession());
+    }
     try {
-      if (animate) await _controller.reverse().orCancel;
+      await _controller.reverse().orCancel;
     } on TickerCanceled {
       // Removing the overlay can cancel the reverse animation. Completion
       // still needs to release the caller waiting for the capture result.
@@ -61,10 +67,9 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
   }
 
   void _finishFromBackdrop() {
-    // A tap outside the camera must never leave a native platform-view layer
-    // attached if the reverse animation is interrupted by iOS composition.
-    // Remove the overlay directly; the close button keeps its animated path.
-    unawaited(_finish(null, animate: false));
+    // Match the close button: animate the panel back to its source and stop the
+    // native camera session while the reverse animation is running.
+    unawaited(_finish(null));
   }
 
   @override
@@ -182,6 +187,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
   final _camera = DepthScanChannel.instance;
   bool _ready = false;
   bool _previewMounted = false;
+  bool _debugGlassPreview = false;
   bool _busy = false;
   bool _optionsOpen = false;
   bool _torchOn = false;
@@ -217,9 +223,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
       final capability = await _camera.capability();
       if (!mounted) return;
       if (!capability.cameraAvailable) {
-        setState(() {
-          _error = AppLocalizations.of(context)!.aiChatCameraUnavailable;
-        });
+        _showCameraUnavailableOrGlassTest();
         return;
       }
       // Attach the native preview view to the widget tree before starting
@@ -232,14 +236,29 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
       if (!mounted) return;
       setState(() {
         _ready = started;
-        _previewMounted = started;
-        _error = started
+        _debugGlassPreview = !started && kDebugMode && Platform.isIOS;
+        _previewMounted = started || _debugGlassPreview;
+        _error = started || _debugGlassPreview
             ? null
             : AppLocalizations.of(context)!.aiChatCameraUnavailable;
       });
     } finally {
       _starting = false;
     }
+  }
+
+  void _showCameraUnavailableOrGlassTest() {
+    if (kDebugMode && Platform.isIOS) {
+      setState(() {
+        _debugGlassPreview = true;
+        _previewMounted = true;
+        _error = null;
+      });
+      return;
+    }
+    setState(() {
+      _error = AppLocalizations.of(context)!.aiChatCameraUnavailable;
+    });
   }
 
   @override
@@ -270,11 +289,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
   }
 
   void _dismiss() {
-    // Start the close animation immediately. Waiting for the native capture
-    // session to stop first can leave the shrinking panel and its hit-test
-    // layer on screen if the platform channel is slow to respond.
     widget.onDismiss();
-    unawaited(_camera.stopSession());
   }
 
   Future<void> _toggleFlash() async {
@@ -314,6 +329,8 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
     const controlBottomInset = 16.0;
     const controlBaselineBottom = (shutterSize - sideButtonSize) / 2;
     const controlEdgeInset = controlBottomInset + controlBaselineBottom;
+    const minimumPanelWidthForControls =
+        controlEdgeInset * 2 + shutterSize + sideButtonSize * 2;
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
@@ -321,13 +338,37 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
           children: [
             if (_previewMounted || _ready)
               UiKitView(
+                key: ValueKey(
+                  _debugGlassPreview
+                      ? 'ai-chat-camera-glass-test'
+                      : 'ai-chat-camera-preview',
+                ),
                 viewType: DepthScanChannel.previewViewType,
-                creationParams: const <String, Object>{},
+                creationParams: <String, Object>{
+                  'glassTestPattern': _debugGlassPreview,
+                },
                 creationParamsCodec: const StandardMessageCodec(),
               )
             else
               const ColoredBox(color: Color(0xFF202124)),
-            if (!_ready)
+            if (_debugGlassPreview &&
+                constraints.maxWidth >= minimumPanelWidthForControls)
+              const Center(
+                child: Text(
+                  'PLATFORM VIEW\nGLASS TEST',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                    shadows: [
+                      Shadow(color: Colors.black, blurRadius: 12),
+                    ],
+                  ),
+                ),
+              ),
+            if (!_debugGlassPreview && !_ready)
               Center(
                 child: _error == null
                     ? const CircularProgressIndicator(color: Colors.white)
@@ -379,58 +420,61 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                         ),
                       ),
               ),
-            Positioned(
-              left: controlEdgeInset,
-              right: controlEdgeInset,
-              bottom: controlBottomInset,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  HeaderGlassButton(
-                    tooltip: l10n.cancel,
-                    icon: LucideIcons.chevron_left,
-                    onPressed: _dismiss,
-                    isDarkSurface: true,
-                    platformViewBackdrop: true,
-                    dimension: sideButtonSize,
-                    iconSize: 20,
-                  ),
-                  GestureDetector(
-                    key: const ValueKey('ai-chat-camera-shutter'),
-                    onTap: _ready ? _capture : null,
-                    child: Semantics(
-                      button: true,
-                      label: l10n.aiChatCapture,
-                      child: SizedBox.square(
-                        dimension: shutterSize,
-                        child: GlassAdaptiveScope(
-                          maxQuality: DesignConstants.defaultGlassQuality,
-                          minQuality: DesignConstants.minGlassQuality,
-                          child: AdaptiveGlass(
-                            settings: DesignConstants.liquidGlassSettings(true),
-                            quality: DesignConstants.defaultGlassQuality,
-                            platformViewBackdrop: true,
-                            useOwnLayer: true,
-                            allowElevation: false,
-                            shape: const LiquidRoundedSuperellipse(
-                              borderRadius: 40,
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 58,
-                                height: 58,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.22,
+            if (constraints.maxWidth >= minimumPanelWidthForControls)
+              Positioned(
+                left: controlEdgeInset,
+                right: controlEdgeInset,
+                bottom: controlBottomInset,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    HeaderGlassButton(
+                      tooltip: l10n.cancel,
+                      icon: LucideIcons.chevron_left,
+                      onPressed: _dismiss,
+                      isDarkSurface: true,
+                      platformViewBackdrop: true,
+                      dimension: sideButtonSize,
+                      iconSize: 20,
+                    ),
+                    GestureDetector(
+                      key: const ValueKey('ai-chat-camera-shutter'),
+                      onTap: _ready ? _capture : null,
+                      child: Semantics(
+                        button: true,
+                        label: l10n.aiChatCapture,
+                        child: SizedBox.square(
+                          dimension: shutterSize,
+                          child: GlassAdaptiveScope(
+                            maxQuality: DesignConstants.defaultGlassQuality,
+                            minQuality: DesignConstants.minGlassQuality,
+                            child: AdaptiveGlass(
+                              settings:
+                                  DesignConstants.liquidGlassSettings(true),
+                              quality: DesignConstants.defaultGlassQuality,
+                              platformViewBackdrop: true,
+                              useOwnLayer: true,
+                              allowElevation: false,
+                              shape: const LiquidRoundedSuperellipse(
+                                borderRadius: 40,
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 58,
+                                  height: 58,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.22,
+                                        ),
+                                        blurRadius: 10,
                                       ),
-                                      blurRadius: 10,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -438,78 +482,77 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    width: sideButtonSize,
-                    height: shutterSize,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        if (_optionsOpen) ...[
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: controlBaselineBottom +
-                                sideButtonSize +
-                                controlSpacing,
-                            child: HeaderGlassButton(
-                              tooltip: l10n.aiChatSwitchCamera,
-                              icon: LucideIcons.switch_camera,
-                              onPressed: _switchCamera,
-                              isDarkSurface: true,
-                              platformViewBackdrop: true,
-                              dimension: sideButtonSize,
-                              iconSize: 20,
+                    SizedBox(
+                      width: sideButtonSize,
+                      height: shutterSize,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          if (_optionsOpen) ...[
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: controlBaselineBottom +
+                                  sideButtonSize +
+                                  controlSpacing,
+                              child: HeaderGlassButton(
+                                tooltip: l10n.aiChatSwitchCamera,
+                                icon: LucideIcons.switch_camera,
+                                onPressed: _switchCamera,
+                                isDarkSurface: true,
+                                platformViewBackdrop: true,
+                                dimension: sideButtonSize,
+                                iconSize: 20,
+                              ),
                             ),
-                          ),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: controlBaselineBottom +
+                                  2 * (sideButtonSize + controlSpacing),
+                              child: HeaderGlassButton(
+                                tooltip: l10n.aiChatFlash,
+                                icon: _torchOn
+                                    ? LucideIcons.zap
+                                    : LucideIcons.zap_off,
+                                onPressed: _toggleFlash,
+                                isDarkSurface: true,
+                                backgroundColor: _torchOn
+                                    ? Colors.white.withValues(alpha: 0.2)
+                                    : null,
+                                foregroundColor: _usingFrontCamera
+                                    ? Colors.white.withValues(alpha: 0.45)
+                                    : Colors.white,
+                                platformViewBackdrop: true,
+                                dimension: sideButtonSize,
+                                iconSize: 20,
+                              ),
+                            ),
+                          ],
                           Positioned(
                             left: 0,
                             right: 0,
-                            bottom: controlBaselineBottom +
-                                2 * (sideButtonSize + controlSpacing),
+                            bottom: controlBaselineBottom,
                             child: HeaderGlassButton(
-                              tooltip: l10n.aiChatFlash,
-                              icon: _torchOn
-                                  ? LucideIcons.zap
-                                  : LucideIcons.zap_off,
-                              onPressed: _toggleFlash,
+                              tooltip: l10n.aiChatCameraOptions,
+                              icon: _optionsOpen
+                                  ? LucideIcons.x
+                                  : LucideIcons.ellipsis,
+                              onPressed: () => setState(
+                                () => _optionsOpen = !_optionsOpen,
+                              ),
                               isDarkSurface: true,
-                              backgroundColor: _torchOn
-                                  ? Colors.white.withValues(alpha: 0.2)
-                                  : null,
-                              foregroundColor: _usingFrontCamera
-                                  ? Colors.white.withValues(alpha: 0.45)
-                                  : Colors.white,
                               platformViewBackdrop: true,
                               dimension: sideButtonSize,
                               iconSize: 20,
                             ),
                           ),
                         ],
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: controlBaselineBottom,
-                          child: HeaderGlassButton(
-                            tooltip: l10n.aiChatCameraOptions,
-                            icon: _optionsOpen
-                                ? LucideIcons.x
-                                : LucideIcons.ellipsis,
-                            onPressed: () => setState(
-                              () => _optionsOpen = !_optionsOpen,
-                            ),
-                            isDarkSurface: true,
-                            platformViewBackdrop: true,
-                            dimension: sideButtonSize,
-                            iconSize: 20,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             if (_busy)
               const Center(
                 child: CircularProgressIndicator(color: Colors.white),

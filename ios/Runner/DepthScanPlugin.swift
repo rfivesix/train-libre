@@ -187,7 +187,12 @@ final class DepthScanPreviewFactory: NSObject, FlutterPlatformViewFactory {
     viewIdentifier viewId: Int64,
     arguments args: Any?
   ) -> FlutterPlatformView {
-    return DepthScanPreviewPlatformView(frame: frame)
+    let arguments = args as? [String: Any]
+    let glassTestPattern = arguments?["glassTestPattern"] as? Bool ?? false
+    return DepthScanPreviewPlatformView(
+      frame: frame,
+      glassTestPattern: glassTestPattern
+    )
   }
 
   func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
@@ -209,14 +214,24 @@ final class CameraPreviewUIView: UIView {
 }
 
 final class DepthScanPreviewPlatformView: NSObject, FlutterPlatformView {
-  private let previewView: CameraPreviewUIView
+  private let previewView: UIView
+  private let cameraPreviewView: CameraPreviewUIView?
 
-  init(frame: CGRect) {
-    previewView = CameraPreviewUIView(frame: frame)
-    previewView.backgroundColor = .black
-    previewView.previewLayer.videoGravity = .resizeAspectFill
+  init(frame: CGRect, glassTestPattern: Bool = false) {
+    if glassTestPattern {
+      previewView = GlassTestPatternUIView(frame: frame)
+      cameraPreviewView = nil
+    } else {
+      let cameraView = CameraPreviewUIView(frame: frame)
+      cameraView.backgroundColor = .black
+      cameraView.previewLayer.videoGravity = .resizeAspectFill
+      previewView = cameraView
+      cameraPreviewView = cameraView
+    }
     super.init()
-    DepthScanController.shared.attach(previewLayer: previewView.previewLayer)
+    if let cameraPreviewView {
+      DepthScanController.shared.attach(previewLayer: cameraPreviewView.previewLayer)
+    }
   }
 
   func view() -> UIView {
@@ -224,7 +239,58 @@ final class DepthScanPreviewPlatformView: NSObject, FlutterPlatformView {
   }
 
   deinit {
-    DepthScanController.shared.detach(previewLayer: previewView.previewLayer)
+    if let cameraPreviewView {
+      DepthScanController.shared.detach(previewLayer: cameraPreviewView.previewLayer)
+    }
+  }
+}
+
+/// Temporary native PlatformView pattern for checking glass blur and clipping
+/// on the iOS simulator, which does not provide a camera preview.
+final class GlassTestPatternUIView: UIView {
+  private let colors: [UIColor] = [
+    UIColor(red: 0.96, green: 0.22, blue: 0.12, alpha: 1),
+    UIColor(red: 0.08, green: 0.72, blue: 0.92, alpha: 1),
+    UIColor(red: 0.98, green: 0.76, blue: 0.10, alpha: 1),
+    UIColor(red: 0.48, green: 0.18, blue: 0.92, alpha: 1),
+    UIColor(red: 0.12, green: 0.84, blue: 0.38, alpha: 1),
+    UIColor(red: 0.95, green: 0.18, blue: 0.58, alpha: 1),
+  ]
+  private let patternLayer = CALayer()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    isOpaque = true
+    backgroundColor = .black
+    layer.addSublayer(patternLayer)
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    let cellSize: CGFloat = 38
+    let columns = Int(ceil(bounds.width / cellSize))
+    let rows = Int(ceil(bounds.height / cellSize))
+    patternLayer.frame = bounds
+    patternLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
+    for row in 0..<rows {
+      for column in 0..<columns {
+        let colorIndex = (row * 3 + column * 2 + (row.isMultiple(of: 2) ? 0 : 3))
+          % colors.count
+        let tile = CALayer()
+        tile.frame = CGRect(
+          x: CGFloat(column) * cellSize,
+          y: CGFloat(row) * cellSize,
+          width: cellSize,
+          height: cellSize
+        )
+        tile.backgroundColor = colors[colorIndex].cgColor
+        patternLayer.addSublayer(tile)
+      }
+    }
   }
 }
 
