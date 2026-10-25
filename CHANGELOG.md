@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added AI-assisted creation and revision drafts for routines, training plans, and recipes. Drafts use the existing versioned share/import codec and repository paths, are reviewed and explicitly applied or discarded in chat, persist across conversation restores, and use approved local exercise/food catalogs plus canonical bundled Markdown guidance.
 - Expanded the sourced comparison matrix with a price-model row, in-app social/community and data-export rows, plus official evidence links; clarified that Train Libre photo meal capture is documented and confirmed its lack of a social feed.
 - Added persistent AI assistant conversations and scoped, per-request approval for read-only Train Libre data access. The overlay now records provider/model identity and a local audit of the records shared for each approved request.
-- Added an ignored planning document for the AI assistant's product idea, user experience, action inventory, and architecture.
+- Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
 - Preserved references to earlier data-backed assistant advice for follow-up actions: the pre-approval planner receives only the prior request and previously used categories, while the prior answer is included for analysis only after fresh approval of overlapping data and only for the same provider.
@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Moved the default resting and docking position of the draggable AI cloud orb to the bottom-left corner of the screen.
 - Kept the assistant session mounted after AI features have first been enabled, so hiding the launcher or closing its chat does not cancel an in-flight request; the cloud stays offscreen until needed again.
 - The AI assistant now lets the configured model answer ordinary chat without a data prompt and infer narrow, reviewable data scopes from natural language. The app validates model proposals and still requires fresh approval before reading records.
+- Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
 - Kept the AI chat quick action available whenever AI features are enabled, regardless of the floating cloud setting. With its launcher disabled, the cloud enters the Add menu's AI chat slot from and returns to a fully offscreen point on the right, aligned to the chat row, and remains the button. Closing the chat now completes the collapse animation before the hidden cloud fades away; Glass menus inside the expanded assistant no longer hide their own overlay.
