@@ -2945,10 +2945,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ingredients => 'Ingredients';
 
   @override
-  String get aiSettingsTitle => 'AI Meal Capture';
+  String get aiSettingsTitle => 'AI Features';
 
   @override
-  String get aiSettingsDescription => 'Configure AI-powered meal recognition.';
+  String get aiSettingsDescription =>
+      'Configure AI features such as chat and meal recognition.';
 
   @override
   String get aiProviderSection => 'AI Provider';
@@ -3079,7 +3080,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiErrorNoKey =>
-      'No API key configured. Please set one in Settings → AI Meal Capture.';
+      'No API key configured. Please set one in Settings → AI Features.';
 
   @override
   String get aiErrorNetwork =>
@@ -3100,7 +3101,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'Allows the use of AI for meal recognition. Disabling this hides all AI buttons in the app.';
+      'Enables AI features such as chat and meal recognition. Disabling this hides all AI entry points.';
+
+  @override
+  String get aiFloatingAssistantTitle => 'Show floating AI assistant';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'Show the AI cloud over the app. AI chat remains available from the Add menu when the cloud is hidden.';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'Status & Features';
@@ -5881,11 +5889,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legal_section => 'Legal';
 
   @override
-  String get aiSettingsInstructionTitle => 'How AI Meal Recognition Works';
+  String get aiSettingsInstructionTitle => 'How AI Features Work';
 
   @override
   String get aiSettingsInstructionBody =>
-      'This feature uses AI to analyze food images and provide nutrient estimates. Your images are only sent to the selected AI provider when you use the feature. It relies on a Bring-Your-Own-Key (BYOK) architecture, keeping your data locally on your device until analysis.';
+      'Train Libre offers AI features such as chat and meal recognition. For meal recognition, AI analyzes food images and estimates nutrients. Images and text are sent to your selected AI provider only when you use an AI feature. With your own API key (BYOK), your data stays on your device until then.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Setup Guide';
@@ -8885,11 +8893,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiOverlayDemoGlobalEnabledTitle =>
-      'Enable AI overlay throughout the app';
+      'Show AI assistant throughout the app';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'Show the demo cloud on every screen. Chats are not saved.';
+      'Show the floating AI cloud on every screen.';
 
   @override
   String get aiOverlayDemoScreenTitle => 'AI Overlay UI Demo';

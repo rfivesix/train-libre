@@ -12,6 +12,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
@@ -20,7 +21,7 @@ import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../../services/ai/apple_foundation_service.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 
-/// Settings page for configuring the AI Meal Capture feature.
+/// Settings page for configuring the app's AI features.
 ///
 /// Allows users to select an AI provider + model, enter their API key
 /// (stored securely in native Keychain/Keystore), test the connection, and read
@@ -470,6 +471,20 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
             leading: const Icon(LucideIcons.sparkles),
             value: aiEnabled,
             onChanged: (value) => themeService.setAiEnabled(value),
+          ),
+          ValueListenableBuilder<AiOverlayDemoConfiguration>(
+            valueListenable: AiOverlayDemoSettings.configuration,
+            builder: (context, settings, _) => AppSettingsRow.switchTile(
+              key: const Key('ai_floating_assistant_enabled'),
+              title: l10n.aiFloatingAssistantTitle,
+              subtitle: l10n.aiFloatingAssistantSubtitle,
+              leading: const Icon(LucideIcons.cloud),
+              value: settings.enabled,
+              onChanged: aiEnabled
+                  ? (value) =>
+                      unawaited(AiOverlayDemoSettings.update(enabled: value))
+                  : null,
+            ),
           ),
           if (aiEnabled && _hasLidar) ...[
             AppSettingsRow.switchTile(

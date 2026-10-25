@@ -56,6 +56,7 @@ class DraggableAiCloud extends StatefulWidget {
   final bool openDirectlyFullscreen;
   final bool useLiveAi;
   final bool isGloballyVisible;
+  final bool isLauncherEnabled;
   final AssistantModelClient? modelClient;
   final GlobalKey<NavigatorState>? navigatorKey;
   final NavigatorState? navigator;
@@ -72,6 +73,7 @@ class DraggableAiCloud extends StatefulWidget {
     this.openDirectlyFullscreen = false,
     this.useLiveAi = false,
     this.isGloballyVisible = true,
+    this.isLauncherEnabled = true,
     this.modelClient,
     this.navigatorKey,
     this.navigator,
@@ -101,13 +103,54 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   final Stopwatch _holdRecordingDuration = Stopwatch();
   int _lastChatOpenRequest = 0;
   Offset? _quickChatOpenOriginCenter;
+  Offset? _lastQuickChatActionCenter;
+  Offset? _quickChatMenuExitGlobalCenter;
+  bool _wasAddMenuOpen = false;
+  bool _quickChatTargetWasAvailable = false;
+  bool _isQuickChatTargetStaged = false;
+  bool _isQuickChatMenuExitAnimating = false;
 
   void _handleAddMenuStateChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final isOpen = AiGlobalCloudPresentation.isAddMenuOpen.value;
+    if (_wasAddMenuOpen &&
+        !isOpen &&
+        !widget.isLauncherEnabled &&
+        _quickChatOpenOriginCenter == null) {
+      _quickChatMenuExitGlobalCenter =
+          AiGlobalCloudPresentation.quickChatActionCenter.value ??
+              _lastQuickChatActionCenter;
+      _isQuickChatMenuExitAnimating =
+          _quickChatMenuExitGlobalCenter != null;
+    } else if (isOpen) {
+      _isQuickChatMenuExitAnimating = false;
+      _quickChatMenuExitGlobalCenter = null;
+    }
+    _wasAddMenuOpen = isOpen;
+    setState(() {});
   }
 
   void _handleQuickChatTargetChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final target = AiGlobalCloudPresentation.quickChatActionCenter.value;
+    final targetIsAvailable = target != null;
+    if (target != null) _lastQuickChatActionCenter = target;
+    if (!widget.isLauncherEnabled &&
+        targetIsAvailable &&
+        !_quickChatTargetWasAvailable &&
+        _quickChatOpenOriginCenter == null &&
+        !_isExpanded) {
+      // First align the invisible cloud to the action row, then reveal it on
+      // the next frame. This keeps its entrance horizontal at the action's
+      // height instead of animating from the old dock position.
+      _isQuickChatTargetStaged = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_isQuickChatTargetStaged) return;
+        setState(() => _isQuickChatTargetStaged = false);
+      });
+    }
+    _quickChatTargetWasAvailable = targetIsAvailable;
+    setState(() {});
   }
 
   void _handleChatOpenRequest() {
@@ -156,6 +199,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   void initState() {
     super.initState();
     _lastChatOpenRequest = AiGlobalCloudPresentation.chatOpenRequests.value;
+    _wasAddMenuOpen = AiGlobalCloudPresentation.isAddMenuOpen.value;
+    _lastQuickChatActionCenter =
+        AiGlobalCloudPresentation.quickChatActionCenter.value;
+    _quickChatTargetWasAvailable = _lastQuickChatActionCenter != null;
     AiGlobalCloudPresentation.isAddMenuOpen
         .addListener(_handleAddMenuStateChanged);
     AiGlobalCloudPresentation.quickChatActionCenter
@@ -388,13 +435,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         if (!mounted) return;
         setState(() {
           _isClosing = false;
-          _quickChatOpenOriginCenter = null;
+          if (!wasFullscreen) _quickChatOpenOriginCenter = null;
           if (wasFullscreen) _isFullscreen = false;
         });
         _scrollSidebarController.sidebarAnimation.value = 0;
         if (wasFullscreen) {
           _fullscreenAnimation.reverse().whenComplete(() {
-            if (mounted) setState(() => _isClosingFromFullscreen = false);
+            if (mounted) {
+              setState(() {
+                _isClosingFromFullscreen = false;
+                _quickChatOpenOriginCenter = null;
+              });
+            }
           });
         }
         _chatFocusNode.unfocus();
@@ -635,6 +687,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isAddMenuOpen = AiGlobalCloudPresentation.isAddMenuOpen.value;
         final morphAnimation = _morphAnimation;
         final fullscreenProgress =
             overlayTransitionProgress(_fullscreenAnimation.value);
@@ -665,7 +718,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           fullscreenProgress: fullscreenProgress,
         );
         final globalQuickChatCenter =
-            AiGlobalCloudPresentation.quickChatActionCenter.value;
+            AiGlobalCloudPresentation.quickChatActionCenter.value ??
+                _quickChatMenuExitGlobalCenter;
         final cloudRenderObject = context.findRenderObject();
         final quickChatCenter = globalQuickChatCenter == null
             ? null
@@ -673,26 +727,52 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 ? cloudRenderObject.globalToLocal(globalQuickChatCenter)
                 : globalQuickChatCenter;
         final isAtQuickChatAction =
-            AiGlobalCloudPresentation.isAddMenuOpen.value &&
+            isAddMenuOpen &&
                 quickChatCenter != null &&
                 !_isExpanded;
-        final activeCloudCenter = _isClosing &&
-                _quickChatOpenOriginCenter != null
+        final hiddenLauncherCenter = Offset(
+          constraints.maxWidth + CloudDockingController.cloudSize / 2 + 12,
+          quickChatCenter?.dy ??
+              _quickChatOpenOriginCenter?.dy ??
+              layout.cloudCenter.dy,
+        );
+        final restingCloudCenter = widget.isLauncherEnabled
+            ? layout.cloudCenter
+            : hiddenLauncherCenter;
+        final isCloudVisible = widget.isGloballyVisible &&
+            (widget.isLauncherEnabled ||
+                (isAtQuickChatAction && !_isQuickChatTargetStaged) ||
+                _quickChatOpenOriginCenter != null ||
+                _isQuickChatMenuExitAnimating ||
+                _isExpanded ||
+                _isClosing ||
+                _isClosingFromFullscreen);
+        final isReturningFromChat =
+            (_isClosing || _isClosingFromFullscreen) &&
+                _quickChatOpenOriginCenter != null;
+        final activeCloudCenter = isReturningFromChat
             ? Offset.lerp(
                 _quickChatOpenOriginCenter,
-                layout.cloudCenter,
+                restingCloudCenter,
                 (1 - _morphProgressAnimation.value).clamp(0.0, 1.0),
               )!
-            : _quickChatOpenOriginCenter ??
-                (isAtQuickChatAction ? quickChatCenter : layout.cloudCenter);
-        final cloudLeft =
-            _quickChatOpenOriginCenter != null || isAtQuickChatAction
-                ? activeCloudCenter.dx - CloudDockingController.cloudSize / 2
-                : layout.left;
-        final cloudTop =
-            _quickChatOpenOriginCenter != null || isAtQuickChatAction
-                ? activeCloudCenter.dy - CloudDockingController.cloudSize / 2
-                : layout.top;
+            : _isQuickChatTargetStaged
+                ? restingCloudCenter
+                : _quickChatOpenOriginCenter ??
+                    (isAtQuickChatAction
+                        ? quickChatCenter
+                        : restingCloudCenter);
+        final useExplicitCloudCenter =
+            !widget.isLauncherEnabled ||
+                _quickChatOpenOriginCenter != null ||
+                isAtQuickChatAction ||
+                _isQuickChatMenuExitAnimating;
+        final cloudLeft = useExplicitCloudCenter
+            ? activeCloudCenter.dx - CloudDockingController.cloudSize / 2
+            : layout.left;
+        final cloudTop = useExplicitCloudCenter
+            ? activeCloudCenter.dy - CloudDockingController.cloudSize / 2
+            : layout.top;
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -714,28 +794,48 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             duration: const Duration(milliseconds: 280),
             curve: Curves.easeInOutCubic,
             child: IgnorePointer(
-              ignoring: !widget.isGloballyVisible,
+              ignoring: !isCloudVisible,
               child: ExcludeSemantics(
-                excluding: !widget.isGloballyVisible,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
+                excluding: !isCloudVisible,
+                child: AnimatedOpacity(
+                  opacity: isCloudVisible ? 1 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeInOut,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
                     Positioned.fill(
                       child: TweenAnimationBuilder<Offset>(
                         tween: Tween<Offset>(
                           begin: Offset(cloudLeft, cloudTop),
                           end: Offset(cloudLeft, cloudTop),
                         ),
-                        duration: _dockingController.isDragging ||
+                        duration: !isCloudVisible ||
+                                _isQuickChatTargetStaged ||
+                                _isClosingFromFullscreen ||
+                                _dockingController.isDragging ||
                                 (_isClosing &&
                                     _quickChatOpenOriginCenter != null) ||
                                 _dockingController
                                     .initialDockAnimation.isAnimating
                             ? Duration.zero
                             : Duration(
-                                milliseconds: isAtQuickChatAction ? 380 : 260,
+                                milliseconds:
+                                    isAtQuickChatAction ||
+                                            _isQuickChatMenuExitAnimating
+                                        ? 380
+                                        : 260,
                               ),
                         curve: Curves.easeOutCubic,
+                        onEnd: () {
+                          if (!mounted || !_isQuickChatMenuExitAnimating) {
+                            return;
+                          }
+                          setState(() {
+                            _isQuickChatMenuExitAnimating = false;
+                            _quickChatMenuExitGlobalCenter = null;
+                          });
+                        },
                         builder: (context, animatedOffset, _) {
                           final animatedLeft = animatedOffset.dx;
                           final animatedTop = animatedOffset.dy;
@@ -1299,7 +1399,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         access: _chatCoordinator.activeAuditRecord!,
                         onClose: _chatCoordinator.clearActiveAudit,
                       ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

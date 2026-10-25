@@ -5345,13 +5345,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiSettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'AI Meal Capture'**
+  /// **'AI Features'**
   String get aiSettingsTitle;
 
   /// No description provided for @aiSettingsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Configure AI-powered meal recognition.'**
+  /// **'Configure AI features such as chat and meal recognition.'**
   String get aiSettingsDescription;
 
   /// No description provided for @aiProviderSection.
@@ -5585,7 +5585,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiErrorNoKey.
   ///
   /// In en, this message translates to:
-  /// **'No API key configured. Please set one in Settings → AI Meal Capture.'**
+  /// **'No API key configured. Please set one in Settings → AI Features.'**
   String get aiErrorNoKey;
 
   /// No description provided for @aiErrorNetwork.
@@ -5621,8 +5621,20 @@ abstract class AppLocalizations {
   /// No description provided for @aiEnableSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Allows the use of AI for meal recognition. Disabling this hides all AI buttons in the app.'**
+  /// **'Enables AI features such as chat and meal recognition. Disabling this hides all AI entry points.'**
   String get aiEnableSubtitle;
+
+  /// No description provided for @aiFloatingAssistantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show floating AI assistant'**
+  String get aiFloatingAssistantTitle;
+
+  /// No description provided for @aiFloatingAssistantSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the AI cloud over the app. AI chat remains available from the Add menu when the cloud is hidden.'**
+  String get aiFloatingAssistantSubtitle;
 
   /// No description provided for @aiStatusAndFeaturesSectionTitle.
   ///
@@ -10335,13 +10347,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiSettingsInstructionTitle.
   ///
   /// In en, this message translates to:
-  /// **'How AI Meal Recognition Works'**
+  /// **'How AI Features Work'**
   String get aiSettingsInstructionTitle;
 
   /// No description provided for @aiSettingsInstructionBody.
   ///
   /// In en, this message translates to:
-  /// **'This feature uses AI to analyze food images and provide nutrient estimates. Your images are only sent to the selected AI provider when you use the feature. It relies on a Bring-Your-Own-Key (BYOK) architecture, keeping your data locally on your device until analysis.'**
+  /// **'Train Libre offers AI features such as chat and meal recognition. For meal recognition, AI analyzes food images and estimates nutrients. Images and text are sent to your selected AI provider only when you use an AI feature. With your own API key (BYOK), your data stays on your device until then.'**
   String get aiSettingsInstructionBody;
 
   /// No description provided for @aiSettingsSetupGuideTitle.
@@ -15606,13 +15618,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiOverlayDemoGlobalEnabledTitle.
   ///
   /// In en, this message translates to:
-  /// **'Enable AI overlay throughout the app'**
+  /// **'Show AI assistant throughout the app'**
   String get aiOverlayDemoGlobalEnabledTitle;
 
   /// No description provided for @aiOverlayDemoGlobalEnabledSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Show the demo cloud on every screen. Chats are not saved.'**
+  /// **'Show the floating AI cloud on every screen.'**
   String get aiOverlayDemoGlobalEnabledSubtitle;
 
   /// No description provided for @aiOverlayDemoScreenTitle.

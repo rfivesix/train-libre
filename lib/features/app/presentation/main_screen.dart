@@ -26,7 +26,6 @@ import '../../diary/presentation/scanner_screen.dart';
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
-import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../ai_assistant/presentation/ai_global_cloud_presentation.dart';
 import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
@@ -128,9 +127,7 @@ class _MainScreenState extends State<MainScreen>
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
 
-  bool get _isAiChatActionAvailable =>
-      themeService.isAiEnabled &&
-      AiOverlayDemoSettings.configuration.value.enabled;
+  bool get _isAiChatActionAvailable => themeService.isAiEnabled;
 
   double get kNavBarHeight => DesignConstants.bottomNavigationBarHeight;
   double kBarFabGap = 12.0;
@@ -170,8 +167,6 @@ class _MainScreenState extends State<MainScreen>
       duration: const Duration(milliseconds: 400),
     );
     _menuController.addListener(_syncAiChatActionCenter);
-    AiOverlayDemoSettings.configuration
-        .addListener(_handleAiChatAvailabilityChanged);
     AiGlobalCloudPresentation.onQuickChatTap = _handleQuickChatTap;
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
     _notificationTapSubscription = LocalNotificationService
@@ -337,8 +332,6 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
-    AiOverlayDemoSettings.configuration
-        .removeListener(_handleAiChatAvailabilityChanged);
     _observedThemeService?.removeListener(_handleAiChatAvailabilityChanged);
     _pendingQuickChatOpen?.cancel();
     AiGlobalCloudPresentation.isAddMenuOpen.value = false;
@@ -450,8 +443,9 @@ class _MainScreenState extends State<MainScreen>
   void _handleAiChatAvailabilityChanged() {
     if (!mounted) return;
     final available = _isAiChatActionAvailable;
-    if (_lastAiChatActionAvailable == available) return;
+    final availabilityChanged = _lastAiChatActionAvailable != available;
     _lastAiChatActionAvailable = available;
+    if (!availabilityChanged) return;
     if (!available) {
       _pendingQuickChatOpen?.cancel();
       _pendingQuickChatOpen = null;

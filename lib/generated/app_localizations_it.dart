@@ -2969,11 +2969,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get ingredients => 'Ingredienti';
 
   @override
-  String get aiSettingsTitle => 'Riconoscimento pasti tramite IA';
+  String get aiSettingsTitle => 'Funzioni IA';
 
   @override
   String get aiSettingsDescription =>
-      'Configura il rilevamento dei pasti assistito da IA.';
+      'Configura le funzioni IA come chat e riconoscimento dei pasti.';
 
   @override
   String get aiProviderSection => 'Fornitore di intelligenza artificiale';
@@ -3105,7 +3105,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aiErrorNoKey =>
-      'Nessuna chiave API configurata. Impostane uno in Impostazioni → Acquisizione pasto AI.';
+      'Nessuna chiave API configurata. Impostane una in Impostazioni → Funzioni IA.';
 
   @override
   String get aiErrorNetwork =>
@@ -3128,7 +3128,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'Consente l\'uso dell\'intelligenza artificiale per il riconoscimento dei pasti. Disabilitando questa opzione si nascondono tutti i pulsanti AI nell\'app.';
+      'Attiva le funzioni IA come chat e riconoscimento dei pasti. Disattivandola, tutti i punti di accesso all’IA vengono nascosti.';
+
+  @override
+  String get aiFloatingAssistantTitle => 'Mostra l’assistente IA flottante';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'Mostra la nuvola IA sopra l’app. La chat IA resta disponibile dal menu Aggiungi quando la nuvola è nascosta.';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'Stato e funzionalità';
@@ -5969,12 +5976,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get legal_section => 'Informazioni legali e privacy';
 
   @override
-  String get aiSettingsInstructionTitle =>
-      'Come funziona il riconoscimento dei pasti tramite intelligenza artificiale';
+  String get aiSettingsInstructionTitle => 'Come funzionano le funzioni IA';
 
   @override
   String get aiSettingsInstructionBody =>
-      'Questa funzionalità utilizza l\'intelligenza artificiale per analizzare le immagini degli alimenti e fornire stime sui nutrienti. Le tue immagini vengono inviate solo al fornitore AI selezionato quando utilizzi la funzione. Si basa su un\'architettura Bring-Your-Own-Key (BYOK), mantenendo i tuoi dati localmente sul tuo dispositivo fino all\'analisi.';
+      'Train Libre offre funzioni IA come chat e riconoscimento dei pasti. Per riconoscere i pasti, l’IA analizza le immagini degli alimenti e stima i nutrienti. Immagini e testi vengono inviati al fornitore IA scelto solo quando usi una funzione IA. Con la tua chiave API (BYOK), i dati restano sul dispositivo fino a quel momento.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Guida all\'installazione';
@@ -9002,11 +9008,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aiOverlayDemoGlobalEnabledTitle =>
-      'Attiva AI Overlay in tutta l’app';
+      'Mostra l’assistente IA in tutta l’app';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'Mostra la nuvola demo in ogni schermata. Le chat non vengono salvate.';
+      'Mostra la nuvola IA flottante su tutte le schermate.';
 
   @override
   String get aiOverlayDemoScreenTitle => 'Demo UI di AI Overlay';

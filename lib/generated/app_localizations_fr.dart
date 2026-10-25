@@ -2983,11 +2983,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ingredients => 'Ingrédients';
 
   @override
-  String get aiSettingsTitle => 'Reconnaissance de repas par IA';
+  String get aiSettingsTitle => 'Fonctionnalités d’IA';
 
   @override
   String get aiSettingsDescription =>
-      'Configurer la détection de repas assistée par IA.';
+      'Configurer les fonctions d’IA comme le chat et la reconnaissance des repas.';
 
   @override
   String get aiProviderSection => 'Fournisseur d\'IA';
@@ -3119,7 +3119,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiErrorNoKey =>
-      'Aucune clé API configurée. Veuillez en définir un dans Paramètres → AI Meal Capture.';
+      'Aucune clé API configurée. Veuillez en définir une dans Paramètres → Fonctionnalités d’IA.';
 
   @override
   String get aiErrorNetwork =>
@@ -3142,7 +3142,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'Permet l\'utilisation de l\'IA pour la reconnaissance des repas. La désactivation de cette option masque tous les boutons AI de l\'application.';
+      'Active les fonctions d’IA comme le chat et la reconnaissance des repas. La désactivation masque tous les points d’accès à l’IA.';
+
+  @override
+  String get aiFloatingAssistantTitle => 'Afficher l’assistant IA flottant';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'Affiche le nuage IA par-dessus l’application. Le chat IA reste accessible depuis le menu Ajouter lorsque le nuage est masqué.';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'Statut et fonctionnalités';
@@ -5984,12 +5991,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get legal_section => 'Mentions légales et confidentialité';
 
   @override
-  String get aiSettingsInstructionTitle =>
-      'Comment fonctionne la reconnaissance des repas par l\'IA';
+  String get aiSettingsInstructionTitle => 'Fonctionnement des fonctions d’IA';
 
   @override
   String get aiSettingsInstructionBody =>
-      'Cette fonctionnalité utilise l\'IA pour analyser les images d\'aliments et fournir des estimations des nutriments. Vos images ne sont envoyées au fournisseur d\'IA sélectionné que lorsque vous utilisez la fonctionnalité. Il s\'appuie sur une architecture Bring-Your-Own-Key (BYOK), conservant vos données localement sur votre appareil jusqu\'à leur analyse.';
+      'Train Libre propose des fonctions d’IA comme le chat et la reconnaissance des repas. Pour reconnaître un repas, l’IA analyse les images d’aliments et estime leurs nutriments. Les images et les textes ne sont envoyés au fournisseur choisi que lorsque vous utilisez une fonction d’IA. Avec votre propre clé API (BYOK), vos données restent sur votre appareil jusque-là.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Guide de configuration';
@@ -9027,11 +9033,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiOverlayDemoGlobalEnabledTitle =>
-      'Activer AI Overlay dans toute l’application';
+      'Afficher l’assistant IA dans toute l’application';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'Afficher le nuage de démonstration sur tous les écrans. Les discussions ne sont pas enregistrées.';
+      'Afficher le nuage IA flottant sur tous les écrans.';
 
   @override
   String get aiOverlayDemoScreenTitle => 'Démo de l’interface AI Overlay';

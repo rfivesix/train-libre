@@ -2959,11 +2959,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get ingredients => 'Zutaten';
 
   @override
-  String get aiSettingsTitle => 'KI-Mahlzeitenerkennung';
+  String get aiSettingsTitle => 'KI-Funktionen';
 
   @override
   String get aiSettingsDescription =>
-      'KI-basierte Mahlzeitenerkennung konfigurieren.';
+      'KI-Funktionen wie Chat und Mahlzeitenerkennung konfigurieren.';
 
   @override
   String get aiProviderSection => 'KI-Anbieter';
@@ -3095,7 +3095,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiErrorNoKey =>
-      'Kein API-Schlüssel konfiguriert. Bitte unter Einstellungen → KI-Mahlzeitenerkennung eingeben.';
+      'Kein API-Schlüssel konfiguriert. Bitte unter Einstellungen → KI-Funktionen eingeben.';
 
   @override
   String get aiErrorNetwork =>
@@ -3117,7 +3117,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'Ermöglicht die Nutzung von KI zur Mahlzeitenerkennung. Bei Deaktivierung werden alle KI-Buttons in der App ausgeblendet.';
+      'Aktiviert KI-Funktionen wie Chat und Mahlzeitenerkennung. Bei Deaktivierung werden alle KI-Einstiegspunkte ausgeblendet.';
+
+  @override
+  String get aiFloatingAssistantTitle => 'Schwebenden KI-Assistenten anzeigen';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'Zeigt die KI-Wolke über der App. Der KI-Chat bleibt bei deaktivierter Wolke über das Plus-Menü erreichbar.';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'Status & Features';
@@ -5933,11 +5940,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiSettingsInstructionTitle =>
-      'Wie die KI-Mahlzeitenerkennung funktioniert';
+      'Wie die KI-Funktionen funktionieren';
 
   @override
   String get aiSettingsInstructionBody =>
-      'Diese Funktion nutzt KI zur Analyse von Lebensmittelbildern und liefert Nährwertschätzungen. Deine Bilder werden nur dann an den ausgewählten KI-Anbieter gesendet, wenn du die Funktion nutzt. Sie basiert auf einer Bring-Your-Own-Key (BYOK)-Architektur, wodurch deine Daten lokal auf dem Gerät bleiben, bis sie analysiert werden.';
+      'Train Libre bietet KI-Funktionen wie Chat und Mahlzeitenerkennung. Bei der Mahlzeitenerkennung analysiert die KI Bilder und schätzt Nährwerte. Bilder und Texte werden nur dann an den ausgewählten KI-Anbieter gesendet, wenn du eine KI-Funktion nutzt. Mit deinem eigenen API-Schlüssel (BYOK) bleiben deine Daten bis dahin auf dem Gerät.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Einrichtungs-Anleitung';
@@ -8954,11 +8961,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiOverlayDemoGlobalEnabledTitle =>
-      'AI Overlay app-weit aktivieren';
+      'KI-Assistent app-weit anzeigen';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'Die Demo-Wolke auf allen Screens anzeigen. Chats werden nicht gespeichert.';
+      'Die schwebende KI-Wolke auf allen Screens anzeigen.';
 
   @override
   String get aiOverlayDemoScreenTitle => 'AI Overlay – UI-Demo';

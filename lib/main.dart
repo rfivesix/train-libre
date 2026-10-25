@@ -1168,6 +1168,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                             builder: (context, suppressionCount, _) =>
                                 _GlobalAiCloudHost(
                               settings: settings,
+                              aiEnabled: themeService.isAiEnabled,
                               suppressionCount: suppressionCount,
                               navigatorKey: _navigatorKey,
                             ),
@@ -1188,16 +1189,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 }
 
 /// Keeps an active assistant session mounted when its launcher is disabled.
-/// The cloud is created only after the user first enables it, then stays
-/// offscreen on later disables so in-flight prompts can finish and be restored.
+/// The cloud is created after AI features are first enabled, then stays
+/// offscreen when appropriate so in-flight prompts can finish and be restored.
 class _GlobalAiCloudHost extends StatefulWidget {
   const _GlobalAiCloudHost({
     required this.settings,
+    required this.aiEnabled,
     required this.suppressionCount,
     required this.navigatorKey,
   });
 
   final AiOverlayDemoConfiguration settings;
+  final bool aiEnabled;
   final int suppressionCount;
   final GlobalKey<NavigatorState> navigatorKey;
 
@@ -1206,12 +1209,12 @@ class _GlobalAiCloudHost extends StatefulWidget {
 }
 
 class _GlobalAiCloudHostState extends State<_GlobalAiCloudHost> {
-  late bool _hasBeenEnabled = widget.settings.enabled;
+  late bool _hasBeenEnabled = widget.aiEnabled;
 
   @override
   void didUpdateWidget(covariant _GlobalAiCloudHost oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.settings.enabled) _hasBeenEnabled = true;
+    if (widget.aiEnabled) _hasBeenEnabled = true;
   }
 
   @override
@@ -1230,8 +1233,8 @@ class _GlobalAiCloudHostState extends State<_GlobalAiCloudHost> {
           showResizeHandles: widget.settings.showResizeHandles,
           openDirectlyFullscreen: widget.settings.openDirectlyFullscreen,
           useLiveAi: true,
-          isGloballyVisible:
-              widget.settings.enabled && widget.suppressionCount == 0,
+          isLauncherEnabled: widget.settings.enabled,
+          isGloballyVisible: widget.aiEnabled && widget.suppressionCount == 0,
         ),
       ),
     );

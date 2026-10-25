@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
+import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
@@ -89,7 +91,8 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             scaffold,
             ValueListenableBuilder<AiOverlayDemoConfiguration>(
               valueListenable: AiOverlayDemoSettings.configuration,
-              builder: (context, settings, _) => settings.enabled
+              builder: (context, settings, _) => (settings.enabled &&
+                      context.watch<ThemeService>().isAiEnabled)
                   ? const SizedBox.shrink()
                   : Positioned.fill(
                       bottom: MediaQuery.viewInsetsOf(context).bottom,

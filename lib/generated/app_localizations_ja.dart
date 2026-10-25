@@ -2884,10 +2884,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get ingredients => '材料';
 
   @override
-  String get aiSettingsTitle => 'AI食事認識';
+  String get aiSettingsTitle => 'AI機能';
 
   @override
-  String get aiSettingsDescription => 'AI支援食事検出の設定を行います。';
+  String get aiSettingsDescription => 'チャットや食事認識などのAI機能を設定します。';
 
   @override
   String get aiProviderSection => 'AIプロバイダー';
@@ -3012,7 +3012,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiReviewFeedbackSection => '修正';
 
   @override
-  String get aiErrorNoKey => 'API キーが設定されていません。 「設定」→「AI食事キャプチャ」で設定してください。';
+  String get aiErrorNoKey => 'API キーが設定されていません。「設定」→「AI機能」で設定してください。';
 
   @override
   String get aiErrorNetwork => 'ネットワークエラー。接続を確認して、もう一度試してください。';
@@ -3031,7 +3031,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiEnableSubtitle =>
-      'AIを利用した食事認識が可能になります。これを無効にすると、アプリ内のすべての AI ボタン​​が非表示になります。';
+      'チャットや食事認識などのAI機能を有効にします。無効にすると、アプリ内のAIへの入口がすべて非表示になります。';
+
+  @override
+  String get aiFloatingAssistantTitle => 'フローティングAIアシスタントを表示';
+
+  @override
+  String get aiFloatingAssistantSubtitle =>
+      'アプリの上にAIクラウドを表示します。クラウドを非表示にしても、追加メニューからAIチャットを利用できます。';
 
   @override
   String get aiStatusAndFeaturesSectionTitle => 'ステータスと機能';
@@ -5691,11 +5698,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get legal_section => '法的通知とプライバシー';
 
   @override
-  String get aiSettingsInstructionTitle => 'AI 食事認識の仕組み';
+  String get aiSettingsInstructionTitle => 'AI機能の仕組み';
 
   @override
   String get aiSettingsInstructionBody =>
-      'この機能は、AI を使用して食品の画像を分析し、栄養素の推定値を提供します。この機能を使用する場合、画像は選択した AI プロバイダーにのみ送信されます。これは Bring-Your-Own-Key (BYOK) アーキテクチャに依存しており、分析までデータをデバイス上にローカルに保持します。';
+      'Train Libreはチャットや食事認識などのAI機能を提供します。食事認識では、AIが食品画像を分析して栄養素を推定します。画像やテキストは、AI機能を使用したときにのみ選択したAIプロバイダーへ送信されます。ご自身のAPIキー（BYOK）を使う場合、それまではデータが端末内に保持されます。';
 
   @override
   String get aiSettingsSetupGuideTitle => 'セットアップガイド';
@@ -8566,11 +8573,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get developerAiOverlayDemoSubtitle => 'サンプルカードを使ったスクロール可能なUIプレビュー';
 
   @override
-  String get aiOverlayDemoGlobalEnabledTitle => 'アプリ全体で AI Overlay を有効にする';
+  String get aiOverlayDemoGlobalEnabledTitle => 'アプリ全体でAIアシスタントを表示';
 
   @override
   String get aiOverlayDemoGlobalEnabledSubtitle =>
-      'すべての画面にデモの雲を表示します。チャットは保存されません。';
+      'すべての画面にフローティングAIクラウドを表示します。';
 
   @override
   String get aiOverlayDemoScreenTitle => 'AI Overlay UIデモ';

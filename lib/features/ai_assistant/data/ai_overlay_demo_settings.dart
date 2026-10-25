@@ -10,7 +10,7 @@ class AiOverlayDemoConfiguration {
   final bool useLiveAi;
 
   const AiOverlayDemoConfiguration({
-    this.enabled = false,
+    this.enabled = true,
     this.liveliness = 0.10,
     this.showResizeHandles = false,
     this.openDirectlyFullscreen = true,
@@ -34,7 +34,7 @@ class AiOverlayDemoConfiguration {
       );
 }
 
-/// Local settings for the cloud overlay and its developer demo controls.
+/// Floating assistant preference and local developer preview controls.
 /// Conversation history is stored separately in the app database.
 class AiOverlayDemoSettings {
   AiOverlayDemoSettings._();
@@ -52,7 +52,9 @@ class AiOverlayDemoSettings {
 
   static void initialize(SharedPreferences preferences) {
     configuration.value = AiOverlayDemoConfiguration(
-      enabled: preferences.getBool(_enabledKey) ?? false,
+      // The floating assistant is on by default for new installs. An explicit
+      // saved false remains respected as the user's preference.
+      enabled: preferences.getBool(_enabledKey) ?? true,
       liveliness: preferences.getDouble(_livelinessKey) ?? 0.10,
       showResizeHandles: preferences.getBool(_resizeHandlesKey) ?? false,
       openDirectlyFullscreen: preferences.getBool(_fullscreenKey) ?? true,
