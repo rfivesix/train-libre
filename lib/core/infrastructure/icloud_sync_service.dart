@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart';
+import '../../features/ai_assistant/data/assistant_image_attachment.dart';
 import '../../services/telemetry/telemetry_service.dart';
 import '../media/app_media_store.dart';
 import 'basis_data_manager.dart';
@@ -291,6 +292,8 @@ class ICloudSyncService {
     final snapshotPath = await _localSnapshotPath;
     debugPrint('iCloud backup: preparing snapshot at $snapshotPath');
 
+    await AssistantImageAttachmentStore.instance.ensureRelativeStorage(db);
+
     // Delete a stale snapshot if it exists, so VACUUM INTO starts fresh.
     final snapshotFile = File(snapshotPath);
     if (await snapshotFile.exists()) await snapshotFile.delete();
@@ -303,14 +306,17 @@ class ICloudSyncService {
         await AppMediaStore.instance.collectMealThumbnails(db);
     final workoutThumbnails =
         await AppMediaStore.instance.collectWorkoutThumbnails(db);
+    final assistantChatThumbnails =
+        await AppMediaStore.instance.collectAssistantChatThumbnails(db);
     debugPrint(
-        'iCloud backup: bundling ${mealThumbnails.length} meal preview(s), ${workoutThumbnails.length} workout preview(s)');
+        'iCloud backup: bundling ${mealThumbnails.length} meal preview(s), ${workoutThumbnails.length} workout preview(s), ${assistantChatThumbnails.length} assistant chat preview(s)');
 
     final archive = await ICloudBackupArchive.pack(
       targetPath: await _localArchivePath,
       database: snapshotFile,
       thumbnails: mealThumbnails,
       workoutThumbnails: workoutThumbnails,
+      assistantChatThumbnails: assistantChatThumbnails,
     );
 
     // The snapshot is now inside the archive; keeping it would double what the
@@ -466,6 +472,7 @@ class ICloudSyncService {
 
       final db = DatabaseHelper.instance.dbInstance;
       await _copySnapshotIntoLiveDatabase(db, snapshotPath);
+      await AssistantImageAttachmentStore.instance.ensureRelativeStorage(db);
 
       // Previews after the rows, so nothing is left on disk with no entry
       // pointing at it if the copy fails.
@@ -492,6 +499,18 @@ class ICloudSyncService {
           if (workoutWritten > 0) {
             debugPrint(
                 'iCloud restore: restored $workoutWritten workout preview(s)');
+          }
+
+          final assistantPlacement =
+              await AppMediaStore.instance.assistantChatThumbPlacement(db);
+          final assistantWritten = await ICloudBackupArchive.extractThumbnails(
+            archivePath: downloadPath,
+            directoryFor: assistantPlacement.directoryFor,
+            domain: MediaDomain.assistantChats,
+          );
+          if (assistantWritten > 0) {
+            debugPrint(
+                'iCloud restore: restored $assistantWritten assistant chat preview(s)');
           }
         } catch (e) {
           // The database itself is back; missing previews are not worth
@@ -646,6 +665,22 @@ class ICloudSyncService {
       }
     } catch (e) {
       debugPrint('iCloud restore: pruning orphaned workout photos failed: $e');
+    }
+
+    try {
+      final referencedAssistant =
+          await AppMediaStore.referencedAssistantChatPaths(db);
+      final removedAssistant = await AppMediaStore.instance.pruneOrphans(
+        domain: MediaDomain.assistantChats,
+        referencedPaths: referencedAssistant,
+      );
+      if (removedAssistant > 0) {
+        debugPrint(
+            'iCloud restore: pruned $removedAssistant orphaned assistant chat image(s)');
+      }
+    } catch (e) {
+      debugPrint(
+          'iCloud restore: pruning orphaned assistant chat images failed: $e');
     }
   }
 

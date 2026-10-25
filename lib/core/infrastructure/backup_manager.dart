@@ -30,6 +30,7 @@ import '../../features/supplements/data/sources/supplement_local_data_source.dar
 import '../../features/steps/data/sources/steps_local_data_source.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../features/workout/data/workout_photo_store.dart';
+import '../../features/ai_assistant/data/assistant_image_attachment.dart';
 import '../../features/diary/domain/models/food_item.dart';
 import '../../features/app/domain/models/train_libre_backup.dart';
 import '../../util/encryption_util.dart';
@@ -113,6 +114,7 @@ class BackupManager {
     token?.throwIfCancelled();
     onProgress?.call('food_entries', 0.05);
     final dbInst = _dbHelper.dbInstance;
+    await AssistantImageAttachmentStore.instance.ensureRelativeStorage(dbInst);
     final foodEntries = await _diaryDb.getAllFoodEntries();
     token?.throwIfCancelled();
 
@@ -314,6 +316,13 @@ class BackupManager {
         goalEvents: await _fetchTable('goal_events'),
         goalReviews: await _fetchTable('goal_reviews'));
     final payload = backup.toJson();
+    payload['assistant_conversations'] =
+        await _fetchTable('assistant_conversations');
+    payload['assistant_messages'] = await _fetchTable('assistant_messages');
+    payload['assistant_data_access'] =
+        await _fetchTable('assistant_data_access');
+    payload['assistant_message_attachments'] =
+        await _fetchTable('assistant_message_attachments');
     final pinnedExerciseNoteRows = await dbInst.customSelect('''
       SELECT pn.*
       FROM pinned_exercise_notes pn
@@ -492,6 +501,7 @@ class BackupManager {
     onProgress?.call('meal_photos', 1.0);
     final mealThumbnails = await collectMealThumbnails();
     final workoutThumbnails = await collectWorkoutThumbnails();
+    final assistantChatThumbnails = await collectAssistantChatThumbnails();
     token?.throwIfCancelled();
 
     final file = await BackupArchive.write(
@@ -499,6 +509,7 @@ class BackupManager {
       payloadJson: jsonString,
       thumbnails: mealThumbnails,
       workoutThumbnails: workoutThumbnails,
+      assistantChatThumbnails: assistantChatThumbnails,
       passphrase: passphrase,
     );
     token?.throwIfCancelled();
@@ -534,6 +545,11 @@ class BackupManager {
   @visibleForTesting
   Future<List<File>> collectWorkoutThumbnails() =>
       AppMediaStore.instance.collectWorkoutThumbnails(_dbHelper.dbInstance);
+
+  /// The assistant chat previews that go into a backup archive.
+  @visibleForTesting
+  Future<List<File>> collectAssistantChatThumbnails() => AppMediaStore.instance
+      .collectAssistantChatThumbnails(_dbHelper.dbInstance);
 
   Future<bool> importFullBackupAuto(
     String filePath, {
@@ -595,6 +611,8 @@ class BackupManager {
         // Runs after the rows are in and before orphaned files are swept, so
         // the previews land while the entries that name them already exist.
         () async {
+          await AssistantImageAttachmentStore.instance
+              .ensureRelativeStorage(_dbHelper.dbInstance);
           // The rows are in by now, so they can say where their previews go.
           final mealPlacement = await AppMediaStore.instance
               .mealThumbPlacement(_dbHelper.dbInstance);
@@ -616,6 +634,17 @@ class BackupManager {
           if (workoutWritten > 0) {
             debugPrint(
                 'Restored $workoutWritten workout preview(s) from the backup.');
+          }
+
+          final assistantPlacement = await AppMediaStore.instance
+              .assistantChatThumbPlacement(_dbHelper.dbInstance);
+          final assistantWritten = await contents.extractThumbnails(
+            assistantPlacement.directoryFor,
+            domain: MediaDomain.assistantChats,
+          );
+          if (assistantWritten > 0) {
+            debugPrint(
+                'Restored $assistantWritten assistant chat preview(s) from the backup.');
           }
         },
       );
@@ -746,6 +775,7 @@ class BackupManager {
     }
 
     final backup = TrainLibreBackup.fromJson(payload);
+    final hasAssistantHistory = payload.containsKey('assistant_conversations');
     final prefs = await _prefsLoader();
 
     // Capture the original preference state to rollback on failure
@@ -779,6 +809,15 @@ class BackupManager {
       await _executeWithRetry(() => dbInst.transaction(() async {
             token?.throwIfCancelled();
             onProgress?.call('clear_database', 0.15);
+
+            if (hasAssistantHistory) {
+              await dbInst
+                  .customStatement('DELETE FROM assistant_message_attachments');
+              await dbInst.customStatement('DELETE FROM assistant_data_access');
+              await dbInst.customStatement('DELETE FROM assistant_messages');
+              await dbInst
+                  .customStatement('DELETE FROM assistant_conversations');
+            }
 
             // Clear dynamic sleep and pulse tables first
             await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
@@ -1229,6 +1268,16 @@ class BackupManager {
                 'goal_events', payload['goal_events'] ?? payload['goalEvents']);
             await _importTable('goal_reviews',
                 payload['goal_reviews'] ?? payload['goalReviews']);
+            if (hasAssistantHistory) {
+              await _importTable('assistant_conversations',
+                  payload['assistant_conversations']);
+              await _importTable(
+                  'assistant_messages', payload['assistant_messages']);
+              await _importTable('assistant_message_attachments',
+                  payload['assistant_message_attachments']);
+              await _importTable(
+                  'assistant_data_access', payload['assistant_data_access']);
+            }
             token?.throwIfCancelled();
 
             await _sanitizeRestoredForeignKeys(dbInst);
@@ -1335,6 +1384,22 @@ class BackupManager {
       }
     } catch (e) {
       debugPrint('Pruning orphaned workout photos failed: $e');
+    }
+
+    try {
+      final referencedAssistant =
+          await AppMediaStore.referencedAssistantChatPaths(
+              _dbHelper.dbInstance);
+      final removedAssistant = await AppMediaStore.instance.pruneOrphans(
+        domain: MediaDomain.assistantChats,
+        referencedPaths: referencedAssistant,
+      );
+      if (removedAssistant > 0) {
+        debugPrint(
+            'Pruned $removedAssistant orphaned assistant chat image(s) after restore.');
+      }
+    } catch (e) {
+      debugPrint('Pruning orphaned assistant chat images failed: $e');
     }
   }
 
@@ -1457,7 +1522,8 @@ class BackupManager {
         if (validIdentifier.hasMatch(entry.key)) {
           validColumns.add(entry.key);
           var val = entry.value;
-          if (val is String &&
+          if (!tableName.startsWith('assistant_') &&
+              val is String &&
               (entry.key.endsWith('_date') ||
                   entry.key.endsWith('_at') ||
                   entry.key == 'date' ||

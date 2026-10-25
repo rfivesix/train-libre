@@ -1038,6 +1038,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                           : 0,
                                       showAmbientGlow: showVoiceOrb,
                                       enableInteraction: false,
+                                      hitTestCloudShape: true,
                                     );
                                     return Positioned(
                                       left: isSettledOrb ? animatedLeft : 0,
@@ -1059,7 +1060,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                 _handleCloudPointerEnd(event,
                                                     cancelled: true),
                                             child: GestureDetector(
-                                              behavior: HitTestBehavior.opaque,
+                                              behavior:
+                                                  HitTestBehavior.deferToChild,
                                               onTap:
                                                   morphAnimation.value > 0.001
                                                       ? null

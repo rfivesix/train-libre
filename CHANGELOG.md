@@ -25,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Kept AI chat images available in past conversations by storing them under relative media paths, saving display previews, and including assistant history and previews in manual and iCloud backups and restores.
+- Limited the floating AI cloud's tap and drag hit area to its animated cloud silhouette instead of the full square canvas.
 - Kept the AI chat quick action available whenever AI features are enabled, regardless of the floating cloud setting. With its launcher disabled, the cloud enters the Add menu's AI chat slot from and returns to a fully offscreen point on the right, aligned to the chat row, and remains the button. Closing the chat now completes the collapse animation before the hidden cloud fades away; Glass menus inside the expanded assistant no longer hide their own overlay.
 - Fixed the global AI cloud remaining hidden after app initialization by transferring the startup visibility lease to the vapor reveal route and releasing it when the reveal finishes. Made the docked cloud more visible after it returns, force the overlay to occupy the full viewport and slide it fully offscreen, and suppress it at the `GlassBottomMenuSheet`, adaptive glass picker sheet, and glass dropdown/popover lifecycles.
 - Fixed cloud visibility notifier assertions when glass picker widgets acquire or release suppression leases during Flutter's build phase by deferring listener notification safely until after the frame.

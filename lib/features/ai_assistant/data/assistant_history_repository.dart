@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
 
+import '../../../core/media/app_media_store.dart';
 import '../../../data/drift_database.dart';
 import 'assistant_image_attachment.dart';
 
@@ -139,6 +140,8 @@ class AssistantHistoryRepository {
   }
 
   Future<List<AssistantMessage>> messages(String conversationId) async {
+    await AssistantImageAttachmentStore.instance
+        .ensureRelativeStorage(database);
     final rows = await database.customSelect(
       'SELECT * FROM assistant_messages WHERE conversation_id = ? ORDER BY created_at, rowid',
       variables: [drift.Variable.withString(conversationId)],
@@ -165,6 +168,7 @@ class AssistantHistoryRepository {
   Future<List<AssistantMessageAttachment>> attachmentsForMessage(
     String messageId,
   ) async {
+    await AppMediaStore.instance.ensureInitialized();
     final rows = await database.customSelect(
       'SELECT * FROM assistant_message_attachments WHERE message_id = ? ORDER BY created_at, rowid',
       variables: [drift.Variable.withString(messageId)],
@@ -187,6 +191,7 @@ class AssistantHistoryRepository {
         id: row.read<String>('id'),
         messageId: row.read<String>('message_id'),
         filePath: row.read<String>('file_path'),
+        thumbPath: row.read<String?>('thumb_path'),
         mimeType: row.read<String>('mime_type'),
         createdAt: DateTime.parse(row.read<String>('created_at')),
       );
@@ -305,7 +310,8 @@ class AssistantHistoryRepository {
     String? providerId,
     String? modelId,
     String? error,
-    List<({String filePath, String mimeType})> attachments = const [],
+    List<({String filePath, String? thumbPath, String mimeType})> attachments =
+        const [],
   }) async {
     if (role != 'user' && role != 'assistant') throw ArgumentError.value(role);
     final id = _uuid.v4();
@@ -327,11 +333,12 @@ class AssistantHistoryRepository {
       );
       for (final attachment in attachments) {
         await database.customStatement(
-          'INSERT INTO assistant_message_attachments(id,message_id,file_path,mime_type,created_at) VALUES(?,?,?,?,?)',
+          'INSERT INTO assistant_message_attachments(id,message_id,file_path,thumb_path,mime_type,created_at) VALUES(?,?,?,?,?,?)',
           [
             _uuid.v4(),
             id,
             attachment.filePath,
+            attachment.thumbPath,
             attachment.mimeType,
             now.toIso8601String(),
           ],

@@ -25,6 +25,7 @@ import '../media/app_media_store.dart';
 /// backup.json                       the payload, as before
 /// thumbs/meals/<name>_thumb.jpg     one preview per meal that has one
 /// thumbs/workouts/<name>_thumb.jpg  one preview per workout that has one
+/// thumbs/assistant_chats/<name>_thumb.jpg one preview per chat attachment
 /// ```
 ///
 /// Previews sit in a folder named after the feature they belong to, the same
@@ -49,6 +50,8 @@ class BackupArchive {
 
   /// Where workout previews go.
   static const String workoutThumbsFolder = '$thumbsFolder/workouts';
+  static const String assistantChatThumbsFolder =
+      '$thumbsFolder/assistant_chats';
   static const String encryptedSuffix = '.enc';
 
   /// Previews are already-compressed JPEGs; deflating them again costs CPU and
@@ -78,6 +81,7 @@ class BackupArchive {
     required String payloadJson,
     List<File> thumbnails = const [],
     List<File> workoutThumbnails = const [],
+    List<File> assistantChatThumbnails = const [],
     String? passphrase,
   }) async {
     final cipher = passphrase == null || passphrase.isEmpty
@@ -139,6 +143,23 @@ class BackupArchive {
           name = '$name$encryptedSuffix';
         }
         _addBytes(encoder, '$workoutThumbsFolder/$name', bytes);
+      }
+
+      for (final thumb in assistantChatThumbnails) {
+        List<int> bytes;
+        try {
+          bytes = await thumb.readAsBytes();
+        } catch (e) {
+          debugPrint('[BackupArchive] skipping unreadable ${thumb.path}: $e');
+          continue;
+        }
+        var name = p.basename(thumb.path);
+        if (!used.add('$assistantChatThumbsFolder/$name')) continue;
+        if (cipher != null) {
+          bytes = await cipher.encrypt(bytes);
+          name = '$name$encryptedSuffix';
+        }
+        _addBytes(encoder, '$assistantChatThumbsFolder/$name', bytes);
       }
     } finally {
       await encoder.close();
@@ -233,6 +254,10 @@ class BackupArchiveContents {
       if (domain == MediaDomain.workouts && !_isWorkoutThumb(file.name)) {
         continue;
       }
+      if (domain == MediaDomain.assistantChats &&
+          !_isAssistantChatThumb(file.name)) {
+        continue;
+      }
 
       var name = p.basename(file.name);
       if (_cipher != null) {
@@ -273,6 +298,10 @@ class BackupArchiveContents {
   /// True for workout previews in `thumbs/workouts/<name>`.
   static bool _isWorkoutThumb(String entryName) {
     return entryName.startsWith('${BackupArchive.workoutThumbsFolder}/');
+  }
+
+  static bool _isAssistantChatThumb(String entryName) {
+    return entryName.startsWith('${BackupArchive.assistantChatThumbsFolder}/');
   }
 
   Future<void> close() async {

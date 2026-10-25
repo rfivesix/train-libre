@@ -20,6 +20,7 @@ import 'backup_archive.dart';
 /// icloud_backup.sqlite              the VACUUMed database snapshot
 /// thumbs/meals/<name>_thumb.jpg     one preview per meal that has one
 /// thumbs/workouts/<name>_thumb.jpg  one preview per workout that has one
+/// thumbs/assistant_chats/<name>_thumb.jpg one preview per chat attachment
 /// ```
 ///
 /// Only the previews go in, for the same reason [BackupArchive] gives: they
@@ -41,6 +42,8 @@ class ICloudBackupArchive {
 
   /// Where workout previews sit inside the archive.
   static const String workoutThumbsFolder = BackupArchive.workoutThumbsFolder;
+  static const String assistantChatThumbsFolder =
+      BackupArchive.assistantChatThumbsFolder;
 
   /// Deflate level for the snapshot.
   ///
@@ -54,7 +57,7 @@ class ICloudBackupArchive {
   /// saves close to nothing.
   static const CompressionType _storeOnly = CompressionType.none;
 
-  /// Writes [database] and [thumbnails] (and optional [workoutThumbnails]) to
+  /// Writes [database] and its meal, workout, and assistant chat previews to
   /// an archive at [targetPath].
   ///
   /// A preview that disappeared between being listed and being read is skipped
@@ -64,6 +67,7 @@ class ICloudBackupArchive {
     required File database,
     List<File> thumbnails = const [],
     List<File> workoutThumbnails = const [],
+    List<File> assistantChatThumbnails = const [],
   }) async {
     // `ZipFileEncoder` does its deflate work synchronously between its async
     // file operations. An automatic iCloud backup commonly gets suspended in
@@ -78,6 +82,8 @@ class ICloudBackupArchive {
         thumbnailPaths: thumbnails.map((file) => file.path).toList(),
         workoutThumbnailPaths:
             workoutThumbnails.map((file) => file.path).toList(),
+        assistantChatThumbnailPaths:
+            assistantChatThumbnails.map((file) => file.path).toList(),
       ),
     );
     return File(archivePath);
@@ -88,6 +94,7 @@ class ICloudBackupArchive {
     required String databasePath,
     required List<String> thumbnailPaths,
     required List<String> workoutThumbnailPaths,
+    required List<String> assistantChatThumbnailPaths,
   }) async {
     final existing = File(targetPath);
     if (await existing.exists()) await existing.delete();
@@ -130,6 +137,21 @@ class ICloudBackupArchive {
           final bytes = await thumb.readAsBytes();
           encoder.addArchiveFile(
             ArchiveFile.bytes('$workoutThumbsFolder/$name', bytes)
+              ..compression = _storeOnly,
+          );
+        } catch (e) {
+          debugPrint('[ICloudBackupArchive] skipping ${thumb.path}: $e');
+        }
+      }
+
+      for (final thumbnailPath in assistantChatThumbnailPaths) {
+        final thumb = File(thumbnailPath);
+        final name = p.basename(thumbnailPath);
+        if (!used.add('$assistantChatThumbsFolder/$name')) continue;
+        try {
+          final bytes = await thumb.readAsBytes();
+          encoder.addArchiveFile(
+            ArchiveFile.bytes('$assistantChatThumbsFolder/$name', bytes)
               ..compression = _storeOnly,
           );
         } catch (e) {
@@ -217,7 +239,12 @@ class ICloudBackupArchive {
             : '$workoutThumbsFolder/';
         for (final file in archive.files) {
           if (!file.isFile) continue;
-          if (!file.name.startsWith(prefix)) continue;
+          final domainPrefix = switch (domain) {
+            MediaDomain.meals => prefix,
+            MediaDomain.workouts => '$workoutThumbsFolder/',
+            MediaDomain.assistantChats => '$assistantChatThumbsFolder/',
+          };
+          if (!file.name.startsWith(domainPrefix)) continue;
 
           final name = p.basename(file.name);
           if (name.isEmpty || name == '.' || name == '..') continue;

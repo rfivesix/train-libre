@@ -61,10 +61,20 @@ Future<void> _createAssistantSchema(AppDatabase database) async {
       id TEXT PRIMARY KEY,
       message_id TEXT NOT NULL REFERENCES assistant_messages(id) ON DELETE CASCADE,
       file_path TEXT NOT NULL,
+      thumb_path TEXT,
       mime_type TEXT NOT NULL,
       created_at TEXT NOT NULL
     )
   ''');
+  final attachmentColumns = await database
+      .customSelect('PRAGMA table_info(assistant_message_attachments)')
+      .get();
+  if (!attachmentColumns
+      .any((row) => row.read<String>('name') == 'thumb_path')) {
+    await database.customStatement(
+      'ALTER TABLE assistant_message_attachments ADD COLUMN thumb_path TEXT',
+    );
+  }
   await database.customStatement(
       'CREATE INDEX IF NOT EXISTS assistant_messages_conversation_idx ON assistant_messages(conversation_id, created_at)');
   await database.customStatement(

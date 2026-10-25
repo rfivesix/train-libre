@@ -93,6 +93,10 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   /// Decorative uses can disable this when an ancestor handles interaction.
   final bool enableInteraction;
 
+  /// Limits pointer hit testing to the painted cloud lobes instead of the
+  /// rectangular canvas. Useful when the canvas is larger than the orb.
+  final bool hitTestCloudShape;
+
   /// Drives the base-to-accent dye sweep from outside, 0 to 1.
   ///
   /// The scale is the same five dye steps the tap counter walks through, so
@@ -134,6 +138,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     this.animate = true,
     this.forceHighFrameRate = false,
     this.enableInteraction = true,
+    this.hitTestCloudShape = false,
     this.tint,
     this.tintEnergyGain = 0.0,
   });
@@ -364,7 +369,9 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
         widget.accentColor ?? Theme.of(context).colorScheme.primary;
 
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+      behavior: widget.hitTestCloudShape
+          ? HitTestBehavior.deferToChild
+          : HitTestBehavior.opaque,
       onTap: widget.enableInteraction ? _handleTap : null,
       child: AnimatedBuilder(
         animation: Listenable.merge([
@@ -380,6 +387,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
               size: widget.canvasSize ?? Size(widget.size, widget.size),
               painter: _OrganicLivingCloudPainter(
                 cloudSize: widget.size,
+                canvasSize: widget.canvasSize ?? Size(widget.size, widget.size),
                 sizeFactor: widget.sizeFactor.clamp(0.0, 1.0).toDouble(),
                 rotation: widget.rotation,
                 cloudCenter: widget.cloudCenter,
@@ -399,6 +407,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
                 showAmbientGlow: widget.showAmbientGlow,
                 edgeBlurSigma: widget.edgeBlurSigma,
                 showDetachedSatellite: widget.showDetachedSatellite,
+                hitTestCloudShape: widget.hitTestCloudShape,
                 baseColor: effectiveBase,
                 accentColor: effectiveAccent,
                 isDark: isDark,
@@ -413,6 +422,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
 
 class _OrganicLivingCloudPainter extends CustomPainter {
   final double cloudSize;
+  final Size canvasSize;
   final double sizeFactor;
   final double rotation;
   final Offset? cloudCenter;
@@ -431,12 +441,14 @@ class _OrganicLivingCloudPainter extends CustomPainter {
   final bool showAmbientGlow;
   final double edgeBlurSigma;
   final bool showDetachedSatellite;
+  final bool hitTestCloudShape;
   final Color baseColor;
   final Color accentColor;
   final bool isDark;
 
   _OrganicLivingCloudPainter({
     required this.cloudSize,
+    required this.canvasSize,
     required this.sizeFactor,
     required this.rotation,
     required this.cloudCenter,
@@ -450,6 +462,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     required this.showAmbientGlow,
     required this.edgeBlurSigma,
     required this.showDetachedSatellite,
+    required this.hitTestCloudShape,
     required this.baseColor,
     required this.accentColor,
     required this.isDark,
@@ -632,9 +645,11 @@ class _OrganicLivingCloudPainter extends CustomPainter {
       if (safeRect != null && frameMorph > 0.001) {
         layerBounds = safeRect.inflate(36.0 + edgeBlurSigma * 3.0);
       } else {
-        final maxClusterRadius = (cloudSize * 0.70 * sizeFactor * (1.0 + 0.85 * energy) +
-                edgeBlurSigma * 3.0 + 8.0)
-            .ceilToDouble();
+        final maxClusterRadius =
+            (cloudSize * 0.70 * sizeFactor * (1.0 + 0.85 * energy) +
+                    edgeBlurSigma * 3.0 +
+                    8.0)
+                .ceilToDouble();
         layerBounds = Rect.fromCircle(
           center: Offset.zero,
           radius: maxClusterRadius,
@@ -944,9 +959,78 @@ class _OrganicLivingCloudPainter extends CustomPainter {
   }
 
   @override
+  bool? hitTest(Offset position) {
+    if (!hitTestCloudShape || sizeFactor <= 0.001 || frameMorph > 0.001) {
+      return null;
+    }
+
+    final center =
+        cloudCenter ?? Offset(canvasSize.width / 2, canvasSize.height / 2);
+    final offset = position - center;
+    final cloudRotation =
+        (time * (2 * math.pi / 16.0)) % (2 * math.pi) + rotation;
+    final cosRotation = math.cos(cloudRotation);
+    final sinRotation = math.sin(cloudRotation);
+    // The painted cluster rotates as a whole, so test in its unrotated space.
+    final localPosition = Offset(
+      offset.dx * cosRotation + offset.dy * sinRotation,
+      -offset.dx * sinRotation + offset.dy * cosRotation,
+    );
+
+    final rippleIntensity =
+        (ripple > 0 && ripple < 1) ? math.sin(ripple * math.pi) : 0.0;
+    final motion = morph;
+    final scale = cloudSize / 280.0;
+    final coreRespiration =
+        (0.06 * math.sin(time * 2.0) + 0.03 * math.cos(time * 3.6)) * motion +
+            0.10 * rippleIntensity +
+            0.09 * energy;
+    final coreBase = 62.0 + (49.0 - 62.0) * morph;
+    final coreRadius = coreBase * scale * sizeFactor * (1.0 + coreRespiration);
+    if (localPosition.distance <= coreRadius) return true;
+
+    const lobeCount = 6;
+    const topLeftAngle = -0.75 * math.pi;
+    final swell = 1.0 + 0.85 * energy;
+    for (var index = 0; index < lobeCount; index++) {
+      final baseAngle = index * (2 * math.pi / lobeCount);
+      final angle = baseAngle +
+          0.12 * math.sin(time * 1.7 + index * 1.5) * motion +
+          0.05 * math.cos(time * 3.3 + index * 2.3) * motion;
+      final distance = (35.0 * morph +
+              13.0 * energy * morph +
+              6.0 * math.sin(time * 2.3 + index * 1.9) * motion +
+              3.0 * math.cos(time * 4.1 + index * 1.1) * motion) *
+          scale *
+          sizeFactor;
+      final lobePosition = Offset(
+        distance * math.cos(angle),
+        distance * math.sin(angle),
+      );
+      final effectiveAngle = (angle + cloudRotation) % (2 * math.pi);
+      final angleDiff = effectiveAngle - topLeftAngle;
+      final positionalScale = 1.0 + 0.22 * math.cos(angleDiff) * motion;
+      final primaryBreathe = 0.10 * math.cos(time * 2.5 + index * 1.7) * motion;
+      final secondaryBreathe =
+          0.05 * math.sin(time * 5.0 + index * 2.8) * motion;
+      final rippleSurge = rippleIntensity *
+          0.14 *
+          math.sin(ripple * math.pi + index * (math.pi / 3));
+      final lobeScale = positionalScale *
+          (1.0 + primaryBreathe + secondaryBreathe + rippleSurge);
+      final lobeBase = 10.0 + (37.0 - 10.0) * morph;
+      final lobeRadius = lobeBase * scale * sizeFactor * lobeScale * swell;
+      if ((localPosition - lobePosition).distance <= lobeRadius) return true;
+    }
+
+    return false;
+  }
+
+  @override
   bool shouldRepaint(covariant _OrganicLivingCloudPainter oldDelegate) {
     return oldDelegate.time != time ||
         oldDelegate.cloudSize != cloudSize ||
+        oldDelegate.canvasSize != canvasSize ||
         oldDelegate.sizeFactor != sizeFactor ||
         oldDelegate.rotation != rotation ||
         oldDelegate.cloudCenter != cloudCenter ||
@@ -959,6 +1043,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         oldDelegate.showAmbientGlow != showAmbientGlow ||
         oldDelegate.edgeBlurSigma != edgeBlurSigma ||
         oldDelegate.showDetachedSatellite != showDetachedSatellite ||
+        oldDelegate.hitTestCloudShape != hitTestCloudShape ||
         oldDelegate.baseColor != baseColor ||
         oldDelegate.accentColor != accentColor ||
         oldDelegate.isDark != isDark;

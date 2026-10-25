@@ -16,10 +16,18 @@ import 'meal_image_processor.dart';
 /// backup archive alike.
 enum MediaDomain {
   meals,
-  workouts;
+  workouts,
+  assistantChats;
 
   /// Folder of this domain, relative to the application support directory.
-  String get folder => p.join(AppMediaStore.mediaRoot, name);
+  String get folder => p.join(
+        AppMediaStore.mediaRoot,
+        switch (this) {
+          MediaDomain.meals => 'meals',
+          MediaDomain.workouts => 'workouts',
+          MediaDomain.assistantChats => 'assistant_chats',
+        },
+      );
 }
 
 /// Where a stored image and its preview ended up, relative to the application
@@ -410,6 +418,80 @@ class AppMediaStore {
       basePath: base,
       directoriesByName: directories,
       defaultDirectory: MediaDomain.workouts.folder,
+    );
+  }
+
+  /// Every chat attachment and preview that assistant history refers to.
+  static Future<Set<String>> referencedAssistantChatPaths(
+    AppDatabase db,
+  ) async {
+    final referenced = <String>{};
+    final rows = await db
+        .customSelect(
+          'SELECT file_path, thumb_path FROM assistant_message_attachments',
+        )
+        .get();
+    for (final row in rows) {
+      final image = row.data['file_path'];
+      final thumb = row.data['thumb_path'];
+      if (image is String && image.isNotEmpty) referenced.add(image);
+      if (thumb is String && thumb.isNotEmpty) referenced.add(thumb);
+    }
+    return referenced;
+  }
+
+  static Future<List<String>> _assistantChatThumbPaths(AppDatabase db) async {
+    final paths = <String>[];
+    final seen = <String>{};
+    final rows = await db
+        .customSelect(
+          'SELECT file_path, thumb_path FROM assistant_message_attachments',
+        )
+        .get();
+    for (final row in rows) {
+      final candidates = <String?>[
+        row.data['thumb_path'] as String?,
+        thumbPathFor(row.data['file_path'] as String?),
+      ];
+      for (final candidate in candidates) {
+        if (candidate == null || candidate.isEmpty) continue;
+        if (seen.add(candidate)) paths.add(candidate);
+      }
+    }
+    return paths;
+  }
+
+  /// The assistant chat previews that go into a backup archive.
+  Future<List<File>> collectAssistantChatThumbnails(AppDatabase db) async {
+    final files = <File>[];
+    try {
+      for (final candidate in await _assistantChatThumbPaths(db)) {
+        final file = await resolve(candidate);
+        if (file != null && await file.exists()) files.add(file);
+      }
+    } catch (e) {
+      debugPrint('[AppMediaStore] collecting assistant previews failed: $e');
+    }
+    return files;
+  }
+
+  /// Where restored assistant chat previews have to land.
+  Future<MediaThumbPlacement> assistantChatThumbPlacement(
+      AppDatabase db) async {
+    final base = await ensureInitialized();
+    final directories = <String, String>{};
+    try {
+      for (final relative in await _assistantChatThumbPaths(db)) {
+        directories[p.basename(relative)] = p.dirname(relative);
+      }
+    } catch (e) {
+      debugPrint(
+          '[AppMediaStore] reading assistant preview locations failed: $e');
+    }
+    return MediaThumbPlacement(
+      basePath: base,
+      directoriesByName: directories,
+      defaultDirectory: MediaDomain.assistantChats.folder,
     );
   }
 }

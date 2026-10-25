@@ -72,7 +72,7 @@ class CloudChatTurnView extends StatelessWidget {
     final userBubbleTextColor =
         isDark ? Colors.white : theme.colorScheme.onPrimary;
     final imageFiles = turn.attachments.isNotEmpty
-        ? turn.attachments.map((attachment) => attachment.file).toList()
+        ? turn.attachments.map((attachment) => attachment.displayFile).toList()
         : turn.pendingImageFiles;
 
     Widget sentImageGrid() {

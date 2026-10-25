@@ -254,7 +254,8 @@ class AssistantChatService {
       preflightIdentity = await imageClient.identityForImages();
       await imageClient.validateImageSupport(preflightIdentity);
     }
-    List<({String filePath, String mimeType})> savedAttachments;
+    List<({String filePath, String? thumbPath, String mimeType})>
+        savedAttachments;
     try {
       savedAttachments =
           await AssistantImageAttachmentStore.instance.persist(imageFiles);
