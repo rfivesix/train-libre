@@ -6797,6 +6797,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceTapToFinish => 'Listening — tap to finish';
 
   @override
+  String get aiChatAddImage => 'Add image';
+
+  @override
+  String get aiChatTakePhoto => 'Take photo';
+
+  @override
+  String get aiChatChoosePhoto => 'Choose from library';
+
+  @override
+  String get aiChatRemoveImage => 'Remove image';
+
+  @override
+  String get aiChatCameraUnavailable => 'Camera is unavailable on this device.';
+
+  @override
+  String get aiChatCameraPermission => 'Allow camera access to take a photo.';
+
+  @override
+  String get aiChatCapture => 'Take photo';
+
+  @override
+  String get aiChatCameraOptions => 'Camera options';
+
+  @override
+  String get aiChatFlash => 'Flash';
+
+  @override
+  String get aiChatSwitchCamera => 'Switch camera';
+
+  @override
+  String get aiChatImageLimit => 'You can attach up to 4 images.';
+
+  @override
+  String get aiChatImageQuestion => 'What can you tell me about this image?';
+
+  @override
+  String get aiChatImageUnsupported =>
+      'The selected AI model does not support images. Your draft remains in the composer.';
+
+  @override
   String get voiceStarting => 'Getting ready…';
 
   @override

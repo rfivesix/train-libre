@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 
+import '../../../services/ai/apple_foundation_service.dart';
+import '../../../services/ai_service.dart';
 import '../data/ai_overlay_live_chat_service.dart';
 import '../data/assistant_documentation_reader.dart';
 import '../data/assistant_history_repository.dart';
+import '../data/assistant_image_attachment.dart';
 import '../data/assistant_sql_sandbox.dart';
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
@@ -54,7 +58,28 @@ abstract class AssistantModelClient {
       required Future<void> Function() onDispatch});
 }
 
-class ConfiguredAssistantModelClient implements AssistantModelClient {
+/// Optional image-aware extension. Existing test clients and alternate model
+/// clients can remain text-only without changing their interface.
+abstract class AssistantImageModelClient {
+  Future<AssistantModelIdentity> identityForImages();
+  Future<void> validateImageSupport(AssistantModelIdentity identity);
+
+  Future<String> interpretWithImages({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required List<AssistantImagePayload> images,
+  });
+
+  Stream<String> answerWithImages({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required List<AssistantImagePayload> images,
+    required Future<void> Function() onDispatch,
+  });
+}
+
+class ConfiguredAssistantModelClient
+    implements AssistantModelClient, AssistantImageModelClient {
   const ConfiguredAssistantModelClient();
 
   @override
@@ -65,25 +90,79 @@ class ConfiguredAssistantModelClient implements AssistantModelClient {
   }
 
   @override
+  Future<AssistantModelIdentity> identityForImages() async {
+    final config =
+        await AiOverlayLiveChatService.instance.resolveSelectedConfiguration();
+    return AssistantModelIdentity(config.provider.name, config.model, config);
+  }
+
+  @override
   Future<String> interpret({
     required String prompt,
     required AssistantModelIdentity identity,
+  }) =>
+      interpretWithImages(
+        prompt: prompt,
+        identity: identity,
+        images: const [],
+      );
+
+  @override
+  Future<String> interpretWithImages({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required List<AssistantImagePayload> images,
   }) =>
       AiOverlayLiveChatService.instance
           .streamChat(
             prompt: prompt,
             configuration: identity.configuration,
+            images: images,
             smoothWords: false,
           )
           .join();
+
+  @override
+  Future<void> validateImageSupport(AssistantModelIdentity identity) async {
+    final config = identity.configuration;
+    if (config == null) return;
+    if (config.provider == AiProvider.appleFoundation &&
+        !await AppleFoundationService.instance.supportsImageInput()) {
+      throw const AiUnsupportedImageException(
+        'Apple Foundation Models image input requires a supported iOS version.',
+      );
+    }
+    if (config.provider == AiProvider.ollama &&
+        !RegExp(r'(llava|vision|pixtral|moondream|qwen.*vl|gemma3|minicpm-v)',
+                caseSensitive: false)
+            .hasMatch(config.model)) {
+      throw const AiUnsupportedImageException(
+        'The selected Ollama model is not a known vision model.',
+      );
+    }
+  }
 
   @override
   Stream<String> answer(
           {required String prompt,
           required AssistantModelIdentity identity,
           required Future<void> Function() onDispatch}) =>
+      answerWithImages(
+        prompt: prompt,
+        identity: identity,
+        images: const [],
+        onDispatch: onDispatch,
+      );
+
+  @override
+  Stream<String> answerWithImages(
+          {required String prompt,
+          required AssistantModelIdentity identity,
+          required List<AssistantImagePayload> images,
+          required Future<void> Function() onDispatch}) =>
       AiOverlayLiveChatService.instance.streamChat(
         prompt: prompt, configuration: identity.configuration,
+        images: images,
         onDispatch: onDispatch,
         smoothWords: false,
         // Previous answers may contain personal data from a different scope.
@@ -100,6 +179,7 @@ class AssistantSubmission {
     this.clarification,
     this.providerId,
     this.modelId,
+    this.retainDraft = false,
   });
   final String conversationId;
   final AssistantMessage userMessage;
@@ -108,6 +188,7 @@ class AssistantSubmission {
   final String? clarification;
   final String? providerId;
   final String? modelId;
+  final bool retainDraft;
 }
 
 /// Owns the approval boundary. The model may interpret the user's text before
@@ -133,9 +214,22 @@ class AssistantChatService {
 
   Future<AssistantSubmission> submit(String prompt,
       {String? conversationId,
+      List<File> imageFiles = const [],
       required DateTime now,
       required String locale}) async {
     final isDe = locale.toLowerCase().startsWith('de');
+    AssistantModelIdentity? preflightIdentity;
+    if (imageFiles.isNotEmpty) {
+      if (model is! AssistantImageModelClient) {
+        throw const AiUnsupportedImageException(
+          'The configured chat client does not support image input.',
+        );
+      }
+      final imageClient = model as AssistantImageModelClient;
+      preflightIdentity =
+          await (model as AssistantImageModelClient).identityForImages();
+      await imageClient.validateImageSupport(preflightIdentity);
+    }
     final conversation = conversationId == null
         ? await history.createConversation(
             synthesizeAssistantConversationTitle(
@@ -147,11 +241,33 @@ class AssistantChatService {
         : null;
     final id = conversation?.id ?? conversationId!;
     final priorMessages = await history.messages(id);
+    final priorImagesExist = priorMessages.any(
+      (message) => message.role == 'user' && message.attachments.isNotEmpty,
+    );
+    if (imageFiles.isEmpty && priorImagesExist) {
+      if (model is! AssistantImageModelClient) {
+        throw const AiUnsupportedImageException(
+          'The configured chat client does not support image input.',
+        );
+      }
+      final imageClient = model as AssistantImageModelClient;
+      preflightIdentity = await imageClient.identityForImages();
+      await imageClient.validateImageSupport(preflightIdentity);
+    }
+    List<({String filePath, String mimeType})> savedAttachments;
+    try {
+      savedAttachments =
+          await AssistantImageAttachmentStore.instance.persist(imageFiles);
+    } catch (_) {
+      if (conversation != null) await history.deleteConversation(id);
+      rethrow;
+    }
     final user = await history.addMessage(
         conversationId: id,
         role: 'user',
         content: prompt,
-        status: 'generating');
+        status: 'generating',
+        attachments: savedAttachments);
     final safeContext = priorMessages
         .where((message) =>
             message.role == 'user' ||
@@ -184,15 +300,43 @@ class AssistantChatService {
     AssistantModelIdentity? identity;
     late final AssistantIntent decision;
     try {
-      identity = await model.identity();
+      identity = preflightIdentity ?? await model.identity();
+      final images = await _imagesForMessage(
+        priorMessages: priorMessages,
+        currentAttachments: user.attachments,
+      );
+      if (images.isNotEmpty) {
+        if (model is! AssistantImageModelClient) {
+          throw const AiUnsupportedImageException(
+            'The configured chat client does not support image input.',
+          );
+        }
+        await (model as AssistantImageModelClient)
+            .validateImageSupport(identity);
+      }
       decision = planner.parse(
-        await model.interpret(
+        await _interpret(
           prompt: planner.prompt(
               message: prompt, context: safeContext, now: now, locale: locale),
           identity: identity,
+          images: images,
         ),
         now: now,
         locale: locale,
+      );
+    } on AiUnsupportedImageException catch (error) {
+      await history.deleteMessage(user.id);
+      if (conversation != null) await history.deleteConversation(id);
+      final reply = isDe
+          ? 'Das ausgewählte KI-Modell unterstützt keine Bilder. Deine Eingabe bleibt im Chatfeld.'
+          : 'The selected AI model does not support images. Your draft remains in the composer.';
+      return AssistantSubmission(
+        conversationId: id,
+        userMessage: user,
+        clarification: '$reply\n${error.message}',
+        providerId: identity?.providerId,
+        modelId: identity?.modelId,
+        retainDraft: true,
       );
     } catch (error) {
       final reply = isDe
@@ -345,6 +489,26 @@ class AssistantChatService {
     var finished = false;
     final accessRecords = <AssistantAccessRecord>[access];
     try {
+      final priorMessages = await history.messages(access.conversationId);
+      AssistantMessage? currentMessage;
+      for (final message in priorMessages) {
+        if (message.id == access.messageId) {
+          currentMessage = message;
+          break;
+        }
+      }
+      final images = await _imagesForMessage(
+        priorMessages: priorMessages
+            .where((message) => message.id != access.messageId)
+            .toList(),
+        currentAttachments: currentMessage?.attachments ?? const [],
+      );
+      AssistantModelIdentity? imageResponseIdentity;
+      if (images.isNotEmpty && model is AssistantImageModelClient) {
+        final imageClient = model as AssistantImageModelClient;
+        imageResponseIdentity = await imageClient.identityForImages();
+        await imageClient.validateImageSupport(imageResponseIdentity);
+      }
       var results = await data.readApproved(request, approved: true);
       onProgressStatus?.call(AssistantProgressStatus.processingData);
       final expectedTargetIds = <String, String>{};
@@ -450,7 +614,7 @@ class AssistantChatService {
         yield pauseProposal.summary;
         return;
       }
-      final identity = await model.identity();
+      final identity = imageResponseIdentity ?? await model.identity();
       await history.setAccessProvider(
           accessId, identity.providerId, identity.modelId);
       assistant = await history.addMessage(
@@ -508,9 +672,10 @@ class AssistantChatService {
             );
             var dispatchedThisTurn = false;
             var rawCommand = '';
-            await for (final chunk in model.answer(
+            await for (final chunk in _answer(
               prompt: prompt,
               identity: identity,
+              images: images,
               onDispatch: () async {
                 if (dispatchedThisTurn) return;
                 dispatchedThisTurn = true;
@@ -945,6 +1110,61 @@ class AssistantChatService {
             error: 'Generation interrupted');
       }
     }
+  }
+
+  Future<List<AssistantImagePayload>> _imagesForMessage({
+    required List<AssistantMessage> priorMessages,
+    required List<AssistantMessageAttachment> currentAttachments,
+  }) async {
+    final previous = <AssistantMessageAttachment>[];
+    for (final message in priorMessages.where((message) =>
+        message.role == 'user' && message.attachments.isNotEmpty)) {
+      previous.addAll(message.attachments);
+    }
+    final previousContext =
+        previous.length > 4 ? previous.sublist(previous.length - 4) : previous;
+    return AssistantImageAttachmentStore.instance.prepare([
+      ...previousContext,
+      ...currentAttachments,
+    ]);
+  }
+
+  Future<String> _interpret({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required List<AssistantImagePayload> images,
+  }) {
+    final client = model;
+    if (images.isNotEmpty && client is AssistantImageModelClient) {
+      return (client as AssistantImageModelClient).interpretWithImages(
+        prompt: prompt,
+        identity: identity,
+        images: images,
+      );
+    }
+    return client.interpret(prompt: prompt, identity: identity);
+  }
+
+  Stream<String> _answer({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required List<AssistantImagePayload> images,
+    required Future<void> Function() onDispatch,
+  }) {
+    final client = model;
+    if (images.isNotEmpty && client is AssistantImageModelClient) {
+      return (client as AssistantImageModelClient).answerWithImages(
+        prompt: prompt,
+        identity: identity,
+        images: images,
+        onDispatch: onDispatch,
+      );
+    }
+    return client.answer(
+      prompt: prompt,
+      identity: identity,
+      onDispatch: onDispatch,
+    );
   }
 
   String _sqlFailureMessage(

@@ -50,6 +50,19 @@ class AppleFoundationService {
     }
   }
 
+  /// Whether this OS build can actually consume image attachments. Older
+  /// FoundationModels builds accepted the field but silently ignored images.
+  Future<bool> supportsImageInput() async {
+    if (!kIsWeb && !Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('supportsImageInput') ?? false;
+    } on MissingPluginException {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Sends a structured prompt (and optional base64 images) to Apple's on-device Foundation Model.
   /// [systemPrompt] specifies the model instructions separately from the user [prompt].
   Future<String> generateMealJson({

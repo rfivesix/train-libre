@@ -6,6 +6,15 @@ import 'package:http/http.dart' as http;
 
 import '../../../services/ai/apple_foundation_service.dart';
 import '../../../services/ai_service.dart';
+import 'assistant_image_attachment.dart';
+
+class AiUnsupportedImageException implements Exception {
+  const AiUnsupportedImageException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
 
 /// Lightweight in-memory turn passed as conversation context during the UI demo.
 class AiOverlayLiveChatTurn {
@@ -42,6 +51,7 @@ class AiOverlayLiveChatService {
   Stream<String> streamChat({
     required String prompt,
     List<AiOverlayLiveChatTurn> history = const [],
+    List<AssistantImagePayload> images = const [],
     AiOverlayChatConfiguration? configuration,
     Future<void> Function()? onDispatch,
     bool smoothWords = true,
@@ -59,6 +69,7 @@ class AiOverlayLiveChatService {
       model: model,
       prompt: prompt,
       history: history,
+      images: images,
       timeout: timeout,
       onDispatch: onDispatch,
     );
@@ -79,6 +90,46 @@ class AiOverlayLiveChatService {
         resolved.provider,
         await AiService.instance.getSelectedModel(resolved.provider),
         resolved.apiKey);
+  }
+
+  /// Resolves only the configured provider for image-bearing chat turns.
+  /// Sending a user's image to an implicit credential fallback would change
+  /// the recipient without their knowledge.
+  Future<AiOverlayChatConfiguration> resolveSelectedConfiguration() async {
+    final provider = await AiService.instance.getSelectedProvider();
+    if (provider == AiProvider.appleFoundation) {
+      if (!await AppleFoundationService.instance.isAvailable()) {
+        throw const AiUnsupportedFeatureException(
+          'Apple Intelligence is not available on this device.',
+        );
+      }
+      return AiOverlayChatConfiguration(
+        provider,
+        await AiService.instance.getSelectedModel(provider),
+        '',
+      );
+    }
+    if (provider == AiProvider.ollama) {
+      return AiOverlayChatConfiguration(
+        provider,
+        await AiService.instance.getSelectedModel(provider),
+        '',
+      );
+    }
+    if (provider == AiProvider.custom) {
+      return AiOverlayChatConfiguration(
+        provider,
+        await AiService.instance.getSelectedModel(provider),
+        await AiService.instance.getApiKey(provider) ?? '',
+      );
+    }
+    final key = await AiService.instance.getApiKey(provider);
+    if (key == null || key.trim().isEmpty) throw const AiKeyMissingException();
+    return AiOverlayChatConfiguration(
+      provider,
+      await AiService.instance.getSelectedModel(provider),
+      key.trim(),
+    );
   }
 
   /// Resolves the selected provider, falling back to another configured
@@ -171,6 +222,7 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
     Future<void> Function()? onDispatch,
     bool modelRefreshAttempted = false,
@@ -181,6 +233,7 @@ class AiOverlayLiveChatService {
           yield* _streamAppleFoundation(
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
@@ -192,6 +245,7 @@ class AiOverlayLiveChatService {
             model: _normalizeOpenAiModelId(model),
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
@@ -203,6 +257,7 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
@@ -214,6 +269,7 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
@@ -230,6 +286,7 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
@@ -251,6 +308,7 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
@@ -260,6 +318,7 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
@@ -269,12 +328,23 @@ class AiOverlayLiveChatService {
             model: model,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
           );
       }
     } on AiNetworkException catch (e) {
-      if (onDispatch == null &&
+      if (images.isNotEmpty &&
+          RegExp(
+            r'(image|vision|multimodal|visual|media|content type).{0,80}(unsupported|not supported|not allowed|invalid|does not support)|(?:unsupported|not supported|does not support).{0,80}(image|vision|multimodal|visual|media)',
+            caseSensitive: false,
+          ).hasMatch(e.message)) {
+        throw AiUnsupportedImageException(
+          'The selected model does not support image input: ${e.message}',
+        );
+      }
+      if (images.isEmpty &&
+          onDispatch == null &&
           !modelRefreshAttempted &&
           provider != AiProvider.ollama &&
           provider != AiProvider.custom &&
@@ -295,6 +365,7 @@ class AiOverlayLiveChatService {
             model: fallbackModel,
             prompt: prompt,
             history: history,
+            images: images,
             timeout: timeout,
             onDispatch: onDispatch,
             modelRefreshAttempted: true,
@@ -309,6 +380,7 @@ class AiOverlayLiveChatService {
   Stream<String> _streamAppleFoundation({
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
     Future<void> Function()? onDispatch,
   }) async* {
@@ -334,6 +406,7 @@ class AiOverlayLiveChatService {
         .generateMealJson(
           prompt: fullPrompt.toString(),
           systemPrompt: _defaultSystemPrompt,
+          imagesBase64: images.map((image) => image.base64).toList(),
         )
         .timeout(timeout);
     yield response;
@@ -346,6 +419,7 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
     Future<void> Function()? onDispatch,
   }) async* {
@@ -357,7 +431,21 @@ class AiOverlayLiveChatService {
           if (turn.response.trim().isNotEmpty)
             {'role': 'assistant', 'content': turn.response},
         ],
-      {'role': 'user', 'content': prompt},
+      {
+        'role': 'user',
+        'content': images.isEmpty
+            ? prompt
+            : [
+                {'type': 'text', 'text': prompt},
+                for (final image in images)
+                  {
+                    'type': 'image_url',
+                    'image_url': {
+                      'url': 'data:${image.mimeType};base64,${image.base64}',
+                    },
+                  },
+              ],
+      },
     ];
 
     final isOpenAi = provider == AiProvider.openai;
@@ -503,6 +591,7 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
     Future<void> Function()? onDispatch,
   }) async* {
@@ -513,7 +602,21 @@ class AiOverlayLiveChatService {
           {'role': 'user', 'content': turn.prompt},
           {'role': 'assistant', 'content': turn.response},
         ],
-      {'role': 'user', 'content': prompt},
+      {
+        'role': 'user',
+        'content': [
+          {'type': 'text', 'text': prompt},
+          for (final image in images)
+            {
+              'type': 'image',
+              'source': {
+                'type': 'base64',
+                'media_type': image.mimeType,
+                'data': image.base64,
+              },
+            },
+        ],
+      },
     ];
 
     final request = <String, dynamic>{
@@ -596,6 +699,7 @@ class AiOverlayLiveChatService {
     required String model,
     required String prompt,
     required List<AiOverlayLiveChatTurn> history,
+    required List<AssistantImagePayload> images,
     required Duration timeout,
     Future<void> Function()? onDispatch,
   }) async* {
@@ -635,6 +739,13 @@ class AiOverlayLiveChatService {
                   ? prompt
                   : '$_defaultSystemPrompt\n\n$prompt',
             },
+            for (final image in images)
+              {
+                'inlineData': {
+                  'mimeType': image.mimeType,
+                  'data': image.base64,
+                },
+              },
           ],
         },
       ];

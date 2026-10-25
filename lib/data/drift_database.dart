@@ -56,10 +56,21 @@ Future<void> _createAssistantSchema(AppDatabase database) async {
       error TEXT
     )
   ''');
+  await database.customStatement('''
+    CREATE TABLE IF NOT EXISTS assistant_message_attachments (
+      id TEXT PRIMARY KEY,
+      message_id TEXT NOT NULL REFERENCES assistant_messages(id) ON DELETE CASCADE,
+      file_path TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+  ''');
   await database.customStatement(
       'CREATE INDEX IF NOT EXISTS assistant_messages_conversation_idx ON assistant_messages(conversation_id, created_at)');
   await database.customStatement(
       'CREATE INDEX IF NOT EXISTS assistant_access_conversation_idx ON assistant_data_access(conversation_id, requested_at)');
+  await database.customStatement(
+      'CREATE INDEX IF NOT EXISTS assistant_attachments_message_idx ON assistant_message_attachments(message_id, created_at)');
 }
 
 // --- Mixins for recurring columns ---
@@ -1024,7 +1035,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 41;
+  int get schemaVersion => 42;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1203,7 +1214,7 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
-            if (from < 41) await _createAssistantSchema(this);
+            if (from < 42) await _createAssistantSchema(this);
             if (from < 39) {
               final cols = await _columnsOf(this, meals.actualTableName);
               if (!cols.contains('serving_count')) {

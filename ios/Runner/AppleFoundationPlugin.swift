@@ -33,6 +33,21 @@ enum AppleFoundationPlugin {
       result(false)
       #endif
 
+    case "supportsImageInput":
+      #if canImport(FoundationModels)
+      #if compiler(>=6.4)
+      if #available(iOS 27.0, *) {
+        result(true)
+      } else {
+        result(false)
+      }
+      #else
+      result(false)
+      #endif
+      #else
+      result(false)
+      #endif
+
     case "prewarm":
       let systemPrompt = (call.arguments as? [String: Any])?["systemPrompt"] as? String
       #if canImport(FoundationModels)

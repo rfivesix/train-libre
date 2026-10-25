@@ -6891,6 +6891,48 @@ class AppLocalizationsIt extends AppLocalizations {
   String get voiceTapToFinish => 'In ascolto — tocca per terminare';
 
   @override
+  String get aiChatAddImage => 'Aggiungi immagine';
+
+  @override
+  String get aiChatTakePhoto => 'Scatta una foto';
+
+  @override
+  String get aiChatChoosePhoto => 'Scegli dalla galleria';
+
+  @override
+  String get aiChatRemoveImage => 'Rimuovi immagine';
+
+  @override
+  String get aiChatCameraUnavailable =>
+      'La fotocamera non è disponibile su questo dispositivo.';
+
+  @override
+  String get aiChatCameraPermission =>
+      'Consenti l’accesso alla fotocamera per scattare una foto.';
+
+  @override
+  String get aiChatCapture => 'Scatta una foto';
+
+  @override
+  String get aiChatCameraOptions => 'Opzioni fotocamera';
+
+  @override
+  String get aiChatFlash => 'Flash';
+
+  @override
+  String get aiChatSwitchCamera => 'Cambia fotocamera';
+
+  @override
+  String get aiChatImageLimit => 'Puoi allegare fino a 4 immagini.';
+
+  @override
+  String get aiChatImageQuestion => 'Cosa puoi dirmi su questa immagine?';
+
+  @override
+  String get aiChatImageUnsupported =>
+      'Il modello IA selezionato non supporta le immagini. La bozza resta nel campo di testo.';
+
+  @override
   String get voiceStarting => 'Un attimo…';
 
   @override

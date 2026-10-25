@@ -149,6 +149,17 @@ class DepthScanChannel implements IDepthScanService {
     }
   }
 
+  /// Toggles between the rear and selfie cameras in the shared iOS session.
+  Future<bool> switchCamera() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('switchCamera') ?? false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] switch camera failed: $e');
+      return false;
+    }
+  }
+
   /// Barcodes seen by the running session. Emits the same code repeatedly while
   /// it stays in frame; de-duplication belongs to the caller, which knows
   /// whether the user already dismissed a suggestion.

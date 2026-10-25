@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
@@ -27,6 +28,7 @@ class CloudLiveAssistantRunner {
     required String? conversationId,
     required String locale,
     required DateTime now,
+    List<File> imageFiles = const [],
   }) async {
     final service = _assistant;
     if (service == null) return null;
@@ -35,6 +37,7 @@ class CloudLiveAssistantRunner {
       conversationId: conversationId,
       now: now,
       locale: locale,
+      imageFiles: imageFiles,
     );
   }
 

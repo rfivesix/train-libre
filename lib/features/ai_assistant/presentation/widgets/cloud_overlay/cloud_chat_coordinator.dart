@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../services/ai_service.dart';
 import '../../../../../services/haptic_feedback_service.dart';
 import '../../../application/assistant_chat_service.dart';
+import '../../../data/ai_overlay_live_chat_service.dart';
 import '../../../data/assistant_history_repository.dart';
 import '../../../domain/assistant_progress_status.dart';
 import 'ai_chat_turn.dart';
@@ -274,10 +276,21 @@ class CloudChatCoordinator extends ChangeNotifier {
     onGenerationChanged?.call(false);
   }
 
-  void sendPrompt(String prompt) {
-    if (prompt.trim().isEmpty) return;
+  void sendPrompt(
+    String prompt, {
+    List<File> imageFiles = const [],
+    VoidCallback? onRetainedDraft,
+  }) {
+    if (prompt.trim().isEmpty && imageFiles.isEmpty) return;
     if (useLiveAi) {
-      unawaited(_sendAssistantPrompt(prompt.trim()));
+      unawaited(_sendAssistantPrompt(
+        prompt.trim(),
+        imageFiles: imageFiles,
+        onRetainedDraft: onRetainedDraft,
+      ));
+    } else if (imageFiles.isNotEmpty) {
+      onShowMessage?.call('Image attachments are unavailable in preview mode.');
+      onRetainedDraft?.call();
     } else {
       _sendDemoPrompt(prompt.trim());
     }
@@ -324,9 +337,16 @@ class CloudChatCoordinator extends ChangeNotifier {
     );
   }
 
-  Future<void> _sendAssistantPrompt(String prompt) async {
+  Future<void> _sendAssistantPrompt(
+    String prompt, {
+    List<File> imageFiles = const [],
+    VoidCallback? onRetainedDraft,
+  }) async {
     if (_isGenerating) stopGeneration();
-    if (_liveRunner.assistant == null) return;
+    if (_liveRunner.assistant == null) {
+      onRetainedDraft?.call();
+      return;
+    }
     final locale = localeGetter();
     final isDe = locale.toLowerCase().startsWith('de');
 
@@ -353,6 +373,7 @@ class CloudChatCoordinator extends ChangeNotifier {
     _waitingHaptics.resetWordHaptics();
     final turn = AiChatTurn(prompt)
       ..generationStartedAt = DateTime.now()
+      ..pendingImageFiles = List<File>.unmodifiable(imageFiles)
       ..modelName = _currentModelName;
 
     _activeAuditRecord = null;
@@ -377,6 +398,7 @@ class CloudChatCoordinator extends ChangeNotifier {
     try {
       final submission = await _liveRunner.submitPrompt(
         prompt: prompt,
+        imageFiles: imageFiles,
         conversationId: _conversationId,
         now: DateTime.now(),
         locale: locale,
@@ -387,7 +409,23 @@ class CloudChatCoordinator extends ChangeNotifier {
         return;
       }
 
+      if (submission.retainDraft) {
+        _chatTurns.remove(turn);
+        _isGenerating = false;
+        await _loadingCloud.hide();
+        if (_isDisposed || _activeGenerationId != generationId) return;
+        notifyListeners();
+        _waitingHaptics.sync(isGenerating: false);
+        onGenerationChanged?.call(false);
+        onShowMessage?.call(submission.clarification ??
+            'The selected AI model does not support images.');
+        onRetainedDraft?.call();
+        return;
+      }
+
       turn.userMessageId = submission.userMessage.id;
+      turn.attachments = submission.userMessage.attachments;
+      turn.pendingImageFiles = const [];
       turn.access = submission.access;
       turn.modelName =
           formatModelDisplayName(submission.providerId, submission.modelId) ??
@@ -432,6 +470,22 @@ class CloudChatCoordinator extends ChangeNotifier {
       if (_isDisposed || _activeGenerationId != generationId) return;
       await _loadingCloud.hide();
       if (_isDisposed || _activeGenerationId != generationId) return;
+
+      if (error is AiUnsupportedImageException) {
+        _chatTurns.remove(turn);
+        _isGenerating = false;
+        notifyListeners();
+        _waitingHaptics.sync(isGenerating: false);
+        onGenerationChanged?.call(false);
+        final isDe = locale.toLowerCase().startsWith('de');
+        onShowMessage?.call(isDe
+            ? 'Das ausgewählte KI-Modell unterstützt keine Bilder. Dein Entwurf bleibt im Eingabefeld.'
+            : 'The selected AI model does not support images. Your draft remains in the composer.');
+        onRetainedDraft?.call();
+        return;
+      }
+
+      onRetainedDraft?.call();
 
       turn.response = isDe
           ? 'Diese Anfrage konnte nicht verarbeitet werden: $error'

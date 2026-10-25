@@ -6911,6 +6911,48 @@ class AppLocalizationsFr extends AppLocalizations {
   String get voiceTapToFinish => 'À l’écoute — touchez pour terminer';
 
   @override
+  String get aiChatAddImage => 'Ajouter une image';
+
+  @override
+  String get aiChatTakePhoto => 'Prendre une photo';
+
+  @override
+  String get aiChatChoosePhoto => 'Choisir dans la photothèque';
+
+  @override
+  String get aiChatRemoveImage => 'Supprimer l’image';
+
+  @override
+  String get aiChatCameraUnavailable =>
+      'L’appareil photo n’est pas disponible sur cet appareil.';
+
+  @override
+  String get aiChatCameraPermission =>
+      'Autorisez l’accès à l’appareil photo pour prendre une photo.';
+
+  @override
+  String get aiChatCapture => 'Prendre une photo';
+
+  @override
+  String get aiChatCameraOptions => 'Options de l’appareil photo';
+
+  @override
+  String get aiChatFlash => 'Flash';
+
+  @override
+  String get aiChatSwitchCamera => 'Changer d’appareil photo';
+
+  @override
+  String get aiChatImageLimit => 'Vous pouvez joindre jusqu’à 4 images.';
+
+  @override
+  String get aiChatImageQuestion => 'Que peux-tu me dire sur cette image ?';
+
+  @override
+  String get aiChatImageUnsupported =>
+      'Le modèle d’IA sélectionné ne prend pas en charge les images. Votre brouillon reste dans le champ de saisie.';
+
+  @override
   String get voiceStarting => 'Un instant…';
 
   @override

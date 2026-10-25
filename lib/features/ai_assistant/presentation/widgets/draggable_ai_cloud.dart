@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../data/database_helper.dart';
@@ -28,6 +30,7 @@ import '../../domain/assistant_data_action.dart';
 import '../ai_global_cloud_presentation.dart';
 
 import 'cloud_overlay/cloud_chat_coordinator.dart';
+import 'cloud_overlay/ai_chat_camera_screen.dart';
 import 'cloud_overlay/cloud_chat_turn_list_view.dart';
 import 'cloud_overlay/cloud_docking_controller.dart';
 import 'cloud_overlay/cloud_overlay_access_audit_modal.dart';
@@ -120,8 +123,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
       _quickChatMenuExitGlobalCenter =
           AiGlobalCloudPresentation.quickChatActionCenter.value ??
               _lastQuickChatActionCenter;
-      _isQuickChatMenuExitAnimating =
-          _quickChatMenuExitGlobalCenter != null;
+      _isQuickChatMenuExitAnimating = _quickChatMenuExitGlobalCenter != null;
     } else if (isOpen) {
       _isQuickChatMenuExitAnimating = false;
       _quickChatMenuExitGlobalCenter = null;
@@ -166,6 +168,9 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   final _chatInputController = TextEditingController();
   final _chatFocusNode = FocusNode(debugLabel: 'ai-overlay-composer');
   final _chatInputScrollController = ScrollController();
+  final _chatAddImageButtonKey = GlobalKey();
+  final List<File> _draftImageAttachments = [];
+  final ImagePicker _imagePicker = ImagePicker();
 
   AnimationController? _morphController;
   AnimationController? _fullscreenController;
@@ -660,12 +665,109 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   }
 
   void _sendPromptFromComposer() {
-    final text = _chatInputController.text.trim();
-    if (text.isEmpty) return;
+    final typedText = _chatInputController.text;
+    final images = List<File>.of(_draftImageAttachments);
+    if (typedText.trim().isEmpty && images.isEmpty) return;
+    final text = typedText.trim().isEmpty
+        ? AppLocalizations.of(context)!.aiChatImageQuestion
+        : typedText.trim();
     _chatFocusNode.unfocus();
     unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
     _chatInputController.clear();
-    _chatCoordinator.sendPrompt(text);
+    setState(_draftImageAttachments.clear);
+    _chatCoordinator.sendPrompt(
+      text,
+      imageFiles: images,
+      onRetainedDraft: () {
+        if (!mounted) return;
+        if (_chatInputController.text.isEmpty && typedText.isNotEmpty) {
+          _chatInputController.text = typedText;
+        }
+        setState(() {
+          for (final image in images) {
+            if (_draftImageAttachments.length >= 4) break;
+            if (!_draftImageAttachments
+                .any((file) => file.path == image.path)) {
+              _draftImageAttachments.add(image);
+            }
+          }
+        });
+      },
+    );
+  }
+
+  Future<void> _addChatImages(String source, Rect? sourceRect) async {
+    if (_draftImageAttachments.length >= 4) {
+      _showChatImageMessage(AppLocalizations.of(context)!.aiChatImageLimit);
+      return;
+    }
+    try {
+      final files = <File>[];
+      if (source == 'photos') {
+        final picked = await _imagePicker.pickMultiImage(
+          imageQuality: 85,
+          maxWidth: 1600,
+        );
+        files.addAll(picked.map((image) => File(image.path)));
+      } else if (Platform.isIOS) {
+        // The global AI cloud is hosted in the app's root Overlay, outside the
+        // Navigator's route Overlay. Insert the camera above that same layer so
+        // presenting it does not transition away from (or hide) the chat.
+        final overlay = Overlay.of(context, rootOverlay: true);
+        final overlayObject = overlay.context.findRenderObject();
+        final overlayBox = overlayObject is RenderBox ? overlayObject : null;
+        final routeSourceRect = sourceRect != null && overlayBox != null
+            ? Rect.fromPoints(
+                overlayBox.globalToLocal(sourceRect.topLeft),
+                overlayBox.globalToLocal(sourceRect.bottomRight),
+              )
+            : sourceRect;
+        final capturedImage = Completer<File?>();
+        late final OverlayEntry cameraOverlay;
+        cameraOverlay = OverlayEntry(
+          builder: (_) => AiChatCameraOverlay(
+            sourceRect: routeSourceRect,
+            onComplete: (file) {
+              cameraOverlay.remove();
+              if (!capturedImage.isCompleted) {
+                capturedImage.complete(file);
+              }
+            },
+          ),
+        );
+        overlay.insert(cameraOverlay);
+        final file = await capturedImage.future;
+        if (file != null) files.add(file);
+      } else {
+        final picked = await _imagePicker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 85,
+          maxWidth: 1600,
+        );
+        if (picked != null) files.add(File(picked.path));
+      }
+      if (!mounted || files.isEmpty) return;
+      final remaining = 4 - _draftImageAttachments.length;
+      if (files.length > remaining) {
+        _showChatImageMessage(AppLocalizations.of(context)!.aiChatImageLimit);
+      }
+      setState(() => _draftImageAttachments.addAll(files.take(remaining)));
+    } catch (_) {
+      _showChatImageMessage(
+        AppLocalizations.of(context)!.aiChatCameraUnavailable,
+      );
+    }
+  }
+
+  void _removeChatImage(File file) {
+    setState(() => _draftImageAttachments.remove(file));
+  }
+
+  void _showChatImageMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   void _handleSelectStarterPrompt(String prompt) {
@@ -727,9 +829,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 ? cloudRenderObject.globalToLocal(globalQuickChatCenter)
                 : globalQuickChatCenter;
         final isAtQuickChatAction =
-            isAddMenuOpen &&
-                quickChatCenter != null &&
-                !_isExpanded;
+            isAddMenuOpen && quickChatCenter != null && !_isExpanded;
         final hiddenLauncherCenter = Offset(
           constraints.maxWidth + CloudDockingController.cloudSize / 2 + 12,
           quickChatCenter?.dy ??
@@ -747,9 +847,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                 _isExpanded ||
                 _isClosing ||
                 _isClosingFromFullscreen);
-        final isReturningFromChat =
-            (_isClosing || _isClosingFromFullscreen) &&
-                _quickChatOpenOriginCenter != null;
+        final isReturningFromChat = (_isClosing || _isClosingFromFullscreen) &&
+            _quickChatOpenOriginCenter != null;
         final activeCloudCenter = isReturningFromChat
             ? Offset.lerp(
                 _quickChatOpenOriginCenter,
@@ -762,11 +861,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     (isAtQuickChatAction
                         ? quickChatCenter
                         : restingCloudCenter);
-        final useExplicitCloudCenter =
-            !widget.isLauncherEnabled ||
-                _quickChatOpenOriginCenter != null ||
-                isAtQuickChatAction ||
-                _isQuickChatMenuExitAnimating;
+        final useExplicitCloudCenter = !widget.isLauncherEnabled ||
+            _quickChatOpenOriginCenter != null ||
+            isAtQuickChatAction ||
+            _isQuickChatMenuExitAnimating;
         final cloudLeft = useExplicitCloudCenter
             ? activeCloudCenter.dx - CloudDockingController.cloudSize / 2
             : layout.left;
@@ -804,601 +902,613 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                    Positioned.fill(
-                      child: TweenAnimationBuilder<Offset>(
-                        tween: Tween<Offset>(
-                          begin: Offset(cloudLeft, cloudTop),
-                          end: Offset(cloudLeft, cloudTop),
-                        ),
-                        duration: !isCloudVisible ||
-                                _isQuickChatTargetStaged ||
-                                _isClosingFromFullscreen ||
-                                _dockingController.isDragging ||
-                                (_isClosing &&
-                                    _quickChatOpenOriginCenter != null) ||
-                                _dockingController
-                                    .initialDockAnimation.isAnimating
-                            ? Duration.zero
-                            : Duration(
-                                milliseconds:
-                                    isAtQuickChatAction ||
-                                            _isQuickChatMenuExitAnimating
-                                        ? 380
-                                        : 260,
-                              ),
-                        curve: Curves.easeOutCubic,
-                        onEnd: () {
-                          if (!mounted || !_isQuickChatMenuExitAnimating) {
-                            return;
-                          }
-                          setState(() {
-                            _isQuickChatMenuExitAnimating = false;
-                            _quickChatMenuExitGlobalCenter = null;
-                          });
-                        },
-                        builder: (context, animatedOffset, _) {
-                          final animatedLeft = animatedOffset.dx;
-                          final animatedTop = animatedOffset.dy;
-                          final animatedCloudCenter = Offset(
-                            animatedLeft + CloudDockingController.cloudSize / 2,
-                            animatedTop + CloudDockingController.cloudSize / 2,
-                          );
-                          return Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              AnimatedBuilder(
-                                animation: morphAnimation,
-                                builder: (context, _) {
-                                  final isSettledOrb = !_isExpanded &&
-                                      morphAnimation.value <= 0.005;
-                                  // Keep the recording treatment strictly on the
-                                  // settled compact orb. Disable it on the first frame
-                                  // of opening and restore it only after closing ends.
-                                  final showVoiceOrb =
-                                      _voiceController.isActive && isSettledOrb;
-                                  final voiceOrbIntensity =
-                                      showVoiceOrb ? 1.0 : 0.0;
-                                  final cloud = AiNeuralCloudOrbWidget(
-                                    size: CloudDockingController.cloudSize *
-                                        _dockingController.scale *
-                                        (_chatCoordinator.completionPulse &&
-                                                isSettledOrb
-                                            ? 1.12
-                                            : 1.0),
-                                    rotation:
-                                        _dockingController.rotationRadians,
-                                    canvasSize: isSettledOrb
-                                        ? null
-                                        : layout.viewportSize,
-                                    cloudCenter: isSettledOrb
-                                        ? null
-                                        : animatedCloudCenter,
-                                    frameRect: layout.activeSafeRect,
-                                    baseColor: overlaySurface,
-                                    // The painter applies the transition curve to this
-                                    // raw progress itself. Passing the already-curved
-                                    // animation here would ease the cloud frame twice
-                                    // and make it lag behind the overlay content.
-                                    frameMorphAnimation: morphAnimation,
-                                    edgeBlurSigma: 4,
-                                    showDetachedSatellite: false,
-                                    flowSpeed: _dockingController.isDragging
-                                        ? 1.55
-                                        : _voiceController.isActive
-                                            ? 0.55 +
-                                                _voiceController
-                                                    .latestVoiceLevel
-                                            : _chatCoordinator.isGenerating
-                                                ? 0.9
-                                                : (1.0 *
-                                                        widget.liveliness
-                                                            .clamp(0.0, 1.0))
-                                                    .clamp(0.1, 1.2),
-                                    forceHighFrameRate:
-                                        _dockingController.isDragging ||
-                                            _chatCoordinator.isGenerating ||
-                                            _voiceController.isActive ||
-                                            _chatCoordinator.completionPulse ||
-                                            !isSettledOrb,
-                                    animate: !_isClosing,
-                                    accentColor: showVoiceOrb
-                                        ? DesignConstants.brandRedColor
-                                        : _chatCoordinator.permissionPending &&
-                                                isSettledOrb
-                                            ? Colors.amber.shade700
-                                            : null,
-                                    // Keep the normal organic cloud silhouette while
-                                    // speaking; morph 0 collapses this widget to a circle.
-                                    morph: 1,
-                                    energy: showVoiceOrb
-                                        ? _voiceController.latestVoiceLevel *
-                                            voiceOrbIntensity
-                                        : _chatCoordinator.completionPulse &&
-                                                isSettledOrb
-                                            ? 0.75
-                                            : 0,
-                                    tint: showVoiceOrb
-                                        ? 0.4 * voiceOrbIntensity
-                                        : !isSettledOrb
-                                            ? null
-                                            : _chatCoordinator.isGenerating
-                                                ? 0.4
-                                                : _chatCoordinator
-                                                        .permissionPending
-                                                    ? 0.62
-                                                    : _chatCoordinator
-                                                            .hasCompletedResponse
-                                                        ? 1.0
-                                                        : null,
-                                    tintEnergyGain: showVoiceOrb
-                                        ? 0.4 * voiceOrbIntensity
-                                        : 0,
-                                    showAmbientGlow: showVoiceOrb,
-                                    enableInteraction: false,
-                                  );
-                                  return Positioned(
-                                    left: isSettledOrb ? animatedLeft : 0,
-                                    top: isSettledOrb ? animatedTop : 0,
-                                    child: IgnorePointer(
-                                      ignoring: morphAnimation.value > 0.001,
-                                      child: Semantics(
-                                        label: widget.semanticLabel,
-                                        hint: widget.semanticHint,
-                                        child: Listener(
-                                          onPointerDown:
-                                              _handleCloudPointerDown,
-                                          onPointerMove:
-                                              _handleCloudPointerMove,
-                                          onPointerUp: (event) =>
-                                              _handleCloudPointerEnd(event,
-                                                  cancelled: false),
-                                          onPointerCancel: (event) =>
-                                              _handleCloudPointerEnd(event,
-                                                  cancelled: true),
-                                          child: GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: morphAnimation.value > 0.001
-                                                ? null
-                                                : () {
-                                                    if (_suppressNextOrbTap) {
-                                                      _suppressNextOrbTap =
-                                                          false;
-                                                      return;
-                                                    }
-                                                    if (isAtQuickChatAction &&
-                                                        AiGlobalCloudPresentation
-                                                                .onQuickChatTap !=
-                                                            null) {
-                                                      _quickChatOpenOriginCenter =
-                                                          quickChatCenter;
-                                                      setState(() {});
-                                                      AiGlobalCloudPresentation
-                                                          .onQuickChatTap!();
-                                                    } else {
-                                                      _toggleExpanded();
-                                                    }
-                                                  },
-                                            onPanStart: morphAnimation.value >
-                                                    0.001
-                                                ? null
-                                                : (_) {
-                                                    if (!_holdToTalkActivated) {
-                                                      _cloudHoldTimer?.cancel();
-                                                    }
-                                                    _dockingController
-                                                        .handleDragStart(
-                                                      initialHorizontalPosition:
-                                                          layout.position,
-                                                      initialVerticalPosition:
-                                                          layout
-                                                              .verticalPosition,
-                                                      onTakeoverAttention: () {
-                                                        if (_chatCoordinator
-                                                                .permissionPending ||
-                                                            _chatCoordinator
-                                                                .hasCompletedResponse) {
-                                                          _chatCoordinator
-                                                              .markAttentionPeekDismissed();
-                                                        }
-                                                      },
-                                                    );
-                                                  },
-                                            onPanUpdate: morphAnimation.value >
-                                                    0.001
-                                                ? null
-                                                : (details) =>
-                                                    _dockingController
-                                                        .handleDragUpdate(
-                                                      details,
-                                                      horizontalTravelDistance:
-                                                          layout.travelDistance,
-                                                      verticalTravelDistance: layout
-                                                          .verticalTravelDistance,
-                                                    ),
-                                            onPanEnd: morphAnimation.value >
-                                                    0.001
-                                                ? null
-                                                : (_) => _dockingController
-                                                        .handleDragEnd(
-                                                      minLeft: layout.minLeft,
-                                                      maxLeft: layout.maxLeft,
-                                                      isExpanded: _isExpanded,
-                                                    ),
-                                            onPanCancel: morphAnimation.value >
-                                                    0.001
-                                                ? null
-                                                : () => _dockingController
-                                                        .handleDragEnd(
-                                                      minLeft: layout.minLeft,
-                                                      maxLeft: layout.maxLeft,
-                                                      isExpanded: _isExpanded,
-                                                    ),
-                                            child: AnimatedScale(
-                                              scale: isAtQuickChatAction
-                                                  ? 0.84
-                                                  : 1,
-                                              duration: const Duration(
-                                                  milliseconds: 380),
-                                              curve: Curves.easeInOutCubic,
-                                              child: cloud,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    AnimatedBuilder(
-                      animation: morphAnimation,
-                      builder: (context, _) {
-                        final isSettledOrb =
-                            !_isExpanded && morphAnimation.value <= 0.005;
-                        if (!_chatCoordinator.permissionPending ||
-                            !_chatCoordinator.showPermissionBadge ||
-                            !isSettledOrb ||
-                            layout.width < 100) {
-                          return const SizedBox.shrink();
-                        }
-                        final l10n = AppLocalizations.of(context)!;
-                        const badgeSize = 48.0;
-                        final badgeLeft = activeCloudCenter.dx - badgeSize / 2;
-                        final badgeTop = (activeCloudCenter.dy - badgeSize / 2)
-                            .clamp(
-                              mediaQuery.padding.top + 4,
-                              layout.viewportHeight -
-                                  mediaQuery.padding.bottom -
-                                  badgeSize -
-                                  4,
-                            )
-                            .toDouble();
-                        return AnimatedPositioned(
-                          duration: _dockingController.isDragging ||
+                      Positioned.fill(
+                        child: TweenAnimationBuilder<Offset>(
+                          tween: Tween<Offset>(
+                            begin: Offset(cloudLeft, cloudTop),
+                            end: Offset(cloudLeft, cloudTop),
+                          ),
+                          duration: !isCloudVisible ||
+                                  _isQuickChatTargetStaged ||
+                                  _isClosingFromFullscreen ||
+                                  _dockingController.isDragging ||
+                                  (_isClosing &&
+                                      _quickChatOpenOriginCenter != null) ||
                                   _dockingController
                                       .initialDockAnimation.isAnimating
                               ? Duration.zero
-                              : const Duration(milliseconds: 260),
-                          curve: Curves.easeOutCubic,
-                          left: badgeLeft,
-                          top: badgeTop,
-                          child: IgnorePointer(
-                            child: Semantics(
-                              label: l10n.aiOverlayDemoAssistantSection,
-                              child: const SizedBox(
-                                width: badgeSize,
-                                height: badgeSize,
-                                child: Icon(
-                                  LucideIcons.shield_alert,
-                                  size: 38,
-                                  color: Colors.black,
+                              : Duration(
+                                  milliseconds: isAtQuickChatAction ||
+                                          _isQuickChatMenuExitAnimating
+                                      ? 380
+                                      : 260,
                                 ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    if (widget.showResizeHandles &&
-                        _fullscreenAnimation.value < 0.02) ...[
-                      CloudResizeHandle(
-                        corner: SafeSpaceCorner.topLeft,
-                        position: layout.handlePosition(
-                          layout.activeSafeRect.topLeft,
-                          const Offset(-1, -1),
-                          mediaQuery,
-                        ),
-                        panelSize: layout.panelRect.size,
-                        isExpanded: _isExpanded,
-                        morphAnimation: morphAnimation,
-                        onPanUpdate: (details) =>
-                            _dockingController.resizeSafeSpace(
-                          SafeSpaceCorner.topLeft,
-                          details,
-                          layout.panelRect.size,
-                        ),
-                      ),
-                      CloudResizeHandle(
-                        corner: SafeSpaceCorner.topRight,
-                        position: layout.handlePosition(
-                          layout.activeSafeRect.topRight,
-                          const Offset(1, -1),
-                          mediaQuery,
-                        ),
-                        panelSize: layout.panelRect.size,
-                        isExpanded: _isExpanded,
-                        morphAnimation: morphAnimation,
-                        onPanUpdate: (details) =>
-                            _dockingController.resizeSafeSpace(
-                          SafeSpaceCorner.topRight,
-                          details,
-                          layout.panelRect.size,
-                        ),
-                      ),
-                      CloudResizeHandle(
-                        corner: SafeSpaceCorner.bottomLeft,
-                        position: layout.handlePosition(
-                          layout.activeSafeRect.bottomLeft,
-                          const Offset(-1, 1),
-                          mediaQuery,
-                        ),
-                        panelSize: layout.panelRect.size,
-                        isExpanded: _isExpanded,
-                        morphAnimation: morphAnimation,
-                        onPanUpdate: (details) =>
-                            _dockingController.resizeSafeSpace(
-                          SafeSpaceCorner.bottomLeft,
-                          details,
-                          layout.panelRect.size,
-                        ),
-                      ),
-                      CloudResizeHandle(
-                        corner: SafeSpaceCorner.bottomRight,
-                        position: layout.handlePosition(
-                          layout.activeSafeRect.bottomRight,
-                          const Offset(1, 1),
-                          mediaQuery,
-                        ),
-                        panelSize: layout.panelRect.size,
-                        isExpanded: _isExpanded,
-                        morphAnimation: morphAnimation,
-                        onPanUpdate: (details) =>
-                            _dockingController.resizeSafeSpace(
-                          SafeSpaceCorner.bottomRight,
-                          details,
-                          layout.panelRect.size,
-                        ),
-                      ),
-                    ],
-                    AnimatedBuilder(
-                      animation: morphAnimation,
-                      builder: (context, _) {
-                        final currentMorphProgress =
-                            _morphProgressAnimation.value;
-                        final revealProgress = currentMorphProgress;
-                        final collapsedBounds = Rect.fromCenter(
-                          center: activeCloudCenter,
-                          width: 120,
-                          height: 120,
-                        );
-                        final contentRevealBounds = Rect.lerp(
-                          collapsedBounds,
-                          layout.activeSafeRect.inflate(64),
-                          revealProgress,
-                        )!;
-                        final sidebarWidth =
-                            _scrollSidebarController.sidebarWidth(layout.width);
-
-                        return Positioned.fill(
-                          child: IgnorePointer(
-                            ignoring: morphAnimation.value <= 0.001,
-                            child: ClipRect(
-                              clipper:
-                                  CloudControlsClipper(contentRevealBounds),
-                              child: Opacity(
-                                opacity: revealProgress,
-                                child: Listener(
-                                  behavior: HitTestBehavior.translucent,
-                                  onPointerDown: _scrollSidebarController
-                                      .handleSidebarPointerDown,
-                                  onPointerMove: (event) =>
-                                      _scrollSidebarController
-                                          .handleSidebarPointerMove(
-                                    event,
-                                    sidebarWidth,
-                                  ),
-                                  onPointerUp: _scrollSidebarController
-                                      .finishSidebarPointer,
-                                  onPointerCancel: _scrollSidebarController
-                                      .finishSidebarPointer,
-                                  child: Stack(
-                                    children: [
-                                      if (_scrollSidebarController
-                                              .sidebarAnimation.value >
-                                          0.001)
-                                        CloudOverlaySidebar(
-                                          viewportWidth: layout.width,
-                                          sidebarProgress:
-                                              _scrollSidebarController
-                                                  .sidebarAnimation.value,
-                                          sidebarWidth: sidebarWidth,
-                                          surfaceColor: overlaySurface,
-                                          foregroundColor: overlayForeground,
-                                          controlFill: overlayControlFill(
-                                            theme,
-                                            appearanceProgress,
-                                          ),
-                                          appearanceProgress:
-                                              appearanceProgress,
-                                          useLiveAi: widget.useLiveAi,
-                                          conversations:
-                                              _chatCoordinator.conversations,
-                                          selectedIndex: _chatCoordinator
-                                              .selectedSidebarExample,
-                                          onSelectConversation: (index) {
-                                            _scrollSidebarController
-                                                .closeSidebar();
-                                            _chatCoordinator
-                                                .selectSidebarExample(index);
-                                          },
-                                          onToggleSidebar:
-                                              _scrollSidebarController
-                                                  .toggleSidebar,
-                                        ),
-                                      Positioned.fill(
-                                        key: const ValueKey(
-                                          'cloud-overlay-main-content',
-                                        ),
-                                        child: Transform.translate(
-                                          offset: Offset(
-                                            _scrollSidebarController
-                                                    .sidebarAnimation.value *
-                                                sidebarWidth,
-                                            0,
-                                          ),
-                                          child: GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: _scrollSidebarController
-                                                        .sidebarAnimation
-                                                        .value >
-                                                    0
-                                                ? _scrollSidebarController
-                                                    .closeSidebar
-                                                : null,
-                                            child: Transform.scale(
-                                              scale: currentMorphProgress,
-                                              alignment: Alignment(
-                                                2 *
-                                                        activeCloudCenter.dx /
-                                                        layout.viewportSize
-                                                            .width -
-                                                    1,
-                                                2 *
-                                                        activeCloudCenter.dy /
-                                                        layout.viewportSize
-                                                            .height -
-                                                    1,
-                                              ),
-                                              child: Stack(
-                                                clipBehavior: Clip.none,
-                                                children: [
-                                                  _buildChatContent(
-                                                    layout: layout,
-                                                    theme: theme,
-                                                    fullscreenProgress:
-                                                        fullscreenProgress,
-                                                    appearanceProgress:
-                                                        appearanceProgress,
-                                                  ),
-                                                  CloudOverlayHeaderToolbar(
-                                                    safeRect:
-                                                        layout.activeSafeRect,
-                                                    fullscreenProgress:
-                                                        fullscreenProgress,
-                                                    appearanceProgress:
-                                                        appearanceProgress,
-                                                    surfaceColor:
-                                                        overlaySurface,
-                                                    foregroundColor:
-                                                        overlayForeground,
-                                                    controlFill:
-                                                        overlayControlFill(
-                                                      theme,
-                                                      appearanceProgress,
-                                                    ),
-                                                    isExpanded: _isExpanded,
-                                                    isFullscreen: _isFullscreen,
-                                                    hasChatTurns:
-                                                        _chatCoordinator
-                                                            .chatTurns
-                                                            .isNotEmpty,
-                                                    activeConversationTitle:
-                                                        _chatCoordinator
-                                                            .activeConversationTitle,
-                                                    autoApproveDataRequests:
-                                                        _chatCoordinator
-                                                            .autoApproveDataRequests,
-                                                    useStaticGlass:
-                                                        _isClosing ||
-                                                            (_isExpanded &&
-                                                                morphAnimation
-                                                                        .value <
-                                                                    1),
-                                                    onToggleSidebar:
-                                                        _scrollSidebarController
-                                                            .toggleSidebar,
-                                                    onToggleFullscreen:
-                                                        _toggleFullscreen,
-                                                    onStartNewChat: () {
-                                                      if (_scrollSidebarController
-                                                              .sidebarAnimation
-                                                              .value >
-                                                          0) {
-                                                        _scrollSidebarController
-                                                            .closeSidebar();
-                                                      }
-                                                      _chatCoordinator
-                                                          .startNewChat();
-                                                      _chatInputController
-                                                          .clear();
-                                                      WidgetsBinding.instance
-                                                          .addPostFrameCallback(
-                                                              (_) {
-                                                        if (!mounted ||
-                                                            !_isExpanded) {
-                                                          return;
-                                                        }
-                                                        if (_scrollSidebarController
-                                                            .chatScrollController
-                                                            .hasClients) {
-                                                          _scrollSidebarController
-                                                              .chatScrollController
-                                                              .jumpTo(0);
-                                                        }
-                                                        _focusNewChatComposer();
-                                                      });
-                                                    },
-                                                    onToggleAutoApprove: () =>
-                                                        unawaited(
-                                                      _chatCoordinator
-                                                          .toggleAutoApproveDataRequests(),
-                                                    ),
-                                                    onToggleExpanded:
-                                                        _toggleExpanded,
-                                                    onHeaderDragStart:
-                                                        _scrollSidebarController
-                                                            .handleHeaderDragStart,
-                                                    onHeaderDragUpdate:
-                                                        _scrollSidebarController
-                                                            .handleHeaderDragUpdate,
-                                                    onHeaderDragEnd:
-                                                        _scrollSidebarController
-                                                            .handleHeaderDragEnd,
-                                                  ),
-                                                ],
+                          curve: Curves.easeOutCubic,
+                          onEnd: () {
+                            if (!mounted || !_isQuickChatMenuExitAnimating) {
+                              return;
+                            }
+                            setState(() {
+                              _isQuickChatMenuExitAnimating = false;
+                              _quickChatMenuExitGlobalCenter = null;
+                            });
+                          },
+                          builder: (context, animatedOffset, _) {
+                            final animatedLeft = animatedOffset.dx;
+                            final animatedTop = animatedOffset.dy;
+                            final animatedCloudCenter = Offset(
+                              animatedLeft +
+                                  CloudDockingController.cloudSize / 2,
+                              animatedTop +
+                                  CloudDockingController.cloudSize / 2,
+                            );
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                AnimatedBuilder(
+                                  animation: morphAnimation,
+                                  builder: (context, _) {
+                                    final isSettledOrb = !_isExpanded &&
+                                        morphAnimation.value <= 0.005;
+                                    // Keep the recording treatment strictly on the
+                                    // settled compact orb. Disable it on the first frame
+                                    // of opening and restore it only after closing ends.
+                                    final showVoiceOrb =
+                                        _voiceController.isActive &&
+                                            isSettledOrb;
+                                    final voiceOrbIntensity =
+                                        showVoiceOrb ? 1.0 : 0.0;
+                                    final cloud = AiNeuralCloudOrbWidget(
+                                      size: CloudDockingController.cloudSize *
+                                          _dockingController.scale *
+                                          (_chatCoordinator.completionPulse &&
+                                                  isSettledOrb
+                                              ? 1.12
+                                              : 1.0),
+                                      rotation:
+                                          _dockingController.rotationRadians,
+                                      canvasSize: isSettledOrb
+                                          ? null
+                                          : layout.viewportSize,
+                                      cloudCenter: isSettledOrb
+                                          ? null
+                                          : animatedCloudCenter,
+                                      frameRect: layout.activeSafeRect,
+                                      baseColor: overlaySurface,
+                                      // The painter applies the transition curve to this
+                                      // raw progress itself. Passing the already-curved
+                                      // animation here would ease the cloud frame twice
+                                      // and make it lag behind the overlay content.
+                                      frameMorphAnimation: morphAnimation,
+                                      edgeBlurSigma: 4,
+                                      showDetachedSatellite: false,
+                                      flowSpeed: _dockingController.isDragging
+                                          ? 1.55
+                                          : _voiceController.isActive
+                                              ? 0.55 +
+                                                  _voiceController
+                                                      .latestVoiceLevel
+                                              : _chatCoordinator.isGenerating
+                                                  ? 0.9
+                                                  : (1.0 *
+                                                          widget.liveliness
+                                                              .clamp(0.0, 1.0))
+                                                      .clamp(0.1, 1.2),
+                                      forceHighFrameRate: _dockingController
+                                              .isDragging ||
+                                          _chatCoordinator.isGenerating ||
+                                          _voiceController.isActive ||
+                                          _chatCoordinator.completionPulse ||
+                                          !isSettledOrb,
+                                      animate: !_isClosing,
+                                      accentColor: showVoiceOrb
+                                          ? DesignConstants.brandRedColor
+                                          : _chatCoordinator
+                                                      .permissionPending &&
+                                                  isSettledOrb
+                                              ? Colors.amber.shade700
+                                              : null,
+                                      // Keep the normal organic cloud silhouette while
+                                      // speaking; morph 0 collapses this widget to a circle.
+                                      morph: 1,
+                                      energy: showVoiceOrb
+                                          ? _voiceController.latestVoiceLevel *
+                                              voiceOrbIntensity
+                                          : _chatCoordinator.completionPulse &&
+                                                  isSettledOrb
+                                              ? 0.75
+                                              : 0,
+                                      tint: showVoiceOrb
+                                          ? 0.4 * voiceOrbIntensity
+                                          : !isSettledOrb
+                                              ? null
+                                              : _chatCoordinator.isGenerating
+                                                  ? 0.4
+                                                  : _chatCoordinator
+                                                          .permissionPending
+                                                      ? 0.62
+                                                      : _chatCoordinator
+                                                              .hasCompletedResponse
+                                                          ? 1.0
+                                                          : null,
+                                      tintEnergyGain: showVoiceOrb
+                                          ? 0.4 * voiceOrbIntensity
+                                          : 0,
+                                      showAmbientGlow: showVoiceOrb,
+                                      enableInteraction: false,
+                                    );
+                                    return Positioned(
+                                      left: isSettledOrb ? animatedLeft : 0,
+                                      top: isSettledOrb ? animatedTop : 0,
+                                      child: IgnorePointer(
+                                        ignoring: morphAnimation.value > 0.001,
+                                        child: Semantics(
+                                          label: widget.semanticLabel,
+                                          hint: widget.semanticHint,
+                                          child: Listener(
+                                            onPointerDown:
+                                                _handleCloudPointerDown,
+                                            onPointerMove:
+                                                _handleCloudPointerMove,
+                                            onPointerUp: (event) =>
+                                                _handleCloudPointerEnd(event,
+                                                    cancelled: false),
+                                            onPointerCancel: (event) =>
+                                                _handleCloudPointerEnd(event,
+                                                    cancelled: true),
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.opaque,
+                                              onTap:
+                                                  morphAnimation.value > 0.001
+                                                      ? null
+                                                      : () {
+                                                          if (_suppressNextOrbTap) {
+                                                            _suppressNextOrbTap =
+                                                                false;
+                                                            return;
+                                                          }
+                                                          if (isAtQuickChatAction &&
+                                                              AiGlobalCloudPresentation
+                                                                      .onQuickChatTap !=
+                                                                  null) {
+                                                            _quickChatOpenOriginCenter =
+                                                                quickChatCenter;
+                                                            setState(() {});
+                                                            AiGlobalCloudPresentation
+                                                                .onQuickChatTap!();
+                                                          } else {
+                                                            _toggleExpanded();
+                                                          }
+                                                        },
+                                              onPanStart:
+                                                  morphAnimation.value > 0.001
+                                                      ? null
+                                                      : (_) {
+                                                          if (!_holdToTalkActivated) {
+                                                            _cloudHoldTimer
+                                                                ?.cancel();
+                                                          }
+                                                          _dockingController
+                                                              .handleDragStart(
+                                                            initialHorizontalPosition:
+                                                                layout.position,
+                                                            initialVerticalPosition:
+                                                                layout
+                                                                    .verticalPosition,
+                                                            onTakeoverAttention:
+                                                                () {
+                                                              if (_chatCoordinator
+                                                                      .permissionPending ||
+                                                                  _chatCoordinator
+                                                                      .hasCompletedResponse) {
+                                                                _chatCoordinator
+                                                                    .markAttentionPeekDismissed();
+                                                              }
+                                                            },
+                                                          );
+                                                        },
+                                              onPanUpdate:
+                                                  morphAnimation.value > 0.001
+                                                      ? null
+                                                      : (details) =>
+                                                          _dockingController
+                                                              .handleDragUpdate(
+                                                            details,
+                                                            horizontalTravelDistance:
+                                                                layout
+                                                                    .travelDistance,
+                                                            verticalTravelDistance:
+                                                                layout
+                                                                    .verticalTravelDistance,
+                                                          ),
+                                              onPanEnd: morphAnimation.value >
+                                                      0.001
+                                                  ? null
+                                                  : (_) => _dockingController
+                                                          .handleDragEnd(
+                                                        minLeft: layout.minLeft,
+                                                        maxLeft: layout.maxLeft,
+                                                        isExpanded: _isExpanded,
+                                                      ),
+                                              onPanCancel: morphAnimation
+                                                          .value >
+                                                      0.001
+                                                  ? null
+                                                  : () => _dockingController
+                                                          .handleDragEnd(
+                                                        minLeft: layout.minLeft,
+                                                        maxLeft: layout.maxLeft,
+                                                        isExpanded: _isExpanded,
+                                                      ),
+                                              child: AnimatedScale(
+                                                scale: isAtQuickChatAction
+                                                    ? 0.84
+                                                    : 1,
+                                                duration: const Duration(
+                                                    milliseconds: 380),
+                                                curve: Curves.easeInOutCubic,
+                                                child: cloud,
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      AnimatedBuilder(
+                        animation: morphAnimation,
+                        builder: (context, _) {
+                          final isSettledOrb =
+                              !_isExpanded && morphAnimation.value <= 0.005;
+                          if (!_chatCoordinator.permissionPending ||
+                              !_chatCoordinator.showPermissionBadge ||
+                              !isSettledOrb ||
+                              layout.width < 100) {
+                            return const SizedBox.shrink();
+                          }
+                          final l10n = AppLocalizations.of(context)!;
+                          const badgeSize = 48.0;
+                          final badgeLeft =
+                              activeCloudCenter.dx - badgeSize / 2;
+                          final badgeTop =
+                              (activeCloudCenter.dy - badgeSize / 2)
+                                  .clamp(
+                                    mediaQuery.padding.top + 4,
+                                    layout.viewportHeight -
+                                        mediaQuery.padding.bottom -
+                                        badgeSize -
+                                        4,
+                                  )
+                                  .toDouble();
+                          return AnimatedPositioned(
+                            duration: _dockingController.isDragging ||
+                                    _dockingController
+                                        .initialDockAnimation.isAnimating
+                                ? Duration.zero
+                                : const Duration(milliseconds: 260),
+                            curve: Curves.easeOutCubic,
+                            left: badgeLeft,
+                            top: badgeTop,
+                            child: IgnorePointer(
+                              child: Semantics(
+                                label: l10n.aiOverlayDemoAssistantSection,
+                                child: const SizedBox(
+                                  width: badgeSize,
+                                  height: badgeSize,
+                                  child: Icon(
+                                    LucideIcons.shield_alert,
+                                    size: 38,
+                                    color: Colors.black,
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                    if (_chatCoordinator.activeAuditRecord != null)
-                      CloudOverlayAccessAuditModal(
-                        access: _chatCoordinator.activeAuditRecord!,
-                        onClose: _chatCoordinator.clearActiveAudit,
+                          );
+                        },
                       ),
+                      if (widget.showResizeHandles &&
+                          _fullscreenAnimation.value < 0.02) ...[
+                        CloudResizeHandle(
+                          corner: SafeSpaceCorner.topLeft,
+                          position: layout.handlePosition(
+                            layout.activeSafeRect.topLeft,
+                            const Offset(-1, -1),
+                            mediaQuery,
+                          ),
+                          panelSize: layout.panelRect.size,
+                          isExpanded: _isExpanded,
+                          morphAnimation: morphAnimation,
+                          onPanUpdate: (details) =>
+                              _dockingController.resizeSafeSpace(
+                            SafeSpaceCorner.topLeft,
+                            details,
+                            layout.panelRect.size,
+                          ),
+                        ),
+                        CloudResizeHandle(
+                          corner: SafeSpaceCorner.topRight,
+                          position: layout.handlePosition(
+                            layout.activeSafeRect.topRight,
+                            const Offset(1, -1),
+                            mediaQuery,
+                          ),
+                          panelSize: layout.panelRect.size,
+                          isExpanded: _isExpanded,
+                          morphAnimation: morphAnimation,
+                          onPanUpdate: (details) =>
+                              _dockingController.resizeSafeSpace(
+                            SafeSpaceCorner.topRight,
+                            details,
+                            layout.panelRect.size,
+                          ),
+                        ),
+                        CloudResizeHandle(
+                          corner: SafeSpaceCorner.bottomLeft,
+                          position: layout.handlePosition(
+                            layout.activeSafeRect.bottomLeft,
+                            const Offset(-1, 1),
+                            mediaQuery,
+                          ),
+                          panelSize: layout.panelRect.size,
+                          isExpanded: _isExpanded,
+                          morphAnimation: morphAnimation,
+                          onPanUpdate: (details) =>
+                              _dockingController.resizeSafeSpace(
+                            SafeSpaceCorner.bottomLeft,
+                            details,
+                            layout.panelRect.size,
+                          ),
+                        ),
+                        CloudResizeHandle(
+                          corner: SafeSpaceCorner.bottomRight,
+                          position: layout.handlePosition(
+                            layout.activeSafeRect.bottomRight,
+                            const Offset(1, 1),
+                            mediaQuery,
+                          ),
+                          panelSize: layout.panelRect.size,
+                          isExpanded: _isExpanded,
+                          morphAnimation: morphAnimation,
+                          onPanUpdate: (details) =>
+                              _dockingController.resizeSafeSpace(
+                            SafeSpaceCorner.bottomRight,
+                            details,
+                            layout.panelRect.size,
+                          ),
+                        ),
+                      ],
+                      AnimatedBuilder(
+                        animation: morphAnimation,
+                        builder: (context, _) {
+                          final currentMorphProgress =
+                              _morphProgressAnimation.value;
+                          final revealProgress = currentMorphProgress;
+                          final collapsedBounds = Rect.fromCenter(
+                            center: activeCloudCenter,
+                            width: 120,
+                            height: 120,
+                          );
+                          final contentRevealBounds = Rect.lerp(
+                            collapsedBounds,
+                            layout.activeSafeRect.inflate(64),
+                            revealProgress,
+                          )!;
+                          final sidebarWidth = _scrollSidebarController
+                              .sidebarWidth(layout.width);
+
+                          return Positioned.fill(
+                            child: IgnorePointer(
+                              ignoring: morphAnimation.value <= 0.001,
+                              child: ClipRect(
+                                clipper:
+                                    CloudControlsClipper(contentRevealBounds),
+                                child: Opacity(
+                                  opacity: revealProgress,
+                                  child: Listener(
+                                    behavior: HitTestBehavior.translucent,
+                                    onPointerDown: _scrollSidebarController
+                                        .handleSidebarPointerDown,
+                                    onPointerMove: (event) =>
+                                        _scrollSidebarController
+                                            .handleSidebarPointerMove(
+                                      event,
+                                      sidebarWidth,
+                                    ),
+                                    onPointerUp: _scrollSidebarController
+                                        .finishSidebarPointer,
+                                    onPointerCancel: _scrollSidebarController
+                                        .finishSidebarPointer,
+                                    child: Stack(
+                                      children: [
+                                        if (_scrollSidebarController
+                                                .sidebarAnimation.value >
+                                            0.001)
+                                          CloudOverlaySidebar(
+                                            viewportWidth: layout.width,
+                                            sidebarProgress:
+                                                _scrollSidebarController
+                                                    .sidebarAnimation.value,
+                                            sidebarWidth: sidebarWidth,
+                                            surfaceColor: overlaySurface,
+                                            foregroundColor: overlayForeground,
+                                            controlFill: overlayControlFill(
+                                              theme,
+                                              appearanceProgress,
+                                            ),
+                                            appearanceProgress:
+                                                appearanceProgress,
+                                            useLiveAi: widget.useLiveAi,
+                                            conversations:
+                                                _chatCoordinator.conversations,
+                                            selectedIndex: _chatCoordinator
+                                                .selectedSidebarExample,
+                                            onSelectConversation: (index) {
+                                              _scrollSidebarController
+                                                  .closeSidebar();
+                                              _chatCoordinator
+                                                  .selectSidebarExample(index);
+                                            },
+                                            onToggleSidebar:
+                                                _scrollSidebarController
+                                                    .toggleSidebar,
+                                          ),
+                                        Positioned.fill(
+                                          key: const ValueKey(
+                                            'cloud-overlay-main-content',
+                                          ),
+                                          child: Transform.translate(
+                                            offset: Offset(
+                                              _scrollSidebarController
+                                                      .sidebarAnimation.value *
+                                                  sidebarWidth,
+                                              0,
+                                            ),
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.opaque,
+                                              onTap: _scrollSidebarController
+                                                          .sidebarAnimation
+                                                          .value >
+                                                      0
+                                                  ? _scrollSidebarController
+                                                      .closeSidebar
+                                                  : null,
+                                              child: Transform.scale(
+                                                scale: currentMorphProgress,
+                                                alignment: Alignment(
+                                                  2 *
+                                                          activeCloudCenter.dx /
+                                                          layout.viewportSize
+                                                              .width -
+                                                      1,
+                                                  2 *
+                                                          activeCloudCenter.dy /
+                                                          layout.viewportSize
+                                                              .height -
+                                                      1,
+                                                ),
+                                                child: Stack(
+                                                  clipBehavior: Clip.none,
+                                                  children: [
+                                                    _buildChatContent(
+                                                      layout: layout,
+                                                      theme: theme,
+                                                      fullscreenProgress:
+                                                          fullscreenProgress,
+                                                      appearanceProgress:
+                                                          appearanceProgress,
+                                                    ),
+                                                    CloudOverlayHeaderToolbar(
+                                                      safeRect:
+                                                          layout.activeSafeRect,
+                                                      fullscreenProgress:
+                                                          fullscreenProgress,
+                                                      appearanceProgress:
+                                                          appearanceProgress,
+                                                      surfaceColor:
+                                                          overlaySurface,
+                                                      foregroundColor:
+                                                          overlayForeground,
+                                                      controlFill:
+                                                          overlayControlFill(
+                                                        theme,
+                                                        appearanceProgress,
+                                                      ),
+                                                      isExpanded: _isExpanded,
+                                                      isFullscreen:
+                                                          _isFullscreen,
+                                                      hasChatTurns:
+                                                          _chatCoordinator
+                                                              .chatTurns
+                                                              .isNotEmpty,
+                                                      activeConversationTitle:
+                                                          _chatCoordinator
+                                                              .activeConversationTitle,
+                                                      autoApproveDataRequests:
+                                                          _chatCoordinator
+                                                              .autoApproveDataRequests,
+                                                      useStaticGlass:
+                                                          _isClosing ||
+                                                              (_isExpanded &&
+                                                                  morphAnimation
+                                                                          .value <
+                                                                      1),
+                                                      onToggleSidebar:
+                                                          _scrollSidebarController
+                                                              .toggleSidebar,
+                                                      onToggleFullscreen:
+                                                          _toggleFullscreen,
+                                                      onStartNewChat: () {
+                                                        if (_scrollSidebarController
+                                                                .sidebarAnimation
+                                                                .value >
+                                                            0) {
+                                                          _scrollSidebarController
+                                                              .closeSidebar();
+                                                        }
+                                                        _chatCoordinator
+                                                            .startNewChat();
+                                                        _chatInputController
+                                                            .clear();
+                                                        WidgetsBinding.instance
+                                                            .addPostFrameCallback(
+                                                                (_) {
+                                                          if (!mounted ||
+                                                              !_isExpanded) {
+                                                            return;
+                                                          }
+                                                          if (_scrollSidebarController
+                                                              .chatScrollController
+                                                              .hasClients) {
+                                                            _scrollSidebarController
+                                                                .chatScrollController
+                                                                .jumpTo(0);
+                                                          }
+                                                          _focusNewChatComposer();
+                                                        });
+                                                      },
+                                                      onToggleAutoApprove: () =>
+                                                          unawaited(
+                                                        _chatCoordinator
+                                                            .toggleAutoApproveDataRequests(),
+                                                      ),
+                                                      onToggleExpanded:
+                                                          _toggleExpanded,
+                                                      onHeaderDragStart:
+                                                          _scrollSidebarController
+                                                              .handleHeaderDragStart,
+                                                      onHeaderDragUpdate:
+                                                          _scrollSidebarController
+                                                              .handleHeaderDragUpdate,
+                                                      onHeaderDragEnd:
+                                                          _scrollSidebarController
+                                                              .handleHeaderDragEnd,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (_chatCoordinator.activeAuditRecord != null)
+                        CloudOverlayAccessAuditModal(
+                          access: _chatCoordinator.activeAuditRecord!,
+                          onClose: _chatCoordinator.clearActiveAudit,
+                        ),
                     ],
                   ),
                 ),
@@ -1586,6 +1696,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                               !_chatCoordinator.isGenerating &&
                               !_chatCoordinator.isLoadingCloudVisible &&
                               !_voiceController.isActive &&
+                              _draftImageAttachments.isEmpty &&
                               _chatInputController.text.trim().isEmpty;
 
                       return AnimatedCrossFade(
@@ -1626,6 +1737,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     askModelHint: _askModelHint,
                     onSendPrompt: _sendPromptFromComposer,
                     onStopGeneration: _chatCoordinator.stopGeneration,
+                    imageAttachments: _draftImageAttachments,
+                    addImagesButtonKey: _chatAddImageButtonKey,
+                    onAddImages: widget.useLiveAi ? _addChatImages : null,
+                    onRemoveImage: _removeChatImage,
                   ),
                 ],
               ),

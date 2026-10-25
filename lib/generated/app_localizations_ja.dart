@@ -6578,6 +6578,45 @@ class AppLocalizationsJa extends AppLocalizations {
   String get voiceTapToFinish => '認識中 — タップで終了';
 
   @override
+  String get aiChatAddImage => '画像を追加';
+
+  @override
+  String get aiChatTakePhoto => '写真を撮る';
+
+  @override
+  String get aiChatChoosePhoto => 'ライブラリから選択';
+
+  @override
+  String get aiChatRemoveImage => '画像を削除';
+
+  @override
+  String get aiChatCameraUnavailable => 'このデバイスではカメラを利用できません。';
+
+  @override
+  String get aiChatCameraPermission => '写真を撮るにはカメラへのアクセスを許可してください。';
+
+  @override
+  String get aiChatCapture => '写真を撮る';
+
+  @override
+  String get aiChatCameraOptions => 'カメラオプション';
+
+  @override
+  String get aiChatFlash => 'フラッシュ';
+
+  @override
+  String get aiChatSwitchCamera => 'カメラを切り替え';
+
+  @override
+  String get aiChatImageLimit => '画像は最大4枚まで添付できます。';
+
+  @override
+  String get aiChatImageQuestion => 'この画像について教えてください。';
+
+  @override
+  String get aiChatImageUnsupported => '選択したAIモデルは画像に対応していません。下書きは入力欄に残ります。';
+
+  @override
   String get voiceStarting => '準備中…';
 
   @override

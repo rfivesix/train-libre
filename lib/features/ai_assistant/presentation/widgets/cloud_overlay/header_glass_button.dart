@@ -15,6 +15,9 @@ class HeaderGlassButton extends StatelessWidget {
     this.foregroundColor,
     this.showBorder = true,
     this.useStaticGlass = false,
+    this.useCircularGlass = false,
+    this.dimension = 44,
+    this.iconSize = 20,
   });
 
   final IconData icon;
@@ -25,6 +28,9 @@ class HeaderGlassButton extends StatelessWidget {
   final Color? foregroundColor;
   final bool showBorder;
   final bool useStaticGlass;
+  final bool useCircularGlass;
+  final double dimension;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +56,7 @@ class HeaderGlassButton extends StatelessWidget {
             ? Border.all(color: foreground.withValues(alpha: 0.14), width: 0.5)
             : null,
       ),
-      child: Center(child: Icon(icon, size: 20, color: foreground)),
+      child: Center(child: Icon(icon, size: iconSize, color: foreground)),
     );
     final glassContent = !showBorder
         ? buttonSurface
@@ -73,7 +79,11 @@ class HeaderGlassButton extends StatelessWidget {
                   quality: DesignConstants.defaultGlassQuality,
                   useOwnLayer: true,
                   allowElevation: false,
-                  shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+                  shape: useCircularGlass
+                      ? const LiquidOval()
+                      : LiquidRoundedSuperellipse(
+                          borderRadius: dimension / 2,
+                        ),
                   child: GlassGlow(
                     glowColor: Colors.white.withValues(
                       alpha: (isDarkSurface ? 0.24 : 0.18) * visibility,
@@ -86,7 +96,7 @@ class HeaderGlassButton extends StatelessWidget {
             ),
           );
     final button = SizedBox.square(
-      dimension: 44,
+      dimension: dimension,
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,

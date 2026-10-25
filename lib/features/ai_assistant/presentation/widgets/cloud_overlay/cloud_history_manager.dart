@@ -104,6 +104,7 @@ class CloudHistoryManager {
         turns.add(
           AiChatTurn(message.content)
             ..userMessageId = message.id
+            ..attachments = message.attachments
             ..access = accessByMessage[message.id],
         );
       } else if (turns.isNotEmpty) {

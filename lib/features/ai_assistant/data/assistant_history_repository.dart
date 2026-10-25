@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
 
 import '../../../data/drift_database.dart';
+import 'assistant_image_attachment.dart';
 
 class AssistantConversation {
   const AssistantConversation(
@@ -25,6 +26,7 @@ class AssistantMessage {
     this.providerId,
     this.modelId,
     this.error,
+    this.attachments = const [],
   });
   final String id;
   final String conversationId;
@@ -35,6 +37,7 @@ class AssistantMessage {
   final String? providerId;
   final String? modelId;
   final String? error;
+  final List<AssistantMessageAttachment> attachments;
 }
 
 class AssistantAccessRecord {
@@ -112,6 +115,24 @@ class AssistantHistoryRepository {
     );
   }
 
+  Future<void> deleteConversation(String id) async {
+    final attachments = await _attachmentsForConversation(id);
+    await database.customStatement(
+      'DELETE FROM assistant_conversations WHERE id = ?',
+      [id],
+    );
+    await AssistantImageAttachmentStore.instance.deleteFiles(attachments);
+  }
+
+  Future<void> deleteMessage(String id) async {
+    final attachments = await attachmentsForMessage(id);
+    await database.customStatement(
+      'DELETE FROM assistant_messages WHERE id = ?',
+      [id],
+    );
+    await AssistantImageAttachmentStore.instance.deleteFiles(attachments);
+  }
+
   static String _cleanTitle(String raw) {
     final title = raw.trim().replaceAll(RegExp(r'\s+'), ' ');
     return title.length > 70 ? '${title.substring(0, 70)}…' : title;
@@ -122,20 +143,53 @@ class AssistantHistoryRepository {
       'SELECT * FROM assistant_messages WHERE conversation_id = ? ORDER BY created_at, rowid',
       variables: [drift.Variable.withString(conversationId)],
     ).get();
-    return rows
-        .map((row) => AssistantMessage(
-              id: row.read<String>('id'),
-              conversationId: row.read<String>('conversation_id'),
-              role: row.read<String>('role'),
-              content: row.read<String>('content'),
-              createdAt: DateTime.parse(row.read<String>('created_at')),
-              status: row.read<String>('status'),
-              providerId: row.read<String?>('provider_id'),
-              modelId: row.read<String?>('model_id'),
-              error: row.read<String?>('error'),
-            ))
-        .toList();
+    final messages = <AssistantMessage>[];
+    for (final row in rows) {
+      final id = row.read<String>('id');
+      messages.add(AssistantMessage(
+        id: id,
+        conversationId: row.read<String>('conversation_id'),
+        role: row.read<String>('role'),
+        content: row.read<String>('content'),
+        createdAt: DateTime.parse(row.read<String>('created_at')),
+        status: row.read<String>('status'),
+        providerId: row.read<String?>('provider_id'),
+        modelId: row.read<String?>('model_id'),
+        error: row.read<String?>('error'),
+        attachments: await attachmentsForMessage(id),
+      ));
+    }
+    return messages;
   }
+
+  Future<List<AssistantMessageAttachment>> attachmentsForMessage(
+    String messageId,
+  ) async {
+    final rows = await database.customSelect(
+      'SELECT * FROM assistant_message_attachments WHERE message_id = ? ORDER BY created_at, rowid',
+      variables: [drift.Variable.withString(messageId)],
+    ).get();
+    return rows.map(_attachmentFromRow).toList();
+  }
+
+  Future<List<AssistantMessageAttachment>> _attachmentsForConversation(
+    String conversationId,
+  ) async {
+    final rows = await database.customSelect(
+      'SELECT a.* FROM assistant_message_attachments a JOIN assistant_messages m ON m.id = a.message_id WHERE m.conversation_id = ?',
+      variables: [drift.Variable.withString(conversationId)],
+    ).get();
+    return rows.map(_attachmentFromRow).toList();
+  }
+
+  AssistantMessageAttachment _attachmentFromRow(drift.QueryRow row) =>
+      AssistantMessageAttachment(
+        id: row.read<String>('id'),
+        messageId: row.read<String>('message_id'),
+        filePath: row.read<String>('file_path'),
+        mimeType: row.read<String>('mime_type'),
+        createdAt: DateTime.parse(row.read<String>('created_at')),
+      );
 
   Future<AssistantMessage?> message(String id) async {
     final row = await database.customSelect(
@@ -153,6 +207,7 @@ class AssistantHistoryRepository {
       providerId: row.read<String?>('provider_id'),
       modelId: row.read<String?>('model_id'),
       error: row.read<String?>('error'),
+      attachments: await attachmentsForMessage(id),
     );
   }
 
@@ -250,6 +305,7 @@ class AssistantHistoryRepository {
     String? providerId,
     String? modelId,
     String? error,
+    List<({String filePath, String mimeType})> attachments = const [],
   }) async {
     if (role != 'user' && role != 'assistant') throw ArgumentError.value(role);
     final id = _uuid.v4();
@@ -269,6 +325,18 @@ class AssistantHistoryRepository {
           error,
         ],
       );
+      for (final attachment in attachments) {
+        await database.customStatement(
+          'INSERT INTO assistant_message_attachments(id,message_id,file_path,mime_type,created_at) VALUES(?,?,?,?,?)',
+          [
+            _uuid.v4(),
+            id,
+            attachment.filePath,
+            attachment.mimeType,
+            now.toIso8601String(),
+          ],
+        );
+      }
       await database.customStatement(
         'UPDATE assistant_conversations SET updated_at = ? WHERE id = ?',
         [now.toIso8601String(), conversationId],
@@ -283,7 +351,8 @@ class AssistantHistoryRepository {
         status: status,
         providerId: providerId,
         modelId: modelId,
-        error: error);
+        error: error,
+        attachments: await attachmentsForMessage(id));
   }
 
   Future<void> updateMessage(String id,

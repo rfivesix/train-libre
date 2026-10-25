@@ -70,6 +70,11 @@ public class DepthScanPlugin: NSObject {
     case "getTorchStatus":
       result(DepthScanController.shared.isTorchOn())
 
+    case "switchCamera":
+      DepthScanController.shared.switchCamera { switched in
+        result(switched)
+      }
+
     case "capture":
       DepthScanController.shared.capturePhotoWithDepth { response, failure in
         if let response {
@@ -354,6 +359,11 @@ public class DepthScanController: NSObject {
     return AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
   }
 
+  private static func bestFrontCamera() -> AVCaptureDevice? {
+    AVCaptureDevice.default(.builtInTrueDepthCamera, for: .video, position: .front)
+      ?? AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
+  }
+
   // MARK: Preview attachment
 
   func attach(previewLayer: AVCaptureVideoPreviewLayer) {
@@ -453,6 +463,67 @@ public class DepthScanController: NSObject {
     return device.hasTorch && device.torchMode == .on
   }
 
+  public func switchCamera(completion: @escaping (Bool) -> Void) {
+    sessionQueue.async { [weak self] in
+      guard let self, self.isConfigured, let current = self.videoDevice else {
+        DispatchQueue.main.async { completion(false) }
+        return
+      }
+      let device = current.position == .back
+        ? Self.bestFrontCamera()
+        : Self.bestBackCamera()
+      guard let device,
+            let input = try? AVCaptureDeviceInput(device: device)
+      else {
+        DispatchQueue.main.async { completion(false) }
+        return
+      }
+
+      if current.hasTorch && current.torchMode == .on {
+        self.guarded("turnOffTorchBeforeCameraSwitch") {
+          do {
+            try current.lockForConfiguration()
+            current.torchMode = .off
+            current.unlockForConfiguration()
+          } catch {
+            NSLog("[DepthScan] torch off before camera switch failed: %@", error.localizedDescription)
+          }
+        }
+      }
+
+      var switched = false
+      let completed = self.guarded("switchCamera") {
+        self.session.beginConfiguration()
+        let oldInput = self.session.inputs
+            .compactMap({ $0 as? AVCaptureDeviceInput })
+            .first(where: { $0.device.hasMediaType(.video) })
+        if let oldInput {
+          self.session.removeInput(oldInput)
+        }
+        if self.session.canAddInput(input) {
+          self.session.addInput(input)
+          self.videoDevice = device
+          if let photo = self.photoOutput {
+            photo.isDepthDataDeliveryEnabled =
+              device.position == .back && photo.isDepthDataDeliverySupported
+            self.depthSupported = photo.isDepthDataDeliveryEnabled
+          }
+          self.configureFocus(for: device)
+          switched = true
+        } else if let oldInput, self.session.canAddInput(oldInput) {
+          self.session.addInput(oldInput)
+        }
+        self.session.commitConfiguration()
+      }
+      if !completed {
+        self.guarded("commitFailedCameraSwitch") {
+          self.session.commitConfiguration()
+        }
+      }
+      DispatchQueue.main.async { completion(switched) }
+    }
+  }
+
   private func configureSession() -> Bool {
     var configured = false
     let completed = guarded("configureSession") {
@@ -483,15 +554,7 @@ public class DepthScanController: NSObject {
 
     // Continuous autofocus so the frame is already sharp when the shutter is
     // pressed; `capturePhotoWithDepth` still waits for convergence.
-    if let device = videoDevice, (try? device.lockForConfiguration()) != nil {
-      if device.isFocusModeSupported(.continuousAutoFocus) {
-        device.focusMode = .continuousAutoFocus
-      }
-      if device.isExposureModeSupported(.continuousAutoExposure) {
-        device.exposureMode = .continuousAutoExposure
-      }
-      device.unlockForConfiguration()
-    }
+    configureFocus(for: device)
 
     let photo = AVCapturePhotoOutput()
     guard session.canAddOutput(photo) else {
@@ -520,6 +583,18 @@ public class DepthScanController: NSObject {
     session.commitConfiguration()
     isConfigured = true
     return true
+  }
+
+  private func configureFocus(for device: AVCaptureDevice) {
+    if (try? device.lockForConfiguration()) != nil {
+      if device.isFocusModeSupported(.continuousAutoFocus) {
+        device.focusMode = .continuousAutoFocus
+      }
+      if device.isExposureModeSupported(.continuousAutoExposure) {
+        device.exposureMode = .continuousAutoExposure
+      }
+      device.unlockForConfiguration()
+    }
   }
 
   // MARK: Capture

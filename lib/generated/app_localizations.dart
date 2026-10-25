@@ -11899,6 +11899,84 @@ abstract class AppLocalizations {
   /// **'Listening — tap to finish'**
   String get voiceTapToFinish;
 
+  /// No description provided for @aiChatAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add image'**
+  String get aiChatAddImage;
+
+  /// No description provided for @aiChatTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get aiChatTakePhoto;
+
+  /// No description provided for @aiChatChoosePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from library'**
+  String get aiChatChoosePhoto;
+
+  /// No description provided for @aiChatRemoveImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove image'**
+  String get aiChatRemoveImage;
+
+  /// No description provided for @aiChatCameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera is unavailable on this device.'**
+  String get aiChatCameraUnavailable;
+
+  /// No description provided for @aiChatCameraPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera access to take a photo.'**
+  String get aiChatCameraPermission;
+
+  /// No description provided for @aiChatCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get aiChatCapture;
+
+  /// No description provided for @aiChatCameraOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera options'**
+  String get aiChatCameraOptions;
+
+  /// No description provided for @aiChatFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash'**
+  String get aiChatFlash;
+
+  /// No description provided for @aiChatSwitchCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch camera'**
+  String get aiChatSwitchCamera;
+
+  /// No description provided for @aiChatImageLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can attach up to 4 images.'**
+  String get aiChatImageLimit;
+
+  /// No description provided for @aiChatImageQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What can you tell me about this image?'**
+  String get aiChatImageQuestion;
+
+  /// No description provided for @aiChatImageUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected AI model does not support images. Your draft remains in the composer.'**
+  String get aiChatImageUnsupported;
+
   /// No description provided for @voiceStarting.
   ///
   /// In en, this message translates to:

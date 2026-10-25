@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import '../../../../../util/design_constants.dart';
 import 'cloud_voice_controller.dart';
 import 'cloud_voice_waveform.dart';
 import 'header_glass_button.dart';
+import '../../../../../widgets/common/platform_adaptive_dropdown.dart';
 
 /// The expandable text input bar and voice dictation surface for the AI cloud overlay.
 class CloudOverlayComposer extends StatelessWidget {
@@ -30,6 +32,10 @@ class CloudOverlayComposer extends StatelessWidget {
   final String? askModelHint;
   final VoidCallback onSendPrompt;
   final VoidCallback onStopGeneration;
+  final List<File> imageAttachments;
+  final void Function(String source, Rect? sourceRect)? onAddImages;
+  final GlobalKey? addImagesButtonKey;
+  final ValueChanged<File>? onRemoveImage;
 
   const CloudOverlayComposer({
     super.key,
@@ -50,6 +56,10 @@ class CloudOverlayComposer extends StatelessWidget {
     required this.askModelHint,
     required this.onSendPrompt,
     required this.onStopGeneration,
+    this.imageAttachments = const [],
+    this.onAddImages,
+    this.addImagesButtonKey,
+    this.onRemoveImage,
   });
 
   @override
@@ -74,7 +84,8 @@ class CloudOverlayComposer extends StatelessWidget {
         final inputIsScrolled = chatInputScrollController.hasClients &&
             chatInputScrollController.offset > 0.5;
         final recording = voiceController.isActive;
-        final expandedInput = hasText || chatFocusNode.hasFocus;
+        final expandedInput =
+            hasText || chatFocusNode.hasFocus || imageAttachments.isNotEmpty;
 
         Widget voiceButton({bool filled = false}) => HeaderGlassButton(
               icon: recording ? LucideIcons.x : LucideIcons.mic,
@@ -92,7 +103,8 @@ class CloudOverlayComposer extends StatelessWidget {
             );
 
         Widget sendButton() {
-          final hasDraft = inputValue.text.trim().isNotEmpty;
+          final hasDraft =
+              inputValue.text.trim().isNotEmpty || imageAttachments.isNotEmpty;
           final isStopAction = isGenerating && !hasDraft;
           return HeaderGlassButton(
             icon: isStopAction ? LucideIcons.square : LucideIcons.arrow_up,
@@ -168,6 +180,126 @@ class CloudOverlayComposer extends StatelessWidget {
               ),
             );
 
+        Widget addImagesButton() {
+          final l10n = AppLocalizations.of(context)!;
+          return PlatformAdaptivePopupMenu<String>(
+            hideGlobalAiCloud: false,
+            menuWidth: 250,
+            icon: HeaderGlassButton(
+              key: addImagesButtonKey,
+              icon: Icons.add,
+              tooltip: l10n.aiChatAddImage,
+              isDarkSurface: !surfaceIsLight,
+              foregroundColor: contrastColor,
+              backgroundColor: controlFillColor,
+              useStaticGlass: isGlassTransitioning,
+            ),
+            items: [
+              PlatformAdaptivePopupMenuItem<String>(
+                value: 'camera',
+                label: l10n.aiChatTakePhoto,
+                icon: Icons.camera_alt_outlined,
+              ),
+              PlatformAdaptivePopupMenuItem<String>(
+                value: 'photos',
+                label: l10n.aiChatChoosePhoto,
+                icon: Icons.photo_library_outlined,
+              ),
+            ],
+            onSelected: (value) {
+              final renderObject =
+                  addImagesButtonKey?.currentContext?.findRenderObject();
+              final box = renderObject is RenderBox ? renderObject : null;
+              final sourceRect = box != null && box.hasSize
+                  ? box.localToGlobal(Offset.zero) & box.size
+                  : null;
+              onAddImages?.call(value, sourceRect);
+            },
+          );
+        }
+
+        Widget buildDraftAttachment(
+          BuildContext context,
+          File image,
+          int index,
+          double size,
+        ) =>
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: SizedBox.square(
+                    dimension: size,
+                    child: image.existsSync()
+                        ? Image.file(
+                            image,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const ColoredBox(
+                              color: Colors.black12,
+                              child: Icon(Icons.broken_image_outlined),
+                            ),
+                          )
+                        : const ColoredBox(
+                            color: Colors.black12,
+                            child: Icon(Icons.image_outlined),
+                          ),
+                  ),
+                ),
+                Positioned(
+                  right: -4,
+                  top: -4,
+                  child: Semantics(
+                    button: true,
+                    label: AppLocalizations.of(context)!.aiChatRemoveImage,
+                    child: HeaderGlassButton(
+                      key: ValueKey('remove-chat-image-$index'),
+                      icon: Icons.close,
+                      iconSize: 12,
+                      dimension: 26,
+                      tooltip: AppLocalizations.of(context)!.aiChatRemoveImage,
+                      isDarkSurface: !surfaceIsLight,
+                      foregroundColor: contrastColor,
+                      backgroundColor: controlFillColor,
+                      useStaticGlass: isGlassTransitioning,
+                      onPressed: () => onRemoveImage?.call(image),
+                    ),
+                  ),
+                ),
+              ],
+            );
+
+        Widget attachmentPreview() {
+          const thumbnailSize = 80.0;
+          final rows = <Widget>[];
+          for (var start = 0; start < imageAttachments.length; start += 2) {
+            final end = (start + 2).clamp(0, imageAttachments.length);
+            rows.add(
+              Padding(
+                padding: EdgeInsets.only(top: start == 0 ? 0 : 8),
+                child: Row(
+                  children: [
+                    for (var index = start; index < end; index++) ...[
+                      if (index > start) const SizedBox(width: 8),
+                      buildDraftAttachment(
+                        context,
+                        imageAttachments[index],
+                        index,
+                        thumbnailSize,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: rows,
+          );
+        }
+
         return TextFieldTapRegion(
           child: AnimatedSize(
             duration: const Duration(milliseconds: 180),
@@ -185,7 +317,7 @@ class CloudOverlayComposer extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(recording ? 6 : 10, 6, 6, 6),
+                  padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
                   child: recording
                       ? Row(
                           children: [
@@ -230,8 +362,14 @@ class CloudOverlayComposer extends StatelessWidget {
                       : Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (imageAttachments.isNotEmpty)
+                              attachmentPreview(),
                             Row(
                               children: [
+                                if (onAddImages != null && !expandedInput) ...[
+                                  addImagesButton(),
+                                  const SizedBox(width: 6),
+                                ],
                                 Expanded(
                                   child: ConstrainedBox(
                                     constraints:
@@ -253,24 +391,11 @@ class CloudOverlayComposer extends StatelessWidget {
                             if (expandedInput)
                               Row(
                                 children: [
-                                  if (!isGenerating || expandedInput)
-                                    Expanded(
-                                      child: GestureDetector(
-                                        behavior: HitTestBehavior.opaque,
-                                        onTap: () {
-                                          chatFocusNode.requestFocus();
-                                          unawaited(
-                                            SystemChannels.textInput
-                                                .invokeMethod<void>(
-                                              'TextInput.show',
-                                            ),
-                                          );
-                                        },
-                                        child: const SizedBox(height: 44),
-                                      ),
-                                    )
-                                  else
-                                    const Spacer(),
+                                  if (onAddImages != null) ...[
+                                    addImagesButton(),
+                                    const SizedBox(width: 6),
+                                  ],
+                                  const Spacer(),
                                   if (!isGenerating) ...[
                                     voiceButton(),
                                     const SizedBox(width: 6),

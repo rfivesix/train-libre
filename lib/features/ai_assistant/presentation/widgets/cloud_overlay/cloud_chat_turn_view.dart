@@ -71,6 +71,61 @@ class CloudChatTurnView extends StatelessWidget {
         isDark ? Color.lerp(Colors.black, primary, 0.42)! : primary;
     final userBubbleTextColor =
         isDark ? Colors.white : theme.colorScheme.onPrimary;
+    final imageFiles = turn.attachments.isNotEmpty
+        ? turn.attachments.map((attachment) => attachment.file).toList()
+        : turn.pendingImageFiles;
+
+    Widget sentImageGrid() {
+      const imageWidth = 112.0;
+      const imageHeight = 104.0;
+      final rows = <Widget>[];
+      for (var start = 0; start < imageFiles.length; start += 2) {
+        final end = (start + 2).clamp(0, imageFiles.length);
+        rows.add(
+          Padding(
+            padding: EdgeInsets.only(top: start == 0 ? 0 : 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var index = start; index < end; index++) ...[
+                  if (index > start) const SizedBox(width: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.file(
+                      imageFiles[index],
+                      width: imageWidth,
+                      height: imageHeight,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => SizedBox(
+                        width: imageWidth,
+                        height: imageHeight,
+                        child: ColoredBox(
+                          color: userBubbleColor,
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: userBubbleTextColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      }
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.sizeOf(context).width * 0.62,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: rows,
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -79,36 +134,43 @@ class CloudChatTurnView extends StatelessWidget {
         children: [
           Align(
             alignment: Alignment.centerRight,
-            child: Container(
-              constraints: BoxConstraints(
-                minWidth: isCompactPrompt ? 56 : 0,
-                maxWidth: MediaQuery.sizeOf(context).width * 0.62,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: userBubbleColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: isCompactPrompt
-                  ? Center(
-                      widthFactor: 1,
-                      child: Text(
-                        turn.prompt,
-                        textAlign: TextAlign.start,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: userBubbleTextColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (imageFiles.isNotEmpty) ...[
+                  sentImageGrid(),
+                  const SizedBox(height: 6),
+                ],
+                Container(
+                  constraints: BoxConstraints(
+                    minWidth: isCompactPrompt ? 56 : 0,
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.62,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: userBubbleColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (turn.prompt.trim().isNotEmpty)
+                        Text(
+                          turn.prompt,
+                          textAlign: isCompactPrompt ? TextAlign.start : null,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: userBubbleTextColor,
+                          ),
                         ),
-                      ),
-                    )
-                  : Text(
-                      turn.prompt,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: userBubbleTextColor,
-                      ),
-                    ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           if (showLoadingCloud)
