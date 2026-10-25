@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Fixed square blur halos and opaque grey rendering around AI chat camera controls on iOS by routing the shutter and circular buttons through the liquid-glass platform-view backdrop renderer.
 - Kept AI chat images available in past conversations by storing them under relative media paths, saving display previews, and including assistant history and previews in manual and iCloud backups and restores.
 - Limited the floating AI cloud's tap and drag hit area to its animated cloud silhouette instead of the full square canvas.
 - Kept the AI chat quick action available whenever AI features are enabled, regardless of the floating cloud setting. With its launcher disabled, the cloud enters the Add menu's AI chat slot from and returns to a fully offscreen point on the right, aligned to the chat row, and remains the button. Closing the chat now completes the collapse animation before the hidden cloud fades away; Glass menus inside the expanded assistant no longer hide their own overlay.

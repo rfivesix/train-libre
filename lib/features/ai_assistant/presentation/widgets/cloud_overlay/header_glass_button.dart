@@ -15,8 +15,7 @@ class HeaderGlassButton extends StatelessWidget {
     this.foregroundColor,
     this.showBorder = true,
     this.useStaticGlass = false,
-    this.useCircularGlass = false,
-    this.skipBackdropBlur = false,
+    this.platformViewBackdrop = false,
     this.dimension = 44,
     this.iconSize = 20,
   });
@@ -29,8 +28,7 @@ class HeaderGlassButton extends StatelessWidget {
   final Color? foregroundColor;
   final bool showBorder;
   final bool useStaticGlass;
-  final bool useCircularGlass;
-  final bool skipBackdropBlur;
+  final bool platformViewBackdrop;
   final double dimension;
   final double iconSize;
 
@@ -84,18 +82,10 @@ class HeaderGlassButton extends StatelessWidget {
                     quality: DesignConstants.defaultGlassQuality,
                     useOwnLayer: true,
                     allowElevation: false,
-                    shape: useCircularGlass
-                        // The liquid-glass package cannot forward a circular
-                        // clip to iOS platform views. A half-size rounded rect
-                        // has the same circular silhouette and keeps the
-                        // shader/backdrop clipped to the button bounds above
-                        // the native camera preview.
-                        ? LiquidRoundedSuperellipse(
-                            borderRadius: dimension / 2,
-                          )
-                        : LiquidRoundedSuperellipse(
-                            borderRadius: dimension / 2,
-                          ),
+                    shape: LiquidRoundedSuperellipse(
+                      borderRadius: dimension / 2,
+                    ),
+                    platformViewBackdrop: platformViewBackdrop,
                     child: GlassGlow(
                       glowColor: Colors.white.withValues(
                         alpha: (isDarkSurface ? 0.24 : 0.18) * visibility,
@@ -104,17 +94,7 @@ class HeaderGlassButton extends StatelessWidget {
                       child: buttonSurface,
                     ),
                   );
-                  if (!skipBackdropBlur) return glass;
-                  // AVCaptureVideoPreviewLayer is a native platform view and
-                  // cannot be sampled by Flutter's BackdropFilter. Sampling
-                  // it creates a blurred rectangular fallback patch instead.
-                  // Keep the Liquid Glass tint/rim shader but skip that blur.
-                  return InheritedLiquidGlass(
-                    settings: visibleSettings,
-                    quality: DesignConstants.defaultGlassQuality,
-                    isBlurProvidedByAncestor: true,
-                    child: glass,
-                  );
+                  return glass;
                 },
               ),
             ),

@@ -392,8 +392,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                     icon: LucideIcons.chevron_left,
                     onPressed: _dismiss,
                     isDarkSurface: true,
-                    useCircularGlass: true,
-                    skipBackdropBlur: true,
+                    platformViewBackdrop: true,
                     dimension: sideButtonSize,
                     iconSize: 20,
                   ),
@@ -405,38 +404,33 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                       label: l10n.aiChatCapture,
                       child: SizedBox.square(
                         dimension: shutterSize,
-                        child: InheritedLiquidGlass(
-                          settings: DesignConstants.liquidGlassSettings(true),
-                          quality: DesignConstants.defaultGlassQuality,
-                          isBlurProvidedByAncestor: true,
-                          child: GlassAdaptiveScope(
-                            maxQuality: DesignConstants.defaultGlassQuality,
-                            minQuality: DesignConstants.minGlassQuality,
-                            child: AdaptiveGlass(
-                              settings:
-                                  DesignConstants.liquidGlassSettings(true),
-                              quality: DesignConstants.defaultGlassQuality,
-                              useOwnLayer: true,
-                              allowElevation: false,
-                              shape: const LiquidRoundedSuperellipse(
-                                borderRadius: 40,
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 58,
-                                  height: 58,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.22,
-                                        ),
-                                        blurRadius: 10,
+                        child: GlassAdaptiveScope(
+                          maxQuality: DesignConstants.defaultGlassQuality,
+                          minQuality: DesignConstants.minGlassQuality,
+                          child: AdaptiveGlass(
+                            settings: DesignConstants.liquidGlassSettings(true),
+                            quality: DesignConstants.defaultGlassQuality,
+                            platformViewBackdrop: true,
+                            useOwnLayer: true,
+                            allowElevation: false,
+                            shape: const LiquidRoundedSuperellipse(
+                              borderRadius: 40,
+                            ),
+                            child: Center(
+                              child: Container(
+                                width: 58,
+                                height: 58,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.22,
                                       ),
-                                    ],
-                                  ),
+                                      blurRadius: 10,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -463,8 +457,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                               icon: LucideIcons.switch_camera,
                               onPressed: _switchCamera,
                               isDarkSurface: true,
-                              useCircularGlass: true,
-                              skipBackdropBlur: true,
+                              platformViewBackdrop: true,
                               dimension: sideButtonSize,
                               iconSize: 20,
                             ),
@@ -487,8 +480,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                               foregroundColor: _usingFrontCamera
                                   ? Colors.white.withValues(alpha: 0.45)
                                   : Colors.white,
-                              useCircularGlass: true,
-                              skipBackdropBlur: true,
+                              platformViewBackdrop: true,
                               dimension: sideButtonSize,
                               iconSize: 20,
                             ),
@@ -507,8 +499,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                               () => _optionsOpen = !_optionsOpen,
                             ),
                             isDarkSurface: true,
-                            useCircularGlass: true,
-                            skipBackdropBlur: true,
+                            platformViewBackdrop: true,
                             dimension: sideButtonSize,
                             iconSize: 20,
                           ),
