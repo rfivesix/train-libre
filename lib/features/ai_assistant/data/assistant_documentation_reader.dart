@@ -11,7 +11,10 @@ class AssistantDocumentationReader {
 
   Future<String> forQuestion(String question) async {
     final text = question.toLowerCase();
-    final paths = <String>{};
+    final paths = <String>{
+      'documentation/features/ai_assistant_data_access.md',
+      'documentation/features/ai_assistant_meal_logging.md',
+    };
     if (RegExp(r'\b(routine|routines|routinen|übungen|workout routine)\b')
         .hasMatch(text)) {
       paths.addAll(const [
@@ -32,11 +35,15 @@ class AssistantDocumentationReader {
         'documentation/developer/data_flow_and_state.md',
       ]);
     }
-    if (RegExp(r'\b(recipe|recipes|rezept|rezepte|meal|mahlzeit)\b')
+    if (RegExp(
+            r'\b(recipe|recipes|rezept|rezepte|meal|mahlzeit|food|essen|lebensmittel|makro|kalorien|protein|nährwert|eintrag|eintragen|log|track)\b')
         .hasMatch(text)) {
       paths.addAll(const [
+        'documentation/user_guide/ai_chat_food_logging.md',
         'documentation/user_guide/saved_meals.md',
         'documentation/user_guide/logging_food.md',
+        'documentation/features/ai_assistant_meal_logging.md',
+        'documentation/features/ai_assistant_data_access.md',
         'documentation/features/meal_capture_pipeline.md',
         'documentation/developer/food_search.md',
       ]);

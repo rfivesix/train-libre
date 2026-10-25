@@ -29,6 +29,7 @@ Use this guide when you want to know how to complete a task in the app. For deta
 - [Choose food catalog settings](food_catalogs.md): Select the database region and food display language.
 - [Create and reuse recipes](saved_meals.md): Save a meal and add it to the Diary later.
 - [Configure and use AI Meal Capture](ai_meal_capture.md): Set up a provider and review a captured meal.
+- [Log food with the AI chat](ai_chat_food_logging.md): Ask the assistant to draft a meal from text or photos, review the estimates, and save them to the Diary.
 - [Log water and drinks](water_and_drinks.md): Record fluid amounts and review water, sugar, and caffeine totals.
 - [Set daily targets](daily_targets.md): Edit calorie, macronutrient, water, and step targets.
 

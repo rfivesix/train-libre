@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../../generated/app_localizations.dart';
 import '../../../../../data/database_helper.dart';
 import '../../../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 import '../../../../diary/presentation/meal_screen.dart';
+import '../../../../diary/presentation/meal_entry_screen.dart';
+import '../../../../diary/domain/repositories/diary_repository.dart';
+import '../../../../diary/presentation/widgets/meal_review_macros_bar.dart';
+import '../../../../../services/ai_meal_validation.dart';
 import '../../../../workout/data/sources/workout_local_data_source.dart';
 import '../../../../workout/presentation/routines_screen.dart';
 import '../../../data/assistant_history_repository.dart';
@@ -248,16 +254,20 @@ class CloudChatTurnView extends StatelessWidget {
       'routine' => isDe ? 'Routine-Entwurf' : 'Routine draft',
       'plan' => isDe ? 'Trainingsplan-Entwurf' : 'Training plan draft',
       'recipe' => isDe ? 'Rezept-Entwurf' : 'Recipe draft',
+      'meal_entry' => isDe ? 'Mahlzeit-Eintrag' : 'Meal entry',
       _ => isDe ? 'Entwurf' : 'Draft',
     };
     final action = proposal.operation.name == 'create'
-        ? (isDe ? 'Neu erstellen' : 'Create new')
+        ? proposal.payload.type == 'meal_entry'
+            ? (isDe ? 'Eintragen' : 'Log')
+            : (isDe ? 'Neu erstellen' : 'Create new')
         : (isDe ? 'Ändern' : 'Update');
     final data = proposal.payload.data;
     final rows = switch (proposal.payload.type) {
       'routine' => data['exercises'],
       'plan' => data['days'],
       'recipe' => data['items'],
+      'meal_entry' => data['items'],
       _ => null,
     };
     final detail = switch (proposal.payload.type) {
@@ -267,8 +277,18 @@ class CloudChatTurnView extends StatelessWidget {
         '${rows.where((row) => row != null).length} ${isDe ? 'Trainingstage' : 'training days'}',
       'recipe' when rows is List =>
         '${rows.length} ${isDe ? 'Zutaten' : 'ingredients'}',
+      'meal_entry' when rows is List =>
+        '${rows.length} ${isDe ? 'Einträge' : 'foods'}',
       _ => '',
     };
+    final metadata = [
+      _proposalMetadata(proposal.payload.type, data, isDe, context),
+      if (proposal.sourceImageAttachmentIds.isNotEmpty)
+        '${proposal.sourceImageAttachmentIds.length} ${isDe ? 'Fotos werden mitgespeichert' : 'photos will be saved'}',
+    ].where((value) => value.isNotEmpty).join(' · ');
+    final mealTotals = proposal.payload.type == 'meal_entry'
+        ? _mealProposalTotals(data['items'])
+        : null;
     final color = theme.colorScheme.primary;
     return Padding(
       padding: const EdgeInsets.only(left: 4, top: 10),
@@ -307,47 +327,19 @@ class CloudChatTurnView extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(proposal.summary, style: theme.textTheme.bodyMedium),
-            if (_proposalMetadata(proposal.payload.type, data, isDe)
-                .isNotEmpty) ...[
+            if (mealTotals != null) ...[
+              const SizedBox(height: 8),
+              MealReviewMacrosBar(nutrition: mealTotals),
+            ] else ...[
               const SizedBox(height: 6),
-              Text(
-                _proposalMetadata(proposal.payload.type, data, isDe),
-                style: theme.textTheme.bodySmall,
-              ),
+              Text(proposal.summary, style: theme.textTheme.bodyMedium),
+            ],
+            if (metadata.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(metadata, style: theme.textTheme.bodySmall),
             ],
             const SizedBox(height: 4),
-            ExpansionTile(
-              initiallyExpanded: true,
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(bottom: 8),
-              backgroundColor: Colors.transparent,
-              collapsedBackgroundColor: Colors.transparent,
-              textColor: theme.colorScheme.onSurface,
-              collapsedTextColor: theme.colorScheme.onSurface,
-              iconColor: theme.colorScheme.onSurfaceVariant,
-              collapsedIconColor: theme.colorScheme.onSurfaceVariant,
-              shape: const Border(),
-              collapsedShape: const Border(),
-              title: Text(
-                isDe ? 'Entwurf prüfen' : 'Review draft',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Text(
-                isDe
-                    ? 'Details vor dem Speichern ansehen'
-                    : 'Inspect details before saving',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              children:
-                  _proposalDetails(context, proposal.payload.type, data, theme),
-            ),
+            ..._proposalDetails(context, proposal.payload.type, data, theme),
             const SizedBox(height: 12),
             if (pending)
               Wrap(
@@ -386,11 +378,11 @@ class CloudChatTurnView extends StatelessWidget {
                     style: theme.textTheme.labelLarge?.copyWith(color: color),
                   ),
                   if (turn.proposalStatus == 'proposal_applied' &&
-                      const {'routine', 'recipe'}
+                      const {'routine', 'recipe', 'meal_entry'}
                           .contains(proposal.payload.type)) ...[
                     const SizedBox(width: 12),
                     TextButton.icon(
-                      onPressed: () => _openSavedItem(proposal),
+                      onPressed: () => _openSavedItem(context, proposal),
                       icon: Icon(LucideIcons.external_link, size: 16),
                       label: Text(isDe ? 'Öffnen' : 'Open'),
                     ),
@@ -403,7 +395,34 @@ class CloudChatTurnView extends StatelessWidget {
     );
   }
 
+  AiNutritionTotals? _mealProposalTotals(dynamic rawItems) {
+    if (rawItems is! List || rawItems.isEmpty) return null;
+    var protein = 0.0;
+    var carbs = 0.0;
+    var fat = 0.0;
+    for (final item in rawItems) {
+      if (item is! Map ||
+          item['grams'] is! num ||
+          item['protein'] is! num ||
+          item['carbs'] is! num ||
+          item['fat'] is! num) {
+        continue;
+      }
+      final factor = (item['grams'] as num).toDouble() / 100;
+      protein += (item['protein'] as num).toDouble() * factor;
+      carbs += (item['carbs'] as num).toDouble() * factor;
+      fat += (item['fat'] as num).toDouble() * factor;
+    }
+    return AiNutritionTotals(
+      kcal: protein * 4 + carbs * 4 + fat * 9,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+    );
+  }
+
   Future<void> _openSavedItem(
+    BuildContext context,
     AssistantChangeProposal proposal,
   ) async {
     final expectedName = proposal.payload.name.trim().toLowerCase();
@@ -433,12 +452,36 @@ class CloudChatTurnView extends StatelessWidget {
         if (matchingMeal != null) {
           await onNavigate((_) => MealScreen(meal: matchingMeal!));
         }
+      case 'meal_entry':
+        final mealId = proposal.createdRecordId;
+        if (mealId == null) return;
+        final repository = context.read<IDiaryRepository>();
+        final mealEntry = await repository.getMealEntryById(mealId);
+        if (mealEntry == null) return;
+        final sameDayMacros = await repository
+            .watchMacroEntriesForDate(mealEntry.consumedAt)
+            .first;
+        final mealMacros = sameDayMacros
+            .where((entry) => entry.mealEntryId == mealEntry.id)
+            .toList(growable: false);
+        await onNavigate(
+          (_) => MealEntryScreen(
+            mealEntry: mealEntry,
+            initialItems: const [],
+            initialMacroEntries: mealMacros,
+          ),
+        );
       default:
         return;
     }
   }
 
-  String _proposalMetadata(String type, Map<String, dynamic> data, bool isDe) {
+  String _proposalMetadata(
+    String type,
+    Map<String, dynamic> data,
+    bool isDe,
+    BuildContext context,
+  ) {
     final values = <String>[];
     if (type == 'recipe') {
       if (data['portions'] != null) {
@@ -457,6 +500,26 @@ class CloudChatTurnView extends StatelessWidget {
         values.add('${isDe ? 'Tage' : 'Days'}: ${data['lengthDays']}');
       }
     }
+    if (type == 'meal_entry') {
+      final mealType = switch (data['mealType']) {
+        'mealtypeBreakfast' => isDe ? 'Frühstück' : 'Breakfast',
+        'mealtypeLunch' => isDe ? 'Mittagessen' : 'Lunch',
+        'mealtypeDinner' => isDe ? 'Abendessen' : 'Dinner',
+        'mealtypeSnack' => 'Snack',
+        _ => null,
+      };
+      if (mealType != null) values.add(mealType);
+      final consumedAt = data['consumedAt'];
+      if (consumedAt is String) {
+        final date = DateTime.tryParse(consumedAt)?.toLocal();
+        if (date != null) {
+          values.add(DateFormat(
+            isDe ? 'dd.MM.yyyy · HH:mm' : 'MMM d · HH:mm',
+            Localizations.localeOf(context).toString(),
+          ).format(date));
+        }
+      }
+    }
     if (data['notes'] is String && (data['notes'] as String).isNotEmpty) {
       values.add('${isDe ? 'Notiz' : 'Notes'}: ${data['notes']}');
     }
@@ -473,6 +536,7 @@ class CloudChatTurnView extends StatelessWidget {
       'routine' => data['exercises'],
       'plan' => data['days'],
       'recipe' => data['items'],
+      'meal_entry' => data['items'],
       _ => null,
     };
     if (rows is! List || rows.isEmpty) {
@@ -527,6 +591,8 @@ class CloudChatTurnView extends StatelessWidget {
         '${index + 1}. ${row['n'] ?? (isDe ? 'Trainingstag' : 'Training day')}',
       'recipe' =>
         '${row['name'] ?? (isDe ? 'Zutat' : 'Ingredient')} · ${row['grams'] ?? '?'} ${row['unit'] ?? 'g'}',
+      'meal_entry' =>
+        '${row['name'] ?? (isDe ? 'Lebensmittel' : 'Food')} · ${row['grams']} g',
       _ => '${index + 1}',
     };
   }
@@ -611,6 +677,28 @@ class CloudChatTurnView extends StatelessWidget {
         if (row['fat'] != null) '${row['fat']} g fat',
       ];
       return values.join(' · ');
+    }
+    if (type == 'meal_entry') {
+      final grams = (row['grams'] as num).toDouble();
+      final factor = grams / 100;
+      final protein = (row['protein'] as num).toDouble() * factor;
+      final carbs = (row['carbs'] as num).toDouble() * factor;
+      final fat = (row['fat'] as num).toDouble() * factor;
+      final calories = (protein * 4 + carbs * 4 + fat * 9).round();
+      String formatAmount(double value) => value.toStringAsFixed(1);
+      final main =
+          '$calories kcal · P ${formatAmount(protein)} g · ${isDe ? 'KH' : 'C'} ${formatAmount(carbs)} g · F ${formatAmount(fat)} g';
+      final extras = [
+        if (row['sugar'] is num)
+          '${isDe ? 'Zucker' : 'Sugar'} ${formatAmount((row['sugar'] as num).toDouble() * factor)} g',
+        if (row['fiber'] is num)
+          '${isDe ? 'Ballaststoffe' : 'Fiber'} ${formatAmount((row['fiber'] as num).toDouble() * factor)} g',
+        if (row['salt'] is num)
+          '${isDe ? 'Salz' : 'Salt'} ${formatAmount((row['salt'] as num).toDouble() * factor)} g',
+        if (row['caffeine'] is num)
+          '${isDe ? 'Koffein' : 'Caffeine'} ${formatAmount((row['caffeine'] as num).toDouble() * factor)} mg',
+      ];
+      return [main, if (extras.isNotEmpty) extras.join(' · ')].join('\n');
     }
     return '';
   }

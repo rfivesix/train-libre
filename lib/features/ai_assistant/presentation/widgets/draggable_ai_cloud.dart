@@ -334,6 +334,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
             ],
           ),
         ]),
+        diaryRepository: context.read<IDiaryRepository>(),
         model: widget.modelClient ?? const ConfiguredAssistantModelClient(),
       );
       _chatCoordinator.initializeAssistant(assistant, history);

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="description" content="Reviewed macro-only meal proposals, validation, photo persistence, and estimate boundaries.">
+  <title>AI assistant meal logging | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/ai-assistant-meal-logging/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="AI assistant meal logging | Train Libre">
+  <meta property="og:description" content="Reviewed macro-only meal proposals, validation, photo persistence, and estimate boundaries.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/ai-assistant-meal-logging/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- Theme Script (Synchronous in head to prevent theme flash) -->
+  <script src="../../../theme.js"></script>
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
+
+  <!-- Dedicated Docs Client Interactions -->
+  <script src="../../docs.js" defer></script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../app-comparison/index.html" class="sidebar-link">Fitness App Feature Comparison</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../macro-analytics/index.html" class="sidebar-link">Macronutrient Analytics</a></li>
+<li><a href="../manual-workout-plans/index.html" class="sidebar-link">Manual Workout Plans</a></li>
+<li><a href="../adaptive-nutrition-goals/index.html" class="sidebar-link">Adaptive Nutrition Goals</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../ai-assistant-data-access/index.html" class="sidebar-link">AI Assistant Data Access &amp; Change Proposals</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">AI Assistant Meal Logging</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">User Guide</div><ul class="sidebar-nav-list">
+<li><a href="../../user-guide/overview/index.html" class="sidebar-link">User Guide Overview</a></li>
+<li><a href="../../user-guide/getting-started/index.html" class="sidebar-link">Get started with Train Libre</a></li>
+<li><a href="../../user-guide/settings-and-privacy/index.html" class="sidebar-link">Manage app support and privacy settings</a></li>
+<li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
+<li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
+<li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
+<li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
+<li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
+<li><a href="../../user-guide/training-plans/index.html" class="sidebar-link">Create and follow a training plan</a></li>
+<li><a href="../../user-guide/logging-food/index.html" class="sidebar-link">Log food and review calories and macronutrients</a></li>
+<li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
+<li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
+<li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/ai-chat-food-logging/index.html" class="sidebar-link">Log food with the AI chat</a></li>
+<li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
+<li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
+<li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
+<li><a href="../../user-guide/logging-supplements/index.html" class="sidebar-link">Log caffeine and other supplements</a></li>
+<li><a href="../../user-guide/measurements/index.html" class="sidebar-link">Record body weight and other measurements</a></li>
+<li><a href="../../user-guide/statistics/index.html" class="sidebar-link">Read the Statistics hub</a></li>
+<li><a href="../../user-guide/training-statistics/index.html" class="sidebar-link">Read training statistics</a></li>
+<li><a href="../../user-guide/body-nutrition-statistics/index.html" class="sidebar-link">Read Body &amp; Nutrition statistics</a></li>
+<li><a href="../../user-guide/health-data/index.html" class="sidebar-link">Connect health data</a></li>
+<li><a href="../../user-guide/widgets/index.html" class="sidebar-link">Use Train Libre widgets and quick actions</a></li>
+<li><a href="../../user-guide/live-activities/index.html" class="sidebar-link">Live Activities and workout updates</a></li>
+<li><a href="../../user-guide/notifications/index.html" class="sidebar-link">Manage notifications and reminders</a></li>
+<li><a href="../../user-guide/importing-data/index.html" class="sidebar-link">Import workout history and other data</a></li>
+<li><a href="../../user-guide/prepare-csv-files/index.html" class="sidebar-link">Prepare a compatible workout CSV</a></li>
+<li><a href="../../user-guide/exporting-and-backing-up/index.html" class="sidebar-link">Exporting and backing up data</a></li>
+<li><a href="../../user-guide/sharing-and-ai/index.html" class="sidebar-link">Share Train Libre data with an AI assistant</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Documentation</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Database Lifecycle</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+<li><a href="../../developer/food-search/index.html" class="sidebar-link">Food Search: Data Flow &amp; Ranking</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">AI assistant meal logging</h1>
+<p>The floating assistant can create diary meals from text or from photos attached to the user's current chat message. This is a direct-estimate path: it does not search the local food catalog, create barcodes, or pretend its estimates are catalog facts.</p>
+<h2 id="intent-and-review-boundary" class="doc-h2">Intent and review boundary<a href="#intent-and-review-boundary" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The intent planner selects meal creation only when the user explicitly asks to log, add, or save the described food as a diary entry. Asking what is in a photo, discussing nutrition, or attaching an image without a logging request does not create a proposal. The planner returns a typed <code>meal_entry</code> create proposal alongside ordinary chat, clarification, and approved-data intents.</p>
+<p>The chat renders the proposal using the same expandable review card used for routine, plan, and recipe changes. The user can inspect the meal name, time, meal period, item names, amounts, and resulting macros, then apply or discard the draft. A model response never writes to the Diary on its own. The same proposal model can be called by another app surface later without tying meal creation to the chat UI.</p>
+<h2 id="diary-data-and-estimates" class="doc-h2">Diary data and estimates<a href="#diary-data-and-estimates" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Each proposed item becomes a <code>MacroEntry</code> linked to one <code>MealEntry</code>. Amounts are grams, and protein, carbohydrates, fat, and optional sugar, fiber, salt, and caffeine are values per 100 g. Calories are derived locally from protein, carbohydrates, and fat using Train Libre's existing 4/4/9 calculation. The entries have no food-catalog foreign key, barcode, or favorite state, and they use the same diary totals and detail screens as other macro-only entries.</p>
+<p>The payload validator rejects missing required macros, non-finite or negative values, unreasonable amounts, invalid meal periods, and malformed timestamps. The repository stores the meal and its macro rows in one transaction. A failed save removes any image copies created for that attempt, leaving no partial photo-backed meal. The app assigns a stable record ID before review, so retrying an apply after an interrupted chat-status update does not add the same meal a second time.</p>
+<h2 id="image-and-provider-handling" class="doc-h2">Image and provider handling<a href="#image-and-provider-handling" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The app, rather than the model, binds proposal photos to attachment IDs from the user message that requested logging. On approval, Train Libre verifies that those attachments belong to the conversation and copies the full-resolution photo (or its retained preview if the original is unavailable) into meal storage. The first photo populates the meal's primary photo fields; additional photos are recorded in capture metadata. Removing the chat later does not remove diary-owned copies. Rejected proposals create no diary copies.</p>
+<p>The meal capture metadata records the selected provider, model, and <code>directEstimate</code> nutrition engine. As with other AI features, providers may receive the user's text and attached photos under their own processing terms. All saved values remain editable in the normal meal detail screen.</p>
+<h2 id="boundaries" class="doc-h2">Boundaries<a href="#boundaries" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>This path creates a new meal only. It does not edit or delete existing meals, read the user's diary to infer missing ingredients, or match foods against the catalog. It does not attach LiDAR depth measurements, which remain part of the separate camera-based AI Meal Capture flow. Users can change a saved entry manually in the Diary. The model's nutrition values are estimates and should be reviewed before confirmation.</p>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../ai-assistant-data-access/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">AI Assistant Data Access &amp; Change Proposals</span></a>
+<a href="../depth-scale-hint/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Depth Scale Hint</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#intent-and-review-boundary">Intent and review boundary</a></li>
+<li class="toc-item toc-item-l2"><a href="#diary-data-and-estimates">Diary data and estimates</a></li>
+<li class="toc-item toc-item-l2"><a href="#image-and-provider-handling">Image and provider handling</a></li>
+<li class="toc-item toc-item-l2"><a href="#boundaries">Boundaries</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

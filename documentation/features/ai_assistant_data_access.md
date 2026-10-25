@@ -1,55 +1,56 @@
-# AI assistant: first data-access version
+# AI assistant data access and change proposals
 
-The floating assistant keeps conversations in the app database. Open **Chats**
-in the overlay to return to a conversation, or start a new one. Chat history
-survives closing the overlay and restarting the app.
+The floating assistant stores chat history locally. It can answer ordinary
+questions, request a limited read of app data, and prepare supported change
+proposals. Model output never directly writes a record.
 
-Chat normally, or ask about workouts, diary entries, nutrition, steps, sleep, recovery,
-measurements, goals, routines, or training plans. Dated data requests accept
-`today`, `yesterday`, `last Sunday` (and other weekdays), `this week`,
-`last week`, `this month`, `last month`, `last N days`, ISO dates
-(`2026-10-18`), German dates (`18.10.2026`), locale-aware slash dates,
-and two dates as a range. Dates use the device's local time
-zone. The configured model decides whether app records are needed. For data
-questions it proposes the smallest useful categories and period, using a
-recent bounded period when the user did not state one. Only genuinely
-ambiguous requests need a follow-up question. Model proposals are validated
-locally before an access request is shown. Goals,
-routines, and training plans are current snapshots; historical versions are
-not inferred. Recovery is a current estimate based on the app's recent workout
-data.
+## Reading app data
 
-The model may receive the current user message and a short history of earlier
-user messages and non-data assistant replies to interpret intent. Previous
-data-grounded answers and app records are excluded from this step. Before any
-app data are retrieved or sent to a model, the overlay shows the
-requested categories and date scope. **Allow once** approves that one request;
-**Deny** sends no app records. Pending approvals expire after 30 minutes.
-Follow-up questions require a new approval. Prior answers are not included in
-later model requests, because they may contain data from an earlier scope.
+For data questions, the intent planner asks for the smallest useful data
+categories and date scope. Before any app records are retrieved or sent to a
+model, the overlay shows the requested categories and period. **Allow once**
+approves that request; **Deny** sends no app records. Pending approvals expire
+after 30 minutes. Follow-up questions require new approval. Previous
+data-grounded answers and records are excluded from later interpretation.
 
-After approval, the selected records are copied into a separate, in-memory
-SQLite database in a disposable isolate. The model first receives the schema
-and column meanings, not the complete record set. It can request up to five
-read-only SQL queries; the app validates and runs each query locally and sends
-only the bounded result back to the model. Each query is limited to 200 rows
-and 12,000 serialized characters. The full snapshot is limited to 50,000 rows
-and 5 MiB, and a query that takes more than three seconds destroys the
-temporary snapshot. Only the approved categories and period are available to
-queries. Writes, recursive CTEs, cross joins, table-valued functions, and
-references outside the snapshot are rejected.
+After approval, selected records are copied into a separate, in-memory SQLite
+database in a disposable isolate. The model receives the schema and column
+meanings first, then may request read-only SQL queries. The app validates and
+runs each query locally and sends only bounded results to the model. Writes,
+recursive CTEs, cross joins, table-valued functions, and references outside
+the approved snapshot are rejected. Large snapshots and slow queries are
+bounded, and a failed read does not send partial records.
 
-After a response, **Data access** shows the local audit entry: request and
-decision times, provider/model, status, tables queried, result fields and row
-counts, truncation state, and SHA-256 hashes of the SQL and each result sent
-to the provider. The audit stores this manifest rather than a second copy of
-the personal payload. If a read service is unavailable, the assistant reports
-the error and does not send a partial data set. The selected existing provider
-is used; on-device generation is available only when that provider is actually
-available on the device. If the model answers without requesting data, the
-audit records that no app records were shared.
+The local **Data access** audit records request and decision times,
+provider/model, status, queried tables, result fields and row counts,
+truncation state, and hashes of SQL and provider-bound results. It stores this
+manifest rather than another copy of personal records. The selected provider
+is used; on-device generation is available only when that provider is
+available on the device.
 
-This version reads app data only. It does not create or change records, start
-workouts, or execute model-generated commands. Invalid or unsupported model
-proposals prompt for clarification. Very large snapshots prompt for a shorter
-range before a temporary database is created.
+## Supported changes
+
+The assistant can prepare create or update drafts for routines, training
+plans, and recipes. These drafts use the existing portable payload formats,
+are locally checked against the required approved record snapshots and
+catalogs, and remain pending until the user applies or discards them.
+
+It can also prepare a new `meal_entry` from an explicit food-logging request.
+This direct-estimate path does not search the user's food catalog or read their
+Diary. It proposes named macro entries with amounts and per-100 g nutrients;
+calories are calculated locally using the existing 4/4/9 rule. The meal and
+macro rows are validated and saved together only after the user applies the
+review card. The new records use the same diary summaries and detail screen as
+other macro-only entries. Existing meal changes are not available through this
+path.
+
+For an image-based meal, only attachment IDs bound by the app from the current
+user message can be copied into the meal. The model cannot select arbitrary
+local files or supply file paths. Applying the draft copies each photo into
+diary-owned media storage, separate from the chat attachments. Discarding the
+draft does not create diary photos or food entries. Provider handling of the
+text and photos follows the selected AI provider's terms.
+
+See [AI assistant meal logging](ai_assistant_meal_logging.md) for the meal
+payload and persistence rules, and the [AI chat food logging guide](../user_guide/ai_chat_food_logging.md)
+for the user workflow.

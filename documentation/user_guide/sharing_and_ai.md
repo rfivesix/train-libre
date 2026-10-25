@@ -16,7 +16,7 @@ Available share actions depend on the screen:
 - **Training plans and recipes:** share a web link when available, formatted text, or portable JSON.
 - **Micronutrients, Water, and Muscle Readiness:** use the share icon on the detail view to share its current summary as text. For the micronutrient data limits, see [Statistics](statistics.md#review-micronutrients).
 
-The in-app **AI Meal Capture** is a separate tool for analyzing a meal description or photos that you provide. Voice input is transcribed into editable text before analysis; it does not attach your workout history or other screens. See [Configure and use AI Meal Capture](ai_meal_capture.md).
+The in-app **AI Meal Capture** analyzes a meal description or photos that you provide. The floating AI chat can also prepare a macro-only diary meal when you explicitly ask it to log food; it shows a review card and saves attached photos with the Diary entry after you apply the draft. See [Log food with the AI chat](ai_chat_food_logging.md) and [Configure and use AI Meal Capture](ai_meal_capture.md).
 
 ## Share a broader history export
 

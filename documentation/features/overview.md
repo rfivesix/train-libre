@@ -48,6 +48,8 @@ Meal capture can use image, text, voice, or barcode workflows. AI analysis uses 
 
 * [Meal capture and AI validation](meal_capture_pipeline.md)
 * [BYOK providers and validation](byok_ai_validation.md)
+* [AI assistant data access and change proposals](ai_assistant_data_access.md)
+* [AI assistant meal logging](ai_assistant_meal_logging.md)
 
 ### 4. Health Sync and Export
 

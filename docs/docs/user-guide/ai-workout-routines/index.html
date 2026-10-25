@@ -117,6 +117,8 @@
 <li><a href="../../features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../../features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
 <li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../../features/ai-assistant-data-access/index.html" class="sidebar-link">AI Assistant Data Access &amp; Change Proposals</a></li>
+<li><a href="../../features/ai-assistant-meal-logging/index.html" class="sidebar-link">AI Assistant Meal Logging</a></li>
 <li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
 <li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
 <li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
@@ -136,6 +138,7 @@
 <li><a href="../food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
 <li><a href="../saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
 <li><a href="../ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../ai-chat-food-logging/index.html" class="sidebar-link">Log food with the AI chat</a></li>
 <li><a href="../water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
 <li><a href="../daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
 <li><a href="../weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
@@ -172,9 +175,9 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Create a workout routine with an AI assistant</h1>
-<p>Use the OpenExerciseDB catalog to choose real exercises, then ask an AI assistant to prepare a Train Libre routine JSON file. The app’s import preview is the final check before saving.</p>
-<p>AI-generated routines use the same versioned JSON format that Train Libre already accepts for shared-item imports. There is no separate AI import or app-side catalog integration: OpenExerciseDB is the reference for matching exercise IDs and names, which are copied into the existing <code>uuid</code> and <code>name</code> fields.</p>
-<h2 id="find-exercises-in-the-catalog" class="doc-h2">Find exercises in the catalog<a href="#find-exercises-in-the-catalog" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>This guide covers two workflows. For an external AI assistant, use the OpenExerciseDB catalog and import the resulting JSON through Train Libre’s preview. The built-in Train Libre assistant can use the approved local exercise catalog and presents routine changes as an in-app draft for review.</p>
+<p>Both workflows use the same versioned JSON format that Train Libre accepts for shared-item imports. External assistants do not have access to the app’s local database, so use OpenExerciseDB as their reference for matching exercise IDs and names. The built-in assistant can read the local catalog after approval and does not need web search or an online catalog.</p>
+<h2 id="find-exercises-for-an-external-assistant" class="doc-h2">Find exercises for an external assistant<a href="#find-exercises-for-an-external-assistant" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
 <li><a href="https://rfivesix.github.io/OpenExerciseDB/exercise-search.html" target="_blank" rel="noopener noreferrer">Search and browse OpenExerciseDB <span class="ext-icon">↗</span></a> for names in any listed language, IDs, muscles, or equipment. The page works without JavaScript; use your browser’s Find command.</li>
 <li><a href="https://rfivesix.github.io/OpenExerciseDB/exercises.json" target="_blank" rel="noopener noreferrer">Download the machine-readable JSON catalog <span class="ext-icon">↗</span></a> to search records programmatically. Each record includes a stable string <code>id</code>, canonical English <code>name</code>, localized names, status, muscles, equipment, and classification fields.</li>
@@ -210,9 +213,11 @@
 <p>Each exercise requires a nonblank string <code>name</code> and a <code>sets</code> array of at most 100 entries. Optional exercise fields are <code>uuid</code> (string or null), <code>category</code> (string), <code>muscles</code> and <code>secondaryMuscles</code> (arrays of strings), <code>tracking</code>, <code>loadMode</code>, and <code>equipment</code> (strings), <code>pause</code> and <code>superset</code> (numbers), <code>notes</code> (string up to 10,000 characters), and <code>progression</code> (string). These are the exact accepted JSON keys; use camel case where shown.</p>
 <p>Each set requires <code>type</code> (string). Optional <code>reps</code> is a string; <code>weight</code> and <code>rir</code> are numbers; <code>repMin</code> and <code>repMax</code> are integers. The codec checks these types but does not enforce an enum or numeric range for these fields. The app’s set-type controls use <code>normal</code>, <code>warmup</code>, <code>failure</code>, and <code>dropset</code>; use one of those values. Weight is in kilograms. Provide only fields that make sense for the exercise and user’s request.</p>
 <p>The codec ignores additional object keys, but omit unsupported fields to keep the file clear. Do not add root keys such as <code>name</code> or <code>exercises</code>; the routine name and exercise list belong at <code>n</code> and <code>d.exercises</code> respectively.</p>
-<h2 id="import-and-review" class="doc-h2">Import and review<a href="#import-and-review" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h2 id="import-and-review-with-an-external-assistant" class="doc-h2">Import and review with an external assistant<a href="#import-and-review-with-an-external-assistant" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>In Train Libre, open <strong>Data & Backup</strong> and choose the import action for JSON or pasted text. The exact menu wording can vary by platform/version. Review the parsed routine and every exercise in the in-app preview. Confirm that names, exercise matches, sets, targets, and rest times are correct before importing. The user should review and approve the completed routine; the assistant should never treat a valid JSON parse as approval.</p>
-<p>The catalog is discoverable from both <a href="https://rfivesix.github.io/OpenExerciseDB/exercise-search.html" target="_blank" rel="noopener noreferrer">the search page <span class="ext-icon">↗</span></a> and the <a href="https://rfivesix.github.io/OpenExerciseDB/exercises.json" target="_blank" rel="noopener noreferrer">direct JSON download <span class="ext-icon">↗</span></a>. Provide these links together with any existing routine export when asking an AI assistant to make a routine.</p>
+<p>The catalog is discoverable from both <a href="https://rfivesix.github.io/OpenExerciseDB/exercise-search.html" target="_blank" rel="noopener noreferrer">the search page <span class="ext-icon">↗</span></a> and the <a href="https://rfivesix.github.io/OpenExerciseDB/exercises.json" target="_blank" rel="noopener noreferrer">direct JSON download <span class="ext-icon">↗</span></a>. Provide these links together with any existing routine export when asking an external AI assistant to make a routine.</p>
+<h2 id="create-or-change-a-routine-with-the-built-in-assistant" class="doc-h2">Create or change a routine with the built-in assistant<a href="#create-or-change-a-routine-with-the-built-in-assistant" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>When the built-in assistant asks for access to routines or the exercise catalog, approve only the categories needed for the request. The assistant uses the app's local catalog and approved routine records; it does not depend on web search. It creates a draft using the same share/import payload format described above. Review the routine name, exercises, and prescriptions in the in-app proposal, then choose <strong>Apply</strong> to save or <strong>Discard</strong> to leave saved data unchanged. For updates, the assistant must identify the exact routine from the approved records before it can propose a replacement.</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -223,9 +228,10 @@
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#find-exercises-in-the-catalog">Find exercises in the catalog</a></li>
+<li class="toc-item toc-item-l2"><a href="#find-exercises-for-an-external-assistant">Find exercises for an external assistant</a></li>
 <li class="toc-item toc-item-l2"><a href="#routine-json-format">Routine JSON format</a></li>
-<li class="toc-item toc-item-l2"><a href="#import-and-review">Import and review</a></li>
+<li class="toc-item toc-item-l2"><a href="#import-and-review-with-an-external-assistant">Import and review with an external assistant</a></li>
+<li class="toc-item toc-item-l2"><a href="#create-or-change-a-routine-with-the-built-in-assistant">Create or change a routine with the built-in assistant</a></li>
 </ul></div></aside>
     </div>
 

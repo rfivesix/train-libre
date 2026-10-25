@@ -460,6 +460,17 @@ class CloudChatCoordinator extends ChangeNotifier {
       _conversationId = submission.conversationId;
       _pendingAccess = null;
       _pendingQuestion = null;
+      if (submission.changeProposal != null) {
+        turn.assistantMessageId = submission.proposalMessageId;
+        turn.changeProposal = submission.changeProposal;
+        turn.proposalStatus = 'proposal_pending';
+        turn.response = submission.changeProposal!.summary;
+        notifyListeners();
+        _completeDemoGeneration();
+        unawaited(_loadAssistantHistory());
+        onScrollToBottom?.call(force: true);
+        return;
+      }
       turn.response = submission.clarification ?? '';
       notifyListeners();
 

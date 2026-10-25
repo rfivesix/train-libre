@@ -161,6 +161,24 @@ DOCS_STRUCTURE = [
                 "desc": "Selected-provider requests, catalog matching, heuristic validation, and up to three repair requests."
             },
             {
+                "id": "features-ai-assistant-data-access",
+                "title": "AI Assistant Data Access & Change Proposals",
+                "slug": "ai-assistant-data-access",
+                "src_file": SRC_DOC_DIR / "features" / "ai_assistant_data_access.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "ai-assistant-data-access",
+                "url": "/docs/features/ai-assistant-data-access/",
+                "desc": "Approval boundaries for local data reads and reviewed assistant-created records."
+            },
+            {
+                "id": "features-ai-assistant-meals",
+                "title": "AI Assistant Meal Logging",
+                "slug": "ai-assistant-meal-logging",
+                "src_file": SRC_DOC_DIR / "features" / "ai_assistant_meal_logging.md",
+                "out_dir": OUTPUT_DOCS_DIR / "features" / "ai-assistant-meal-logging",
+                "url": "/docs/features/ai-assistant-meal-logging/",
+                "desc": "Reviewed macro-only meal proposals, validation, photo persistence, and estimate boundaries."
+            },
+            {
                 "id": "features-depth",
                 "title": "Depth Scale Hint",
                 "slug": "depth-scale-hint",
@@ -317,6 +335,15 @@ DOCS_STRUCTURE = [
                 "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-meal-capture",
                 "url": "/docs/user-guide/ai-meal-capture/",
                 "desc": "Configure a provider and review photo, voice, text, or barcode meal captures."
+            },
+            {
+                "id": "user-guide-ai-chat-food-logging",
+                "title": "Log food with the AI chat",
+                "slug": "ai-chat-food-logging",
+                "src_file": SRC_DOC_DIR / "user_guide" / "ai_chat_food_logging.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-chat-food-logging",
+                "url": "/docs/user-guide/ai-chat-food-logging/",
+                "desc": "Create, review, and save a macro-only meal from chat text or attached photos."
             },
             {
                 "id": "user-guide-water-drinks",

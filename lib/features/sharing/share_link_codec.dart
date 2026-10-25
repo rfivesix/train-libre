@@ -18,7 +18,8 @@ class ShareLinkPayload {
 
   static ShareLinkPayload fromJson(Map<String, dynamic> json) {
     if (json['v'] != 1 ||
-        !const {'routine', 'plan', 'recipe', 'workout'}.contains(json['t']) ||
+        !const {'routine', 'plan', 'recipe', 'workout', 'meal_entry'}
+            .contains(json['t']) ||
         json['n'] is! String ||
         (json['n'] as String).trim().isEmpty ||
         (json['n'] as String).length > 200 ||
@@ -135,6 +136,62 @@ class ShareLinkPayload {
             throw const FormatException('Invalid ingredient');
           }
         }
+      case 'meal_entry':
+        final consumedAt = data['consumedAt'];
+        if (consumedAt is! String ||
+            consumedAt.length > 64 ||
+            DateTime.tryParse(consumedAt) == null ||
+            !const {
+              'mealtypeBreakfast',
+              'mealtypeLunch',
+              'mealtypeDinner',
+              'mealtypeSnack',
+            }.contains(data['mealType']) ||
+            rows.isEmpty ||
+            (data['notes'] != null &&
+                (data['notes'] is! String ||
+                    (data['notes'] as String).length > 500))) {
+          throw const FormatException('Invalid meal entry');
+        }
+        for (final raw in rows) {
+          if (raw is! Map ||
+              raw['name'] is! String ||
+              (raw['name'] as String).trim().isEmpty ||
+              (raw['name'] as String).length > 120 ||
+              raw['grams'] is! num ||
+              !(raw['grams'] as num).isFinite ||
+              (raw['grams'] as num) <= 0 ||
+              (raw['grams'] as num) > 50000 ||
+              !const ['protein', 'carbs', 'fat'].every(
+                (key) =>
+                    raw[key] is num &&
+                    (raw[key] as num).isFinite &&
+                    (raw[key] as num) >= 0 &&
+                    (raw[key] as num) <= 100,
+              ) ||
+              !const ['sugar', 'fiber', 'salt'].every(
+                (key) =>
+                    raw[key] == null ||
+                    (raw[key] is num &&
+                        (raw[key] as num).isFinite &&
+                        (raw[key] as num) >= 0 &&
+                        (raw[key] as num) <= 100),
+              ) ||
+              (raw['caffeine'] != null &&
+                  (raw['caffeine'] is! num ||
+                      !(raw['caffeine'] as num).isFinite ||
+                      (raw['caffeine'] as num) < 0 ||
+                      (raw['caffeine'] as num) > 100000))) {
+            throw const FormatException('Invalid meal macro item');
+          }
+          final macroTotal = const ['protein', 'carbs', 'fat'].fold<double>(
+            0,
+            (total, key) => total + (raw[key] as num).toDouble(),
+          );
+          if (macroTotal > 100) {
+            throw const FormatException('Meal macros exceed 100 g per 100 g');
+          }
+        }
       case 'workout':
         final start = data['start'];
         final end = data['end'];
@@ -223,8 +280,12 @@ class ShareLinkCodec {
   const ShareLinkCodec._();
 
   static String encode(ShareLinkPayload payload) {
-    if (payload.type == 'workout') {
-      throw const FormatException('Workouts require a JSON export');
+    if (payload.type == 'workout' || payload.type == 'meal_entry') {
+      throw FormatException(
+        payload.type == 'workout'
+            ? 'Workouts require a JSON export'
+            : 'Meal entries are local diary records and cannot be shared as links',
+      );
     }
     final json = utf8.encode(jsonEncode(payload.toJson()));
     if (json.length > maxDecodedBytes) {
@@ -252,7 +313,7 @@ class ShareLinkCodec {
     final value = jsonDecode(utf8.decode(decoded));
     if (value is! Map) throw const FormatException('Invalid shared content');
     final payload = ShareLinkPayload.fromJson(Map<String, dynamic>.from(value));
-    if (payload.type == 'workout') {
+    if (payload.type == 'workout' || payload.type == 'meal_entry') {
       throw const FormatException('Unsupported share link');
     }
     return payload;
