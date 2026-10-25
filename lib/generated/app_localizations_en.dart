@@ -9059,4 +9059,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiAssistantProcessingData => 'Analyzing approved data…';
+
+  @override
+  String get macroEntryButton => 'Macros';
+
+  @override
+  String get macroEntryTitle => 'Log macros';
+
+  @override
+  String get macroEntryName => 'Name (optional)';
+
+  @override
+  String get macroEntryAmount => 'Amount (optional)';
+
+  @override
+  String get macroEntryAmountTotalHint =>
+      'Leave blank to enter values for the whole item.';
+
+  @override
+  String get macroEntryAmountPer100GramHint =>
+      'With an amount, nutrient values are per 100 g.';
+
+  @override
+  String get macroEntryAmountPer100MlHint =>
+      'With an amount, nutrient values are per 100 ml.';
+
+  @override
+  String get macroEntryCalculate => 'Calculate automatically';
+
+  @override
+  String get macroEntryInvalidValues =>
+      'These values do not produce a valid macro value.';
+
+  @override
+  String get macroEntryLogAsFluid => 'Also log as a drink';
+
+  @override
+  String get macroEntryFluidAmountRequired =>
+      'Enter an amount in ml to log a drink.';
+
+  @override
+  String get macroEntryExtraNutrients => 'Add more nutrients';
+
+  @override
+  String get macroEntrySugar => 'Sugar';
+
+  @override
+  String get macroEntryFiber => 'Fiber';
+
+  @override
+  String get macroEntrySalt => 'Salt';
+
+  @override
+  String get macroEntryCaffeine => 'Caffeine';
+
+  @override
+  String get macroEntryPer100 => 'Per 100';
+
+  @override
+  String get macroEntryPortion => 'Portion';
+
+  @override
+  String get macroEntrySaved => 'Macros logged.';
+
+  @override
+  String get macroEntryDefaultName => 'Macro entry';
+
+  @override
+  String get macroEntryDetailTitle => 'Nutrients';
+
+  @override
+  String get macroEntryFillThreeValues =>
+      'Enter exactly three of the four macro values.';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'This drink is linked to a macro entry. Deleting it also removes the macro entry.';
 }

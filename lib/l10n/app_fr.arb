@@ -3730,5 +3730,28 @@
         "type": "String"
       }
     }
-  }
+  },
+  "macroEntryButton": "Macros",
+  "macroEntryTitle": "Saisir les macros",
+  "macroEntryName": "Nom (facultatif)",
+  "macroEntryAmount": "Quantité (facultative)",
+  "macroEntryAmountTotalHint": "Laisser vide pour saisir les valeurs de l’entrée entière.",
+  "macroEntryAmountPer100GramHint": "Avec une quantité, les valeurs sont pour 100 g.",
+  "macroEntryAmountPer100MlHint": "Avec une quantité, les valeurs sont pour 100 ml.",
+  "macroEntryCalculate": "Calculer automatiquement",
+  "macroEntryInvalidValues": "Ces valeurs ne permettent pas de calculer une macro valide.",
+  "macroEntryLogAsFluid": "Enregistrer aussi comme boisson",
+  "macroEntryFluidAmountRequired": "Saisissez une quantité en ml pour une boisson.",
+  "macroEntryExtraNutrients": "Ajouter d’autres nutriments",
+  "macroEntrySugar": "Sucres",
+  "macroEntryFiber": "Fibres",
+  "macroEntrySalt": "Sel",
+  "macroEntryCaffeine": "Caféine",
+  "macroEntryPer100": "Pour 100",
+  "macroEntryPortion": "Portion",
+  "macroEntrySaved": "Macros enregistrées.",
+  "macroEntryDefaultName": "Entrée macro",
+  "macroEntryDetailTitle": "Nutriments",
+  "macroEntryFillThreeValues": "Saisissez exactement trois des quatre valeurs macro.",
+  "macroEntryDeleteConfirm": "Cette boisson est liée à une entrée macro. Sa suppression supprimera aussi l’entrée macro."
 }

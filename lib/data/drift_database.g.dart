@@ -11626,6 +11626,948 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
   }
 }
 
+class $MacroEntriesTable extends MacroEntries
+    with TableInfo<$MacroEntriesTable, MacroEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MacroEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _consumedAtMeta =
+      const VerificationMeta('consumedAt');
+  @override
+  late final GeneratedColumn<DateTime> consumedAt = GeneratedColumn<DateTime>(
+      'consumed_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _mealTypeMeta =
+      const VerificationMeta('mealType');
+  @override
+  late final GeneratedColumn<String> mealType = GeneratedColumn<String>(
+      'meal_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+      'amount', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _amountUnitMeta =
+      const VerificationMeta('amountUnit');
+  @override
+  late final GeneratedColumn<String> amountUnit = GeneratedColumn<String>(
+      'amount_unit', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isFluidMeta =
+      const VerificationMeta('isFluid');
+  @override
+  late final GeneratedColumn<bool> isFluid = GeneratedColumn<bool>(
+      'is_fluid', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_fluid" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _caloriesMeta =
+      const VerificationMeta('calories');
+  @override
+  late final GeneratedColumn<double> calories = GeneratedColumn<double>(
+      'calories', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _proteinMeta =
+      const VerificationMeta('protein');
+  @override
+  late final GeneratedColumn<double> protein = GeneratedColumn<double>(
+      'protein', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _carbsMeta = const VerificationMeta('carbs');
+  @override
+  late final GeneratedColumn<double> carbs = GeneratedColumn<double>(
+      'carbs', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _fatMeta = const VerificationMeta('fat');
+  @override
+  late final GeneratedColumn<double> fat = GeneratedColumn<double>(
+      'fat', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _sugarMeta = const VerificationMeta('sugar');
+  @override
+  late final GeneratedColumn<double> sugar = GeneratedColumn<double>(
+      'sugar', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _fiberMeta = const VerificationMeta('fiber');
+  @override
+  late final GeneratedColumn<double> fiber = GeneratedColumn<double>(
+      'fiber', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _saltMeta = const VerificationMeta('salt');
+  @override
+  late final GeneratedColumn<double> salt = GeneratedColumn<double>(
+      'salt', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _caffeineMeta =
+      const VerificationMeta('caffeine');
+  @override
+  late final GeneratedColumn<double> caffeine = GeneratedColumn<double>(
+      'caffeine', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _calculatedNutrientMeta =
+      const VerificationMeta('calculatedNutrient');
+  @override
+  late final GeneratedColumn<String> calculatedNutrient =
+      GeneratedColumn<String>('calculated_nutrient', aliasedName, false,
+          type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        userId,
+        consumedAt,
+        mealType,
+        name,
+        amount,
+        amountUnit,
+        isFluid,
+        calories,
+        protein,
+        carbs,
+        fat,
+        sugar,
+        fiber,
+        salt,
+        caffeine,
+        calculatedNutrient
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'macro_entries';
+  @override
+  VerificationContext validateIntegrity(Insertable<MacroEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    }
+    if (data.containsKey('consumed_at')) {
+      context.handle(
+          _consumedAtMeta,
+          consumedAt.isAcceptableOrUnknown(
+              data['consumed_at']!, _consumedAtMeta));
+    } else if (isInserting) {
+      context.missing(_consumedAtMeta);
+    }
+    if (data.containsKey('meal_type')) {
+      context.handle(_mealTypeMeta,
+          mealType.isAcceptableOrUnknown(data['meal_type']!, _mealTypeMeta));
+    } else if (isInserting) {
+      context.missing(_mealTypeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    }
+    if (data.containsKey('amount_unit')) {
+      context.handle(
+          _amountUnitMeta,
+          amountUnit.isAcceptableOrUnknown(
+              data['amount_unit']!, _amountUnitMeta));
+    }
+    if (data.containsKey('is_fluid')) {
+      context.handle(_isFluidMeta,
+          isFluid.isAcceptableOrUnknown(data['is_fluid']!, _isFluidMeta));
+    }
+    if (data.containsKey('calories')) {
+      context.handle(_caloriesMeta,
+          calories.isAcceptableOrUnknown(data['calories']!, _caloriesMeta));
+    } else if (isInserting) {
+      context.missing(_caloriesMeta);
+    }
+    if (data.containsKey('protein')) {
+      context.handle(_proteinMeta,
+          protein.isAcceptableOrUnknown(data['protein']!, _proteinMeta));
+    } else if (isInserting) {
+      context.missing(_proteinMeta);
+    }
+    if (data.containsKey('carbs')) {
+      context.handle(
+          _carbsMeta, carbs.isAcceptableOrUnknown(data['carbs']!, _carbsMeta));
+    } else if (isInserting) {
+      context.missing(_carbsMeta);
+    }
+    if (data.containsKey('fat')) {
+      context.handle(
+          _fatMeta, fat.isAcceptableOrUnknown(data['fat']!, _fatMeta));
+    } else if (isInserting) {
+      context.missing(_fatMeta);
+    }
+    if (data.containsKey('sugar')) {
+      context.handle(
+          _sugarMeta, sugar.isAcceptableOrUnknown(data['sugar']!, _sugarMeta));
+    }
+    if (data.containsKey('fiber')) {
+      context.handle(
+          _fiberMeta, fiber.isAcceptableOrUnknown(data['fiber']!, _fiberMeta));
+    }
+    if (data.containsKey('salt')) {
+      context.handle(
+          _saltMeta, salt.isAcceptableOrUnknown(data['salt']!, _saltMeta));
+    }
+    if (data.containsKey('caffeine')) {
+      context.handle(_caffeineMeta,
+          caffeine.isAcceptableOrUnknown(data['caffeine']!, _caffeineMeta));
+    }
+    if (data.containsKey('calculated_nutrient')) {
+      context.handle(
+          _calculatedNutrientMeta,
+          calculatedNutrient.isAcceptableOrUnknown(
+              data['calculated_nutrient']!, _calculatedNutrientMeta));
+    } else if (isInserting) {
+      context.missing(_calculatedNutrientMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  MacroEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MacroEntry(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id']),
+      consumedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}consumed_at'])!,
+      mealType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}meal_type'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name']),
+      amount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}amount']),
+      amountUnit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}amount_unit']),
+      isFluid: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_fluid'])!,
+      calories: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}calories'])!,
+      protein: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}protein'])!,
+      carbs: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}carbs'])!,
+      fat: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}fat'])!,
+      sugar: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}sugar']),
+      fiber: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}fiber']),
+      salt: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}salt']),
+      caffeine: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}caffeine']),
+      calculatedNutrient: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}calculated_nutrient'])!,
+    );
+  }
+
+  @override
+  $MacroEntriesTable createAlias(String alias) {
+    return $MacroEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class MacroEntry extends DataClass implements Insertable<MacroEntry> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String? userId;
+  final DateTime consumedAt;
+  final String mealType;
+  final String? name;
+
+  /// If present, nutrient fields are per 100 [amountUnit].
+  final double? amount;
+  final String? amountUnit;
+  final bool isFluid;
+  final double calories;
+  final double protein;
+  final double carbs;
+  final double fat;
+  final double? sugar;
+  final double? fiber;
+  final double? salt;
+  final double? caffeine;
+
+  /// One of calories, protein, carbs, or fat. Keeps the calculated value
+  /// identifiable when the entry is edited or reviewed later.
+  final String calculatedNutrient;
+  const MacroEntry(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      this.userId,
+      required this.consumedAt,
+      required this.mealType,
+      this.name,
+      this.amount,
+      this.amountUnit,
+      required this.isFluid,
+      required this.calories,
+      required this.protein,
+      required this.carbs,
+      required this.fat,
+      this.sugar,
+      this.fiber,
+      this.salt,
+      this.caffeine,
+      required this.calculatedNutrient});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    map['consumed_at'] = Variable<DateTime>(consumedAt);
+    map['meal_type'] = Variable<String>(mealType);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || amount != null) {
+      map['amount'] = Variable<double>(amount);
+    }
+    if (!nullToAbsent || amountUnit != null) {
+      map['amount_unit'] = Variable<String>(amountUnit);
+    }
+    map['is_fluid'] = Variable<bool>(isFluid);
+    map['calories'] = Variable<double>(calories);
+    map['protein'] = Variable<double>(protein);
+    map['carbs'] = Variable<double>(carbs);
+    map['fat'] = Variable<double>(fat);
+    if (!nullToAbsent || sugar != null) {
+      map['sugar'] = Variable<double>(sugar);
+    }
+    if (!nullToAbsent || fiber != null) {
+      map['fiber'] = Variable<double>(fiber);
+    }
+    if (!nullToAbsent || salt != null) {
+      map['salt'] = Variable<double>(salt);
+    }
+    if (!nullToAbsent || caffeine != null) {
+      map['caffeine'] = Variable<double>(caffeine);
+    }
+    map['calculated_nutrient'] = Variable<String>(calculatedNutrient);
+    return map;
+  }
+
+  MacroEntriesCompanion toCompanion(bool nullToAbsent) {
+    return MacroEntriesCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      consumedAt: Value(consumedAt),
+      mealType: Value(mealType),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      amount:
+          amount == null && nullToAbsent ? const Value.absent() : Value(amount),
+      amountUnit: amountUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(amountUnit),
+      isFluid: Value(isFluid),
+      calories: Value(calories),
+      protein: Value(protein),
+      carbs: Value(carbs),
+      fat: Value(fat),
+      sugar:
+          sugar == null && nullToAbsent ? const Value.absent() : Value(sugar),
+      fiber:
+          fiber == null && nullToAbsent ? const Value.absent() : Value(fiber),
+      salt: salt == null && nullToAbsent ? const Value.absent() : Value(salt),
+      caffeine: caffeine == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caffeine),
+      calculatedNutrient: Value(calculatedNutrient),
+    );
+  }
+
+  factory MacroEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MacroEntry(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      consumedAt: serializer.fromJson<DateTime>(json['consumedAt']),
+      mealType: serializer.fromJson<String>(json['mealType']),
+      name: serializer.fromJson<String?>(json['name']),
+      amount: serializer.fromJson<double?>(json['amount']),
+      amountUnit: serializer.fromJson<String?>(json['amountUnit']),
+      isFluid: serializer.fromJson<bool>(json['isFluid']),
+      calories: serializer.fromJson<double>(json['calories']),
+      protein: serializer.fromJson<double>(json['protein']),
+      carbs: serializer.fromJson<double>(json['carbs']),
+      fat: serializer.fromJson<double>(json['fat']),
+      sugar: serializer.fromJson<double?>(json['sugar']),
+      fiber: serializer.fromJson<double?>(json['fiber']),
+      salt: serializer.fromJson<double?>(json['salt']),
+      caffeine: serializer.fromJson<double?>(json['caffeine']),
+      calculatedNutrient:
+          serializer.fromJson<String>(json['calculatedNutrient']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'userId': serializer.toJson<String?>(userId),
+      'consumedAt': serializer.toJson<DateTime>(consumedAt),
+      'mealType': serializer.toJson<String>(mealType),
+      'name': serializer.toJson<String?>(name),
+      'amount': serializer.toJson<double?>(amount),
+      'amountUnit': serializer.toJson<String?>(amountUnit),
+      'isFluid': serializer.toJson<bool>(isFluid),
+      'calories': serializer.toJson<double>(calories),
+      'protein': serializer.toJson<double>(protein),
+      'carbs': serializer.toJson<double>(carbs),
+      'fat': serializer.toJson<double>(fat),
+      'sugar': serializer.toJson<double?>(sugar),
+      'fiber': serializer.toJson<double?>(fiber),
+      'salt': serializer.toJson<double?>(salt),
+      'caffeine': serializer.toJson<double?>(caffeine),
+      'calculatedNutrient': serializer.toJson<String>(calculatedNutrient),
+    };
+  }
+
+  MacroEntry copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> userId = const Value.absent(),
+          DateTime? consumedAt,
+          String? mealType,
+          Value<String?> name = const Value.absent(),
+          Value<double?> amount = const Value.absent(),
+          Value<String?> amountUnit = const Value.absent(),
+          bool? isFluid,
+          double? calories,
+          double? protein,
+          double? carbs,
+          double? fat,
+          Value<double?> sugar = const Value.absent(),
+          Value<double?> fiber = const Value.absent(),
+          Value<double?> salt = const Value.absent(),
+          Value<double?> caffeine = const Value.absent(),
+          String? calculatedNutrient}) =>
+      MacroEntry(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        userId: userId.present ? userId.value : this.userId,
+        consumedAt: consumedAt ?? this.consumedAt,
+        mealType: mealType ?? this.mealType,
+        name: name.present ? name.value : this.name,
+        amount: amount.present ? amount.value : this.amount,
+        amountUnit: amountUnit.present ? amountUnit.value : this.amountUnit,
+        isFluid: isFluid ?? this.isFluid,
+        calories: calories ?? this.calories,
+        protein: protein ?? this.protein,
+        carbs: carbs ?? this.carbs,
+        fat: fat ?? this.fat,
+        sugar: sugar.present ? sugar.value : this.sugar,
+        fiber: fiber.present ? fiber.value : this.fiber,
+        salt: salt.present ? salt.value : this.salt,
+        caffeine: caffeine.present ? caffeine.value : this.caffeine,
+        calculatedNutrient: calculatedNutrient ?? this.calculatedNutrient,
+      );
+  MacroEntry copyWithCompanion(MacroEntriesCompanion data) {
+    return MacroEntry(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      consumedAt:
+          data.consumedAt.present ? data.consumedAt.value : this.consumedAt,
+      mealType: data.mealType.present ? data.mealType.value : this.mealType,
+      name: data.name.present ? data.name.value : this.name,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      amountUnit:
+          data.amountUnit.present ? data.amountUnit.value : this.amountUnit,
+      isFluid: data.isFluid.present ? data.isFluid.value : this.isFluid,
+      calories: data.calories.present ? data.calories.value : this.calories,
+      protein: data.protein.present ? data.protein.value : this.protein,
+      carbs: data.carbs.present ? data.carbs.value : this.carbs,
+      fat: data.fat.present ? data.fat.value : this.fat,
+      sugar: data.sugar.present ? data.sugar.value : this.sugar,
+      fiber: data.fiber.present ? data.fiber.value : this.fiber,
+      salt: data.salt.present ? data.salt.value : this.salt,
+      caffeine: data.caffeine.present ? data.caffeine.value : this.caffeine,
+      calculatedNutrient: data.calculatedNutrient.present
+          ? data.calculatedNutrient.value
+          : this.calculatedNutrient,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MacroEntry(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('userId: $userId, ')
+          ..write('consumedAt: $consumedAt, ')
+          ..write('mealType: $mealType, ')
+          ..write('name: $name, ')
+          ..write('amount: $amount, ')
+          ..write('amountUnit: $amountUnit, ')
+          ..write('isFluid: $isFluid, ')
+          ..write('calories: $calories, ')
+          ..write('protein: $protein, ')
+          ..write('carbs: $carbs, ')
+          ..write('fat: $fat, ')
+          ..write('sugar: $sugar, ')
+          ..write('fiber: $fiber, ')
+          ..write('salt: $salt, ')
+          ..write('caffeine: $caffeine, ')
+          ..write('calculatedNutrient: $calculatedNutrient')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        userId,
+        consumedAt,
+        mealType,
+        name,
+        amount,
+        amountUnit,
+        isFluid,
+        calories,
+        protein,
+        carbs,
+        fat,
+        sugar,
+        fiber,
+        salt,
+        caffeine,
+        calculatedNutrient
+      ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MacroEntry &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.userId == this.userId &&
+          other.consumedAt == this.consumedAt &&
+          other.mealType == this.mealType &&
+          other.name == this.name &&
+          other.amount == this.amount &&
+          other.amountUnit == this.amountUnit &&
+          other.isFluid == this.isFluid &&
+          other.calories == this.calories &&
+          other.protein == this.protein &&
+          other.carbs == this.carbs &&
+          other.fat == this.fat &&
+          other.sugar == this.sugar &&
+          other.fiber == this.fiber &&
+          other.salt == this.salt &&
+          other.caffeine == this.caffeine &&
+          other.calculatedNutrient == this.calculatedNutrient);
+}
+
+class MacroEntriesCompanion extends UpdateCompanion<MacroEntry> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String?> userId;
+  final Value<DateTime> consumedAt;
+  final Value<String> mealType;
+  final Value<String?> name;
+  final Value<double?> amount;
+  final Value<String?> amountUnit;
+  final Value<bool> isFluid;
+  final Value<double> calories;
+  final Value<double> protein;
+  final Value<double> carbs;
+  final Value<double> fat;
+  final Value<double?> sugar;
+  final Value<double?> fiber;
+  final Value<double?> salt;
+  final Value<double?> caffeine;
+  final Value<String> calculatedNutrient;
+  const MacroEntriesCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.consumedAt = const Value.absent(),
+    this.mealType = const Value.absent(),
+    this.name = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.amountUnit = const Value.absent(),
+    this.isFluid = const Value.absent(),
+    this.calories = const Value.absent(),
+    this.protein = const Value.absent(),
+    this.carbs = const Value.absent(),
+    this.fat = const Value.absent(),
+    this.sugar = const Value.absent(),
+    this.fiber = const Value.absent(),
+    this.salt = const Value.absent(),
+    this.caffeine = const Value.absent(),
+    this.calculatedNutrient = const Value.absent(),
+  });
+  MacroEntriesCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.userId = const Value.absent(),
+    required DateTime consumedAt,
+    required String mealType,
+    this.name = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.amountUnit = const Value.absent(),
+    this.isFluid = const Value.absent(),
+    required double calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+    this.sugar = const Value.absent(),
+    this.fiber = const Value.absent(),
+    this.salt = const Value.absent(),
+    this.caffeine = const Value.absent(),
+    required String calculatedNutrient,
+  })  : consumedAt = Value(consumedAt),
+        mealType = Value(mealType),
+        calories = Value(calories),
+        protein = Value(protein),
+        carbs = Value(carbs),
+        fat = Value(fat),
+        calculatedNutrient = Value(calculatedNutrient);
+  static Insertable<MacroEntry> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? userId,
+    Expression<DateTime>? consumedAt,
+    Expression<String>? mealType,
+    Expression<String>? name,
+    Expression<double>? amount,
+    Expression<String>? amountUnit,
+    Expression<bool>? isFluid,
+    Expression<double>? calories,
+    Expression<double>? protein,
+    Expression<double>? carbs,
+    Expression<double>? fat,
+    Expression<double>? sugar,
+    Expression<double>? fiber,
+    Expression<double>? salt,
+    Expression<double>? caffeine,
+    Expression<String>? calculatedNutrient,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (userId != null) 'user_id': userId,
+      if (consumedAt != null) 'consumed_at': consumedAt,
+      if (mealType != null) 'meal_type': mealType,
+      if (name != null) 'name': name,
+      if (amount != null) 'amount': amount,
+      if (amountUnit != null) 'amount_unit': amountUnit,
+      if (isFluid != null) 'is_fluid': isFluid,
+      if (calories != null) 'calories': calories,
+      if (protein != null) 'protein': protein,
+      if (carbs != null) 'carbs': carbs,
+      if (fat != null) 'fat': fat,
+      if (sugar != null) 'sugar': sugar,
+      if (fiber != null) 'fiber': fiber,
+      if (salt != null) 'salt': salt,
+      if (caffeine != null) 'caffeine': caffeine,
+      if (calculatedNutrient != null) 'calculated_nutrient': calculatedNutrient,
+    });
+  }
+
+  MacroEntriesCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String?>? userId,
+      Value<DateTime>? consumedAt,
+      Value<String>? mealType,
+      Value<String?>? name,
+      Value<double?>? amount,
+      Value<String?>? amountUnit,
+      Value<bool>? isFluid,
+      Value<double>? calories,
+      Value<double>? protein,
+      Value<double>? carbs,
+      Value<double>? fat,
+      Value<double?>? sugar,
+      Value<double?>? fiber,
+      Value<double?>? salt,
+      Value<double?>? caffeine,
+      Value<String>? calculatedNutrient}) {
+    return MacroEntriesCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      userId: userId ?? this.userId,
+      consumedAt: consumedAt ?? this.consumedAt,
+      mealType: mealType ?? this.mealType,
+      name: name ?? this.name,
+      amount: amount ?? this.amount,
+      amountUnit: amountUnit ?? this.amountUnit,
+      isFluid: isFluid ?? this.isFluid,
+      calories: calories ?? this.calories,
+      protein: protein ?? this.protein,
+      carbs: carbs ?? this.carbs,
+      fat: fat ?? this.fat,
+      sugar: sugar ?? this.sugar,
+      fiber: fiber ?? this.fiber,
+      salt: salt ?? this.salt,
+      caffeine: caffeine ?? this.caffeine,
+      calculatedNutrient: calculatedNutrient ?? this.calculatedNutrient,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (consumedAt.present) {
+      map['consumed_at'] = Variable<DateTime>(consumedAt.value);
+    }
+    if (mealType.present) {
+      map['meal_type'] = Variable<String>(mealType.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (amountUnit.present) {
+      map['amount_unit'] = Variable<String>(amountUnit.value);
+    }
+    if (isFluid.present) {
+      map['is_fluid'] = Variable<bool>(isFluid.value);
+    }
+    if (calories.present) {
+      map['calories'] = Variable<double>(calories.value);
+    }
+    if (protein.present) {
+      map['protein'] = Variable<double>(protein.value);
+    }
+    if (carbs.present) {
+      map['carbs'] = Variable<double>(carbs.value);
+    }
+    if (fat.present) {
+      map['fat'] = Variable<double>(fat.value);
+    }
+    if (sugar.present) {
+      map['sugar'] = Variable<double>(sugar.value);
+    }
+    if (fiber.present) {
+      map['fiber'] = Variable<double>(fiber.value);
+    }
+    if (salt.present) {
+      map['salt'] = Variable<double>(salt.value);
+    }
+    if (caffeine.present) {
+      map['caffeine'] = Variable<double>(caffeine.value);
+    }
+    if (calculatedNutrient.present) {
+      map['calculated_nutrient'] = Variable<String>(calculatedNutrient.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MacroEntriesCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('userId: $userId, ')
+          ..write('consumedAt: $consumedAt, ')
+          ..write('mealType: $mealType, ')
+          ..write('name: $name, ')
+          ..write('amount: $amount, ')
+          ..write('amountUnit: $amountUnit, ')
+          ..write('isFluid: $isFluid, ')
+          ..write('calories: $calories, ')
+          ..write('protein: $protein, ')
+          ..write('carbs: $carbs, ')
+          ..write('fat: $fat, ')
+          ..write('sugar: $sugar, ')
+          ..write('fiber: $fiber, ')
+          ..write('salt: $salt, ')
+          ..write('caffeine: $caffeine, ')
+          ..write('calculatedNutrient: $calculatedNutrient')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SupplementsTable extends Supplements
     with TableInfo<$SupplementsTable, Supplement> {
   @override
@@ -12861,6 +13803,15 @@ class $FluidLogsTable extends FluidLogs
           requiredDuringInsert: false,
           defaultConstraints: GeneratedColumn.constraintIsAlways(
               'REFERENCES nutrition_logs (id) ON DELETE CASCADE'));
+  static const VerificationMeta _linkedMacroEntryIdMeta =
+      const VerificationMeta('linkedMacroEntryId');
+  @override
+  late final GeneratedColumn<String> linkedMacroEntryId =
+      GeneratedColumn<String>('linked_macro_entry_id', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES macro_entries (id) ON DELETE CASCADE'));
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -12875,7 +13826,8 @@ class $FluidLogsTable extends FluidLogs
         sugarPer100ml,
         carbsPer100ml,
         caffeinePer100ml,
-        linkedNutritionLogId
+        linkedNutritionLogId,
+        linkedMacroEntryId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -12954,6 +13906,12 @@ class $FluidLogsTable extends FluidLogs
           linkedNutritionLogId.isAcceptableOrUnknown(
               data['linked_nutrition_log_id']!, _linkedNutritionLogIdMeta));
     }
+    if (data.containsKey('linked_macro_entry_id')) {
+      context.handle(
+          _linkedMacroEntryIdMeta,
+          linkedMacroEntryId.isAcceptableOrUnknown(
+              data['linked_macro_entry_id']!, _linkedMacroEntryIdMeta));
+    }
     return context;
   }
 
@@ -12990,6 +13948,8 @@ class $FluidLogsTable extends FluidLogs
       linkedNutritionLogId: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}linked_nutrition_log_id']),
+      linkedMacroEntryId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}linked_macro_entry_id']),
     );
   }
 
@@ -13013,6 +13973,7 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
   final double? carbsPer100ml;
   final double? caffeinePer100ml;
   final String? linkedNutritionLogId;
+  final String? linkedMacroEntryId;
   const FluidLog(
       {required this.localId,
       required this.id,
@@ -13026,7 +13987,8 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
       this.sugarPer100ml,
       this.carbsPer100ml,
       this.caffeinePer100ml,
-      this.linkedNutritionLogId});
+      this.linkedNutritionLogId,
+      this.linkedMacroEntryId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -13054,6 +14016,9 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
     }
     if (!nullToAbsent || linkedNutritionLogId != null) {
       map['linked_nutrition_log_id'] = Variable<String>(linkedNutritionLogId);
+    }
+    if (!nullToAbsent || linkedMacroEntryId != null) {
+      map['linked_macro_entry_id'] = Variable<String>(linkedMacroEntryId);
     }
     return map;
   }
@@ -13083,6 +14048,9 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
       linkedNutritionLogId: linkedNutritionLogId == null && nullToAbsent
           ? const Value.absent()
           : Value(linkedNutritionLogId),
+      linkedMacroEntryId: linkedMacroEntryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkedMacroEntryId),
     );
   }
 
@@ -13104,6 +14072,8 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
       caffeinePer100ml: serializer.fromJson<double?>(json['caffeinePer100ml']),
       linkedNutritionLogId:
           serializer.fromJson<String?>(json['linkedNutritionLogId']),
+      linkedMacroEntryId:
+          serializer.fromJson<String?>(json['linkedMacroEntryId']),
     );
   }
   @override
@@ -13123,6 +14093,7 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
       'carbsPer100ml': serializer.toJson<double?>(carbsPer100ml),
       'caffeinePer100ml': serializer.toJson<double?>(caffeinePer100ml),
       'linkedNutritionLogId': serializer.toJson<String?>(linkedNutritionLogId),
+      'linkedMacroEntryId': serializer.toJson<String?>(linkedMacroEntryId),
     };
   }
 
@@ -13139,7 +14110,8 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
           Value<double?> sugarPer100ml = const Value.absent(),
           Value<double?> carbsPer100ml = const Value.absent(),
           Value<double?> caffeinePer100ml = const Value.absent(),
-          Value<String?> linkedNutritionLogId = const Value.absent()}) =>
+          Value<String?> linkedNutritionLogId = const Value.absent(),
+          Value<String?> linkedMacroEntryId = const Value.absent()}) =>
       FluidLog(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -13160,6 +14132,9 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
         linkedNutritionLogId: linkedNutritionLogId.present
             ? linkedNutritionLogId.value
             : this.linkedNutritionLogId,
+        linkedMacroEntryId: linkedMacroEntryId.present
+            ? linkedMacroEntryId.value
+            : this.linkedMacroEntryId,
       );
   FluidLog copyWithCompanion(FluidLogsCompanion data) {
     return FluidLog(
@@ -13185,6 +14160,9 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
       linkedNutritionLogId: data.linkedNutritionLogId.present
           ? data.linkedNutritionLogId.value
           : this.linkedNutritionLogId,
+      linkedMacroEntryId: data.linkedMacroEntryId.present
+          ? data.linkedMacroEntryId.value
+          : this.linkedMacroEntryId,
     );
   }
 
@@ -13203,7 +14181,8 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
           ..write('sugarPer100ml: $sugarPer100ml, ')
           ..write('carbsPer100ml: $carbsPer100ml, ')
           ..write('caffeinePer100ml: $caffeinePer100ml, ')
-          ..write('linkedNutritionLogId: $linkedNutritionLogId')
+          ..write('linkedNutritionLogId: $linkedNutritionLogId, ')
+          ..write('linkedMacroEntryId: $linkedMacroEntryId')
           ..write(')'))
         .toString();
   }
@@ -13222,7 +14201,8 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
       sugarPer100ml,
       carbsPer100ml,
       caffeinePer100ml,
-      linkedNutritionLogId);
+      linkedNutritionLogId,
+      linkedMacroEntryId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -13239,7 +14219,8 @@ class FluidLog extends DataClass implements Insertable<FluidLog> {
           other.sugarPer100ml == this.sugarPer100ml &&
           other.carbsPer100ml == this.carbsPer100ml &&
           other.caffeinePer100ml == this.caffeinePer100ml &&
-          other.linkedNutritionLogId == this.linkedNutritionLogId);
+          other.linkedNutritionLogId == this.linkedNutritionLogId &&
+          other.linkedMacroEntryId == this.linkedMacroEntryId);
 }
 
 class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
@@ -13256,6 +14237,7 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
   final Value<double?> carbsPer100ml;
   final Value<double?> caffeinePer100ml;
   final Value<String?> linkedNutritionLogId;
+  final Value<String?> linkedMacroEntryId;
   const FluidLogsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -13270,6 +14252,7 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
     this.carbsPer100ml = const Value.absent(),
     this.caffeinePer100ml = const Value.absent(),
     this.linkedNutritionLogId = const Value.absent(),
+    this.linkedMacroEntryId = const Value.absent(),
   });
   FluidLogsCompanion.insert({
     this.localId = const Value.absent(),
@@ -13285,6 +14268,7 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
     this.carbsPer100ml = const Value.absent(),
     this.caffeinePer100ml = const Value.absent(),
     this.linkedNutritionLogId = const Value.absent(),
+    this.linkedMacroEntryId = const Value.absent(),
   })  : consumedAt = Value(consumedAt),
         amountMl = Value(amountMl),
         name = Value(name);
@@ -13302,6 +14286,7 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
     Expression<double>? carbsPer100ml,
     Expression<double>? caffeinePer100ml,
     Expression<String>? linkedNutritionLogId,
+    Expression<String>? linkedMacroEntryId,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -13318,6 +14303,8 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
       if (caffeinePer100ml != null) 'caffeine_per100ml': caffeinePer100ml,
       if (linkedNutritionLogId != null)
         'linked_nutrition_log_id': linkedNutritionLogId,
+      if (linkedMacroEntryId != null)
+        'linked_macro_entry_id': linkedMacroEntryId,
     });
   }
 
@@ -13334,7 +14321,8 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
       Value<double?>? sugarPer100ml,
       Value<double?>? carbsPer100ml,
       Value<double?>? caffeinePer100ml,
-      Value<String?>? linkedNutritionLogId}) {
+      Value<String?>? linkedNutritionLogId,
+      Value<String?>? linkedMacroEntryId}) {
     return FluidLogsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -13349,6 +14337,7 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
       carbsPer100ml: carbsPer100ml ?? this.carbsPer100ml,
       caffeinePer100ml: caffeinePer100ml ?? this.caffeinePer100ml,
       linkedNutritionLogId: linkedNutritionLogId ?? this.linkedNutritionLogId,
+      linkedMacroEntryId: linkedMacroEntryId ?? this.linkedMacroEntryId,
     );
   }
 
@@ -13395,6 +14384,9 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
       map['linked_nutrition_log_id'] =
           Variable<String>(linkedNutritionLogId.value);
     }
+    if (linkedMacroEntryId.present) {
+      map['linked_macro_entry_id'] = Variable<String>(linkedMacroEntryId.value);
+    }
     return map;
   }
 
@@ -13413,7 +14405,8 @@ class FluidLogsCompanion extends UpdateCompanion<FluidLog> {
           ..write('sugarPer100ml: $sugarPer100ml, ')
           ..write('carbsPer100ml: $carbsPer100ml, ')
           ..write('caffeinePer100ml: $caffeinePer100ml, ')
-          ..write('linkedNutritionLogId: $linkedNutritionLogId')
+          ..write('linkedNutritionLogId: $linkedNutritionLogId, ')
+          ..write('linkedMacroEntryId: $linkedMacroEntryId')
           ..write(')'))
         .toString();
   }
@@ -28892,6 +29885,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $OffProductsArchiveTable(this);
   late final $MealEntriesTable mealEntries = $MealEntriesTable(this);
   late final $NutritionLogsTable nutritionLogs = $NutritionLogsTable(this);
+  late final $MacroEntriesTable macroEntries = $MacroEntriesTable(this);
   late final $SupplementsTable supplements = $SupplementsTable(this);
   late final $SupplementLogsTable supplementLogs = $SupplementLogsTable(this);
   late final $FluidLogsTable fluidLogs = $FluidLogsTable(this);
@@ -28946,6 +29940,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $TrainingPlanOccurrencesTable(this);
   late final Index idxNutritionConsumedAt = Index('idx_nutrition_consumed_at',
       'CREATE INDEX idx_nutrition_consumed_at ON nutrition_logs (consumed_at)');
+  late final Index idxMacroEntriesConsumedAt = Index(
+      'idx_macro_entries_consumed_at',
+      'CREATE INDEX idx_macro_entries_consumed_at ON macro_entries (consumed_at)');
   late final Index idxFluidConsumedAt = Index('idx_fluid_consumed_at',
       'CREATE INDEX idx_fluid_consumed_at ON fluid_logs (consumed_at)');
   late final Index idxMealEntriesConsumedAt = Index(
@@ -28970,6 +29967,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         offProductsArchive,
         mealEntries,
         nutritionLogs,
+        macroEntries,
         supplements,
         supplementLogs,
         fluidLogs,
@@ -29005,6 +30003,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         trainingPlanActivations,
         trainingPlanOccurrences,
         idxNutritionConsumedAt,
+        idxMacroEntriesConsumedAt,
         idxFluidConsumedAt,
         idxMealEntriesConsumedAt
       ];
@@ -29069,6 +30068,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
           ),
           WritePropagation(
             on: TableUpdateQuery.onTableName('nutrition_logs',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('fluid_logs', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('macro_entries',
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('fluid_logs', kind: UpdateKind.delete),
@@ -36994,6 +38000,496 @@ typedef $$NutritionLogsTableProcessedTableManager = ProcessedTableManager<
         bool mealEntryId,
         bool supplementLogsRefs,
         bool fluidLogsRefs})>;
+typedef $$MacroEntriesTableCreateCompanionBuilder = MacroEntriesCompanion
+    Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> userId,
+  required DateTime consumedAt,
+  required String mealType,
+  Value<String?> name,
+  Value<double?> amount,
+  Value<String?> amountUnit,
+  Value<bool> isFluid,
+  required double calories,
+  required double protein,
+  required double carbs,
+  required double fat,
+  Value<double?> sugar,
+  Value<double?> fiber,
+  Value<double?> salt,
+  Value<double?> caffeine,
+  required String calculatedNutrient,
+});
+typedef $$MacroEntriesTableUpdateCompanionBuilder = MacroEntriesCompanion
+    Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> userId,
+  Value<DateTime> consumedAt,
+  Value<String> mealType,
+  Value<String?> name,
+  Value<double?> amount,
+  Value<String?> amountUnit,
+  Value<bool> isFluid,
+  Value<double> calories,
+  Value<double> protein,
+  Value<double> carbs,
+  Value<double> fat,
+  Value<double?> sugar,
+  Value<double?> fiber,
+  Value<double?> salt,
+  Value<double?> caffeine,
+  Value<String> calculatedNutrient,
+});
+
+final class $$MacroEntriesTableReferences
+    extends BaseReferences<_$AppDatabase, $MacroEntriesTable, MacroEntry> {
+  $$MacroEntriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$FluidLogsTable, List<FluidLog>>
+      _fluidLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.fluidLogs,
+          aliasName: 'macro_entries__id__fluid_logs__linked_macro_entry_id');
+
+  $$FluidLogsTableProcessedTableManager get fluidLogsRefs {
+    final manager = $$FluidLogsTableTableManager($_db, $_db.fluidLogs).filter(
+        (f) => f.linkedMacroEntryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_fluidLogsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$MacroEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $MacroEntriesTable> {
+  $$MacroEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get consumedAt => $composableBuilder(
+      column: $table.consumedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mealType => $composableBuilder(
+      column: $table.mealType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get amountUnit => $composableBuilder(
+      column: $table.amountUnit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isFluid => $composableBuilder(
+      column: $table.isFluid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get calories => $composableBuilder(
+      column: $table.calories, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get protein => $composableBuilder(
+      column: $table.protein, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get carbs => $composableBuilder(
+      column: $table.carbs, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get fat => $composableBuilder(
+      column: $table.fat, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get sugar => $composableBuilder(
+      column: $table.sugar, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get fiber => $composableBuilder(
+      column: $table.fiber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get salt => $composableBuilder(
+      column: $table.salt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get caffeine => $composableBuilder(
+      column: $table.caffeine, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get calculatedNutrient => $composableBuilder(
+      column: $table.calculatedNutrient,
+      builder: (column) => ColumnFilters(column));
+
+  Expression<bool> fluidLogsRefs(
+      Expression<bool> Function($$FluidLogsTableFilterComposer f) f) {
+    final $$FluidLogsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.fluidLogs,
+        getReferencedColumn: (t) => t.linkedMacroEntryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$FluidLogsTableFilterComposer(
+              $db: $db,
+              $table: $db.fluidLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$MacroEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MacroEntriesTable> {
+  $$MacroEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get consumedAt => $composableBuilder(
+      column: $table.consumedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mealType => $composableBuilder(
+      column: $table.mealType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get amountUnit => $composableBuilder(
+      column: $table.amountUnit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isFluid => $composableBuilder(
+      column: $table.isFluid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get calories => $composableBuilder(
+      column: $table.calories, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get protein => $composableBuilder(
+      column: $table.protein, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get carbs => $composableBuilder(
+      column: $table.carbs, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get fat => $composableBuilder(
+      column: $table.fat, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get sugar => $composableBuilder(
+      column: $table.sugar, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get fiber => $composableBuilder(
+      column: $table.fiber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get salt => $composableBuilder(
+      column: $table.salt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get caffeine => $composableBuilder(
+      column: $table.caffeine, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get calculatedNutrient => $composableBuilder(
+      column: $table.calculatedNutrient,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$MacroEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MacroEntriesTable> {
+  $$MacroEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get consumedAt => $composableBuilder(
+      column: $table.consumedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get mealType =>
+      $composableBuilder(column: $table.mealType, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get amountUnit => $composableBuilder(
+      column: $table.amountUnit, builder: (column) => column);
+
+  GeneratedColumn<bool> get isFluid =>
+      $composableBuilder(column: $table.isFluid, builder: (column) => column);
+
+  GeneratedColumn<double> get calories =>
+      $composableBuilder(column: $table.calories, builder: (column) => column);
+
+  GeneratedColumn<double> get protein =>
+      $composableBuilder(column: $table.protein, builder: (column) => column);
+
+  GeneratedColumn<double> get carbs =>
+      $composableBuilder(column: $table.carbs, builder: (column) => column);
+
+  GeneratedColumn<double> get fat =>
+      $composableBuilder(column: $table.fat, builder: (column) => column);
+
+  GeneratedColumn<double> get sugar =>
+      $composableBuilder(column: $table.sugar, builder: (column) => column);
+
+  GeneratedColumn<double> get fiber =>
+      $composableBuilder(column: $table.fiber, builder: (column) => column);
+
+  GeneratedColumn<double> get salt =>
+      $composableBuilder(column: $table.salt, builder: (column) => column);
+
+  GeneratedColumn<double> get caffeine =>
+      $composableBuilder(column: $table.caffeine, builder: (column) => column);
+
+  GeneratedColumn<String> get calculatedNutrient => $composableBuilder(
+      column: $table.calculatedNutrient, builder: (column) => column);
+
+  Expression<T> fluidLogsRefs<T extends Object>(
+      Expression<T> Function($$FluidLogsTableAnnotationComposer a) f) {
+    final $$FluidLogsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.fluidLogs,
+        getReferencedColumn: (t) => t.linkedMacroEntryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$FluidLogsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.fluidLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$MacroEntriesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $MacroEntriesTable,
+    MacroEntry,
+    $$MacroEntriesTableFilterComposer,
+    $$MacroEntriesTableOrderingComposer,
+    $$MacroEntriesTableAnnotationComposer,
+    $$MacroEntriesTableCreateCompanionBuilder,
+    $$MacroEntriesTableUpdateCompanionBuilder,
+    (MacroEntry, $$MacroEntriesTableReferences),
+    MacroEntry,
+    PrefetchHooks Function({bool fluidLogsRefs})> {
+  $$MacroEntriesTableTableManager(_$AppDatabase db, $MacroEntriesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MacroEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MacroEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MacroEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
+            Value<DateTime> consumedAt = const Value.absent(),
+            Value<String> mealType = const Value.absent(),
+            Value<String?> name = const Value.absent(),
+            Value<double?> amount = const Value.absent(),
+            Value<String?> amountUnit = const Value.absent(),
+            Value<bool> isFluid = const Value.absent(),
+            Value<double> calories = const Value.absent(),
+            Value<double> protein = const Value.absent(),
+            Value<double> carbs = const Value.absent(),
+            Value<double> fat = const Value.absent(),
+            Value<double?> sugar = const Value.absent(),
+            Value<double?> fiber = const Value.absent(),
+            Value<double?> salt = const Value.absent(),
+            Value<double?> caffeine = const Value.absent(),
+            Value<String> calculatedNutrient = const Value.absent(),
+          }) =>
+              MacroEntriesCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            userId: userId,
+            consumedAt: consumedAt,
+            mealType: mealType,
+            name: name,
+            amount: amount,
+            amountUnit: amountUnit,
+            isFluid: isFluid,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            sugar: sugar,
+            fiber: fiber,
+            salt: salt,
+            caffeine: caffeine,
+            calculatedNutrient: calculatedNutrient,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
+            required DateTime consumedAt,
+            required String mealType,
+            Value<String?> name = const Value.absent(),
+            Value<double?> amount = const Value.absent(),
+            Value<String?> amountUnit = const Value.absent(),
+            Value<bool> isFluid = const Value.absent(),
+            required double calories,
+            required double protein,
+            required double carbs,
+            required double fat,
+            Value<double?> sugar = const Value.absent(),
+            Value<double?> fiber = const Value.absent(),
+            Value<double?> salt = const Value.absent(),
+            Value<double?> caffeine = const Value.absent(),
+            required String calculatedNutrient,
+          }) =>
+              MacroEntriesCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            userId: userId,
+            consumedAt: consumedAt,
+            mealType: mealType,
+            name: name,
+            amount: amount,
+            amountUnit: amountUnit,
+            isFluid: isFluid,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            sugar: sugar,
+            fiber: fiber,
+            salt: salt,
+            caffeine: caffeine,
+            calculatedNutrient: calculatedNutrient,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$MacroEntriesTable, MacroEntry>(table),
+                    $$MacroEntriesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({fluidLogsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (fluidLogsRefs) db.fluidLogs],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (fluidLogsRefs)
+                    await $_getPrefetchedData<MacroEntry, $MacroEntriesTable,
+                            FluidLog>(
+                        currentTable: table,
+                        referencedTable: $$MacroEntriesTableReferences
+                            ._fluidLogsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$MacroEntriesTableReferences(db, table, p0)
+                                .fluidLogsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.linkedMacroEntryId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$MacroEntriesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $MacroEntriesTable,
+    MacroEntry,
+    $$MacroEntriesTableFilterComposer,
+    $$MacroEntriesTableOrderingComposer,
+    $$MacroEntriesTableAnnotationComposer,
+    $$MacroEntriesTableCreateCompanionBuilder,
+    $$MacroEntriesTableUpdateCompanionBuilder,
+    (MacroEntry, $$MacroEntriesTableReferences),
+    MacroEntry,
+    PrefetchHooks Function({bool fluidLogsRefs})>;
 typedef $$SupplementsTableCreateCompanionBuilder = SupplementsCompanion
     Function({
   Value<int> localId,
@@ -37891,6 +39387,7 @@ typedef $$FluidLogsTableCreateCompanionBuilder = FluidLogsCompanion Function({
   Value<double?> carbsPer100ml,
   Value<double?> caffeinePer100ml,
   Value<String?> linkedNutritionLogId,
+  Value<String?> linkedMacroEntryId,
 });
 typedef $$FluidLogsTableUpdateCompanionBuilder = FluidLogsCompanion Function({
   Value<int> localId,
@@ -37906,6 +39403,7 @@ typedef $$FluidLogsTableUpdateCompanionBuilder = FluidLogsCompanion Function({
   Value<double?> carbsPer100ml,
   Value<double?> caffeinePer100ml,
   Value<String?> linkedNutritionLogId,
+  Value<String?> linkedMacroEntryId,
 });
 
 final class $$FluidLogsTableReferences
@@ -37923,6 +39421,21 @@ final class $$FluidLogsTableReferences
         .filter((f) => f.id.sqlEquals($_column));
     final item =
         $_typedResult.readTableOrNull(_linkedNutritionLogIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $MacroEntriesTable _linkedMacroEntryIdTable(_$AppDatabase db) =>
+      db.macroEntries
+          .createAlias('fluid_logs__linked_macro_entry_id__macro_entries__id');
+
+  $$MacroEntriesTableProcessedTableManager? get linkedMacroEntryId {
+    final $_column = $_itemColumn<String>('linked_macro_entry_id');
+    if ($_column == null) return null;
+    final manager = $$MacroEntriesTableTableManager($_db, $_db.macroEntries)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_linkedMacroEntryIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
@@ -37987,6 +39500,26 @@ class $$FluidLogsTableFilterComposer
             $$NutritionLogsTableFilterComposer(
               $db: $db,
               $table: $db.nutritionLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$MacroEntriesTableFilterComposer get linkedMacroEntryId {
+    final $$MacroEntriesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.linkedMacroEntryId,
+        referencedTable: $db.macroEntries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MacroEntriesTableFilterComposer(
+              $db: $db,
+              $table: $db.macroEntries,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -38063,6 +39596,26 @@ class $$FluidLogsTableOrderingComposer
             ));
     return composer;
   }
+
+  $$MacroEntriesTableOrderingComposer get linkedMacroEntryId {
+    final $$MacroEntriesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.linkedMacroEntryId,
+        referencedTable: $db.macroEntries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MacroEntriesTableOrderingComposer(
+              $db: $db,
+              $table: $db.macroEntries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$FluidLogsTableAnnotationComposer
@@ -38129,6 +39682,26 @@ class $$FluidLogsTableAnnotationComposer
             ));
     return composer;
   }
+
+  $$MacroEntriesTableAnnotationComposer get linkedMacroEntryId {
+    final $$MacroEntriesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.linkedMacroEntryId,
+        referencedTable: $db.macroEntries,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MacroEntriesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.macroEntries,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$FluidLogsTableTableManager extends RootTableManager<
@@ -38142,7 +39715,8 @@ class $$FluidLogsTableTableManager extends RootTableManager<
     $$FluidLogsTableUpdateCompanionBuilder,
     (FluidLog, $$FluidLogsTableReferences),
     FluidLog,
-    PrefetchHooks Function({bool linkedNutritionLogId})> {
+    PrefetchHooks Function(
+        {bool linkedNutritionLogId, bool linkedMacroEntryId})> {
   $$FluidLogsTableTableManager(_$AppDatabase db, $FluidLogsTable table)
       : super(TableManagerState(
           db: db,
@@ -38167,6 +39741,7 @@ class $$FluidLogsTableTableManager extends RootTableManager<
             Value<double?> carbsPer100ml = const Value.absent(),
             Value<double?> caffeinePer100ml = const Value.absent(),
             Value<String?> linkedNutritionLogId = const Value.absent(),
+            Value<String?> linkedMacroEntryId = const Value.absent(),
           }) =>
               FluidLogsCompanion(
             localId: localId,
@@ -38182,6 +39757,7 @@ class $$FluidLogsTableTableManager extends RootTableManager<
             carbsPer100ml: carbsPer100ml,
             caffeinePer100ml: caffeinePer100ml,
             linkedNutritionLogId: linkedNutritionLogId,
+            linkedMacroEntryId: linkedMacroEntryId,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -38197,6 +39773,7 @@ class $$FluidLogsTableTableManager extends RootTableManager<
             Value<double?> carbsPer100ml = const Value.absent(),
             Value<double?> caffeinePer100ml = const Value.absent(),
             Value<String?> linkedNutritionLogId = const Value.absent(),
+            Value<String?> linkedMacroEntryId = const Value.absent(),
           }) =>
               FluidLogsCompanion.insert(
             localId: localId,
@@ -38212,6 +39789,7 @@ class $$FluidLogsTableTableManager extends RootTableManager<
             carbsPer100ml: carbsPer100ml,
             caffeinePer100ml: caffeinePer100ml,
             linkedNutritionLogId: linkedNutritionLogId,
+            linkedMacroEntryId: linkedMacroEntryId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -38219,7 +39797,8 @@ class $$FluidLogsTableTableManager extends RootTableManager<
                     $$FluidLogsTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({linkedNutritionLogId = false}) {
+          prefetchHooksCallback: (
+              {linkedNutritionLogId = false, linkedMacroEntryId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -38247,6 +39826,17 @@ class $$FluidLogsTableTableManager extends RootTableManager<
                         .id,
                   ) as T;
                 }
+                if (linkedMacroEntryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.linkedMacroEntryId,
+                    referencedTable:
+                        $$FluidLogsTableReferences._linkedMacroEntryIdTable(db),
+                    referencedColumn: $$FluidLogsTableReferences
+                        ._linkedMacroEntryIdTable(db)
+                        .id,
+                  ) as T;
+                }
 
                 return state;
               },
@@ -38269,7 +39859,8 @@ typedef $$FluidLogsTableProcessedTableManager = ProcessedTableManager<
     $$FluidLogsTableUpdateCompanionBuilder,
     (FluidLog, $$FluidLogsTableReferences),
     FluidLog,
-    PrefetchHooks Function({bool linkedNutritionLogId})>;
+    PrefetchHooks Function(
+        {bool linkedNutritionLogId, bool linkedMacroEntryId})>;
 typedef $$MeasurementsTableCreateCompanionBuilder = MeasurementsCompanion
     Function({
   Value<int> localId,
@@ -48568,6 +50159,8 @@ class $AppDatabaseManager {
       $$MealEntriesTableTableManager(_db, _db.mealEntries);
   $$NutritionLogsTableTableManager get nutritionLogs =>
       $$NutritionLogsTableTableManager(_db, _db.nutritionLogs);
+  $$MacroEntriesTableTableManager get macroEntries =>
+      $$MacroEntriesTableTableManager(_db, _db.macroEntries);
   $$SupplementsTableTableManager get supplements =>
       $$SupplementsTableTableManager(_db, _db.supplements);
   $$SupplementLogsTableTableManager get supplementLogs =>

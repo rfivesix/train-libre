@@ -8735,4 +8735,74 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiAssistantProcessingData => 'Analyzing approved data…';
+
+  @override
+  String get macroEntryButton => 'マクロ';
+
+  @override
+  String get macroEntryTitle => 'マクロを記録';
+
+  @override
+  String get macroEntryName => '名前（任意）';
+
+  @override
+  String get macroEntryAmount => '量（任意）';
+
+  @override
+  String get macroEntryAmountTotalHint => '空欄の場合、栄養値は記録全体の値です。';
+
+  @override
+  String get macroEntryAmountPer100GramHint => '量を入力すると、栄養値は100 gあたりになります。';
+
+  @override
+  String get macroEntryAmountPer100MlHint => '量を入力すると、栄養値は100 mlあたりになります。';
+
+  @override
+  String get macroEntryCalculate => '自動計算する項目';
+
+  @override
+  String get macroEntryInvalidValues => '入力値から有効なマクロを計算できません。';
+
+  @override
+  String get macroEntryLogAsFluid => '飲み物としても記録';
+
+  @override
+  String get macroEntryFluidAmountRequired => '飲み物を記録するにはml単位で量を入力してください。';
+
+  @override
+  String get macroEntryExtraNutrients => 'その他の栄養素を追加';
+
+  @override
+  String get macroEntrySugar => '糖類';
+
+  @override
+  String get macroEntryFiber => '食物繊維';
+
+  @override
+  String get macroEntrySalt => '塩分';
+
+  @override
+  String get macroEntryCaffeine => 'カフェイン';
+
+  @override
+  String get macroEntryPer100 => '100あたり';
+
+  @override
+  String get macroEntryPortion => '1食分';
+
+  @override
+  String get macroEntrySaved => 'マクロを記録しました。';
+
+  @override
+  String get macroEntryDefaultName => 'マクロ記録';
+
+  @override
+  String get macroEntryDetailTitle => '栄養素';
+
+  @override
+  String get macroEntryFillThreeValues => '4つのマクロ値のうち、3つを入力してください。';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'この飲み物はマクロ記録に関連付けられています。削除するとマクロ記録も削除されます。';
 }

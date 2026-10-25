@@ -2,6 +2,7 @@ import 'models/daily_goal.dart';
 import 'models/daily_nutrition.dart';
 import 'models/fluid_entry.dart';
 import 'models/food_entry.dart';
+import 'models/macro_entry.dart';
 import 'models/food_item.dart';
 import 'models/tracked_food_item.dart';
 import '../../supplements/domain/models/supplement.dart';
@@ -12,12 +13,14 @@ import '../../workout/domain/models/workout_log.dart';
 class DailyNutritionState {
   final DailyNutrition summary;
   final Map<String, List<TrackedFoodItem>> entriesByMeal;
+  final Map<String, List<MacroEntry>> macroEntriesByMeal;
   final List<TrackedSupplement> trackedSupplements;
   final Map<String, dynamic>? workoutSummary;
 
   DailyNutritionState({
     required this.summary,
     required this.entriesByMeal,
+    required this.macroEntriesByMeal,
     required this.trackedSupplements,
     this.workoutSummary,
   });
@@ -31,6 +34,7 @@ class CalculateDailyNutritionUseCase {
     required int targetSalt,
     required int targetCaffeine,
     required List<FoodEntry> foodEntries,
+    List<MacroEntry> macroEntries = const [],
     required List<FluidEntry> fluidEntries,
     required Map<String, FoodItem> foodProductsByBarcode,
     required Map<int, FoodItem> foodProductsByArchiveLocalId,
@@ -91,6 +95,12 @@ class CalculateDailyNutritionUseCase {
       'mealtypeDinner': [],
       'mealtypeSnack': [],
     };
+    final Map<String, List<MacroEntry>> groupedMacroEntries = {
+      'mealtypeBreakfast': [],
+      'mealtypeLunch': [],
+      'mealtypeDinner': [],
+      'mealtypeSnack': [],
+    };
 
     for (final entry in foodEntries) {
       final foodItem = entry.archiveLocalId != null
@@ -122,12 +132,24 @@ class CalculateDailyNutritionUseCase {
       }
     }
 
+    for (final entry in macroEntries) {
+      summary.calories += entry.totalCalories.round();
+      summary.protein += entry.totalProtein.round();
+      summary.carbs += entry.totalCarbs.round();
+      summary.fat += entry.totalFat.round();
+      summary.sugar += entry.totalSugar ?? 0;
+      summary.fiber += entry.totalFiber ?? 0;
+      summary.salt += entry.totalSalt ?? 0;
+      summary.caffeine += entry.totalCaffeine ?? 0;
+      groupedMacroEntries[entry.mealType]?.add(entry);
+    }
+
     // Fluids
     for (final entry in fluidEntries) {
       summary.water += entry.quantityInMl;
 
       // Short-circuit: skip evaluating duplicate logic if entry is already explicitly linked
-      if (entry.linkedFoodEntryId != null) {
+      if (entry.linkedFoodEntryId != null || entry.linkedMacroEntryId != null) {
         continue;
       }
 
@@ -156,6 +178,9 @@ class CalculateDailyNutritionUseCase {
 
     for (var meal in groupedEntries.values) {
       meal.sort((a, b) => b.entry.timestamp.compareTo(a.entry.timestamp));
+    }
+    for (var meal in groupedMacroEntries.values) {
+      meal.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     }
 
     // Supplements
@@ -249,12 +274,13 @@ class CalculateDailyNutritionUseCase {
     }
 
     if (caffeineSupplement != null && caffeineSupplement.id != null) {
-      summary.caffeine = todaysDoses[caffeineSupplement.id] ?? 0.0;
+      summary.caffeine += todaysDoses[caffeineSupplement.id] ?? 0.0;
     }
 
     return DailyNutritionState(
       summary: summary,
       entriesByMeal: groupedEntries,
+      macroEntriesByMeal: groupedMacroEntries,
       trackedSupplements: trackedSupps,
       workoutSummary: workoutSummary,
     );

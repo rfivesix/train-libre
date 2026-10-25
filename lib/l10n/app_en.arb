@@ -3948,5 +3948,28 @@
         "type": "String"
       }
     }
-  }
+  },
+  "macroEntryButton": "Macros",
+  "macroEntryTitle": "Log macros",
+  "macroEntryName": "Name (optional)",
+  "macroEntryAmount": "Amount (optional)",
+  "macroEntryAmountTotalHint": "Leave blank to enter values for the whole item.",
+  "macroEntryAmountPer100GramHint": "With an amount, nutrient values are per 100 g.",
+  "macroEntryAmountPer100MlHint": "With an amount, nutrient values are per 100 ml.",
+  "macroEntryCalculate": "Calculate automatically",
+  "macroEntryInvalidValues": "These values do not produce a valid macro value.",
+  "macroEntryLogAsFluid": "Also log as a drink",
+  "macroEntryFluidAmountRequired": "Enter an amount in ml to log a drink.",
+  "macroEntryExtraNutrients": "Add more nutrients",
+  "macroEntrySugar": "Sugar",
+  "macroEntryFiber": "Fiber",
+  "macroEntrySalt": "Salt",
+  "macroEntryCaffeine": "Caffeine",
+  "macroEntryPer100": "Per 100",
+  "macroEntryPortion": "Portion",
+  "macroEntrySaved": "Macros logged.",
+  "macroEntryDefaultName": "Macro entry",
+  "macroEntryDetailTitle": "Nutrients",
+  "macroEntryFillThreeValues": "Enter exactly three of the four macro values.",
+  "macroEntryDeleteConfirm": "This drink is linked to a macro entry. Deleting it also removes the macro entry."
 }

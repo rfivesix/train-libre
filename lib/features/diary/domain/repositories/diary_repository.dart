@@ -3,12 +3,14 @@ import '../models/fluid_entry.dart';
 import '../models/food_entry.dart';
 import '../models/meal_entry.dart';
 import '../models/food_item.dart';
+import '../models/macro_entry.dart';
 import '../../../supplements/domain/models/supplement_log.dart';
 
 /// Abstract contract for Diary data persistence and operations.
 abstract class IDiaryRepository {
   Stream<DailyGoal?> watchGoalsForDate(DateTime date);
   Stream<List<FoodEntry>> watchEntriesForDate(DateTime date);
+  Stream<List<MacroEntry>> watchMacroEntriesForDate(DateTime date);
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date);
   Stream<List<MealEntry>> watchMealEntriesForDate(DateTime date);
   Future<MealEntry?> getMealEntryById(String id);
@@ -28,16 +30,19 @@ abstract class IDiaryRepository {
   Future<Map<int, FoodItem>> getProductsByArchiveIds(List<int> ids);
 
   Future<void> deleteFoodEntry(int id);
+  Future<void> deleteMacroEntry(String id);
   Future<void> deleteFluidEntry(int id);
   Future<void> deleteFluidEntryByLinkedFoodId(int linkedFoodId);
 
   Future<void> updateFluidEntry(FluidEntry entry);
   Future<void> updateFoodEntry(FoodEntry entry);
+  Future<void> updateMacroEntry(MacroEntry entry);
   Future<int> insertFluidEntry(FluidEntry entry);
   Future<int> insertFoodEntry(
     FoodEntry entry, {
     String telemetrySource,
   });
+  Future<void> insertMacroEntry(MacroEntry entry);
 
   Future<String> insertMealEntry(MealEntry entry);
   Future<void> updateMealEntry(MealEntry entry);

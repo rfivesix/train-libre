@@ -3730,5 +3730,28 @@
         "type": "String"
       }
     }
-  }
+  },
+  "macroEntryButton": "マクロ",
+  "macroEntryTitle": "マクロを記録",
+  "macroEntryName": "名前（任意）",
+  "macroEntryAmount": "量（任意）",
+  "macroEntryAmountTotalHint": "空欄の場合、栄養値は記録全体の値です。",
+  "macroEntryAmountPer100GramHint": "量を入力すると、栄養値は100 gあたりになります。",
+  "macroEntryAmountPer100MlHint": "量を入力すると、栄養値は100 mlあたりになります。",
+  "macroEntryCalculate": "自動計算する項目",
+  "macroEntryInvalidValues": "入力値から有効なマクロを計算できません。",
+  "macroEntryLogAsFluid": "飲み物としても記録",
+  "macroEntryFluidAmountRequired": "飲み物を記録するにはml単位で量を入力してください。",
+  "macroEntryExtraNutrients": "その他の栄養素を追加",
+  "macroEntrySugar": "糖類",
+  "macroEntryFiber": "食物繊維",
+  "macroEntrySalt": "塩分",
+  "macroEntryCaffeine": "カフェイン",
+  "macroEntryPer100": "100あたり",
+  "macroEntryPortion": "1食分",
+  "macroEntrySaved": "マクロを記録しました。",
+  "macroEntryDefaultName": "マクロ記録",
+  "macroEntryDetailTitle": "栄養素",
+  "macroEntryFillThreeValues": "4つのマクロ値のうち、3つを入力してください。",
+  "macroEntryDeleteConfirm": "この飲み物はマクロ記録に関連付けられています。削除するとマクロ記録も削除されます。"
 }

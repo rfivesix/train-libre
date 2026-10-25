@@ -6,6 +6,7 @@ import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/meal_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/macro_entry.dart';
 import '../domain/repositories/diary_repository.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import 'package:drift/drift.dart' as drift;
@@ -40,6 +41,10 @@ class NutritionRepository implements IDiaryRepository {
   @override
   Stream<List<FoodEntry>> watchEntriesForDate(DateTime date) =>
       _localDataSource.watchEntriesForDate(date);
+
+  @override
+  Stream<List<MacroEntry>> watchMacroEntriesForDate(DateTime date) =>
+      _localDataSource.watchMacroEntriesForDate(date);
 
   @override
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date) =>
@@ -94,6 +99,10 @@ class NutritionRepository implements IDiaryRepository {
   Future<void> deleteFoodEntry(int id) => _localDataSource.deleteFoodEntry(id);
 
   @override
+  Future<void> deleteMacroEntry(String id) =>
+      _localDataSource.deleteMacroEntry(id);
+
+  @override
   Future<void> deleteFluidEntry(int id) =>
       _localDataSource.deleteFluidEntry(id);
 
@@ -110,6 +119,10 @@ class NutritionRepository implements IDiaryRepository {
       _localDataSource.updateFoodEntry(entry);
 
   @override
+  Future<void> updateMacroEntry(MacroEntry entry) =>
+      _localDataSource.updateMacroEntry(entry);
+
+  @override
   Future<int> insertFluidEntry(FluidEntry entry) =>
       _localDataSource.insertFluidEntry(entry);
 
@@ -119,6 +132,10 @@ class NutritionRepository implements IDiaryRepository {
     String telemetrySource = FoodLogSource.manualSearch,
   }) =>
       _localDataSource.insertFoodEntry(entry, telemetrySource: telemetrySource);
+
+  @override
+  Future<void> insertMacroEntry(MacroEntry entry) =>
+      _localDataSource.insertMacroEntry(entry);
 
   @override
   Stream<List<MealEntry>> watchMealEntriesForDate(DateTime date) =>

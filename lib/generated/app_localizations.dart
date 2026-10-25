@@ -15926,6 +15926,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Analyzing approved data…'**
   String get aiAssistantProcessingData;
+
+  /// No description provided for @macroEntryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros'**
+  String get macroEntryButton;
+
+  /// No description provided for @macroEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log macros'**
+  String get macroEntryTitle;
+
+  /// No description provided for @macroEntryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get macroEntryName;
+
+  /// No description provided for @macroEntryAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount (optional)'**
+  String get macroEntryAmount;
+
+  /// No description provided for @macroEntryAmountTotalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to enter values for the whole item.'**
+  String get macroEntryAmountTotalHint;
+
+  /// No description provided for @macroEntryAmountPer100GramHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With an amount, nutrient values are per 100 g.'**
+  String get macroEntryAmountPer100GramHint;
+
+  /// No description provided for @macroEntryAmountPer100MlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With an amount, nutrient values are per 100 ml.'**
+  String get macroEntryAmountPer100MlHint;
+
+  /// No description provided for @macroEntryCalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate automatically'**
+  String get macroEntryCalculate;
+
+  /// No description provided for @macroEntryInvalidValues.
+  ///
+  /// In en, this message translates to:
+  /// **'These values do not produce a valid macro value.'**
+  String get macroEntryInvalidValues;
+
+  /// No description provided for @macroEntryLogAsFluid.
+  ///
+  /// In en, this message translates to:
+  /// **'Also log as a drink'**
+  String get macroEntryLogAsFluid;
+
+  /// No description provided for @macroEntryFluidAmountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount in ml to log a drink.'**
+  String get macroEntryFluidAmountRequired;
+
+  /// No description provided for @macroEntryExtraNutrients.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more nutrients'**
+  String get macroEntryExtraNutrients;
+
+  /// No description provided for @macroEntrySugar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sugar'**
+  String get macroEntrySugar;
+
+  /// No description provided for @macroEntryFiber.
+  ///
+  /// In en, this message translates to:
+  /// **'Fiber'**
+  String get macroEntryFiber;
+
+  /// No description provided for @macroEntrySalt.
+  ///
+  /// In en, this message translates to:
+  /// **'Salt'**
+  String get macroEntrySalt;
+
+  /// No description provided for @macroEntryCaffeine.
+  ///
+  /// In en, this message translates to:
+  /// **'Caffeine'**
+  String get macroEntryCaffeine;
+
+  /// No description provided for @macroEntryPer100.
+  ///
+  /// In en, this message translates to:
+  /// **'Per 100'**
+  String get macroEntryPer100;
+
+  /// No description provided for @macroEntryPortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Portion'**
+  String get macroEntryPortion;
+
+  /// No description provided for @macroEntrySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros logged.'**
+  String get macroEntrySaved;
+
+  /// No description provided for @macroEntryDefaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro entry'**
+  String get macroEntryDefaultName;
+
+  /// No description provided for @macroEntryDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrients'**
+  String get macroEntryDetailTitle;
+
+  /// No description provided for @macroEntryFillThreeValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter exactly three of the four macro values.'**
+  String get macroEntryFillThreeValues;
+
+  /// No description provided for @macroEntryDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This drink is linked to a macro entry. Deleting it also removes the macro entry.'**
+  String get macroEntryDeleteConfirm;
 }
 
 class _AppLocalizationsDelegate

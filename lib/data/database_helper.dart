@@ -6,6 +6,7 @@ import 'drift_database.dart' as db;
 import '../features/diary/domain/models/fluid_entry.dart';
 import '../features/diary/domain/models/food_entry.dart';
 import '../features/diary/domain/models/meal_entry.dart';
+import '../features/diary/domain/models/macro_entry.dart';
 import '../features/profile/domain/models/measurement_session.dart';
 import '../features/supplements/domain/models/supplement.dart';
 import '../features/supplements/domain/models/supplement_log.dart';
@@ -96,6 +97,7 @@ class DatabaseHelper {
         await dbInst.delete(dbInst.cardioActivities).go();
         await dbInst.delete(dbInst.supplementLogs).go();
         await dbInst.delete(dbInst.fluidLogs).go();
+        await dbInst.delete(dbInst.macroEntries).go();
         await dbInst.delete(dbInst.nutritionLogs).go();
         await dbInst.customStatement('DELETE FROM off_products_archive');
         await dbInst.delete(dbInst.measurements).go();
@@ -116,6 +118,7 @@ class DatabaseHelper {
 
   Future<void> importUserData(
       {required List<FoodEntry> foodEntries,
+      List<MacroEntry> macroEntries = const [],
       required List<FluidEntry> fluidEntries,
       required List<String> favoriteBarcodes,
       required List<MeasurementSession> measurementSessions,
@@ -163,6 +166,30 @@ class DatabaseHelper {
                 mealEntryId: drift.Value(e.mealEntryId)),
             mode: drift.InsertMode.insertOrReplace);
       }
+      for (final e in macroEntries) {
+        batch.insert(
+          dbInst.macroEntries,
+          db.MacroEntriesCompanion.insert(
+            id: drift.Value(e.id),
+            consumedAt: e.timestamp,
+            mealType: e.mealType,
+            name: drift.Value(e.name),
+            amount: drift.Value(e.amount),
+            amountUnit: drift.Value(e.amountUnit),
+            isFluid: drift.Value(e.isFluid),
+            calories: e.calories,
+            protein: e.protein,
+            carbs: e.carbs,
+            fat: e.fat,
+            sugar: drift.Value(e.sugar),
+            fiber: drift.Value(e.fiber),
+            salt: drift.Value(e.salt),
+            caffeine: drift.Value(e.caffeine),
+            calculatedNutrient: e.calculatedNutrient,
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+      }
       for (final e in fluidEntries) {
         batch.insert(
             dbInst.fluidLogs,
@@ -172,7 +199,9 @@ class DatabaseHelper {
                 name: e.name,
                 kcal: drift.Value(e.kcal),
                 sugarPer100ml: drift.Value(e.sugarPer100ml),
-                caffeinePer100ml: drift.Value(e.caffeinePer100ml)),
+                carbsPer100ml: drift.Value(e.carbsPer100ml),
+                caffeinePer100ml: drift.Value(e.caffeinePer100ml),
+                linkedMacroEntryId: drift.Value(e.linkedMacroEntryId)),
             mode: drift.InsertMode.insertOrReplace);
       }
       for (final s in measurementSessions) {
@@ -240,6 +269,12 @@ class DatabaseHelper {
       );
   Future<int> insertFluidEntry(FluidEntry entry) =>
       diaryLocalDataSource.insertFluidEntry(entry);
+  Future<void> insertMacroEntry(MacroEntry entry) =>
+      diaryLocalDataSource.insertMacroEntry(entry);
+  Future<void> updateMacroEntry(MacroEntry entry) =>
+      diaryLocalDataSource.updateMacroEntry(entry);
+  Future<void> deleteMacroEntry(String id) =>
+      diaryLocalDataSource.deleteMacroEntry(id);
   Future<void> deleteFluidEntryByLinkedFoodId(int id) =>
       diaryLocalDataSource.deleteFluidEntryByLinkedFoodId(id);
   Future<db.DailyGoalsHistoryData?> getGoalsForDate(DateTime date) =>
@@ -258,6 +293,9 @@ class DatabaseHelper {
           DateTime start, DateTime end, {DateTime? updatedSince}) =>
       diaryLocalDataSource.getFluidEntriesForDateRange(start, end,
           updatedSince: updatedSince);
+  Future<List<MacroEntry>> getMacroEntriesForDateRange(
+          DateTime start, DateTime end) =>
+      diaryLocalDataSource.getMacroEntriesForDateRange(start, end);
   Future<FoodCaloriesByDayResult> getFoodCaloriesByDayForDateRange(
           DateTime start, DateTime end) =>
       diaryLocalDataSource.getFoodCaloriesByDayForDateRange(start, end);
@@ -274,6 +312,9 @@ class DatabaseHelper {
     logs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     return logs.first.timestamp;
   }
+
+  Future<DateTime?> getEarliestMacroEntryDate() =>
+      diaryLocalDataSource.getEarliestMacroEntryDate();
 
   // Restored proxy methods for test backward compatibility
   Future<List<FoodEntry>> getEntriesForDate(DateTime date) =>

@@ -21,6 +21,7 @@ class AssistantDiaryActions implements AssistantDataAction {
         !day.isAfter(scope.end);
         day = DateTime(day.year, day.month, day.day + 1)) {
       final foods = await diary.watchEntriesForDate(day).first;
+      final macros = await diary.watchMacroEntriesForDate(day).first;
       final fluids = await diary.watchFluidEntriesForDate(day).first;
       final products = await diary.getProductsByBarcodes(
           foods.map((food) => food.barcode).toSet().toList());
@@ -59,6 +60,20 @@ class AssistantDiaryActions implements AssistantDataAction {
               'mealRef':
                   food.mealEntryId == null ? null : 'meal:${food.mealEntryId}',
             },
+          for (final macro in macros)
+            {
+              'ref': 'macroEntry:${macro.id}',
+              'date': date,
+              'time': macro.timestamp.toIso8601String(),
+              'name': macro.name,
+              'amount': macro.amount,
+              'amountUnit': macro.amountUnit,
+              'mealType': macro.mealType,
+              'caloriesKcal': macro.totalCalories,
+              'proteinGrams': macro.totalProtein,
+              'carbsGrams': macro.totalCarbs,
+              'fatGrams': macro.totalFat,
+            },
           for (final fluid in fluids)
             {
               'ref': 'fluidEntry:${fluid.id}',
@@ -70,7 +85,12 @@ class AssistantDiaryActions implements AssistantDataAction {
         ]);
       } else {
         final goals = await diary.watchGoalsForDate(day).first;
-        if (foods.isEmpty && fluids.isEmpty && goals == null) continue;
+        if (foods.isEmpty &&
+            macros.isEmpty &&
+            fluids.isEmpty &&
+            goals == null) {
+          continue;
+        }
         final summary = CalculateDailyNutritionUseCase().execute(
           goals: goals,
           targetSugar: 0,
@@ -78,6 +98,7 @@ class AssistantDiaryActions implements AssistantDataAction {
           targetSalt: 0,
           targetCaffeine: 0,
           foodEntries: foods,
+          macroEntries: macros,
           fluidEntries: fluids,
           foodProductsByBarcode: byBarcode,
           foodProductsByArchiveLocalId: archived,
@@ -91,9 +112,11 @@ class AssistantDiaryActions implements AssistantDataAction {
           'date': date,
           'sourceRefs': [
             for (final food in foods) 'foodEntry:${food.id}',
+            for (final macro in macros) 'macroEntry:${macro.id}',
             for (final fluid in fluids) 'fluidEntry:${fluid.id}',
           ],
           'foodEntryCount': foods.length,
+          'macroEntryCount': macros.length,
           'fluidEntryCount': fluids.length,
           'caloriesKcal': summary.calories,
           'proteinGrams': summary.protein,

@@ -11,6 +11,7 @@ import '../../domain/models/food_entry.dart';
 import '../../domain/models/meal_entry.dart';
 import '../../domain/models/meal_capture_meta.dart';
 import '../../domain/models/fluid_entry.dart';
+import '../../domain/models/macro_entry.dart';
 import '../../../supplements/domain/models/supplement.dart' as domain;
 import '../../../supplements/data/sources/supplement_local_data_source.dart';
 import '../../../../services/telemetry/telemetry_service.dart';
@@ -90,6 +91,34 @@ class DiaryLocalDataSource {
     });
   }
 
+  Stream<List<MacroEntry>> watchMacroEntriesForDate(DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    return (_db.select(_db.macroEntries)
+          ..where((row) => row.consumedAt.isBetweenValues(start, end)))
+        .watch()
+        .map((rows) => rows.map(_toMacroEntry).toList());
+  }
+
+  MacroEntry _toMacroEntry(drift_db.MacroEntry row) => MacroEntry(
+        id: row.id,
+        timestamp: row.consumedAt,
+        mealType: row.mealType,
+        name: row.name,
+        amount: row.amount,
+        amountUnit: row.amountUnit,
+        isFluid: row.isFluid,
+        calories: row.calories,
+        protein: row.protein,
+        carbs: row.carbs,
+        fat: row.fat,
+        sugar: row.sugar,
+        fiber: row.fiber,
+        salt: row.salt,
+        caffeine: row.caffeine,
+        calculatedNutrient: row.calculatedNutrient,
+      );
+
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date) {
     final start = DateTime(date.year, date.month, date.day);
     final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -116,6 +145,7 @@ class DiaryLocalDataSource {
           carbsPer100ml: fluidRow.carbsPer100ml,
           caffeinePer100ml: fluidRow.caffeinePer100ml,
           linkedFoodEntryId: nutritionRow?.localId,
+          linkedMacroEntryId: fluidRow.linkedMacroEntryId,
         );
       }).toList();
     });
@@ -195,6 +225,33 @@ class DiaryLocalDataSource {
         .toList();
   }
 
+  Future<List<MacroEntry>> getMacroEntriesForDate(DateTime date) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    final rows = await (_db.select(_db.macroEntries)
+          ..where((row) => row.consumedAt.isBetweenValues(start, end)))
+        .get();
+    return rows.map(_toMacroEntry).toList();
+  }
+
+  Future<List<MacroEntry>> getMacroEntriesForDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    final rows = await (_db.select(_db.macroEntries)
+          ..where((row) => row.consumedAt.isBetweenValues(start, end)))
+        .get();
+    return rows.map(_toMacroEntry).toList();
+  }
+
+  Future<DateTime?> getEarliestMacroEntryDate() async {
+    final row = await (_db.select(_db.macroEntries)
+          ..orderBy([(entry) => drift.OrderingTerm.asc(entry.consumedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    return row?.consumedAt;
+  }
+
   Future<List<FluidEntry>> getFluidEntriesForDate(DateTime date) async {
     final start = DateTime(date.year, date.month, date.day);
     final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -221,12 +278,17 @@ class DiaryLocalDataSource {
         carbsPer100ml: fluidRow.carbsPer100ml,
         caffeinePer100ml: fluidRow.caffeinePer100ml,
         linkedFoodEntryId: nutritionRow?.localId,
+        linkedMacroEntryId: fluidRow.linkedMacroEntryId,
       );
     }).toList();
   }
 
   Future<bool> hasAnyDiaryEntries() async {
     if (await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() !=
+        null) {
+      return true;
+    }
+    if (await (_db.select(_db.macroEntries)..limit(1)).getSingleOrNull() !=
         null) {
       return true;
     }
@@ -317,6 +379,7 @@ class DiaryLocalDataSource {
         carbsPer100ml: drift.Value(entry.carbsPer100ml),
         caffeinePer100ml: drift.Value(entry.caffeinePer100ml),
         linkedNutritionLogId: drift.Value(linkedUuid),
+        linkedMacroEntryId: drift.Value(entry.linkedMacroEntryId),
       ),
     );
 
@@ -435,6 +498,117 @@ class DiaryLocalDataSource {
     );
   }
 
+  Future<void> insertMacroEntry(MacroEntry entry) async {
+    await _db.transaction(() async {
+      await _db.into(_db.macroEntries).insert(
+            drift_db.MacroEntriesCompanion.insert(
+              id: drift.Value(entry.id),
+              consumedAt: entry.timestamp,
+              mealType: entry.mealType,
+              name: drift.Value(entry.name),
+              amount: drift.Value(entry.amount),
+              amountUnit: drift.Value(entry.amountUnit),
+              isFluid: drift.Value(entry.isFluid),
+              calories: entry.calories,
+              protein: entry.protein,
+              carbs: entry.carbs,
+              fat: entry.fat,
+              sugar: drift.Value(entry.sugar),
+              fiber: drift.Value(entry.fiber),
+              salt: drift.Value(entry.salt),
+              caffeine: drift.Value(entry.caffeine),
+              calculatedNutrient: entry.calculatedNutrient,
+            ),
+          );
+      await _syncMacroFluid(entry);
+    });
+  }
+
+  Future<void> updateMacroEntry(MacroEntry entry) async {
+    await _db.transaction(() async {
+      await (_db.update(_db.macroEntries)
+            ..where((row) => row.id.equals(entry.id)))
+          .write(
+        drift_db.MacroEntriesCompanion(
+          consumedAt: drift.Value(entry.timestamp),
+          mealType: drift.Value(entry.mealType),
+          name: drift.Value(entry.name),
+          amount: drift.Value(entry.amount),
+          amountUnit: drift.Value(entry.amountUnit),
+          isFluid: drift.Value(entry.isFluid),
+          calories: drift.Value(entry.calories),
+          protein: drift.Value(entry.protein),
+          carbs: drift.Value(entry.carbs),
+          fat: drift.Value(entry.fat),
+          sugar: drift.Value(entry.sugar),
+          fiber: drift.Value(entry.fiber),
+          salt: drift.Value(entry.salt),
+          caffeine: drift.Value(entry.caffeine),
+          calculatedNutrient: drift.Value(entry.calculatedNutrient),
+          updatedAt: drift.Value(DateTime.now()),
+        ),
+      );
+      await _syncMacroFluid(entry);
+    });
+  }
+
+  Future<void> _syncMacroFluid(MacroEntry entry) async {
+    final existing = await (_db.select(_db.fluidLogs)
+          ..where((row) => row.linkedMacroEntryId.equals(entry.id)))
+        .getSingleOrNull();
+    if (!entry.isFluid || entry.amount == null || entry.amountUnit != 'ml') {
+      if (existing != null) {
+        await (_db.delete(_db.fluidLogs)
+              ..where((row) => row.localId.equals(existing.localId)))
+            .go();
+      }
+      return;
+    }
+
+    final companion = drift_db.FluidLogsCompanion(
+      name: drift.Value(
+          entry.name?.trim().isNotEmpty == true ? entry.name!.trim() : 'Drink'),
+      amountMl: drift.Value(entry.amount!.round()),
+      consumedAt: drift.Value(entry.timestamp),
+      kcal: drift.Value(entry.totalCalories.round()),
+      sugarPer100ml: drift.Value(entry.sugar),
+      carbsPer100ml: drift.Value(entry.carbs),
+      caffeinePer100ml: drift.Value(entry.caffeine),
+      linkedMacroEntryId: drift.Value(entry.id),
+    );
+    if (existing == null) {
+      await _db.into(_db.fluidLogs).insert(
+            drift_db.FluidLogsCompanion.insert(
+              id: drift.Value(const Uuid().v4()),
+              name: entry.name?.trim().isNotEmpty == true
+                  ? entry.name!.trim()
+                  : 'Drink',
+              amountMl: entry.amount!.round(),
+              consumedAt: entry.timestamp,
+              kcal: drift.Value(entry.totalCalories.round()),
+              sugarPer100ml: drift.Value(entry.sugar),
+              carbsPer100ml: drift.Value(entry.carbs),
+              caffeinePer100ml: drift.Value(entry.caffeine),
+              linkedMacroEntryId: drift.Value(entry.id),
+            ),
+          );
+    } else {
+      await (_db.update(_db.fluidLogs)
+            ..where((row) => row.localId.equals(existing.localId)))
+          .write(companion);
+    }
+  }
+
+  Future<void> deleteMacroEntry(String id) async {
+    await (_db.delete(_db.macroEntries)..where((row) => row.id.equals(id)))
+        .go();
+  }
+
+  Future<List<MacroEntry>> getAllMacroEntries() async {
+    final rows = await _db.select(_db.macroEntries).get();
+    return rows.map(_toMacroEntry).toList();
+  }
+
   Future<int> insertFluidEntry(FluidEntry entry) async {
     String? linkedUuid;
     if (entry.linkedFoodEntryId != null) {
@@ -463,6 +637,7 @@ class DiaryLocalDataSource {
             carbsPer100ml: drift.Value(entry.carbsPer100ml),
             caffeinePer100ml: drift.Value(entry.caffeinePer100ml),
             linkedNutritionLogId: drift.Value(linkedUuid),
+            linkedMacroEntryId: drift.Value(entry.linkedMacroEntryId),
           ),
         );
   }
@@ -681,6 +856,7 @@ class DiaryLocalDataSource {
         carbsPer100ml: fluidRow.carbsPer100ml,
         caffeinePer100ml: fluidRow.caffeinePer100ml,
         linkedFoodEntryId: nutritionRow?.localId,
+        linkedMacroEntryId: fluidRow.linkedMacroEntryId,
       );
     }).toList();
   }
@@ -806,6 +982,7 @@ class DiaryLocalDataSource {
         carbsPer100ml: fluidRow.carbsPer100ml,
         caffeinePer100ml: fluidRow.caffeinePer100ml,
         linkedFoodEntryId: nutritionRow?.localId,
+        linkedMacroEntryId: fluidRow.linkedMacroEntryId,
       );
     }).toList();
   }
@@ -886,6 +1063,18 @@ class DiaryLocalDataSource {
           unresolvedCount++;
         }
       }
+    }
+
+    final macroRows = await (_db.select(_db.macroEntries)
+          ..where((entry) => entry.consumedAt.isBetweenValues(start, end)))
+        .get();
+    for (final entry in macroRows) {
+      final day = DateTime(
+          entry.consumedAt.year, entry.consumedAt.month, entry.consumedAt.day);
+      final kcal = entry.amount == null
+          ? entry.calories
+          : entry.calories * entry.amount! / 100;
+      caloriesByDay[day] = (caloriesByDay[day] ?? 0.0) + kcal;
     }
 
     return FoodCaloriesByDayResult(

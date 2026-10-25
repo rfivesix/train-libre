@@ -181,6 +181,11 @@ class _AppButtonState extends State<AppButton>
         break;
     }
 
+    final isIconOnly = widget.label.isEmpty && widget.icon != null;
+    final contentPadding = isIconOnly
+        ? EdgeInsets.symmetric(horizontal: (height - iconSize) / 2)
+        : padding;
+
     const double radius = 14.0;
 
     // ── Build the button label/icon row ─────────────────────────────────────
@@ -200,20 +205,21 @@ class _AppButtonState extends State<AppButton>
           const SizedBox(width: 8.0),
         ] else if (widget.icon != null) ...[
           Icon(widget.icon, color: foregroundColor, size: iconSize),
-          const SizedBox(width: 8.0),
+          if (widget.label.isNotEmpty) const SizedBox(width: 8.0),
         ],
-        Flexible(
-          child: Text(
-            widget.label,
-            style: textStyle?.copyWith(
-              color: foregroundColor,
-              fontWeight: FontWeight.bold,
+        if (widget.label.isNotEmpty)
+          Flexible(
+            child: Text(
+              widget.label,
+              style: textStyle?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
       ],
     );
 
@@ -225,7 +231,7 @@ class _AppButtonState extends State<AppButton>
           : theme.colorScheme.onSurface.withValues(alpha: 0.12);
       buttonContent = Container(
         height: height,
-        padding: padding,
+        padding: contentPadding,
         decoration: BoxDecoration(
           color: disabledBg,
           borderRadius: BorderRadius.circular(radius),
@@ -246,7 +252,7 @@ class _AppButtonState extends State<AppButton>
 // Inner content container — carries the solid background, rim border, and labels
       final Widget innerContent = Container(
         height: height,
-        padding: padding,
+        padding: contentPadding,
         decoration: BoxDecoration(
           color: widget.variant == AppButtonVariant.primary
               ? primaryColor

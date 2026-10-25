@@ -7,6 +7,7 @@ import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/domain/models/fluid_entry.dart';
 import '../../diary/domain/models/food_entry.dart';
 import '../../diary/domain/models/food_item.dart';
+import '../../diary/domain/models/macro_entry.dart';
 
 /// Represents aggregated nutritional intake for a single calendar day.
 class DailyMacroIntake {
@@ -94,16 +95,19 @@ class MacroAnalyticsDataAdapter {
     final results = await Future.wait([
       _databaseHelper.getEntriesForDateRange(startDay, endOfDay),
       _databaseHelper.getFluidEntriesForDateRange(startDay, endOfDay),
+      _databaseHelper.getMacroEntriesForDateRange(startDay, endOfDay),
     ]);
 
     final foodEntries = results[0] as List<FoodEntry>;
     final fluidEntries = results[1] as List<FluidEntry>;
+    final macroEntries = results[2] as List<MacroEntry>;
 
     final dailyMap = await _aggregateDays(
       startDay: startDay,
       endDay: endDay,
       foodEntries: foodEntries,
       fluidEntries: fluidEntries,
+      macroEntries: macroEntries,
     );
 
     final totalDays = endDay.difference(startDay).inDays + 1;
@@ -183,6 +187,7 @@ class MacroAnalyticsDataAdapter {
     required DateTime endDay,
     required List<FoodEntry> foodEntries,
     required List<FluidEntry> fluidEntries,
+    required List<MacroEntry> macroEntries,
   }) async {
     final Set<int> archiveIdsSet = {};
     final Set<String> barcodesSet = {};
@@ -241,8 +246,21 @@ class MacroAnalyticsDataAdapter {
       }
     }
 
+    for (final entry in macroEntries) {
+      final day = DateTime.utc(
+        entry.timestamp.year,
+        entry.timestamp.month,
+        entry.timestamp.day,
+      );
+      caloriesByDay[day] = (caloriesByDay[day] ?? 0.0) + entry.totalCalories;
+      proteinByDay[day] = (proteinByDay[day] ?? 0.0) + entry.totalProtein;
+      carbsByDay[day] = (carbsByDay[day] ?? 0.0) + entry.totalCarbs;
+      fatByDay[day] = (fatByDay[day] ?? 0.0) + entry.totalFat;
+    }
+
     for (final entry in fluidEntries) {
-      final isLinked = entry.linkedFoodEntryId != null;
+      final isLinked =
+          entry.linkedFoodEntryId != null || entry.linkedMacroEntryId != null;
       final isDuplicateOfFood = foodEntries.any((food) {
         final foodItem = food.archiveLocalId != null
             ? archiveProductsMap[food.archiveLocalId!]

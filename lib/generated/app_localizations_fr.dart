@@ -9205,4 +9205,80 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiAssistantProcessingData => 'Analyzing approved data…';
+
+  @override
+  String get macroEntryButton => 'Macros';
+
+  @override
+  String get macroEntryTitle => 'Saisir les macros';
+
+  @override
+  String get macroEntryName => 'Nom (facultatif)';
+
+  @override
+  String get macroEntryAmount => 'Quantité (facultative)';
+
+  @override
+  String get macroEntryAmountTotalHint =>
+      'Laisser vide pour saisir les valeurs de l’entrée entière.';
+
+  @override
+  String get macroEntryAmountPer100GramHint =>
+      'Avec une quantité, les valeurs sont pour 100 g.';
+
+  @override
+  String get macroEntryAmountPer100MlHint =>
+      'Avec une quantité, les valeurs sont pour 100 ml.';
+
+  @override
+  String get macroEntryCalculate => 'Calculer automatiquement';
+
+  @override
+  String get macroEntryInvalidValues =>
+      'Ces valeurs ne permettent pas de calculer une macro valide.';
+
+  @override
+  String get macroEntryLogAsFluid => 'Enregistrer aussi comme boisson';
+
+  @override
+  String get macroEntryFluidAmountRequired =>
+      'Saisissez une quantité en ml pour une boisson.';
+
+  @override
+  String get macroEntryExtraNutrients => 'Ajouter d’autres nutriments';
+
+  @override
+  String get macroEntrySugar => 'Sucres';
+
+  @override
+  String get macroEntryFiber => 'Fibres';
+
+  @override
+  String get macroEntrySalt => 'Sel';
+
+  @override
+  String get macroEntryCaffeine => 'Caféine';
+
+  @override
+  String get macroEntryPer100 => 'Pour 100';
+
+  @override
+  String get macroEntryPortion => 'Portion';
+
+  @override
+  String get macroEntrySaved => 'Macros enregistrées.';
+
+  @override
+  String get macroEntryDefaultName => 'Entrée macro';
+
+  @override
+  String get macroEntryDetailTitle => 'Nutriments';
+
+  @override
+  String get macroEntryFillThreeValues =>
+      'Saisissez exactement trois des quatre valeurs macro.';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'Cette boisson est liée à une entrée macro. Sa suppression supprimera aussi l’entrée macro.';
 }

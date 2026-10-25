@@ -9130,4 +9130,80 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiAssistantProcessingData => 'Wertet freigegebene Daten aus …';
+
+  @override
+  String get macroEntryButton => 'Makros';
+
+  @override
+  String get macroEntryTitle => 'Makros eintragen';
+
+  @override
+  String get macroEntryName => 'Name (optional)';
+
+  @override
+  String get macroEntryAmount => 'Menge (optional)';
+
+  @override
+  String get macroEntryAmountTotalHint =>
+      'Leer lassen: Nährwerte gelten für den ganzen Eintrag.';
+
+  @override
+  String get macroEntryAmountPer100GramHint =>
+      'Menge angegeben: Nährwerte gelten pro 100 g.';
+
+  @override
+  String get macroEntryAmountPer100MlHint =>
+      'Menge angegeben: Nährwerte gelten pro 100 ml.';
+
+  @override
+  String get macroEntryCalculate => 'Automatisch berechnen';
+
+  @override
+  String get macroEntryInvalidValues =>
+      'Die eingegebenen Werte ergeben keinen gültigen Makrowert.';
+
+  @override
+  String get macroEntryLogAsFluid => 'Zusätzlich als Flüssigkeit erfassen';
+
+  @override
+  String get macroEntryFluidAmountRequired =>
+      'Für Flüssigkeiten bitte eine Menge in ml angeben.';
+
+  @override
+  String get macroEntryExtraNutrients => 'Weitere Nährwerte hinzufügen';
+
+  @override
+  String get macroEntrySugar => 'Zucker';
+
+  @override
+  String get macroEntryFiber => 'Ballaststoffe';
+
+  @override
+  String get macroEntrySalt => 'Salz';
+
+  @override
+  String get macroEntryCaffeine => 'Koffein';
+
+  @override
+  String get macroEntryPer100 => 'Pro 100';
+
+  @override
+  String get macroEntryPortion => 'Portion';
+
+  @override
+  String get macroEntrySaved => 'Makros wurden eingetragen.';
+
+  @override
+  String get macroEntryDefaultName => 'Makroeintrag';
+
+  @override
+  String get macroEntryDetailTitle => 'Nährwerte';
+
+  @override
+  String get macroEntryFillThreeValues =>
+      'Bitte genau drei der vier Makrowerte eintragen.';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'Dieser Eintrag ist mit einem Makroeintrag verknüpft. Beim Löschen werden Getränk und Makroeintrag entfernt.';
 }

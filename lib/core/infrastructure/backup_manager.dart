@@ -48,7 +48,7 @@ class BackupManager {
   static const String currentApplicationId = 'com.rfivesix.trainlibre';
 
   // Backwards compatibility for tests
-  static const int currentSchemaVersion = 5;
+  static const int currentSchemaVersion = 6;
   static const List<String> legacyBackupAppNames = ['Hypertrack'];
   static const List<String> legacyApplicationIds = ['com.rfivesix.hypertrack'];
   static const List<String> legacyBackupFilePrefixes = ['hypertrack-backup'];
@@ -116,6 +116,7 @@ class BackupManager {
     final dbInst = _dbHelper.dbInstance;
     await AssistantImageAttachmentStore.instance.ensureRelativeStorage(dbInst);
     final foodEntries = await _diaryDb.getAllFoodEntries();
+    final macroEntries = await _diaryDb.getAllMacroEntries();
     token?.throwIfCancelled();
 
     onProgress?.call('meals', 0.10);
@@ -292,6 +293,7 @@ class BackupManager {
     final backup = TrainLibreBackup(
         schemaVersion: currentSchemaVersion,
         foodEntries: foodEntries,
+        macroEntries: macroEntries,
         mealTemplates: mealTemplates,
         fluidEntries: fluidEntries,
         favoriteBarcodes: favoriteBarcodes,
@@ -847,6 +849,7 @@ class BackupManager {
             await dbInst.customStatement('DELETE FROM health_export_records');
             await dbInst.delete(dbInst.supplementLogs).go();
             await dbInst.delete(dbInst.fluidLogs).go();
+            await dbInst.delete(dbInst.macroEntries).go();
             await dbInst.delete(dbInst.nutritionLogs).go();
             // After the logs, which reference it.
             await dbInst.delete(dbInst.mealEntries).go();
@@ -936,6 +939,7 @@ class BackupManager {
 
             await _dbHelper.importUserData(
                 foodEntries: backup.foodEntries,
+                macroEntries: backup.macroEntries,
                 fluidEntries: backup.fluidEntries,
                 favoriteBarcodes: backup.favoriteBarcodes,
                 measurementSessions:

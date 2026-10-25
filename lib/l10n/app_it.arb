@@ -3730,5 +3730,28 @@
         "type": "String"
       }
     }
-  }
+  },
+  "macroEntryButton": "Macro",
+  "macroEntryTitle": "Inserisci macro",
+  "macroEntryName": "Nome (facoltativo)",
+  "macroEntryAmount": "Quantità (facoltativa)",
+  "macroEntryAmountTotalHint": "Lascia vuoto per inserire i valori dell’intera voce.",
+  "macroEntryAmountPer100GramHint": "Con una quantità, i valori sono per 100 g.",
+  "macroEntryAmountPer100MlHint": "Con una quantità, i valori sono per 100 ml.",
+  "macroEntryCalculate": "Calcola automaticamente",
+  "macroEntryInvalidValues": "Questi valori non producono una macro valida.",
+  "macroEntryLogAsFluid": "Registra anche come bevanda",
+  "macroEntryFluidAmountRequired": "Inserisci una quantità in ml per la bevanda.",
+  "macroEntryExtraNutrients": "Aggiungi altri nutrienti",
+  "macroEntrySugar": "Zuccheri",
+  "macroEntryFiber": "Fibre",
+  "macroEntrySalt": "Sale",
+  "macroEntryCaffeine": "Caffeina",
+  "macroEntryPer100": "Per 100",
+  "macroEntryPortion": "Porzione",
+  "macroEntrySaved": "Macro registrati.",
+  "macroEntryDefaultName": "Voce macro",
+  "macroEntryDetailTitle": "Nutrienti",
+  "macroEntryFillThreeValues": "Inserisci esattamente tre dei quattro valori macro.",
+  "macroEntryDeleteConfirm": "Questa bevanda è collegata a una voce macro. Eliminandola verrà rimossa anche la voce macro."
 }

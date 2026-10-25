@@ -11,9 +11,11 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/meal_entry.dart';
+import '../domain/models/macro_entry.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import 'create_food_screen.dart';
+import 'dialogs/macro_entry_form.dart';
 import 'food_detail_screen.dart';
 import 'meal_screen.dart';
 import 'scanner_screen.dart';
@@ -39,6 +41,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../widgets/common/app_button.dart';
 
 // lib/screens/add_food_screen.dart
 
@@ -754,22 +757,72 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
   }
 
+  Future<void> _openMacroEntryForm() async {
+    final l10n = AppLocalizations.of(context)!;
+    final formKey = GlobalKey<MacroEntryFormState>();
+    final saved = await showGlassBottomMenu<bool>(
+      context: context,
+      title: l10n.macroEntryTitle,
+      contentBuilder: (sheetContext, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MacroEntryForm(
+            key: formKey,
+            initialDate: widget.initialDate,
+            initialMealType: widget.initialMealType ?? 'mealtypeBreakfast',
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: close,
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () async {
+                    final MacroEntry? entry =
+                        formKey.currentState?.createEntry();
+                    if (entry == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.macroEntryInvalidValues)),
+                      );
+                      return;
+                    }
+                    try {
+                      await DatabaseHelper.instance.insertMacroEntry(entry);
+                      if (sheetContext.mounted) {
+                        Navigator.of(sheetContext).pop(true);
+                      }
+                    } catch (_) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.error)),
+                      );
+                    }
+                  },
+                  label: l10n.buttonSave,
+                  tooltip: l10n.buttonSave,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (saved == true && mounted) Navigator.of(context).pop(true);
+  }
+
   Widget _buildCatalogSearchTab(AppLocalizations l10n) {
-    if (!_hasSearchableFoods) {
-      return DatabasePlaceholderWidget(
-        title: l10n.offDownloadTitle,
-        body: l10n.offPlaceholderText,
-        icon: LucideIcons.database,
-        onDownloadPressed: () async {
-          await BasisDataManager.instance
-              .promptOffDatabaseDownloadIfFirstTime(context);
-          await _checkDbStatus();
-        },
-      );
-    }
     final colorScheme = Theme.of(context).colorScheme;
 
     final isSearching = _searchController.text.trim().isNotEmpty;
+    final showActionLabels =
+        !isSearching && MediaQuery.sizeOf(context).width >= 390;
     final searchRow = Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: DesignConstants.spacingL, vertical: 0),
@@ -838,7 +891,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       color: Color(0xFF12120F),
                       size: 19,
                     ),
-                    if (!isSearching) ...[
+                    if (showActionLabels) ...[
                       const SizedBox(width: 6),
                       Text(
                         l10n.scann_barcode_capslock,
@@ -889,7 +942,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       color: Color(0xFF12120F),
                       size: 19,
                     ),
-                    if (!isSearching) ...[
+                    if (showActionLabels) ...[
                       const SizedBox(width: 6),
                       const Text(
                         'AI',
@@ -905,9 +958,40 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 ),
               ),
             ),
+          if (!widget.selectionMode) ...[
+            const SizedBox(width: 6),
+            AppButton.secondary(
+              onPressed: _openMacroEntryForm,
+              label: showActionLabels ? l10n.macroEntryButton : '',
+              tooltip: l10n.macroEntryButton,
+              semanticsLabel: l10n.macroEntryButton,
+              icon: LucideIcons.chart_pie,
+              size: AppButtonSize.regular,
+            ),
+          ],
         ],
       ),
     );
+
+    if (!_hasSearchableFoods) {
+      return Column(
+        children: [
+          searchRow,
+          Expanded(
+            child: DatabasePlaceholderWidget(
+              title: l10n.offDownloadTitle,
+              body: l10n.offPlaceholderText,
+              icon: LucideIcons.database,
+              onDownloadPressed: () async {
+                await BasisDataManager.instance
+                    .promptOffDatabaseDownloadIfFirstTime(context);
+                await _checkDbStatus();
+              },
+            ),
+          ),
+        ],
+      );
+    }
 
     // CASE A: No query -> categories/accordion from Base DB (existing logic)
 
@@ -1033,7 +1117,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           .copyWith(bottom: _bottomPadding),
                       itemCount: listItems.length,
                       itemBuilder: (context, index) {
-                        return listItems.buildRow(index, l10n, _buildFoodListItem);
+                        return listItems.buildRow(
+                            index, l10n, _buildFoodListItem);
                       },
                     )),
         ),

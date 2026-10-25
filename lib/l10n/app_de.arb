@@ -3732,5 +3732,28 @@
         "type": "String"
       }
     }
-  }
+  },
+  "macroEntryButton": "Makros",
+  "macroEntryTitle": "Makros eintragen",
+  "macroEntryName": "Name (optional)",
+  "macroEntryAmount": "Menge (optional)",
+  "macroEntryAmountTotalHint": "Leer lassen: Nährwerte gelten für den ganzen Eintrag.",
+  "macroEntryAmountPer100GramHint": "Menge angegeben: Nährwerte gelten pro 100 g.",
+  "macroEntryAmountPer100MlHint": "Menge angegeben: Nährwerte gelten pro 100 ml.",
+  "macroEntryCalculate": "Automatisch berechnen",
+  "macroEntryInvalidValues": "Die eingegebenen Werte ergeben keinen gültigen Makrowert.",
+  "macroEntryLogAsFluid": "Zusätzlich als Flüssigkeit erfassen",
+  "macroEntryFluidAmountRequired": "Für Flüssigkeiten bitte eine Menge in ml angeben.",
+  "macroEntryExtraNutrients": "Weitere Nährwerte hinzufügen",
+  "macroEntrySugar": "Zucker",
+  "macroEntryFiber": "Ballaststoffe",
+  "macroEntrySalt": "Salz",
+  "macroEntryCaffeine": "Koffein",
+  "macroEntryPer100": "Pro 100",
+  "macroEntryPortion": "Portion",
+  "macroEntrySaved": "Makros wurden eingetragen.",
+  "macroEntryDefaultName": "Makroeintrag",
+  "macroEntryDetailTitle": "Nährwerte",
+  "macroEntryFillThreeValues": "Bitte genau drei der vier Makrowerte eintragen.",
+  "macroEntryDeleteConfirm": "Dieser Eintrag ist mit einem Makroeintrag verknüpft. Beim Löschen werden Getränk und Makroeintrag entfernt."
 }

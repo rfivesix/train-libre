@@ -10,6 +10,7 @@ import '../../../workout/domain/models/routine_exercise.dart';
 import '../../../workout/domain/models/set_log.dart';
 import '../../../workout/domain/models/set_template.dart';
 import '../../../diary/domain/models/fluid_entry.dart';
+import '../../../diary/domain/models/macro_entry.dart';
 import '../../../workout/domain/models/workout_log.dart';
 import '../../../supplements/domain/models/supplement.dart';
 import '../../../supplements/domain/models/supplement_log.dart';
@@ -30,6 +31,9 @@ class TrainLibreBackup {
 
   /// A list of all recorded fluid intake events.
   final List<FluidEntry> fluidEntries;
+
+  /// Macro-only entries without a catalog food reference.
+  final List<MacroEntry> macroEntries;
 
   /// A list of barcodes for food items marked as favorites by the user.
   final List<String> favoriteBarcodes;
@@ -97,6 +101,7 @@ class TrainLibreBackup {
     required this.foodEntries,
     this.mealTemplates = const [],
     required this.fluidEntries,
+    this.macroEntries = const [],
     required this.favoriteBarcodes,
     required this.customFoodItems,
     required this.measurementSessions,
@@ -147,6 +152,10 @@ class TrainLibreBackup {
           [],
       fluidEntries: (json['fluidEntries'] as List<dynamic>?)
               ?.map((e) => FluidEntry.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      macroEntries: (json['macroEntries'] as List<dynamic>?)
+              ?.map((e) => MacroEntry.fromMap(Map<String, dynamic>.from(e)))
               .toList() ??
           [],
       favoriteBarcodes: List<String>.from(json['favoriteBarcodes'] ?? []),
@@ -287,6 +296,7 @@ class TrainLibreBackup {
       'foodEntries': foodEntries.map((e) => e.toMap()).toList(),
       'mealTemplates': mealTemplates,
       'fluidEntries': fluidEntries.map((e) => e.toMap()).toList(),
+      'macroEntries': macroEntries.map((e) => e.toMap()).toList(),
       'favoriteBarcodes': favoriteBarcodes,
       'customFoodItems': customFoodItems.map((e) => e.toMap()).toList(),
       'measurementSessions': measurementSessions

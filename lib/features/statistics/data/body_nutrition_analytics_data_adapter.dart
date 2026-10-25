@@ -6,6 +6,7 @@ import '../../analytics/domain/models/chart_data_point.dart';
 import '../../diary/domain/models/food_entry.dart';
 import '../../diary/domain/models/fluid_entry.dart';
 import '../../diary/domain/models/food_item.dart';
+import '../../diary/domain/models/macro_entry.dart';
 import '../../../util/perf_debug_timer.dart';
 import '../domain/statistics_range_policy.dart';
 import '../domain/timeframe_block.dart';
@@ -83,21 +84,25 @@ class BodyNutritionAnalyticsDataAdapter {
           _databaseHelper.getChartDataForTypeAndRange('weight', range),
           _databaseHelper.getEntriesForDateRange(range.start, range.end),
           _databaseHelper.getFluidEntriesForDateRange(range.start, range.end),
+          _databaseHelper.getMacroEntriesForDateRange(range.start, range.end),
         ]);
 
         final weightPoints = (results[0] as List<ChartDataPoint>);
         final foodEntries = results[1] as List<FoodEntry>;
         final fluidEntries = (results[2] as List<FluidEntry>);
+        final macroEntries = (results[3] as List<MacroEntry>);
         final caloriesByDay = await PerfDebugTimer.time(
           area: 'statistics',
           label: 'bodyNutritionDailyCalories',
           action: () => _dailyCaloriesMap(
             foodEntries: foodEntries,
             fluidEntries: fluidEntries,
+            macroEntries: macroEntries,
           ),
           fields: {
             'foodRows': foodEntries.length,
             'fluidRows': fluidEntries.length,
+            'macroRows': macroEntries.length,
           },
         );
 
@@ -131,6 +136,7 @@ class BodyNutritionAnalyticsDataAdapter {
       _databaseHelper.getEarliestMeasurementDate(),
       _databaseHelper.getEarliestFoodEntryDate(),
       _databaseHelper.getEarliestFluidEntryDate(),
+      _databaseHelper.getEarliestMacroEntryDate(),
     ]);
 
     final dates = results.whereType<DateTime>().map(normalizeDay).toList();
@@ -147,6 +153,7 @@ class BodyNutritionAnalyticsDataAdapter {
   Future<Map<DateTime, double>> _dailyCaloriesMap({
     required List<FoodEntry> foodEntries,
     required List<FluidEntry> fluidEntries,
+    required List<MacroEntry> macroEntries,
   }) async {
     final map = <DateTime, double>{};
 
@@ -196,8 +203,18 @@ class BodyNutritionAnalyticsDataAdapter {
       map[day] = (map[day] ?? 0.0) + added;
     }
 
+    for (final entry in macroEntries) {
+      final day = DateTime.utc(
+        entry.timestamp.year,
+        entry.timestamp.month,
+        entry.timestamp.day,
+      );
+      map[day] = (map[day] ?? 0.0) + entry.totalCalories;
+    }
+
     for (final entry in fluidEntries) {
-      final isLinked = entry.linkedFoodEntryId != null;
+      final isLinked =
+          entry.linkedFoodEntryId != null || entry.linkedMacroEntryId != null;
       final isDuplicateOfFood = foodEntries.any((food) {
         final foodItem = food.archiveLocalId != null
             ? archiveProductsMap[food.archiveLocalId!]

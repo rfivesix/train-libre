@@ -9180,4 +9180,80 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aiAssistantProcessingData => 'Analyzing approved data…';
+
+  @override
+  String get macroEntryButton => 'Macro';
+
+  @override
+  String get macroEntryTitle => 'Inserisci macro';
+
+  @override
+  String get macroEntryName => 'Nome (facoltativo)';
+
+  @override
+  String get macroEntryAmount => 'Quantità (facoltativa)';
+
+  @override
+  String get macroEntryAmountTotalHint =>
+      'Lascia vuoto per inserire i valori dell’intera voce.';
+
+  @override
+  String get macroEntryAmountPer100GramHint =>
+      'Con una quantità, i valori sono per 100 g.';
+
+  @override
+  String get macroEntryAmountPer100MlHint =>
+      'Con una quantità, i valori sono per 100 ml.';
+
+  @override
+  String get macroEntryCalculate => 'Calcola automaticamente';
+
+  @override
+  String get macroEntryInvalidValues =>
+      'Questi valori non producono una macro valida.';
+
+  @override
+  String get macroEntryLogAsFluid => 'Registra anche come bevanda';
+
+  @override
+  String get macroEntryFluidAmountRequired =>
+      'Inserisci una quantità in ml per la bevanda.';
+
+  @override
+  String get macroEntryExtraNutrients => 'Aggiungi altri nutrienti';
+
+  @override
+  String get macroEntrySugar => 'Zuccheri';
+
+  @override
+  String get macroEntryFiber => 'Fibre';
+
+  @override
+  String get macroEntrySalt => 'Sale';
+
+  @override
+  String get macroEntryCaffeine => 'Caffeina';
+
+  @override
+  String get macroEntryPer100 => 'Per 100';
+
+  @override
+  String get macroEntryPortion => 'Porzione';
+
+  @override
+  String get macroEntrySaved => 'Macro registrati.';
+
+  @override
+  String get macroEntryDefaultName => 'Voce macro';
+
+  @override
+  String get macroEntryDetailTitle => 'Nutrienti';
+
+  @override
+  String get macroEntryFillThreeValues =>
+      'Inserisci esattamente tre dei quattro valori macro.';
+
+  @override
+  String get macroEntryDeleteConfirm =>
+      'Questa bevanda è collegata a una voce macro. Eliminandola verrà rimossa anche la voce macro.';
 }

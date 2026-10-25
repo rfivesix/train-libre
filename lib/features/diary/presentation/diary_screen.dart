@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../data/database_helper.dart';
 import '../domain/models/daily_nutrition.dart';
 import 'dialogs/fluid_dialog_content.dart';
+import 'dialogs/macro_entry_form.dart';
 import 'dialogs/quantity_dialog_content.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/repositories/diary_repository.dart';
@@ -15,6 +16,7 @@ import '../../workout/domain/repositories/workout_repository.dart';
 import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/macro_entry.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../../supplements/domain/models/tracked_supplement.dart';
 import '../../supplements/domain/models/supplement.dart';
@@ -46,6 +48,7 @@ import 'widgets/sleep_summary_card.dart';
 import 'widgets/pulse_summary_card.dart';
 import 'widgets/food_entry_tile.dart';
 import 'widgets/fluid_entry_tile.dart';
+import 'widgets/macro_entry_tile.dart';
 import 'widgets/meal_entry_card.dart';
 import 'dialogs/delete_meal_entry_bottom_sheet.dart';
 import 'meal_entry_screen.dart';
@@ -157,8 +160,77 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   }
 
   Future<void> _deleteFluidEntry(int id) async {
-    final viewModel = context.read<DiaryViewModel>();
-    await viewModel.deleteFluidEntry(id);
+    final vm = context.read<DiaryViewModel>();
+    final fluid = vm.fluidEntries.where((entry) => entry.id == id).firstOrNull;
+    if (fluid?.linkedMacroEntryId case final macroId?) {
+      await vm.deleteMacroEntry(macroId);
+      return;
+    }
+    await vm.deleteFluidEntry(id);
+  }
+
+  Future<void> _deleteMacroEntry(String id) async {
+    await context.read<DiaryViewModel>().deleteMacroEntry(id);
+  }
+
+  Future<void> _editMacroEntry(MacroEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
+    final formKey = GlobalKey<MacroEntryFormState>();
+    final vm = viewModel;
+    await showGlassBottomMenu<bool>(
+      context: context,
+      title: l10n.macroEntryTitle,
+      contentBuilder: (sheetContext, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MacroEntryForm(
+            key: formKey,
+            initialDate: entry.timestamp,
+            initialMealType: entry.mealType,
+            initialEntry: entry,
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: close,
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () async {
+                    final updated = formKey.currentState?.createEntry();
+                    if (updated == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.macroEntryInvalidValues)),
+                      );
+                      return;
+                    }
+                    try {
+                      await vm.updateMacroEntry(updated);
+                      if (sheetContext.mounted) {
+                        Navigator.of(sheetContext).pop(true);
+                      }
+                    } catch (_) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.error)),
+                      );
+                    }
+                  },
+                  label: l10n.buttonSave,
+                  tooltip: l10n.buttonSave,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSupplementDetailSheet(
@@ -418,6 +490,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   }
 
   Future<void> _editFluidEntry(FluidEntry entry) async {
+    if (entry.linkedMacroEntryId case final macroId?) {
+      final macro = viewModel.macroEntriesByMeal.values
+          .expand((items) => items)
+          .where((item) => item.id == macroId)
+          .firstOrNull;
+      if (macro != null) {
+        await _editMacroEntry(macro);
+        return;
+      }
+    }
+
     if (entry.linkedFoodEntryId != null) {
       TrackedFoodItem? trackedItem;
       // Search in all meals for the linked food entry
@@ -1311,6 +1394,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               onAddFood: () => _addFoodToMeal(mealKey),
               onEditFood: _editFoodEntry,
               onDeleteFood: _deleteFoodEntry,
+              onEditMacroEntry: _editMacroEntry,
+              onDeleteMacroEntry: _deleteMacroEntry,
               onSaveAsTemplate: _saveAsMealTemplate,
             ),
       ],
@@ -1678,6 +1763,8 @@ class _MealCard extends StatefulWidget {
   final VoidCallback onAddFood;
   final Future<void> Function(TrackedFoodItem) onEditFood;
   final Future<void> Function(int) onDeleteFood;
+  final Future<void> Function(MacroEntry) onEditMacroEntry;
+  final Future<void> Function(String) onDeleteMacroEntry;
   final Future<void> Function(List<TrackedFoodItem>, AppLocalizations)
       onSaveAsTemplate;
 
@@ -1688,6 +1775,8 @@ class _MealCard extends StatefulWidget {
     required this.onAddFood,
     required this.onEditFood,
     required this.onDeleteFood,
+    required this.onEditMacroEntry,
+    required this.onDeleteMacroEntry,
     required this.onSaveAsTemplate,
   });
 
@@ -1750,6 +1839,9 @@ class _MealCardState extends State<_MealCard> {
       },
       shouldRebuild: (prev, next) => !_listEquals(prev, next),
       builder: (context, items, child) {
+        final macroItems = context.select<DiaryViewModel, List<MacroEntry>>(
+          (vm) => vm.macroEntriesByMeal[widget.mealKey] ?? const [],
+        );
         final mealMacros = _MealMacros();
         final solidItems = <TrackedFoodItem>[];
 
@@ -1764,6 +1856,12 @@ class _MealCardState extends State<_MealCard> {
           if (fi.isLiquid != true && !fi.isFluid) {
             solidItems.add(item);
           }
+        }
+        for (final item in macroItems) {
+          mealMacros.calories += item.totalCalories;
+          mealMacros.protein += item.totalProtein;
+          mealMacros.carbs += item.totalCarbs;
+          mealMacros.fat += item.totalFat;
         }
 
         return RepaintBoundary(
@@ -1798,7 +1896,7 @@ class _MealCardState extends State<_MealCard> {
                     ],
                   ),
                 ),
-                if (items.isNotEmpty) ...[
+                if (items.isNotEmpty || macroItems.isNotEmpty) ...[
                   const SizedBox(height: DesignConstants.spacingXS),
                   MacroBadgeRow(
                     kcal: mealMacros.calories.round(),
@@ -1873,10 +1971,12 @@ class _MealCardState extends State<_MealCard> {
                         return false;
                       }
 
-                      final sectionItems = <({bool hasPhoto, Widget widget})>[
+                      final sectionItems =
+                          <({bool hasPhoto, int kcal, Widget widget})>[
                         for (final entryId in orderedMealIds)
                           (
                             hasPhoto: entryHasPhoto(mealEntriesById[entryId]),
+                            kcal: kcalOfGroup(groupedByMealEntry[entryId]!),
                             widget: Builder(
                               builder: (cardCtx) {
                                 Widget buildMealCard({
@@ -1972,18 +2072,30 @@ class _MealCardState extends State<_MealCard> {
                         for (final item in standaloneItems)
                           (
                             hasPhoto: false,
+                            kcal: kcalOf(item),
                             widget: FoodEntryTile(
                               trackedItem: item,
                               onEdit: widget.onEditFood,
                               onDelete: widget.onDeleteFood,
                             ),
                           ),
+                        for (final entry in macroItems)
+                          (
+                            hasPhoto: false,
+                            kcal: entry.totalCalories.round(),
+                            widget: MacroEntryTile(
+                              entry: entry,
+                              onEdit: widget.onEditMacroEntry,
+                              onDelete: widget.onDeleteMacroEntry,
+                            ),
+                          ),
                       ];
+                      sectionItems.sort((a, b) => b.kcal.compareTo(a.kcal));
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (items.isNotEmpty)
+                          if (items.isNotEmpty || macroItems.isNotEmpty)
                             const SizedBox(height: DesignConstants.spacingS),
                           for (int i = 0; i < sectionItems.length; i++) ...[
                             if (i > 0 &&

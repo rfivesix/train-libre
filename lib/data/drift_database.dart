@@ -654,6 +654,36 @@ class NutritionLogs extends Table with HybridId, MetaColumns {
       )();
 }
 
+/// A manually logged macro snapshot that does not depend on a food catalog
+/// entry. Nutrient values are stored either for the whole consumed amount
+/// (`amount == null`) or per 100 g/ml (`amount != null`).
+@TableIndex(name: 'idx_macro_entries_consumed_at', columns: {#consumedAt})
+class MacroEntries extends Table with HybridId, MetaColumns {
+  TextColumn get userId => text().nullable()();
+  DateTimeColumn get consumedAt => dateTime()();
+  TextColumn get mealType => text()();
+  TextColumn get name => text().nullable()();
+
+  /// If present, nutrient fields are per 100 [amountUnit].
+  RealColumn get amount => real().nullable()();
+  TextColumn get amountUnit => text().nullable()(); // g | ml
+  BoolColumn get isFluid => boolean().withDefault(const Constant(false))();
+
+  RealColumn get calories => real()();
+  RealColumn get protein => real()();
+  RealColumn get carbs => real()();
+  RealColumn get fat => real()();
+
+  RealColumn get sugar => real().nullable()();
+  RealColumn get fiber => real().nullable()();
+  RealColumn get salt => real().nullable()();
+  RealColumn get caffeine => real().nullable()();
+
+  /// One of calories, protein, carbs, or fat. Keeps the calculated value
+  /// identifiable when the entry is edited or reviewed later.
+  TextColumn get calculatedNutrient => text()();
+}
+
 // 13. Supplements
 class Supplements extends Table with HybridId, MetaColumns {
   TextColumn get code =>
@@ -701,6 +731,11 @@ class FluidLogs extends Table with HybridId, MetaColumns {
   // Link to NutritionLogs if it was a logged drink
   TextColumn get linkedNutritionLogId => text().nullable().references(
         NutritionLogs,
+        #id,
+        onDelete: KeyAction.cascade,
+      )();
+  TextColumn get linkedMacroEntryId => text().nullable().references(
+        MacroEntries,
         #id,
         onDelete: KeyAction.cascade,
       )();
@@ -1001,6 +1036,7 @@ class TrainingPlanOccurrences extends Table with HybridId, MetaColumns {
     CardioSamples,
     Products,
     NutritionLogs,
+    MacroEntries,
     Supplements,
     SupplementLogs,
     FluidLogs, // Added
@@ -1045,7 +1081,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 42;
+  int get schemaVersion => 43;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1105,6 +1141,9 @@ class AppDatabase extends _$AppDatabase {
       );
       await customStatement(
         'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_macro_entries_consumed_at ON macro_entries (consumed_at);',
       );
       await customStatement(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;',
@@ -2070,6 +2109,18 @@ class AppDatabase extends _$AppDatabase {
                 ON workout_exercise_logs (workout_log_id, exercise_block)
                 WHERE exercise_block IS NOT NULL
               ''');
+            }
+            if (from < 43) {
+              if (!await _tableExists(this, macroEntries.actualTableName)) {
+                await m.createTable(macroEntries);
+              }
+              if (!await _columnExists(
+                  this, fluidLogs.actualTableName, 'linked_macro_entry_id')) {
+                await m.addColumn(fluidLogs, fluidLogs.linkedMacroEntryId);
+              }
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS idx_macro_entries_consumed_at ON macro_entries (consumed_at);',
+              );
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,

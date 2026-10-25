@@ -147,6 +147,7 @@ class HomeWidgetSyncService {
 
       final goals = await _diaryRepo.watchGoalsForDate(day).first;
       final foodEntries = await _diaryRepo.watchEntriesForDate(day).first;
+      final macroEntries = await _diaryRepo.watchMacroEntriesForDate(day).first;
       final fluidEntries = await _diaryRepo.watchFluidEntriesForDate(day).first;
 
       final archiveIds = <int>{};
@@ -179,6 +180,7 @@ class HomeWidgetSyncService {
         targetSalt: await _prefsRepo.getTargetSalt() ?? 6,
         targetCaffeine: await _prefsRepo.getTargetCaffeine() ?? 400,
         foodEntries: foodEntries,
+        macroEntries: macroEntries,
         fluidEntries: fluidEntries,
         foodProductsByBarcode: legacyProducts,
         foodProductsByArchiveLocalId: archiveProducts,
