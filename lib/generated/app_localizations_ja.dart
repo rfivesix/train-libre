@@ -2927,6 +2927,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiMealCapture => 'AIミール';
 
   @override
+  String get aiChatAction => 'AIチャット';
+
+  @override
   String get aiCaptureTitle => 'AI 食事キャプチャ';
 
   @override

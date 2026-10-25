@@ -3027,6 +3027,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiMealCapture => 'Repas IA';
 
   @override
+  String get aiChatAction => 'Chat IA';
+
+  @override
   String get aiCaptureTitle => 'Capture de repas IA';
 
   @override

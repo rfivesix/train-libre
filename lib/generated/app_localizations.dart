@@ -5426,6 +5426,12 @@ abstract class AppLocalizations {
   /// **'AI Meal'**
   String get aiMealCapture;
 
+  /// No description provided for @aiChatAction.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Chat'**
+  String get aiChatAction;
+
   /// No description provided for @aiCaptureTitle.
   ///
   /// In en, this message translates to:

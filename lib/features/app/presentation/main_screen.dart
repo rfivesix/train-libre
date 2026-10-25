@@ -26,6 +26,7 @@ import '../../diary/presentation/scanner_screen.dart';
 import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
+import '../../ai_assistant/presentation/ai_global_cloud_presentation.dart';
 import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
 import '../../workout/presentation/edit_routine_screen.dart';
@@ -108,6 +109,7 @@ class _MainScreenState extends State<MainScreen>
   final GlobalKey _tourWorkoutTabKey = GlobalKey();
   final GlobalKey _tourStatisticsTabKey = GlobalKey();
   final GlobalKey _tourNutritionTabKey = GlobalKey();
+  final GlobalKey _aiChatActionKey = GlobalKey();
   bool _isAddMenuOpen = false;
   bool _isTourActive = false;
   final bool _isTourOfferVisible = false;
@@ -159,6 +161,8 @@ class _MainScreenState extends State<MainScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
+    _menuController.addListener(_syncAiChatActionCenter);
+    AiGlobalCloudPresentation.onQuickChatTap = _handleQuickChatTap;
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
     _notificationTapSubscription = LocalNotificationService
         .instance.notificationTaps
@@ -316,6 +320,13 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+    AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+    if (identical(
+        AiGlobalCloudPresentation.onQuickChatTap, _handleQuickChatTap)) {
+      AiGlobalCloudPresentation.onQuickChatTap = null;
+    }
+    _menuController.removeListener(_syncAiChatActionCenter);
     _widgetRefreshTimer?.cancel();
     _notificationTapSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
@@ -368,12 +379,46 @@ class _MainScreenState extends State<MainScreen>
     HapticFeedbackService.instance.lightImpact();
     setState(() {
       _isAddMenuOpen = !_isAddMenuOpen;
+      AiGlobalCloudPresentation.isAddMenuOpen.value =
+          _isAddMenuOpen && themeService.isAiEnabled;
       if (_isAddMenuOpen) {
         _menuController.forward();
       } else {
         _menuController.reverse();
       }
     });
+  }
+
+  void _syncAiChatActionCenter() {
+    if (!_isAddMenuOpen || !themeService.isAiEnabled) {
+      AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_isAddMenuOpen) return;
+      final renderObject = _aiChatActionKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderBox || !renderObject.hasSize) return;
+      final center = renderObject.localToGlobal(
+        renderObject.size.center(Offset.zero),
+      );
+      if (AiGlobalCloudPresentation.quickChatActionCenter.value != center) {
+        AiGlobalCloudPresentation.quickChatActionCenter.value = center;
+      }
+    });
+  }
+
+  void _handleQuickChatTap() {
+    if (_isAddMenuOpen) {
+      setState(() {
+        _isAddMenuOpen = false;
+        _menuController.reverse();
+      });
+      AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+      AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+    }
+    unawaited(Future<void>.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) AiGlobalCloudPresentation.requestOpenChat();
+    }));
   }
 
   void _executeAddMenuAction(String action) async {
@@ -404,6 +449,10 @@ class _MainScreenState extends State<MainScreen>
           ),
         );
         if (result == true) _refreshHomeScreen();
+        break;
+      case 'ai_chat':
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        if (mounted) AiGlobalCloudPresentation.requestOpenChat();
         break;
     }
   }
@@ -1256,6 +1305,13 @@ class _MainScreenState extends State<MainScreen>
 
   List<Map<String, dynamic>> _getSpeedDialActions(AppLocalizations l10n) {
     return [
+      if (themeService.isAiEnabled)
+        {
+          'icon': LucideIcons.sparkles,
+          'label': l10n.aiChatAction,
+          'action': 'ai_chat',
+          'gradient': true,
+        },
       {
         'icon': LucideIcons.glass_water,
         'label': l10n.addLiquidOption,
@@ -1988,17 +2044,22 @@ class _MainScreenState extends State<MainScreen>
         SpeedDialMenuOverlay(
           animation: _menuController,
           actions: _getSpeedDialActions(l10n),
+          aiChatActionKey: _aiChatActionKey,
           onClose: () {
             setState(() {
               _isAddMenuOpen = false;
               _menuController.reverse();
             });
+            AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+            AiGlobalCloudPresentation.quickChatActionCenter.value = null;
           },
           onActionTap: (actionKey) {
             setState(() {
               _isAddMenuOpen = false;
               _menuController.reverse();
             });
+            AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+            AiGlobalCloudPresentation.quickChatActionCenter.value = null;
             _executeAddMenuAction(actionKey);
           },
         ),

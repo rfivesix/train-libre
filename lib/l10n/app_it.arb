@@ -1168,6 +1168,7 @@
   "aiPrivacySection": "Privacy AI",
   "aiPrivacyDisclosure": "Immagini, testo e prompt generati vengono inviati al provider AI selezionato solo quando utilizzi un'azione AI. La conservazione e l'elaborazione del fornitore seguono i termini di tale fornitore. La tua chiave API è archiviata crittografata solo su questo dispositivo.",
   "aiMealCapture": "Pasto AI",
+  "aiChatAction": "Chat AI",
   "aiCaptureTitle": "Cattura pasto AI",
   "aiCaptureTabPhoto": "Foto",
   "aiCaptureTabText": "Testo",

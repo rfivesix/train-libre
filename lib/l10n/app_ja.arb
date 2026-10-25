@@ -1168,6 +1168,7 @@
   "aiPrivacySection": "プライバシー",
   "aiPrivacyDisclosure": "画像、テキスト、生成されたプロンプトは、AI アクションを使用する場合にのみ、選択した AI プロバイダーに送信されます。プロバイダーの保持と処理は、そのプロバイダーの規約に従います。 API キーはこのデバイスにのみ暗号化されて保存されます。",
   "aiMealCapture": "AIミール",
+  "aiChatAction": "AIチャット",
   "aiCaptureTitle": "AI 食事キャプチャ",
   "aiCaptureTabPhoto": "写真",
   "aiCaptureTabText": "文章",

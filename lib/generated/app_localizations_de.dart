@@ -3003,6 +3003,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiMealCapture => 'KI-Mahlzeit';
 
   @override
+  String get aiChatAction => 'KI-Chat';
+
+  @override
   String get aiCaptureTitle => 'KI-Mahlzeitenerkennung';
 
   @override

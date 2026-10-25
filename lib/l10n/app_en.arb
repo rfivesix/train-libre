@@ -1167,6 +1167,7 @@
   "aiPrivacySection": "Privacy",
   "aiPrivacyDisclosure": "Images, text, and generated prompts are sent to the selected AI provider only when you use an AI action. Provider retention and processing follow that provider's terms. Your API key is stored encrypted on this device only.",
   "aiMealCapture": "AI Meal",
+  "aiChatAction": "AI Chat",
   "aiCaptureTitle": "AI Meal Capture",
   "aiCaptureTabPhoto": "Photo",
   "aiCaptureTabText": "Text",

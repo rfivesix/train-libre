@@ -1168,6 +1168,7 @@
   "aiPrivacySection": "Datenschutz",
   "aiPrivacyDisclosure": "Bilder, Texte und erzeugte Prompts werden nur an den gewählten KI-Anbieter gesendet, wenn du eine KI-Aktion nutzt. Speicherung und Verarbeitung beim Anbieter richten sich nach dessen Bedingungen. Dein API-Schlüssel wird verschlüsselt nur auf diesem Gerät gespeichert.",
   "aiMealCapture": "KI-Mahlzeit",
+  "aiChatAction": "KI-Chat",
   "aiCaptureTitle": "KI-Mahlzeitenerkennung",
   "aiCaptureTabPhoto": "Foto",
   "aiCaptureTabText": "Text",

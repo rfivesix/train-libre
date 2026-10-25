@@ -3013,6 +3013,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get aiMealCapture => 'Pasto AI';
 
   @override
+  String get aiChatAction => 'Chat AI';
+
+  @override
   String get aiCaptureTitle => 'Cattura pasto AI';
 
   @override

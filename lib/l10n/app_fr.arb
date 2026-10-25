@@ -1168,6 +1168,7 @@
   "aiPrivacySection": "Confidentialité",
   "aiPrivacyDisclosure": "Les images, le texte et les invites générées sont envoyés au fournisseur d'IA sélectionné uniquement lorsque vous utilisez une action d'IA. La rétention et le traitement du fournisseur suivent les conditions de ce fournisseur. Votre clé API est stockée cryptée sur cet appareil uniquement.",
   "aiMealCapture": "Repas IA",
+  "aiChatAction": "Chat IA",
   "aiCaptureTitle": "Capture de repas IA",
   "aiCaptureTabPhoto": "Photo",
   "aiCaptureTabText": "Texte",

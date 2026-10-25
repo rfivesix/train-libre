@@ -25,6 +25,7 @@ import '../../data/assistant_health_actions.dart';
 import '../../data/assistant_history_repository.dart';
 import '../../data/assistant_training_actions.dart';
 import '../../domain/assistant_data_action.dart';
+import '../ai_global_cloud_presentation.dart';
 
 import 'cloud_overlay/cloud_chat_coordinator.dart';
 import 'cloud_overlay/cloud_chat_turn_list_view.dart';
@@ -98,6 +99,23 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _holdToTalkConversationPending = false;
   bool _suppressNextOrbTap = false;
   final Stopwatch _holdRecordingDuration = Stopwatch();
+  int _lastChatOpenRequest = 0;
+  Offset? _quickChatOpenOriginCenter;
+
+  void _handleAddMenuStateChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _handleQuickChatTargetChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _handleChatOpenRequest() {
+    final requestCount = AiGlobalCloudPresentation.chatOpenRequests.value;
+    if (requestCount == _lastChatOpenRequest) return;
+    _lastChatOpenRequest = requestCount;
+    if (mounted && !_isExpanded) _toggleExpanded();
+  }
 
   static const Duration _holdToTalkDelay = Duration(milliseconds: 360);
   static const Duration _holdToTalkSafeWindow = Duration(milliseconds: 1500);
@@ -137,6 +155,13 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   @override
   void initState() {
     super.initState();
+    _lastChatOpenRequest = AiGlobalCloudPresentation.chatOpenRequests.value;
+    AiGlobalCloudPresentation.isAddMenuOpen
+        .addListener(_handleAddMenuStateChanged);
+    AiGlobalCloudPresentation.quickChatActionCenter
+        .addListener(_handleQuickChatTargetChanged);
+    AiGlobalCloudPresentation.chatOpenRequests
+        .addListener(_handleChatOpenRequest);
 
     _dockingController = CloudDockingController(vsync: this)
       ..addListener(_handleControllerTick);
@@ -279,6 +304,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   @override
   void dispose() {
+    AiGlobalCloudPresentation.isAddMenuOpen
+        .removeListener(_handleAddMenuStateChanged);
+    AiGlobalCloudPresentation.quickChatActionCenter
+        .removeListener(_handleQuickChatTargetChanged);
+    AiGlobalCloudPresentation.chatOpenRequests
+        .removeListener(_handleChatOpenRequest);
     _cloudHoldTimer?.cancel();
     _voiceController.dispose();
     _chatCoordinator.dispose();
@@ -357,6 +388,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
         if (!mounted) return;
         setState(() {
           _isClosing = false;
+          _quickChatOpenOriginCenter = null;
           if (wasFullscreen) _isFullscreen = false;
         });
         _scrollSidebarController.sidebarAnimation.value = 0;
@@ -630,6 +662,35 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           attentionPeekDismissed: _chatCoordinator.attentionPeekDismissed,
           fullscreenProgress: fullscreenProgress,
         );
+        final globalQuickChatCenter =
+            AiGlobalCloudPresentation.quickChatActionCenter.value;
+        final cloudRenderObject = context.findRenderObject();
+        final quickChatCenter = globalQuickChatCenter == null
+            ? null
+            : cloudRenderObject is RenderBox
+                ? cloudRenderObject.globalToLocal(globalQuickChatCenter)
+                : globalQuickChatCenter;
+        final isAtQuickChatAction =
+            AiGlobalCloudPresentation.isAddMenuOpen.value &&
+                quickChatCenter != null &&
+                !_isExpanded;
+        final activeCloudCenter = _isClosing &&
+                _quickChatOpenOriginCenter != null
+            ? Offset.lerp(
+                _quickChatOpenOriginCenter,
+                layout.cloudCenter,
+                (1 - _morphProgressAnimation.value).clamp(0.0, 1.0),
+              )!
+            : _quickChatOpenOriginCenter ??
+                (isAtQuickChatAction ? quickChatCenter : layout.cloudCenter);
+        final cloudLeft =
+            _quickChatOpenOriginCenter != null || isAtQuickChatAction
+                ? activeCloudCenter.dx - CloudDockingController.cloudSize / 2
+                : layout.left;
+        final cloudTop =
+            _quickChatOpenOriginCenter != null || isAtQuickChatAction
+                ? activeCloudCenter.dy - CloudDockingController.cloudSize / 2
+                : layout.top;
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -660,14 +721,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                     Positioned.fill(
                       child: TweenAnimationBuilder<Offset>(
                         tween: Tween<Offset>(
-                          begin: Offset(layout.left, layout.top),
-                          end: Offset(layout.left, layout.top),
+                          begin: Offset(cloudLeft, cloudTop),
+                          end: Offset(cloudLeft, cloudTop),
                         ),
                         duration: _dockingController.isDragging ||
+                                (_isClosing &&
+                                    _quickChatOpenOriginCenter != null) ||
                                 _dockingController
                                     .initialDockAnimation.isAnimating
                             ? Duration.zero
-                            : const Duration(milliseconds: 260),
+                            : Duration(
+                                milliseconds: isAtQuickChatAction ? 380 : 260,
+                              ),
                         curve: Curves.easeOutCubic,
                         builder: (context, animatedOffset, _) {
                           final animatedLeft = animatedOffset.dx;
@@ -798,7 +863,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                           false;
                                                       return;
                                                     }
-                                                    _toggleExpanded();
+                                                    if (isAtQuickChatAction &&
+                                                        AiGlobalCloudPresentation
+                                                                .onQuickChatTap !=
+                                                            null) {
+                                                      _quickChatOpenOriginCenter =
+                                                          quickChatCenter;
+                                                      setState(() {});
+                                                      AiGlobalCloudPresentation
+                                                          .onQuickChatTap!();
+                                                    } else {
+                                                      _toggleExpanded();
+                                                    }
                                                   },
                                             onPanStart: morphAnimation.value >
                                                     0.001
@@ -855,7 +931,15 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                       maxLeft: layout.maxLeft,
                                                       isExpanded: _isExpanded,
                                                     ),
-                                            child: cloud,
+                                            child: AnimatedScale(
+                                              scale: isAtQuickChatAction
+                                                  ? 0.84
+                                                  : 1,
+                                              duration: const Duration(
+                                                  milliseconds: 380),
+                                              curve: Curves.easeInOutCubic,
+                                              child: cloud,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -881,8 +965,8 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         }
                         final l10n = AppLocalizations.of(context)!;
                         const badgeSize = 48.0;
-                        final badgeLeft = layout.cloudCenter.dx - badgeSize / 2;
-                        final badgeTop = (layout.cloudCenter.dy - badgeSize / 2)
+                        final badgeLeft = activeCloudCenter.dx - badgeSize / 2;
+                        final badgeTop = (activeCloudCenter.dy - badgeSize / 2)
                             .clamp(
                               mediaQuery.padding.top + 4,
                               layout.viewportHeight -
@@ -995,7 +1079,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                             _morphProgressAnimation.value;
                         final revealProgress = currentMorphProgress;
                         final collapsedBounds = Rect.fromCenter(
-                          center: layout.cloudCenter,
+                          center: activeCloudCenter,
                           width: 120,
                           height: 120,
                         );
@@ -1087,12 +1171,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                               scale: currentMorphProgress,
                                               alignment: Alignment(
                                                 2 *
-                                                        layout.cloudCenter.dx /
+                                                        activeCloudCenter.dx /
                                                         layout.viewportSize
                                                             .width -
                                                     1,
                                                 2 *
-                                                        layout.cloudCenter.dy /
+                                                        activeCloudCenter.dy /
                                                         layout.viewportSize
                                                             .height -
                                                     1,

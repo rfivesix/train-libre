@@ -2988,6 +2988,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiMealCapture => 'AI Meal';
 
   @override
+  String get aiChatAction => 'AI Chat';
+
+  @override
   String get aiCaptureTitle => 'AI Meal Capture';
 
   @override
