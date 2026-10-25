@@ -65,6 +65,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
   bool _canPop = false;
   bool _isEditing = false;
   IDiaryRepository? _repo;
+  final ValueNotifier<double> _mealPhotoScrollOffset = ValueNotifier<double>(0);
+  bool _showPinnedMealSummary = false;
+  double? _mealPhotoFrameHeight;
 
   @override
   void initState() {
@@ -72,6 +75,12 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     _mealEntry = widget.mealEntry;
     _items = List.from(widget.initialItems);
     _macroEntries = List.from(widget.initialMacroEntries);
+  }
+
+  @override
+  void dispose() {
+    _mealPhotoScrollOffset.dispose();
+    super.dispose();
   }
 
   @override
@@ -784,6 +793,71 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     );
     final localizedMealType =
         _getLocalizedMealName(context, _mealEntry.mealType);
+    final photoHeight = (MediaQuery.sizeOf(context).height * 0.58)
+        .clamp(300.0, 560.0)
+        .toDouble();
+    final pinnedSummary = Material(
+      color: bg,
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.16),
+      child: SizedBox(
+        height: 88,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: InkWell(
+                  key: const ValueKey('meal_entry_pinned_timestamp_button'),
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: _isEditing ? _pickDateTime : null,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Text(
+                      '$localizedMealType · $timeStr',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                        color: subtitleColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '$_totalKcal kcal',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      color: titleColor,
+                    ),
+                  ),
+                  const Spacer(),
+                  _buildMacroPill('P', '${_totalProtein.round()}g',
+                      const Color(0xFFFF453A)),
+                  const SizedBox(width: 8),
+                  _buildMacroPill(
+                      'C', '${_totalCarbs.round()}g', const Color(0xFF30D158)),
+                  const SizedBox(width: 8),
+                  _buildMacroPill(
+                      'F', '${_totalFat.round()}g', const Color(0xFFBF5AF2)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
 
     return PopScope(
       canPop: _canPop,
@@ -822,206 +896,259 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
         body: Column(
           children: [
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
+              child: Stack(
                 children: [
-                  if (hasPhoto)
-                    MealPhotoWidget(
-                      photoFiles: photoFiles,
-                      height: 280,
-                      roundedTop: false,
-                      fadeBottom: true,
-                    )
-                  else
-                    const SizedBox(height: DesignConstants.spacingS),
-                  Transform.translate(
-                    offset: Offset(0, hasPhoto ? -32 : 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification is ScrollUpdateNotification ||
+                          notification is ScrollMetricsNotification) {
+                        final offset = notification.metrics.pixels
+                            .clamp(0.0, double.infinity)
+                            .toDouble();
+                        _mealPhotoScrollOffset.value = offset;
+                        final shouldPin = offset >=
+                            (hasPhoto
+                                ? (_mealPhotoFrameHeight ?? photoHeight) - 32
+                                : 0);
+                        if (shouldPin != _showPinnedMealSummary && mounted) {
+                          setState(() => _showPinnedMealSummary = shouldPin);
+                        }
+                      }
+                      return false;
+                    },
+                    child: ListView(
+                      padding: EdgeInsets.zero,
                       children: [
-                        // The meal's name is already in the app bar; repeating it
-                        // here just pushed the numbers down a line. Energy leads,
-                        // macros sit right-aligned beside it.
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                        if (hasPhoto)
+                          MealPhotoWidget(
+                            photoFiles: photoFiles,
+                            height: photoHeight,
+                            roundedTop: true,
+                            roundedAll: true,
+                            fadeBottom: true,
+                            imageFit: BoxFit.contain,
+                            scrollOffset: _mealPhotoScrollOffset,
+                            matchSmallestPhotoAspectRatio: true,
+                            onHeightChanged: (height) {
+                              if (!mounted ||
+                                  ((_mealPhotoFrameHeight ?? -1) - height)
+                                          .abs() <
+                                      0.5) {
+                                return;
+                              }
+                              setState(() => _mealPhotoFrameHeight = height);
+                            },
+                          )
+                        else
+                          const SizedBox(height: DesignConstants.spacingS),
+                        Transform.translate(
+                          offset: Offset(0, hasPhoto ? -32 : 0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Where the user looks for the meal's time is
-                              // where they expect to be able to fix it, so the
-                              // subtitle itself is the control.
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: InkWell(
-                                  key: const ValueKey(
-                                      'meal_entry_timestamp_button'),
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: _isEditing ? _pickDateTime : null,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 4, vertical: 2),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            '$localizedMealType · $timeStr',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 14,
-                                              color: subtitleColor,
-                                            ),
+                              // The meal's name is already in the app bar; repeating it
+                              // here just pushed the numbers down a line. Energy leads,
+                              // macros sit right-aligned beside it.
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Where the user looks for the meal's time is
+                                    // where they expect to be able to fix it, so the
+                                    // subtitle itself is the control.
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: InkWell(
+                                        key: const ValueKey(
+                                            'meal_entry_timestamp_button'),
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap:
+                                            _isEditing ? _pickDateTime : null,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 4, vertical: 2),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  '$localizedMealType · $timeStr',
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Inter',
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 14,
+                                                    color: subtitleColor,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (_isEditing) ...[
+                                                const SizedBox(width: 4),
+                                                Icon(
+                                                  LucideIcons.pencil,
+                                                  size: 12,
+                                                  color: subtitleColor,
+                                                  semanticLabel: l10n
+                                                      .mealDetailChangeDateTime,
+                                                ),
+                                              ],
+                                            ],
                                           ),
                                         ),
-                                        if (_isEditing) ...[
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            LucideIcons.pencil,
-                                            size: 12,
-                                            color: subtitleColor,
-                                            semanticLabel:
-                                                l10n.mealDetailChangeDateTime,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '$_totalKcal kcal',
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 24,
+                                            color: titleColor,
                                           ),
-                                        ],
+                                        ),
+                                        const Spacer(),
+                                        _buildMacroPill(
+                                            'P',
+                                            '${_totalProtein.round()}g',
+                                            const Color(0xFFFF453A)),
+                                        const SizedBox(width: 8),
+                                        _buildMacroPill(
+                                            'C',
+                                            '${_totalCarbs.round()}g',
+                                            const Color(0xFF30D158)),
+                                        const SizedBox(width: 8),
+                                        _buildMacroPill(
+                                            'F',
+                                            '${_totalFat.round()}g',
+                                            const Color(0xFFBF5AF2)),
                                       ],
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '$_totalKcal kcal',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 24,
-                                      color: titleColor,
+
+                              const SizedBox(height: 16),
+
+                              // Keep the same readable ingredient cards in both
+                              // modes. Edit mode changes the actions and tap behavior,
+                              // not the visual layout of the meal contents.
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                child: Column(
+                                  children: [
+                                    MealIngredientsSummary(
+                                      ingredients: [
+                                        ..._items.map(
+                                          (item) => MealIngredientSummaryItem(
+                                            key:
+                                                'food-${item.entry.id ?? item.item.barcode}',
+                                            name: item.item.source ==
+                                                    FoodItemSource.base
+                                                ? item.item.getLocalizedName(
+                                                    context,
+                                                    languageCode: baseFoodLang,
+                                                  )
+                                                : item.item
+                                                    .getLocalizedName(context),
+                                            grams: item.entry.quantityInGrams,
+                                            kcal: item.calculatedCalories,
+                                          ),
+                                        ),
+                                        ..._macroEntries.map((entry) =>
+                                            MealIngredientSummaryItem(
+                                              key: 'macro-${entry.id}',
+                                              name: entry.name
+                                                          ?.trim()
+                                                          .isNotEmpty ==
+                                                      true
+                                                  ? entry.name!.trim()
+                                                  : l10n.macroEntryDefaultName,
+                                              grams: entry.amount?.round(),
+                                              amountLabel: entry.amount == null
+                                                  ? null
+                                                  : '${entry.amount!.round()} ${entry.amountUnit ?? 'g'}',
+                                              kcal: entry.totalCalories.round(),
+                                            )),
+                                      ],
+                                      onEdit: () => setState(
+                                        () => _isEditing = !_isEditing,
+                                      ),
+                                      showEditButton: !_isEditing,
+                                      onIngredientTap: (index) {
+                                        if (index < _items.length) {
+                                          if (_isEditing) {
+                                            _showDirectQuantityDialog(
+                                                _items[index]);
+                                          } else {
+                                            _openItemDetail(_items[index]);
+                                          }
+                                        } else {
+                                          final macro = _macroEntries[
+                                              index - _items.length];
+                                          if (_isEditing) {
+                                            _editMacroEntry(macro);
+                                          } else {
+                                            _openMacroEntryDetail(macro);
+                                          }
+                                        }
+                                      },
+                                      onIngredientLongPress: _isEditing
+                                          ? (index) {
+                                              if (index < _items.length) {
+                                                _replaceIngredient(
+                                                    _items[index]);
+                                              } else {
+                                                _deleteMacroEntry(_macroEntries[
+                                                    index - _items.length]);
+                                              }
+                                            }
+                                          : null,
+                                      onIngredientDismissed: _isEditing
+                                          ? (index) {
+                                              if (index < _items.length) {
+                                                _deleteItem(_items[index]);
+                                              } else {
+                                                _deleteMacroEntry(_macroEntries[
+                                                    index - _items.length]);
+                                              }
+                                            }
+                                          : null,
                                     ),
-                                  ),
-                                  const Spacer(),
-                                  _buildMacroPill(
-                                      'P',
-                                      '${_totalProtein.round()}g',
-                                      const Color(0xFFFF453A)),
-                                  const SizedBox(width: 8),
-                                  _buildMacroPill(
-                                      'C',
-                                      '${_totalCarbs.round()}g',
-                                      const Color(0xFF30D158)),
-                                  const SizedBox(width: 8),
-                                  _buildMacroPill('F', '${_totalFat.round()}g',
-                                      const Color(0xFFBF5AF2)),
-                                ],
+                                    if (_isEditing) ...[
+                                      const SizedBox(
+                                          height: DesignConstants.spacingS),
+                                      _buildEditActionButtons(
+                                        context,
+                                        l10n.mealDetailAddIngredient,
+                                        l10n.macroEntryTitle,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
-
-                        const SizedBox(height: 16),
-
-                        // Keep the same readable ingredient cards in both
-                        // modes. Edit mode changes the actions and tap behavior,
-                        // not the visual layout of the meal contents.
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            children: [
-                              MealIngredientsSummary(
-                                ingredients: [
-                                  ..._items.map(
-                                    (item) => MealIngredientSummaryItem(
-                                      key:
-                                          'food-${item.entry.id ?? item.item.barcode}',
-                                      name: item.item.source ==
-                                              FoodItemSource.base
-                                          ? item.item.getLocalizedName(
-                                              context,
-                                              languageCode: baseFoodLang,
-                                            )
-                                          : item.item.getLocalizedName(context),
-                                      grams: item.entry.quantityInGrams,
-                                      kcal: item.calculatedCalories,
-                                    ),
-                                  ),
-                                  ..._macroEntries
-                                      .map((entry) => MealIngredientSummaryItem(
-                                            key: 'macro-${entry.id}',
-                                            name: entry.name
-                                                        ?.trim()
-                                                        .isNotEmpty ==
-                                                    true
-                                                ? entry.name!.trim()
-                                                : l10n.macroEntryDefaultName,
-                                            grams: entry.amount?.round(),
-                                            amountLabel: entry.amount == null
-                                                ? null
-                                                : '${entry.amount!.round()} ${entry.amountUnit ?? 'g'}',
-                                            kcal: entry.totalCalories.round(),
-                                          )),
-                                ],
-                                onEdit: () => setState(
-                                  () => _isEditing = !_isEditing,
-                                ),
-                                showEditButton: !_isEditing,
-                                onIngredientTap: (index) {
-                                  if (index < _items.length) {
-                                    if (_isEditing) {
-                                      _showDirectQuantityDialog(_items[index]);
-                                    } else {
-                                      _openItemDetail(_items[index]);
-                                    }
-                                  } else {
-                                    final macro =
-                                        _macroEntries[index - _items.length];
-                                    if (_isEditing) {
-                                      _editMacroEntry(macro);
-                                    } else {
-                                      _openMacroEntryDetail(macro);
-                                    }
-                                  }
-                                },
-                                onIngredientLongPress: _isEditing
-                                    ? (index) {
-                                        if (index < _items.length) {
-                                          _replaceIngredient(_items[index]);
-                                        } else {
-                                          _deleteMacroEntry(_macroEntries[
-                                              index - _items.length]);
-                                        }
-                                      }
-                                    : null,
-                                onIngredientDismissed: _isEditing
-                                    ? (index) {
-                                        if (index < _items.length) {
-                                          _deleteItem(_items[index]);
-                                        } else {
-                                          _deleteMacroEntry(_macroEntries[
-                                              index - _items.length]);
-                                        }
-                                      }
-                                    : null,
-                              ),
-                              if (_isEditing) ...[
-                                const SizedBox(
-                                    height: DesignConstants.spacingS),
-                                _buildEditActionButtons(
-                                  context,
-                                  l10n.mealDetailAddIngredient,
-                                  l10n.macroEntryTitle,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
+                        const SizedBox(height: 100),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 100),
+                  if (_showPinnedMealSummary)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: pinnedSummary,
+                    ),
                 ],
               ),
             ),
