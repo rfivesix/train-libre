@@ -922,13 +922,22 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _analysisRoute = null;
         revealStartedMilliseconds = stopwatch.elapsedMilliseconds;
         final navFuture = Navigator.of(context).push<bool>(reviewRoute);
-        navFuture.then((v) {
-          if (!savedCompleter.isCompleted) savedCompleter.complete(v);
-        }).catchError((e, s) {
-          if (!savedCompleter.isCompleted) {
-            savedCompleter.completeError(e, s);
+        // Navigator.push resolves when pop starts, but the transparent reveal
+        // route still occupies the top of the stack during its reverse fade.
+        // Wait for the transition to finish before letting this capture route
+        // pop too; otherwise the two routes can overlap their removals and
+        // leave the Diary visually exposed but unable to receive input.
+        unawaited(() async {
+          try {
+            final result = await navFuture;
+            await reviewRoute.completed;
+            if (!savedCompleter.isCompleted) savedCompleter.complete(result);
+          } catch (error, stackTrace) {
+            if (!savedCompleter.isCompleted) {
+              savedCompleter.completeError(error, stackTrace);
+            }
           }
-        });
+        }());
         if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
           Navigator.of(context).removeRoute(oldAnalysisRoute);
         }
