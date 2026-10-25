@@ -7,6 +7,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../../../generated/app_localizations.dart';
+import '../../../../../services/haptic_feedback_service.dart';
 import '../../../../../util/design_constants.dart';
 import 'cloud_voice_controller.dart';
 import 'cloud_voice_waveform.dart';
@@ -99,7 +100,14 @@ class CloudOverlayComposer extends StatelessWidget {
               useStaticGlass: isGlassTransitioning,
               onPressed: recording
                   ? voiceController.cancel
-                  : () => unawaited(voiceController.start(context)),
+                  : () {
+                      if (filled) {
+                        unawaited(
+                          HapticFeedbackService.instance.lightImpact(),
+                        );
+                      }
+                      unawaited(voiceController.start(context));
+                    },
             );
 
         Widget sendButton() {
@@ -113,7 +121,12 @@ class CloudOverlayComposer extends StatelessWidget {
             backgroundColor: sendButtonBackground,
             foregroundColor: sendButtonForeground,
             useStaticGlass: isGlassTransitioning,
-            onPressed: isStopAction ? onStopGeneration : onSendPrompt,
+            onPressed: isStopAction
+                ? onStopGeneration
+                : () {
+                    unawaited(HapticFeedbackService.instance.lightImpact());
+                    onSendPrompt();
+                  },
           );
         }
 
@@ -187,11 +200,11 @@ class CloudOverlayComposer extends StatelessWidget {
             menuWidth: 250,
             icon: HeaderGlassButton(
               key: addImagesButtonKey,
-              icon: Icons.add,
+              icon: LucideIcons.plus,
               tooltip: l10n.aiChatAddImage,
               isDarkSurface: !surfaceIsLight,
               foregroundColor: contrastColor,
-              backgroundColor: controlFillColor,
+              showBorder: false,
               useStaticGlass: isGlassTransitioning,
             ),
             items: [
