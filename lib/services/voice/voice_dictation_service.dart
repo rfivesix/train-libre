@@ -100,8 +100,14 @@ class VoiceDictationService {
 
     try {
       final available = await _speech.initialize(
-        onError: (error) =>
-            debugPrint('[VoiceDictation] error: ${error.errorMsg}'),
+        onError: (error) {
+          debugPrint('[VoiceDictation] error: ${error.errorMsg}');
+          // Platform recognizers can end a timed-out or interrupted session
+          // through the error callback without a final status callback. Let
+          // the active owner commit its latest partial transcript instead of
+          // leaving it stranded in the recording UI.
+          _notifyListeningStopped();
+        },
         onStatus: _handleStatus,
         debugLogging: false,
       );
@@ -134,8 +140,14 @@ class VoiceDictationService {
   void _handleStatus(String status) {
     debugPrint('[VoiceDictation] status: $status');
     if (status == 'done' || status == 'notListening') {
-      _onListeningStopped?.call();
+      _notifyListeningStopped();
     }
+  }
+
+  void _notifyListeningStopped() {
+    final callback = _onListeningStopped;
+    _onListeningStopped = null;
+    callback?.call();
   }
 
   /// Every locale the platform recognizer offers, sorted by display name.

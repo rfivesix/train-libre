@@ -235,6 +235,16 @@ class AiService {
       supportsVision: true,
       supportsDynamicModelLoading: true,
     ),
+    AiProvider.deepseek: AiProviderMetadata(
+      provider: AiProvider.deepseek,
+      displayName: 'DeepSeek',
+      keyHint: 'sk-...',
+      defaultModel: 'deepseek-flash',
+      rankingHints: ['deepseek-flash', 'deepseek-v4-pro'],
+      emergencyFallbackModels: ['deepseek-flash', 'deepseek-v4-pro'],
+      supportsVision: true,
+      supportsDynamicModelLoading: true,
+    ),
     AiProvider.ollama: AiProviderMetadata(
       provider: AiProvider.ollama,
       displayName: 'Ollama',
@@ -1337,6 +1347,18 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
             imageDataList,
             systemPrompt: systemPrompt,
             temperature: temperature,
+          );
+          break;
+        case AiProvider.deepseek:
+          rawResult = await _callOpenAiRaw(
+            apiKey!,
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+            baseUrlOverride: 'https://api.deepseek.com',
+            provider: providerEnum,
           );
           break;
       }

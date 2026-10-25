@@ -91,8 +91,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   QRViewController? _qrController;
   PermissionStatus _cameraPermission = PermissionStatus.denied;
   bool _isFlashOn = false;
-  bool _isFrontCamera = false;
-  bool _cameraOptionsOpen = false;
   bool _isIosSimulator = false;
   String? _detectedBarcode;
   FoodItem? _detectedProduct;
@@ -296,7 +294,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Future<void> _toggleFlash() async {
+    if (!_cameraPermission.isGranted || _isCameraSuspended || _isAnalyzing) {
+      return;
+    }
     HapticFeedbackService.instance.selectionFeedback();
+    if (_isIosSimulator && !_useNativeSession) {
+      setState(() => _isFlashOn = !_isFlashOn);
+      return;
+    }
     if (_useNativeSession) {
       final isOn = await DepthScanChannel.instance.toggleTorch();
       if (mounted) {
@@ -313,31 +318,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         debugPrint('[AiMealCapture] toggleFlash error: $e');
       }
     }
-  }
-
-  Future<void> _switchCamera() async {
-    if (!_cameraPermission.isGranted) return;
-    var switched = false;
-    bool? frontCameraAfterSwitch;
-    if (_useNativeSession) {
-      switched = await DepthScanChannel.instance.switchCamera();
-    } else if (_qrController != null) {
-      try {
-        final facing = await _qrController!.flipCamera();
-        switched = true;
-        frontCameraAfterSwitch = facing == CameraFacing.front;
-      } catch (error) {
-        debugPrint('[AiMealCapture] switch camera error: $error');
-      }
-    }
-    if (!mounted) return;
-    setState(() {
-      _cameraOptionsOpen = false;
-      if (switched) {
-        _isFrontCamera = frontCameraAfterSwitch ?? !_isFrontCamera;
-        _isFlashOn = false;
-      }
-    });
   }
 
   /// Resumes active camera preview and depth/barcode hardware if the screen is currently active.
@@ -2480,11 +2460,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             bottom: 26,
             child: Row(
               children: [
-                _buildFrostedButton(
+                HeaderGlassButton(
                   key: _keyBarcode,
                   icon: LucideIcons.scan_barcode,
-                  isActive: _barcodeDetectionEnabled,
-                  onTap: () {
+                  onPressed: () {
                     setState(() {
                       _barcodeDetectionEnabled = !_barcodeDetectionEnabled;
                       if (!_barcodeDetectionEnabled) {
@@ -2494,6 +2473,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     });
                   },
                   tooltip: l10n.aiCaptureTourStepBarcodeTitle,
+                  isDarkSurface: true,
+                  platformViewBackdrop: true,
+                  foregroundColor: _barcodeDetectionEnabled
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Colors.white,
+                  backgroundColor: _barcodeDetectionEnabled
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
                 ),
                 Expanded(
                   child: Center(
@@ -2544,56 +2531,24 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   ),
                 ),
                 HeaderGlassButton(
-                  icon:
-                      _cameraOptionsOpen ? LucideIcons.x : LucideIcons.ellipsis,
-                  tooltip: l10n.aiChatCameraOptions,
+                  icon: _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
+                  tooltip: l10n.aiChatFlash,
                   isDarkSurface: true,
                   platformViewBackdrop: true,
-                  foregroundColor: Colors.white,
-                  onPressed: () => setState(
-                    () => _cameraOptionsOpen = !_cameraOptionsOpen,
-                  ),
+                  backgroundColor:
+                      _isFlashOn ? Theme.of(context).colorScheme.primary : null,
+                  foregroundColor: _isFlashOn
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Colors.white,
+                  onPressed: _cameraPermission.isGranted &&
+                          !_isCameraSuspended &&
+                          !_isAnalyzing
+                      ? () => unawaited(_toggleFlash())
+                      : null,
                 ),
               ],
             ),
           ),
-          if (_cameraOptionsOpen)
-            Positioned(
-              right: _scannerControlSideInset,
-              bottom: 94,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HeaderGlassButton(
-                    icon: LucideIcons.switch_camera,
-                    tooltip: l10n.aiChatSwitchCamera,
-                    isDarkSurface: true,
-                    platformViewBackdrop: true,
-                    foregroundColor: Colors.white,
-                    onPressed: _cameraPermission.isGranted
-                        ? () => unawaited(_switchCamera())
-                        : null,
-                  ),
-                  const SizedBox(height: 8),
-                  HeaderGlassButton(
-                    icon: _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
-                    tooltip: l10n.aiChatFlash,
-                    isDarkSurface: true,
-                    platformViewBackdrop: true,
-                    backgroundColor:
-                        _isFlashOn ? Colors.white.withValues(alpha: 0.2) : null,
-                    foregroundColor:
-                        _isFrontCamera ? Colors.white54 : Colors.white,
-                    onPressed: _cameraPermission.isGranted && !_isFrontCamera
-                        ? () {
-                            setState(() => _cameraOptionsOpen = false);
-                            unawaited(_toggleFlash());
-                          }
-                        : null,
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
@@ -2623,19 +2578,19 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     bool isActive = false,
     String? tooltip,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryAccent = isDark
-        ? DesignConstants.brandAccentColor
-        : DesignConstants.brandAccentColorLightMode;
+    final theme = Theme.of(context);
+    final isDarkSurface = theme.brightness == Brightness.dark;
     return HeaderGlassButton(
       key: key,
       icon: icon,
       tooltip: tooltip ?? '',
-      isDarkSurface: true,
-      foregroundColor: isActive ? primaryAccent : Colors.white,
-      backgroundColor: isActive
-          ? primaryAccent.withValues(alpha: isDark ? 0.36 : 0.28)
-          : null,
+      isDarkSurface: isDarkSurface,
+      foregroundColor: isActive
+          ? theme.colorScheme.onPrimary
+          : isDarkSurface
+              ? Colors.white
+              : theme.colorScheme.onSurface,
+      backgroundColor: isActive ? theme.colorScheme.primary : null,
       platformViewBackdrop: true,
       dimension: 44,
       onPressed: onTap,

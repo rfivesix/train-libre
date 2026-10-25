@@ -136,7 +136,10 @@ class AssistantSqlSandbox {
     final snapshotRows =
         tableRows.values.fold<int>(0, (sum, rows) => sum + rows.length);
     final snapshotBytes = tableRows.values.fold<int>(
-        0, (sum, rows) => sum + utf8.encode(jsonEncode(rows, toEncodable: _jsonEncodable)).length);
+        0,
+        (sum, rows) =>
+            sum +
+            utf8.encode(jsonEncode(rows, toEncodable: _jsonEncodable)).length);
     if (snapshotRows > maxSnapshotRows || snapshotBytes > maxSnapshotBytes) {
       throw const AssistantSqlQueryException(
           'The approved data set is too large to prepare safely. Please choose a shorter date range.');
@@ -309,6 +312,14 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
           'Base nutrient densities per 100g/100ml are on `nutrition_logs` (`calories_per_100g`, `protein_per_100g`, `carbs_per_100g`, etc.), '
           '`products`, `off_products_archive`, and `user_food_overrides`. '
           'Calculation formula: consumed_nutrient = (amount / 100.0) * nutrient_per_100g. '
+          '`macro_entries` contains additional manually logged or AI-estimated foods and is complementary to `nutrition_logs`. '
+          'For daily intake, include BOTH sources exactly once: sum the pre-calculated `nutrition_logs` totals and '
+          '`macro_entries.consumed_calories_kcal`, `consumed_protein_g`, `consumed_carbs_g`, and `consumed_fat_g`. '
+          'When reporting food-entry counts, count rows from both tables. '
+          'The `macro_entries.consumed_*` fields already account for `amount` (whole-entry values when amount is NULL, otherwise per-100g/ml values scaled by amount / 100). '
+          '`meal_entries` is grouping/display metadata, not another source of nutrients; do not add it to nutrition totals. '
+          'When present, `nutrition_daily_summary` is the app-calculated source of truth for the requested days and targets. '
+          'Use its totals directly for a daily balance answer instead of recomputing totals from raw rows; use raw tables for itemized detail. '
           'Unlinked products have NULL nutrients, NOT 0. Do not treat NULL as zero unless explicitly 0. '
           'Detailed micronutrients for approved German Federal Food Key (BLS) foods live in `bls_food_nutrients` '
           '(columns: barcode, component_code, nutrient_name, name_de, name_en, nutrient_group, '
@@ -317,13 +328,19 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
           'In `bls_food_nutrients`, numeric 0.0 has is_missing = 0. '
           'When unmeasured or missing, value_per_100g is NULL and is_missing is 1. Consumed BLS nutrient = (nutrition_logs.amount / 100.0) * bls_food_nutrients.value_per_100g.',
       'Workout relationships & exercise metadata: `workout_logs` (start_time, end_time, routine_id, routine_name_snapshot) joins to `set_logs` via `set_logs.workout_log_id = workout_logs.id`. '
-          '`set_logs` includes `exercise_id`, `weight`, `reps`, `rpe`, `effective_exercise_name`, `canonical_exercise_name`, and `exercise_name_snapshot`. '
+          '`workout_exercise_logs` also joins by workout_log_id and records exercise blocks/order, including blocks with no sets. '
+          'Join set_logs to workout_exercise_logs by workout_log_id and exercise_block when exercise_block is non-NULL; older sets may have no block and should be matched by exercise_id or name only when unambiguous. '
+          '`set_logs` includes `exercise_id`, `weight`, `reps`, `rpe`, prescription fields, `effective_exercise_name`, `canonical_exercise_name`, and `exercise_name_snapshot`. '
           'Exercise metadata: `exercises` (id, name, name_de, name_en, modality, tracking_type), `exercise_translations` (exercise_id, language_code, name), '
           '`exercise_muscles` (exercise_id, muscle_id, role: primary/secondary), `muscles` (id), and `exercise_equipment` (exercise_id, equipment_id) with `equipment` (id). '
           'Historical names: if an exercise or routine is renamed or deleted from the catalog, `set_logs.exercise_name_snapshot` '
           'and `workout_logs.routine_name_snapshot` preserve the historical name recorded during the workout. '
           '`effective_exercise_name` and `effective_routine_name` prefer the current name and fall back to the snapshot. '
           'Routines: `workout_logs.routine_id = routines.id`. Saved recipes (`meals`, `meal_items`) require a separate recipes approval; meal_entries has no recipe foreign key.',
+      'Routine and plan relationships: `routine_exercises.routine_id = routines.id`, `routine_exercises.exercise_id = exercises.id`, and `routine_set_templates.routine_exercise_id = routine_exercises.id`. '
+          'Muscle/equipment assignments are in `exercise_muscles` and `exercise_equipment`; routine plans and prescription questions need the approved `routines` category. '
+          '`training_plan_revisions.plan_id = training_plans.id`; use the latest effective revision or `active_plan_week` for the active schedule, and join `training_plan_occurrences` by activation_id/date/slot_index for actual occurrence status. '
+          'If needed workout, routine, exercise-assignment, or plan tables are not listed as available, request their category approval instead of saying the assignment is missing.',
       'Known units: weightKg and weight_kg are kilograms; caloriesKcal and calories_kcal are kilocalories; '
           'fields ending in Grams or _g are grams; fields ending in Milliliters or _ml are milliliters; '
           'fields ending in Minutes or _minutes are minutes; fields ending in Seconds or _seconds are seconds; '

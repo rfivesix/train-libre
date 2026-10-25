@@ -123,8 +123,11 @@ class AssistantDiaryActions implements AssistantDataAction {
           'carbsGrams': summary.carbs,
           'fatGrams': summary.fat,
           'waterMilliliters': summary.water,
-          'targetCaloriesKcal': goals?.targetCalories,
-          'targetProteinGrams': goals?.targetProtein,
+          'targetCaloriesKcal': summary.targetCalories,
+          'targetProteinGrams': summary.targetProtein,
+          'targetCarbsGrams': summary.targetCarbs,
+          'targetFatGrams': summary.targetFat,
+          'targetWaterMilliliters': summary.targetWater,
         });
       }
     }

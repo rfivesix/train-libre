@@ -273,6 +273,18 @@ class AiOverlayLiveChatService {
             timeout: timeout,
             onDispatch: onDispatch,
           );
+        case AiProvider.deepseek:
+          yield* _streamOpenAiCompatible(
+            provider: provider,
+            endpoint: 'https://api.deepseek.com/chat/completions',
+            apiKey: apiKey,
+            model: model,
+            prompt: prompt,
+            history: history,
+            images: images,
+            timeout: timeout,
+            onDispatch: onDispatch,
+          );
         case AiProvider.ollama:
           final customUrl = await AiService.instance.getCustomBaseUrl();
           final endpoint = _resolveOpenAiEndpoint(

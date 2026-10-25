@@ -6957,7 +6957,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get aiChatImageLimit => 'Puoi allegare fino a 4 immagini.';
 
   @override
-  String get aiChatImageQuestion => 'Cosa puoi dirmi su questa immagine?';
+  String get aiChatImageQuestion =>
+      'Se questa immagine mostra cibo o bevande, stimane i valori nutrizionali e prepara una voce del diario da controllare. Altrimenti, descrivi brevemente cosa mostra.';
 
   @override
   String get aiChatImageUnsupported =>

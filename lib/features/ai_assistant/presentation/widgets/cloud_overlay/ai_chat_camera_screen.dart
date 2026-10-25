@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 import '../../../../../generated/app_localizations.dart';
 import '../../../../../util/design_constants.dart';
@@ -189,9 +190,8 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
   bool _previewMounted = false;
   bool _debugGlassPreview = false;
   bool _busy = false;
-  bool _optionsOpen = false;
   bool _torchOn = false;
-  bool _usingFrontCamera = false;
+  bool _isIosSimulator = false;
   bool _starting = false;
   PermissionStatus? _permissionStatus;
   String? _error;
@@ -208,6 +208,14 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
     _starting = true;
     if (mounted) setState(() => _error = null);
     try {
+      if (Platform.isIOS) {
+        try {
+          final info = await DeviceInfoPlugin().iosInfo;
+          _isIosSimulator = !info.isPhysicalDevice;
+        } catch (_) {
+          _isIosSimulator = false;
+        }
+      }
       var permission = await Permission.camera.status;
       if (!permission.isGranted && requestPermission && permission.isDenied) {
         permission = await Permission.camera.request();
@@ -293,24 +301,19 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
   }
 
   Future<void> _toggleFlash() async {
-    if (!_ready || _usingFrontCamera) return;
+    if (_busy) return;
+    if (_isIosSimulator && kDebugMode) {
+      setState(() => _torchOn = !_torchOn);
+      return;
+    }
+    if (!_ready) {
+      if (_debugGlassPreview && kDebugMode && mounted) {
+        setState(() => _torchOn = !_torchOn);
+      }
+      return;
+    }
     final value = await _camera.toggleTorch();
     if (mounted) setState(() => _torchOn = value);
-  }
-
-  Future<void> _switchCamera() async {
-    if (!_ready || _busy) return;
-    final switched = await _camera.switchCamera();
-    if (!mounted) return;
-    if (switched) {
-      setState(() {
-        _usingFrontCamera = !_usingFrontCamera;
-        _torchOn = false;
-      });
-    } else {
-      setState(
-          () => _error = AppLocalizations.of(context)!.aiChatCameraUnavailable);
-    }
   }
 
   @override
@@ -325,7 +328,6 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
     final l10n = AppLocalizations.of(context)!;
     const shutterSize = 76.0;
     const sideButtonSize = 44.0;
-    const controlSpacing = 12.0;
     const controlBottomInset = 16.0;
     const controlBaselineBottom = (shutterSize - sideButtonSize) / 2;
     const controlEdgeInset = controlBottomInset + controlBaselineBottom;
@@ -485,69 +487,35 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                     SizedBox(
                       width: sideButtonSize,
                       height: shutterSize,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          if (_optionsOpen) ...[
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: controlBaselineBottom +
-                                  sideButtonSize +
-                                  controlSpacing,
-                              child: HeaderGlassButton(
-                                tooltip: l10n.aiChatSwitchCamera,
-                                icon: LucideIcons.switch_camera,
-                                onPressed: _switchCamera,
-                                isDarkSurface: true,
-                                platformViewBackdrop: true,
-                                dimension: sideButtonSize,
-                                iconSize: 20,
-                              ),
-                            ),
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: controlBaselineBottom +
-                                  2 * (sideButtonSize + controlSpacing),
-                              child: HeaderGlassButton(
-                                tooltip: l10n.aiChatFlash,
-                                icon: _torchOn
-                                    ? LucideIcons.zap
-                                    : LucideIcons.zap_off,
-                                onPressed: _toggleFlash,
-                                isDarkSurface: true,
-                                backgroundColor: _torchOn
-                                    ? Colors.white.withValues(alpha: 0.2)
-                                    : null,
-                                foregroundColor: _usingFrontCamera
-                                    ? Colors.white.withValues(alpha: 0.45)
-                                    : Colors.white,
-                                platformViewBackdrop: true,
-                                dimension: sideButtonSize,
-                                iconSize: 20,
-                              ),
-                            ),
-                          ],
-                          Positioned(
-                            left: 0,
-                            right: 0,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: EdgeInsets.only(
                             bottom: controlBaselineBottom,
-                            child: HeaderGlassButton(
-                              tooltip: l10n.aiChatCameraOptions,
-                              icon: _optionsOpen
-                                  ? LucideIcons.x
-                                  : LucideIcons.ellipsis,
-                              onPressed: () => setState(
-                                () => _optionsOpen = !_optionsOpen,
-                              ),
-                              isDarkSurface: true,
-                              platformViewBackdrop: true,
-                              dimension: sideButtonSize,
-                              iconSize: 20,
-                            ),
                           ),
-                        ],
+                          child: HeaderGlassButton(
+                            tooltip: l10n.aiChatFlash,
+                            icon: _torchOn
+                                ? LucideIcons.zap
+                                : LucideIcons.zap_off,
+                            onPressed: (_ready ||
+                                        _debugGlassPreview ||
+                                        (_isIosSimulator && kDebugMode)) &&
+                                    !_busy
+                                ? _toggleFlash
+                                : null,
+                            isDarkSurface: true,
+                            backgroundColor: _torchOn
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                            foregroundColor: _torchOn
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Colors.white,
+                            platformViewBackdrop: true,
+                            dimension: sideButtonSize,
+                            iconSize: 20,
+                          ),
+                        ),
                       ),
                     ),
                   ],

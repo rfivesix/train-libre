@@ -7,6 +7,7 @@ enum AiProvider {
   anthropic,
   mistral,
   xai,
+  deepseek,
   ollama,
   custom,
   appleFoundation,

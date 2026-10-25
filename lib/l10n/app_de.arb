@@ -2986,7 +2986,7 @@
   "aiChatFlash": "Blitz",
   "aiChatSwitchCamera": "Kamera wechseln",
   "aiChatImageLimit": "Du kannst bis zu 4 Bilder anhängen.",
-  "aiChatImageQuestion": "Was kannst du mir über dieses Bild sagen?",
+  "aiChatImageQuestion": "Wenn das Bild Essen oder Getränke zeigt, schätze bitte die Nährwerte und bereite einen passenden Tagebucheintrag zur Überprüfung vor. Falls nicht, beschreibe kurz, was auf dem Bild zu sehen ist.",
   "aiChatImageUnsupported": "Das ausgewählte KI-Modell unterstützt keine Bilder. Dein Entwurf bleibt im Eingabefeld.",
   "voiceStarting": "Einen Moment…",
   "voiceTidyingUp": "Text wird aufgeräumt…",

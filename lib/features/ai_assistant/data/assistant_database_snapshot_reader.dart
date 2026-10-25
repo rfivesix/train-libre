@@ -47,6 +47,22 @@ class AssistantDatabaseSnapshotReader {
   };
 
   static const Map<String, Map<String, String>> _syntheticTableColumns = {
+    'nutrition_daily_summary': {
+      'date': 'TEXT',
+      'food_entry_count': 'INTEGER',
+      'macro_entry_count': 'INTEGER',
+      'food_count': 'INTEGER',
+      'calories_kcal': 'REAL',
+      'protein_g': 'REAL',
+      'carbs_g': 'REAL',
+      'fat_g': 'REAL',
+      'water_ml': 'REAL',
+      'target_calories_kcal': 'INTEGER',
+      'target_protein_g': 'INTEGER',
+      'target_carbs_g': 'INTEGER',
+      'target_fat_g': 'INTEGER',
+      'target_water_ml': 'INTEGER',
+    },
     'active_plan_week': {
       'plan_id': 'TEXT',
       'plan_name': 'TEXT',
@@ -105,6 +121,16 @@ class AssistantDatabaseSnapshotReader {
       'fiber_g': 'REAL',
       'salt_g': 'REAL',
       'caffeine_mg': 'REAL',
+    },
+    'macro_entries': {
+      'consumed_calories_kcal': 'REAL',
+      'consumed_protein_g': 'REAL',
+      'consumed_carbs_g': 'REAL',
+      'consumed_fat_g': 'REAL',
+      'consumed_sugar_g': 'REAL',
+      'consumed_fiber_g': 'REAL',
+      'consumed_salt_g': 'REAL',
+      'consumed_caffeine_mg': 'REAL',
     },
     'workout_logs': {
       'effective_routine_name': 'TEXT',
@@ -833,6 +859,8 @@ class AssistantDatabaseSnapshotReader {
     final mealEntries = await _select('meal_entries', mealWhere, values: range);
     final nutritionLogs =
         await _select('nutrition_logs', foodWhere, values: range);
+    final macroEntries =
+        await _select('macro_entries', foodWhere, values: range);
     final fluidLogs = await _select('fluid_logs', fluidWhere, values: range);
     final supplementLogs =
         await _select('supplement_logs', supplementWhere, values: range);
@@ -905,6 +933,7 @@ class AssistantDatabaseSnapshotReader {
       archives: archives,
       overrides: overrides,
     );
+    _enrichMacroEntries(macroEntries);
 
     // 5. Read BLS micronutrients for all BLS barcodes present in the approved scope.
     final blsNutrients = await _readBlsFoodNutrients({
@@ -936,6 +965,7 @@ class AssistantDatabaseSnapshotReader {
     return {
       'meal_entries': mealEntries,
       'nutrition_logs': nutritionLogs,
+      'macro_entries': macroEntries,
       'fluid_logs': fluidLogs,
       'supplement_logs': supplementLogs,
       'products': products,
@@ -948,6 +978,27 @@ class AssistantDatabaseSnapshotReader {
       'daily_goals_history': dailyGoalsHistory,
     };
   }
+
+  void _enrichMacroEntries(List<Map<String, dynamic>> entries) {
+    for (final entry in entries) {
+      final amount = (entry['amount'] as num?)?.toDouble();
+      final factor = amount == null ? 1.0 : amount / 100.0;
+      entry['consumed_calories_kcal'] =
+          (entry['calories'] as num).toDouble() * factor;
+      entry['consumed_protein_g'] =
+          (entry['protein'] as num).toDouble() * factor;
+      entry['consumed_carbs_g'] = (entry['carbs'] as num).toDouble() * factor;
+      entry['consumed_fat_g'] = (entry['fat'] as num).toDouble() * factor;
+      entry['consumed_sugar_g'] = _scaledOptional(entry['sugar'], factor);
+      entry['consumed_fiber_g'] = _scaledOptional(entry['fiber'], factor);
+      entry['consumed_salt_g'] = _scaledOptional(entry['salt'], factor);
+      entry['consumed_caffeine_mg'] =
+          _scaledOptional(entry['caffeine'], factor);
+    }
+  }
+
+  double? _scaledOptional(Object? value, double factor) =>
+      value is num ? value.toDouble() * factor : null;
 
   Future<List<Map<String, dynamic>>> _selectArchives({
     required Set<int> archiveLocalIds,
@@ -1448,6 +1499,34 @@ class AssistantComprehensiveDataAction implements AssistantDataAction {
     final semantic = await matches.single.read(category, scope);
     if (semantic.status != AssistantActionStatus.success) return semantic;
     final tables = await reader.read(category, scope);
+    if (category == AssistantDataCategory.nutrition) {
+      // Use the app's own aggregation as the source of truth for chatbot
+      // totals. Raw rows remain available for an itemized explanation.
+      final dailySummaryRows = [
+        for (final record in semantic.records)
+          if (record['ref']?.toString().startsWith('nutrition:') ?? false)
+            {
+              'date': record['date'],
+              'food_entry_count': record['foodEntryCount'],
+              'macro_entry_count': record['macroEntryCount'],
+              'food_count': (record['foodEntryCount'] as num? ?? 0).toInt() +
+                  (record['macroEntryCount'] as num? ?? 0).toInt(),
+              'calories_kcal': record['caloriesKcal'],
+              'protein_g': record['proteinGrams'],
+              'carbs_g': record['carbsGrams'],
+              'fat_g': record['fatGrams'],
+              'water_ml': record['waterMilliliters'],
+              'target_calories_kcal': record['targetCaloriesKcal'],
+              'target_protein_g': record['targetProteinGrams'],
+              'target_carbs_g': record['targetCarbsGrams'],
+              'target_fat_g': record['targetFatGrams'],
+              'target_water_ml': record['targetWaterMilliliters'],
+            }
+      ];
+      if (dailySummaryRows.isNotEmpty) {
+        tables['nutrition_daily_summary'] = dailySummaryRows;
+      }
+    }
     return AssistantActionResult(
       category: category,
       status: semantic.status,

@@ -561,6 +561,8 @@ extension AiNetwork on AiService {
         return _loadMistralModels(apiKey);
       case AiProvider.xai:
         return _loadXaiModels(apiKey);
+      case AiProvider.deepseek:
+        return _loadDeepSeekModels(apiKey);
       case AiProvider.anthropic:
         return _loadAnthropicModels(apiKey);
       case AiProvider.ollama:
@@ -640,6 +642,14 @@ extension AiNetwork on AiService {
       uri: Uri.parse('https://api.x.ai/v1/models'),
       headers: {'Authorization': 'Bearer $apiKey'},
       parse: (json) => _parseOpenAiStyleIds(json, AiProvider.xai),
+    );
+  }
+
+  Future<AiModelIdsFetch> _loadDeepSeekModels(String apiKey) {
+    return _fetchModelIds(
+      uri: Uri.parse('https://api.deepseek.com/models'),
+      headers: {'Authorization': 'Bearer $apiKey'},
+      parse: (json) => _parseOpenAiStyleIds(json, AiProvider.deepseek),
     );
   }
 

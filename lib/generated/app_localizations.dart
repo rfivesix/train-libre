@@ -12022,7 +12022,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiChatImageQuestion.
   ///
   /// In en, this message translates to:
-  /// **'What can you tell me about this image?'**
+  /// **'If this image shows food or drinks, estimate the nutrition and prepare a diary entry for me to review. Otherwise, briefly describe what is shown.'**
   String get aiChatImageQuestion;
 
   /// No description provided for @aiChatImageUnsupported.

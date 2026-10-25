@@ -2986,7 +2986,7 @@
   "aiChatFlash": "Flash",
   "aiChatSwitchCamera": "Cambia fotocamera",
   "aiChatImageLimit": "Puoi allegare fino a 4 immagini.",
-  "aiChatImageQuestion": "Cosa puoi dirmi su questa immagine?",
+  "aiChatImageQuestion": "Se questa immagine mostra cibo o bevande, stimane i valori nutrizionali e prepara una voce del diario da controllare. Altrimenti, descrivi brevemente cosa mostra.",
   "aiChatImageUnsupported": "Il modello IA selezionato non supporta le immagini. La bozza resta nel campo di testo.",
   "voiceStarting": "Un attimo…",
   "voiceTidyingUp": "Sto ripulendo il testo…",

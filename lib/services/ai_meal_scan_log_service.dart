@@ -283,6 +283,7 @@ class AiMealScanLogService extends ChangeNotifier {
         'anthropic',
         'mistral',
         'xai',
+        'deepseek',
         'ollama',
         'custom',
         'appleFoundation',

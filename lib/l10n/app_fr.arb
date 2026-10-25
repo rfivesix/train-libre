@@ -2986,7 +2986,7 @@
   "aiChatFlash": "Flash",
   "aiChatSwitchCamera": "Changer d’appareil photo",
   "aiChatImageLimit": "Vous pouvez joindre jusqu’à 4 images.",
-  "aiChatImageQuestion": "Que peux-tu me dire sur cette image ?",
+  "aiChatImageQuestion": "Si cette image montre des aliments ou des boissons, estime leurs valeurs nutritionnelles et prépare une entrée de journal à vérifier. Sinon, décris brièvement ce qu’elle montre.",
   "aiChatImageUnsupported": "Le modèle d’IA sélectionné ne prend pas en charge les images. Votre brouillon reste dans le champ de saisie.",
   "voiceStarting": "Un instant…",
   "voiceTidyingUp": "Nettoyage du texte…",

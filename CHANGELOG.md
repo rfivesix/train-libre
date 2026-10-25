@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.0] - unreleased
 
 ### Added
+- Added DeepSeek as a selectable AI provider for meal analysis and live AI chat, with secure API-key storage and live model discovery.
 - Added a temporary debug-only native iOS platform-view test pattern when the inline camera is unavailable, so camera glass blur and clipping can be inspected in the simulator.
 - Added explicit AI chat meal logging from text or attached photos. The assistant prepares a reviewable macro-only meal proposal without food-catalog lookup; applying it stores linked diary macro entries with calories calculated by the existing 4/4/9 rule and copies attached photos into persistent meal storage.
 - Added Apple Health and Health Connect nutrition import and export for daily macro totals. Imports appear as separate diary entries, refresh from Diary on pull-to-refresh, update when the source totals change, and keep local edits/deletions from being overwritten or recreated; manual macro entries export without creating catalog foods.
@@ -19,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Replaced the AI chat and meal-capture camera options menus with direct flash controls and removed the unused camera-switch control. In the iOS Simulator demo, the flash control toggles its icon and active accent state for UI testing. Active barcode and flash controls use the theme primary color, and meal-capture glass controls adapt to the light or dark surface behind them.
+- Changed the AI chat’s image-only prompt to prepare a reviewable diary entry when attached photos show food or drinks, while retaining a short image-description fallback for other photos.
 - The AI chat attachment menu now opens upward while the keyboard is visible, keeping every photo action accessible above the keyboard.
 - Enlarged and rounded meal photos in AI review and meal details, added scroll parallax and a pinned timestamp/calorie/macro summary, and moved AI scanner capture controls into the camera view with liquid-glass styling. Scanner voice input now opens an in-place meal-scoped cloud display and passes the unformatted transcript to meal analysis; flash and camera switching are grouped under camera options.
 - Meal photos now start without a fade and progressively strengthen the transparent bottom-edge fade as they scroll, without fading the entire image. The calorie and macro row uses one pinned sliver beneath the app bar for exact, jitter-free handoff without rendering a duplicate row; it omits the meal type/time label.
@@ -45,6 +48,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Preserved the current voice transcript in the AI chat composer when speech recognition ends through a timeout or recognizer error, instead of losing the partial draft.
+- Fixed AI chat nutrition answers missing manually logged or AI-estimated macro entries and miscalculating daily totals: snapshots now include `macro_entries` and an authoritative `nutrition_daily_summary` from the app's own calculator. The shared daily diary export now includes macro-only entries and their nutrition totals. Added explicit training joins for exercise blocks, routine prescriptions, muscle/equipment assignments, and active plan occurrences so the assistant requests missing approved categories instead of reporting incomplete assignments.
 - Fixed AI meal-scan save or discard leaving the Diary visible but unresponsive: the capture route now waits for the review reveal route's reverse transition to finish before popping itself.
 - Fixed the upgrade from database schema 42, where the new macro-entry column was added before its table existed. Schema v46 repairs this safely and idempotently, and startup now shows a retryable error instead of remaining on the splash screen if initialization fails.
 - Prevented diary cards from briefly reloading or changing height during morph return. Meal detail no longer restarts reactive diary subscriptions for the same date, the weight card holds its current presentation until the measurement morph completes, and the training-plan card keeps its previous content while refreshing after the route animation.

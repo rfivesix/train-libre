@@ -6977,7 +6977,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiChatImageLimit => 'Vous pouvez joindre jusqu’à 4 images.';
 
   @override
-  String get aiChatImageQuestion => 'Que peux-tu me dire sur cette image ?';
+  String get aiChatImageQuestion =>
+      'Si cette image montre des aliments ou des boissons, estime leurs valeurs nutritionnelles et prépare une entrée de journal à vérifier. Sinon, décris brièvement ce qu’elle montre.';
 
   @override
   String get aiChatImageUnsupported =>

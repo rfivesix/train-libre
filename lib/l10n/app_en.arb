@@ -3142,7 +3142,7 @@
   "aiChatFlash": "Flash",
   "aiChatSwitchCamera": "Switch camera",
   "aiChatImageLimit": "You can attach up to 4 images.",
-  "aiChatImageQuestion": "What can you tell me about this image?",
+  "aiChatImageQuestion": "If this image shows food or drinks, estimate the nutrition and prepare a diary entry for me to review. Otherwise, briefly describe what is shown.",
   "aiChatImageUnsupported": "The selected AI model does not support images. Your draft remains in the composer.",
   "voiceStarting": "Getting ready…",
   "voiceTidyingUp": "Tidying up your words…",

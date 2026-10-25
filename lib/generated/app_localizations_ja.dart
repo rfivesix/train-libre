@@ -6642,7 +6642,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiChatImageLimit => '画像は最大4枚まで添付できます。';
 
   @override
-  String get aiChatImageQuestion => 'この画像について教えてください。';
+  String get aiChatImageQuestion =>
+      'この画像に食べ物や飲み物が写っている場合は、栄養価を推定して、確認できる食事記録を作成してください。そうでなければ、画像の内容を簡潔に説明してください。';
 
   @override
   String get aiChatImageUnsupported => '選択したAIモデルは画像に対応していません。下書きは入力欄に残ります。';

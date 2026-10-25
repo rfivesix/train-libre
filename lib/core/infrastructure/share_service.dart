@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../data/database_helper.dart';
 import '../../features/diary/domain/models/food_entry.dart';
 import '../../features/diary/domain/models/food_item.dart';
+import '../../features/diary/domain/models/macro_entry.dart';
 import '../../features/workout/domain/models/set_log.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../features/sleep/data/repository/sleep_query_repository.dart';
@@ -71,6 +72,7 @@ class ShareService {
 
     // 1. Fetch Food Entries and map them to Food Items
     final foodEntries = await dbHelper.getEntriesForDate(targetDate);
+    final macroEntries = await dbHelper.getMacroEntriesForDateRange(start, end);
 
     // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
     final Set<int> archiveIdsSet = {};
@@ -201,7 +203,7 @@ class ShareService {
 
     // Section: Nutrition
     buffer.writeln('## $headerNutrition');
-    if (foodEntries.isEmpty && fluidEntries.isEmpty) {
+    if (foodEntries.isEmpty && macroEntries.isEmpty && fluidEntries.isEmpty) {
       final labelNoNutrition =
           l10n?.nothingTrackedYet ?? '[l10n:nothingTrackedYet]';
       buffer.writeln('$labelNoNutrition\n');
@@ -217,12 +219,25 @@ class ShareService {
       for (final entry in foodEntries) {
         mealGroups.putIfAbsent(entry.mealType, () => []).add(entry);
       }
+      final macroMealGroups = <String, List<MacroEntry>>{};
+      for (final entry in macroEntries) {
+        macroMealGroups.putIfAbsent(entry.mealType, () => []).add(entry);
+      }
 
-      final mealOrder = [
+      final mealOrder = <String>[
         'mealtypeBreakfast',
         'mealtypeLunch',
         'mealtypeDinner',
-        'mealtypeSnack'
+        'mealtypeSnack',
+        ...{
+          ...mealGroups.keys,
+          ...macroMealGroups.keys,
+        }.where((key) => !const {
+              'mealtypeBreakfast',
+              'mealtypeLunch',
+              'mealtypeDinner',
+              'mealtypeSnack',
+            }.contains(key)),
       ];
       double totalKcal = 0;
       double totalProtein = 0;
@@ -236,7 +251,8 @@ class ShareService {
 
       for (final mealKey in mealOrder) {
         final entries = mealGroups[mealKey] ?? [];
-        if (entries.isEmpty) continue;
+        final macros = macroMealGroups[mealKey] ?? [];
+        if (entries.isEmpty && macros.isEmpty) continue;
 
         final groupTitle = _getMealName(mealKey, l10n);
         buffer.writeln('### $groupTitle');
@@ -272,6 +288,30 @@ class ShareService {
             buffer.writeln('- $name: $grams$unitG');
           }
         }
+        for (final entry in macros) {
+          final name = entry.name?.trim().isNotEmpty == true
+              ? entry.name!.trim()
+              : (l10n?.meal_label ?? 'Meal entry');
+          final amountLabel = entry.amount == null
+              ? ''
+              : ' · ${entry.amount!.toStringAsFixed(entry.amount! % 1 == 0 ? 0 : 1)} ${entry.amountUnit ?? unitG}';
+          final kcal = entry.totalCalories.round();
+          final protein = entry.totalProtein;
+          final carbs = entry.totalCarbs;
+          final fat = entry.totalFat;
+          final sugar = entry.totalSugar ?? 0;
+          final salt = entry.totalSalt ?? 0;
+          final fiber = entry.totalFiber ?? 0;
+          buffer.writeln(
+              '- $name$amountLabel: $kcal $unitKcal ($labelProtein: ${protein.toStringAsFixed(1)}$unitG, $labelCarbs: ${carbs.toStringAsFixed(1)}$unitG, $labelFat: ${fat.toStringAsFixed(1)}$unitG, $labelSugar: ${sugar.toStringAsFixed(1)}$unitG, $labelSalt: ${salt.toStringAsFixed(1)}$unitG, $labelFiber: ${fiber.toStringAsFixed(1)}$unitG)');
+          totalKcal += kcal;
+          totalProtein += protein.round();
+          totalCarbs += carbs.round();
+          totalFat += fat.round();
+          totalSugar += sugar;
+          totalSalt += salt;
+          totalFiber += fiber;
+        }
         buffer.writeln();
       }
 
@@ -287,7 +327,8 @@ class ShareService {
 
           // Deduplication: Only add calories/macros if not already counted via FoodEntry.
           // This mirrors the logic in lib/features/diary/domain/calculate_daily_nutrition_use_case.dart
-          final isLinked = entry.linkedFoodEntryId != null;
+          final isLinked = entry.linkedFoodEntryId != null ||
+              entry.linkedMacroEntryId != null;
           final isDuplicateOfFood = foodEntries.any((food) {
             if (isLinked) return entry.linkedFoodEntryId == food.id;
 
