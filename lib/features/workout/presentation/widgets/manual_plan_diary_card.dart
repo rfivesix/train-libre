@@ -47,7 +47,9 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
 
   void _refreshPlan() {
     if (!mounted) return;
-    setState(() => _planFuture = _load());
+    setState(() {
+      _planFuture = _load();
+    });
   }
 
   Future<(ManualTrainingPlan, PlannedCalendarDay)?> _load() async {
