@@ -2676,6 +2676,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez une couleur hexadécimale à 6 chiffres.';
 
   @override
+  String get appColorHexOutOfRange =>
+      'Choisissez une couleur avec une luminosité de 40 à 82 %.';
+
+  @override
   String get appColorHueLabel => 'Teinte';
 
   @override

@@ -1050,6 +1050,7 @@
   "appColorCustomDialogTitle": "Scegli un colore",
   "appColorHexLabel": "Colore esadecimale",
   "appColorHexInvalid": "Inserisci un colore esadecimale di 6 cifre.",
+  "appColorHexOutOfRange": "Scegli un colore con luminosità tra il 40% e l’82%.",
   "appColorHueLabel": "Tonalità",
   "appColorSaturationLabel": "Saturazione",
   "appColorBrightnessLabel": "Luminosità",

@@ -1049,6 +1049,7 @@
   "appColorCustomDialogTitle": "Choose a color",
   "appColorHexLabel": "Hex color",
   "appColorHexInvalid": "Enter a 6-digit hex color.",
+  "appColorHexOutOfRange": "Choose a color with 40–82% brightness.",
   "appColorHueLabel": "Hue",
   "appColorSaturationLabel": "Saturation",
   "appColorBrightnessLabel": "Brightness",

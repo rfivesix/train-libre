@@ -101,6 +101,7 @@ class AppColorSettingsScreen extends StatelessWidget {
         initialColor: service.customAppColor,
         hexLabel: l10n.appColorHexLabel,
         invalidHexLabel: l10n.appColorHexInvalid,
+        outOfRangeHexLabel: l10n.appColorHexOutOfRange,
         brightnessLabel: l10n.appColorBrightnessLabel,
         hueSemanticsLabel: l10n.appColorHueLabel,
         cancelLabel: l10n.appColorCancel,
@@ -134,6 +135,7 @@ class _CustomColorPicker extends StatefulWidget {
     required this.initialColor,
     required this.hexLabel,
     required this.invalidHexLabel,
+    required this.outOfRangeHexLabel,
     required this.brightnessLabel,
     required this.hueSemanticsLabel,
     required this.cancelLabel,
@@ -145,6 +147,7 @@ class _CustomColorPicker extends StatefulWidget {
   final Color initialColor;
   final String hexLabel;
   final String invalidHexLabel;
+  final String outOfRangeHexLabel;
   final String brightnessLabel;
   final String hueSemanticsLabel;
   final String cancelLabel;
@@ -159,12 +162,12 @@ class _CustomColorPicker extends StatefulWidget {
 class _CustomColorPickerState extends State<_CustomColorPicker> {
   late final TextEditingController _hexController;
   late Color _color;
-  bool _isHexValid = true;
+  String? _hexError;
 
   @override
   void initState() {
     super.initState();
-    _color = Color(widget.initialColor.toARGB32());
+    _color = constrainCustomAppColor(Color(widget.initialColor.toARGB32()));
     _hexController = TextEditingController(
       text: AppColorSettingsScreen._hexString(_color),
     );
@@ -177,7 +180,7 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
   }
 
   void _updateColor(Color color) {
-    final opaqueColor = Color(color.toARGB32());
+    final opaqueColor = constrainCustomAppColor(Color(color.toARGB32()));
     final hex = AppColorSettingsScreen._hexString(opaqueColor);
     _hexController.value = TextEditingValue(
       text: hex,
@@ -185,15 +188,21 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
     );
     setState(() {
       _color = opaqueColor;
-      _isHexValid = true;
+      _hexError = null;
     });
   }
 
   void _updateFromHex(String value) {
     final parsed = AppColorSettingsScreen._parseHex(value);
     setState(() {
-      _isHexValid = parsed != null;
-      if (parsed != null) _color = parsed;
+      if (parsed == null) {
+        _hexError = widget.invalidHexLabel;
+      } else if (!isCustomAppColorBrightnessAllowed(parsed)) {
+        _hexError = widget.outOfRangeHexLabel;
+      } else {
+        _hexError = null;
+        _color = parsed;
+      }
     });
   }
 
@@ -239,7 +248,7 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
                   textCapitalization: TextCapitalization.characters,
                   decoration: InputDecoration(
                     labelText: widget.hexLabel,
-                    errorText: _isHexValid ? null : widget.invalidHexLabel,
+                    errorText: _hexError,
                     counterText: '',
                     isDense: true,
                   ),
@@ -276,10 +285,19 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
             ],
           ),
           Slider(
-            value: hsv.value.clamp(0, 1),
+            value: ((hsv.value - customAppColorMinBrightness) /
+                    (customAppColorMaxBrightness - customAppColorMinBrightness))
+                .clamp(0, 1)
+                .toDouble(),
             divisions: 100,
             activeColor: _color,
-            onChanged: (value) => _updateColor(hsv.withValue(value).toColor()),
+            onChanged: (value) {
+              final brightness = customAppColorMinBrightness +
+                  value *
+                      (customAppColorMaxBrightness -
+                          customAppColorMinBrightness);
+              _updateColor(hsv.withValue(brightness).toColor());
+            },
           ),
           const SizedBox(height: 12),
           Row(
@@ -293,7 +311,8 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
               const SizedBox(width: 10),
               Expanded(
                 child: FilledButton(
-                  onPressed: _isHexValid ? () => widget.onApply(_color) : null,
+                  onPressed:
+                      _hexError == null ? () => widget.onApply(_color) : null,
                   child: Text(widget.applyLabel),
                 ),
               ),

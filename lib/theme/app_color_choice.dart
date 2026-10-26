@@ -2,6 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../util/design_constants.dart';
 
+/// Keeps custom accents away from near-black and near-white extremes so the
+/// same selected color remains useful in both light and dark themes.
+const double customAppColorMinBrightness = 0.40;
+const double customAppColorMaxBrightness = 0.82;
+
+bool isCustomAppColorBrightnessAllowed(Color color) {
+  final brightness = HSVColor.fromColor(color).value;
+  return brightness >= customAppColorMinBrightness &&
+      brightness <= customAppColorMaxBrightness;
+}
+
+Color constrainCustomAppColor(Color color) {
+  final hsv = HSVColor.fromColor(color);
+  return hsv
+      .withValue(
+        hsv.value
+            .clamp(
+              customAppColorMinBrightness,
+              customAppColorMaxBrightness,
+            )
+            .toDouble(),
+      )
+      .toColor();
+}
+
 /// Available app accent color modes.
 enum AppColorChoice {
   trainLibre,
@@ -36,13 +61,15 @@ extension AppColorChoiceColors on AppColorChoice {
       case AppColorChoice.purple:
         return _seededPrimary(const Color(0xFF7E57C2), brightness);
       case AppColorChoice.orange:
-        return _seededPrimary(const Color(0xFFEF6C00), brightness);
+        return brightness == Brightness.light
+            ? const Color(0xFFE65100)
+            : const Color(0xFFFFA726);
       case AppColorChoice.rose:
         return _seededPrimary(const Color(0xFFE11D48), brightness);
       case AppColorChoice.custom:
-        // A manually selected color is already the user's final choice. Keep
-        // it byte-for-byte so the app accent matches the picker and hex value.
-        return customColor;
+        // Treat the chosen color as a seed to create distinct, legible accents
+        // for light and dark themes. The settings cards preview these values.
+        return _seededPrimary(customColor, brightness);
       case AppColorChoice.system:
         return systemColor ??
             (brightness == Brightness.light

@@ -2641,6 +2641,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appColorHexInvalid => 'Enter a 6-digit hex color.';
 
   @override
+  String get appColorHexOutOfRange => 'Choose a color with 40–82% brightness.';
+
+  @override
   String get appColorHueLabel => 'Hue';
 
   @override

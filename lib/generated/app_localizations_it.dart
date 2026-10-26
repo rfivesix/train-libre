@@ -2664,6 +2664,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Inserisci un colore esadecimale di 6 cifre.';
 
   @override
+  String get appColorHexOutOfRange =>
+      'Scegli un colore con luminosità tra il 40% e l’82%.';
+
+  @override
   String get appColorHueLabel => 'Tonalità';
 
   @override

@@ -1050,6 +1050,7 @@
   "appColorCustomDialogTitle": "Choisir une couleur",
   "appColorHexLabel": "Couleur hexadécimale",
   "appColorHexInvalid": "Saisissez une couleur hexadécimale à 6 chiffres.",
+  "appColorHexOutOfRange": "Choisissez une couleur avec une luminosité de 40 à 82 %.",
   "appColorHueLabel": "Teinte",
   "appColorSaturationLabel": "Saturation",
   "appColorBrightnessLabel": "Luminosité",

@@ -2593,6 +2593,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appColorHexInvalid => '6桁の16進数カラーコードを入力してください。';
 
   @override
+  String get appColorHexOutOfRange => '明るさが40～82%の色を選択してください。';
+
+  @override
   String get appColorHueLabel => '色相';
 
   @override

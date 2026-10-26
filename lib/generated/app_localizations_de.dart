@@ -2653,6 +2653,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appColorHexInvalid => 'Gib einen sechsstelligen Hex-Farbcode ein.';
 
   @override
+  String get appColorHexOutOfRange =>
+      'Wähle eine Farbe mit 40–82 % Helligkeit.';
+
+  @override
   String get appColorHueLabel => 'Farbton';
 
   @override

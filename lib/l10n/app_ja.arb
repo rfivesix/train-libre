@@ -1050,6 +1050,7 @@
   "appColorCustomDialogTitle": "色を選択",
   "appColorHexLabel": "16進数カラーコード",
   "appColorHexInvalid": "6桁の16進数カラーコードを入力してください。",
+  "appColorHexOutOfRange": "明るさが40～82%の色を選択してください。",
   "appColorHueLabel": "色相",
   "appColorSaturationLabel": "彩度",
   "appColorBrightnessLabel": "明るさ",

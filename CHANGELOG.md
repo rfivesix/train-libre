@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Custom app colors now produce distinct light and dark theme accents, and the Orange preset uses clearer orange tones in both modes.
+- Limited custom app colors to 40–82% HSV brightness so near-black and near-white accents cannot be selected; hex input follows the same range and previously stored colors are normalized on load.
 - Replaced the AI chat and meal-capture camera options menus with direct flash controls and removed the unused camera-switch control. In the iOS Simulator demo, the flash control toggles its icon and active accent state for UI testing. Active barcode and flash controls use the theme primary color, and meal-capture glass controls adapt to the light or dark surface behind them.
 - Changed the AI chat’s image-only prompt to prepare a reviewable diary entry when attached photos show food or drinks, while retaining a short image-description fallback for other photos.
 - The AI chat attachment menu now opens upward while the keyboard is visible, keeping every photo action accessible above the keyboard.

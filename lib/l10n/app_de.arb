@@ -1050,6 +1050,7 @@
   "appColorCustomDialogTitle": "Farbe auswählen",
   "appColorHexLabel": "Hex-Farbcode",
   "appColorHexInvalid": "Gib einen sechsstelligen Hex-Farbcode ein.",
+  "appColorHexOutOfRange": "Wähle eine Farbe mit 40–82 % Helligkeit.",
   "appColorHueLabel": "Farbton",
   "appColorSaturationLabel": "Sättigung",
   "appColorBrightnessLabel": "Helligkeit",

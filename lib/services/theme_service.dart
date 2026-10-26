@@ -106,7 +106,12 @@ class ThemeService extends ChangeNotifier {
   Future<void> _loadAppColorSelection() async {
     final prefs = await SharedPreferences.getInstance();
     final savedColor = prefs.getInt(_customAppColorKey);
-    if (savedColor != null) _customAppColor = Color(savedColor);
+    if (savedColor != null) {
+      _customAppColor = constrainCustomAppColor(Color(savedColor));
+      if (_customAppColor.toARGB32() != savedColor) {
+        await prefs.setInt(_customAppColorKey, _customAppColor.toARGB32());
+      }
+    }
 
     final savedChoice = prefs.getString(_appColorChoiceKey);
     final parsedChoice = AppColorChoice.values.where(
@@ -164,7 +169,7 @@ class ThemeService extends ChangeNotifier {
 
   /// Selects a custom accent color and persists it.
   Future<void> setCustomAppColor(Color color) async {
-    _customAppColor = Color(color.toARGB32());
+    _customAppColor = constrainCustomAppColor(Color(color.toARGB32()));
     _appColorChoice = AppColorChoice.custom;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();

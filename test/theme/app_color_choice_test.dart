@@ -51,7 +51,7 @@ void main() {
       );
     });
 
-    test('preserves the selected custom color in both themes', () {
+    test('derives light and dark variants from the selected custom color', () {
       const custom = Color(0xFF7952B3);
       final light = AppColorChoice.custom.primary(
         brightness: Brightness.light,
@@ -62,8 +62,21 @@ void main() {
         customColor: custom,
       );
 
-      expect(light, custom);
-      expect(dark, custom);
+      expect(
+        light,
+        ColorScheme.fromSeed(
+          seedColor: custom,
+          brightness: Brightness.light,
+        ).primary,
+      );
+      expect(
+        dark,
+        ColorScheme.fromSeed(
+          seedColor: custom,
+          brightness: Brightness.dark,
+        ).primary,
+      );
+      expect(light, isNot(dark));
     });
 
     test('uses an Android system color when available', () {

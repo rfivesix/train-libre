@@ -4802,6 +4802,12 @@ abstract class AppLocalizations {
   /// **'Enter a 6-digit hex color.'**
   String get appColorHexInvalid;
 
+  /// No description provided for @appColorHexOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color with 40–82% brightness.'**
+  String get appColorHexOutOfRange;
+
   /// No description provided for @appColorHueLabel.
   ///
   /// In en, this message translates to:
