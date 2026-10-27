@@ -1,13 +1,10 @@
 // lib/features/exercise_catalog/presentation/exercise_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../../data/database_helper.dart';
-import '../domain/body_slug_mapper.dart';
 import '../domain/exercise_metrics.dart';
 import '../../workout/domain/classification/exercise_log_mask.dart';
-import '../domain/exercise_classification_labels.dart';
 import '../domain/muscle_vocabulary.dart';
 import '../domain/models/exercise.dart';
 import '../../workout/domain/models/set_log.dart';
@@ -16,15 +13,12 @@ import '../../workout/presentation/widgets/exercise_notes_dialog.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 
 import '../../../widgets/common/common.dart';
-import '../../../services/experience_level_service.dart';
 import '../../../services/unit_service.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:provider/provider.dart';
-import '../../../services/profile_service.dart';
 import 'create_exercise_screen.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -38,6 +32,8 @@ import '../../workout/domain/repositories/workout_repository.dart';
 import '../../workout/presentation/workout_log_detail_screen.dart';
 import '../../workout/presentation/widgets/workout_exercise_log_card.dart';
 import 'package:intl/intl.dart';
+import 'widgets/exercise_classification_chips.dart';
+import 'widgets/exercise_muscle_body_view.dart';
 
 /// A screen displaying detailed information about a specific [Exercise].
 class ExerciseDetailScreen extends StatefulWidget {
@@ -478,7 +474,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           ),
           Padding(
             padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-            child: _CategoryBadge(text: _currentExercise.categoryName),
+            child: ExerciseCategoryBadge(text: _currentExercise.categoryName),
           ),
         ],
       ),
@@ -533,13 +529,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (!_currentExercise.isCardio) ...[
           RepaintBoundary(
-              child: _ExerciseMuscleBodyView(
+              child: ExerciseMuscleBodyView(
                   exercise: _currentExercise,
                   vocabulary: _muscleVocabulary,
                   showExerciseTitle: true)),
           const SizedBox(height: DesignConstants.spacingXL),
         ],
-        _ClassificationChips(exercise: _currentExercise),
+        ExerciseClassificationChips(exercise: _currentExercise),
         if (_isLoading &&
             _timeSeriesData.isEmpty &&
             _prMap.values.every((v) => v == null))
@@ -584,7 +580,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       padding: DesignConstants.cardPadding,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (!_currentExercise.isCardio) ...[
-          _ExerciseMuscleBodyView(
+          ExerciseMuscleBodyView(
               exercise: _currentExercise, vocabulary: _muscleVocabulary),
           const SizedBox(height: DesignConstants.spacingXL),
         ],
@@ -968,290 +964,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// What the catalog knows about the movement, as a row of chips.
-///
-/// Five axes the data repo annotates on 877 of 909 exercises. This screen is
-/// the only place any of them is read: they are description, not machinery,
-/// and nothing filters, groups or computes on the two added last.
-///
-/// [ExerciseClassificationLabels.forceVector] is derived upstream from
-/// [ExerciseClassificationLabels.movementPattern], so where both exist the
-/// pair reads a little doubled — "Ziehen · Vertikales Ziehen". Kept because
-/// the force vector survives 62 static exercises that have no pattern anyone
-/// would call a direction, and because the shorter word is the one a reader
-/// scanning the row actually takes in.
-///
-/// Renders nothing at all when none of the five is set — a user-created
-/// exercise, or one of the 32 unclassified catalog rows — rather than drawing
-/// an empty strip above the description.
-class _ClassificationChips extends StatelessWidget {
-  final Exercise exercise;
-
-  const _ClassificationChips({required this.exercise});
-
-  @override
-  Widget build(BuildContext context) {
-    final labels = <String>[
-      for (final label in [
-        ExerciseClassificationLabels.mechanic(context, exercise.mechanic),
-        ExerciseClassificationLabels.forceVector(context, exercise.forceVector),
-        ExerciseClassificationLabels.movementPattern(
-          context,
-          exercise.movementPattern,
-        ),
-        ExerciseClassificationLabels.laterality(context, exercise.laterality),
-        ExerciseClassificationLabels.difficulty(context, exercise.difficulty),
-      ])
-        if (label != null) label,
-    ];
-    if (labels.isEmpty) return const SizedBox.shrink();
-
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    // Pill, outline and full-strength text. The first cut used
-    // surfaceContainerHighest with onSurfaceVariant on top, which against the
-    // near-black scaffold was an unlit rectangle behind grey text — three
-    // words that read as a leftover rather than as the exercise's own
-    // description of itself.
-    //
-    // Not the category badge's treatment either: that one is filled with the
-    // accent colour and there is exactly one of it per screen, so three more
-    // in the same paint would turn the top of the page into a traffic light.
-    return Padding(
-      padding: const EdgeInsets.only(bottom: DesignConstants.spacingXL),
-      child: Wrap(
-        spacing: DesignConstants.spacingS,
-        runSpacing: DesignConstants.spacingS,
-        children: [
-          for (final label in labels)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: DesignConstants.spacingS,
-              ),
-              decoration: BoxDecoration(
-                color: scheme.onSurface.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.8),
-                ),
-              ),
-              child: Text(
-                label,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryBadge extends StatelessWidget {
-  final String text;
-  const _CategoryBadge({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final bg = theme.colorScheme.primary.withValues(alpha: 0.15);
-    final fg = theme.colorScheme.primary;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(
-          horizontal: 14, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: fg.withValues(alpha: 0.4)),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.labelLarge?.copyWith(
-          color: fg,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-}
-
-/// Displays front + back [BodyHighlighter] views side by side, plus a compact
-/// chip legend listing primary and secondary muscle names.
-class _ExerciseMuscleBodyView extends StatelessWidget {
-  final Exercise exercise;
-  final MuscleVocabulary vocabulary;
-  final bool showExerciseTitle;
-
-  const _ExerciseMuscleBodyView({
-    required this.exercise,
-    required this.vocabulary,
-    this.showExerciseTitle = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (exercise.isCardio) {
-      return const SizedBox.shrink();
-    }
-
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    // Muscle ids are the precise annotation; the legacy name columns are what
-    // the fifteen-name vocabulary could still express. 38 active exercises
-    // have the former and nothing in the latter.
-    final useIds = !vocabulary.isEmpty && exercise.primaryMuscleIds.isNotEmpty;
-    final primaryLabels =
-        useIds ? exercise.primaryMuscleIds : exercise.primaryMuscles;
-    final secondaryLabels =
-        useIds ? exercise.secondaryMuscleIds : exercise.secondaryMuscles;
-    final hasMuscles = primaryLabels.isNotEmpty || secondaryLabels.isNotEmpty;
-
-    if (!hasMuscles) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
-        child: Text(
-          l10n.noMusclesSpecified,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-        ),
-      );
-    }
-
-    final allHighlights = useIds
-        ? BodySlugMapper.mergedHighlightsFromIds(
-            primaryMuscleIds: exercise.primaryMuscleIds,
-            secondaryMuscleIds: exercise.secondaryMuscleIds,
-            vocabulary: vocabulary,
-          )
-        : BodySlugMapper.mergedHighlights(
-            primaryMuscles: exercise.primaryMuscles,
-            secondaryMuscles: exercise.secondaryMuscles,
-          );
-
-    final frontHighlights =
-        BodySlugMapper.forSide(allHighlights, BodySide.front);
-    final backHighlights = BodySlugMapper.forSide(allHighlights, BodySide.back);
-
-    // The names are coarsened, the highlights above are not: a beginner reads
-    // "shoulders" while the body map still paints the single head that works.
-    final coarse =
-        context.watch<ExperienceLevelService>().usesCoarseMuscleNames;
-    final resolvedVocabulary = useIds ? vocabulary : null;
-    final primaryNames = BodySlugMapper.localizeAll(
-      context,
-      primaryLabels,
-      vocabulary: resolvedVocabulary,
-      coarse: coarse,
-    );
-    // A secondary muscle that coarsens into a primary region says nothing —
-    // "shoulders" cannot be both the point of the exercise and an aside.
-    final secondaryNames = BodySlugMapper.localizeAll(
-      context,
-      secondaryLabels,
-      vocabulary: resolvedVocabulary,
-      coarse: coarse,
-    ).where((name) => !primaryNames.contains(name)).toList(growable: false);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Body diagrams ──────────────────────────────────────────────
-        DualBodyHighlighter(
-          gender: context.watch<ProfileService>().gender.toBodyGender(),
-          frontHighlights: frontHighlights,
-          backHighlights: backHighlights,
-        ),
-        if (showExerciseTitle)
-          Padding(
-            padding: const EdgeInsets.only(top: DesignConstants.spacingL),
-            child: Text(
-              exercise.getLocalizedName(context),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        // ── Legend ─────────────────────────────────────────────────────
-        const SizedBox(height: DesignConstants.spacingS),
-        _MuscleChipRow(
-          label: l10n.primaryLabel,
-          names: primaryNames,
-          color: theme.colorScheme.primary,
-        ),
-        if (secondaryNames.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          _MuscleChipRow(
-            label: l10n.secondaryLabel,
-            names: secondaryNames,
-            color: theme.colorScheme.primary.withValues(alpha: 0.45),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-/// A labelled row of muscle names used as a text legend.
-///
-/// Takes names, not ids: which name a muscle gets — the head or its region —
-/// is decided by the caller, together with the de-duplication that decision
-/// makes necessary.
-class _MuscleChipRow extends StatelessWidget {
-  final String label;
-  final List<String> names;
-  final Color color;
-
-  const _MuscleChipRow({
-    required this.label,
-    required this.names,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 85,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.outline,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: names.map((name) {
-                return Text(
-                  name,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
       ),
     );
   }

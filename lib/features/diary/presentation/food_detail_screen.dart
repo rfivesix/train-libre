@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../data/sources/product_local_data_source.dart';
 import 'create_food_screen.dart';
+import 'widgets/food_glass_badge.dart';
+import 'widgets/portion_toggle_bar.dart';
 import '../../../config/app_data_sources.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
@@ -755,9 +757,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     Wrap(
                       spacing: 8,
                       children: [
-                        if (hasVeganTag) _GlassBadge(label: l10n.vegan),
+                        if (hasVeganTag) FoodGlassBadge(label: l10n.vegan),
                         if (hasVegetarianTag)
-                          _GlassBadge(label: l10n.vegetarian),
+                          FoodGlassBadge(label: l10n.vegetarian),
                       ],
                     ),
                   ],
@@ -786,7 +788,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       ),
                       if (_hasPortionToggle) ...[
                         const SizedBox(width: DesignConstants.spacingM),
-                        _PortionToggleBar(
+                        PortionToggleBar(
                           showPer100g: _showPer100g,
                           onChanged: (val) =>
                               setState(() => _showPer100g = val),
@@ -1449,188 +1451,4 @@ class _NutritionMetric {
     this.color, {
     this.decimals = 1,
   });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Portion toggle bar — compact segmented control
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// A compact two-chip glass segmented control for toggling between
-/// per-portion and per-100g nutrition views.
-///
-/// The shared track uses the same restrained rounded-card language as the
-/// nutrition cards, while each [_PortionChip] handles its own tap gesture and
-/// animated selected-state highlight.
-class _PortionToggleBar extends StatelessWidget {
-  final bool showPer100g;
-  final ValueChanged<bool> onChanged;
-  final String labelPortion;
-  final String label100g;
-
-  const _PortionToggleBar({
-    required this.showPer100g,
-    required this.onChanged,
-    required this.labelPortion,
-    required this.label100g,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Semantics(
-      button: true,
-      selected: showPer100g,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        height: 36,
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          color: isDark
-              ? cs.surfaceContainerHighest.withValues(alpha: 0.46)
-              : cs.surfaceContainerHighest.withValues(alpha: 0.74),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: cs.onSurface.withValues(alpha: isDark ? 0.14 : 0.08),
-          ),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-              color: cs.shadow.withValues(alpha: isDark ? 0.12 : 0.08),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _PortionChip(
-              label: labelPortion,
-              selected: !showPer100g,
-              onTap: () => onChanged(false),
-            ),
-            const SizedBox(width: 2),
-            _PortionChip(
-              label: label100g,
-              selected: showPer100g,
-              onTap: () => onChanged(true),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A single selectable chip inside [_PortionToggleBar].
-///
-/// Uses an [AnimatedContainer] to transition the selection highlight
-/// (primary-tinted background + bold primary text) with a 180ms ease.
-class _PortionChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _PortionChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Material(
-      color: Colors.transparent,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        constraints: const BoxConstraints(minWidth: 58, minHeight: 30),
-        decoration: BoxDecoration(
-          color: selected
-              ? cs.primary.withValues(alpha: isDark ? 0.34 : 0.16)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
-          border: selected
-              ? Border.all(
-                  color: cs.primary.withValues(alpha: isDark ? 0.34 : 0.18),
-                )
-              : null,
-        ),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(15),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Center(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: selected
-                      ? cs.primary
-                      : cs.onSurfaceVariant.withValues(alpha: 0.88),
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  letterSpacing: 0,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Dietary Badge — Liquid Glass Aesthetic
-// ═══════════════════════════════════════════════════════════════════════════
-class _GlassBadge extends StatelessWidget {
-  final String label;
-  final bool isVegan; // Or status enum
-
-  const _GlassBadge({required this.label}) : isVegan = true;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Uses defined app colors for badge tinting
-    final primaryBadgeColor = Colors.green;
-    final isDarkMode = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
-        vertical: DesignConstants.spacingXS,
-      ),
-      decoration: BoxDecoration(
-        // Light glass tint depending on dark/light mode
-        color: isDarkMode
-            ? primaryBadgeColor.withValues(alpha: 0.15)
-            : primaryBadgeColor.withValues(alpha: 0.20),
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
-        border: Border.all(
-          // Border uses badge color with higher opacity
-          color: primaryBadgeColor.withValues(alpha: 0.5),
-          width: 0.5,
-        ),
-      ),
-      child: Text(
-        label,
-        //.toUpperCase(), // Optional: Often looks cleaner on badges
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: isDarkMode ? primaryBadgeColor : primaryBadgeColor.shade800,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
 }

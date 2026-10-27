@@ -21,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Extracted presentation widgets `PortionToggleBar` and `FoodGlassBadge` from `food_detail_screen.dart` into dedicated files under `lib/features/diary/presentation/widgets/`.
+- Extracted `OffCatalogRegionPickerContent` from `settings_screen.dart` into `lib/features/settings/presentation/widgets/off_catalog_region_picker_dialog.dart`.
+- Extracted presentation widgets `ExerciseMuscleBodyView` (with `MuscleChipRow`) and `ExerciseClassificationChips` (with `ExerciseCategoryBadge`) from `exercise_detail_screen.dart` into dedicated files under `lib/features/exercise_catalog/presentation/widgets/`.
+- Modularized `platform_adaptive_pickers.dart` by extracting domain-specific pickers into dedicated files (`adaptive_timeframe_picker.dart`, `adaptive_duration_picker.dart`, and `adaptive_target_rate_picker.dart`) while re-exporting them to preserve public API compatibility.
 - Custom app colors now produce distinct light and dark theme accents, and the Orange preset uses clearer orange tones in both modes.
 - Limited custom app colors to 40–82% HSV brightness so near-black and near-white accents cannot be selected; hex input follows the same range and previously stored colors are normalized on load.
 - Replaced the AI chat and meal-capture camera options menus with direct flash controls and removed the unused camera-switch control. In the iOS Simulator demo, the flash control toggles its icon and active accent state for UI testing. Active barcode and flash controls use the theme primary color, and meal-capture glass controls adapt to the light or dark surface behind them.
