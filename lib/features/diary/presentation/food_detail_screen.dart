@@ -5,6 +5,8 @@ import '../data/sources/product_local_data_source.dart';
 import 'create_food_screen.dart';
 import 'widgets/food_glass_badge.dart';
 import 'widgets/portion_toggle_bar.dart';
+import 'widgets/bls_nutrient_row.dart';
+import 'widgets/bls_nutrient_groups_section.dart';
 import '../../../config/app_data_sources.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
@@ -935,7 +937,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final caffeineValue =
         _displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml;
     if (caffeineFact != null && (caffeineFact.value ?? 0) > 0) {
-      additionalRows.add(_buildBlsNutrientRow(caffeineFact, l10n));
+      additionalRows.add(BlsNutrientRow(
+        fact: caffeineFact,
+        displayValue: _getDisplayValue(caffeineFact.value),
+      ));
     } else if (caffeineFact == null && (caffeineValue ?? 0) > 0) {
       additionalRows.add(_buildNutritionValueRow(
         label: l10n.caffeine,
@@ -1001,55 +1006,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         _buildNutritionSectionHeader(l10n.foodDetailOtherNutrientsGroup),
         ...additionalRows,
       ],
-      if (isBlsFood) ..._buildBlsNutrientGroups(l10n),
-    ];
-  }
-
-  List<Widget> _buildBlsNutrientGroups(AppLocalizations l10n) {
-    final groups = <String, List<BlsNutrientFact>>{};
-    for (final fact in _blsNutrients) {
-      if (_isCommonBlsNutrient(fact)) continue;
-      groups.putIfAbsent(fact.group, () => []).add(fact);
-    }
-    if (groups.isEmpty) {
-      if (_blsNutrients.isNotEmpty) return const [];
-      return [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: DesignConstants.spacingM,
-          ),
-          child: _isLoadingBlsNutrients
-              ? Row(
-                  children: [
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    Text(l10n.initLoadingRemoteManifest),
-                  ],
-                )
-              : Text(l10n.blsNutrientsUnavailable),
+      if (isBlsFood)
+        BlsNutrientGroupsSection(
+          blsNutrients: _blsNutrients,
+          isLoading: _isLoadingBlsNutrients,
+          getDisplayValue: _getDisplayValue,
+          isCommonNutrient: _isCommonBlsNutrient,
         ),
-      ];
-    }
-    final orderedGroups = groups.entries.toList()
-      ..sort((a, b) {
-        final rankA = _blsNutrientGroupRank(a.key);
-        final rankB = _blsNutrientGroupRank(b.key);
-        final rankOrder = rankA.compareTo(rankB);
-        return rankOrder != 0 ? rankOrder : a.key.compareTo(b.key);
-      });
-    return orderedGroups
-        .expand((entry) => [
-              _buildNutritionSectionHeader(
-                entry.key,
-                topSpacing: DesignConstants.spacingXXL,
-              ),
-              for (final fact in entry.value) _buildBlsNutrientRow(fact, l10n),
-            ])
-        .toList(growable: false);
+    ];
   }
 
   BlsNutrientFact? _findBlsNutrient(Set<String> normalizedNames) {
@@ -1184,189 +1148,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBlsNutrientRow(BlsNutrientFact fact, AppLocalizations l10n) {
-    final displayNumber = fact.value == null
-        ? (fact.valueText?.isNotEmpty == true ? fact.valueText! : '-')
-        : '${_getDisplayValue(fact.value)!.toStringAsFixed(3)} ${fact.unit}'
-            .trim();
-    final provenance = [
-      if (fact.origin != null && fact.origin != '-') fact.origin!,
-      if (fact.reference != null && fact.reference != '-') fact.reference!,
-    ].join(' · ');
-    final textTheme = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              fact.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodyMedium,
-            ),
-          ),
-          const SizedBox(width: DesignConstants.spacingM),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (provenance.isNotEmpty) ...[
-                  IconButton(
-                    tooltip: l10n.blsNutrientDetails,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints.tightFor(
-                      width: 32,
-                      height: 32,
-                    ),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(LucideIcons.info, size: 18),
-                    onPressed: () => _showBlsNutrientDetails(fact),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingXS),
-                ],
-                Flexible(
-                  child: Text(
-                    displayNumber,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  int _blsNutrientGroupRank(String group) {
-    final normalized = group.toLowerCase();
-    if (normalized.contains('vitamin')) {
-      return normalized.contains('fat-soluble') ||
-              normalized.contains('fettlöslich')
-          ? 0
-          : 1;
-    }
-    if (normalized.contains('element') || normalized.contains('mineral')) {
-      return 2;
-    }
-    if (normalized.contains('fatty acid') || normalized.contains('fettsäure')) {
-      return 3;
-    }
-    if (normalized.contains('amino')) return 4;
-    if (normalized.contains('carbohydrate') ||
-        normalized.contains('kohlenhydrat')) {
-      return 5;
-    }
-    if (normalized.contains('fiber') || normalized.contains('ballaststoff')) {
-      return 6;
-    }
-    if (normalized.contains('organic acid') ||
-        normalized.contains('organische säure')) {
-      return 7;
-    }
-    if (normalized.contains('sugar alcohol') ||
-        normalized.contains('zuckeralkohol')) {
-      return 8;
-    }
-    if (normalized.contains('macro') ||
-        normalized.contains('energy') ||
-        normalized.contains('energie')) {
-      return 9;
-    }
-    return 10;
-  }
-
-  Future<void> _showBlsNutrientDetails(BlsNutrientFact fact) async {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    await showGlassBottomMenu<void>(
-      context: context,
-      title: fact.name,
-      contentBuilder: (context, close) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (fact.origin != null && fact.origin != '-') ...[
-            _buildNutrientMetadataRow(
-              label: l10n.blsNutrientOrigin,
-              value: fact.origin!,
-              theme: theme,
-            ),
-          ],
-          if (fact.reference != null && fact.reference != '-') ...[
-            if (fact.origin != null && fact.origin != '-')
-              const SizedBox(height: DesignConstants.spacingM),
-            _buildNutrientMetadataRow(
-              label: l10n.blsNutrientReference,
-              value: fact.reference!,
-              theme: theme,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutrientMetadataRow({
-    required String label,
-    required String value,
-    required ThemeData theme,
-  }) {
-    final labelStyle = theme.textTheme.labelLarge;
-    final valueStyle = theme.textTheme.bodyMedium;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final labelWidth = (TextPainter(
-          text: TextSpan(text: label, style: labelStyle),
-          textDirection: Directionality.of(context),
-          maxLines: 1,
-        )..layout(maxWidth: constraints.maxWidth))
-            .width;
-        final valueWidth = (TextPainter(
-          text: TextSpan(text: value, style: valueStyle),
-          textDirection: Directionality.of(context),
-          maxLines: 1,
-        )..layout(maxWidth: constraints.maxWidth))
-            .width;
-        final fitsInOneLine =
-            labelWidth + valueWidth + DesignConstants.spacingM <=
-                constraints.maxWidth;
-
-        if (fitsInOneLine) {
-          return Row(
-            children: [
-              Text(label, style: labelStyle),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: SelectableText(
-                  value,
-                  textAlign: TextAlign.end,
-                  style: valueStyle,
-                ),
-              ),
-            ],
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: labelStyle),
-            SelectableText(value, style: valueStyle),
-          ],
-        );
-      },
     );
   }
 

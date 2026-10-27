@@ -23,7 +23,7 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
-import '../../../widgets/common/glass_fab.dart';
+import 'widgets/edit_routine_fab.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'reorder_scroll_anchor.dart';
@@ -1319,7 +1319,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                         bottom: 12.0 + MediaQuery.paddingOf(context).bottom,
                         right: 16.0,
                         child: RepaintBoundary(
-                          child: _EditRoutineFab(onPressed: _addExercises),
+                          child: EditRoutineFab(onPressed: _addExercises),
                         ),
                       );
                     },
@@ -1332,84 +1332,5 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
             ),
           ),
         ));
-  }
-}
-
-class _EditRoutineFab extends StatefulWidget {
-  final void Function({
-    BuildContext? sourceContext,
-    WidgetBuilder? sourceBuilder,
-    void Function(bool hidden)? onSourceVisibilityChanged,
-  }) onPressed;
-
-  const _EditRoutineFab({required this.onPressed});
-
-  @override
-  State<_EditRoutineFab> createState() => _EditRoutineFabState();
-}
-
-class _EditRoutineFabState extends State<_EditRoutineFab>
-    with WidgetsBindingObserver {
-  double _keyboardHeight = 0;
-  bool _isFabHidden = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateKeyboardHeight();
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    _updateKeyboardHeight();
-  }
-
-  void _updateKeyboardHeight() {
-    if (!mounted) return;
-    final view = View.of(context);
-    final newHeight = view.viewInsets.bottom / view.devicePixelRatio;
-    if (newHeight != _keyboardHeight) {
-      setState(() {
-        _keyboardHeight = newHeight;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_keyboardHeight > 0) {
-      return const SizedBox.shrink();
-    }
-    Widget buildFabContent({VoidCallback? onPressed}) => GlassFab(
-          label: AppLocalizations.of(context)!.fabAddExercise,
-          onPressed: onPressed ?? () {},
-        );
-
-    return Opacity(
-      opacity: _isFabHidden ? 0.0 : 1.0,
-      child: IgnorePointer(
-        ignoring: _isFabHidden,
-        child: Builder(
-          builder: (fabCtx) => buildFabContent(
-            onPressed: () => widget.onPressed(
-              sourceContext: fabCtx,
-              sourceBuilder: (_) => buildFabContent(),
-              onSourceVisibilityChanged: (hidden) {
-                if (mounted) setState(() => _isFabHidden = hidden);
-              },
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

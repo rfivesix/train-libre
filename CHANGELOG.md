@@ -21,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Extracted `OnboardingActivityStep`, `OnboardingGoalDecisionStep`, and `OnboardingAiHealthStep` (with `OnboardingSettingsTile`) from `onboarding_screen.dart` into dedicated files under `lib/features/onboarding/presentation/widgets/`.
+- Extracted presentation widgets `LiveWorkoutRestBar` and `LiveWorkoutFab` (with `HiddenWhileKeyboardVisible` and `LiveWorkoutFabShadowClipper`) from `live_workout_screen.dart` into `lib/features/workout/presentation/widgets/`.
+- Extracted `EditRoutineFab` from `edit_routine_screen.dart` into `lib/features/workout/presentation/widgets/edit_routine_fab.dart`.
+- Extracted `BlsNutrientRow` and `BlsNutrientGroupsSection` from `food_detail_screen.dart` into dedicated files under `lib/features/diary/presentation/widgets/`.
 - Extracted presentation widgets `PortionToggleBar` and `FoodGlassBadge` from `food_detail_screen.dart` into dedicated files under `lib/features/diary/presentation/widgets/`.
 - Extracted `OffCatalogRegionPickerContent` from `settings_screen.dart` into `lib/features/settings/presentation/widgets/off_catalog_region_picker_dialog.dart`.
 - Extracted presentation widgets `ExerciseMuscleBodyView` (with `MuscleChipRow`) and `ExerciseClassificationChips` (with `ExerciseCategoryBadge`) from `exercise_detail_screen.dart` into dedicated files under `lib/features/exercise_catalog/presentation/widgets/`.
