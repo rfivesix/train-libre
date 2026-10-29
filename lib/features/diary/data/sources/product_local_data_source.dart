@@ -95,6 +95,8 @@ class ProductLocalDataSource {
         nameFr: food.nameFr,
         nameIt: food.nameIt,
         nameJa: food.nameJa,
+        nameEs: food.nameEs,
+        nameNl: food.nameNl,
         brand: food.brand,
         calories: food.calories,
         protein: food.protein,
@@ -182,6 +184,8 @@ class ProductLocalDataSource {
       nameFr: Value(item.nameFr),
       nameIt: Value(item.nameIt),
       nameJa: Value(item.nameJa),
+      nameEs: Value(item.nameEs),
+      nameNl: Value(item.nameNl),
       brand: Value(item.brand),
       calories: Value(item.calories),
       protein: Value(item.protein),
@@ -245,6 +249,8 @@ class ProductLocalDataSource {
       nameFr: overrideRow?.name ?? row.nameFr ?? row.name,
       nameIt: overrideRow?.name ?? row.nameIt ?? row.name,
       nameJa: overrideRow?.name ?? row.nameJa ?? row.name,
+      nameEs: overrideRow?.name ?? row.nameEs ?? row.name,
+      nameNl: overrideRow?.name ?? row.nameNl ?? row.name,
       brand: overrideRow?.brand ?? row.brand ?? '',
       calories: overrideRow?.calories ?? row.calories,
       protein: overrideRow?.protein ?? row.protein,
@@ -308,6 +314,8 @@ class ProductLocalDataSource {
       nameFr: row.productName,
       nameIt: row.productName,
       nameJa: row.productName,
+      nameEs: row.productName,
+      nameNl: row.productName,
       brand: row.brand ?? '',
       calories: row.calories,
       protein: row.protein,
@@ -463,6 +471,8 @@ class ProductLocalDataSource {
           nameFr: prod.nameFr ?? item.nameFr,
           nameIt: prod.nameIt ?? item.nameIt,
           nameJa: prod.nameJa ?? item.nameJa,
+          nameEs: prod.nameEs ?? item.nameEs,
+          nameNl: prod.nameNl ?? item.nameNl,
         );
       }
       result[row.localId] = item;
@@ -529,6 +539,8 @@ class ProductLocalDataSource {
         'name_fr': row.nameFr,
         'name_it': row.nameIt,
         'name_ja': row.nameJa,
+        'name_es': row.nameEs,
+        'name_nl': row.nameNl,
         'emoji': row.emoji,
       };
     }).toList();

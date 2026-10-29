@@ -57,6 +57,15 @@ jobs:
           - country_code: at
             min_product_count: 5000
             max_removed_threshold: 500
+          - country_code: nl
+            min_product_count: 5000
+            max_removed_threshold: 1000
+          - country_code: es
+            min_product_count: 5000
+            max_removed_threshold: 1500
+          - country_code: au
+            min_product_count: 5000
+            max_removed_threshold: 500
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       COUNTRY_CODE: ${{ matrix.country_code }}
@@ -113,6 +122,7 @@ jobs:
           python -m py_compile script/build_off_catalog_manifest.py
           python -m py_compile script/build_off_release_notes.py
           python -m py_compile script/publish_off_run_summary.py
+          python -m unittest script.tests.test_off_country_config
 
       - name: Download Open Food Facts parquet source
         run: |

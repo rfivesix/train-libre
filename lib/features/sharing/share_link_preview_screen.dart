@@ -25,9 +25,6 @@ class _ShareLinkPreviewScreenState extends State<ShareLinkPreviewScreen> {
   bool _busy = false;
   bool _importFailed = false;
 
-  String _copy(String en, String de) =>
-      Localizations.localeOf(context).languageCode == 'de' ? de : en;
-
   void _leavePreview() {
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
@@ -111,15 +108,19 @@ class _ShareLinkPreviewScreenState extends State<ShareLinkPreviewScreen> {
   }
 
   String _summary(ShareLinkPayload payload) {
+    final l10n = AppLocalizations.of(context)!;
     if (payload.type == 'routine') {
       final count = (payload.data['exercises'] as List).length;
-      return _copy('Routine · $count exercises', 'Routine · $count Übungen');
+      return '${l10n.routineShareTitle} · $count ${l10n.shareExercisesLabel}';
     }
     if (payload.type == 'plan') {
       final days = payload.data['days'] as List;
       final workouts = days.where((day) => day != null).length;
-      return _copy('Training plan · ${days.length} days · $workouts workouts',
-          'Trainingsplan · ${days.length} Tage · $workouts Einheiten');
+      final planLabel = payload.data['kind'] == 'week'
+          ? l10n.sharePlanWeekly
+          : l10n.sharePlanSequence;
+      return '$planLabel · ${days.length} ${l10n.shareDays} · '
+          '$workouts ${l10n.workoutsLabel}';
     }
     if (payload.type == 'workout') {
       final date = DateTime.parse(payload.data['start'] as String);
@@ -127,8 +128,8 @@ class _ShareLinkPreviewScreenState extends State<ShareLinkPreviewScreen> {
           DateFormat.yMMMd(Localizations.localeOf(context).toString())
               .format(date);
       final count = (payload.data['sets'] as List).length;
-      return _copy('Workout · $formatted · $count sets',
-          'Training · $formatted · $count Sätze');
+      return '${l10n.workoutShareTitle} · $formatted · '
+          '$count ${l10n.shareSetsLabel}';
     }
     final items = payload.data['items'] as List;
     double total(String key) => items.fold<double>(0, (sum, raw) {
@@ -139,10 +140,13 @@ class _ShareLinkPreviewScreenState extends State<ShareLinkPreviewScreen> {
                   100;
         });
     final portions = payload.data['portions'] as int? ?? 1;
-    final macros =
-        '${total('kcal').round()} kcal · P ${total('protein').round()} g · C ${total('carbs').round()} g · F ${total('fat').round()} g';
-    return _copy('Recipe · $portions portion(s) · $macros',
-        'Rezept · $portions Portion(en) · $macros');
+    final macros = '${total('kcal').round()} kcal · '
+        '${total('protein').round()} g ${l10n.protein} · '
+        '${total('carbs').round()} g ${l10n.carbs} · '
+        '${total('fat').round()} g ${l10n.fat}';
+    return '${l10n.mealTypeLabel} · '
+        '${l10n.mealServingsSummary(portions.toString())} · '
+        '$macros';
   }
 
   List<String> _previewLines(ShareLinkPayload payload) {
@@ -157,14 +161,15 @@ class _ShareLinkPreviewScreenState extends State<ShareLinkPreviewScreen> {
           if (reps == null && weight == null) return '–';
           return '${reps ?? '–'}${weight == null ? '' : ' × $weight kg'}';
         }).join(', ');
-        return '${row['name']} · $count ${_copy('sets', 'Sätze')} · $targets';
+        return '${row['name']} · $count '
+            '${AppLocalizations.of(context)!.shareSetsLabel} · $targets';
       }).toList();
     }
     if (payload.type == 'plan') {
       return (payload.data['days'] as List).asMap().entries.map((entry) {
         final raw = entry.value;
         final name = raw == null
-            ? _copy('Rest day', 'Ruhetag')
+            ? AppLocalizations.of(context)!.shareRestDay
             : (raw as Map)['n'] as String;
         return '${entry.key + 1}. $name';
       }).toList();

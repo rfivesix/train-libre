@@ -26,6 +26,11 @@ String _getSelectTimeTitle(BuildContext context) {
   return AppLocalizations.of(context)?.selectTimeTitle ?? 'Select Time';
 }
 
+bool _uses24HourClock(BuildContext context) =>
+    MediaQuery.alwaysUse24HourFormatOf(context) ||
+    const {'de', 'es', 'nl'}
+        .contains(Localizations.localeOf(context).languageCode);
+
 enum AdaptiveDatePickerView { wheel, calendar }
 
 /// A platform-adaptive Date Picker.
@@ -180,8 +185,7 @@ Future<DateTime?> showAdaptiveDateTimePicker({
                     minimumDate: minimumDate,
                     maximumDate: maximumDate,
                     mode: CupertinoDatePickerMode.dateAndTime,
-                    use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
-                        Localizations.localeOf(ctx).languageCode == 'de',
+                    use24hFormat: _uses24HourClock(ctx),
                     onDateTimeChanged: (DateTime newDateTime) {
                       tempDateTime = newDateTime;
                     },
@@ -439,10 +443,7 @@ Future<DateTime?> _showGlassDatePicker({
                           minimumDate: firstDate,
                           maximumDate: lastDate,
                           mode: CupertinoDatePickerMode.date,
-                          use24hFormat:
-                              MediaQuery.alwaysUse24HourFormatOf(ctx) ||
-                                  Localizations.localeOf(ctx).languageCode ==
-                                      'de',
+                          use24hFormat: _uses24HourClock(ctx),
                           onDateTimeChanged: (DateTime newDate) {
                             tempDate = newDate;
                           },
@@ -585,8 +586,7 @@ Future<TimeOfDay?> _showGlassTimePicker({
                   child: CupertinoDatePicker(
                     initialDateTime: tempDateTime,
                     mode: CupertinoDatePickerMode.time,
-                    use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
-                        Localizations.localeOf(ctx).languageCode == 'de',
+                    use24hFormat: _uses24HourClock(ctx),
                     onDateTimeChanged: (DateTime newDateTime) {
                       tempDateTime = newDateTime;
                     },

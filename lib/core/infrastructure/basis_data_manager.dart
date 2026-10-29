@@ -1093,6 +1093,84 @@ class BasisDataManager {
                       aliases.length))) {
         throw StateError('BLS alias data does not match catalog metadata.');
       }
+      final productTranslationFields = <String, Map<String, String>>{};
+      final categoryTranslationValues = <String, Map<String, Set<String>>>{};
+      final translationTable = sourceSchema >= 3
+          ? await sourceDb.rawQuery(
+              "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'food_translations'",
+            )
+          : <Map<String, Object?>>[];
+      if (sourceSchema >= 3) {
+        if (translationTable.isEmpty) {
+          throw StateError(
+              'BLS schema 3 catalog has no food_translations table.');
+        }
+        final translations = await sourceDb.rawQuery('''
+          SELECT t.barcode, t.language_code, t.name, t.category_name, p.category
+          FROM food_translations t
+          INNER JOIN products p ON p.barcode = t.barcode
+          ORDER BY t.barcode, t.language_code
+        ''');
+        if (translations.length != count * 2) {
+          throw StateError(
+            'BLS schema 3 has ${translations.length} localized food rows; expected ${count * 2}.',
+          );
+        }
+        for (final row in translations) {
+          final barcode = row['barcode']?.toString() ?? '';
+          final languageCode = row['language_code']?.toString() ?? '';
+          final name = row['name']?.toString().trim() ?? '';
+          final categoryKey = row['category']?.toString() ?? '';
+          final categoryName = row['category_name']?.toString().trim() ?? '';
+          if (barcode.isEmpty ||
+              categoryKey.isEmpty ||
+              name.isEmpty ||
+              categoryName.isEmpty ||
+              (languageCode != 'es' && languageCode != 'nl')) {
+            throw StateError(
+                'BLS schema 3 contains an invalid food translation.');
+          }
+          final nameField = 'name_$languageCode';
+          final existingProductFields = productTranslationFields.putIfAbsent(
+            barcode,
+            () => <String, String>{},
+          );
+          if (existingProductFields.containsKey(nameField)) {
+            throw StateError(
+                'BLS schema 3 has duplicate translations for $barcode/$languageCode.');
+          }
+          existingProductFields[nameField] = name;
+          categoryTranslationValues
+              .putIfAbsent(categoryKey, () => <String, Set<String>>{})
+              .putIfAbsent('name_$languageCode', () => <String>{})
+              .add(categoryName);
+        }
+        if (productTranslationFields.length != count ||
+            productTranslationFields.values.any(
+              (fields) =>
+                  !fields.containsKey('name_es') ||
+                  !fields.containsKey('name_nl'),
+            )) {
+          throw StateError(
+              'BLS schema 3 does not translate every product in both locales.');
+        }
+      }
+      final categoryTranslationFields = <String, Map<String, String>>{};
+      for (final entry in categoryTranslationValues.entries) {
+        final spanish = entry.value['name_es'];
+        final dutch = entry.value['name_nl'];
+        if (spanish == null ||
+            dutch == null ||
+            spanish.length != 1 ||
+            dutch.length != 1) {
+          throw StateError(
+              'BLS schema 3 has inconsistent translated labels for category ${entry.key}.');
+        }
+        categoryTranslationFields[entry.key] = {
+          'name_es': spanish.single,
+          'name_nl': dutch.single,
+        };
+      }
       await mainDb.transaction(() async {
         await mainDb.customStatement(
           "UPDATE products SET source = 'legacy' WHERE source = 'base'",
@@ -1105,6 +1183,8 @@ class BasisDataManager {
           onProgress,
           'Basis-Produkte',
           collectProductBarcodes: false,
+          localizedFieldsByKey: productTranslationFields,
+          localizedFieldsKey: 'barcode',
           withinCatalogTransaction: true,
         );
         await _performBatchImport(
@@ -1115,6 +1195,8 @@ class BasisDataManager {
           onProgress,
           'Kategorien',
           collectProductBarcodes: false,
+          localizedFieldsByKey: categoryTranslationFields,
+          localizedFieldsKey: 'key',
           withinCatalogTransaction: true,
         );
         await _replaceBlsAliasIndex(
@@ -1569,6 +1651,8 @@ class BasisDataManager {
     ProgressCallback? onProgress,
     String taskLabel, {
     required bool collectProductBarcodes,
+    Map<String, Map<String, String>> localizedFieldsByKey = const {},
+    String localizedFieldsKey = 'barcode',
     bool withinCatalogTransaction = false,
   }) async {
     final mainDb = await DatabaseHelper.instance.database;
@@ -1643,10 +1727,21 @@ class BasisDataManager {
           if (rows.isEmpty) break;
           batchNumber++;
 
+          final rowsForMapping = localizedFieldsByKey.isEmpty
+              ? rows
+              : rows.map((row) {
+                  final key = row[localizedFieldsKey]?.toString();
+                  final localizedFields =
+                      key == null ? null : localizedFieldsByKey[key];
+                  return localizedFields == null
+                      ? row
+                      : <String, dynamic>{...row, ...localizedFields};
+                }).toList(growable: false);
+
           final mappedCompanions = await compute(
             _parseBatchInIsolate,
             _BatchImportPayload(
-              rows: rows,
+              rows: rowsForMapping,
               type: importType,
               preferredLanguage: preferredLanguage,
             ),

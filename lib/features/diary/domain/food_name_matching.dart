@@ -112,6 +112,8 @@ abstract final class FoodNameMatching {
       food.nameFr,
       food.nameIt,
       food.nameJa,
+      food.nameEs,
+      food.nameNl,
     }..removeWhere((name) => name.trim().isEmpty);
     if (includeBrand && food.brand.trim().isNotEmpty) {
       return {

@@ -2502,7 +2502,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get error => 'エラー';
 
   @override
-  String get mealsViewTitle => '食事ビュータイトル';
+  String get mealsViewTitle => 'レシピ';
 
   @override
   String get noNotes => 'メモはありません';
@@ -2660,6 +2660,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionAustria => 'オーストリア (AT)';
+
+  @override
+  String get settingsFoodDbRegionNetherlands => 'オランダ (NL)';
+
+  @override
+  String get settingsFoodDbRegionSpain => 'スペイン (ES)';
+
+  @override
+  String get settingsFoodDbRegionAustralia => 'オーストラリア (AU)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'カラフルなマクロバッジ';
@@ -5501,6 +5510,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageJapanese => '日本語';
+
+  @override
+  String get settingsBaseFoodLanguageSpanish => 'スペイン語';
+
+  @override
+  String get settingsBaseFoodLanguageDutch => 'オランダ語';
 
   @override
   String get aiModelLabel => 'モデル';
@@ -8794,22 +8809,52 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiOverlayDemoDeniedFeedback => 'このデモではリクエストを拒否しました。';
 
   @override
-  String get aiOverlayDemoAssistantHint => "AIアシスタントを開く";
-  String get aiOverlayDemoColorSectionTitle => "白黒";
-  String get aiOverlayDemoColorWhite => "白";
-  String get aiOverlayDemoColorBlack => "黒";
-  String get aiOverlayDemoLivelinessTitle => "クラウドの動き";
-  String get aiOverlayDemoLivelinessDescription => "展開したAIクラウドの動きを調整します。";
-  String get aiOverlayDemoSafeSpaceTitle => "セーフエリアのポイントを表示";
-  String get aiOverlayDemoSafeSpaceSubtitle => "エリアを調整するための角を表示します";
-  String get aiOverlayDemoFullscreenTitle => "最初から全画面で開く";
-  String get aiOverlayDemoFullscreenSubtitle => "クラウドを開くときの中間画面を省略します";
-  String get developerNutritionLabSubtitle => "栄養ロジックと適応型の提案を確認";
-  String get appleFoundationReadyTitle => "このデバイスで利用できます";
-  String get appleFoundationEnableTitle => "iOSの設定で有効にする";
-  String get appleFoundationNoTransferSubtitle => "データ転送もAPI費用もありません。";
-  String get telemetryDeleteSuccess => "テレメトリー識別子とデータを端末内およびサーバーから削除しました。";
   String get aiOverlayDemoCloudHint => '雲を左右にドラッグして移動します。位置は保存されます。';
+
+  @override
+  String get aiOverlayDemoAssistantHint => 'AIアシスタントを開く';
+
+  @override
+  String get aiOverlayDemoColorSectionTitle => '白黒';
+
+  @override
+  String get aiOverlayDemoColorWhite => '白';
+
+  @override
+  String get aiOverlayDemoColorBlack => '黒';
+
+  @override
+  String get aiOverlayDemoLivelinessTitle => 'クラウドの動き';
+
+  @override
+  String get aiOverlayDemoLivelinessDescription => '展開したAIクラウドの動きを調整します。';
+
+  @override
+  String get aiOverlayDemoSafeSpaceTitle => 'セーフエリアのポイントを表示';
+
+  @override
+  String get aiOverlayDemoSafeSpaceSubtitle => 'エリアを調整するための角を表示します';
+
+  @override
+  String get aiOverlayDemoFullscreenTitle => '最初から全画面で開く';
+
+  @override
+  String get aiOverlayDemoFullscreenSubtitle => 'クラウドを開くときの中間画面を省略します';
+
+  @override
+  String get developerNutritionLabSubtitle => '栄養ロジックと適応型の提案を確認';
+
+  @override
+  String get appleFoundationReadyTitle => 'このデバイスで利用できます';
+
+  @override
+  String get appleFoundationEnableTitle => 'iOSの設定で有効にする';
+
+  @override
+  String get appleFoundationNoTransferSubtitle => 'データ転送もAPI費用もありません。';
+
+  @override
+  String get telemetryDeleteSuccess => 'テレメトリー識別子とデータを端末内およびサーバーから削除しました。';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -8838,10 +8883,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '今日の食事記録と残りのマクロを確認してください：今日すでに記録した食事と、残りの目標を達成するために次の食事で何を食べたらよいかを提案してください。';
 
   @override
-  String get aiAssistantThinking => 'Thinking…';
+  String get aiAssistantThinking => '考えています…';
 
   @override
-  String get aiAssistantProcessingData => 'Analyzing approved data…';
+  String get aiAssistantProcessingData => '承認済みデータを分析しています…';
 
   @override
   String get macroEntryButton => 'マクロ';
@@ -8912,4 +8957,17 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get macroEntryDeleteConfirm =>
       'この飲み物はマクロ記録に関連付けられています。削除するとマクロ記録も削除されます。';
+
+  @override
+  String get recoveryMixedReadyZoneTitle => '混在／準備完了';
+
+  @override
+  String get feedbackReportDirectRequiresTelemetry =>
+      '直接送信には匿名の利用統計が必要です。設定で有効にするか、メールまたは共有を利用してください。';
+
+  @override
+  String get feedbackReportDirectSent => '診断レポートを開発者に直接送信しました。ありがとうございます！';
+
+  @override
+  String get feedbackReportDirectSend => '開発者に直接送信';
 }

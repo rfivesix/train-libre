@@ -64,6 +64,18 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
         "preferred_languages": ("de", "en"),
         "country_tags": ("en:austria", "en:at"),
     },
+    "nl": {
+        "preferred_languages": ("nl", "en"),
+        "country_tags": ("en:netherlands", "en:nederland", "en:nl"),
+    },
+    "es": {
+        "preferred_languages": ("es", "en"),
+        "country_tags": ("en:spain", "en:españa", "en:es"),
+    },
+    "au": {
+        "preferred_languages": ("en",),
+        "country_tags": ("en:australia", "en:au"),
+    },
 }
 
 NUTRIENT_NAME_MAP = {

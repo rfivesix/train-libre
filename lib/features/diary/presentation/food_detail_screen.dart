@@ -373,6 +373,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         return 'Copia di ';
       case 'ja':
         return 'コピー：';
+      case 'es':
+        return 'Copia de ';
+      case 'nl':
+        return 'Kopie van ';
       case 'en':
       default:
         return 'Copy of ';
@@ -484,6 +488,12 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             : '',
         nameJa: _displayItem.nameJa.isNotEmpty
             ? '${_getCopyPrefix('ja')}${_displayItem.nameJa}'
+            : '',
+        nameEs: _displayItem.nameEs.isNotEmpty
+            ? '${_getCopyPrefix('es')}${_displayItem.nameEs}'
+            : '',
+        nameNl: _displayItem.nameNl.isNotEmpty
+            ? '${_getCopyPrefix('nl')}${_displayItem.nameNl}'
             : '',
         brand: _displayItem.brand,
         calories: _displayItem.calories,

@@ -7,9 +7,11 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
+import 'app_localizations_nl.dart';
 
 // ignore_for_file: type=lint
 
@@ -99,9 +101,11 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('de'),
     Locale('en'),
+    Locale('es'),
     Locale('fr'),
     Locale('it'),
-    Locale('ja')
+    Locale('ja'),
+    Locale('nl')
   ];
 
   /// No description provided for @selectDateTitle.
@@ -4625,7 +4629,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealsViewTitle.
   ///
   /// In en, this message translates to:
-  /// **'mealsViewTitle'**
+  /// **'Recipes'**
   String get mealsViewTitle;
 
   /// No description provided for @noNotes.
@@ -4933,6 +4937,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Austria (AT)'**
   String get settingsFoodDbRegionAustria;
+
+  /// No description provided for @settingsFoodDbRegionNetherlands.
+  ///
+  /// In en, this message translates to:
+  /// **'Netherlands (NL)'**
+  String get settingsFoodDbRegionNetherlands;
+
+  /// No description provided for @settingsFoodDbRegionSpain.
+  ///
+  /// In en, this message translates to:
+  /// **'Spain (ES)'**
+  String get settingsFoodDbRegionSpain;
+
+  /// No description provided for @settingsFoodDbRegionAustralia.
+  ///
+  /// In en, this message translates to:
+  /// **'Australia (AU)'**
+  String get settingsFoodDbRegionAustralia;
 
   /// No description provided for @settingsColorfulMacroBadgesTitle.
   ///
@@ -9989,6 +10011,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Japanese'**
   String get settingsBaseFoodLanguageJapanese;
+
+  /// No description provided for @settingsBaseFoodLanguageSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get settingsBaseFoodLanguageSpanish;
+
+  /// No description provided for @settingsBaseFoodLanguageDutch.
+  ///
+  /// In en, this message translates to:
+  /// **'Dutch'**
+  String get settingsBaseFoodLanguageDutch;
 
   /// No description provided for @aiModelLabel.
   ///
@@ -16045,22 +16079,97 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Drag horizontally to move the cloud. Its position is saved.'**
-  String get aiOverlayDemoAssistantHint;
-  String get aiOverlayDemoColorSectionTitle;
-  String get aiOverlayDemoColorWhite;
-  String get aiOverlayDemoColorBlack;
-  String get aiOverlayDemoLivelinessTitle;
-  String get aiOverlayDemoLivelinessDescription;
-  String get aiOverlayDemoSafeSpaceTitle;
-  String get aiOverlayDemoSafeSpaceSubtitle;
-  String get aiOverlayDemoFullscreenTitle;
-  String get aiOverlayDemoFullscreenSubtitle;
-  String get developerNutritionLabSubtitle;
-  String get appleFoundationReadyTitle;
-  String get appleFoundationEnableTitle;
-  String get appleFoundationNoTransferSubtitle;
-  String get telemetryDeleteSuccess;
   String get aiOverlayDemoCloudHint;
+
+  /// No description provided for @aiOverlayDemoAssistantHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open AI assistant'**
+  String get aiOverlayDemoAssistantHint;
+
+  /// No description provided for @aiOverlayDemoColorSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Black and white'**
+  String get aiOverlayDemoColorSectionTitle;
+
+  /// No description provided for @aiOverlayDemoColorWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get aiOverlayDemoColorWhite;
+
+  /// No description provided for @aiOverlayDemoColorBlack.
+  ///
+  /// In en, this message translates to:
+  /// **'Black'**
+  String get aiOverlayDemoColorBlack;
+
+  /// No description provided for @aiOverlayDemoLivelinessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud liveliness'**
+  String get aiOverlayDemoLivelinessTitle;
+
+  /// No description provided for @aiOverlayDemoLivelinessDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls the motion of the expanded AI cloud.'**
+  String get aiOverlayDemoLivelinessDescription;
+
+  /// No description provided for @aiOverlayDemoSafeSpaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show safe-area points'**
+  String get aiOverlayDemoSafeSpaceTitle;
+
+  /// No description provided for @aiOverlayDemoSafeSpaceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the corners used to resize the area'**
+  String get aiOverlayDemoSafeSpaceSubtitle;
+
+  /// No description provided for @aiOverlayDemoFullscreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open directly in full screen'**
+  String get aiOverlayDemoFullscreenTitle;
+
+  /// No description provided for @aiOverlayDemoFullscreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip the intermediate view when opening the cloud'**
+  String get aiOverlayDemoFullscreenSubtitle;
+
+  /// No description provided for @developerNutritionLabSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspect nutrition logic and adaptive recommendations'**
+  String get developerNutritionLabSubtitle;
+
+  /// No description provided for @appleFoundationReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Available on this device'**
+  String get appleFoundationReadyTitle;
+
+  /// No description provided for @appleFoundationEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable in iOS Settings'**
+  String get appleFoundationEnableTitle;
+
+  /// No description provided for @appleFoundationNoTransferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data transfer and no API costs.'**
+  String get appleFoundationNoTransferSubtitle;
+
+  /// No description provided for @telemetryDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry identifiers and data were deleted locally and from the server.'**
+  String get telemetryDeleteSuccess;
 
   /// No description provided for @aiAssistantAskModelHint.
   ///
@@ -16253,6 +16362,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This drink is linked to a macro entry. Deleting it also removes the macro entry.'**
   String get macroEntryDeleteConfirm;
+
+  /// No description provided for @recoveryMixedReadyZoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed / Ready'**
+  String get recoveryMixedReadyZoneTitle;
+
+  /// No description provided for @feedbackReportDirectRequiresTelemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct submission requires anonymous usage statistics. Enable them in Settings, or use email or share instead.'**
+  String get feedbackReportDirectRequiresTelemetry;
+
+  /// No description provided for @feedbackReportDirectSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostic report sent directly to the developer. Thank you!'**
+  String get feedbackReportDirectSent;
+
+  /// No description provided for @feedbackReportDirectSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send directly to the developer'**
+  String get feedbackReportDirectSend;
 }
 
 class _AppLocalizationsDelegate
@@ -16265,8 +16398,15 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['de', 'en', 'fr', 'it', 'ja'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+        'de',
+        'en',
+        'es',
+        'fr',
+        'it',
+        'ja',
+        'nl'
+      ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -16279,12 +16419,16 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
     case 'fr':
       return AppLocalizationsFr();
     case 'it':
       return AppLocalizationsIt();
     case 'ja':
       return AppLocalizationsJa();
+    case 'nl':
+      return AppLocalizationsNl();
   }
 
   throw FlutterError(

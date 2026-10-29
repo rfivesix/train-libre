@@ -2580,7 +2580,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get error => 'Erreur';
 
   @override
-  String get mealsViewTitle => 'repasViewTitle';
+  String get mealsViewTitle => 'Recettes';
 
   @override
   String get noNotes => 'Aucune note';
@@ -2746,6 +2746,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionAustria => 'Autriche (AT)';
+
+  @override
+  String get settingsFoodDbRegionNetherlands => 'Pays-Bas (NL)';
+
+  @override
+  String get settingsFoodDbRegionSpain => 'Espagne (ES)';
+
+  @override
+  String get settingsFoodDbRegionAustralia => 'Australie (AU)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Insignes macro colorés';
@@ -5784,6 +5793,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageJapanese => 'Japonais';
+
+  @override
+  String get settingsBaseFoodLanguageSpanish => 'Espagnol';
+
+  @override
+  String get settingsBaseFoodLanguageDutch => 'Néerlandais';
 
   @override
   String get aiModelLabel => 'Modèle';
@@ -9265,31 +9280,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiOverlayDemoDeniedFeedback => 'Demande refusée dans cette démo.';
 
   @override
-  String get aiOverlayDemoAssistantHint => "Ouvrir l’assistant IA";
-  String get aiOverlayDemoColorSectionTitle => "Noir et blanc";
-  String get aiOverlayDemoColorWhite => "Blanc";
-  String get aiOverlayDemoColorBlack => "Noir";
-  String get aiOverlayDemoLivelinessTitle => "Animation du nuage";
-  String get aiOverlayDemoLivelinessDescription =>
-      "Règle le mouvement du nuage IA développé.";
-  String get aiOverlayDemoSafeSpaceTitle =>
-      "Afficher les points de la zone sûre";
-  String get aiOverlayDemoSafeSpaceSubtitle =>
-      "Afficher les coins permettant de redimensionner la zone";
-  String get aiOverlayDemoFullscreenTitle =>
-      "Ouvrir directement en plein écran";
-  String get aiOverlayDemoFullscreenSubtitle =>
-      "Ignorer l’écran intermédiaire à l’ouverture du nuage";
-  String get developerNutritionLabSubtitle =>
-      "Examiner la logique nutritionnelle et les recommandations adaptatives";
-  String get appleFoundationReadyTitle => "Disponible sur cet appareil";
-  String get appleFoundationEnableTitle => "Activer dans les réglages iOS";
-  String get appleFoundationNoTransferSubtitle =>
-      "Aucun transfert de données ni frais d’API.";
-  String get telemetryDeleteSuccess =>
-      "Les identifiants et données de télémétrie ont été supprimés localement et du serveur.";
   String get aiOverlayDemoCloudHint =>
       'Faites glisser le nuage horizontalement. Sa position est enregistrée.';
+
+  @override
+  String get aiOverlayDemoAssistantHint => 'Ouvrir l’assistant IA';
+
+  @override
+  String get aiOverlayDemoColorSectionTitle => 'Noir et blanc';
+
+  @override
+  String get aiOverlayDemoColorWhite => 'Blanc';
+
+  @override
+  String get aiOverlayDemoColorBlack => 'Noir';
+
+  @override
+  String get aiOverlayDemoLivelinessTitle => 'Animation du nuage';
+
+  @override
+  String get aiOverlayDemoLivelinessDescription =>
+      'Règle le mouvement du nuage IA développé.';
+
+  @override
+  String get aiOverlayDemoSafeSpaceTitle =>
+      'Afficher les points de la zone sûre';
+
+  @override
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      'Afficher les coins permettant de redimensionner la zone';
+
+  @override
+  String get aiOverlayDemoFullscreenTitle =>
+      'Ouvrir directement en plein écran';
+
+  @override
+  String get aiOverlayDemoFullscreenSubtitle =>
+      'Ignorer l’écran intermédiaire à l’ouverture du nuage';
+
+  @override
+  String get developerNutritionLabSubtitle =>
+      'Examiner la logique nutritionnelle et les recommandations adaptatives';
+
+  @override
+  String get appleFoundationReadyTitle => 'Disponible sur cet appareil';
+
+  @override
+  String get appleFoundationEnableTitle => 'Activer dans les réglages iOS';
+
+  @override
+  String get appleFoundationNoTransferSubtitle =>
+      'Aucun transfert de données ni frais d’API.';
+
+  @override
+  String get telemetryDeleteSuccess =>
+      'Les identifiants et données de télémétrie ont été supprimés localement et du serveur.';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -9319,10 +9364,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Consulte mon journal alimentaire d\'aujourd\'hui et mes macros restantes : quels repas ai-je déjà enregistrés et que puis-je manger au prochain repas pour couvrir au mieux mes objectifs restants ?';
 
   @override
-  String get aiAssistantThinking => 'Thinking…';
+  String get aiAssistantThinking => 'Réflexion en cours…';
 
   @override
-  String get aiAssistantProcessingData => 'Analyzing approved data…';
+  String get aiAssistantProcessingData => 'Analyse des données approuvées…';
 
   @override
   String get macroEntryButton => 'Macros';
@@ -9399,4 +9444,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get macroEntryDeleteConfirm =>
       'Cette boisson est liée à une entrée macro. Sa suppression supprimera aussi l’entrée macro.';
+
+  @override
+  String get recoveryMixedReadyZoneTitle => 'Mixte / prêt';
+
+  @override
+  String get feedbackReportDirectRequiresTelemetry =>
+      'L’envoi direct nécessite les statistiques d’utilisation anonymes. Activez-les dans les réglages ou utilisez plutôt l’e-mail ou le partage.';
+
+  @override
+  String get feedbackReportDirectSent =>
+      'Rapport de diagnostic envoyé directement au développeur. Merci !';
+
+  @override
+  String get feedbackReportDirectSend => 'Envoyer directement au développeur';
 }

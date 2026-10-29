@@ -7869,6 +7869,28 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   late final GeneratedColumn<String> categoryJa = GeneratedColumn<String>(
       'category_ja', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameEsMeta = const VerificationMeta('nameEs');
+  @override
+  late final GeneratedColumn<String> nameEs = GeneratedColumn<String>(
+      'name_es', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _categoryEsMeta =
+      const VerificationMeta('categoryEs');
+  @override
+  late final GeneratedColumn<String> categoryEs = GeneratedColumn<String>(
+      'category_es', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameNlMeta = const VerificationMeta('nameNl');
+  @override
+  late final GeneratedColumn<String> nameNl = GeneratedColumn<String>(
+      'name_nl', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _categoryNlMeta =
+      const VerificationMeta('categoryNl');
+  @override
+  late final GeneratedColumn<String> categoryNl = GeneratedColumn<String>(
+      'category_nl', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -7905,7 +7927,11 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         nameIt,
         categoryIt,
         nameJa,
-        categoryJa
+        categoryJa,
+        nameEs,
+        categoryEs,
+        nameNl,
+        categoryNl
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -8089,6 +8115,26 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           categoryJa.isAcceptableOrUnknown(
               data['category_ja']!, _categoryJaMeta));
     }
+    if (data.containsKey('name_es')) {
+      context.handle(_nameEsMeta,
+          nameEs.isAcceptableOrUnknown(data['name_es']!, _nameEsMeta));
+    }
+    if (data.containsKey('category_es')) {
+      context.handle(
+          _categoryEsMeta,
+          categoryEs.isAcceptableOrUnknown(
+              data['category_es']!, _categoryEsMeta));
+    }
+    if (data.containsKey('name_nl')) {
+      context.handle(_nameNlMeta,
+          nameNl.isAcceptableOrUnknown(data['name_nl']!, _nameNlMeta));
+    }
+    if (data.containsKey('category_nl')) {
+      context.handle(
+          _categoryNlMeta,
+          categoryNl.isAcceptableOrUnknown(
+              data['category_nl']!, _categoryNlMeta));
+    }
     return context;
   }
 
@@ -8169,6 +8215,14 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           .read(DriftSqlType.string, data['${effectivePrefix}name_ja']),
       categoryJa: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}category_ja']),
+      nameEs: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_es']),
+      categoryEs: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category_es']),
+      nameNl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_nl']),
+      categoryNl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category_nl']),
     );
   }
 
@@ -8214,6 +8268,10 @@ class Product extends DataClass implements Insertable<Product> {
   final String? categoryIt;
   final String? nameJa;
   final String? categoryJa;
+  final String? nameEs;
+  final String? categoryEs;
+  final String? nameNl;
+  final String? categoryNl;
   const Product(
       {required this.localId,
       required this.id,
@@ -8249,7 +8307,11 @@ class Product extends DataClass implements Insertable<Product> {
       this.nameIt,
       this.categoryIt,
       this.nameJa,
-      this.categoryJa});
+      this.categoryJa,
+      this.nameEs,
+      this.categoryEs,
+      this.nameNl,
+      this.categoryNl});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -8331,6 +8393,18 @@ class Product extends DataClass implements Insertable<Product> {
     if (!nullToAbsent || categoryJa != null) {
       map['category_ja'] = Variable<String>(categoryJa);
     }
+    if (!nullToAbsent || nameEs != null) {
+      map['name_es'] = Variable<String>(nameEs);
+    }
+    if (!nullToAbsent || categoryEs != null) {
+      map['category_es'] = Variable<String>(categoryEs);
+    }
+    if (!nullToAbsent || nameNl != null) {
+      map['name_nl'] = Variable<String>(nameNl);
+    }
+    if (!nullToAbsent || categoryNl != null) {
+      map['category_nl'] = Variable<String>(categoryNl);
+    }
     return map;
   }
 
@@ -8403,6 +8477,16 @@ class Product extends DataClass implements Insertable<Product> {
       categoryJa: categoryJa == null && nullToAbsent
           ? const Value.absent()
           : Value(categoryJa),
+      nameEs:
+          nameEs == null && nullToAbsent ? const Value.absent() : Value(nameEs),
+      categoryEs: categoryEs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryEs),
+      nameNl:
+          nameNl == null && nullToAbsent ? const Value.absent() : Value(nameNl),
+      categoryNl: categoryNl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryNl),
     );
   }
 
@@ -8448,6 +8532,10 @@ class Product extends DataClass implements Insertable<Product> {
       categoryIt: serializer.fromJson<String?>(json['categoryIt']),
       nameJa: serializer.fromJson<String?>(json['nameJa']),
       categoryJa: serializer.fromJson<String?>(json['categoryJa']),
+      nameEs: serializer.fromJson<String?>(json['nameEs']),
+      categoryEs: serializer.fromJson<String?>(json['categoryEs']),
+      nameNl: serializer.fromJson<String?>(json['nameNl']),
+      categoryNl: serializer.fromJson<String?>(json['categoryNl']),
     );
   }
   @override
@@ -8490,6 +8578,10 @@ class Product extends DataClass implements Insertable<Product> {
       'categoryIt': serializer.toJson<String?>(categoryIt),
       'nameJa': serializer.toJson<String?>(nameJa),
       'categoryJa': serializer.toJson<String?>(categoryJa),
+      'nameEs': serializer.toJson<String?>(nameEs),
+      'categoryEs': serializer.toJson<String?>(categoryEs),
+      'nameNl': serializer.toJson<String?>(nameNl),
+      'categoryNl': serializer.toJson<String?>(categoryNl),
     };
   }
 
@@ -8528,7 +8620,11 @@ class Product extends DataClass implements Insertable<Product> {
           Value<String?> nameIt = const Value.absent(),
           Value<String?> categoryIt = const Value.absent(),
           Value<String?> nameJa = const Value.absent(),
-          Value<String?> categoryJa = const Value.absent()}) =>
+          Value<String?> categoryJa = const Value.absent(),
+          Value<String?> nameEs = const Value.absent(),
+          Value<String?> categoryEs = const Value.absent(),
+          Value<String?> nameNl = const Value.absent(),
+          Value<String?> categoryNl = const Value.absent()}) =>
       Product(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -8576,6 +8672,10 @@ class Product extends DataClass implements Insertable<Product> {
         categoryIt: categoryIt.present ? categoryIt.value : this.categoryIt,
         nameJa: nameJa.present ? nameJa.value : this.nameJa,
         categoryJa: categoryJa.present ? categoryJa.value : this.categoryJa,
+        nameEs: nameEs.present ? nameEs.value : this.nameEs,
+        categoryEs: categoryEs.present ? categoryEs.value : this.categoryEs,
+        nameNl: nameNl.present ? nameNl.value : this.nameNl,
+        categoryNl: categoryNl.present ? categoryNl.value : this.categoryNl,
       );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -8630,6 +8730,12 @@ class Product extends DataClass implements Insertable<Product> {
       nameJa: data.nameJa.present ? data.nameJa.value : this.nameJa,
       categoryJa:
           data.categoryJa.present ? data.categoryJa.value : this.categoryJa,
+      nameEs: data.nameEs.present ? data.nameEs.value : this.nameEs,
+      categoryEs:
+          data.categoryEs.present ? data.categoryEs.value : this.categoryEs,
+      nameNl: data.nameNl.present ? data.nameNl.value : this.nameNl,
+      categoryNl:
+          data.categoryNl.present ? data.categoryNl.value : this.categoryNl,
     );
   }
 
@@ -8670,7 +8776,11 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('nameIt: $nameIt, ')
           ..write('categoryIt: $categoryIt, ')
           ..write('nameJa: $nameJa, ')
-          ..write('categoryJa: $categoryJa')
+          ..write('categoryJa: $categoryJa, ')
+          ..write('nameEs: $nameEs, ')
+          ..write('categoryEs: $categoryEs, ')
+          ..write('nameNl: $nameNl, ')
+          ..write('categoryNl: $categoryNl')
           ..write(')'))
         .toString();
   }
@@ -8711,7 +8821,11 @@ class Product extends DataClass implements Insertable<Product> {
         nameIt,
         categoryIt,
         nameJa,
-        categoryJa
+        categoryJa,
+        nameEs,
+        categoryEs,
+        nameNl,
+        categoryNl
       ]);
   @override
   bool operator ==(Object other) =>
@@ -8751,7 +8865,11 @@ class Product extends DataClass implements Insertable<Product> {
           other.nameIt == this.nameIt &&
           other.categoryIt == this.categoryIt &&
           other.nameJa == this.nameJa &&
-          other.categoryJa == this.categoryJa);
+          other.categoryJa == this.categoryJa &&
+          other.nameEs == this.nameEs &&
+          other.categoryEs == this.categoryEs &&
+          other.nameNl == this.nameNl &&
+          other.categoryNl == this.categoryNl);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -8790,6 +8908,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<String?> categoryIt;
   final Value<String?> nameJa;
   final Value<String?> categoryJa;
+  final Value<String?> nameEs;
+  final Value<String?> categoryEs;
+  final Value<String?> nameNl;
+  final Value<String?> categoryNl;
   const ProductsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -8826,6 +8948,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.categoryIt = const Value.absent(),
     this.nameJa = const Value.absent(),
     this.categoryJa = const Value.absent(),
+    this.nameEs = const Value.absent(),
+    this.categoryEs = const Value.absent(),
+    this.nameNl = const Value.absent(),
+    this.categoryNl = const Value.absent(),
   });
   ProductsCompanion.insert({
     this.localId = const Value.absent(),
@@ -8863,6 +8989,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.categoryIt = const Value.absent(),
     this.nameJa = const Value.absent(),
     this.categoryJa = const Value.absent(),
+    this.nameEs = const Value.absent(),
+    this.categoryEs = const Value.absent(),
+    this.nameNl = const Value.absent(),
+    this.categoryNl = const Value.absent(),
   })  : barcode = Value(barcode),
         name = Value(name),
         calories = Value(calories),
@@ -8905,6 +9035,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<String>? categoryIt,
     Expression<String>? nameJa,
     Expression<String>? categoryJa,
+    Expression<String>? nameEs,
+    Expression<String>? categoryEs,
+    Expression<String>? nameNl,
+    Expression<String>? categoryNl,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -8944,6 +9078,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (categoryIt != null) 'category_it': categoryIt,
       if (nameJa != null) 'name_ja': nameJa,
       if (categoryJa != null) 'category_ja': categoryJa,
+      if (nameEs != null) 'name_es': nameEs,
+      if (categoryEs != null) 'category_es': categoryEs,
+      if (nameNl != null) 'name_nl': nameNl,
+      if (categoryNl != null) 'category_nl': categoryNl,
     });
   }
 
@@ -8982,7 +9120,11 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<String?>? nameIt,
       Value<String?>? categoryIt,
       Value<String?>? nameJa,
-      Value<String?>? categoryJa}) {
+      Value<String?>? categoryJa,
+      Value<String?>? nameEs,
+      Value<String?>? categoryEs,
+      Value<String?>? nameNl,
+      Value<String?>? categoryNl}) {
     return ProductsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -9020,6 +9162,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       categoryIt: categoryIt ?? this.categoryIt,
       nameJa: nameJa ?? this.nameJa,
       categoryJa: categoryJa ?? this.categoryJa,
+      nameEs: nameEs ?? this.nameEs,
+      categoryEs: categoryEs ?? this.categoryEs,
+      nameNl: nameNl ?? this.nameNl,
+      categoryNl: categoryNl ?? this.categoryNl,
     );
   }
 
@@ -9133,6 +9279,18 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (categoryJa.present) {
       map['category_ja'] = Variable<String>(categoryJa.value);
     }
+    if (nameEs.present) {
+      map['name_es'] = Variable<String>(nameEs.value);
+    }
+    if (categoryEs.present) {
+      map['category_es'] = Variable<String>(categoryEs.value);
+    }
+    if (nameNl.present) {
+      map['name_nl'] = Variable<String>(nameNl.value);
+    }
+    if (categoryNl.present) {
+      map['category_nl'] = Variable<String>(categoryNl.value);
+    }
     return map;
   }
 
@@ -9173,7 +9331,11 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('nameIt: $nameIt, ')
           ..write('categoryIt: $categoryIt, ')
           ..write('nameJa: $nameJa, ')
-          ..write('categoryJa: $categoryJa')
+          ..write('categoryJa: $categoryJa, ')
+          ..write('nameEs: $nameEs, ')
+          ..write('categoryEs: $categoryEs, ')
+          ..write('nameNl: $nameNl, ')
+          ..write('categoryNl: $categoryNl')
           ..write(')'))
         .toString();
   }
@@ -16965,9 +17127,19 @@ class $FoodCategoriesTable extends FoodCategories
   late final GeneratedColumn<String> nameJa = GeneratedColumn<String>(
       'name_ja', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameEsMeta = const VerificationMeta('nameEs');
+  @override
+  late final GeneratedColumn<String> nameEs = GeneratedColumn<String>(
+      'name_es', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameNlMeta = const VerificationMeta('nameNl');
+  @override
+  late final GeneratedColumn<String> nameNl = GeneratedColumn<String>(
+      'name_nl', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [key, nameDe, nameEn, emoji, nameFr, nameIt, nameJa];
+      [key, nameDe, nameEn, emoji, nameFr, nameIt, nameJa, nameEs, nameNl];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -17008,6 +17180,14 @@ class $FoodCategoriesTable extends FoodCategories
       context.handle(_nameJaMeta,
           nameJa.isAcceptableOrUnknown(data['name_ja']!, _nameJaMeta));
     }
+    if (data.containsKey('name_es')) {
+      context.handle(_nameEsMeta,
+          nameEs.isAcceptableOrUnknown(data['name_es']!, _nameEsMeta));
+    }
+    if (data.containsKey('name_nl')) {
+      context.handle(_nameNlMeta,
+          nameNl.isAcceptableOrUnknown(data['name_nl']!, _nameNlMeta));
+    }
     return context;
   }
 
@@ -17031,6 +17211,10 @@ class $FoodCategoriesTable extends FoodCategories
           .read(DriftSqlType.string, data['${effectivePrefix}name_it']),
       nameJa: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name_ja']),
+      nameEs: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_es']),
+      nameNl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_nl']),
     );
   }
 
@@ -17048,6 +17232,8 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
   final String? nameFr;
   final String? nameIt;
   final String? nameJa;
+  final String? nameEs;
+  final String? nameNl;
   const FoodCategory(
       {required this.key,
       this.nameDe,
@@ -17055,7 +17241,9 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
       this.emoji,
       this.nameFr,
       this.nameIt,
-      this.nameJa});
+      this.nameJa,
+      this.nameEs,
+      this.nameNl});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -17078,6 +17266,12 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
     if (!nullToAbsent || nameJa != null) {
       map['name_ja'] = Variable<String>(nameJa);
     }
+    if (!nullToAbsent || nameEs != null) {
+      map['name_es'] = Variable<String>(nameEs);
+    }
+    if (!nullToAbsent || nameNl != null) {
+      map['name_nl'] = Variable<String>(nameNl);
+    }
     return map;
   }
 
@@ -17096,6 +17290,10 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           nameIt == null && nullToAbsent ? const Value.absent() : Value(nameIt),
       nameJa:
           nameJa == null && nullToAbsent ? const Value.absent() : Value(nameJa),
+      nameEs:
+          nameEs == null && nullToAbsent ? const Value.absent() : Value(nameEs),
+      nameNl:
+          nameNl == null && nullToAbsent ? const Value.absent() : Value(nameNl),
     );
   }
 
@@ -17110,6 +17308,8 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
       nameFr: serializer.fromJson<String?>(json['nameFr']),
       nameIt: serializer.fromJson<String?>(json['nameIt']),
       nameJa: serializer.fromJson<String?>(json['nameJa']),
+      nameEs: serializer.fromJson<String?>(json['nameEs']),
+      nameNl: serializer.fromJson<String?>(json['nameNl']),
     );
   }
   @override
@@ -17123,6 +17323,8 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
       'nameFr': serializer.toJson<String?>(nameFr),
       'nameIt': serializer.toJson<String?>(nameIt),
       'nameJa': serializer.toJson<String?>(nameJa),
+      'nameEs': serializer.toJson<String?>(nameEs),
+      'nameNl': serializer.toJson<String?>(nameNl),
     };
   }
 
@@ -17133,7 +17335,9 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           Value<String?> emoji = const Value.absent(),
           Value<String?> nameFr = const Value.absent(),
           Value<String?> nameIt = const Value.absent(),
-          Value<String?> nameJa = const Value.absent()}) =>
+          Value<String?> nameJa = const Value.absent(),
+          Value<String?> nameEs = const Value.absent(),
+          Value<String?> nameNl = const Value.absent()}) =>
       FoodCategory(
         key: key ?? this.key,
         nameDe: nameDe.present ? nameDe.value : this.nameDe,
@@ -17142,6 +17346,8 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
         nameFr: nameFr.present ? nameFr.value : this.nameFr,
         nameIt: nameIt.present ? nameIt.value : this.nameIt,
         nameJa: nameJa.present ? nameJa.value : this.nameJa,
+        nameEs: nameEs.present ? nameEs.value : this.nameEs,
+        nameNl: nameNl.present ? nameNl.value : this.nameNl,
       );
   FoodCategory copyWithCompanion(FoodCategoriesCompanion data) {
     return FoodCategory(
@@ -17152,6 +17358,8 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
       nameFr: data.nameFr.present ? data.nameFr.value : this.nameFr,
       nameIt: data.nameIt.present ? data.nameIt.value : this.nameIt,
       nameJa: data.nameJa.present ? data.nameJa.value : this.nameJa,
+      nameEs: data.nameEs.present ? data.nameEs.value : this.nameEs,
+      nameNl: data.nameNl.present ? data.nameNl.value : this.nameNl,
     );
   }
 
@@ -17164,14 +17372,16 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           ..write('emoji: $emoji, ')
           ..write('nameFr: $nameFr, ')
           ..write('nameIt: $nameIt, ')
-          ..write('nameJa: $nameJa')
+          ..write('nameJa: $nameJa, ')
+          ..write('nameEs: $nameEs, ')
+          ..write('nameNl: $nameNl')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(key, nameDe, nameEn, emoji, nameFr, nameIt, nameJa);
+  int get hashCode => Object.hash(
+      key, nameDe, nameEn, emoji, nameFr, nameIt, nameJa, nameEs, nameNl);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -17182,7 +17392,9 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           other.emoji == this.emoji &&
           other.nameFr == this.nameFr &&
           other.nameIt == this.nameIt &&
-          other.nameJa == this.nameJa);
+          other.nameJa == this.nameJa &&
+          other.nameEs == this.nameEs &&
+          other.nameNl == this.nameNl);
 }
 
 class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
@@ -17193,6 +17405,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
   final Value<String?> nameFr;
   final Value<String?> nameIt;
   final Value<String?> nameJa;
+  final Value<String?> nameEs;
+  final Value<String?> nameNl;
   final Value<int> rowid;
   const FoodCategoriesCompanion({
     this.key = const Value.absent(),
@@ -17202,6 +17416,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
     this.nameFr = const Value.absent(),
     this.nameIt = const Value.absent(),
     this.nameJa = const Value.absent(),
+    this.nameEs = const Value.absent(),
+    this.nameNl = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FoodCategoriesCompanion.insert({
@@ -17212,6 +17428,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
     this.nameFr = const Value.absent(),
     this.nameIt = const Value.absent(),
     this.nameJa = const Value.absent(),
+    this.nameEs = const Value.absent(),
+    this.nameNl = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : key = Value(key);
   static Insertable<FoodCategory> custom({
@@ -17222,6 +17440,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
     Expression<String>? nameFr,
     Expression<String>? nameIt,
     Expression<String>? nameJa,
+    Expression<String>? nameEs,
+    Expression<String>? nameNl,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -17232,6 +17452,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
       if (nameFr != null) 'name_fr': nameFr,
       if (nameIt != null) 'name_it': nameIt,
       if (nameJa != null) 'name_ja': nameJa,
+      if (nameEs != null) 'name_es': nameEs,
+      if (nameNl != null) 'name_nl': nameNl,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -17244,6 +17466,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
       Value<String?>? nameFr,
       Value<String?>? nameIt,
       Value<String?>? nameJa,
+      Value<String?>? nameEs,
+      Value<String?>? nameNl,
       Value<int>? rowid}) {
     return FoodCategoriesCompanion(
       key: key ?? this.key,
@@ -17253,6 +17477,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
       nameFr: nameFr ?? this.nameFr,
       nameIt: nameIt ?? this.nameIt,
       nameJa: nameJa ?? this.nameJa,
+      nameEs: nameEs ?? this.nameEs,
+      nameNl: nameNl ?? this.nameNl,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -17281,6 +17507,12 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
     if (nameJa.present) {
       map['name_ja'] = Variable<String>(nameJa.value);
     }
+    if (nameEs.present) {
+      map['name_es'] = Variable<String>(nameEs.value);
+    }
+    if (nameNl.present) {
+      map['name_nl'] = Variable<String>(nameNl.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -17297,6 +17529,8 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
           ..write('nameFr: $nameFr, ')
           ..write('nameIt: $nameIt, ')
           ..write('nameJa: $nameJa, ')
+          ..write('nameEs: $nameEs, ')
+          ..write('nameNl: $nameNl, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -35650,6 +35884,10 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<String?> categoryIt,
   Value<String?> nameJa,
   Value<String?> categoryJa,
+  Value<String?> nameEs,
+  Value<String?> categoryEs,
+  Value<String?> nameNl,
+  Value<String?> categoryNl,
 });
 typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<int> localId,
@@ -35687,6 +35925,10 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String?> categoryIt,
   Value<String?> nameJa,
   Value<String?> categoryJa,
+  Value<String?> nameEs,
+  Value<String?> categoryEs,
+  Value<String?> nameNl,
+  Value<String?> categoryNl,
 });
 
 final class $$ProductsTableReferences
@@ -35840,6 +36082,18 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<String> get categoryJa => $composableBuilder(
       column: $table.categoryJa, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameEs => $composableBuilder(
+      column: $table.nameEs, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get categoryEs => $composableBuilder(
+      column: $table.categoryEs, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameNl => $composableBuilder(
+      column: $table.nameNl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get categoryNl => $composableBuilder(
+      column: $table.categoryNl, builder: (column) => ColumnFilters(column));
 
   Expression<bool> nutritionLogsRefs(
       Expression<bool> Function($$NutritionLogsTableFilterComposer f) f) {
@@ -36003,6 +36257,18 @@ class $$ProductsTableOrderingComposer
 
   ColumnOrderings<String> get categoryJa => $composableBuilder(
       column: $table.categoryJa, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameEs => $composableBuilder(
+      column: $table.nameEs, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get categoryEs => $composableBuilder(
+      column: $table.categoryEs, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameNl => $composableBuilder(
+      column: $table.nameNl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get categoryNl => $composableBuilder(
+      column: $table.categoryNl, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ProductsTableAnnotationComposer
@@ -36119,6 +36385,18 @@ class $$ProductsTableAnnotationComposer
   GeneratedColumn<String> get categoryJa => $composableBuilder(
       column: $table.categoryJa, builder: (column) => column);
 
+  GeneratedColumn<String> get nameEs =>
+      $composableBuilder(column: $table.nameEs, builder: (column) => column);
+
+  GeneratedColumn<String> get categoryEs => $composableBuilder(
+      column: $table.categoryEs, builder: (column) => column);
+
+  GeneratedColumn<String> get nameNl =>
+      $composableBuilder(column: $table.nameNl, builder: (column) => column);
+
+  GeneratedColumn<String> get categoryNl => $composableBuilder(
+      column: $table.categoryNl, builder: (column) => column);
+
   Expression<T> nutritionLogsRefs<T extends Object>(
       Expression<T> Function($$NutritionLogsTableAnnotationComposer a) f) {
     final $$NutritionLogsTableAnnotationComposer composer = $composerBuilder(
@@ -36220,6 +36498,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> categoryIt = const Value.absent(),
             Value<String?> nameJa = const Value.absent(),
             Value<String?> categoryJa = const Value.absent(),
+            Value<String?> nameEs = const Value.absent(),
+            Value<String?> categoryEs = const Value.absent(),
+            Value<String?> nameNl = const Value.absent(),
+            Value<String?> categoryNl = const Value.absent(),
           }) =>
               ProductsCompanion(
             localId: localId,
@@ -36257,6 +36539,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             categoryIt: categoryIt,
             nameJa: nameJa,
             categoryJa: categoryJa,
+            nameEs: nameEs,
+            categoryEs: categoryEs,
+            nameNl: nameNl,
+            categoryNl: categoryNl,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -36294,6 +36580,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> categoryIt = const Value.absent(),
             Value<String?> nameJa = const Value.absent(),
             Value<String?> categoryJa = const Value.absent(),
+            Value<String?> nameEs = const Value.absent(),
+            Value<String?> categoryEs = const Value.absent(),
+            Value<String?> nameNl = const Value.absent(),
+            Value<String?> categoryNl = const Value.absent(),
           }) =>
               ProductsCompanion.insert(
             localId: localId,
@@ -36331,6 +36621,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             categoryIt: categoryIt,
             nameJa: nameJa,
             categoryJa: categoryJa,
+            nameEs: nameEs,
+            categoryEs: categoryEs,
+            nameNl: nameNl,
+            categoryNl: categoryNl,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -41824,6 +42118,8 @@ typedef $$FoodCategoriesTableCreateCompanionBuilder = FoodCategoriesCompanion
   Value<String?> nameFr,
   Value<String?> nameIt,
   Value<String?> nameJa,
+  Value<String?> nameEs,
+  Value<String?> nameNl,
   Value<int> rowid,
 });
 typedef $$FoodCategoriesTableUpdateCompanionBuilder = FoodCategoriesCompanion
@@ -41835,6 +42131,8 @@ typedef $$FoodCategoriesTableUpdateCompanionBuilder = FoodCategoriesCompanion
   Value<String?> nameFr,
   Value<String?> nameIt,
   Value<String?> nameJa,
+  Value<String?> nameEs,
+  Value<String?> nameNl,
   Value<int> rowid,
 });
 
@@ -41867,6 +42165,12 @@ class $$FoodCategoriesTableFilterComposer
 
   ColumnFilters<String> get nameJa => $composableBuilder(
       column: $table.nameJa, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameEs => $composableBuilder(
+      column: $table.nameEs, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameNl => $composableBuilder(
+      column: $table.nameNl, builder: (column) => ColumnFilters(column));
 }
 
 class $$FoodCategoriesTableOrderingComposer
@@ -41898,6 +42202,12 @@ class $$FoodCategoriesTableOrderingComposer
 
   ColumnOrderings<String> get nameJa => $composableBuilder(
       column: $table.nameJa, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameEs => $composableBuilder(
+      column: $table.nameEs, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameNl => $composableBuilder(
+      column: $table.nameNl, builder: (column) => ColumnOrderings(column));
 }
 
 class $$FoodCategoriesTableAnnotationComposer
@@ -41929,6 +42239,12 @@ class $$FoodCategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get nameJa =>
       $composableBuilder(column: $table.nameJa, builder: (column) => column);
+
+  GeneratedColumn<String> get nameEs =>
+      $composableBuilder(column: $table.nameEs, builder: (column) => column);
+
+  GeneratedColumn<String> get nameNl =>
+      $composableBuilder(column: $table.nameNl, builder: (column) => column);
 }
 
 class $$FoodCategoriesTableTableManager extends RootTableManager<
@@ -41965,6 +42281,8 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             Value<String?> nameFr = const Value.absent(),
             Value<String?> nameIt = const Value.absent(),
             Value<String?> nameJa = const Value.absent(),
+            Value<String?> nameEs = const Value.absent(),
+            Value<String?> nameNl = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FoodCategoriesCompanion(
@@ -41975,6 +42293,8 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             nameFr: nameFr,
             nameIt: nameIt,
             nameJa: nameJa,
+            nameEs: nameEs,
+            nameNl: nameNl,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -41985,6 +42305,8 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             Value<String?> nameFr = const Value.absent(),
             Value<String?> nameIt = const Value.absent(),
             Value<String?> nameJa = const Value.absent(),
+            Value<String?> nameEs = const Value.absent(),
+            Value<String?> nameNl = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FoodCategoriesCompanion.insert(
@@ -41995,6 +42317,8 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             nameFr: nameFr,
             nameIt: nameIt,
             nameJa: nameJa,
+            nameEs: nameEs,
+            nameNl: nameNl,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

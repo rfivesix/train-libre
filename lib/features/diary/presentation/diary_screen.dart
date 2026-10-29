@@ -270,9 +270,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               );
 
               final logs = vm.supplementLogsForSupplement(supplement.id!);
-              final isGerman =
-                  Localizations.localeOf(context).languageCode == 'de';
-              final timeSuffix = isGerman ? ' Uhr' : '';
+              final timeSuffix =
+                  switch (Localizations.localeOf(context).languageCode) {
+                'de' => ' Uhr',
+                'nl' => ' uur',
+                _ => '',
+              };
 
               return Column(
                 mainAxisSize: MainAxisSize.min,

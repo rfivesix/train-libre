@@ -143,6 +143,13 @@ class BackupManager {
         .map((row) => FoodItem(
             barcode: row.barcode,
             name: row.name,
+            nameDe: row.nameDe ?? row.name,
+            nameEn: row.nameEn ?? row.name,
+            nameFr: row.nameFr ?? row.name,
+            nameIt: row.nameIt ?? row.name,
+            nameJa: row.nameJa ?? row.name,
+            nameEs: row.nameEs ?? row.name,
+            nameNl: row.nameNl ?? row.name,
             brand: row.brand ?? '',
             calories: row.calories,
             protein: row.protein,

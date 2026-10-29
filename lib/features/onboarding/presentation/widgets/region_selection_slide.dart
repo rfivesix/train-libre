@@ -96,6 +96,9 @@ class RegionSelectionSlide extends StatelessWidget {
       OffCatalogCountry.it => l10n.settingsFoodDbRegionItaly,
       OffCatalogCountry.jp => l10n.settingsFoodDbRegionJapan,
       OffCatalogCountry.at => l10n.settingsFoodDbRegionAustria,
+      OffCatalogCountry.nl => l10n.settingsFoodDbRegionNetherlands,
+      OffCatalogCountry.es => l10n.settingsFoodDbRegionSpain,
+      OffCatalogCountry.au => l10n.settingsFoodDbRegionAustralia,
     };
   }
 }

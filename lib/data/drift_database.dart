@@ -582,6 +582,10 @@ class Products extends Table with HybridId, MetaColumns {
   TextColumn get categoryIt => text().nullable()();
   TextColumn get nameJa => text().nullable()();
   TextColumn get categoryJa => text().nullable()();
+  TextColumn get nameEs => text().nullable()();
+  TextColumn get categoryEs => text().nullable()();
+  TextColumn get nameNl => text().nullable()();
+  TextColumn get categoryNl => text().nullable()();
 }
 
 // 12. NutritionLogs (replaces food_entries)
@@ -804,6 +808,8 @@ class FoodCategories extends Table {
   TextColumn get nameFr => text().nullable()();
   TextColumn get nameIt => text().nullable()();
   TextColumn get nameJa => text().nullable()();
+  TextColumn get nameEs => text().nullable()();
+  TextColumn get nameNl => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {key};
@@ -1086,7 +1092,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 46;
+  int get schemaVersion => 47;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -2146,6 +2152,42 @@ class AppDatabase extends _$AppDatabase {
               await customStatement(
                 'CREATE INDEX IF NOT EXISTS idx_macro_entries_consumed_at ON macro_entries (consumed_at);',
               );
+            }
+            if (from < 47) {
+              Future<void> addColumnIfMissing(
+                String tableName,
+                String columnName,
+                Future<void> Function() addColumn,
+              ) async {
+                if (!await _columnExists(this, tableName, columnName)) {
+                  await addColumn();
+                }
+              }
+
+              await addColumnIfMissing(
+                  products.actualTableName,
+                  products.nameEs.name,
+                  () => m.addColumn(products, products.nameEs));
+              await addColumnIfMissing(
+                  products.actualTableName,
+                  products.categoryEs.name,
+                  () => m.addColumn(products, products.categoryEs));
+              await addColumnIfMissing(
+                  products.actualTableName,
+                  products.nameNl.name,
+                  () => m.addColumn(products, products.nameNl));
+              await addColumnIfMissing(
+                  products.actualTableName,
+                  products.categoryNl.name,
+                  () => m.addColumn(products, products.categoryNl));
+              await addColumnIfMissing(
+                  foodCategories.actualTableName,
+                  foodCategories.nameEs.name,
+                  () => m.addColumn(foodCategories, foodCategories.nameEs));
+              await addColumnIfMissing(
+                  foodCategories.actualTableName,
+                  foodCategories.nameNl.name,
+                  () => m.addColumn(foodCategories, foodCategories.nameNl));
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,

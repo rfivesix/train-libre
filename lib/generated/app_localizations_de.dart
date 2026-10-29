@@ -2560,7 +2560,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get error => 'Fehler';
 
   @override
-  String get mealsViewTitle => 'mealsViewTitle';
+  String get mealsViewTitle => 'Rezepte';
 
   @override
   String get noNotes => 'Keine Notizen';
@@ -2722,6 +2722,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionAustria => 'Österreich (AT)';
+
+  @override
+  String get settingsFoodDbRegionNetherlands => 'Niederlande (NL)';
+
+  @override
+  String get settingsFoodDbRegionSpain => 'Spanien (ES)';
+
+  @override
+  String get settingsFoodDbRegionAustralia => 'Australien (AU)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Bunte Nährwert-Badges';
@@ -5732,6 +5741,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageJapanese => 'Japanisch';
+
+  @override
+  String get settingsBaseFoodLanguageSpanish => 'Spanisch';
+
+  @override
+  String get settingsBaseFoodLanguageDutch => 'Niederländisch';
 
   @override
   String get aiModelLabel => 'Modell';
@@ -9190,31 +9205,61 @@ class AppLocalizationsDe extends AppLocalizations {
       'Vorschlag in dieser Demo abgelehnt.';
 
   @override
-  String get aiOverlayDemoAssistantHint => "KI-Assistent öffnen";
-  String get aiOverlayDemoColorSectionTitle => "Schwarz und Weiß";
-  String get aiOverlayDemoColorWhite => "Weiß";
-  String get aiOverlayDemoColorBlack => "Schwarz";
-  String get aiOverlayDemoLivelinessTitle => "Lebhaftigkeit der Wolke";
-  String get aiOverlayDemoLivelinessDescription =>
-      "Steuert die Bewegung der erweiterten KI-Wolke.";
-  String get aiOverlayDemoSafeSpaceTitle =>
-      "Punkte für den sicheren Bereich anzeigen";
-  String get aiOverlayDemoSafeSpaceSubtitle =>
-      "Ecken zum Anpassen des Bereichs einblenden";
-  String get aiOverlayDemoFullscreenTitle => "Direkt im Vollbild öffnen";
-  String get aiOverlayDemoFullscreenSubtitle =>
-      "Zwischenansicht beim Öffnen der Wolke überspringen";
-  String get developerNutritionLabSubtitle =>
-      "Ernährungslogik und adaptive Empfehlungen prüfen";
-  String get appleFoundationReadyTitle => "Auf diesem Gerät verfügbar";
-  String get appleFoundationEnableTitle =>
-      "In den iOS-Einstellungen aktivieren";
-  String get appleFoundationNoTransferSubtitle =>
-      "Keine Datenübertragung und keine API-Kosten.";
-  String get telemetryDeleteSuccess =>
-      "Telemetrie-IDs und Daten wurden lokal und vom Server gelöscht.";
   String get aiOverlayDemoCloudHint =>
       'Wolke horizontal ziehen. Die Position wird gespeichert.';
+
+  @override
+  String get aiOverlayDemoAssistantHint => 'KI-Assistent öffnen';
+
+  @override
+  String get aiOverlayDemoColorSectionTitle => 'Schwarz und Weiß';
+
+  @override
+  String get aiOverlayDemoColorWhite => 'Weiß';
+
+  @override
+  String get aiOverlayDemoColorBlack => 'Schwarz';
+
+  @override
+  String get aiOverlayDemoLivelinessTitle => 'Lebhaftigkeit der Wolke';
+
+  @override
+  String get aiOverlayDemoLivelinessDescription =>
+      'Steuert die Bewegung der erweiterten KI-Wolke.';
+
+  @override
+  String get aiOverlayDemoSafeSpaceTitle =>
+      'Punkte für den sicheren Bereich anzeigen';
+
+  @override
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      'Ecken zum Anpassen des Bereichs einblenden';
+
+  @override
+  String get aiOverlayDemoFullscreenTitle => 'Direkt im Vollbild öffnen';
+
+  @override
+  String get aiOverlayDemoFullscreenSubtitle =>
+      'Zwischenansicht beim Öffnen der Wolke überspringen';
+
+  @override
+  String get developerNutritionLabSubtitle =>
+      'Ernährungslogik und adaptive Empfehlungen prüfen';
+
+  @override
+  String get appleFoundationReadyTitle => 'Auf diesem Gerät verfügbar';
+
+  @override
+  String get appleFoundationEnableTitle =>
+      'In den iOS-Einstellungen aktivieren';
+
+  @override
+  String get appleFoundationNoTransferSubtitle =>
+      'Keine Datenübertragung und keine API-Kosten.';
+
+  @override
+  String get telemetryDeleteSuccess =>
+      'Telemetrie-IDs und Daten wurden lokal und vom Server gelöscht.';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -9323,4 +9368,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get macroEntryDeleteConfirm =>
       'Dieser Eintrag ist mit einem Makroeintrag verknüpft. Beim Löschen werden Getränk und Makroeintrag entfernt.';
+
+  @override
+  String get recoveryMixedReadyZoneTitle => 'Gemischt / Bereit';
+
+  @override
+  String get feedbackReportDirectRequiresTelemetry =>
+      'Für den Direktversand muss die anonyme Nutzungsstatistik aktiviert sein. Aktiviere sie in den Einstellungen oder nutze stattdessen E-Mail oder Teilen.';
+
+  @override
+  String get feedbackReportDirectSent =>
+      'Diagnosebericht direkt an den Entwickler gesendet. Vielen Dank!';
+
+  @override
+  String get feedbackReportDirectSend => 'Direkt an den Entwickler senden';
 }

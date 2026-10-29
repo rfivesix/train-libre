@@ -285,7 +285,11 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
-                                      '${carbsGrams.round()}${Localizations.localeOf(context).languageCode == 'de' ? 'KH' : 'C'}',
+                                      '${carbsGrams.round()}${switch (Localizations.localeOf(context).languageCode) {
+                                        'de' || 'nl' => 'KH',
+                                        'es' => 'HC',
+                                        _ => 'C',
+                                      }}',
                                       maxLines: 1,
                                       style: const TextStyle(
                                         color: Colors.white,

@@ -138,6 +138,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       BaseFoodLanguage.fr => l10n.settingsBaseFoodLanguageFrench,
       BaseFoodLanguage.it => l10n.settingsBaseFoodLanguageItalian,
       BaseFoodLanguage.ja => l10n.settingsBaseFoodLanguageJapanese,
+      BaseFoodLanguage.es => l10n.settingsBaseFoodLanguageSpanish,
+      BaseFoodLanguage.nl => l10n.settingsBaseFoodLanguageDutch,
     };
   }
 
@@ -229,6 +231,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       OffCatalogCountry.it => l10n.settingsFoodDbRegionItaly,
       OffCatalogCountry.jp => l10n.settingsFoodDbRegionJapan,
       OffCatalogCountry.at => l10n.settingsFoodDbRegionAustria,
+      OffCatalogCountry.nl => l10n.settingsFoodDbRegionNetherlands,
+      OffCatalogCountry.es => l10n.settingsFoodDbRegionSpain,
+      OffCatalogCountry.au => l10n.settingsFoodDbRegionAustralia,
     };
   }
 

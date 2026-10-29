@@ -1020,7 +1020,7 @@
   "amountLabel": "額",
   "mealAddedToDiarySuccess": "日記にレシピを追加しました",
   "error": "エラー",
-  "mealsViewTitle": "食事ビュータイトル",
+  "mealsViewTitle": "レシピ",
   "noNotes": "メモはありません",
   "ingredientsCapsLock": "材料",
   "nutritionSectionLabel": "栄養成分表",
@@ -1072,6 +1072,9 @@
   "settingsFoodDbRegionItaly": "イタリア (IT)",
   "settingsFoodDbRegionJapan": "日本 (JP)",
   "settingsFoodDbRegionAustria": "オーストリア (AT)",
+  "settingsFoodDbRegionNetherlands": "オランダ (NL)",
+  "settingsFoodDbRegionSpain": "スペイン (ES)",
+  "settingsFoodDbRegionAustralia": "オーストラリア (AU)",
   "settingsColorfulMacroBadgesTitle": "カラフルなマクロバッジ",
   "settingsColorfulMacroBadgesSubtitle": "AI検証による色分けされたバッジデザインをダイアリーにも採用。",
   "settingsFoodDbRegionUnitedKingdom": "英国 (UK)",
@@ -1220,7 +1223,6 @@
   "aiReviewPreliminaryNutrition": "栄養値は暫定です。確認を続けています。",
   "aiReviewScanFailed": "スキャンを完了できませんでした。戻ってもう一度お試しください。",
   "aiReviewScanTimedOut": "AIへのリクエストがタイムアウトしたため、スキャンを終了しました。戻ってもう一度お試しください。",
-
   "aiReviewFeedbackHint": "AI が何を間違えたのか説明してください...",
   "aiReviewRetryButton": "フィードバック付きで再試行",
   "aiReviewFeedbackSection": "修正",
@@ -2479,6 +2481,8 @@
   "settingsBaseFoodLanguageFrench": "フランス語",
   "settingsBaseFoodLanguageItalian": "イタリア語",
   "settingsBaseFoodLanguageJapanese": "日本語",
+  "settingsBaseFoodLanguageSpanish": "スペイン語",
+  "settingsBaseFoodLanguageDutch": "オランダ語",
   "aiModelLabel": "モデル",
   "aiModelListFallbackTitle": "組み込みのモデル一覧を表示しています",
   "aiModelListRetry": "モデルを再読み込み",
@@ -3797,5 +3801,11 @@
   "macroEntryDefaultName": "マクロ記録",
   "macroEntryDetailTitle": "栄養素",
   "macroEntryFillThreeValues": "4つのマクロ値のうち、3つを入力してください。",
-  "macroEntryDeleteConfirm": "この飲み物はマクロ記録に関連付けられています。削除するとマクロ記録も削除されます。"
+  "macroEntryDeleteConfirm": "この飲み物はマクロ記録に関連付けられています。削除するとマクロ記録も削除されます。",
+  "recoveryMixedReadyZoneTitle": "混在／準備完了",
+  "feedbackReportDirectRequiresTelemetry": "直接送信には匿名の利用統計が必要です。設定で有効にするか、メールまたは共有を利用してください。",
+  "feedbackReportDirectSent": "診断レポートを開発者に直接送信しました。ありがとうございます！",
+  "feedbackReportDirectSend": "開発者に直接送信",
+  "aiAssistantThinking": "考えています…",
+  "aiAssistantProcessingData": "承認済みデータを分析しています…"
 }

@@ -24,6 +24,12 @@ enum BaseFoodLanguage {
 
   /// Always show Japanese names.
   ja,
+
+  /// Always show Spanish names.
+  es,
+
+  /// Always show Dutch names.
+  nl,
 }
 
 /// Persists and resolves the user's preferred display language for base foods.
@@ -54,7 +60,7 @@ class BaseFoodLanguageService {
     await resolved.setString(_preferenceKey, choice.name);
   }
 
-  /// Resolve the effective language code (`'en'` or `'de'`) to use for display.
+  /// Resolve the effective language code to use for display.
   ///
   /// When [choice] is [BaseFoodLanguage.auto]:
   ///   - If the app locale is German → `'de'`.
@@ -70,6 +76,8 @@ class BaseFoodLanguageService {
     if (choice == BaseFoodLanguage.fr) return 'fr';
     if (choice == BaseFoodLanguage.it) return 'it';
     if (choice == BaseFoodLanguage.ja) return 'ja';
+    if (choice == BaseFoodLanguage.es) return 'es';
+    if (choice == BaseFoodLanguage.nl) return 'nl';
 
     final locale = Localizations.localeOf(context).languageCode;
     return resolveLanguageCodeFromLocale(
@@ -91,12 +99,16 @@ class BaseFoodLanguageService {
     if (choice == BaseFoodLanguage.fr) return 'fr';
     if (choice == BaseFoodLanguage.it) return 'it';
     if (choice == BaseFoodLanguage.ja) return 'ja';
+    if (choice == BaseFoodLanguage.es) return 'es';
+    if (choice == BaseFoodLanguage.nl) return 'nl';
 
     // Auto mode: follow locale with region fallback.
     if (locale == 'de') return 'de';
     if (locale == 'fr') return 'fr';
     if (locale == 'it') return 'it';
     if (locale == 'ja') return 'ja';
+    if (locale == 'es') return 'es';
+    if (locale == 'nl') return 'nl';
 
     // Non-German locale: check region for a sensible default.
     if (activeCountry == OffCatalogCountry.uk ||
@@ -111,6 +123,9 @@ class BaseFoodLanguageService {
     if (activeCountry == OffCatalogCountry.fr) return 'fr';
     if (activeCountry == OffCatalogCountry.it) return 'it';
     if (activeCountry == OffCatalogCountry.jp) return 'ja';
+    if (activeCountry == OffCatalogCountry.nl) return 'nl';
+    if (activeCountry == OffCatalogCountry.es) return 'es';
+    if (activeCountry == OffCatalogCountry.au) return 'en';
 
     // Fallback: use English.
     return 'en';

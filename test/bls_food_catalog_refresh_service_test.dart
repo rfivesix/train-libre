@@ -67,6 +67,40 @@ void main() {
         throwsFormatException,
       );
     });
+
+    test('parses schema 3 localized food translation counts', () {
+      final localizedManifest = {
+        ...manifest,
+        'food_alias_count': 0,
+        'schema_version': 3,
+        'min_app_schema_version': 3,
+        'food_translation_count': 14280,
+      };
+      final parsed = BlsFoodCatalogManifest.parse(
+        localizedManifest,
+        Uri.parse(baseUri),
+      );
+
+      expect(parsed.schemaVersion, 3);
+      expect(parsed.minAppSchemaVersion, 3);
+      expect(parsed.expectedFoodTranslationCount, 14280);
+    });
+
+    test('requires translation count in schema 3 manifest', () {
+      final localizedManifest = {
+        ...manifest,
+        'food_alias_count': 0,
+        'schema_version': 3,
+        'min_app_schema_version': 3,
+      }..remove('food_translation_count');
+      expect(
+        () => BlsFoodCatalogManifest.parse(
+          localizedManifest,
+          Uri.parse(baseUri),
+        ),
+        throwsFormatException,
+      );
+    });
   });
 
   group('BLS catalog versions', () {

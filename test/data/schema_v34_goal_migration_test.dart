@@ -44,7 +44,7 @@ void main() {
   Future<void> assertCurrentAndReopen(File file) async {
     var database = AppDatabase(NativeDatabase(file));
     await database.customSelect('SELECT 1').get();
-    expect(database.schemaVersion, 46);
+    expect(database.schemaVersion, 47);
     expect(
       await _tables(database),
       containsAll(['user_goals', 'goal_events', 'goal_reviews']),

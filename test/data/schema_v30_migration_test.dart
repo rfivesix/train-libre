@@ -228,7 +228,7 @@ void main() {
     await db.customSelect('SELECT 1;').get();
 
     // Verify schemaVersion getter
-    expect(db.schemaVersion, 46);
+    expect(db.schemaVersion, 47);
 
     // 4. Verify all 15 new columns exist
     final migratedAppSettingsCols = await _columnsOf(db, 'app_settings');

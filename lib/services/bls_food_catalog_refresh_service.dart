@@ -25,6 +25,7 @@ class BlsFoodCatalogManifest {
     required this.expectedFoodCount,
     required this.foodNutrientFactCount,
     this.expectedAliasCount,
+    this.expectedFoodTranslationCount,
   });
 
   final String version;
@@ -39,6 +40,7 @@ class BlsFoodCatalogManifest {
   final int expectedFoodCount;
   final int foodNutrientFactCount;
   final int? expectedAliasCount;
+  final int? expectedFoodTranslationCount;
 
   factory BlsFoodCatalogManifest.parse(Map<String, dynamic> json, Uri baseUri) {
     if (json['source_id'] != 'bls_food_catalog' ||
@@ -93,6 +95,8 @@ class BlsFoodCatalogManifest {
       expectedFoodCount: number('expected_food_count'),
       foodNutrientFactCount: number('food_nutrient_fact_count'),
       expectedAliasCount: schema >= 2 ? number('food_alias_count') : null,
+      expectedFoodTranslationCount:
+          schema >= 3 ? number('food_translation_count') : null,
     );
   }
 }
@@ -368,6 +372,11 @@ class BlsFoodCatalogRefreshService {
           : sqflite.Sqflite.firstIntValue(
               await db.rawQuery('SELECT COUNT(*) FROM food_aliases'),
             );
+      final foodTranslations = manifest.expectedFoodTranslationCount == null
+          ? null
+          : sqflite.Sqflite.firstIntValue(
+              await db.rawQuery('SELECT COUNT(*) FROM food_translations'),
+            );
       final sideTables = await db.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='table'",
       );
@@ -383,20 +392,61 @@ class BlsFoodCatalogRefreshService {
         'legacy_food_mappings',
       };
       if (manifest.schemaVersion >= 2) required.add('food_aliases');
+      if (manifest.schemaVersion >= 3) required.add('food_translations');
       final aliasColumns =
           (await db.rawQuery('PRAGMA table_info(food_aliases)'))
               .map((row) => row['name']?.toString())
               .toSet();
+      final translationColumns = manifest.schemaVersion < 3
+          ? <String>{}
+          : (await db.rawQuery('PRAGMA table_info(food_translations)'))
+              .map((row) => row['name']?.toString())
+              .toSet();
+      final translationsByLanguage = manifest.schemaVersion < 3
+          ? <String, int>{}
+          : {
+              for (final row in await db.rawQuery('''
+                SELECT language_code, COUNT(*) AS count
+                FROM food_translations
+                GROUP BY language_code
+              '''))
+                row['language_code']?.toString() ?? '':
+                    (row['count'] as num?)?.toInt() ?? 0,
+            };
+      final invalidTranslationRows = manifest.schemaVersion < 3
+          ? 0
+          : sqflite.Sqflite.firstIntValue(await db.rawQuery('''
+              SELECT COUNT(*) FROM food_translations
+              WHERE language_code NOT IN ('es', 'nl')
+                OR TRIM(name) = '' OR TRIM(category_name) = ''
+            ''')) ?? 0;
       if (foods != manifest.expectedFoodCount ||
           facts != manifest.foodNutrientFactCount ||
           (manifest.expectedAliasCount != null &&
               aliases != manifest.expectedAliasCount) ||
+          (manifest.expectedFoodTranslationCount != null &&
+              foodTranslations != manifest.expectedFoodTranslationCount) ||
           (manifest.schemaVersion >= 2 &&
               !aliasColumns.containsAll(const {
                 'normalized_alias',
                 'match_scope',
                 'review_status',
               })) ||
+          (manifest.schemaVersion >= 3 &&
+              !translationColumns.containsAll(const {
+                'barcode',
+                'language_code',
+                'name',
+                'category_name',
+              })) ||
+          (manifest.schemaVersion >= 3 &&
+              (manifest.expectedFoodTranslationCount !=
+                      manifest.expectedFoodCount * 2 ||
+                  translationsByLanguage['es'] !=
+                      manifest.expectedFoodCount ||
+                  translationsByLanguage['nl'] !=
+                      manifest.expectedFoodCount ||
+                  invalidTranslationRows != 0)) ||
           !names.containsAll(required)) {
         throw const FormatException(
             'BLS database structure or row counts are invalid.');
@@ -412,7 +462,10 @@ class BlsFoodCatalogRefreshService {
           metadata['schema_version'] != manifest.schemaVersion.toString() ||
           (manifest.schemaVersion >= 2 &&
               metadata['curated_alias_count'] !=
-                  manifest.expectedAliasCount.toString())) {
+                  manifest.expectedAliasCount.toString()) ||
+          (manifest.schemaVersion >= 3 &&
+              (manifest.expectedFoodTranslationCount !=
+                  manifest.expectedFoodCount * 2))) {
         throw const FormatException(
             'BLS database metadata does not match its manifest.');
       }
@@ -495,7 +548,9 @@ class BlsNutrientRepository {
       final english = languageCode == 'en' ||
           languageCode == 'fr' ||
           languageCode == 'it' ||
-          languageCode == 'ja';
+          languageCode == 'ja' ||
+          languageCode == 'es' ||
+          languageCode == 'nl';
       final nameColumn = english ? 'name_en' : 'name_de';
       final groupColumn = english ? 'group_en' : 'group_de';
       final facts = <BlsNutrientFact>[];

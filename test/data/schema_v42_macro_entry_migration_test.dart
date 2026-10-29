@@ -29,7 +29,7 @@ void main() {
       expect(columns.map((row) => row.read<String>('name')),
           contains('meal_entry_id'));
       final version = await migrated.customSelect('PRAGMA user_version').get();
-      expect(version.single.read<int>('user_version'), 46);
+      expect(version.single.read<int>('user_version'), 47);
     } finally {
       await migrated.close();
       await tempDir.delete(recursive: true);

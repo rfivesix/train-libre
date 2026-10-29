@@ -1020,7 +1020,7 @@
   "amountLabel": "Quantità",
   "mealAddedToDiarySuccess": "Ricetta aggiunta al diario",
   "error": "Errore",
-  "mealsViewTitle": "pastiViewTitle",
+  "mealsViewTitle": "Ricette",
   "noNotes": "Nessuna nota",
   "ingredientsCapsLock": "INGREDIENTI",
   "nutritionSectionLabel": "FATTI NUTRIZIONALI",
@@ -1072,6 +1072,9 @@
   "settingsFoodDbRegionItaly": "Italia (IT)",
   "settingsFoodDbRegionJapan": "Giappone (JP)",
   "settingsFoodDbRegionAustria": "Austria (AT)",
+  "settingsFoodDbRegionNetherlands": "Paesi Bassi (NL)",
+  "settingsFoodDbRegionSpain": "Spagna (ES)",
+  "settingsFoodDbRegionAustralia": "Australia (AU)",
   "settingsColorfulMacroBadgesTitle": "Distintivi macro colorati",
   "settingsColorfulMacroBadgesSubtitle": "Utilizza anche il design del badge con codice colore della verifica AI nel diario.",
   "settingsFoodDbRegionUnitedKingdom": "Regno Unito (UK)",
@@ -1220,7 +1223,6 @@
   "aiReviewPreliminaryNutrition": "Valori nutrizionali provvisori – verifica in corso.",
   "aiReviewScanFailed": "La scansione non è stata completata. Torna indietro e riprova.",
   "aiReviewScanTimedOut": "La richiesta IA ha impiegato troppo tempo. La scansione è stata interrotta. Torna indietro e riprova.",
-
   "aiReviewFeedbackHint": "Descrivi cosa ha sbagliato l'intelligenza artificiale...",
   "aiReviewRetryButton": "Riprova con feedback",
   "aiReviewFeedbackSection": "Correzione",
@@ -2479,6 +2481,8 @@
   "settingsBaseFoodLanguageFrench": "Francese",
   "settingsBaseFoodLanguageItalian": "Italiano",
   "settingsBaseFoodLanguageJapanese": "Giapponese",
+  "settingsBaseFoodLanguageSpanish": "Spagnolo",
+  "settingsBaseFoodLanguageDutch": "Olandese",
   "aiModelLabel": "Modello",
   "aiModelListFallbackTitle": "Viene mostrato l'elenco di modelli integrato",
   "aiModelListRetry": "Ricarica i modelli",
@@ -3797,5 +3801,11 @@
   "macroEntryDefaultName": "Voce macro",
   "macroEntryDetailTitle": "Nutrienti",
   "macroEntryFillThreeValues": "Inserisci esattamente tre dei quattro valori macro.",
-  "macroEntryDeleteConfirm": "Questa bevanda è collegata a una voce macro. Eliminandola verrà rimossa anche la voce macro."
+  "macroEntryDeleteConfirm": "Questa bevanda è collegata a una voce macro. Eliminandola verrà rimossa anche la voce macro.",
+  "recoveryMixedReadyZoneTitle": "Misto / pronto",
+  "feedbackReportDirectRequiresTelemetry": "L’invio diretto richiede le statistiche di utilizzo anonime. Attivale nelle Impostazioni oppure usa l’e-mail o la condivisione.",
+  "feedbackReportDirectSent": "Rapporto diagnostico inviato direttamente allo sviluppatore. Grazie!",
+  "feedbackReportDirectSend": "Invia direttamente allo sviluppatore",
+  "aiAssistantThinking": "Sto ragionando…",
+  "aiAssistantProcessingData": "Analisi dei dati approvati…"
 }

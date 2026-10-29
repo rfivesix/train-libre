@@ -2548,7 +2548,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error => 'Error';
 
   @override
-  String get mealsViewTitle => 'mealsViewTitle';
+  String get mealsViewTitle => 'Recipes';
 
   @override
   String get noNotes => 'No notes';
@@ -2708,6 +2708,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionAustria => 'Austria (AT)';
+
+  @override
+  String get settingsFoodDbRegionNetherlands => 'Netherlands (NL)';
+
+  @override
+  String get settingsFoodDbRegionSpain => 'Spain (ES)';
+
+  @override
+  String get settingsFoodDbRegionAustralia => 'Australia (AU)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Colorful Macro Badges';
@@ -5684,6 +5693,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageJapanese => 'Japanese';
+
+  @override
+  String get settingsBaseFoodLanguageSpanish => 'Spanish';
+
+  @override
+  String get settingsBaseFoodLanguageDutch => 'Dutch';
 
   @override
   String get aiModelLabel => 'Model';
@@ -9118,29 +9133,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiOverlayDemoDeniedFeedback => 'Request declined in this demo.';
 
   @override
-  String get aiOverlayDemoAssistantHint => "Open AI assistant";
-  String get aiOverlayDemoColorSectionTitle => "Black and white";
-  String get aiOverlayDemoColorWhite => "White";
-  String get aiOverlayDemoColorBlack => "Black";
-  String get aiOverlayDemoLivelinessTitle => "Cloud liveliness";
-  String get aiOverlayDemoLivelinessDescription =>
-      "Controls the motion of the expanded AI cloud.";
-  String get aiOverlayDemoSafeSpaceTitle => "Show safe-area points";
-  String get aiOverlayDemoSafeSpaceSubtitle =>
-      "Show the corners used to resize the area";
-  String get aiOverlayDemoFullscreenTitle => "Open directly in full screen";
-  String get aiOverlayDemoFullscreenSubtitle =>
-      "Skip the intermediate view when opening the cloud";
-  String get developerNutritionLabSubtitle =>
-      "Inspect nutrition logic and adaptive recommendations";
-  String get appleFoundationReadyTitle => "Available on this device";
-  String get appleFoundationEnableTitle => "Enable in iOS Settings";
-  String get appleFoundationNoTransferSubtitle =>
-      "No data transfer and no API costs.";
-  String get telemetryDeleteSuccess =>
-      "Telemetry identifiers and data were deleted locally and from the server.";
   String get aiOverlayDemoCloudHint =>
       'Drag horizontally to move the cloud. Its position is saved.';
+
+  @override
+  String get aiOverlayDemoAssistantHint => 'Open AI assistant';
+
+  @override
+  String get aiOverlayDemoColorSectionTitle => 'Black and white';
+
+  @override
+  String get aiOverlayDemoColorWhite => 'White';
+
+  @override
+  String get aiOverlayDemoColorBlack => 'Black';
+
+  @override
+  String get aiOverlayDemoLivelinessTitle => 'Cloud liveliness';
+
+  @override
+  String get aiOverlayDemoLivelinessDescription =>
+      'Controls the motion of the expanded AI cloud.';
+
+  @override
+  String get aiOverlayDemoSafeSpaceTitle => 'Show safe-area points';
+
+  @override
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      'Show the corners used to resize the area';
+
+  @override
+  String get aiOverlayDemoFullscreenTitle => 'Open directly in full screen';
+
+  @override
+  String get aiOverlayDemoFullscreenSubtitle =>
+      'Skip the intermediate view when opening the cloud';
+
+  @override
+  String get developerNutritionLabSubtitle =>
+      'Inspect nutrition logic and adaptive recommendations';
+
+  @override
+  String get appleFoundationReadyTitle => 'Available on this device';
+
+  @override
+  String get appleFoundationEnableTitle => 'Enable in iOS Settings';
+
+  @override
+  String get appleFoundationNoTransferSubtitle =>
+      'No data transfer and no API costs.';
+
+  @override
+  String get telemetryDeleteSuccess =>
+      'Telemetry identifiers and data were deleted locally and from the server.';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -9249,4 +9294,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get macroEntryDeleteConfirm =>
       'This drink is linked to a macro entry. Deleting it also removes the macro entry.';
+
+  @override
+  String get recoveryMixedReadyZoneTitle => 'Mixed / Ready';
+
+  @override
+  String get feedbackReportDirectRequiresTelemetry =>
+      'Direct submission requires anonymous usage statistics. Enable them in Settings, or use email or share instead.';
+
+  @override
+  String get feedbackReportDirectSent =>
+      'Diagnostic report sent directly to the developer. Thank you!';
+
+  @override
+  String get feedbackReportDirectSend => 'Send directly to the developer';
 }

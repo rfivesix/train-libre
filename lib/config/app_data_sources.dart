@@ -31,7 +31,7 @@ class AppDataSources {
   /// Raise this only together with an importer that understands the new
   /// schema, and only once that release is broadly installed. A device that
   /// raises it early accepts a catalog it then fails to read.
-  static const int supportedCatalogSchemaVersion = 2;
+  static const int supportedCatalogSchemaVersion = 3;
 
   static const String blsFoodCatalogReleaseBaseUrl =
       'https://github.com/rfivesix/train-libre-bls-catalog/releases/download/bls-foods-stable/';
@@ -84,6 +84,9 @@ class AppDataSources {
     OffCatalogCountry.it,
     OffCatalogCountry.jp,
     OffCatalogCountry.at,
+    OffCatalogCountry.nl,
+    OffCatalogCountry.es,
+    OffCatalogCountry.au,
   ];
 
   /// OFF release-channel/manifest expectations per supported country.
@@ -276,6 +279,75 @@ class AppDataSources {
       legacyLocalCacheDbFileName: null,
       localManifestFileName: 'off_catalog_manifest_at_cached.json',
     ),
+    OffCatalogCountry.nl: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'nl',
+      channel: 'stable',
+      releaseTag: 'off-foods-nl-stable',
+      baseUrl:
+          'https://github.com/rfivesix/train-libre/releases/download/off-foods-nl-stable/',
+      manifestPath: 'off_catalog_manifest_nl.json',
+      defaultDbPath: 'train_libre_off_nl.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_nl.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_nl.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_nl_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_nl_cached.json',
+    ),
+    OffCatalogCountry.es: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'es',
+      channel: 'stable',
+      releaseTag: 'off-foods-es-stable',
+      baseUrl:
+          'https://github.com/rfivesix/train-libre/releases/download/off-foods-es-stable/',
+      manifestPath: 'off_catalog_manifest_es.json',
+      defaultDbPath: 'train_libre_off_es.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_es.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_es.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_es_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_es_cached.json',
+    ),
+    OffCatalogCountry.au: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'au',
+      channel: 'stable',
+      releaseTag: 'off-foods-au-stable',
+      baseUrl:
+          'https://github.com/rfivesix/train-libre/releases/download/off-foods-au-stable/',
+      manifestPath: 'off_catalog_manifest_au.json',
+      defaultDbPath: 'train_libre_off_au.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_au.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_au.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_au_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_au_cached.json',
+    ),
   };
 
   static OffCatalogRemoteSourceConfig offCatalogForCountry(
@@ -345,6 +417,9 @@ enum OffCatalogCountry {
   it,
   jp,
   at,
+  nl,
+  es,
+  au,
 }
 
 extension OffCatalogCountryX on OffCatalogCountry {
@@ -357,6 +432,9 @@ extension OffCatalogCountryX on OffCatalogCountry {
         OffCatalogCountry.it => 'it',
         OffCatalogCountry.jp => 'jp',
         OffCatalogCountry.at => 'at',
+        OffCatalogCountry.nl => 'nl',
+        OffCatalogCountry.es => 'es',
+        OffCatalogCountry.au => 'au',
       };
 
   String get upperCode => code.toUpperCase();

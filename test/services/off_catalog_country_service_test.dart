@@ -132,6 +132,29 @@ void main() {
       expect(us.legacyBundledAssetDbPath, 'assets/db/hypertrack_prep_us.db');
       expect(uk.legacyBundledAssetDbPath, 'assets/db/hypertrack_prep_uk.db');
     });
+
+    test('includes NL, ES, and AU release channels and manifest paths', () {
+      final cases = {
+        OffCatalogCountry.nl: ('off-foods-nl-stable', 'off_catalog_manifest_nl.json'),
+        OffCatalogCountry.es: ('off-foods-es-stable', 'off_catalog_manifest_es.json'),
+        OffCatalogCountry.au: ('off-foods-au-stable', 'off_catalog_manifest_au.json'),
+      };
+      for (final entry in cases.entries) {
+        final config = AppDataSources.offCatalogForCountry(entry.key);
+        expect(config.countryCode, entry.key.code);
+        expect(config.releaseTag, entry.value.$1);
+        expect(config.manifestPath, entry.value.$2);
+        expect(config.minimumProductRows, 5000);
+      }
+    });
+
+    test('new regions are supported and resolve stored country codes', () {
+      expect(AppDataSources.supportedOffCatalogCountries,
+          containsAll([OffCatalogCountry.nl, OffCatalogCountry.es, OffCatalogCountry.au]));
+      expect(OffCatalogCountryCodec.parseOrDefault('nl'), OffCatalogCountry.nl);
+      expect(OffCatalogCountryCodec.parseOrDefault('es'), OffCatalogCountry.es);
+      expect(OffCatalogCountryCodec.parseOrDefault('au'), OffCatalogCountry.au);
+    });
   });
 }
 

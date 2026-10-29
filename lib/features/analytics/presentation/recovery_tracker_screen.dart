@@ -1027,9 +1027,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                 _buildZoneCard(
                   context,
                   l10n,
-                  title: l10n.localeName.startsWith('de')
-                      ? 'Gemischt / Bereit'
-                      : 'Mixed / Ready',
+                  title: l10n.recoveryMixedReadyZoneTitle,
                   muscles: readyMuscles,
                   color: _stateColor(context, RecoveryDomainService.stateReady),
                   isExpanded: _isReadyExpanded,

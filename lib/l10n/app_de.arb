@@ -1020,7 +1020,7 @@
   "amountLabel": "Menge",
   "mealAddedToDiarySuccess": "Rezept zum Tagebuch hinzugefügt",
   "error": "Fehler",
-  "mealsViewTitle": "mealsViewTitle",
+  "mealsViewTitle": "Rezepte",
   "noNotes": "Keine Notizen",
   "ingredientsCapsLock": "ZUTATEN",
   "nutritionSectionLabel": "NÄHRWERTE",
@@ -1072,6 +1072,9 @@
   "settingsFoodDbRegionItaly": "Italien (IT)",
   "settingsFoodDbRegionJapan": "Japan (JP)",
   "settingsFoodDbRegionAustria": "Österreich (AT)",
+  "settingsFoodDbRegionNetherlands": "Niederlande (NL)",
+  "settingsFoodDbRegionSpain": "Spanien (ES)",
+  "settingsFoodDbRegionAustralia": "Australien (AU)",
   "settingsColorfulMacroBadgesTitle": "Bunte Nährwert-Badges",
   "settingsColorfulMacroBadgesSubtitle": "Nutzt das farbcodierte Badge-Design aus der KI-Prüfung auch im Tagebuch.",
   "settingsFoodDbRegionUnitedKingdom": "Vereinigtes Königreich (UK)",
@@ -1220,7 +1223,6 @@
   "aiReviewPreliminaryNutrition": "Vorläufige Nährwerte – die Prüfung läuft noch.",
   "aiReviewScanFailed": "Der Scan konnte nicht abgeschlossen werden. Bitte gehe zurück und versuche es erneut.",
   "aiReviewScanTimedOut": "Die KI-Anfrage hat zu lange gedauert. Der Scan wurde beendet. Bitte gehe zurück und versuche es erneut.",
-
   "aiReviewFeedbackHint": "Beschreibe, was die KI falsch erkannt hat...",
   "aiReviewRetryButton": "Mit Korrektur erneut versuchen",
   "aiReviewFeedbackSection": "Korrektur",
@@ -2479,6 +2481,8 @@
   "settingsBaseFoodLanguageFrench": "Französisch",
   "settingsBaseFoodLanguageItalian": "Italienisch",
   "settingsBaseFoodLanguageJapanese": "Japanisch",
+  "settingsBaseFoodLanguageSpanish": "Spanisch",
+  "settingsBaseFoodLanguageDutch": "Niederländisch",
   "aiModelLabel": "Modell",
   "aiModelListFallbackTitle": "Eingebaute Modell-Liste wird angezeigt",
   "aiModelListRetry": "Modelle neu laden",
@@ -3799,5 +3803,9 @@
   "macroEntryDefaultName": "Makroeintrag",
   "macroEntryDetailTitle": "Nährwerte",
   "macroEntryFillThreeValues": "Bitte genau drei der vier Makrowerte eintragen.",
-  "macroEntryDeleteConfirm": "Dieser Eintrag ist mit einem Makroeintrag verknüpft. Beim Löschen werden Getränk und Makroeintrag entfernt."
+  "macroEntryDeleteConfirm": "Dieser Eintrag ist mit einem Makroeintrag verknüpft. Beim Löschen werden Getränk und Makroeintrag entfernt.",
+  "recoveryMixedReadyZoneTitle": "Gemischt / Bereit",
+  "feedbackReportDirectRequiresTelemetry": "Für den Direktversand muss die anonyme Nutzungsstatistik aktiviert sein. Aktiviere sie in den Einstellungen oder nutze stattdessen E-Mail oder Teilen.",
+  "feedbackReportDirectSent": "Diagnosebericht direkt an den Entwickler gesendet. Vielen Dank!",
+  "feedbackReportDirectSend": "Direkt an den Entwickler senden"
 }

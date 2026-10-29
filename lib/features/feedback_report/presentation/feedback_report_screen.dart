@@ -414,18 +414,11 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
 
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    final isGerman = l10n.localeName.startsWith('de');
 
     if (!canSubmit) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            isGerman
-                ? 'Direktversand benötigt die anonyme Nutzungsstatistik. '
-                    'Aktiviere sie in den Einstellungen oder nutze E-Mail bzw. Teilen.'
-                : 'Direct submission requires anonymous usage statistics. '
-                    'Enable it in Settings, or use email or share instead.',
-          ),
+          content: Text(l10n.feedbackReportDirectRequiresTelemetry),
         ),
       );
       return;
@@ -435,11 +428,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          isGerman
-              ? 'Diagnosebericht direkt an Entwickler gesendet. Vielen Dank!'
-              : 'Diagnostic report sent directly to developer. Thank you!',
-        ),
+        content: Text(l10n.feedbackReportDirectSent),
       ),
     );
   }
@@ -576,12 +565,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
               child: AppButton.primary(
                 key: const Key('feedback_report_action_send_posthog'),
                 onPressed: _sendAnonymousReportToPostHog,
-                label: l10n.localeName.startsWith('de')
-                    ? 'Direkt an Entwickler senden'
-                    : 'Send directly to developer',
-                tooltip: l10n.localeName.startsWith('de')
-                    ? 'Direkt an Entwickler senden'
-                    : 'Send directly to developer',
+                label: l10n.feedbackReportDirectSend,
+                tooltip: l10n.feedbackReportDirectSend,
                 icon: LucideIcons.send,
               ),
             ),

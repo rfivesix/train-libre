@@ -98,6 +98,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
 
       final foodData = FoodItem(
         id: widget.foodItemToEdit?.id,
+        nameEs: widget.foodItemToEdit?.nameEs ?? '',
+        nameNl: widget.foodItemToEdit?.nameNl ?? '',
         barcode: _isEditing
             ? widget.foodItemToEdit!.barcode
             : "user_created_${DateTime.now().millisecondsSinceEpoch}",

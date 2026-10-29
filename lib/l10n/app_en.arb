@@ -1019,7 +1019,7 @@
   "amountLabel": "Amount",
   "mealAddedToDiarySuccess": "Recipe added to diary",
   "error": "Error",
-  "mealsViewTitle": "mealsViewTitle",
+  "mealsViewTitle": "Recipes",
   "noNotes": "No notes",
   "ingredientsCapsLock": "INGREDIENTS",
   "nutritionSectionLabel": "NUTRITION FACTS",
@@ -1071,6 +1071,9 @@
   "settingsFoodDbRegionItaly": "Italy (IT)",
   "settingsFoodDbRegionJapan": "Japan (JP)",
   "settingsFoodDbRegionAustria": "Austria (AT)",
+  "settingsFoodDbRegionNetherlands": "Netherlands (NL)",
+  "settingsFoodDbRegionSpain": "Spain (ES)",
+  "settingsFoodDbRegionAustralia": "Australia (AU)",
   "settingsColorfulMacroBadgesTitle": "Colorful Macro Badges",
   "settingsColorfulMacroBadgesSubtitle": "Uses the color-coded badge design from AI verification in the diary as well.",
   "settingsFoodDbRegionUnitedKingdom": "United Kingdom (UK)",
@@ -1226,7 +1229,6 @@
   "aiReviewPreliminaryNutrition": "Preliminary nutrition – still checking.",
   "aiReviewScanFailed": "The scan could not be completed. Please go back and try again.",
   "aiReviewScanTimedOut": "The AI request took too long. The scan has stopped. Please go back and try again.",
-
   "aiReviewFeedbackHint": "Describe what the AI got wrong...",
   "aiReviewRetryButton": "Retry with Feedback",
   "aiReviewFeedbackSection": "Correction",
@@ -2485,6 +2487,8 @@
   "settingsBaseFoodLanguageFrench": "French",
   "settingsBaseFoodLanguageItalian": "Italian",
   "settingsBaseFoodLanguageJapanese": "Japanese",
+  "settingsBaseFoodLanguageSpanish": "Spanish",
+  "settingsBaseFoodLanguageDutch": "Dutch",
   "aiModelLabel": "Model",
   "aiModelListFallbackTitle": "Showing the built-in model list",
   "aiModelListRetry": "Reload models",
@@ -4015,5 +4019,9 @@
   "macroEntryDefaultName": "Macro entry",
   "macroEntryDetailTitle": "Nutrients",
   "macroEntryFillThreeValues": "Enter exactly three of the four macro values.",
-  "macroEntryDeleteConfirm": "This drink is linked to a macro entry. Deleting it also removes the macro entry."
+  "macroEntryDeleteConfirm": "This drink is linked to a macro entry. Deleting it also removes the macro entry.",
+  "recoveryMixedReadyZoneTitle": "Mixed / Ready",
+  "feedbackReportDirectRequiresTelemetry": "Direct submission requires anonymous usage statistics. Enable them in Settings, or use email or share instead.",
+  "feedbackReportDirectSent": "Diagnostic report sent directly to the developer. Thank you!",
+  "feedbackReportDirectSend": "Send directly to the developer"
 }

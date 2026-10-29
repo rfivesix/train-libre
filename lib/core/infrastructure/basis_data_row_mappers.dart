@@ -132,6 +132,8 @@ class BasisDataRowMappers {
     final rawNameFr = row['name_fr']?.toString();
     final rawNameIt = row['name_it']?.toString();
     final rawNameJa = row['name_ja']?.toString();
+    final rawNameEs = row['name_es']?.toString();
+    final rawNameNl = row['name_nl']?.toString();
     final rawName = row['name']?.toString() ?? '';
 
     // Select the display name (for the legacy `name` column) based on preference.
@@ -144,6 +146,10 @@ class BasisDataRowMappers {
       displayName = parseString(rawNameIt ?? rawNameEn ?? rawNameDe ?? rawName);
     } else if (preferredLanguage == 'ja') {
       displayName = parseString(rawNameJa ?? rawNameEn ?? rawNameDe ?? rawName);
+    } else if (preferredLanguage == 'es') {
+      displayName = parseString(rawNameEs ?? rawNameEn ?? rawNameDe ?? rawName);
+    } else if (preferredLanguage == 'nl') {
+      displayName = parseString(rawNameNl ?? rawNameEn ?? rawNameDe ?? rawName);
     } else {
       displayName = parseString(rawNameDe ?? rawNameEn ?? rawName);
     }
@@ -381,6 +387,10 @@ class BasisDataRowMappers {
       nameFr: drift.Value(rawNameFr),
       nameIt: drift.Value(rawNameIt),
       nameJa: drift.Value(rawNameJa),
+      nameEs: drift.Value(rawNameEs),
+      nameNl: drift.Value(rawNameNl),
+      categoryEs: drift.Value(row['category_es']?.toString()),
+      categoryNl: drift.Value(row['category_nl']?.toString()),
       brand: drift.Value(parseString(row['brand'])),
       calories: drift.Value(parseInt(row['calories'])),
       protein: drift.Value(parseDouble(row['protein'])),
@@ -423,6 +433,8 @@ class BasisDataRowMappers {
       nameFr: drift.Value(row['name_fr'] as String?),
       nameIt: drift.Value(row['name_it'] as String?),
       nameJa: drift.Value(row['name_ja'] as String?),
+      nameEs: drift.Value(row['name_es'] as String?),
+      nameNl: drift.Value(row['name_nl'] as String?),
       emoji: drift.Value(row['emoji'] as String?),
     );
   }
@@ -503,9 +515,14 @@ class BasisDataRowMappers {
       if (choice == BaseFoodLanguage.fr) return 'fr';
       if (choice == BaseFoodLanguage.it) return 'it';
       if (choice == BaseFoodLanguage.ja) return 'ja';
+      if (choice == BaseFoodLanguage.es) return 'es';
+      if (choice == BaseFoodLanguage.nl) return 'nl';
       // Auto: derive from the food DB region.
       return switch (offCountry) {
-        OffCatalogCountry.us || OffCatalogCountry.uk => 'en',
+        OffCatalogCountry.us ||
+        OffCatalogCountry.uk ||
+        OffCatalogCountry.au =>
+          'en',
         OffCatalogCountry.de ||
         OffCatalogCountry.ch ||
         OffCatalogCountry.at =>
@@ -513,6 +530,8 @@ class BasisDataRowMappers {
         OffCatalogCountry.fr => 'fr',
         OffCatalogCountry.it => 'it',
         OffCatalogCountry.jp => 'ja',
+        OffCatalogCountry.nl => 'nl',
+        OffCatalogCountry.es => 'es',
       };
     }
     if (preferredLanguage != null) {

@@ -21,6 +21,9 @@ void main() {
       expect(OffCatalogCountry.fr.primaryLanguageCode, equals('fr'));
       expect(OffCatalogCountry.it.primaryLanguageCode, equals('it'));
       expect(OffCatalogCountry.jp.primaryLanguageCode, equals('ja'));
+      expect(OffCatalogCountry.nl.primaryLanguageCode, equals('nl'));
+      expect(OffCatalogCountry.es.primaryLanguageCode, equals('es'));
+      expect(OffCatalogCountry.au.primaryLanguageCode, equals('en'));
     });
 
     test('AiMatchingContext identifies different catalog language correctly',

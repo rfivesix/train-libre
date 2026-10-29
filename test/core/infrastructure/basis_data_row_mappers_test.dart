@@ -125,6 +125,11 @@ void main() {
         {
           'barcode': '4000123456789',
           'name_de': 'Apfelsaft',
+          'name_en': 'Apple juice',
+          'name_es': 'Zumo de manzana',
+          'name_nl': 'Appelsap',
+          'category_es': 'Bebidas',
+          'category_nl': 'Dranken',
           'calories': 45,
           'protein': 0.1,
           'carbs': 11.0,
@@ -142,10 +147,41 @@ void main() {
 
       expect(companion.barcode.value, '4000123456789');
       expect(companion.name.value, 'Apfelsaft');
+      expect(companion.nameEs.value, 'Zumo de manzana');
+      expect(companion.nameNl.value, 'Appelsap');
+      expect(companion.categoryEs.value, 'Bebidas');
+      expect(companion.categoryNl.value, 'Dranken');
       expect(companion.calories.value, 45);
       expect(companion.carbs.value, 11.0);
       expect(companion.isFluid.value, isTrue);
       expect(companion.source.value, 'base');
+    });
+
+    test('mapProductRow selects Spanish and Dutch catalog names', () {
+      final row = {
+        'barcode': 'bls:B101000',
+        'name_de': 'Vollkornbrot',
+        'name_en': 'Wholemeal bread',
+        'name_es': 'Pan integral',
+        'name_nl': 'Volkorenbrood',
+      };
+
+      expect(
+        BasisDataRowMappers.mapProductRow(
+          row,
+          sourceLabel: 'base',
+          preferredLanguage: 'es',
+        ).name.value,
+        'Pan integral',
+      );
+      expect(
+        BasisDataRowMappers.mapProductRow(
+          row,
+          sourceLabel: 'base',
+          preferredLanguage: 'nl',
+        ).name.value,
+        'Volkorenbrood',
+      );
     });
 
     test('resolveBaseFoodLangCode handles choice and offCountry', () {
@@ -176,6 +212,54 @@ void main() {
           offCountry: OffCatalogCountry.fr,
         ),
         'fr',
+      );
+      expect(
+        BasisDataRowMappers.resolveBaseFoodLangCode(
+          choice: BaseFoodLanguage.es,
+          offCountry: OffCatalogCountry.de,
+        ),
+        'es',
+      );
+      expect(
+        BasisDataRowMappers.resolveBaseFoodLangCode(
+          choice: BaseFoodLanguage.nl,
+          offCountry: OffCatalogCountry.de,
+        ),
+        'nl',
+      );
+      expect(
+        BasisDataRowMappers.resolveBaseFoodLangCode(
+          choice: BaseFoodLanguage.auto,
+          offCountry: OffCatalogCountry.es,
+        ),
+        'es',
+      );
+      expect(
+        BasisDataRowMappers.resolveBaseFoodLangCode(
+          choice: BaseFoodLanguage.auto,
+          offCountry: OffCatalogCountry.nl,
+        ),
+        'nl',
+      );
+    });
+
+    test('automatic base-food language follows Spanish and Dutch app locales',
+        () {
+      expect(
+        BaseFoodLanguageService.resolveLanguageCodeFromLocale(
+          choice: BaseFoodLanguage.auto,
+          locale: 'es',
+          activeCountry: OffCatalogCountry.de,
+        ),
+        'es',
+      );
+      expect(
+        BaseFoodLanguageService.resolveLanguageCodeFromLocale(
+          choice: BaseFoodLanguage.auto,
+          locale: 'nl',
+          activeCountry: OffCatalogCountry.es,
+        ),
+        'nl',
       );
     });
 

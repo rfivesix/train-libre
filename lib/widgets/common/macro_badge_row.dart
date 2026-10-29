@@ -47,8 +47,8 @@ class MacroBadgeRow extends StatelessWidget {
 
   Widget _buildPlainRow(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final carbsAbbr = _carbsAbbreviation(context);
     final isGerman = Localizations.localeOf(context).languageCode == 'de';
-    final carbsAbbr = isGerman ? 'KH' : 'C';
     final sugarLabel = l10n?.sugar ?? (isGerman ? 'Zucker' : 'Sugar');
     final caffeineLabel = l10n?.caffeine ?? (isGerman ? 'Koffein' : 'Caffeine');
 
@@ -88,7 +88,7 @@ class MacroBadgeRow extends StatelessWidget {
     final caffeineColor = macroColors?.caffeine ?? Colors.brown;
     final waterColor = macroColors?.water ?? Colors.blue;
 
-    final isGerman = Localizations.localeOf(context).languageCode == 'de';
+    final carbsAbbr = _carbsAbbreviation(context);
     final badges = <Widget>[];
 
     if (kcal != null) {
@@ -99,8 +99,8 @@ class MacroBadgeRow extends StatelessWidget {
           _badge('P ${protein!.toStringAsFixed(0)}', 'g', proteinColor, theme));
     }
     if (carbs != null && carbs! > 0) {
-      badges.add(
-          _badge('${isGerman ? 'KH' : 'C'} ${carbs!.toStringAsFixed(0)}', 'g', carbsColor, theme));
+      badges.add(_badge(
+          '$carbsAbbr ${carbs!.toStringAsFixed(0)}', 'g', carbsColor, theme));
     }
     if (fat != null && fat! > 0) {
       badges.add(_badge('F ${fat!.toStringAsFixed(0)}', 'g', fatColor, theme));
@@ -125,6 +125,13 @@ class MacroBadgeRow extends StatelessWidget {
       children: badges,
     );
   }
+
+  String _carbsAbbreviation(BuildContext context) =>
+      switch (Localizations.localeOf(context).languageCode) {
+        'de' || 'nl' => 'KH',
+        'es' => 'HC',
+        _ => 'C',
+      };
 
   Widget _badge(String value, String unit, Color color, ThemeData theme) {
     return Container(

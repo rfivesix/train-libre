@@ -31,10 +31,15 @@ extension OffCatalogCountryLanguageX on OffCatalogCountry {
         OffCatalogCountry.at ||
         OffCatalogCountry.ch =>
           'de',
-        OffCatalogCountry.us || OffCatalogCountry.uk => 'en',
+        OffCatalogCountry.us ||
+        OffCatalogCountry.uk ||
+        OffCatalogCountry.au =>
+          'en',
         OffCatalogCountry.fr => 'fr',
         OffCatalogCountry.it => 'it',
         OffCatalogCountry.jp => 'ja',
+        OffCatalogCountry.nl => 'nl',
+        OffCatalogCountry.es => 'es',
       };
 }
 
