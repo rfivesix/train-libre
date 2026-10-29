@@ -21,7 +21,7 @@ Future<double?> showAdaptiveTargetRatePicker({
   required UnitService unitService,
 }) async {
   final isDark = Theme.of(context).brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
+  final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
   final isMetric = unitService.isMetric;
 
@@ -68,9 +68,9 @@ Future<double?> showAdaptiveTargetRatePicker({
           .replaceAll(RegExp(r'0*$'), '')
           .replaceAll(RegExp(r'\.$'), '');
       if (grams < 1000 && grams % 100 != 0) {
-        return '$sign$grams g/Woche ($sign$displayVal kg)';
+        return '${l10n.adaptiveRatePerWeek('$sign$grams', 'g')} ($sign$displayVal kg)';
       }
-      return '$sign$displayVal kg/Woche ($sign$grams g)';
+      return '${l10n.adaptiveRatePerWeek('$sign$displayVal', 'kg')} ($sign$grams g)';
     } else {
       final displayLbs = unitService.convertDisplayValue(
         rawKgPerWeek,
@@ -103,8 +103,7 @@ Future<double?> showAdaptiveTargetRatePicker({
               ),
               child: Center(
                 child: Text(
-                  l10n?.customTargetRateDialogTitle ??
-                      'Eigene Zielrate festlegen',
+                  l10n.customTargetRateDialogTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -152,8 +151,8 @@ Future<double?> showAdaptiveTargetRatePicker({
                   Expanded(
                     child: AppButton.secondary(
                       onPressed: () => Navigator.pop(ctx),
-                      label: l10n?.cancel ?? 'Cancel',
-                      tooltip: l10n?.cancel ?? 'Cancel',
+                      label: l10n.cancel,
+                      tooltip: l10n.cancel,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingM),
@@ -165,8 +164,8 @@ Future<double?> showAdaptiveTargetRatePicker({
                             : selectedValue;
                         Navigator.pop(ctx, finalSigned);
                       },
-                      label: l10n?.snackbarButtonOK ?? 'OK',
-                      tooltip: l10n?.snackbarButtonOK ?? 'OK',
+                      label: l10n.snackbarButtonOK,
+                      tooltip: l10n.snackbarButtonOK,
                     ),
                   ),
                 ],

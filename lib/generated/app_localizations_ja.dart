@@ -8794,6 +8794,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiOverlayDemoDeniedFeedback => 'このデモではリクエストを拒否しました。';
 
   @override
+  String get aiOverlayDemoAssistantHint => "AIアシスタントを開く";
+  String get aiOverlayDemoColorSectionTitle => "白黒";
+  String get aiOverlayDemoColorWhite => "白";
+  String get aiOverlayDemoColorBlack => "黒";
+  String get aiOverlayDemoLivelinessTitle => "クラウドの動き";
+  String get aiOverlayDemoLivelinessDescription => "展開したAIクラウドの動きを調整します。";
+  String get aiOverlayDemoSafeSpaceTitle => "セーフエリアのポイントを表示";
+  String get aiOverlayDemoSafeSpaceSubtitle => "エリアを調整するための角を表示します";
+  String get aiOverlayDemoFullscreenTitle => "最初から全画面で開く";
+  String get aiOverlayDemoFullscreenSubtitle => "クラウドを開くときの中間画面を省略します";
+  String get developerNutritionLabSubtitle => "栄養ロジックと適応型の提案を確認";
+  String get appleFoundationReadyTitle => "このデバイスで利用できます";
+  String get appleFoundationEnableTitle => "iOSの設定で有効にする";
+  String get appleFoundationNoTransferSubtitle => "データ転送もAPI費用もありません。";
+  String get telemetryDeleteSuccess => "テレメトリー識別子とデータを端末内およびサーバーから削除しました。";
   String get aiOverlayDemoCloudHint => '雲を左右にドラッグして移動します。位置は保存されます。';
 
   @override

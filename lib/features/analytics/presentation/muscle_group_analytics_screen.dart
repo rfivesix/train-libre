@@ -154,7 +154,7 @@ class _MuscleGroupAnalyticsScreenState
 
     if (hasNoData) {
       bodyContent = ActiveGapOverlay(
-        message: "Keine Volumenverteilung vorhanden",
+        message: l10n.noData,
         background: Skeletonizer(
           enabled: true,
           child: IgnorePointer(child: bodyContent),

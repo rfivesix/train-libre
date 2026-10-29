@@ -9240,6 +9240,28 @@ class AppLocalizationsIt extends AppLocalizations {
       'Richiesta rifiutata in questa demo.';
 
   @override
+  String get aiOverlayDemoAssistantHint => "Apri l’assistente IA";
+  String get aiOverlayDemoColorSectionTitle => "Bianco e nero";
+  String get aiOverlayDemoColorWhite => "Bianco";
+  String get aiOverlayDemoColorBlack => "Nero";
+  String get aiOverlayDemoLivelinessTitle => "Vivacità della nuvola";
+  String get aiOverlayDemoLivelinessDescription =>
+      "Regola il movimento della nuvola IA espansa.";
+  String get aiOverlayDemoSafeSpaceTitle => "Mostra i punti dell’area sicura";
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      "Mostra gli angoli per ridimensionare l’area";
+  String get aiOverlayDemoFullscreenTitle =>
+      "Apri direttamente a schermo intero";
+  String get aiOverlayDemoFullscreenSubtitle =>
+      "Salta la schermata intermedia all’apertura della nuvola";
+  String get developerNutritionLabSubtitle =>
+      "Esamina la logica nutrizionale e i consigli adattivi";
+  String get appleFoundationReadyTitle => "Disponibile su questo dispositivo";
+  String get appleFoundationEnableTitle => "Attiva nelle impostazioni di iOS";
+  String get appleFoundationNoTransferSubtitle =>
+      "Nessun trasferimento di dati e nessun costo API.";
+  String get telemetryDeleteSuccess =>
+      "Gli identificativi e i dati di telemetria sono stati eliminati localmente e dal server.";
   String get aiOverlayDemoCloudHint =>
       'Trascina la nuvola orizzontalmente. La posizione viene salvata.';
 

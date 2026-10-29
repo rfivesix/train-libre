@@ -9190,6 +9190,29 @@ class AppLocalizationsDe extends AppLocalizations {
       'Vorschlag in dieser Demo abgelehnt.';
 
   @override
+  String get aiOverlayDemoAssistantHint => "KI-Assistent öffnen";
+  String get aiOverlayDemoColorSectionTitle => "Schwarz und Weiß";
+  String get aiOverlayDemoColorWhite => "Weiß";
+  String get aiOverlayDemoColorBlack => "Schwarz";
+  String get aiOverlayDemoLivelinessTitle => "Lebhaftigkeit der Wolke";
+  String get aiOverlayDemoLivelinessDescription =>
+      "Steuert die Bewegung der erweiterten KI-Wolke.";
+  String get aiOverlayDemoSafeSpaceTitle =>
+      "Punkte für den sicheren Bereich anzeigen";
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      "Ecken zum Anpassen des Bereichs einblenden";
+  String get aiOverlayDemoFullscreenTitle => "Direkt im Vollbild öffnen";
+  String get aiOverlayDemoFullscreenSubtitle =>
+      "Zwischenansicht beim Öffnen der Wolke überspringen";
+  String get developerNutritionLabSubtitle =>
+      "Ernährungslogik und adaptive Empfehlungen prüfen";
+  String get appleFoundationReadyTitle => "Auf diesem Gerät verfügbar";
+  String get appleFoundationEnableTitle =>
+      "In den iOS-Einstellungen aktivieren";
+  String get appleFoundationNoTransferSubtitle =>
+      "Keine Datenübertragung und keine API-Kosten.";
+  String get telemetryDeleteSuccess =>
+      "Telemetrie-IDs und Daten wurden lokal und vom Server gelöscht.";
   String get aiOverlayDemoCloudHint =>
       'Wolke horizontal ziehen. Die Position wird gespeichert.';
 

@@ -29,7 +29,7 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
   if (activeBlock == TimeframeBlock.maxBlock) return null;
 
   final isDark = Theme.of(context).brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
+  final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
 
   final Color barrierColor = isDark
@@ -125,8 +125,7 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
   final locale = Localizations.localeOf(context).toString();
   String formatOption(DateTime date) {
     if (date == rollingFlag) {
-      return l10n?.rollingDaysLabel(activeBlock.rollingDurationDays) ??
-          "Letzte ${activeBlock.rollingDurationDays} Tage (rollierend)";
+      return l10n.rollingDaysLabel(activeBlock.rollingDurationDays);
     }
     final b = activeBlock.getBounds(date, earliestAvailableDay);
     switch (activeBlock) {
@@ -213,8 +212,8 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                     Expanded(
                       child: AppButton.secondary(
                         onPressed: () => Navigator.pop(ctx),
-                        label: l10n?.cancel ?? 'Cancel',
-                        tooltip: l10n?.cancel ?? 'Cancel',
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
@@ -228,8 +227,8 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                           Navigator.pop(ctx,
                               TimeframeSelection(anchor, isRolling: isRolling));
                         },
-                        label: l10n?.snackbarButtonOK ?? 'OK',
-                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
+                        label: l10n.snackbarButtonOK,
+                        tooltip: l10n.snackbarButtonOK,
                       ),
                     ),
                   ],

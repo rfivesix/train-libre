@@ -9265,6 +9265,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiOverlayDemoDeniedFeedback => 'Demande refusée dans cette démo.';
 
   @override
+  String get aiOverlayDemoAssistantHint => "Ouvrir l’assistant IA";
+  String get aiOverlayDemoColorSectionTitle => "Noir et blanc";
+  String get aiOverlayDemoColorWhite => "Blanc";
+  String get aiOverlayDemoColorBlack => "Noir";
+  String get aiOverlayDemoLivelinessTitle => "Animation du nuage";
+  String get aiOverlayDemoLivelinessDescription =>
+      "Règle le mouvement du nuage IA développé.";
+  String get aiOverlayDemoSafeSpaceTitle =>
+      "Afficher les points de la zone sûre";
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      "Afficher les coins permettant de redimensionner la zone";
+  String get aiOverlayDemoFullscreenTitle =>
+      "Ouvrir directement en plein écran";
+  String get aiOverlayDemoFullscreenSubtitle =>
+      "Ignorer l’écran intermédiaire à l’ouverture du nuage";
+  String get developerNutritionLabSubtitle =>
+      "Examiner la logique nutritionnelle et les recommandations adaptatives";
+  String get appleFoundationReadyTitle => "Disponible sur cet appareil";
+  String get appleFoundationEnableTitle => "Activer dans les réglages iOS";
+  String get appleFoundationNoTransferSubtitle =>
+      "Aucun transfert de données ni frais d’API.";
+  String get telemetryDeleteSuccess =>
+      "Les identifiants et données de télémétrie ont été supprimés localement et du serveur.";
   String get aiOverlayDemoCloudHint =>
       'Faites glisser le nuage horizontalement. Sa position est enregistrée.';
 

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../generated/app_localizations.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
 
@@ -90,6 +91,7 @@ class _MacroHistoryStackedBarChartState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final macroColors = theme.extension<MacroColors>();
 
     final proteinColor = macroColors?.protein ?? Colors.red;
@@ -172,7 +174,7 @@ class _MacroHistoryStackedBarChartState
                 child: widget.dailyIntakes.isEmpty
                     ? Center(
                         child: Text(
-                          'Keine Daten',
+                          l10n.noData,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.5),

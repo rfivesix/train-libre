@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Replaced hard-coded German UI copy that leaked into non-German locales with app-localized text in the AI overlay controls, Developer Settings, analytics empty states, target-rate picker, AI provider status, and telemetry confirmation; added matching strings to the existing five locale catalogs.
 - Startup keeps the normal animated cloud during remote catalog manifest and freshness checks; the download progress screen appears only once catalog files are actually downloading and stays active through installation.
 - Reorganized Developer Settings into click-through categories for Nutrition Lab, AI meal scan logs, AI Overlay, and performance diagnostics; removed the duplicate experience-level control and obsolete overlay demo labels and live-AI toggle while keeping the overlay debug controls.
 - Removed duplicate page headings from Developer Settings and AI meal scan logs, and placed Nutrition Lab content below its app bar.

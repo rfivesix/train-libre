@@ -9118,6 +9118,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiOverlayDemoDeniedFeedback => 'Request declined in this demo.';
 
   @override
+  String get aiOverlayDemoAssistantHint => "Open AI assistant";
+  String get aiOverlayDemoColorSectionTitle => "Black and white";
+  String get aiOverlayDemoColorWhite => "White";
+  String get aiOverlayDemoColorBlack => "Black";
+  String get aiOverlayDemoLivelinessTitle => "Cloud liveliness";
+  String get aiOverlayDemoLivelinessDescription =>
+      "Controls the motion of the expanded AI cloud.";
+  String get aiOverlayDemoSafeSpaceTitle => "Show safe-area points";
+  String get aiOverlayDemoSafeSpaceSubtitle =>
+      "Show the corners used to resize the area";
+  String get aiOverlayDemoFullscreenTitle => "Open directly in full screen";
+  String get aiOverlayDemoFullscreenSubtitle =>
+      "Skip the intermediate view when opening the cloud";
+  String get developerNutritionLabSubtitle =>
+      "Inspect nutrition logic and adaptive recommendations";
+  String get appleFoundationReadyTitle => "Available on this device";
+  String get appleFoundationEnableTitle => "Enable in iOS Settings";
+  String get appleFoundationNoTransferSubtitle =>
+      "No data transfer and no API costs.";
+  String get telemetryDeleteSuccess =>
+      "Telemetry identifiers and data were deleted locally and from the server.";
   String get aiOverlayDemoCloudHint =>
       'Drag horizontally to move the cloud. Its position is saved.';
 

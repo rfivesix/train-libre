@@ -3,6 +3,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+import '../../../../generated/app_localizations.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -111,6 +112,7 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final macroColors = theme.extension<MacroColors>();
 
     final proteinColor = macroColors?.protein ?? Colors.red;
@@ -148,10 +150,10 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
             children: [
               AnalyticsCardBase.buildHeaderWithChevron(
                 context,
-                label: 'Makronährstoffe',
+                label: l10n.foodDetailMacronutrientsGroup,
                 chipText: widget.rangeLabel ??
                     (widget.activeBlockType == TimeframeBlock.week
-                        ? 'Letzte 7 Tage'
+                        ? l10n.statisticsLast7Days
                         : widget.activeBlockType.name),
                 trailingIcon: true,
               ),

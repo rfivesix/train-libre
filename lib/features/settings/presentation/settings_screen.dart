@@ -709,11 +709,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await TelemetryService.instance.resetLocalData();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Telemetrie-IDs & Daten wurden lokal und vom Server gelöscht.',
-                  ),
-                ),
+                SnackBar(content: Text(l10n.telemetryDeleteSuccess)),
               );
             },
           ),

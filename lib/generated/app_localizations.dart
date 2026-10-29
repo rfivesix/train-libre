@@ -16045,6 +16045,21 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Drag horizontally to move the cloud. Its position is saved.'**
+  String get aiOverlayDemoAssistantHint;
+  String get aiOverlayDemoColorSectionTitle;
+  String get aiOverlayDemoColorWhite;
+  String get aiOverlayDemoColorBlack;
+  String get aiOverlayDemoLivelinessTitle;
+  String get aiOverlayDemoLivelinessDescription;
+  String get aiOverlayDemoSafeSpaceTitle;
+  String get aiOverlayDemoSafeSpaceSubtitle;
+  String get aiOverlayDemoFullscreenTitle;
+  String get aiOverlayDemoFullscreenSubtitle;
+  String get developerNutritionLabSubtitle;
+  String get appleFoundationReadyTitle;
+  String get appleFoundationEnableTitle;
+  String get appleFoundationNoTransferSubtitle;
+  String get telemetryDeleteSuccess;
   String get aiOverlayDemoCloudHint;
 
   /// No description provided for @aiAssistantAskModelHint.

@@ -35,7 +35,7 @@ class DeveloperSettingsScreen extends StatelessWidget {
           AppSettingsRow.navigation(
             key: const Key('developer_nutrition_lab'),
             title: 'Nutrition Lab',
-            subtitle: 'Ernährungslogik und adaptive Empfehlungen prüfen',
+            subtitle: l10n.developerNutritionLabSubtitle,
             leading: Icon(LucideIcons.apple,
                 size: 24, color: theme.colorScheme.primary),
             onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(

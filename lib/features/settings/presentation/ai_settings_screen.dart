@@ -588,10 +588,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           : Colors.orange,
                     ),
                     title: _isAppleFoundationAvailable
-                        ? 'Funktioniert 100% offline auf dem Gerät'
-                        : 'In den iOS-Einstellungen aktivieren',
+                        ? l10n.appleFoundationReadyTitle
+                        : l10n.appleFoundationEnableTitle,
                     subtitle: _isAppleFoundationAvailable
-                        ? 'Keine Datenübertragung, keine API-Kosten.'
+                        ? l10n.appleFoundationNoTransferSubtitle
                         : null,
                   ),
                 ],

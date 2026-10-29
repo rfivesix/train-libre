@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
+import '../../../generated/app_localizations.dart';
 import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
@@ -30,6 +31,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final contentTop = MediaQuery.paddingOf(context).top +
         kToolbarHeight +
         DesignConstants.spacingS;
@@ -50,15 +52,17 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
           ValueListenableBuilder<AiOverlayDemoConfiguration>(
             valueListenable: AiOverlayDemoSettings.configuration,
             builder: (context, settings, _) =>
-                _buildCloudSettingsCard(theme, settings),
+                _buildCloudSettingsCard(theme, l10n, settings),
           ),
           AppSectionHeader(
-            title: 'Schwarz und Weiß',
+            title: l10n.aiOverlayDemoColorSectionTitle,
             isFirst: true,
           ),
-          _buildColorCard(color: Colors.white, semanticLabel: 'Weiß'),
+          _buildColorCard(
+              color: Colors.white, semanticLabel: l10n.aiOverlayDemoColorWhite),
           const SizedBox(height: DesignConstants.spacingM),
-          _buildColorCard(color: Colors.black, semanticLabel: 'Schwarz'),
+          _buildColorCard(
+              color: Colors.black, semanticLabel: l10n.aiOverlayDemoColorBlack),
         ],
       ),
     );
@@ -95,7 +99,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                         child: DraggableAiCloud(
                           navigator: Navigator.of(context),
                           semanticLabel: 'AI Overlay',
-                          semanticHint: 'KI-Assistent öffnen',
+                          semanticHint: l10n.aiOverlayDemoAssistantHint,
                           liveliness: settings.liveliness,
                           showResizeHandles: settings.showResizeHandles,
                           openDirectlyFullscreen:
@@ -130,6 +134,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
 
   Widget _buildCloudSettingsCard(
     ThemeData theme,
+    AppLocalizations l10n,
     AiOverlayDemoConfiguration settings,
   ) {
     return SummaryCard(
@@ -146,7 +151,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
               const SizedBox(width: DesignConstants.spacingS),
               Expanded(
                 child: Text(
-                  'Wolken-Lebhaftigkeit',
+                  l10n.aiOverlayDemoLivelinessTitle,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -161,7 +166,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                 unawaited(AiOverlayDemoSettings.update(liveliness: value)),
           ),
           Text(
-            'Steuert die Bewegung der erweiterten KI-Wolke.',
+            l10n.aiOverlayDemoLivelinessDescription,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -170,8 +175,8 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             dense: true,
-            title: const Text('Safe-Space-Punkte anzeigen'),
-            subtitle: const Text('Ecken zum Verändern des Bereichs einblenden'),
+            title: Text(l10n.aiOverlayDemoSafeSpaceTitle),
+            subtitle: Text(l10n.aiOverlayDemoSafeSpaceSubtitle),
             value: settings.showResizeHandles,
             onChanged: (value) => unawaited(
               AiOverlayDemoSettings.update(showResizeHandles: value),
@@ -180,10 +185,8 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             dense: true,
-            title: const Text('Direkt im Vollbild öffnen'),
-            subtitle: const Text(
-              'Überspringt die Zwischenansicht beim Öffnen der Wolke',
-            ),
+            title: Text(l10n.aiOverlayDemoFullscreenTitle),
+            subtitle: Text(l10n.aiOverlayDemoFullscreenSubtitle),
             value: settings.openDirectlyFullscreen,
             onChanged: (value) => unawaited(
               AiOverlayDemoSettings.update(openDirectlyFullscreen: value),
