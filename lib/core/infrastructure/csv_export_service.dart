@@ -447,7 +447,7 @@ class CsvExportService {
     // 3. Steps History CSV
     try {
       final stepRows = await dbInst.customSelect('''
-        SELECT 
+        SELECT
           date(datetime(start_at, 'unixepoch', 'localtime')) AS day_local,
           SUM(step_count) AS total_steps,
           COALESCE(source_id, provider) AS source_key
