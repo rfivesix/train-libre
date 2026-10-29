@@ -11,6 +11,7 @@ import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_section_header.dart';
+import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 import '../data/whats_new_service.dart';
@@ -230,7 +231,7 @@ class _AiAssistantUpdateIntro extends StatelessWidget {
               ),
             const SizedBox(height: DesignConstants.spacingS),
             Consumer<ThemeService>(
-              builder: (context, settings, _) => SwitchListTile.adaptive(
+              builder: (context, settings, _) => PlatformAdaptiveSwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.aiAssistantUpdateIntroAiEnabled),
                 subtitle: Text(l10n.aiAssistantUpdateIntroAiEnabledHint),
@@ -253,7 +254,7 @@ class _AiAssistantUpdateIntro extends StatelessWidget {
               valueListenable: AiOverlayDemoSettings.configuration,
               builder: (context, settings, _) {
                 final aiEnabled = context.watch<ThemeService>().isAiEnabled;
-                return SwitchListTile.adaptive(
+                return PlatformAdaptiveSwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.aiAssistantUpdateIntroLauncherEnabled),
                   subtitle:

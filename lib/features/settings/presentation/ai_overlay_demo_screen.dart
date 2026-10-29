@@ -12,6 +12,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 import '../../ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 
 /// Scrollable sample content for exploring a future AI assistant surface.
@@ -172,9 +173,8 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          SwitchListTile.adaptive(
+          PlatformAdaptiveSwitchListTile(
             contentPadding: EdgeInsets.zero,
-            dense: true,
             title: Text(l10n.aiOverlayDemoSafeSpaceTitle),
             subtitle: Text(l10n.aiOverlayDemoSafeSpaceSubtitle),
             value: settings.showResizeHandles,
@@ -182,9 +182,8 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
               AiOverlayDemoSettings.update(showResizeHandles: value),
             ),
           ),
-          SwitchListTile.adaptive(
+          PlatformAdaptiveSwitchListTile(
             contentPadding: EdgeInsets.zero,
-            dense: true,
             title: Text(l10n.aiOverlayDemoFullscreenTitle),
             subtitle: Text(l10n.aiOverlayDemoFullscreenSubtitle),
             value: settings.openDirectlyFullscreen,
