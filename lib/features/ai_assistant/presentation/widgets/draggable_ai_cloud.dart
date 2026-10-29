@@ -950,6 +950,21 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                           builder: (context, animatedOffset, _) {
                             final animatedLeft = animatedOffset.dx;
                             final animatedTop = animatedOffset.dy;
+                            final edgeHitSlop =
+                                !isCloudVisible || morphAnimation.value > 0.005
+                                    ? 0.0
+                                    : (animatedLeft < 12 ||
+                                            animatedTop < 12 ||
+                                            animatedLeft +
+                                                    CloudDockingController
+                                                        .cloudSize >
+                                                constraints.maxWidth - 12 ||
+                                            animatedTop +
+                                                    CloudDockingController
+                                                        .cloudSize >
+                                                constraints.maxHeight - 12
+                                        ? 10.0
+                                        : 0.0);
                             final animatedCloudCenter = Offset(
                               animatedLeft +
                                   CloudDockingController.cloudSize / 2,
@@ -1053,8 +1068,12 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                       hitTestCloudShape: true,
                                     );
                                     return Positioned(
-                                      left: isSettledOrb ? animatedLeft : 0,
-                                      top: isSettledOrb ? animatedTop : 0,
+                                      left: isSettledOrb
+                                          ? animatedLeft - edgeHitSlop
+                                          : 0,
+                                      top: isSettledOrb
+                                          ? animatedTop - edgeHitSlop
+                                          : 0,
                                       child: IgnorePointer(
                                         ignoring: morphAnimation.value > 0.001,
                                         child: Semantics(
@@ -1072,8 +1091,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                 _handleCloudPointerEnd(event,
                                                     cancelled: true),
                                             child: GestureDetector(
-                                              behavior:
-                                                  HitTestBehavior.deferToChild,
+                                              behavior: edgeHitSlop > 0
+                                                  ? HitTestBehavior.opaque
+                                                  : HitTestBehavior
+                                                      .deferToChild,
                                               onTap:
                                                   morphAnimation.value > 0.001
                                                       ? null
@@ -1156,14 +1177,18 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                         maxLeft: layout.maxLeft,
                                                         isExpanded: _isExpanded,
                                                       ),
-                                              child: AnimatedScale(
-                                                scale: isAtQuickChatAction
-                                                    ? 0.84
-                                                    : 1,
-                                                duration: const Duration(
-                                                    milliseconds: 380),
-                                                curve: Curves.easeInOutCubic,
-                                                child: cloud,
+                                              child: Padding(
+                                                padding:
+                                                    EdgeInsets.all(edgeHitSlop),
+                                                child: AnimatedScale(
+                                                  scale: isAtQuickChatAction
+                                                      ? 0.84
+                                                      : 1,
+                                                  duration: const Duration(
+                                                      milliseconds: 380),
+                                                  curve: Curves.easeInOutCubic,
+                                                  child: cloud,
+                                                ),
                                               ),
                                             ),
                                           ),

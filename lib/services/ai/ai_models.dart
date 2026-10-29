@@ -242,6 +242,9 @@ class AiSuggestedItem {
   /// The visible portion when [estimatedGrams] is a raw-equivalent amount.
   int? servedGrams;
 
+  /// Whether this suggestion is a drink measured in millilitres.
+  bool isFluid;
+
   /// Confidence score between 0.0 and 1.0.
   double confidence;
 
@@ -259,6 +262,7 @@ class AiSuggestedItem {
     required this.estimatedGrams,
     required this.confidence,
     this.servedGrams,
+    this.isFluid = false,
     this.matchedBarcode,
     this.stateHint,
     this.catalogSearchTerm,
@@ -278,6 +282,7 @@ class AiSuggestedItem {
       servedGrams: (json['servedGrams'] as num?)?.toInt() ??
           (json['estimatedGrams'] as num?)?.toInt() ??
           (json['grams'] as num?)?.toInt(),
+      isFluid: json['isFluid'] == true,
       confidence:
           (json['confidence'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.5,
       matchedBarcode: json['matchedBarcode'] as String?,
@@ -306,6 +311,7 @@ class AiSuggestedItem {
         'name': name,
         'estimatedGrams': estimatedGrams,
         if (servedGrams != null) 'servedGrams': servedGrams,
+        if (isFluid) 'isFluid': true,
         'confidence': confidence,
         if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
         if (stateHint != null) 'stateHint': stateHint,

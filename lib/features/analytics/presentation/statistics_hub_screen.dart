@@ -446,6 +446,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
   ) {
     return SummaryCard(
       margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => StatisticsHubScreen(
@@ -885,7 +886,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                     Text(
                       l10n.body_measurements,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
                           ),
                     ),
                     const SizedBox(height: 2),
@@ -908,12 +909,16 @@ class _StatisticsHubScreenView extends StatelessWidget {
         builder: (cardCtx) => SummaryCard(
           key: const Key('statistics_measurements_link_card'),
           margin: EdgeInsets.zero,
+          padding: EdgeInsets.zero,
           onTap: () {
             Navigator.of(context).push(
               CardMorphRoute(
                 sourceContext: cardCtx,
-                sourceBuilder: (_) =>
-                    SummaryCard(child: buildShortcutContent()),
+                sourceBuilder: (_) => SummaryCard(
+                  margin: EdgeInsets.zero,
+                  padding: EdgeInsets.zero,
+                  child: buildShortcutContent(),
+                ),
                 onSourceVisibilityChanged: setHidden,
                 builder: (_) => const MeasurementsScreen(),
               ),

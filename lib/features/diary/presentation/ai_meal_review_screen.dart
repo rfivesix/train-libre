@@ -473,7 +473,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       mealType: _selectedMealType,
       name: reviewItem.suggestion.name,
       amount: reviewItem.suggestion.estimatedGrams.toDouble(),
-      amountUnit: 'g',
+      amountUnit: reviewItem.suggestion.isFluid ? 'ml' : 'g',
+      isFluid: reviewItem.suggestion.isFluid,
       calories: calculation.calories,
       protein: calculation.protein,
       carbs: calculation.carbs,
@@ -481,6 +482,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       sugar: values['sugar'],
       fiber: values['fiber'],
       salt: values['salt'],
+      caffeine: values['caffeine'],
       calculatedNutrient: 'calories',
     );
     final updated = await showGlassBottomMenu<MacroEntry>(
@@ -530,6 +532,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       'protein': updated.protein,
       'carbs': updated.carbs,
       'fat': updated.fat,
+      if (updated.caffeine != null) 'caffeine': updated.caffeine,
       if (updated.sugar != null) 'sugar': updated.sugar,
       if (updated.fiber != null) 'fiber': updated.fiber,
       if (updated.salt != null) 'salt': updated.salt,
@@ -595,6 +598,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       if (food.sugar != null) 'sugar': food.sugar,
       if (food.fiber != null) 'fiber': food.fiber,
       if (food.salt != null) 'salt': food.salt,
+      if (food.effectiveCaffeinePer100ml != null)
+        'caffeine': food.effectiveCaffeinePer100ml,
     };
   }
 
@@ -607,6 +612,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               name: item.suggestion.name,
               grams: item.suggestion.estimatedGrams,
               servedGrams: item.suggestion.servedGrams,
+              isFluid: item.suggestion.isFluid,
               confidence: item.suggestion.confidence,
               matchedBarcode: widget.directNutritionMode
                   ? null
@@ -634,6 +640,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               name: item.candidate.name,
               estimatedGrams: item.candidate.grams,
               servedGrams: item.candidate.servedGrams,
+              isFluid: item.candidate.isFluid,
               confidence: item.candidate.confidence ?? 1.0,
               matchedBarcode: widget.directNutritionMode
                   ? null
@@ -812,6 +819,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               })(),
               estimatedGrams: 100,
               confidence: 1.0,
+              isFluid: selectedItem.isFluidOrLiquid,
               matchedBarcode: selectedItem.barcode,
             ),
             matchedFood: selectedItem,
@@ -1141,6 +1149,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       if (widget.directNutritionMode) {
         final macroEntries = savePlan.matchedItems.map((item) {
           final food = item.match.bestMatch!;
+          final isFluid =
+              item.candidate.isFluid || food.isFluid || food.isLiquid == true;
           final values = item.candidate.nutritionPer100g ??
               {
                 'protein': food.protein,
@@ -1149,6 +1159,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 'sugar': food.sugar,
                 'fiber': food.fiber,
                 'salt': food.salt,
+                'caffeine': food.effectiveCaffeinePer100ml,
               };
           final protein = values['protein'] ?? food.protein;
           final carbs = values['carbs'] ?? food.carbs;
@@ -1160,7 +1171,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             mealType: _selectedMealType,
             name: item.candidate.name,
             amount: item.candidate.grams.toDouble(),
-            amountUnit: 'g',
+            amountUnit: isFluid ? 'ml' : 'g',
+            isFluid: isFluid,
             calories: protein * 4 + carbs * 4 + fat * 9,
             protein: protein,
             carbs: carbs,
@@ -1168,6 +1180,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             sugar: values['sugar'],
             fiber: values['fiber'],
             salt: values['salt'],
+            caffeine: values['caffeine'],
             calculatedNutrient: 'calories',
           );
         }).toList(growable: false);
@@ -1180,6 +1193,33 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         await diaryRepo.insertMealEntry(mealEntry);
         for (final item in savePlan.matchedItems) {
           final food = item.match.bestMatch!;
+
+          if (item.candidate.isFluid || food.isFluid || food.isLiquid == true) {
+            final values = item.candidate.nutritionPer100g;
+            final protein = values?['protein'] ?? food.protein;
+            final carbs = values?['carbs'] ?? food.carbs;
+            final fat = values?['fat'] ?? food.fat;
+            await db.insertMacroEntry(MacroEntry(
+              id: const Uuid().v4(),
+              mealEntryId: mealEntryId,
+              timestamp: _selectedTimestamp,
+              mealType: _selectedMealType,
+              name: item.candidate.name,
+              amount: item.candidate.grams.toDouble(),
+              amountUnit: 'ml',
+              isFluid: true,
+              calories: protein * 4 + carbs * 4 + fat * 9,
+              protein: protein,
+              carbs: carbs,
+              fat: fat,
+              sugar: values?['sugar'] ?? food.sugar,
+              fiber: values?['fiber'] ?? food.fiber,
+              salt: values?['salt'] ?? food.salt,
+              caffeine: values?['caffeine'] ?? food.effectiveCaffeinePer100ml,
+              calculatedNutrient: 'calories',
+            ));
+            continue;
+          }
 
           final entry = FoodEntry(
             barcode: food.barcode,
@@ -1758,6 +1798,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                               name: item.suggestion.name,
                                               estimatedGrams: item
                                                   .suggestion.estimatedGrams,
+                                              isFluid: item.suggestion.isFluid,
                                               confidence:
                                                   item.suggestion.confidence,
                                               matchedFood: item.matchedFood,
@@ -1830,6 +1871,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                                         item.suggestion.name,
                                                     grams: item.suggestion
                                                         .estimatedGrams,
+                                                    amountLabel: item
+                                                            .suggestion.isFluid
+                                                        ? '${item.suggestion.estimatedGrams} ml'
+                                                        : null,
                                                     kcal: item.nutrition
                                                                 .kcalRounded >
                                                             0

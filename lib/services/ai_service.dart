@@ -909,7 +909,8 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
       double? extra(String key) {
         final value = nutrition[key];
         if (value == null) return null;
-        if (!value.isFinite || value < 0 || value > 110) {
+        final maxValue = key == 'caffeine' ? 2000.0 : 110.0;
+        if (!value.isFinite || value < 0 || value > maxValue) {
           throw const AiParseException(
               'The direct nutrition estimate contains invalid values.');
         }
@@ -925,6 +926,8 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
           nutrition['sugar'],
           nutrition['fiber'],
           nutrition['salt'],
+          nutrition['caffeine'],
+          item.isFluid,
         )}',
         name: item.name,
         nameDe: item.name,
@@ -935,6 +938,9 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
         fiber: extra('fiber'),
         sugar: extra('sugar'),
         salt: extra('salt'),
+        isFluid: item.isFluid,
+        caffeineMgPer100ml: item.isFluid ? extra('caffeine') : null,
+        caffeineMgPer100g: item.isFluid ? null : extra('caffeine'),
       );
       items.add(item.copyWith(selectedFood: syntheticFood));
     }
@@ -956,9 +962,9 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
     return '''You are a nutrition estimation engine. Analyze the meal and return atomic ingredients with estimated eaten weight and nutrient values per 100 g. Write all food names and meal title in $language.$depth$depthMap
 
 Do not search, cite, or imitate any food database or branded catalog entry. Estimate the actual visible/prepared food. Break composite meals into useful ingredients without inventing tiny ingredients that cannot be distinguished.
-For each ingredient include `name`, `estimatedGrams` (positive integer), `servedGrams` (positive integer), `confidence` (0..1), and `nutritionPer100g` with `protein`, `carbs`, and `fat` as non-negative numbers. Include `sugar`, `fiber`, or `salt` only when you can make a reasonable estimate; otherwise use null or omit the field. Do not return calories: the app calculates calories from the three macros using 4/4/9.
+Include every consumed food and drink. For each item include `name`, `estimatedGrams` (positive integer, or millilitres for drinks), `servedGrams` (positive integer), `isFluid` (true for drinks, false for foods), `confidence` (0..1), and `nutritionPer100g` (or per 100ml for drinks) with `protein`, `carbs`, and `fat` as non-negative numbers. Include `sugar`, `fiber`, `salt`, or `caffeine` only when you can make a reasonable estimate; otherwise use null or omit the field. Do not return calories: the app calculates calories from the three macros using 4/4/9.
 Return only JSON, with a top-level `dishType` and `items` array:
-{"dishType":"Meal title","items":[{"name":"ingredient","estimatedGrams":120,"servedGrams":120,"confidence":0.8,"nutritionPer100g":{"protein":10.2,"carbs":15.5,"fat":6.1,"sugar":2.0,"fiber":1.3,"salt":0.4}}]}''';
+{"dishType":"Meal title","items":[{"name":"ingredient","estimatedGrams":120,"servedGrams":120,"isFluid":false,"confidence":0.8,"nutritionPer100g":{"protein":10.2,"carbs":15.5,"fat":6.1,"sugar":2.0,"fiber":1.3,"salt":0.4,"caffeine":0}}]}''';
   }
 
   /// Turns a raw dictation transcript into bullets, correcting mishearings.

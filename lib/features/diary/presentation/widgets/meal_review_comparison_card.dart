@@ -16,6 +16,7 @@ class MealReviewComparisonCard extends StatelessWidget {
   final Key dismissibleKey;
   final String name;
   final int estimatedGrams;
+  final bool isFluid;
   final double confidence;
 
   /// Optional badge shown before the name — the numbered pin that matches the
@@ -36,6 +37,7 @@ class MealReviewComparisonCard extends StatelessWidget {
     required this.dismissibleKey,
     required this.name,
     required this.estimatedGrams,
+    this.isFluid = false,
     required this.confidence,
     this.leading,
     required this.matchedFood,
@@ -113,7 +115,7 @@ class MealReviewComparisonCard extends StatelessWidget {
                         const SizedBox(height: DesignConstants.spacingXS),
                         if (isAiEstimate)
                           Text(
-                            '${l10n.aiDirectEstimateLabel} · ${nutrition.kcal == 0 ? matchedFood?.calories ?? 0 : (nutrition.kcal * 100 / estimatedGrams).round()} kcal/100g',
+                            '${l10n.aiDirectEstimateLabel} · ${nutrition.kcal == 0 ? matchedFood?.calories ?? 0 : (nutrition.kcal * 100 / estimatedGrams).round()} kcal/100${isFluid ? 'ml' : 'g'}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.primary,
                             ),
@@ -295,7 +297,7 @@ class MealReviewComparisonCard extends StatelessWidget {
                                   vertical: 4,
                                 ),
                                 child: Text(
-                                  '${estimatedGrams}g',
+                                  '$estimatedGrams${isFluid ? 'ml' : 'g'}',
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),

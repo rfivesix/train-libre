@@ -66,6 +66,9 @@ class AiMealCandidateItem {
   /// Portion visible to the user (for example cooked rice on a plate). Kept
   /// separate from [grams] so validation can reason about both bases.
   final int? servedGrams;
+
+  /// True when the item is a drink and [grams] represents millilitres.
+  final bool isFluid;
   final double? confidence;
   final String? matchedBarcode;
   final String? stateHint;
@@ -91,6 +94,7 @@ class AiMealCandidateItem {
     required this.name,
     required this.grams,
     this.servedGrams,
+    this.isFluid = false,
     this.confidence,
     this.matchedBarcode,
     this.stateHint,
@@ -106,6 +110,7 @@ class AiMealCandidateItem {
     String? name,
     int? grams,
     int? servedGrams,
+    bool? isFluid,
     double? confidence,
     Object? matchedBarcode = _unchangedSelection,
     String? stateHint,
@@ -120,6 +125,7 @@ class AiMealCandidateItem {
       name: name ?? this.name,
       grams: grams ?? this.grams,
       servedGrams: servedGrams ?? this.servedGrams,
+      isFluid: isFluid ?? this.isFluid,
       confidence: confidence ?? this.confidence,
       matchedBarcode: identical(matchedBarcode, _unchangedSelection)
           ? this.matchedBarcode
@@ -148,6 +154,7 @@ class AiMealCandidateItem {
       'name': name,
       'grams': grams,
       if (servedGrams != null) 'servedGrams': servedGrams,
+      if (isFluid) 'isFluid': true,
       if (confidence != null) 'confidence': confidence,
       if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
       if (stateHint != null) 'stateHint': stateHint,

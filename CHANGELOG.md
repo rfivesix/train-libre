@@ -62,6 +62,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Prevented AI meal-scan cancellation from starting the camera session concurrently from the cancel callback, route observer, and scan cleanup; camera restoration is now route-driven and guarded against duplicate starts.
+- Expanded the AI orb's tappable area only when docked near a screen edge, while preserving its cloud-shaped hit target elsewhere.
+- Included drinks in AI meal capture as fluid diary entries measured in millilitres, saved estimated caffeine, and surfaced caffeine from food and macro entries in diary meal summaries.
+- Aligned the Statistics Hub's body-measurements and all-data shortcut cards with the padding used by the newer analytics cards.
 - Fixed an issue in `AssistantIntentPlanner` where intent requests without an explicit model-provided scope failed to parse natural-language date expressions, restoring historical date query resolution and default scope fallback.
 - Fixed a 3-pixel vertical layout overflow (`RenderFlex` error) in `AiMealReviewScreen` by increasing the pinned summary height and persistent header delegate bounds from 88 to 96 to fit the meal title, timestamp button, and nutrition summary rows cleanly.
 - Fixed `DraggableAiCloud` crashing during initialization in host trees or tests lacking repository providers by gracefully catching provider lookup exceptions.

@@ -87,6 +87,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _isRouteObserverAttached = false;
   bool _isTopRoute = true;
   bool _isCameraSuspended = false;
+  bool _isCameraResuming = false;
 
   // Camera & Barcode state
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR_Capture');
@@ -324,6 +325,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   /// Resumes active camera preview and depth/barcode hardware if the screen is currently active.
   Future<void> _resumeCamera() async {
+    if (_isCameraResuming) return;
     _isCameraSuspended = false;
     if (!mounted ||
         !_cameraPermission.isGranted ||
@@ -331,10 +333,15 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _isAnalyzing) {
       return;
     }
-    if (_useNativeSession) {
-      await DepthScanChannel.instance.startSession();
-    } else {
-      await _qrController?.resumeCamera();
+    _isCameraResuming = true;
+    try {
+      if (_useNativeSession) {
+        await DepthScanChannel.instance.startSession();
+      } else {
+        await _qrController?.resumeCamera();
+      }
+    } finally {
+      _isCameraResuming = false;
     }
   }
 
@@ -818,13 +825,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ));
         }
         _stopAiWaitingHaptics();
-        _dismissAnalysisScreen();
         if (mounted) {
           setState(() => _isAnalyzing = false);
-          if (_isTopRoute) {
-            unawaited(_resumeCamera());
-          }
         }
+        // didPopNext owns camera restoration once the analysis route closes.
+        // Starting the native session here races with that route callback and
+        // with the scan's finally block, delaying the capture screen on iOS.
+        _dismissAnalysisScreen();
       },
     );
     _analysisCancelled = false;
@@ -936,6 +943,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     name: item.name,
                     estimatedGrams: item.grams,
                     servedGrams: item.servedGrams,
+                    isFluid: item.isFluid,
                     confidence: item.confidence ?? 1.0,
                     matchedBarcode: item.matchedBarcode,
                     stateHint: item.stateHint,
@@ -1316,7 +1324,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             _showTextInput = true;
           }
         });
-        if (_isTopRoute) {
+        if (_isTopRoute && !_analysisCancelled) {
           unawaited(_resumeCamera());
         }
       }

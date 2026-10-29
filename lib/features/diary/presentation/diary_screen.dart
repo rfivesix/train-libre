@@ -1437,6 +1437,7 @@ class _MealMacros {
   double protein = 0;
   double carbs = 0;
   double fat = 0;
+  double caffeine = 0;
 }
 
 class DiaryAppBar extends StatefulWidget {
@@ -1865,6 +1866,8 @@ class _MealCardState extends State<_MealCard> {
           mealMacros.protein += (item.item.protein * factor).toDouble();
           mealMacros.carbs += (item.item.carbs * factor).toDouble();
           mealMacros.fat += (item.item.fat * factor).toDouble();
+          mealMacros.caffeine +=
+              (item.item.effectiveCaffeinePer100g ?? 0) * factor;
 
           final fi = item.item;
           if (fi.isLiquid != true && !fi.isFluid) {
@@ -1876,6 +1879,7 @@ class _MealCardState extends State<_MealCard> {
           mealMacros.protein += item.totalProtein;
           mealMacros.carbs += item.totalCarbs;
           mealMacros.fat += item.totalFat;
+          mealMacros.caffeine += item.totalCaffeine ?? 0;
         }
 
         return RepaintBoundary(
@@ -1917,6 +1921,7 @@ class _MealCardState extends State<_MealCard> {
                     protein: mealMacros.protein,
                     carbs: mealMacros.carbs,
                     fat: mealMacros.fat,
+                    caffeine: mealMacros.caffeine,
                     useBadges:
                         context.read<ThemeService>().useColorfulMacroBadges,
                     style: theme.textTheme.bodyMedium?.copyWith(

@@ -24,6 +24,7 @@ BLS BASE-FOOD CATALOG NAMING:
       },
       'servedGrams': {'type': 'integer'},
       'estimatedGrams': {'type': 'integer'},
+      'isFluid': {'type': 'boolean'},
       'confidence': {'type': 'number'},
       'stateHint': {
         'type': ['string', 'null']
@@ -42,6 +43,7 @@ BLS BASE-FOOD CATALOG NAMING:
       'packagedProductEvidence',
       'servedGrams',
       'estimatedGrams',
+      'isFluid',
       'confidence',
       'stateHint',
       'searchTerms',

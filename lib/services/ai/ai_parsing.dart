@@ -41,6 +41,7 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
       'sugar',
       'fiber',
       'salt',
+      'caffeine',
     ]) {
       final raw = rawNutrition[key];
       if (raw is num && raw.toDouble().isFinite && raw >= 0) {
@@ -59,6 +60,7 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
     grams: grams,
     confidence: (e['confidence'] as num?)?.toDouble(),
     servedGrams: served,
+    isFluid: e['isFluid'] == true || e['isFluid'] == 1,
     matchedBarcode: e['matchedBarcode'] as String?,
     stateHint: e['stateHint'] as String?,
     catalogSearchTerm: catalogSearchTerm,
