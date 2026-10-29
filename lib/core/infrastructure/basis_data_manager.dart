@@ -22,6 +22,7 @@ import '../../services/off_catalog_refresh_service.dart';
 import '../../services/bls_food_catalog_refresh_service.dart';
 import '../../services/telemetry/telemetry_service.dart';
 import 'caffeine_catalog_resolver.dart';
+import 'basis_data_row_mappers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
@@ -61,32 +62,21 @@ class _BatchImportPayload {
   });
 }
 
-/// Holds raw primitives for one exercise row (isolate-safe).
-class _ExerciseBundle {
-  final Map<String, dynamic> exerciseFields;
-  final List<Map<String, dynamic>> translationFields;
-
-  const _ExerciseBundle({
-    required this.exerciseFields,
-    required this.translationFields,
-  });
-}
-
 List<dynamic> _parseBatchInIsolate(_BatchImportPayload payload) {
   switch (payload.type) {
     case BatchImportType.exercises:
-      return payload.rows.map(BasisDataManager._mapExerciseBundle).toList();
+      return payload.rows.map(BasisDataRowMappers.mapExerciseBundle).toList();
     case BatchImportType.categories:
-      return payload.rows.map(BasisDataManager._mapCategoryRow).toList();
+      return payload.rows.map(BasisDataRowMappers.mapCategoryRow).toList();
     case BatchImportType.productsBase:
       return payload.rows
-          .map((r) => BasisDataManager._mapProductRow(r,
+          .map((r) => BasisDataRowMappers.mapProductRow(r,
               sourceLabel: 'base',
               preferredLanguage: payload.preferredLanguage))
           .toList();
     case BatchImportType.productsOff:
       return payload.rows
-          .map((r) => BasisDataManager._mapProductRow(r, sourceLabel: 'off'))
+          .map((r) => BasisDataRowMappers.mapProductRow(r, sourceLabel: 'off'))
           .toList();
   }
 }
@@ -111,11 +101,6 @@ class BasisDataManager {
   static const String _keyVersionFoodEnrichment =
       'installed_food_enrichment_v1';
   static const String _fallbackInstalledVersion = '000000000001';
-
-  static int _parseInt(dynamic value) => (value as num?)?.toInt() ?? 0;
-  static double _parseDouble(dynamic value) =>
-      (value as num?)?.toDouble() ?? 0.0;
-  static String _parseString(dynamic value) => value?.toString() ?? '';
 
   // Memoized "the rows are really there" results. Only a positive result is
   // cached: once a catalog is confirmed present it cannot disappear without a
@@ -232,8 +217,7 @@ class BasisDataManager {
                   FROM food_aliases
                   GROUP BY barcode, language_code, alias
                 )
-              ''')) ??
-                0;
+              ''')) ?? 0;
         final versionRows = await catalogDb.query('metadata',
             columns: ['value'], where: 'key = ?', whereArgs: ['version']);
         final catalogVersion =
@@ -1062,7 +1046,7 @@ class BasisDataManager {
         await BaseFoodLanguageService.readChoice(prefs: prefs);
     final activeCountry =
         OffCatalogCountryService.readActiveCountryFromPrefs(prefs);
-    final language = _resolveBaseFoodLangCode(
+    final language = BasisDataRowMappers.resolveBaseFoodLangCode(
       choice: languageChoice,
       offCountry: activeCountry,
     );
@@ -1178,7 +1162,8 @@ class BasisDataManager {
             }
           }
         }
-        for (final entry in CaffeineCatalogResolver.knownBlsCaffeineMap.entries) {
+        for (final entry
+            in CaffeineCatalogResolver.knownBlsCaffeineMap.entries) {
           await mainDb.customStatement('''
             UPDATE products
             SET caffeine = ?, caffeine_mg_per_100g = ?
@@ -1668,12 +1653,12 @@ class BasisDataManager {
           );
 
           // Exercise bundles need two passes: first insert exercises, then translations.
-          final exerciseBundles = <_ExerciseBundle>[];
+          final exerciseBundles = <ExerciseBundle>[];
           final otherCompanions = <dynamic>[];
           // ⚡ Bolt Optimization: Single-pass iteration to partition companions
           // Replaces two O(N) `.where` passes, avoiding redundant array allocations.
           for (final companion in mappedCompanions) {
-            if (companion is _ExerciseBundle) {
+            if (companion is ExerciseBundle) {
               exerciseBundles.add(companion);
             } else {
               otherCompanions.add(companion);
@@ -1723,7 +1708,8 @@ class BasisDataManager {
               for (final bundle in exerciseBundles) {
                 try {
                   final fields = bundle.exerciseFields;
-                  final exerciseId = _parseString(fields['id']);
+                  final exerciseId =
+                      BasisDataRowMappers.parseString(fields['id']);
                   if (exerciseId.isEmpty) {
                     debugPrint(
                         '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping exercise with empty id');
@@ -1731,33 +1717,44 @@ class BasisDataManager {
                   }
                   final exerciseCompanion = ExercisesCompanion(
                     id: drift.Value(exerciseId),
-                    categoryName:
-                        drift.Value(_parseString(fields['category_name'])),
-                    musclesPrimary:
-                        drift.Value(_parseString(fields['muscles_primary'])),
-                    musclesSecondary:
-                        drift.Value(_parseString(fields['muscles_secondary'])),
+                    categoryName: drift.Value(BasisDataRowMappers.parseString(
+                        fields['category_name'])),
+                    musclesPrimary: drift.Value(BasisDataRowMappers.parseString(
+                        fields['muscles_primary'])),
+                    musclesSecondary: drift.Value(
+                        BasisDataRowMappers.parseString(
+                            fields['muscles_secondary'])),
                     isCustom: const drift.Value(false),
                     createdBy: const drift.Value('system'),
                     source: const drift.Value('wger'),
                     // Absent() rather than Value(null) where the asset does not
                     // carry the column: on a v1 asset this must leave whatever
                     // a previous v2 import wrote alone instead of erasing it.
-                    status: _optionalText(fields, 'status'),
-                    mergedInto: _optionalText(fields, 'merged_into'),
-                    modality: _optionalText(fields, 'modality'),
-                    mechanic: _optionalText(fields, 'mechanic'),
-                    forceVector: _optionalText(fields, 'force_vector'),
-                    movementPattern: _optionalText(fields, 'movement_pattern'),
-                    laterality: _optionalText(fields, 'laterality'),
-                    difficulty: _optionalText(fields, 'difficulty'),
-                    trackingType: _optionalText(fields, 'tracking_type'),
-                    loadMode: _optionalText(fields, 'load_mode'),
-                    supportsAddedWeight:
-                        _optionalBool(fields, 'supports_added_weight'),
-                    primaryEquipment:
-                        _optionalText(fields, 'primary_equipment'),
-                    bodyRegion: _optionalText(fields, 'body_region'),
+                    status: BasisDataRowMappers.optionalText(fields, 'status'),
+                    mergedInto:
+                        BasisDataRowMappers.optionalText(fields, 'merged_into'),
+                    modality:
+                        BasisDataRowMappers.optionalText(fields, 'modality'),
+                    mechanic:
+                        BasisDataRowMappers.optionalText(fields, 'mechanic'),
+                    forceVector: BasisDataRowMappers.optionalText(
+                        fields, 'force_vector'),
+                    movementPattern: BasisDataRowMappers.optionalText(
+                        fields, 'movement_pattern'),
+                    laterality:
+                        BasisDataRowMappers.optionalText(fields, 'laterality'),
+                    difficulty:
+                        BasisDataRowMappers.optionalText(fields, 'difficulty'),
+                    trackingType: BasisDataRowMappers.optionalText(
+                        fields, 'tracking_type'),
+                    loadMode:
+                        BasisDataRowMappers.optionalText(fields, 'load_mode'),
+                    supportsAddedWeight: BasisDataRowMappers.optionalBool(
+                        fields, 'supports_added_weight'),
+                    primaryEquipment: BasisDataRowMappers.optionalText(
+                        fields, 'primary_equipment'),
+                    bodyRegion:
+                        BasisDataRowMappers.optionalText(fields, 'body_region'),
                   );
                   batch.insert(
                     mainDb.exercises,
@@ -1781,10 +1778,12 @@ class BasisDataManager {
                 for (final t in bundle.translationFields) {
                   try {
                     final companion = ExerciseTranslationsCompanion(
-                      exerciseId: drift.Value(_parseString(t['exercise_id'])),
-                      languageCode:
-                          drift.Value(_parseString(t['language_code'])),
-                      name: drift.Value(_parseString(t['name'])),
+                      exerciseId: drift.Value(
+                          BasisDataRowMappers.parseString(t['exercise_id'])),
+                      languageCode: drift.Value(
+                          BasisDataRowMappers.parseString(t['language_code'])),
+                      name: drift.Value(
+                          BasisDataRowMappers.parseString(t['name'])),
                       description: drift.Value(t['description'] as String?),
                     );
                     batch.insert(
@@ -1870,9 +1869,11 @@ class BasisDataManager {
               await mainDb.batch((batch) {
                 for (final t in trRows) {
                   try {
-                    final exerciseId = _parseString(t['exercise_id']);
-                    final langCode = _parseString(t['language_code']);
-                    final name = _parseString(t['name']);
+                    final exerciseId =
+                        BasisDataRowMappers.parseString(t['exercise_id']);
+                    final langCode =
+                        BasisDataRowMappers.parseString(t['language_code']);
+                    final name = BasisDataRowMappers.parseString(t['name']);
                     if (exerciseId.isEmpty ||
                         langCode.isEmpty ||
                         name.isEmpty) {
@@ -2053,18 +2054,21 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final id = _parseString(row['id']);
-            final groupId = _parseString(row['group_id']);
+            final id = BasisDataRowMappers.parseString(row['id']);
+            final groupId = BasisDataRowMappers.parseString(row['group_id']);
             if (id.isEmpty || groupId.isEmpty) continue;
             batch.insert(
               mainDb.muscles,
               MusclesCompanion.insert(
                 id: id,
-                parentId: drift.Value(_nullableString(row['parent_id'])),
-                level: _parseString(row['level']),
+                parentId: drift.Value(
+                    BasisDataRowMappers.nullableString(row['parent_id'])),
+                level: BasisDataRowMappers.parseString(row['level']),
                 groupId: groupId,
-                legacyGroup: drift.Value(_nullableString(row['legacy_group'])),
-                bodySlugs: drift.Value(_nullableString(row['body_slugs'])),
+                legacyGroup: drift.Value(
+                    BasisDataRowMappers.nullableString(row['legacy_group'])),
+                bodySlugs: drift.Value(
+                    BasisDataRowMappers.nullableString(row['body_slugs'])),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2082,9 +2086,9 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final muscleId = _parseString(row['muscle_id']);
-            final lang = _parseString(row['language_code']);
-            final name = _parseString(row['name']);
+            final muscleId = BasisDataRowMappers.parseString(row['muscle_id']);
+            final lang = BasisDataRowMappers.parseString(row['language_code']);
+            final name = BasisDataRowMappers.parseString(row['name']);
             if (muscleId.isEmpty || lang.isEmpty || name.isEmpty) continue;
             batch.insert(
               mainDb.muscleTranslations,
@@ -2109,13 +2113,13 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final id = _parseString(row['id']);
+            final id = BasisDataRowMappers.parseString(row['id']);
             if (id.isEmpty) continue;
             batch.insert(
               mainDb.equipment,
               EquipmentCompanion.insert(
                 id: id,
-                kind: _parseString(row['kind']),
+                kind: BasisDataRowMappers.parseString(row['kind']),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2133,9 +2137,10 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final equipmentId = _parseString(row['equipment_id']);
-            final lang = _parseString(row['language_code']);
-            final name = _parseString(row['name']);
+            final equipmentId =
+                BasisDataRowMappers.parseString(row['equipment_id']);
+            final lang = BasisDataRowMappers.parseString(row['language_code']);
+            final name = BasisDataRowMappers.parseString(row['name']);
             if (equipmentId.isEmpty || lang.isEmpty || name.isEmpty) continue;
             batch.insert(
               mainDb.equipmentTranslations,
@@ -2160,20 +2165,23 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final code = _parseString(row['code']);
+            final code = BasisDataRowMappers.parseString(row['code']);
             if (code.isEmpty) continue;
             batch.insert(
               mainDb.catalogLanguages,
               CatalogLanguagesCompanion.insert(
                 code: code,
-                tier: _parseString(row['tier']),
-                completeness:
-                    drift.Value(_parseNullableDouble(row['completeness']) ?? 0),
+                tier: BasisDataRowMappers.parseString(row['tier']),
+                completeness: drift.Value(
+                    BasisDataRowMappers.parseNullableDouble(
+                            row['completeness']) ??
+                        0),
                 // The data repo decides which languages are fit to show. The
                 // app reads that decision rather than re-deriving one from
                 // `completeness`, which would rebuild exactly the coupling
                 // that moving the vocabulary into the data removes.
-                displayable: drift.Value(_parseBool(row['displayable'])),
+                displayable: drift.Value(
+                    BasisDataRowMappers.parseBool(row['displayable'])),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2191,17 +2199,19 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final exerciseId = _parseString(row['exercise_id']);
-            final muscleId = _parseString(row['muscle_id']);
+            final exerciseId =
+                BasisDataRowMappers.parseString(row['exercise_id']);
+            final muscleId = BasisDataRowMappers.parseString(row['muscle_id']);
             if (exerciseId.isEmpty || muscleId.isEmpty) continue;
             batch.insert(
               mainDb.exerciseMuscles,
               ExerciseMusclesCompanion.insert(
                 exerciseId: exerciseId,
                 muscleId: muscleId,
-                role: _parseString(row['role']),
-                contribution:
-                    drift.Value(_parseNullableDouble(row['contribution'])),
+                role: BasisDataRowMappers.parseString(row['role']),
+                contribution: drift.Value(
+                    BasisDataRowMappers.parseNullableDouble(
+                        row['contribution'])),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2219,15 +2229,17 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final exerciseId = _parseString(row['exercise_id']);
-            final equipmentId = _parseString(row['equipment_id']);
+            final exerciseId =
+                BasisDataRowMappers.parseString(row['exercise_id']);
+            final equipmentId =
+                BasisDataRowMappers.parseString(row['equipment_id']);
             if (exerciseId.isEmpty || equipmentId.isEmpty) continue;
             batch.insert(
               mainDb.exerciseEquipment,
               ExerciseEquipmentCompanion.insert(
                 exerciseId: exerciseId,
                 equipmentId: equipmentId,
-                kind: _parseString(row['kind']),
+                kind: BasisDataRowMappers.parseString(row['kind']),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2245,8 +2257,9 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final exerciseId = _parseString(row['exercise_id']);
-            final tag = _parseString(row['tag']);
+            final exerciseId =
+                BasisDataRowMappers.parseString(row['exercise_id']);
+            final tag = BasisDataRowMappers.parseString(row['tag']);
             if (exerciseId.isEmpty || tag.isEmpty) continue;
             batch.insert(
               mainDb.exerciseTags,
@@ -2267,17 +2280,18 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final oldId = _parseString(row['old_id']);
-            final newId = _parseString(row['new_id']);
+            final oldId = BasisDataRowMappers.parseString(row['old_id']);
+            final newId = BasisDataRowMappers.parseString(row['new_id']);
             if (oldId.isEmpty || newId.isEmpty || oldId == newId) continue;
             batch.insert(
               mainDb.exerciseAliases,
               ExerciseAliasesCompanion.insert(
                 oldId: oldId,
                 newId: newId,
-                reason: drift.Value(_nullableString(row['reason'])),
-                sinceVersion:
-                    drift.Value(_nullableString(row['since_version'])),
+                reason: drift.Value(
+                    BasisDataRowMappers.nullableString(row['reason'])),
+                sinceVersion: drift.Value(
+                    BasisDataRowMappers.nullableString(row['since_version'])),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2305,31 +2319,6 @@ class BasisDataManager {
       case 'languages':
         await mainDb.delete(mainDb.catalogLanguages).go();
     }
-  }
-
-  static String? _nullableString(Object? raw) {
-    if (raw == null) return null;
-    final text = raw.toString().trim();
-    return text.isEmpty ? null : text;
-  }
-
-  /// Nullable sibling of [_parseDouble].
-  ///
-  /// `exercise_muscles.contribution` is deliberately shipped unset, and the
-  /// existing helper would turn that into a real 0.0 — a weight of zero rather
-  /// than an absent weight.
-  static double? _parseNullableDouble(Object? raw) {
-    if (raw == null) return null;
-    if (raw is num) return raw.toDouble();
-    return double.tryParse(raw.toString().trim());
-  }
-
-  static bool _parseBool(Object? raw) {
-    if (raw == null) return false;
-    if (raw is bool) return raw;
-    if (raw is num) return raw != 0;
-    final text = raw.toString().trim().toLowerCase();
-    return text == '1' || text == 'true';
   }
 
   /// Applies OFF replacement semantics with historical retention:
@@ -2380,468 +2369,9 @@ class BasisDataManager {
   }
 
   @visibleForTesting
-  dynamic mapProductRowForTesting(Map<String, dynamic> row,
+  ProductsCompanion mapProductRowForTesting(Map<String, dynamic> row,
       {required String sourceLabel, String? preferredLanguage}) {
-    return _mapProductRow(row,
+    return BasisDataRowMappers.mapProductRow(row,
         sourceLabel: sourceLabel, preferredLanguage: preferredLanguage);
-  }
-
-  // --- Mapping functions (unchanged) ---
-
-  static dynamic _mapProductRow(
-    Map<String, dynamic> row, {
-    required String sourceLabel,
-    String? preferredLanguage,
-  }) {
-    var barcode = _parseString(row['barcode']);
-    String id;
-    if (row['id'] != null) {
-      id = _parseString(row['id']);
-    } else if (barcode.isNotEmpty) {
-      id = 'manual_$barcode';
-    } else {
-      id = 'manual_${_parseString(row['name']).replaceAll(RegExp(r'\s+'), '')}';
-    }
-
-    if (barcode.isEmpty) {
-      barcode = id;
-    }
-
-    // Always persist both language variants when available.
-    final rawNameDe = row['name_de']?.toString();
-    final rawNameEn = row['name_en']?.toString();
-    final rawNameFr = row['name_fr']?.toString();
-    final rawNameIt = row['name_it']?.toString();
-    final rawNameJa = row['name_ja']?.toString();
-    final rawName = row['name']?.toString() ?? '';
-
-    // Select the display name (for the legacy `name` column) based on preference.
-    String displayName;
-    if (preferredLanguage == 'en') {
-      displayName = _parseString(rawNameEn ?? rawNameDe ?? rawName);
-    } else if (preferredLanguage == 'fr') {
-      displayName =
-          _parseString(rawNameFr ?? rawNameEn ?? rawNameDe ?? rawName);
-    } else if (preferredLanguage == 'it') {
-      displayName =
-          _parseString(rawNameIt ?? rawNameEn ?? rawNameDe ?? rawName);
-    } else if (preferredLanguage == 'ja') {
-      displayName =
-          _parseString(rawNameJa ?? rawNameEn ?? rawNameDe ?? rawName);
-    } else {
-      displayName = _parseString(rawNameDe ?? rawNameEn ?? rawName);
-    }
-
-    // ── is_fluid three-tier heuristic ────────────────────────────────────────
-    //
-    // Tier 1 – Allowlist: category tag contains a known beverage substring
-    //          → candidate is_fluid = true.
-    // Tier 2 – Blocklist: category tag exactly matches a non-beverage tag
-    //          → veto is_fluid = false (overrides Tier 1).
-    // Tier 3 – Volume-unit fallback: only when NO category data is available;
-    //          product_quantity_unit in {ml, l, cl} → is_fluid = true.
-    //
-    // This mirrors the resolve_is_fluid() function in create_off_food_db.py.
-    // Keep both in sync when adding new tags.
-    // ─────────────────────────────────────────────────────────────────────────
-
-    bool isFluidVal = false;
-
-    // Read category tag blob — may come from the OFF API as a tag list string.
-    final rawCategory =
-        row['category'] ?? row['categories'] ?? row['categories_tags'];
-    final categoryStr =
-        rawCategory != null ? rawCategory.toString().toLowerCase() : '';
-
-    // Split the flat string into individual tags, stripping blanks.
-    final cats = categoryStr
-        .split(RegExp(r'[,\s]+'))
-        .map((t) => t.trim())
-        .where((t) => t.isNotEmpty)
-        .toList();
-
-    if (cats.isNotEmpty) {
-      // ── Tier 1: allowlist (substring match) ──────────────────────────────
-      const beverageAllowlistSubstrings = [
-        'en:beverages',
-        'en:beverages-and-beverages-preparations',
-        'en:non-alcoholic-beverages',
-        'en:hot-beverages',
-        'en:cold-beverages',
-        'en:plant-based-beverages',
-        'en:carbonated-beverages',
-        'en:waters',
-        'en:mineral-waters',
-        'en:sparkling-waters',
-        'en:still-waters',
-        'en:spring-waters',
-        'en:flavoured-waters',
-        'en:vitamin-waters',
-        'en:coconut-waters',
-        'en:fruit-juices',
-        'en:vegetable-juices',
-        'en:juices',
-        'en:soft-drinks',
-        'en:sodas',
-        'en:colas',
-        'en:lemonades',
-        'en:energy-drinks',
-        'en:sports-drinks',
-        'en:electrolyte-drinks',
-        'en:isotonic-drinks',
-        'en:teas',
-        'en:herbal-teas',
-        'en:iced-teas',
-        'en:coffees',
-        'en:instant-coffees',
-        'en:coffee-beverages',
-        'en:alcoholic-beverages',
-        'en:beers',
-        'en:wines',
-        'en:spirits',
-        'en:liqueurs',
-        'en:ciders',
-        'en:champagnes',
-        'en:proseccos',
-        'en:plant-based-milks',
-        'en:oat-milks',
-        'en:soy-milks',
-        'en:rice-milks',
-        'en:almond-milks',
-        'en:coconut-milks',
-        'en:drinkable-yogurts',
-        'en:flavoured-milks',
-        'en:milks',
-        'en:smoothies',
-        'en:fruit-smoothies',
-        'en:vegetable-smoothies',
-        'en:baby-drinks',
-        'en:drinking-waters',
-        'en:kombucha',
-        'en:kefir-drinks',
-        'en:drinks',
-      ];
-
-      // ── Tier 2: blocklist (exact tag match) ──────────────────────────────
-      const nonBeverageBlocklistTags = {
-        'en:condiments',
-        'en:sauces',
-        'en:hot-sauces',
-        'en:soy-sauces',
-        'en:tomato-sauces',
-        'en:barbecue-sauces',
-        'en:pasta-sauces',
-        'en:curry-sauces',
-        'en:vegan-sauces',
-        'en:vegetarian-sauces',
-        'en:dessert-sauces',
-        'en:burger-sauces',
-        'en:sweet-and-sour-sauces',
-        'en:bechamel-sauces',
-        'en:worcestershire-sauces',
-        'en:teriyaki-sauces',
-        'en:nuoc-mam-sauce',
-        'en:fish-sauces',
-        'en:chili-sauces',
-        'en:pepper-sauces',
-        'en:cooking-sauces',
-        'en:salad-dressings',
-        'en:vinaigrettes',
-        'en:mayonnaises',
-        'en:light-mayonnaises',
-        'en:egg-free-mayonnaises',
-        'en:aiolis',
-        'en:dips',
-        'en:ketchup',
-        'en:tomato-ketchup',
-        'en:mustards',
-        'en:vinegars',
-        'en:balsamic-vinegars',
-        'en:cider-vinegars',
-        'en:rice-vinegars',
-        'en:wine-vinegars',
-        'en:sherry-vinegars',
-        'en:glazes-with-vinegar',
-        'en:soups',
-        'en:canned-soups',
-        'en:reheatable-soups',
-        'en:fish-soups',
-        'en:broths',
-        'en:liquid-broths',
-        'en:cream-of-vegetable-soups',
-        'en:desserts',
-        'en:dairy-desserts',
-        'en:frozen-desserts',
-        'en:ice-creams-and-sorbets',
-        'en:ice-creams',
-        'en:ice-cream-tubs',
-        'en:ice-cream-bars',
-        'en:ice-cream-cones',
-        'en:ice-cream-sandwiches',
-        'en:ice-cream-in-a-box',
-        'en:sorbets',
-        'en:ice-pops',
-        'en:frozen-yogurts',
-        'en:creams',
-        'en:uht-creams',
-        'en:whipped-creams',
-        'en:unfermented-creams',
-        'en:compound-dairy-creams',
-        'en:cooking-creams',
-        'en:spreads',
-        'en:sweet-spreads',
-        'en:plant-based-spreads',
-        'en:nut-butters',
-        'en:peanut-butters',
-        'en:fats',
-        'en:cooking-fats',
-        'en:oils',
-        'en:olive-oils',
-        'en:simple-syrups',
-        'en:maple-syrups',
-        'en:agave-syrups',
-        'en:toppings-ingredients',
-        'en:snacks',
-        'en:salty-snacks',
-        'en:sweet-snacks',
-        'en:frozen-foods',
-        'en:groceries',
-        'en:meals',
-        'en:canned-meals',
-        'en:canned-foods',
-        'en:dried-meals',
-        'en:dried-products',
-        'en:dried-products-to-be-rehydrated',
-        'en:dietary-supplements',
-        'en:food-additives',
-        'en:sweeteners',
-        'en:sugar-substitutes',
-        'en:tabletop-sweeteners',
-        'en:artificial-sugar-substitutes',
-        'en:flavors',
-        'en:cooking-helpers',
-        'en:non-food-products',
-        'en:perfumes',
-        'en:oil-perfumes',
-        'en:bodybuilding-supplements',
-      };
-
-      final isCandidate = cats.any(
-        (cat) => beverageAllowlistSubstrings.any((sub) => cat.contains(sub)),
-      );
-      final isBlocked =
-          cats.any((cat) => nonBeverageBlocklistTags.contains(cat));
-
-      if (isBlocked) {
-        isFluidVal = false;
-      } else if (isCandidate) {
-        isFluidVal = true;
-      }
-      // else: category data present but no signal → conservative false
-    } else {
-      // Tier 3: no category data — fall back to volume unit
-      final nutritionPer = (row['nutrition_data_prepared_per'] ??
-              row['nutrition_data_per'] ??
-              row['nutrition_baseline'] ??
-              row['nutrition_baseline_key'])
-          ?.toString()
-          .toLowerCase()
-          .trim();
-      final unit =
-          row['product_quantity_unit']?.toString().toLowerCase().trim() ?? '';
-      if (nutritionPer != null && nutritionPer.contains('100ml')) {
-        isFluidVal = true;
-      } else if (unit == 'ml' || unit == 'l' || unit == 'cl') {
-        isFluidVal = true;
-      }
-    }
-
-    return ProductsCompanion(
-      id: drift.Value(id),
-      barcode: drift.Value(barcode),
-      name: drift.Value(displayName),
-      nameDe: drift.Value(rawNameDe),
-      nameEn: drift.Value(rawNameEn),
-      nameFr: drift.Value(rawNameFr),
-      nameIt: drift.Value(rawNameIt),
-      nameJa: drift.Value(rawNameJa),
-      brand: drift.Value(_parseString(row['brand'])),
-      calories: drift.Value(_parseInt(row['calories'])),
-      protein: drift.Value(_parseDouble(row['protein'])),
-      carbs: drift.Value(_parseDouble(row['carbs'])),
-      fat: drift.Value(_parseDouble(row['fat'])),
-      sugar: drift.Value(_parseDouble(row['sugar'])),
-      fiber: drift.Value(_parseDouble(row['fiber'])),
-      salt: drift.Value(_parseDouble(row['salt'])),
-      caffeine: drift.Value(_parseNullableDouble(row['caffeine_mg_per_100ml'] ??
-          row['caffeine'] ??
-          row['caffeine_mg_per_100g']) ??
-          CaffeineCatalogResolver.lookupCaffeine(barcode, rawNameDe ?? displayName)),
-      caffeineMgPer100g: drift.Value(_parseNullableDouble(row['caffeine_mg_per_100g'] ??
-          row['caffeine_mg_per_100ml'] ??
-          row['caffeine']) ??
-          CaffeineCatalogResolver.lookupCaffeine(barcode, rawNameDe ?? displayName)),
-      ingredientsText: drift.Value(
-          sourceLabel == 'base' ? null : row['ingredients_text']?.toString()),
-      ingredientsAnalysisTags:
-          drift.Value(row['ingredients_analysis_tags']?.toString()),
-      additivesTags: drift.Value(row['additives_tags']?.toString()),
-      productQuantity: drift.Value(_parseDouble(row['product_quantity'])),
-      productQuantityUnit:
-          drift.Value(row['product_quantity_unit']?.toString()),
-      isFluid: drift.Value(isFluidVal),
-      source: drift.Value(sourceLabel),
-      isLiquid: drift.Value(_parseInt(row['is_liquid']) == 1),
-      category: drift.Value(row['category']?.toString()),
-    );
-  }
-
-  /// Resolve the language code for base food import without a BuildContext.
-  static String _resolveBaseFoodLangCode({
-    required BaseFoodLanguage choice,
-    required OffCatalogCountry offCountry,
-  }) {
-    if (choice == BaseFoodLanguage.en) return 'en';
-    if (choice == BaseFoodLanguage.de) return 'de';
-    if (choice == BaseFoodLanguage.fr) return 'fr';
-    if (choice == BaseFoodLanguage.it) return 'it';
-    if (choice == BaseFoodLanguage.ja) return 'ja';
-    // Auto: derive from the food DB region.
-    return switch (offCountry) {
-      OffCatalogCountry.us || OffCatalogCountry.uk => 'en',
-      OffCatalogCountry.de ||
-      OffCatalogCountry.ch ||
-      OffCatalogCountry.at =>
-        'de',
-      OffCatalogCountry.fr => 'fr',
-      OffCatalogCountry.it => 'it',
-      OffCatalogCountry.jp => 'ja',
-    };
-  }
-
-  static dynamic _mapCategoryRow(Map<String, dynamic> row) {
-    return FoodCategoriesCompanion(
-      key: drift.Value(_parseString(row['key'])),
-      nameDe: drift.Value(row['name_de'] as String?),
-      nameEn: drift.Value(row['name_en'] as String?),
-      nameFr: drift.Value(row['name_fr'] as String?),
-      nameIt: drift.Value(row['name_it'] as String?),
-      nameJa: drift.Value(row['name_ja'] as String?),
-      emoji: drift.Value(row['emoji'] as String?),
-    );
-  }
-
-  /// Catalog schema v2 columns on `exercises`, copied straight through.
-  ///
-  /// `image_path` is deliberately absent: it exists in both the asset and the
-  /// Drift table, has never been read by this importer, and the catalog ships
-  /// it empty. Adding it here would only make a dead contract look alive.
-  /// Reads an optional text column out of a mapped asset row.
-  ///
-  /// Returns `Absent` when the asset has no such column at all, and a real
-  /// null when the asset carries the column but leaves it empty. Collapsing
-  /// the two would let a v1 asset wipe classification a v2 import had already
-  /// written — the catalog falls back to the bundled asset on every remote
-  /// failure, so that is a normal Tuesday, not a corner case.
-  static drift.Value<String?> _optionalText(
-    Map<String, dynamic> fields,
-    String column,
-  ) {
-    if (!fields.containsKey(column)) return const drift.Value.absent();
-    final raw = fields[column];
-    if (raw == null) return const drift.Value(null);
-    final text = raw.toString().trim();
-    return drift.Value(text.isEmpty ? null : text);
-  }
-
-  static drift.Value<bool> _optionalBool(
-    Map<String, dynamic> fields,
-    String column,
-  ) {
-    if (!fields.containsKey(column)) return const drift.Value.absent();
-    final raw = fields[column];
-    if (raw == null) return const drift.Value(false);
-    if (raw is bool) return drift.Value(raw);
-    if (raw is num) return drift.Value(raw != 0);
-    final text = raw.toString().trim().toLowerCase();
-    return drift.Value(text == '1' || text == 'true');
-  }
-
-  static const List<String> _v2ExerciseColumns = [
-    'status',
-    'merged_into',
-    'modality',
-    'mechanic',
-    'force_vector',
-    'movement_pattern',
-    'laterality',
-    'difficulty',
-    'tracking_type',
-    'load_mode',
-    'supports_added_weight',
-    'primary_equipment',
-    'body_region',
-  ];
-
-  /// Maps a flat exercise asset row to an [_ExerciseBundle] containing
-  /// the structural exercise fields and derived translation rows.
-  ///
-  /// Handles both legacy flat format (name_de, name_en columns) and
-  /// future relational format (exercise_translations sub-rows).
-  static _ExerciseBundle _mapExerciseBundle(Map<String, dynamic> row) {
-    final id = _parseString(row['id']);
-
-    final exerciseFields = <String, dynamic>{
-      'id': id,
-      // v1 compatibility columns. Still the only muscle source until the app
-      // reads exercise_muscles, so they keep being written even on a v2 asset.
-      'category_name': _parseString(row['category_name']),
-      'muscles_primary': _parseString(row['muscles_primary']),
-      'muscles_secondary': _parseString(row['muscles_secondary']),
-      // v2 classification. Absent on a v1 asset — `containsKey` rather than a
-      // default, so "the asset has no opinion" stays distinguishable from "the
-      // asset says null".
-      for (final column in _v2ExerciseColumns)
-        if (row.containsKey(column)) column: row[column],
-    };
-
-    // Build translation rows. Support both flat (legacy) and
-    // future relational format from the updated Python pipeline.
-    final translations = <Map<String, dynamic>>[];
-
-    void addTranslation(String langCode, dynamic name, dynamic description) {
-      final n = _parseString(name);
-      if (n.isEmpty) return;
-      translations.add({
-        'exercise_id': id,
-        'language_code': langCode,
-        'name': n,
-        'description': description?.toString(),
-      });
-    }
-
-    // Flat-column format (current wger asset DB).
-    // FIX: The fallback order for 'de' is intentionally de→en so that
-    // exercises with only an English name still get a valid DE translation row
-    // (the searchExercises COALESCE prefers t_de). Equally, 'en' falls back
-    // to 'de' so that exercises with only a German name remain searchable in
-    // English-locale environments.
-    if (row.containsKey('name_de') || row.containsKey('name_en')) {
-      addTranslation(
-          'de', row['name_de'] ?? row['name_en'], row['description_de']);
-      addTranslation('en', row['name_en'] ?? row['name_de'],
-          row['description_en'] ?? row['description_de']);
-      addTranslation('fr', row['name_fr'] ?? row['name_en'] ?? row['name_de'],
-          row['description_fr']);
-      addTranslation('it', row['name_it'] ?? row['name_en'] ?? row['name_de'],
-          row['description_it']);
-      addTranslation('ja', row['name_ja'] ?? row['name_en'] ?? row['name_de'],
-          row['description_ja']);
-    }
-
-    return _ExerciseBundle(
-      exerciseFields: exerciseFields,
-      translationFields: translations,
-    );
   }
 }
