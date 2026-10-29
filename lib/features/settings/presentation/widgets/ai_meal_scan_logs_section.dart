@@ -11,7 +11,9 @@ import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 
 /// Local, content-free AI scan diagnostics shown directly on the main lab tab.
 class AiMealScanLogsSection extends StatefulWidget {
-  const AiMealScanLogsSection({super.key});
+  const AiMealScanLogsSection({super.key, this.showHeader = true});
+
+  final bool showHeader;
 
   @override
   State<AiMealScanLogsSection> createState() => _AiMealScanLogsSectionState();
@@ -65,7 +67,7 @@ class _AiMealScanLogsSectionState extends State<AiMealScanLogsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AppSectionHeader(title: l10n.aiScanLogsTitle),
+        if (widget.showHeader) AppSectionHeader(title: l10n.aiScanLogsTitle),
         Padding(
           padding:
               const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM),

@@ -21,6 +21,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Startup keeps the normal animated cloud during remote catalog manifest and freshness checks; the download progress screen appears only once catalog files are actually downloading and stays active through installation.
+- Reorganized Developer Settings into click-through categories for Nutrition Lab, AI meal scan logs, AI Overlay, and performance diagnostics; removed the duplicate experience-level control and obsolete overlay demo labels and live-AI toggle while keeping the overlay debug controls.
+- Removed duplicate page headings from Developer Settings and AI meal scan logs, and placed Nutrition Lab content below its app bar.
 - Extracted Live Activity coordination and synchronization logic into dedicated `LiveWorkoutLiveActivityCoordinator` in `lib/features/workout/presentation/live_workout_live_activity_coordinator.dart` from `live_workout_view_model.dart`, preserving existing delegation methods and behavior.
 - Extracted CSV export functionality (nutrition, workouts, measurements, and heart-rate join queries) into dedicated `CsvExportService` in `lib/core/infrastructure/csv_export_service.dart` from `backup_manager.dart`, retaining delegating methods on `BackupManager` to maintain backwards compatibility.
 - Extracted catalog mapping, parsing, and bundle logic into dedicated `BasisDataRowMappers` in `lib/core/infrastructure/basis_data_row_mappers.dart` from `basis_data_manager.dart`.

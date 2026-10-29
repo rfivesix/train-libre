@@ -62,6 +62,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   bool _isContractingForExit = false;
   bool _isCloudHiddenForVaporExit = false;
   bool _isDownloading = false;
+  bool _catalogDownloadInProgress = false;
   bool _startupFailed = false;
   _PendingStartupProgress? _pendingProgress;
   bool _progressFrameScheduled = false;
@@ -79,7 +80,11 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
   Future<void> _runInitialization() async {
     if (mounted) {
-      setState(() => _startupFailed = false);
+      setState(() {
+        _startupFailed = false;
+        _catalogDownloadInProgress = false;
+        _isDownloading = widget.isModal;
+      });
     }
     try {
       await _initialize();
@@ -126,6 +131,8 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       force: widget.forceUpdate,
       skipOffDatabase: skipOffDb,
       onProgress: (task, detail, progress) {
+        final isDownloading =
+            _updateCatalogDownloadState(task: task, detail: detail);
         _queueStartupProgress(
           task: task,
           detail: detail,
@@ -133,11 +140,13 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
               ? progress.clamp(0.0, 1.0)
               : _screenProgressFor(task, progress),
           canSkipRemoteCatalog: false,
-          isDownloading: false,
+          isDownloading: isDownloading,
         );
       },
       onRemoteProgress: (task, detail, progress, {required canSkip}) {
         if (!mounted) return;
+        final isDownloading =
+            _updateCatalogDownloadState(task: task, detail: detail);
         final l10n = AppLocalizations.of(context)!;
         _queueStartupProgress(
           task: task,
@@ -146,7 +155,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
               : detail,
           progress: progress.clamp(0.0, 1.0),
           canSkipRemoteCatalog: canSkip && !_skipRemoteCatalogRequested,
-          isDownloading: true,
+          isDownloading: isDownloading,
         );
       },
       isRemoteSkipRequested: () => _skipRemoteCatalogRequested,
@@ -244,6 +253,25 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     // leave the app-wide cloud suppressed for the rest of the session.
     Future<void>.delayed(
         const Duration(seconds: 2), _cloudVisibilityLease.dispose);
+  }
+
+  bool _updateCatalogDownloadState({
+    required String task,
+    required String detail,
+  }) {
+    final status = '$task $detail'.toLowerCase();
+    final isCheckOrNoUpdate = status.contains('manifest') ||
+        status.contains('kein remote-download') ||
+        status.contains('aktuell');
+    if (isCheckOrNoUpdate) {
+      _catalogDownloadInProgress = false;
+    } else if (status.contains('download') ||
+        status.contains('heruntergeladen') ||
+        status.contains('lade übungen') ||
+        status.contains('lade produktdatenbank')) {
+      _catalogDownloadInProgress = true;
+    }
+    return _catalogDownloadInProgress;
   }
 
   /// Converts each catalog's local 0–1 import progress into one continuous

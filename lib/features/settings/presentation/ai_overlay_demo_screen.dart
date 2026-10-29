@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
-import '../../../generated/app_localizations.dart';
 import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
@@ -26,13 +25,10 @@ class AiOverlayDemoScreen extends StatefulWidget {
 }
 
 class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
-  final _cloudKey = GlobalKey<DraggableAiCloudState>();
   bool _cloudExpanded = false;
-  bool _cloudIsGenerating = false;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final contentTop = MediaQuery.paddingOf(context).top +
         kToolbarHeight +
@@ -41,7 +37,7 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
     final scaffold = Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-        title: l10n.aiOverlayDemoScreenTitle,
+        title: 'AI Overlay',
       ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
@@ -51,8 +47,6 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
           MediaQuery.paddingOf(context).bottom + 176,
         ),
         children: [
-          _buildIntroCard(context, l10n, theme),
-          const SizedBox(height: DesignConstants.spacingM),
           ValueListenableBuilder<AiOverlayDemoConfiguration>(
             valueListenable: AiOverlayDemoSettings.configuration,
             builder: (context, settings, _) =>
@@ -99,19 +93,16 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
                       child: Material(
                         type: MaterialType.transparency,
                         child: DraggableAiCloud(
-                          key: _cloudKey,
                           navigator: Navigator.of(context),
-                          semanticLabel: l10n.developerAiOverlayDemoTitle,
-                          semanticHint: l10n.aiOverlayDemoCloudHint,
+                          semanticLabel: 'AI Overlay',
+                          semanticHint: 'KI-Assistent öffnen',
                           liveliness: settings.liveliness,
                           showResizeHandles: settings.showResizeHandles,
                           openDirectlyFullscreen:
                               settings.openDirectlyFullscreen,
-                          useLiveAi: settings.useLiveAi,
+                          useLiveAi: true,
                           onExpandedChanged: (value) =>
                               setState(() => _cloudExpanded = value),
-                          onGenerationChanged: (value) =>
-                              setState(() => _cloudIsGenerating = value),
                         ),
                       ),
                     ),
@@ -196,132 +187,6 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             value: settings.openDirectlyFullscreen,
             onChanged: (value) => unawaited(
               AiOverlayDemoSettings.update(openDirectlyFullscreen: value),
-            ),
-          ),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: const Text('Echte KI-Anbindung'),
-            subtitle: const Text(
-              'Antworten live über das konfigurierte KI-Modell streamen',
-            ),
-            value: settings.useLiveAi,
-            onChanged: (value) =>
-                unawaited(AiOverlayDemoSettings.update(useLiveAi: value)),
-          ),
-          if (!settings.useLiveAi)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: DesignConstants.spacingS,
-                runSpacing: DesignConstants.spacingXS,
-                children: [
-                  TextButton.icon(
-                    onPressed: _cloudIsGenerating
-                        ? _cloudKey.currentState?.finishDemoGeneration
-                        : null,
-                    icon: const Icon(LucideIcons.circle_check),
-                    label: const Text('Direkt fertigstellen'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _cloudIsGenerating
-                        ? _cloudKey.currentState?.requestDemoPermission
-                        : null,
-                    icon: const Icon(LucideIcons.shield_alert),
-                    label: const Text('Freigabe anfordern'),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIntroCard(
-    BuildContext context,
-    AppLocalizations l10n,
-    ThemeData theme,
-  ) {
-    return SummaryCard(
-      padding: const EdgeInsets.all(DesignConstants.spacingL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(
-                    DesignConstants.borderRadiusM,
-                  ),
-                ),
-                child: Icon(
-                  LucideIcons.sparkles,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.aiOverlayDemoIntroTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXS),
-                    Text(
-                      l10n.aiOverlayDemoIntroBody,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.55,
-              ),
-              borderRadius: BorderRadius.circular(
-                DesignConstants.borderRadiusS,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingM,
-                vertical: DesignConstants.spacingS,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    LucideIcons.info,
-                    size: DesignConstants.iconSizeS,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  Expanded(
-                    child: Text(
-                      l10n.aiOverlayDemoPreviewNote,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
