@@ -4298,5 +4298,17 @@
   "recoveryMixedReadyZoneTitle": "Mixto / listo",
   "feedbackReportDirectRequiresTelemetry": "El envío directo requiere las estadísticas de uso anónimas. Actívalas en Ajustes o utiliza el correo electrónico o la opción de compartir.",
   "feedbackReportDirectSent": "Informe de diagnóstico enviado directamente al desarrollador. ¡Gracias!",
-  "feedbackReportDirectSend": "Enviar directamente al desarrollador"
+  "feedbackReportDirectSend": "Enviar directamente al desarrollador",
+  "aiAssistantUpdateIntroTitle": "Conoce el chat de IA",
+  "aiAssistantUpdateIntroBody": "Pregunta sobre tu entrenamiento y nutrición. El asistente puede resumir los datos que autorices y preparar rutinas, planes de entrenamiento o recetas como borradores. Puedes revisar cada solicitud de acceso y cada cambio antes de aplicarlo. Configura un proveedor en Ajustes de IA para obtener respuestas reales.",
+  "aiAssistantUpdateIntroDemoLabel": "Chat de ejemplo",
+  "aiAssistantUpdateIntroExampleQuestion": "¿Qué puede hacer el nuevo chat de IA de Train Libre?",
+  "aiAssistantUpdateIntroExampleAnswer": "El chat responde preguntas sobre entrenamiento y nutrición y analiza datos relevantes con tu permiso. Prepara borradores de rutinas, planes y recetas. Puedes revisar y confirmar las comidas antes de guardarlas; no se guarda nada sin tu consentimiento.",
+  "aiAssistantUpdateIntroAiEnabled": "Activar funciones de IA",
+  "aiAssistantUpdateIntroAiEnabledHint": "Controla el chat de IA y las demás funciones de IA.",
+  "aiAssistantUpdateIntroLauncherEnabled": "Mostrar el chat flotante de IA",
+  "aiAssistantUpdateIntroLauncherEnabledHint": "Muestra u oculta la burbuja del chat. También puedes abrirlo desde el menú Añadir."
+,
+  "aiAssistantIntroAboutRow": "Probar el chat de IA",
+  "aiAssistantIntroAboutRowSubtitle": "Vuelve a abrir la presentación del nuevo chat de IA cuando quieras."
 }

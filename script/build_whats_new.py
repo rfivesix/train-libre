@@ -57,6 +57,8 @@ LOCALE_TO_LANG = {
     "fr-FR": "fr",
     "it": "it",
     "ja": "ja",
+    "es-ES": "es",
+    "nl-NL": "nl",
     "en-GB": None,
 }
 
@@ -315,7 +317,15 @@ def read_store_release_notes(locale):
 def write_store_release_notes(locale, text):
     current, path = read_store_release_notes(locale)
     if current is None:
-        return False
+        if path.exists():
+            return False
+        path.write_text(
+            f"# App Store Metadata - {locale}\n\n"
+            "## Release Notes (What's New / Release Notes in this version)\n"
+            f"{text}\n",
+            encoding="utf-8",
+        )
+        return True
     original = path.read_text(encoding="utf-8")
     updated, count = re.subn(
         r"(^##\s+Release Notes[^\n]*\n)(.*?)(?=^##\s|\Z)",

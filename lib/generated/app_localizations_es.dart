@@ -9459,4 +9459,44 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get feedbackReportDirectSend => 'Enviar directamente al desarrollador';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => 'Conoce el chat de IA';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'Pregunta sobre tu entrenamiento y nutrición. El asistente puede resumir los datos que autorices y preparar rutinas, planes de entrenamiento o recetas como borradores. Puedes revisar cada solicitud de acceso y cada cambio antes de aplicarlo. Configura un proveedor en Ajustes de IA para obtener respuestas reales.';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'Chat de ejemplo';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      '¿Qué puede hacer el nuevo chat de IA de Train Libre?';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'El chat responde preguntas sobre entrenamiento y nutrición y analiza datos relevantes con tu permiso. Prepara borradores de rutinas, planes y recetas. Puedes revisar y confirmar las comidas antes de guardarlas; no se guarda nada sin tu consentimiento.';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'Activar funciones de IA';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint =>
+      'Controla el chat de IA y las demás funciones de IA.';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled =>
+      'Mostrar el chat flotante de IA';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'Muestra u oculta la burbuja del chat. También puedes abrirlo desde el menú Añadir.';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'Probar el chat de IA';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle =>
+      'Vuelve a abrir la presentación del nuevo chat de IA cuando quieras.';
 }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_libre/features/ai_assistant/data/ai_overlay_demo_settings.dart';
+import 'package:train_libre/features/diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 import 'package:train_libre/features/whats_new/data/whats_new_service.dart';
 import 'package:train_libre/features/whats_new/domain/whats_new_release.dart';
 import 'package:train_libre/features/whats_new/presentation/whats_new_sheet.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/services/theme_service.dart';
 
 WhatsNewRelease _release(String version, List<String> titles) =>
     WhatsNewRelease(
@@ -21,16 +25,19 @@ WhatsNewRelease _release(String version, List<String> titles) =>
     );
 
 Widget _host(void Function(BuildContext) onReady) {
-  return MaterialApp(
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    locale: const Locale('en'),
-    home: Builder(
-      builder: (context) => Scaffold(
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () => onReady(context),
-            child: const Text('open'),
+  return ChangeNotifierProvider(
+    create: (_) => ThemeService(),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => onReady(context),
+              child: const Text('open'),
+            ),
           ),
         ),
       ),
@@ -142,5 +149,32 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BottomSheet), findsNothing);
+  });
+
+  testWidgets(
+      'automatic 1.7 release notes include AI chat preview and controls',
+      (tester) async {
+    AiOverlayDemoSettings.initialize(await SharedPreferences.getInstance());
+    await tester.pumpWidget(_host((context) {
+      showWhatsNewSheet(context, [
+        _release('1.7.0', ['New AI chat'])
+      ]);
+    }));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text(l10n.aiAssistantUpdateIntroTitle), findsNothing);
+    expect(find.text(l10n.aiAssistantUpdateIntroBody), findsNothing);
+    expect(find.text(l10n.aiAssistantUpdateIntroDemoLabel), findsNothing);
+    expect(find.byType(AiNeuralCloudOrbWidget), findsOneWidget);
+    expect(
+        find.text(l10n.aiAssistantUpdateIntroExampleQuestion), findsOneWidget);
+    expect(find.text(l10n.aiAssistantUpdateIntroExampleAnswer), findsOneWidget);
+    expect(find.text(l10n.aiAssistantUpdateIntroAiEnabled), findsOneWidget);
+    expect(
+        find.text(l10n.aiAssistantUpdateIntroLauncherEnabled), findsOneWidget);
+    expect(find.byType(SwitchListTile), findsNWidgets(2));
   });
 }

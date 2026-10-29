@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.7.0 (2026-10-29)
+
+{sparkles} Meet the new AI chat: Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.
+
+{utensils} Hello, Spain! Hello, the Netherlands!: Train Libre and its exercise catalogue are now available in Spanish and Dutch. The BLS and exercise catalogues also include translated names. Open Food Facts adds catalogues for the Netherlands, Spain, and Australia.
+
+{camera} Improved meal recognition: Meals are captured more reliably and much faster. AI can now recognise and log drinks and caffeine too.
+
+{activity} Sync nutrition with Health: Import and export calories and macronutrients with Apple Health and Health Connect. Workouts are not synchronised.
+
+{layout_grid} More personalisation: Set a custom accent colour and choose which cards appear in the Statistics hub.
+
 ## 1.6.0 (2026-10-20)
 
 {camera} Better AI meal capture: Meal analysis is faster and food matching is more reliable. On supported iPhones, Apple Intelligence can analyse meals on the device; you can still use your own API key with another provider. Review and edit every suggestion before saving.

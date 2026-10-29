@@ -2,14 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
+import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../services/theme_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 import '../data/whats_new_service.dart';
+import '../data/ai_assistant_update_intro_service.dart';
 import '../domain/whats_new_release.dart';
 
 /// Shows the "What's New" bottom sheet for [releases] (newest first).
@@ -32,9 +37,19 @@ Future<void> showWhatsNewSheet(
   );
   if (markSeen) {
     unawaited(
-      TelemetryService.instance
-          .trackFeatureUsed(featureKey: FeatureKey.whatsNewViewed),
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.whatsNewViewed,
+        extraProps: {'release_version': releases.first.version},
+      ),
     );
+    if (releases.any((release) => release.version == '1.7.0')) {
+      unawaited(
+        TelemetryService.instance.track(
+          'ai_assistant_update_intro_viewed',
+          properties: {'release_version': '1.7.0', 'source': 'whats_new'},
+        ),
+      );
+    }
   }
 
   await showGlassBottomMenu<void>(
@@ -44,12 +59,52 @@ Future<void> showWhatsNewSheet(
       releases: releases,
       onClose: close,
       showSingleVersionHeader: releases.length == 1,
+      showAiAssistantIntro:
+          markSeen && releases.any((release) => release.version == '1.7.0'),
     ),
   );
 
   if (markSeen) {
     await WhatsNewService.instance.markSeen();
+    if (releases.any((release) => release.version == '1.7.0')) {
+      await AiAssistantUpdateIntroService.instance.markSeen();
+    }
   }
+}
+
+/// Opens the AI chat introduction directly. About-screen previews do not mark
+/// the one-time startup presentation as seen.
+Future<void> showAiAssistantUpdateIntroSheet(
+  BuildContext context, {
+  bool markSeen = true,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  if (l10n == null) return;
+  unawaited(TelemetryService.instance.track(
+    'ai_assistant_update_intro_viewed',
+    properties: {'release_version': '1.7.0', 'source': 'standalone'},
+  ));
+  await showGlassBottomMenu<void>(
+    context: context,
+    title: l10n.aiAssistantUpdateIntroTitle,
+    expandToFullHeight: true,
+    contentBuilder: (ctx, close) => Column(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        const Expanded(
+          child: _AiAssistantUpdateIntro(fillAvailable: true),
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        AppButton.primary(
+          label: l10n.whatsNewCta,
+          semanticsLabel: l10n.whatsNewCta,
+          onPressed: close,
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+      ],
+    ),
+  );
+  if (markSeen) await AiAssistantUpdateIntroService.instance.markSeen();
 }
 
 class _WhatsNewContent extends StatelessWidget {
@@ -57,6 +112,7 @@ class _WhatsNewContent extends StatelessWidget {
     required this.releases,
     required this.onClose,
     required this.showSingleVersionHeader,
+    required this.showAiAssistantIntro,
   });
 
   final List<WhatsNewRelease> releases;
@@ -65,6 +121,7 @@ class _WhatsNewContent extends StatelessWidget {
   /// A single release gets a compact subtitle instead of a section header, so
   /// the common case after an update does not read like a changelog archive.
   final bool showSingleVersionHeader;
+  final bool showAiAssistantIntro;
 
   String _headerFor(BuildContext context, WhatsNewRelease release) {
     final l10n = AppLocalizations.of(context)!;
@@ -116,6 +173,11 @@ class _WhatsNewContent extends StatelessWidget {
       }
     }
 
+    if (showAiAssistantIntro) {
+      children.add(const SizedBox(height: DesignConstants.spacingM));
+      children.add(const _AiAssistantUpdateIntro());
+    }
+
     children.add(const SizedBox(height: DesignConstants.spacingL));
     children.add(
       AppButton.primary(
@@ -130,6 +192,212 @@ class _WhatsNewContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: children,
+    );
+  }
+}
+
+/// The floating chat preview and its two opt-in controls for existing users.
+class _AiAssistantUpdateIntro extends StatelessWidget {
+  const _AiAssistantUpdateIntro({this.fillAvailable = false});
+
+  final bool fillAvailable;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Card(
+      color: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(DesignConstants.spacingM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (fillAvailable)
+              Expanded(
+                child: _AssistantPreviewChat(
+                  question: l10n.aiAssistantUpdateIntroExampleQuestion,
+                  answer: l10n.aiAssistantUpdateIntroExampleAnswer,
+                  expand: true,
+                ),
+              )
+            else
+              _AssistantPreviewChat(
+                question: l10n.aiAssistantUpdateIntroExampleQuestion,
+                answer: l10n.aiAssistantUpdateIntroExampleAnswer,
+              ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Consumer<ThemeService>(
+              builder: (context, settings, _) => SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.aiAssistantUpdateIntroAiEnabled),
+                subtitle: Text(l10n.aiAssistantUpdateIntroAiEnabledHint),
+                value: settings.isAiEnabled,
+                onChanged: (enabled) {
+                  unawaited(settings.setAiEnabled(enabled));
+                  if (!enabled) {
+                    unawaited(AiOverlayDemoSettings.update(enabled: false));
+                  }
+                  unawaited(
+                    TelemetryService.instance.track(
+                      'ai_assistant_update_intro_choice',
+                      properties: {'ai_enabled': enabled},
+                    ),
+                  );
+                },
+              ),
+            ),
+            ValueListenableBuilder<AiOverlayDemoConfiguration>(
+              valueListenable: AiOverlayDemoSettings.configuration,
+              builder: (context, settings, _) {
+                final aiEnabled = context.watch<ThemeService>().isAiEnabled;
+                return SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.aiAssistantUpdateIntroLauncherEnabled),
+                  subtitle:
+                      Text(l10n.aiAssistantUpdateIntroLauncherEnabledHint),
+                  value: settings.enabled,
+                  onChanged: aiEnabled
+                      ? (enabled) {
+                          unawaited(
+                            AiOverlayDemoSettings.update(enabled: enabled),
+                          );
+                          unawaited(
+                            TelemetryService.instance.track(
+                              'ai_assistant_update_intro_choice',
+                              properties: {
+                                'floating_assistant_enabled': enabled,
+                              },
+                            ),
+                          );
+                        }
+                      : null,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AssistantPreviewChat extends StatelessWidget {
+  const _AssistantPreviewChat({
+    required this.question,
+    required this.answer,
+    this.expand = false,
+  });
+
+  final String question;
+  final String answer;
+  final bool expand;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final cloudColor =
+        theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+    final cloudTextColor =
+        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final canvas = Size(
+          constraints.maxWidth,
+          expand ? constraints.maxHeight * 0.56 : 350,
+        );
+        final cloudSize = canvas.width * 0.8 < canvas.height * 0.75
+            ? canvas.width * 0.8
+            : canvas.height * 0.75;
+        return Center(
+          child: SizedBox(
+            width: canvas.width,
+            height: canvas.height,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                IgnorePointer(
+                  child: AiNeuralCloudOrbWidget(
+                    size: cloudSize,
+                    canvasSize: canvas,
+                    cloudCenter: Offset(canvas.width / 2, canvas.height / 2),
+                    frameRect: Rect.fromLTWH(
+                      60,
+                      canvas.height * 0.18,
+                      canvas.width - 120,
+                      canvas.height * 0.64,
+                    ),
+                    frameMorph: 1,
+                    baseColor: cloudColor,
+                    accentColor: colors.primary,
+                    morph: 1,
+                    flowSpeed: 0.15,
+                    edgeBlurSigma: 1.5,
+                    showAmbientGlow: false,
+                    showDetachedSatellite: false,
+                    enableInteraction: false,
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: _AssistantPreviewQuestion(text: question),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingM),
+                      Text(
+                        answer,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: cloudTextColor,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AssistantPreviewQuestion extends StatelessWidget {
+  const _AssistantPreviewQuestion({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? Color.lerp(Colors.black, colors.primary, 0.42)!
+        : colors.primary;
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: isDark ? Colors.white : colors.onPrimary,
+            ),
+      ),
     );
   }
 }

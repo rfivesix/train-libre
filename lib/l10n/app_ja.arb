@@ -3807,5 +3807,17 @@
   "feedbackReportDirectSent": "診断レポートを開発者に直接送信しました。ありがとうございます！",
   "feedbackReportDirectSend": "開発者に直接送信",
   "aiAssistantThinking": "考えています…",
-  "aiAssistantProcessingData": "承認済みデータを分析しています…"
+  "aiAssistantProcessingData": "承認済みデータを分析しています…",
+  "aiAssistantUpdateIntroTitle": "新しいAIチャットのご紹介",
+  "aiAssistantUpdateIntroBody": "トレーニングや栄養について質問できます。許可したデータの要約や、ルーティン・トレーニングプラン・レシピの下書き作成もできます。データの共有と変更は、利用前にいつでも確認できます。実際の回答を使うには、AI設定でプロバイダーを設定してください。",
+  "aiAssistantUpdateIntroDemoLabel": "チャットの例",
+  "aiAssistantUpdateIntroExampleQuestion": "Train Libreの新しいAIチャットで何ができますか？",
+  "aiAssistantUpdateIntroExampleAnswer": "トレーニングや栄養について質問でき、許可すれば関連データも確認できます。ルーティン、トレーニングプラン、レシピの下書きを作成します。食事の記録は保存前に確認・確定でき、許可なく保存されることはありません。",
+  "aiAssistantUpdateIntroAiEnabled": "AI機能を有効にする",
+  "aiAssistantUpdateIntroAiEnabledHint": "AIチャットとその他のAI機能を切り替えます。",
+  "aiAssistantUpdateIntroLauncherEnabled": "フローティングAIチャットを表示",
+  "aiAssistantUpdateIntroLauncherEnabledHint": "チャットの雲を表示または非表示にします。チャットは追加メニューからも開けます。"
+,
+  "aiAssistantIntroAboutRow": "AIチャットを試す",
+  "aiAssistantIntroAboutRowSubtitle": "新しいAIチャットの紹介をいつでも再表示できます。"
 }

@@ -8970,4 +8970,41 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get feedbackReportDirectSend => '開発者に直接送信';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => '新しいAIチャットのご紹介';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'トレーニングや栄養について質問できます。許可したデータの要約や、ルーティン・トレーニングプラン・レシピの下書き作成もできます。データの共有と変更は、利用前にいつでも確認できます。実際の回答を使うには、AI設定でプロバイダーを設定してください。';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'チャットの例';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'Train Libreの新しいAIチャットで何ができますか？';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'トレーニングや栄養について質問でき、許可すれば関連データも確認できます。ルーティン、トレーニングプラン、レシピの下書きを作成します。食事の記録は保存前に確認・確定でき、許可なく保存されることはありません。';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'AI機能を有効にする';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint => 'AIチャットとその他のAI機能を切り替えます。';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled => 'フローティングAIチャットを表示';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'チャットの雲を表示または非表示にします。チャットは追加メニューからも開けます。';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'AIチャットを試す';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle => '新しいAIチャットの紹介をいつでも再表示できます。';
 }

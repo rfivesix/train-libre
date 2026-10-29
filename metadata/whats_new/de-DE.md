@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.0 (2026-10-29)
+
+{sparkles} Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.
+
+{utensils} Hallo, Spanien! Hallo, Niederlande!: Train Libre und der Trainingskatalog sind jetzt auf Spanisch und Niederländisch verfügbar. Auch Namen im BLS- und Trainingskatalog sind übersetzt. Open Food Facts bietet zusätzliche Kataloge für die Niederlande, Spanien und Australien.
+
+{camera} Verbesserte Mahlzeitenerkennung: Mahlzeiten werden zuverlässiger und deutlich schneller erfasst. Jetzt erkennt und speichert die KI auch Getränke und Koffein.
+
+{activity} Ernährung mit Health synchronisieren: Kalorien und Makronährstoffe können mit Apple Health und Health Connect importiert und exportiert werden. Workouts werden dabei nicht synchronisiert.
+
+{layout_grid} Mehr Personalisierung: Lege eine eigene Akzentfarbe fest und wähle selbst, welche Karten im Statistik-Hub angezeigt werden.
+
 ## 1.6.0 (2026-10-20)
 
 {camera} Verbesserte KI-Mahlzeitenerfassung: Die Analyse ist schneller und findet passende Lebensmittel zuverlässiger. Auf unterstützten iPhones kannst du Apple Intelligence direkt auf dem Gerät nutzen oder weiterhin einen Anbieter mit eigenem API-Schlüssel verbinden. Jeden Vorschlag kannst du vor dem Speichern prüfen und ändern.

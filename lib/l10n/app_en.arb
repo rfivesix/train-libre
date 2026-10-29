@@ -4023,5 +4023,17 @@
   "recoveryMixedReadyZoneTitle": "Mixed / Ready",
   "feedbackReportDirectRequiresTelemetry": "Direct submission requires anonymous usage statistics. Enable them in Settings, or use email or share instead.",
   "feedbackReportDirectSent": "Diagnostic report sent directly to the developer. Thank you!",
-  "feedbackReportDirectSend": "Send directly to the developer"
+  "feedbackReportDirectSend": "Send directly to the developer",
+  "aiAssistantUpdateIntroTitle": "Meet the AI chat",
+  "aiAssistantUpdateIntroBody": "Ask about training and nutrition. The assistant can summarize data you approve and prepare routines, training plans, or recipes as drafts. You review each data request and change before it is used. Set up a provider in AI Settings for live answers.",
+  "aiAssistantUpdateIntroDemoLabel": "Example chat",
+  "aiAssistantUpdateIntroExampleQuestion": "What can the new AI chat do in Train Libre?",
+  "aiAssistantUpdateIntroExampleAnswer": "The chat answers questions about training and nutrition and reviews relevant data with your permission. It drafts routines, training plans, and recipes. You can review and confirm meal entries before saving; nothing is saved without your approval.",
+  "aiAssistantUpdateIntroAiEnabled": "Enable AI features",
+  "aiAssistantUpdateIntroAiEnabledHint": "Controls AI chat and the other AI features.",
+  "aiAssistantUpdateIntroLauncherEnabled": "Show the floating AI chat",
+  "aiAssistantUpdateIntroLauncherEnabledHint": "Show or hide the chat orb. You can still open chat from the Add menu."
+,
+  "aiAssistantIntroAboutRow": "Try the AI chat",
+  "aiAssistantIntroAboutRowSubtitle": "Open the new AI chat preview again at any time."
 }

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../../services/ai_service.dart';
 import '../../../../../services/haptic_feedback_service.dart';
+import '../../../../../services/telemetry/telemetry_service.dart';
 import '../../../application/assistant_chat_service.dart';
 import '../../../data/ai_overlay_live_chat_service.dart';
 import '../../../data/assistant_history_repository.dart';
@@ -297,6 +298,7 @@ class CloudChatCoordinator extends ChangeNotifier {
   }
 
   void _sendDemoPrompt(String prompt) {
+    _trackPromptSent(prompt, const [], mode: 'demo');
     if (_isGenerating) stopGeneration();
 
     final generationId = ++_activeGenerationId;
@@ -347,6 +349,7 @@ class CloudChatCoordinator extends ChangeNotifier {
       onRetainedDraft?.call();
       return;
     }
+    _trackPromptSent(prompt, imageFiles, mode: 'live');
     final locale = localeGetter();
     final isDe = locale.toLowerCase().startsWith('de');
 
@@ -533,11 +536,43 @@ class CloudChatCoordinator extends ChangeNotifier {
   }
 
   void resolvePermission(bool approved) {
+    if (_pendingAccess != null) {
+      unawaited(
+        TelemetryService.instance.track(
+          'ai_assistant_data_access_decided',
+          properties: {
+            'decision': approved ? 'approved' : 'denied',
+            'mode': useLiveAi ? 'live' : 'demo',
+          },
+        ),
+      );
+    }
     if (useLiveAi) {
       _resolveAssistantPermission(approved);
     } else {
       _resolveDemoPermission(approved);
     }
+  }
+
+  void _trackPromptSent(
+    String prompt,
+    List<File> imageFiles, {
+    required String mode,
+  }) {
+    unawaited(
+      TelemetryService.instance.track(
+        'ai_assistant_prompt_sent',
+        properties: {
+          'mode': mode,
+          'input_mode': imageFiles.isEmpty
+              ? 'text'
+              : prompt.trim().isEmpty
+                  ? 'image'
+                  : 'multimodal',
+          'image_count': imageFiles.length,
+        },
+      ),
+    );
   }
 
   void _resolveAssistantPermission(bool approved) {
@@ -703,6 +738,17 @@ class CloudChatCoordinator extends ChangeNotifier {
       if (_isDisposed || message == null) return;
       turn.proposalStatus = approved ? 'proposal_applied' : 'proposal_rejected';
       turn.response = message;
+      if (approved) {
+        unawaited(
+          TelemetryService.instance.track(
+            'ai_assistant_draft_applied',
+            properties: {
+              'content_type': turn.changeProposal?.payload.type ?? 'unknown',
+              'operation': turn.changeProposal?.operation.name ?? 'unknown',
+            },
+          ),
+        );
+      }
     } catch (error) {
       if (!_isDisposed) {
         turn.response = '${turn.changeProposal?.summary ?? ''}\n\n$error';

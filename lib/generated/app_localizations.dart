@@ -16386,6 +16386,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send directly to the developer'**
   String get feedbackReportDirectSend;
+
+  /// No description provided for @aiAssistantUpdateIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet the AI chat'**
+  String get aiAssistantUpdateIntroTitle;
+
+  /// No description provided for @aiAssistantUpdateIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about training and nutrition. The assistant can summarize data you approve and prepare routines, training plans, or recipes as drafts. You review each data request and change before it is used. Set up a provider in AI Settings for live answers.'**
+  String get aiAssistantUpdateIntroBody;
+
+  /// No description provided for @aiAssistantUpdateIntroDemoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Example chat'**
+  String get aiAssistantUpdateIntroDemoLabel;
+
+  /// No description provided for @aiAssistantUpdateIntroExampleQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What can the new AI chat do in Train Libre?'**
+  String get aiAssistantUpdateIntroExampleQuestion;
+
+  /// No description provided for @aiAssistantUpdateIntroExampleAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'The chat answers questions about training and nutrition and reviews relevant data with your permission. It drafts routines, training plans, and recipes. You can review and confirm meal entries before saving; nothing is saved without your approval.'**
+  String get aiAssistantUpdateIntroExampleAnswer;
+
+  /// No description provided for @aiAssistantUpdateIntroAiEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable AI features'**
+  String get aiAssistantUpdateIntroAiEnabled;
+
+  /// No description provided for @aiAssistantUpdateIntroAiEnabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls AI chat and the other AI features.'**
+  String get aiAssistantUpdateIntroAiEnabledHint;
+
+  /// No description provided for @aiAssistantUpdateIntroLauncherEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the floating AI chat'**
+  String get aiAssistantUpdateIntroLauncherEnabled;
+
+  /// No description provided for @aiAssistantUpdateIntroLauncherEnabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show or hide the chat orb. You can still open chat from the Add menu.'**
+  String get aiAssistantUpdateIntroLauncherEnabledHint;
+
+  /// No description provided for @aiAssistantIntroAboutRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Try the AI chat'**
+  String get aiAssistantIntroAboutRow;
+
+  /// No description provided for @aiAssistantIntroAboutRowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the new AI chat preview again at any time.'**
+  String get aiAssistantIntroAboutRowSubtitle;
 }
 
 class _AppLocalizationsDelegate

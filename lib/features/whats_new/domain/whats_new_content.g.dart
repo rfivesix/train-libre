@@ -16,6 +16,37 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.0',
+      releasedOn: '2026-10-29',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Meet the new AI chat',
+          body: 'Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Hello, Spain! Hello, the Netherlands!',
+          body: 'Train Libre and its exercise catalog are now available in Spanish and Dutch. The BLS and exercise catalogs also include translated names. Open Food Facts adds catalogs for the Netherlands, Spain, and Australia.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
+          title: 'Improved meal recognition',
+          body: 'Meals are captured more reliably and much faster. AI can now recognize and log drinks and caffeine too.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Sync nutrition with Health',
+          body: 'Import and export calories and macronutrients with Apple Health and Health Connect. Workouts are not synchronized.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'More personalization',
+          body: 'Set a custom accent color and choose which cards appear in the Statistics hub.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.6.0',
       releasedOn: '2026-10-20',
       entries: <WhatsNewEntry>[
@@ -266,6 +297,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.0',
+      releasedOn: '2026-10-29',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Ein neuer KI-Chat',
+          body: 'Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Hallo, Spanien! Hallo, Niederlande!',
+          body: 'Train Libre und der Trainingskatalog sind jetzt auf Spanisch und Niederländisch verfügbar. Auch Namen im BLS- und Trainingskatalog sind übersetzt. Open Food Facts bietet zusätzliche Kataloge für die Niederlande, Spanien und Australien.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
+          title: 'Verbesserte Mahlzeitenerkennung',
+          body: 'Mahlzeiten werden zuverlässiger und deutlich schneller erfasst. Jetzt erkennt und speichert die KI auch Getränke und Koffein.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Ernährung mit Health synchronisieren',
+          body: 'Kalorien und Makronährstoffe können mit Apple Health und Health Connect importiert und exportiert werden. Workouts werden dabei nicht synchronisiert.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Mehr Personalisierung',
+          body: 'Lege eine eigene Akzentfarbe fest und wähle selbst, welche Karten im Statistik-Hub angezeigt werden.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.6.0',
       releasedOn: '2026-10-20',
@@ -518,6 +580,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.0',
+      releasedOn: '2026-10-29',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Découvrez le nouveau chat IA',
+          body: 'Posez vos questions sur la nutrition et l’entraînement. Il peut créer des programmes, des routines et des recettes sous forme de brouillons. Vos données personnelles ne sont partagées qu’avec votre accord, et vous vérifiez les propositions avant de les appliquer.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Bonjour l’Espagne ! Bonjour les Pays-Bas !',
+          body: 'Train Libre et son catalogue d’exercices sont disponibles en espagnol et en néerlandais. Les catalogues BLS et d’exercices proposent aussi des noms traduits. Open Food Facts ajoute les catalogues des Pays-Bas, d’Espagne et d’Australie.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
+          title: 'Reconnaissance des repas améliorée',
+          body: 'Les repas sont enregistrés plus rapidement et plus fiablement. L’IA reconnaît et enregistre aussi les boissons et la caféine.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Synchronisez la nutrition avec Health',
+          body: 'Importez et exportez les calories et les macronutriments avec Apple Health et Health Connect. Les entraînements ne sont pas synchronisés.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Plus de personnalisation',
+          body: 'Choisissez une couleur d’accent personnalisée et les cartes affichées dans le centre de statistiques.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.6.0',
       releasedOn: '2026-10-20',
       entries: <WhatsNewEntry>[
@@ -768,6 +861,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'it': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.0',
+      releasedOn: '2026-10-29',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Scopri la nuova chat IA',
+          body: 'fai domande su alimentazione e allenamento. Può creare bozze di piani di allenamento, routine e ricette. I dati personali vengono condivisi solo con il tuo consenso e puoi controllare i suggerimenti prima di applicarli.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Ciao, Spagna! Ciao, Paesi Bassi!',
+          body: 'Train Libre e il catalogo degli esercizi sono ora disponibili in spagnolo e olandese. Anche i cataloghi BLS e degli esercizi includono nomi tradotti. Open Food Facts aggiunge i cataloghi di Paesi Bassi, Spagna e Australia.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
+          title: 'Riconoscimento dei pasti migliorato',
+          body: 'i pasti vengono registrati in modo più affidabile e molto più veloce. L’IA ora riconosce e registra anche bevande e caffeina.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Sincronizza la nutrizione con Health',
+          body: 'importa ed esporta calorie e macronutrienti con Apple Health e Health Connect. Gli allenamenti non vengono sincronizzati.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Più personalizzazione',
+          body: 'scegli un colore principale personalizzato e le schede da mostrare nel pannello statistiche.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.6.0',
       releasedOn: '2026-10-20',
@@ -1020,6 +1144,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.7.0',
+      releasedOn: '2026-10-29',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: '新しいAIチャット',
+          body: '栄養やトレーニングについて質問できます。トレーニングプラン、ルーティン、レシピの下書きも作成できます。個人データは許可した場合のみ共有され、提案は適用前に確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'こんにちは、スペイン！こんにちは、オランダ！',
+          body: 'アプリとエクササイズカタログがスペイン語とオランダ語に対応しました。BLSとエクササイズカタログにも翻訳名が追加されています。Open Food Factsではオランダ、スペイン、オーストラリアのカタログを利用できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
+          title: '食事認識を改善',
+          body: '食事をより確実に、より速く記録できます。AIが飲み物とカフェインも認識して記録します。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Healthと栄養データを同期',
+          body: 'Apple HealthとHealth Connectでカロリーと主要栄養素をインポート・エクスポートできます。ワークアウトは同期されません。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'さらにパーソナライズ',
+          body: 'アクセントカラーを設定し、統計ハブに表示するカードを選べます。',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.6.0',
       releasedOn: '2026-10-20',
       entries: <WhatsNewEntry>[
@@ -1271,10 +1426,76 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       ],
     ),
   ],
+  'es': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.0',
+      releasedOn: '2026-10-29',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Conoce el nuevo chat de IA',
+          body: 'pregunta sobre nutrición y entrenamiento. Puede crear borradores de planes de entrenamiento, rutinas y recetas. Tus datos personales solo se comparten con tu permiso y puedes revisar las propuestas antes de aplicarlas.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: '¡Hola, España! ¡Hola, Países Bajos!',
+          body: 'Train Libre y su catálogo de ejercicios ya están disponibles en español y neerlandés. Los catálogos BLS y de ejercicios también incluyen nombres traducidos. Open Food Facts añade catálogos de Países Bajos, España y Australia.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
+          title: 'Reconocimiento de comidas mejorado',
+          body: 'las comidas se registran con más fiabilidad y mucha más rapidez. La IA ahora también reconoce y registra bebidas y cafeína.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Sincroniza la nutrición con Health',
+          body: 'importa y exporta calorías y macronutrientes con Apple Health y Health Connect. Los entrenamientos no se sincronizan.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Más personalización',
+          body: 'elige un color de acento personalizado y qué tarjetas aparecen en el centro de estadísticas.',
+        ),
+      ],
+    ),
+  ],
+  'nl': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.7.0',
+      releasedOn: '2026-10-29',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Maak kennis met de nieuwe AI-chat',
+          body: 'stel vragen over voeding en training. De chat kan concepten maken voor trainingsschema’s, routines en recepten. Persoonlijke gegevens worden alleen met jouw toestemming gedeeld; voorstellen bekijk je voordat je ze toepast.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Hallo, Spanje! Hallo, Nederland!',
+          body: 'Train Libre en de oefeningencatalogus zijn nu beschikbaar in het Spaans en Nederlands. Ook de BLS- en oefeningencatalogus bevatten vertaalde namen. Open Food Facts biedt catalogi voor Nederland, Spanje en Australië.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
+          title: 'Verbeterde maaltijdherkenning',
+          body: 'maaltijden worden betrouwbaarder en veel sneller vastgelegd. AI herkent en registreert nu ook drankjes en cafeïne.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Voeding synchroniseren met Health',
+          body: 'importeer en exporteer calorieën en macronutriënten met Apple Health en Health Connect. Workouts worden niet gesynchroniseerd.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Meer personalisatie',
+          body: 'stel een eigen accentkleur in en kies welke kaarten in de Statistiekhub verschijnen.',
+        ),
+      ],
+    ),
+  ],
 };
 
 /// Language used when the device language has no notes of its own.
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.6.0';
+const String kWhatsNewGeneratedForVersion = '1.7.0';

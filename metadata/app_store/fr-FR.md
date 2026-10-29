@@ -56,15 +56,15 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Capture de repas par IA améliorée: L’analyse est plus rapide et trouve plus sûrement les bons aliments. Sur les iPhone compatibles, Apple Intelligence peut analyser les repas sur l’appareil ; tu peux aussi continuer à utiliser ta propre clé API avec un autre fournisseur. Vérifie et modifie chaque suggestion avant de l’enregistrer.
+Découvrez le nouveau chat IA: Posez vos questions sur la nutrition et l’entraînement. Il peut créer des programmes, des routines et des recettes sous forme de brouillons. Vos données personnelles ne sont partagées qu’avec votre accord, et vous vérifiez les propositions avant de les appliquer.
 
-Des données alimentaires plus détaillées: Télécharge le catalogue BLS 4.0 pour rechercher des aliments génériques aux noms traduits et consulter leurs nutriments, dont les micronutriments. Une fois téléchargé, il fonctionne hors ligne ; les produits de marque restent disponibles via Open Food Facts.
+Bonjour l’Espagne ! Bonjour les Pays-Bas !: Train Libre et son catalogue d’exercices sont disponibles en espagnol et en néerlandais. Les catalogues BLS et d’exercices proposent aussi des noms traduits. Open Food Facts ajoute les catalogues des Pays-Bas, d’Espagne et d’Australie.
 
-Importe ton historique d’entraînement: Importe des séances depuis Hevy, Strong ou un fichier CSV. L’aperçu signale les doublons possibles et les dates invalides. Retrouve plus facilement les exercices déjà pratiqués et ajoute des notes aux exercices, routines ou séances individuelles.
+Reconnaissance des repas améliorée: Les repas sont enregistrés plus rapidement et plus fiablement. L’IA reconnaît et enregistre aussi les boissons et la caféine.
 
-Partage et réutilise tes contenus: Partage routines, programmes et recettes par lien, texte ou JSON ; exporte les séances terminées en texte ou JSON. Prévisualise les imports compatibles avant de les ajouter. Enregistre les recettes selon les portions ou le poids après cuisson.
+Synchronisez la nutrition avec Health: Importez et exportez les calories et les macronutriments avec Apple Health et Health Connect. Les entraînements ne sont pas synchronisés.
 
-Des statistiques plus claires et une utilisation plus fluide: Personnalise l’aperçu des statistiques, explore les analyses de nutrition et de récupération, et retrouve les réglages d’import et d’export de santé au même endroit. Cette version améliore aussi la restauration des sauvegardes, l’accessibilité et l’affichage sur les petits écrans.
+Plus de personnalisation: Choisissez une couleur d’accent personnalisée et les cartes affichées dans le centre de statistiques.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

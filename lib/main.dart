@@ -41,6 +41,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'features/onboarding/presentation/initial_consent_screen.dart';
 import 'features/onboarding/presentation/legal_update_consent_screen.dart';
 import 'features/whats_new/data/whats_new_service.dart';
+import 'features/whats_new/data/ai_assistant_update_intro_service.dart';
 import 'features/app/presentation/legal_screen.dart';
 import 'core/infrastructure/icloud_sync_service.dart';
 
@@ -190,6 +191,7 @@ void main() async {
   // nothing to compare against. Mark them as seen up front.
   if (isFreshInstall) {
     await WhatsNewService.instance.seedForFreshInstall();
+    await AiAssistantUpdateIntroService.instance.seedForFreshInstall();
   }
 
   // Load previously settled glass quality to avoid warmup jank on cold starts
@@ -1236,6 +1238,15 @@ class _GlobalAiCloudHostState extends State<_GlobalAiCloudHost> {
         type: MaterialType.transparency,
         child: DraggableAiCloud(
           navigatorKey: widget.navigatorKey,
+          onFullscreenChanged: (isOpen) {
+            if (isOpen) {
+              unawaited(
+                TelemetryService.instance.trackScreenView(
+                  screenName: ScreenName.aiAssistantChat,
+                ),
+              );
+            }
+          },
           semanticLabel: l10n.developerAiOverlayDemoTitle,
           semanticHint: l10n.aiOverlayDemoCloudHint,
           liveliness: widget.settings.liveliness,

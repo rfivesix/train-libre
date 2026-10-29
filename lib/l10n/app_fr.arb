@@ -3807,5 +3807,17 @@
   "feedbackReportDirectSent": "Rapport de diagnostic envoyé directement au développeur. Merci !",
   "feedbackReportDirectSend": "Envoyer directement au développeur",
   "aiAssistantThinking": "Réflexion en cours…",
-  "aiAssistantProcessingData": "Analyse des données approuvées…"
+  "aiAssistantProcessingData": "Analyse des données approuvées…",
+  "aiAssistantUpdateIntroTitle": "Découvrez le chat IA",
+  "aiAssistantUpdateIntroBody": "Posez des questions sur votre entraînement et votre alimentation. L’assistant peut résumer les données que vous autorisez et préparer des routines, des programmes ou des recettes sous forme de brouillons. Vous vérifiez chaque demande d’accès et chaque modification avant leur utilisation. Configurez un fournisseur dans les réglages IA pour obtenir des réponses en direct.",
+  "aiAssistantUpdateIntroDemoLabel": "Exemple de chat",
+  "aiAssistantUpdateIntroExampleQuestion": "Que peut faire le nouveau chat IA de Train Libre ?",
+  "aiAssistantUpdateIntroExampleAnswer": "Le chat répond aux questions sur l’entraînement et la nutrition et analyse les données pertinentes avec votre accord. Il prépare des brouillons de routines, de programmes et de recettes. Vous vérifiez et confirmez les repas avant leur enregistrement ; rien n’est enregistré sans votre accord.",
+  "aiAssistantUpdateIntroAiEnabled": "Activer les fonctions IA",
+  "aiAssistantUpdateIntroAiEnabledHint": "Contrôle le chat IA et les autres fonctions d’IA.",
+  "aiAssistantUpdateIntroLauncherEnabled": "Afficher le chat IA flottant",
+  "aiAssistantUpdateIntroLauncherEnabledHint": "Afficher ou masquer la bulle du chat. Le chat reste accessible depuis le menu Ajouter."
+,
+  "aiAssistantIntroAboutRow": "Découvrir le chat IA",
+  "aiAssistantIntroAboutRowSubtitle": "Rouvrez à tout moment la présentation du nouveau chat IA."
 }

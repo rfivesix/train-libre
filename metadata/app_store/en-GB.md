@@ -56,15 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogues from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Better AI meal capture: Meal analysis is faster and food matching is more reliable. On supported iPhones, Apple Intelligence can analyse meals on the device; you can still use your own API key with another provider. Review and edit every suggestion before saving.
+Meet the new AI chat: Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.
 
-More detailed food data: Download the BLS 4.0 catalogue for translated generic food names and nutrient details, including micronutrients. Search it offline after download; branded products remain available through Open Food Facts.
+Hello, Spain! Hello, the Netherlands!: Train Libre and its exercise catalogue are now available in Spanish and Dutch. The BLS and exercise catalogues also include translated names. Open Food Facts adds catalogues for the Netherlands, Spain, and Australia.
 
-Bring your training history: Import workouts from Hevy, Strong, or CSV with a preview that flags duplicates and invalid dates. Find exercises you have trained before, and keep notes for an exercise, a routine, or a single workout.
+Improved meal recognition: Meals are captured more reliably and much faster. AI can now recognise and log drinks and caffeine too.
 
-Share and reuse your content: Share routines, plans, and recipes by link, text, or JSON; export completed workouts as text or JSON. Preview supported imports before adding them. Log saved recipes by serving or cooked weight.
+Sync nutrition with Health: Import and export calories and macronutrients with Apple Health and Health Connect. Workouts are not synchronised.
 
-Clearer insights and smoother everyday use: Customise your Statistics overview, explore nutrition and recovery insights, and find health import and export settings in one place. This update also improves backup restoration, accessibility, and small-screen layouts.
+More personalisation: Set a custom accent colour and choose which cards appear in the Statistics hub.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

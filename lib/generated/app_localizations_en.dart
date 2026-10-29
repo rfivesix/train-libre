@@ -9308,4 +9308,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackReportDirectSend => 'Send directly to the developer';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => 'Meet the AI chat';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'Ask about training and nutrition. The assistant can summarize data you approve and prepare routines, training plans, or recipes as drafts. You review each data request and change before it is used. Set up a provider in AI Settings for live answers.';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'Example chat';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'What can the new AI chat do in Train Libre?';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'The chat answers questions about training and nutrition and reviews relevant data with your permission. It drafts routines, training plans, and recipes. You can review and confirm meal entries before saving; nothing is saved without your approval.';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'Enable AI features';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint =>
+      'Controls AI chat and the other AI features.';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled =>
+      'Show the floating AI chat';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'Show or hide the chat orb. You can still open chat from the Add menu.';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'Try the AI chat';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle =>
+      'Open the new AI chat preview again at any time.';
 }

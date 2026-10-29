@@ -231,6 +231,7 @@ abstract class ScreenName {
   static const String dataManagement = 'data_management';
   static const String aboutApp = 'about_app';
   static const String whatsNew = 'whats_new';
+  static const String aiAssistantChat = 'ai_assistant_chat';
   static const String legalPrivacy = 'legal_privacy';
   static const String feedbackReport = 'feedback_report';
 }

@@ -56,15 +56,15 @@ OPEN SOURCE & OFFENE DATEN:
 Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Verbesserte KI-Mahlzeitenerfassung: Die Analyse ist schneller und findet passende Lebensmittel zuverlässiger. Auf unterstützten iPhones kannst du Apple Intelligence direkt auf dem Gerät nutzen oder weiterhin einen Anbieter mit eigenem API-Schlüssel verbinden. Jeden Vorschlag kannst du vor dem Speichern prüfen und ändern.
+Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.
 
-Mehr Details zu Lebensmitteln: Lade den BLS-4.0-Katalog mit übersetzten Namen für generische Lebensmittel und Nährwerten einschließlich Mikronährstoffen herunter. Danach kannst du ihn offline durchsuchen; Markenprodukte findest du weiter über Open Food Facts.
+Hallo, Spanien! Hallo, Niederlande!: Train Libre und der Trainingskatalog sind jetzt auf Spanisch und Niederländisch verfügbar. Auch Namen im BLS- und Trainingskatalog sind übersetzt. Open Food Facts bietet zusätzliche Kataloge für die Niederlande, Spanien und Australien.
 
-Trainingsverlauf übernehmen: Importiere Workouts aus Hevy, Strong oder CSV. Die Vorschau zeigt mögliche Duplikate und ungültige Datumsangaben. Finde bereits trainierte Übungen leichter und hinterlege Notizen zu Übungen, Routinen oder einzelnen Workouts.
+Verbesserte Mahlzeitenerkennung: Mahlzeiten werden zuverlässiger und deutlich schneller erfasst. Jetzt erkennt und speichert die KI auch Getränke und Koffein.
 
-Inhalte teilen und wiederverwenden: Teile Routinen, Pläne und Rezepte per Link, Text oder JSON; exportiere abgeschlossene Workouts als Text oder JSON. Prüfe unterstützte Importe vor dem Übernehmen. Gespeicherte Rezepte kannst du nach Portionen oder gekochtem Gewicht erfassen.
+Ernährung mit Health synchronisieren: Kalorien und Makronährstoffe können mit Apple Health und Health Connect importiert und exportiert werden. Workouts werden dabei nicht synchronisiert.
 
-Mehr Überblick und Feinschliff: Gestalte deine Statistikübersicht selbst, entdecke Ernährungs- und Regenerationsanalysen und finde Gesundheitsimporte und -exporte an einem Ort. Dazu kommen Verbesserungen bei der Backup-Wiederherstellung, Bedienungshilfen und Darstellung auf kleinen Bildschirmen.
+Mehr Personalisierung: Lege eine eigene Akzentfarbe fest und wähle selbst, welche Karten im Statistik-Hub angezeigt werden.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

@@ -45,6 +45,7 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../whats_new/data/whats_new_service.dart';
+import '../../whats_new/data/ai_assistant_update_intro_service.dart';
 import '../../whats_new/presentation/whats_new_sheet.dart';
 import '../../onboarding/data/telemetry_consent_prompt.dart';
 import '../../onboarding/presentation/telemetry_consent_sheet.dart';
@@ -1524,6 +1525,12 @@ class _MainScreenState extends State<MainScreen>
 
     if (await _showWhatsNewIfPending()) return;
     if (!mounted) return;
+
+    if (await AiAssistantUpdateIntroService.instance.isDue()) {
+      if (!mounted) return;
+      await showAiAssistantUpdateIntroSheet(context);
+      return;
+    }
 
     await _showTelemetryFollowUpIfDue();
   }

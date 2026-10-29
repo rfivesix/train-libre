@@ -6,6 +6,18 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.7.0 (2026-10-29)
+
+{sparkles} Scopri la nuova chat IA: fai domande su alimentazione e allenamento. Può creare bozze di piani di allenamento, routine e ricette. I dati personali vengono condivisi solo con il tuo consenso e puoi controllare i suggerimenti prima di applicarli.
+
+{utensils} Ciao, Spagna! Ciao, Paesi Bassi!: Train Libre e il catalogo degli esercizi sono ora disponibili in spagnolo e olandese. Anche i cataloghi BLS e degli esercizi includono nomi tradotti. Open Food Facts aggiunge i cataloghi di Paesi Bassi, Spagna e Australia.
+
+{camera} Riconoscimento dei pasti migliorato: i pasti vengono registrati in modo più affidabile e molto più veloce. L’IA ora riconosce e registra anche bevande e caffeina.
+
+{activity} Sincronizza la nutrizione con Health: importa ed esporta calorie e macronutrienti con Apple Health e Health Connect. Gli allenamenti non vengono sincronizzati.
+
+{layout_grid} Più personalizzazione: scegli un colore principale personalizzato e le schede da mostrare nel pannello statistiche.
+
 ## 1.6.0 (2026-10-20)
 
 {camera} Acquisizione dei pasti con IA migliorata: L’analisi è più rapida e trova gli alimenti corrispondenti in modo più affidabile. Sugli iPhone compatibili, Apple Intelligence può analizzare i pasti sul dispositivo; puoi anche continuare a usare la tua chiave API con un altro provider. Controlla e modifica ogni suggerimento prima di salvarlo.

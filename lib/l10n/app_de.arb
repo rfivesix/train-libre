@@ -3807,5 +3807,17 @@
   "recoveryMixedReadyZoneTitle": "Gemischt / Bereit",
   "feedbackReportDirectRequiresTelemetry": "Für den Direktversand muss die anonyme Nutzungsstatistik aktiviert sein. Aktiviere sie in den Einstellungen oder nutze stattdessen E-Mail oder Teilen.",
   "feedbackReportDirectSent": "Diagnosebericht direkt an den Entwickler gesendet. Vielen Dank!",
-  "feedbackReportDirectSend": "Direkt an den Entwickler senden"
+  "feedbackReportDirectSend": "Direkt an den Entwickler senden",
+  "aiAssistantUpdateIntroTitle": "Der neue KI-Chat",
+  "aiAssistantUpdateIntroBody": "Stelle Fragen zu Training und Ernährung. Der Assistent kann deine freigegebenen Daten zusammenfassen und Routinen, Trainingspläne oder Rezepte als Entwurf vorbereiten. Du prüfst jede Freigabe und Änderung, bevor sie verwendet wird. Für echte Antworten richtest du einen Anbieter in den KI-Einstellungen ein.",
+  "aiAssistantUpdateIntroDemoLabel": "Beispiel-Chat",
+  "aiAssistantUpdateIntroExampleQuestion": "Was kann der neue KI-Chat in Train Libre?",
+  "aiAssistantUpdateIntroExampleAnswer": "Der Chat beantwortet Fragen zu Training und Ernährung und wertet mit deiner Erlaubnis passende Daten aus. Er erstellt Routinen, Trainingspläne und Rezepte als Entwurf. Mahlzeiten kannst du vor dem Speichern prüfen und bestätigen. Ohne deine Zustimmung wird nichts gespeichert.",
+  "aiAssistantUpdateIntroAiEnabled": "KI-Funktionen aktivieren",
+  "aiAssistantUpdateIntroAiEnabledHint": "Steuert den KI-Chat und die anderen KI-Funktionen.",
+  "aiAssistantUpdateIntroLauncherEnabled": "Schwebenden KI-Chat anzeigen",
+  "aiAssistantUpdateIntroLauncherEnabledHint": "Blende die Chat-Wolke ein oder aus. Der Chat bleibt auch über das Hinzufügen-Menü erreichbar."
+,
+  "aiAssistantIntroAboutRow": "KI-Chat ausprobieren",
+  "aiAssistantIntroAboutRowSubtitle": "Öffne die Vorschau des neuen KI-Chats jederzeit erneut."
 }

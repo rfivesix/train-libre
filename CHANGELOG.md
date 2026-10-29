@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Added Spanish and Dutch as app localization targets, including selectable base-food display language preferences and locale-aware automatic selection.
+- Added Spanish and Dutch translations for active exercise names, descriptions, and search terms in the OpenExerciseDB catalog.
+- Added Spanish and Dutch names and category labels to BLS schema 3, with local database migration and localized search/display support.
+- Added Netherlands, Spain, and Australia as Open Food Facts catalog regions.
 - Added an app color selector in Appearance with the Train Libre default, monochrome and color presets, a custom color picker, and Android system colors.
 - Added DeepSeek as a selectable AI provider for meal analysis and live AI chat, with secure API-key storage and live model discovery.
 - Added a temporary debug-only native iOS platform-view test pattern when the inline camera is unavailable, so camera glass blur and clipping can be inspected in the simulator.
@@ -19,10 +22,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added AI-assisted creation and revision drafts for routines, training plans, and recipes. Drafts use the existing versioned share/import codec and repository paths, are reviewed and explicitly applied or discarded in chat, persist across conversation restores, and use approved local exercise/food catalogs plus canonical bundled Markdown guidance.
 - Expanded the sourced comparison matrix with a price-model row, in-app social/community and data-export rows, plus official evidence links; clarified that Train Libre photo meal capture is documented and confirmed its lack of a social feed.
 - Added persistent AI assistant conversations and scoped, per-request approval for read-only Train Libre data access. The overlay now records provider/model identity and a local audit of the records shared for each approved request.
+- Added an upgrade introduction for the AI chat with a localized example conversation and controls for enabling AI features and showing the floating assistant.
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
-- Replaced hard-coded German UI copy that leaked into non-German locales with app-localized text in the AI overlay controls, Developer Settings, analytics empty states, target-rate picker, AI provider status, and telemetry confirmation; added matching strings to the existing five locale catalogs.
+- Replaced hard-coded German UI copy that leaked into non-German locales with app-localized text in the AI overlay controls, Developer Settings, analytics empty states, target-rate picker, AI provider status, and telemetry confirmation; added matching strings to all seven supported app locales.
 - Startup keeps the normal animated cloud during remote catalog manifest and freshness checks; the download progress screen appears only once catalog files are actually downloading and stays active through installation.
 - Reorganized Developer Settings into click-through categories for Nutrition Lab, AI meal scan logs, AI Overlay, and performance diagnostics; removed the duplicate experience-level control and obsolete overlay demo labels and live-AI toggle while keeping the overlay debug controls.
 - Removed duplicate page headings from Developer Settings and AI meal scan logs, and placed Nutrition Lab content below its app bar.

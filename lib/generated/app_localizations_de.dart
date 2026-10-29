@@ -9382,4 +9382,44 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get feedbackReportDirectSend => 'Direkt an den Entwickler senden';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => 'Der neue KI-Chat';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'Stelle Fragen zu Training und Ernährung. Der Assistent kann deine freigegebenen Daten zusammenfassen und Routinen, Trainingspläne oder Rezepte als Entwurf vorbereiten. Du prüfst jede Freigabe und Änderung, bevor sie verwendet wird. Für echte Antworten richtest du einen Anbieter in den KI-Einstellungen ein.';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'Beispiel-Chat';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'Was kann der neue KI-Chat in Train Libre?';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'Der Chat beantwortet Fragen zu Training und Ernährung und wertet mit deiner Erlaubnis passende Daten aus. Er erstellt Routinen, Trainingspläne und Rezepte als Entwurf. Mahlzeiten kannst du vor dem Speichern prüfen und bestätigen. Ohne deine Zustimmung wird nichts gespeichert.';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'KI-Funktionen aktivieren';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint =>
+      'Steuert den KI-Chat und die anderen KI-Funktionen.';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled =>
+      'Schwebenden KI-Chat anzeigen';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'Blende die Chat-Wolke ein oder aus. Der Chat bleibt auch über das Hinzufügen-Menü erreichbar.';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'KI-Chat ausprobieren';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle =>
+      'Öffne die Vorschau des neuen KI-Chats jederzeit erneut.';
 }

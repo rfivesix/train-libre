@@ -9401,4 +9401,43 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get feedbackReportDirectSend =>
       'Rechtstreeks naar de ontwikkelaar verzenden';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => 'Maak kennis met de AI-chat';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'Stel vragen over je training en voeding. De assistent kan gegevens die je goedkeurt samenvatten en routines, trainingsschema’s of recepten als concept opstellen. Je kunt elk verzoek om gegevens en elke wijziging controleren voordat je die toepast. Stel een provider in bij AI-instellingen voor echte antwoorden.';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'Voorbeeldchat';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'Wat kan de nieuwe AI-chat in Train Libre?';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'De chat beantwoordt vragen over training en voeding en bekijkt relevante gegevens met jouw toestemming. De chat maakt concepten voor routines, trainingsschema’s en recepten. Je controleert en bevestigt maaltijden vóór het opslaan; zonder jouw toestemming wordt niets opgeslagen.';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'AI-functies inschakelen';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint =>
+      'Regelt de AI-chat en de overige AI-functies.';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled => 'Zwevende AI-chat tonen';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'Toon of verberg de chatballon. Je kunt de chat ook openen via het menu Toevoegen.';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'AI-chat bekijken';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle =>
+      'Bekijk de introductie van de nieuwe AI-chat wanneer je wilt opnieuw.';
 }

@@ -9458,4 +9458,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get feedbackReportDirectSend => 'Envoyer directement au développeur';
+
+  @override
+  String get aiAssistantUpdateIntroTitle => 'Découvrez le chat IA';
+
+  @override
+  String get aiAssistantUpdateIntroBody =>
+      'Posez des questions sur votre entraînement et votre alimentation. L’assistant peut résumer les données que vous autorisez et préparer des routines, des programmes ou des recettes sous forme de brouillons. Vous vérifiez chaque demande d’accès et chaque modification avant leur utilisation. Configurez un fournisseur dans les réglages IA pour obtenir des réponses en direct.';
+
+  @override
+  String get aiAssistantUpdateIntroDemoLabel => 'Exemple de chat';
+
+  @override
+  String get aiAssistantUpdateIntroExampleQuestion =>
+      'Que peut faire le nouveau chat IA de Train Libre ?';
+
+  @override
+  String get aiAssistantUpdateIntroExampleAnswer =>
+      'Le chat répond aux questions sur l’entraînement et la nutrition et analyse les données pertinentes avec votre accord. Il prépare des brouillons de routines, de programmes et de recettes. Vous vérifiez et confirmez les repas avant leur enregistrement ; rien n’est enregistré sans votre accord.';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabled => 'Activer les fonctions IA';
+
+  @override
+  String get aiAssistantUpdateIntroAiEnabledHint =>
+      'Contrôle le chat IA et les autres fonctions d’IA.';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabled =>
+      'Afficher le chat IA flottant';
+
+  @override
+  String get aiAssistantUpdateIntroLauncherEnabledHint =>
+      'Afficher ou masquer la bulle du chat. Le chat reste accessible depuis le menu Ajouter.';
+
+  @override
+  String get aiAssistantIntroAboutRow => 'Découvrir le chat IA';
+
+  @override
+  String get aiAssistantIntroAboutRowSubtitle =>
+      'Rouvrez à tout moment la présentation du nouveau chat IA.';
 }
