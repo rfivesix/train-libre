@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/infrastructure/backup_manager.dart';
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart' as db;
 import 'package:train_libre/features/diary/data/sources/diary_local_data_source.dart';
@@ -19,8 +23,17 @@ void main() {
     late db.AppDatabase database;
     late DiaryLocalDataSource diaryDb;
     late ProductLocalDataSource productDb;
+    late Directory tempDir;
 
-    setUp(() {
+    setUp(() async {
+      tempDir =
+          await Directory.systemTemp.createTemp('offline_food_archive_test');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (call) async => tempDir.path,
+      );
+      AppMediaStore.instance.resetForTesting();
       database = db.AppDatabase(NativeDatabase.memory());
       diaryDb = DiaryLocalDataSource(database);
       productDb = ProductLocalDataSource.forTesting(database);
@@ -28,6 +41,13 @@ void main() {
     });
 
     tearDown(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        null,
+      );
+      AppMediaStore.instance.resetForTesting();
+      if (await tempDir.exists()) await tempDir.delete(recursive: true);
       await database.close();
     });
 
@@ -311,8 +331,8 @@ void main() {
       final manager = BackupManager(dbHelper: DatabaseHelper.instance);
       final payload = await manager.generateBackupPayload();
 
-      // Ensure offProductsArchive is in the JSON payload and database backup format version is 5
-      expect(payload['schemaVersion'], 5);
+      // Ensure offProductsArchive is in the JSON payload and database backup format version is current
+      expect(payload['schemaVersion'], BackupManager.currentSchemaVersion);
       expect(payload['offProductsArchive'], isNotEmpty);
       expect(payload['offProductsArchive'].first['product_name'], 'Nutella');
 

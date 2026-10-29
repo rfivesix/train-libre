@@ -9,6 +9,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:train_libre/features/diary/domain/models/food_entry.dart';
 import 'package:train_libre/features/diary/domain/models/food_item.dart';
@@ -149,7 +150,9 @@ void main() {
   }
 
   Future<void> openPicker(WidgetTester tester) async {
-    await tester.tap(find.byKey(const ValueKey('meal_entry_timestamp_button')));
+    await tester.tap(find.byIcon(LucideIcons.ellipsis));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Change date and time'));
     await tester.pumpAndSettle();
   }
 
@@ -259,7 +262,7 @@ void main() {
 
     // Swipe to dismiss ingredient
     await tester.drag(
-      find.byKey(const ValueKey('meal_item_7_0')),
+      find.byKey(const ValueKey('food-7')),
       const Offset(-500, 0),
     );
     await tester.pumpAndSettle();

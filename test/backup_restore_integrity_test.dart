@@ -37,9 +37,18 @@ void main() {
     late WorkoutLocalDataSource workoutDb;
     late ProductLocalDataSource productDb;
     late BackupManager backupManager;
+    late Directory tempSupportDir;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
+      tempSupportDir =
+          await Directory.systemTemp.createTemp('backup_restore_test');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (call) async => tempSupportDir.path,
+      );
+      AppMediaStore.instance.resetForTesting();
       db = AppDatabase(NativeDatabase.memory());
       dbHelper = DatabaseHelper.forTesting(db);
       DatabaseHelper.setDriftDb(db);
@@ -53,6 +62,15 @@ void main() {
     });
 
     tearDown(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        null,
+      );
+      AppMediaStore.instance.resetForTesting();
+      if (await tempSupportDir.exists()) {
+        await tempSupportDir.delete(recursive: true);
+      }
       await db.close();
     });
 
@@ -221,13 +239,6 @@ void main() {
         const MethodChannel('plugins.flutter.io/path_provider'),
         (call) async => supportDir.path,
       );
-      addTearDown(() {
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-          const MethodChannel('plugins.flutter.io/path_provider'),
-          null,
-        );
-      });
 
       AppMediaStore.instance.resetForTesting();
       addTearDown(AppMediaStore.instance.resetForTesting);
@@ -287,13 +298,6 @@ void main() {
         const MethodChannel('plugins.flutter.io/path_provider'),
         (call) async => supportDir.path,
       );
-      addTearDown(() {
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-          const MethodChannel('plugins.flutter.io/path_provider'),
-          null,
-        );
-      });
 
       AppMediaStore.instance.resetForTesting();
       addTearDown(AppMediaStore.instance.resetForTesting);

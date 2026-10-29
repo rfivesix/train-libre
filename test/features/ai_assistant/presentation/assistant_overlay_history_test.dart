@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/ai_assistant/application/assistant_chat_service.dart';
@@ -50,6 +54,26 @@ void main() {
 
   testWidgets('overlay saves a denied request and reopens its conversation',
       (tester) async {
+    final tempDir = Directory.systemTemp
+        .createTempSync('assistant_overlay_history_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => tempDir.path,
+    );
+    AppMediaStore.instance.resetForTesting();
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        null,
+      );
+      AppMediaStore.instance.resetForTesting();
+      try {
+        tempDir.deleteSync(recursive: true);
+      } catch (_) {}
+    });
+
     SharedPreferences.setMockInitialValues({});
     final database = AppDatabase(NativeDatabase.memory());
     DatabaseHelper.setDriftDb(database);
@@ -98,13 +122,19 @@ void main() {
     await tester.tap(find.bySemanticsLabel('AI cloud').first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 800));
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
     await tester.enterText(find.byType(TextField), 'Hi there');
+    await tester.pump();
     await tester.tap(find.byIcon(LucideIcons.arrow_up));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 800));
     expect(find.text('Hello!'), findsOneWidget);
     expect(find.text('Data access request').hitTestable(), findsNothing);
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
     await tester.enterText(find.byType(TextField), 'My workouts on 2026-10-18');
+    await tester.pump();
     await tester.tap(find.byIcon(LucideIcons.arrow_up));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 800));

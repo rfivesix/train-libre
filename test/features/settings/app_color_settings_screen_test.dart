@@ -74,15 +74,18 @@ void main() {
     final service = await _pumpColorSettings(tester);
 
     await _tapChoice(tester, 'Custom');
+    await tester.pumpAndSettle();
     expect(find.text('Choose a color'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField), '#123456');
+    await tester.enterText(find.byType(TextField), '#7952B3');
     await tester.pump();
+    await tester.ensureVisible(find.text('Apply'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Apply'));
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
 
     expect(service.appColorChoice, AppColorChoice.custom);
-    expect(service.customAppColor, const Color(0xFF123456));
+    expect(service.customAppColor, const Color(0xFF7952B3));
   });
 
   testWidgets('shows localized labels in German', (tester) async {

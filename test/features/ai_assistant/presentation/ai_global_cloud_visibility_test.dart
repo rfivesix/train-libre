@@ -161,9 +161,9 @@ void main() {
       find.byType(AiNeuralCloudOrbWidget).first,
     );
     var orbPosition = orbBox.localToGlobal(Offset.zero);
-    expect(orbPosition.dx, -72.0);
+    expect(orbPosition.dx, -96.0);
     await tester.timedDragFrom(
-      Offset(30, orbPosition.dy + 80),
+      Offset(15, orbPosition.dy + 80),
       const Offset(300, 0),
       const Duration(milliseconds: 300),
     );

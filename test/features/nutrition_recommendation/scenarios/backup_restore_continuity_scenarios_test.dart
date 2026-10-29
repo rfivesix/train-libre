@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/bayesian_tdee_estimator.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/goal_models.dart';
 
@@ -8,6 +11,29 @@ import 'scenario_test_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  late Directory tempDir;
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp
+        .createTemp('backup_restore_continuity_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => tempDir.path,
+    );
+    AppMediaStore.instance.resetForTesting();
+  });
+
+  tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      null,
+    );
+    AppMediaStore.instance.resetForTesting();
+    if (await tempDir.exists()) await tempDir.delete(recursive: true);
+  });
 
   group('Adaptive nutrition backup/restore continuity scenarios', () {
     test('mid-history backup/restore preserves adaptive continuity', () async {

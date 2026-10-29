@@ -136,7 +136,15 @@ Current user message: ${jsonEncode(message)}''';
     }
 
     AssistantDateScope? scope;
-    if (value['scope'] != null) {
+    final expression = value['dateExpression'];
+    if (expression != null) {
+      if (expression is! String || expression.length > 100) {
+        throw const FormatException();
+      }
+      scope = const AssistantDateResolver()
+          .resolveDate(expression, now: now, locale: locale);
+    }
+    if (scope == null && value['scope'] != null) {
       final proposedScope = value['scope'];
       if (proposedScope is! Map<String, dynamic>) throw const FormatException();
       final start = _civilDate(proposedScope['start']);
@@ -145,6 +153,14 @@ Current user message: ${jsonEncode(message)}''';
       if (start == null || end == null) throw const FormatException();
       scope = AssistantDateScope(start, end, label);
     }
+    if (expression != null &&
+        scope == null &&
+        value['scope'] == null &&
+        !RegExp(r'^(current|now|latest|recent)$', caseSensitive: false)
+            .hasMatch(expression.trim())) {
+      throw const FormatException();
+    }
+    scope ??= _defaultScope(categories, now);
     final hasHistoricalCategory = categories.any((c) => !c.isCurrentSnapshot);
     if (hasHistoricalCategory && scope == null) {
       throw const FormatException();
@@ -174,6 +190,25 @@ Current user message: ${jsonEncode(message)}''';
     required String locale,
   }) =>
       _parseRequest(value, now, locale);
+
+  AssistantDateScope? _defaultScope(
+      Set<AssistantDataCategory> categories, DateTime now) {
+    if (categories.every((category) => category.isCurrentSnapshot)) return null;
+    final today = DateTime(now.year, now.month, now.day);
+    final days = categories.contains(AssistantDataCategory.diary) ||
+            categories.contains(AssistantDataCategory.nutrition)
+        ? 1
+        : categories.contains(AssistantDataCategory.measurements)
+            ? 30
+            : categories.contains(AssistantDataCategory.workouts) ||
+                    categories.contains(AssistantDataCategory.recovery)
+                ? 14
+                : 7;
+    return AssistantDateScope(
+        DateTime(today.year, today.month, today.day - days + 1),
+        today,
+        days == 1 ? 'today (inferred)' : 'last $days days (inferred)');
+  }
 
   DateTime? _civilDate(Object? raw) {
     if (raw is! String) return null;

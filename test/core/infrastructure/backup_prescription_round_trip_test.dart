@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/infrastructure/backup_manager.dart';
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart'
     hide Routine, RoutineExercise, SetLog, WorkoutLog;
@@ -28,13 +30,25 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    sourceDb = AppDatabase(NativeDatabase.memory());
-    targetDb = AppDatabase(NativeDatabase.memory());
     tempDir =
         await Directory.systemTemp.createTemp('backup_prescription_test_');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => tempDir.path,
+    );
+    AppMediaStore.instance.resetForTesting();
+    sourceDb = AppDatabase(NativeDatabase.memory());
+    targetDb = AppDatabase(NativeDatabase.memory());
   });
 
   tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      null,
+    );
+    AppMediaStore.instance.resetForTesting();
     await sourceDb.close();
     await targetDb.close();
     if (await tempDir.exists()) {

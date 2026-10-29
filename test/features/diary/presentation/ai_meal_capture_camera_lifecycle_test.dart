@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/infrastructure/basis_data_manager.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart';
+import 'package:train_libre/features/ai_assistant/presentation/widgets/cloud_overlay/header_glass_button.dart';
 import 'package:train_libre/features/diary/presentation/ai_meal_capture_screen.dart';
 import 'package:train_libre/features/diary/presentation/scanner_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
@@ -183,7 +184,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      final flashFinder = find.widgetWithIcon(IconButton, LucideIcons.zap_off);
+      final flashFinder =
+          find.widgetWithIcon(HeaderGlassButton, LucideIcons.zap_off);
       expect(flashFinder, findsOneWidget);
 
       final uiKitFinder = find.byType(UiKitView);
@@ -199,7 +201,7 @@ void main() {
       await tester.pump();
 
       final flashButtonFinder = find.byWidgetPredicate(
-        (w) => w is IconButton && w.tooltip == 'Blitz ein-/ausschalten',
+        (w) => w is HeaderGlassButton && w.tooltip == 'Blitz',
       );
       expect(flashButtonFinder, findsOneWidget);
 
@@ -224,7 +226,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(
-          find.widgetWithIcon(IconButton, LucideIcons.zap_off), findsOneWidget);
+          find.widgetWithIcon(HeaderGlassButton, LucideIcons.zap_off),
+          findsOneWidget);
     });
 
     testWidgets(

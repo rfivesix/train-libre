@@ -311,33 +311,44 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
 
   void _ensureAssistantInitialized() {
     if (widget.useLiveAi && !_assistantInitialized) {
-      _assistantInitialized = true;
-      final database = DatabaseHelper.instance.dbInstance;
-      final history = AssistantHistoryRepository(database);
-      final assistant = AssistantChatService(
-        history: history,
-        data: AssistantDataGateway([
-          AssistantComprehensiveDataAction(
-            reader: AssistantDatabaseSnapshotReader(database),
-            actions: [
-              AssistantTrainingActions(
-                workouts: context.read<IWorkoutRepository>(),
-                database: database,
-              ),
-              AssistantDiaryActions(context.read<IDiaryRepository>()),
-              AssistantHealthActions(
-                database: database,
-                steps: HealthStepsAggregationRepository(),
-                profile: context.read<IProfileRepository>(),
-                goals: context.read<IGoalRepository>(),
-              ),
-            ],
-          ),
-        ]),
-        diaryRepository: context.read<IDiaryRepository>(),
-        model: widget.modelClient ?? const ConfiguredAssistantModelClient(),
-      );
-      _chatCoordinator.initializeAssistant(assistant, history);
+      try {
+        final workouts = context.read<IWorkoutRepository>();
+        final diary = context.read<IDiaryRepository>();
+        final profile = context.read<IProfileRepository>();
+        final goals = context.read<IGoalRepository>();
+
+        _assistantInitialized = true;
+        final database = DatabaseHelper.instance.dbInstance;
+        final history = AssistantHistoryRepository(database);
+        final assistant = AssistantChatService(
+          history: history,
+          data: AssistantDataGateway([
+            AssistantComprehensiveDataAction(
+              reader: AssistantDatabaseSnapshotReader(database),
+              actions: [
+                AssistantTrainingActions(
+                  workouts: workouts,
+                  database: database,
+                ),
+                AssistantDiaryActions(diary),
+                AssistantHealthActions(
+                  database: database,
+                  steps: HealthStepsAggregationRepository(),
+                  profile: profile,
+                  goals: goals,
+                ),
+              ],
+            ),
+          ]),
+          diaryRepository: diary,
+          model: widget.modelClient ?? const ConfiguredAssistantModelClient(),
+        );
+        _chatCoordinator.initializeAssistant(assistant, history);
+      } catch (e) {
+        // Repositories may not be present in widget tests or minimal host trees.
+        debugPrint(
+            '[DraggableAiCloud] Assistant initialization postponed or skipped: $e');
+      }
     }
   }
 

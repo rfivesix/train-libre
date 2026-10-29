@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'dart:collection';
 import 'dart:convert';
 
@@ -130,7 +133,16 @@ void main() {
   late AssistantChatService chat;
   final now = DateTime(2026, 10, 20, 12);
 
-  setUp(() {
+  late Directory tempDir;
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('assistant_chat_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => tempDir.path,
+    );
+    AppMediaStore.instance.resetForTesting();
     database = AppDatabase(NativeDatabase.memory());
     history = AssistantHistoryRepository(database);
     action = _FakeAction();
@@ -138,7 +150,17 @@ void main() {
     chat = AssistantChatService(
         history: history, data: AssistantDataGateway([action]), model: model);
   });
-  tearDown(() async => database.close());
+
+  tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      null,
+    );
+    AppMediaStore.instance.resetForTesting();
+    if (await tempDir.exists()) await tempDir.delete(recursive: true);
+    await database.close();
+  });
 
   test('ordinary chat gets a persisted answer without data approval', () async {
     model.decisions.add(jsonEncode({'kind': 'chat', 'answer': 'Hello there!'}));

@@ -1416,7 +1416,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       elevation: 3,
       shadowColor: Colors.black.withValues(alpha: 0.16),
       child: SizedBox(
-        height: 88,
+        height: 96,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 5, 20, 8),
           child: Column(
@@ -2106,10 +2106,10 @@ class _AiReviewSummaryDelegate extends SliverPersistentHeaderDelegate {
   const _AiReviewSummaryDelegate(this.child);
 
   @override
-  double get minExtent => 88;
+  double get minExtent => 96;
 
   @override
-  double get maxExtent => 88;
+  double get maxExtent => 96;
 
   @override
   Widget build(

@@ -62,6 +62,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Fixed an issue in `AssistantIntentPlanner` where intent requests without an explicit model-provided scope failed to parse natural-language date expressions, restoring historical date query resolution and default scope fallback.
+- Fixed a 3-pixel vertical layout overflow (`RenderFlex` error) in `AiMealReviewScreen` by increasing the pinned summary height and persistent header delegate bounds from 88 to 96 to fit the meal title, timestamp button, and nutrition summary rows cleanly.
+- Fixed `DraggableAiCloud` crashing during initialization in host trees or tests lacking repository providers by gracefully catching provider lookup exceptions.
+- Updated outdated test assertions and mock bindings across database migration tests (schema v46), backup archive tests (schema v6), path_provider channel mocking, color brightness limits, and UI finders for meal entry options and camera flash controls.
 - Preserved the current voice transcript in the AI chat composer when speech recognition ends through a timeout or recognizer error, instead of losing the partial draft.
 - Fixed AI chat nutrition answers missing manually logged or AI-estimated macro entries and miscalculating daily totals: snapshots now include `macro_entries` and an authoritative `nutrition_daily_summary` from the app's own calculator. The shared daily diary export now includes macro-only entries and their nutrition totals. Added explicit training joins for exercise blocks, routine prescriptions, muscle/equipment assignments, and active plan occurrences so the assistant requests missing approved categories instead of reporting incomplete assignments.
 - Fixed AI meal-scan save or discard leaving the Diary visible but unresponsive: the capture route now waits for the review reveal route's reverse transition to finish before popping itself.
