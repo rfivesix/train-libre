@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
+import 'package:train_libre/features/ai_assistant/presentation/ai_global_cloud_presentation.dart';
 import 'package:train_libre/features/ai_assistant/presentation/widgets/draggable_ai_cloud.dart';
 import 'package:train_libre/features/diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
 import 'package:train_libre/features/diary/presentation/ai_meal_review_reveal_route.dart';
@@ -212,6 +213,53 @@ void main() {
     expect(find.byType(TextField).hitTestable(), findsOneWidget);
     expect(tester.state<DraggableAiCloudState>(find.byKey(cloudKey)),
         same(cloudState));
+  });
+
+  testWidgets('quick chat only captures taps on the visible cloud',
+      (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      AiGlobalCloudPresentation.isAddMenuOpen.value = false;
+      AiGlobalCloudPresentation.quickChatActionCenter.value = null;
+      AiGlobalCloudPresentation.onQuickChatTap = null;
+    });
+
+    var backgroundTaps = 0;
+    var cloudTaps = 0;
+    AiGlobalCloudPresentation.onQuickChatTap = () => cloudTaps++;
+    await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: Stack(children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => backgroundTaps++,
+            ),
+          ),
+          const DraggableAiCloud(
+              semanticLabel: 'AI cloud', semanticHint: '', liveliness: 0.3),
+        ]),
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    AiGlobalCloudPresentation.quickChatActionCenter.value =
+        const Offset(320, 400);
+    AiGlobalCloudPresentation.isAddMenuOpen.value = true;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.tapAt(const Offset(380, 460));
+    expect(backgroundTaps, 1);
+    expect(cloudTaps, 0);
+    await tester.tapAt(const Offset(320, 400));
+    expect(cloudTaps, 1);
   });
 }
 

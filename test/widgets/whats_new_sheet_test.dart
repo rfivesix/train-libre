@@ -151,23 +151,35 @@ void main() {
     expect(find.byType(BottomSheet), findsNothing);
   });
 
-  testWidgets(
-      'automatic 1.7 release notes include AI chat preview and controls',
+  testWidgets('release notes and AI introduction appear as separate sheets',
       (tester) async {
+    tester.view.physicalSize = const Size(1600, 4000);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     AiOverlayDemoSettings.initialize(await SharedPreferences.getInstance());
-    await tester.pumpWidget(_host((context) {
-      showWhatsNewSheet(context, [
+    await tester.pumpWidget(_host((context) async {
+      await showWhatsNewSheet(context, [
         _release('1.7.0', ['New AI chat'])
       ]);
+      if (context.mounted) await showAiAssistantUpdateIntroSheet(context);
     }));
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text(l10n.whatsNewTitle), findsOneWidget);
     expect(find.text(l10n.aiAssistantUpdateIntroTitle), findsNothing);
-    expect(find.text(l10n.aiAssistantUpdateIntroBody), findsNothing);
-    expect(find.text(l10n.aiAssistantUpdateIntroDemoLabel), findsNothing);
+    expect(find.byType(AiNeuralCloudOrbWidget), findsNothing);
+
+    await tester.tap(find.text(l10n.whatsNewCta));
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(find.text(l10n.whatsNewTitle), findsNothing);
+    expect(find.text(l10n.aiAssistantUpdateIntroTitle), findsOneWidget);
     expect(find.byType(AiNeuralCloudOrbWidget), findsOneWidget);
     expect(
         find.text(l10n.aiAssistantUpdateIntroExampleQuestion), findsOneWidget);
@@ -175,6 +187,11 @@ void main() {
     expect(find.text(l10n.aiAssistantUpdateIntroAiEnabled), findsOneWidget);
     expect(
         find.text(l10n.aiAssistantUpdateIntroLauncherEnabled), findsOneWidget);
-    expect(find.byType(SwitchListTile), findsNWidgets(2));
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('ai_assistant_intro_seen_version'), isNull);
+
+    await tester.tap(find.text(l10n.whatsNewCta));
+    await tester.pumpAndSettle();
+    expect(prefs.getString('ai_assistant_intro_seen_version'), '1.7.0');
   });
 }

@@ -97,6 +97,9 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   /// rectangular canvas. Useful when the canvas is larger than the orb.
   final bool hitTestCloudShape;
 
+  /// Extra reach around the painted lobes when shape hit testing is enabled.
+  final double cloudHitTestPadding;
+
   /// Drives the base-to-accent dye sweep from outside, 0 to 1.
   ///
   /// The scale is the same five dye steps the tap counter walks through, so
@@ -139,6 +142,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     this.forceHighFrameRate = false,
     this.enableInteraction = true,
     this.hitTestCloudShape = false,
+    this.cloudHitTestPadding = 0,
     this.tint,
     this.tintEnergyGain = 0.0,
   });
@@ -408,6 +412,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
                 edgeBlurSigma: widget.edgeBlurSigma,
                 showDetachedSatellite: widget.showDetachedSatellite,
                 hitTestCloudShape: widget.hitTestCloudShape,
+                cloudHitTestPadding: widget.cloudHitTestPadding,
                 baseColor: effectiveBase,
                 accentColor: effectiveAccent,
                 isDark: isDark,
@@ -442,6 +447,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
   final double edgeBlurSigma;
   final bool showDetachedSatellite;
   final bool hitTestCloudShape;
+  final double cloudHitTestPadding;
   final Color baseColor;
   final Color accentColor;
   final bool isDark;
@@ -463,6 +469,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     required this.edgeBlurSigma,
     required this.showDetachedSatellite,
     required this.hitTestCloudShape,
+    required this.cloudHitTestPadding,
     required this.baseColor,
     required this.accentColor,
     required this.isDark,
@@ -987,7 +994,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
             0.09 * energy;
     final coreBase = 62.0 + (49.0 - 62.0) * morph;
     final coreRadius = coreBase * scale * sizeFactor * (1.0 + coreRespiration);
-    if (localPosition.distance <= coreRadius) return true;
+    if (localPosition.distance <= coreRadius + cloudHitTestPadding) return true;
 
     const lobeCount = 6;
     const topLeftAngle = -0.75 * math.pi;
@@ -1020,7 +1027,10 @@ class _OrganicLivingCloudPainter extends CustomPainter {
           (1.0 + primaryBreathe + secondaryBreathe + rippleSurge);
       final lobeBase = 10.0 + (37.0 - 10.0) * morph;
       final lobeRadius = lobeBase * scale * sizeFactor * lobeScale * swell;
-      if ((localPosition - lobePosition).distance <= lobeRadius) return true;
+      if ((localPosition - lobePosition).distance <=
+          lobeRadius + cloudHitTestPadding) {
+        return true;
+      }
     }
 
     return false;
@@ -1044,6 +1054,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         oldDelegate.edgeBlurSigma != edgeBlurSigma ||
         oldDelegate.showDetachedSatellite != showDetachedSatellite ||
         oldDelegate.hitTestCloudShape != hitTestCloudShape ||
+        oldDelegate.cloudHitTestPadding != cloudHitTestPadding ||
         oldDelegate.baseColor != baseColor ||
         oldDelegate.accentColor != accentColor ||
         oldDelegate.isDark != isDark;

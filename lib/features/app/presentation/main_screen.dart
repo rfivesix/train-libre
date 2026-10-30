@@ -1517,13 +1517,13 @@ class _MainScreenState extends State<MainScreen>
   /// harmless only because the app tour and the review prompt rarely became due
   /// on the same launch. "What's New" makes that collision likely — an update
   /// is exactly when the tour can also be pending — so the order is now
-  /// explicit: app tour, then release notes. The review prompt is reserved for
+  /// explicit: app tour, release notes, then the AI introduction if due. The review prompt is reserved for
   /// the first completed-workout summary instead of interrupting app launch.
   Future<void> _runStartupPrompts() async {
     await _handlePendingAppTourEntry();
     if (!mounted || _isTourActive || _isTourOfferVisible) return;
 
-    if (await _showWhatsNewIfPending()) return;
+    final showedWhatsNew = await _showWhatsNewIfPending();
     if (!mounted) return;
 
     if (await AiAssistantUpdateIntroService.instance.isDue()) {
@@ -1532,7 +1532,7 @@ class _MainScreenState extends State<MainScreen>
       return;
     }
 
-    await _showTelemetryFollowUpIfDue();
+    if (!showedWhatsNew) await _showTelemetryFollowUpIfDue();
   }
 
   /// The single follow-up to a telemetry question declined during onboarding.
@@ -1555,8 +1555,8 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  /// Returns `true` when the release notes were shown, so the caller can hold
-  /// the review prompt back until the next launch.
+  /// Returns `true` when release notes were shown, so unrelated follow-ups can
+  /// wait until the next launch.
   Future<bool> _showWhatsNewIfPending() async {
     final languageCode = Localizations.localeOf(context).languageCode;
     final releases =

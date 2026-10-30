@@ -1269,7 +1269,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWorkoutImportPrivacy.
   ///
   /// In en, this message translates to:
-  /// **'Your export is processed on this device. If anonymous analytics is enabled, we record whether you start, skip, or complete an import, never workout details.'**
+  /// **'Your export is processed on this device. If pseudonymous usage statistics are enabled, the import status may be recorded; workout details from this import are not included.'**
   String get onboardingWorkoutImportPrivacy;
 
   /// No description provided for @workoutImportButton.

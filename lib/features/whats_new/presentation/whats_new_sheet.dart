@@ -43,14 +43,6 @@ Future<void> showWhatsNewSheet(
         extraProps: {'release_version': releases.first.version},
       ),
     );
-    if (releases.any((release) => release.version == '1.7.0')) {
-      unawaited(
-        TelemetryService.instance.track(
-          'ai_assistant_update_intro_viewed',
-          properties: {'release_version': '1.7.0', 'source': 'whats_new'},
-        ),
-      );
-    }
   }
 
   await showGlassBottomMenu<void>(
@@ -60,16 +52,11 @@ Future<void> showWhatsNewSheet(
       releases: releases,
       onClose: close,
       showSingleVersionHeader: releases.length == 1,
-      showAiAssistantIntro:
-          markSeen && releases.any((release) => release.version == '1.7.0'),
     ),
   );
 
   if (markSeen) {
     await WhatsNewService.instance.markSeen();
-    if (releases.any((release) => release.version == '1.7.0')) {
-      await AiAssistantUpdateIntroService.instance.markSeen();
-    }
   }
 }
 
@@ -113,7 +100,6 @@ class _WhatsNewContent extends StatelessWidget {
     required this.releases,
     required this.onClose,
     required this.showSingleVersionHeader,
-    required this.showAiAssistantIntro,
   });
 
   final List<WhatsNewRelease> releases;
@@ -122,7 +108,6 @@ class _WhatsNewContent extends StatelessWidget {
   /// A single release gets a compact subtitle instead of a section header, so
   /// the common case after an update does not read like a changelog archive.
   final bool showSingleVersionHeader;
-  final bool showAiAssistantIntro;
 
   String _headerFor(BuildContext context, WhatsNewRelease release) {
     final l10n = AppLocalizations.of(context)!;
@@ -172,11 +157,6 @@ class _WhatsNewContent extends StatelessWidget {
       for (final entry in release.entries) {
         children.add(_WhatsNewEntryTile(entry: entry));
       }
-    }
-
-    if (showAiAssistantIntro) {
-      children.add(const SizedBox(height: DesignConstants.spacingM));
-      children.add(const _AiAssistantUpdateIntro());
     }
 
     children.add(const SizedBox(height: DesignConstants.spacingL));
