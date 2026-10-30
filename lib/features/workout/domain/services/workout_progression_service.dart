@@ -26,8 +26,8 @@ class WorkoutProgressionService {
   WorkoutProgressionService({
     required IWorkoutRepository repository,
     required UnitService unitService,
-  })  : _repository = repository,
-        _unitService = unitService;
+  }) : _repository = repository,
+       _unitService = unitService;
 
   /// Compatibility entry point for callers that request one template. It now
   /// follows the same first-working-set rule as the live workout and no longer
@@ -61,8 +61,9 @@ class WorkoutProgressionService {
       return const {};
     }
     final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
-    final mask =
-        ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
+    final mask = ExerciseLogMask.forExercise(
+      exercise,
+    ).withSnapshotMode(mode.name);
     if (!mask.supportsLoadRepProgression) return const {};
 
     final previous = _latestFirstWorkingSet(
@@ -99,15 +100,17 @@ class WorkoutProgressionService {
     ProgressionConfig config = const ProgressionConfig(),
     double? bodyweightKg,
   }) async {
-    final targetIndex = workingTemplates
-        .indexWhere((template) => template.id == targetTemplateId);
+    final targetIndex = workingTemplates.indexWhere(
+      (template) => template.id == targetTemplateId,
+    );
     if (targetIndex <= 0 || targetIndex >= currentWorkingSets.length) {
       return null;
     }
 
     final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
-    final mask =
-        ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
+    final mask = ExerciseLogMask.forExercise(
+      exercise,
+    ).withSnapshotMode(mode.name);
     if (!mask.supportsLoadRepProgression) return null;
 
     final previous = currentWorkingSets[targetIndex - 1];
@@ -154,7 +157,8 @@ class WorkoutProgressionService {
     final firstTemplateWeight = workingTemplates.first.targetWeight;
     final targetTemplateWeight = workingTemplates[targetIndex].targetWeight;
     final firstActualWeight = currentWorkingSets.first.weightKg;
-    final hasRelativeBackoff = firstTemplateWeight != null &&
+    final hasRelativeBackoff =
+        firstTemplateWeight != null &&
         firstTemplateWeight > 0 &&
         targetTemplateWeight != null &&
         targetTemplateWeight > 0 &&
@@ -197,17 +201,28 @@ class WorkoutProgressionService {
     }
     if (sessions.isEmpty) return null;
 
-    final latest = sessions.values.reduce((left, right) {
-      final leftDate = left
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      final rightDate = right
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      return leftDate.isAfter(rightDate) ? left : right;
-    });
+    // BOLT OPTIMIZATION: Replaced chained .map().reduce() inside .reduce() with
+    // a single-pass loop to track the maximum date and latest session simultaneously.
+    List<SetLog>? latestSession;
+    DateTime maxDate = DateTime.fromMillisecondsSinceEpoch(0);
+
+    for (final session in sessions.values) {
+      DateTime sessionMaxDate = DateTime.fromMillisecondsSinceEpoch(0);
+      for (final set in session) {
+        if (set.performedAt != null &&
+            set.performedAt!.isAfter(sessionMaxDate)) {
+          sessionMaxDate = set.performedAt!;
+        }
+      }
+
+      if (latestSession == null || sessionMaxDate.isAfter(maxDate)) {
+        maxDate = sessionMaxDate;
+        latestSession = session;
+      }
+    }
+
+    final latest = latestSession!;
+
     latest.sort((left, right) {
       final order = (left.logOrder ?? 0).compareTo(right.logOrder ?? 0);
       return order != 0 ? order : (left.id ?? 0).compareTo(right.id ?? 0);
