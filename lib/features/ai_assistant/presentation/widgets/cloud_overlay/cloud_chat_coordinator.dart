@@ -35,6 +35,9 @@ class CloudChatCoordinator extends ChangeNotifier {
   final ValueGetter<bool> isExpandedGetter;
   final ValueGetter<bool> isDockedSettledGetter;
   final ValueGetter<String> localeGetter;
+  final ValueGetter<bool>? canRestoreInitialConversation;
+
+  static const conversationInactivityLimit = Duration(minutes: 30);
 
   final CloudHistoryManager _historyManager = CloudHistoryManager();
   final CloudLiveAssistantRunner _liveRunner = CloudLiveAssistantRunner();
@@ -49,6 +52,7 @@ class CloudChatCoordinator extends ChangeNotifier {
   String? _pendingQuestion;
   Completer<bool>? _additionalAccessGate;
   bool _assistantInitialized = false;
+  int _conversationSelectionRevision = 0;
 
   int _activeGenerationId = 0;
 
@@ -77,6 +81,7 @@ class CloudChatCoordinator extends ChangeNotifier {
     required this.isExpandedGetter,
     required this.isDockedSettledGetter,
     required this.localeGetter,
+    this.canRestoreInitialConversation,
   }) {
     _loadingCloud = CloudLoadingAnimationController(
       animation: AnimationController(
@@ -146,7 +151,7 @@ class CloudChatCoordinator extends ChangeNotifier {
     _liveRunner.setAssistant(assistant);
     _historyManager.setRepository(history);
     unawaited(_loadAutoApprovePreference());
-    unawaited(_loadAssistantHistory());
+    unawaited(_loadAssistantHistory(restoreInitial: true));
   }
 
   Future<void> _loadAutoApprovePreference() async {
@@ -202,26 +207,54 @@ class CloudChatCoordinator extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadAssistantHistory() async {
+  Future<void> _loadAssistantHistory({bool restoreInitial = false}) async {
+    final revision = _conversationSelectionRevision;
     final loaded = await _historyManager.loadConversations();
     if (_isDisposed) return;
     notifyListeners();
-    if (_conversationId == null && loaded.isNotEmpty) {
-      await openConversation(loaded.first.id);
+    if (!restoreInitial ||
+        loaded.isEmpty ||
+        _conversationId != null ||
+        _conversationSelectionRevision != revision ||
+        !(canRestoreInitialConversation?.call() ?? true)) {
+      return;
+    }
+
+    final latest = loaded.first;
+    final isRecent =
+        DateTime.now().toUtc().difference(latest.updatedAt.toUtc()) <
+            conversationInactivityLimit;
+    final pending = isRecent
+        ? null
+        : await _historyManager.repository
+            ?.latestAccess(latest.id, status: 'pending');
+    if (_isDisposed ||
+        _conversationSelectionRevision != revision ||
+        !(canRestoreInitialConversation?.call() ?? true)) {
+      return;
+    }
+    if (isRecent || pending != null) {
+      await openConversation(latest.id, automatic: true);
     }
   }
 
-  Future<void> openConversation(String id) async {
+  Future<void> openConversation(String id, {bool automatic = false}) async {
+    final revision = ++_conversationSelectionRevision;
     stopGeneration();
     final cancellation = _liveRunner.activeGenerationCancellation;
     if (cancellation != null) await cancellation;
-    if (_isDisposed) return;
+    if (_isDisposed || _conversationSelectionRevision != revision) return;
 
     final data = await _historyManager.restoreConversation(
       id,
       locale: localeGetter(),
     );
-    if (_isDisposed || data == null) return;
+    if (_isDisposed ||
+        data == null ||
+        _conversationSelectionRevision != revision ||
+        (automatic && !(canRestoreInitialConversation?.call() ?? true))) {
+      return;
+    }
 
     _conversationId = data.conversationId;
     _activeAuditRecord = null;
@@ -249,6 +282,7 @@ class CloudChatCoordinator extends ChangeNotifier {
   }
 
   void startNewChat() {
+    _conversationSelectionRevision++;
     if (useLiveAi) {
       _conversationId = null;
       _pendingAccess = null;
@@ -283,6 +317,7 @@ class CloudChatCoordinator extends ChangeNotifier {
     VoidCallback? onRetainedDraft,
   }) {
     if (prompt.trim().isEmpty && imageFiles.isEmpty) return;
+    _conversationSelectionRevision++;
     if (useLiveAi) {
       unawaited(_sendAssistantPrompt(
         prompt.trim(),

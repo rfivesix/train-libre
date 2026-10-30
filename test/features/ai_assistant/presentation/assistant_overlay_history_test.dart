@@ -54,8 +54,8 @@ void main() {
 
   testWidgets('overlay saves a denied request and reopens its conversation',
       (tester) async {
-    final tempDir = Directory.systemTemp
-        .createTempSync('assistant_overlay_history_test');
+    final tempDir =
+        Directory.systemTemp.createTempSync('assistant_overlay_history_test');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
@@ -177,5 +177,25 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.textContaining('Status: denied'), findsNothing);
+
+    // After a cold start, an old conversation remains saved but is not
+    // automatically reopened as the active chat.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await database.customStatement(
+      'UPDATE assistant_conversations SET updated_at = ? WHERE id = ?',
+      [
+        DateTime.now()
+            .toUtc()
+            .subtract(const Duration(minutes: 31))
+            .toIso8601String(),
+        conversation.id
+      ],
+    );
+    await tester.pumpWidget(app(const ValueKey('after-inactivity')));
+    await tester.tap(find.bySemanticsLabel('AI cloud').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.text('My workouts on 2026-10-18'), findsNothing);
+    expect((await history.conversations()).single.id, conversation.id);
   });
 }

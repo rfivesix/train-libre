@@ -30,7 +30,7 @@ class LoadedConversationData {
 class CloudHistoryManager {
   AssistantHistoryRepository? _history;
   List<AssistantConversation> _conversations = const [];
-  int _selectedSidebarExample = 0;
+  int _selectedSidebarExample = -1;
 
   AssistantHistoryRepository? get repository => _history;
   List<AssistantConversation> get conversations => _conversations;

@@ -103,6 +103,7 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   bool _holdToTalkPermissionFlow = false;
   bool _holdReleasedBeforeRecording = false;
   bool _holdToTalkConversationPending = false;
+  DateTime? _chatClosedAt;
   bool _suppressNextOrbTap = false;
   final Stopwatch _holdRecordingDuration = Stopwatch();
   int _lastChatOpenRequest = 0;
@@ -259,6 +260,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
           !_isExpanded && _morphAnimation.value <= 0.005,
       localeGetter: () =>
           mounted ? Localizations.localeOf(context).toLanguageTag() : 'de',
+      canRestoreInitialConversation: () =>
+          _chatInputController.text.trim().isEmpty &&
+          _draftImageAttachments.isEmpty &&
+          !_voiceController.isActive,
     )..addListener(_handleControllerTick);
 
     _voiceController = CloudVoiceController(
@@ -398,6 +403,19 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
   void _toggleExpanded() {
     _dockingController.stopInitialDock();
     final expanding = !_isExpanded;
+    if (expanding &&
+        _chatClosedAt != null &&
+        DateTime.now().difference(_chatClosedAt!) >=
+            CloudChatCoordinator.conversationInactivityLimit &&
+        _chatInputController.text.trim().isEmpty &&
+        _draftImageAttachments.isEmpty &&
+        !_chatCoordinator.isGenerating &&
+        !_chatCoordinator.isLoadingCloudVisible &&
+        !_chatCoordinator.permissionPending &&
+        !_voiceController.isActive) {
+      _chatCoordinator.startNewChat();
+    }
+    if (!expanding) _chatClosedAt = DateTime.now();
     if (expanding && _chatCoordinator.hasCompletedResponse) {
       _chatCoordinator.clearCompletedPulse();
     }
@@ -1311,7 +1329,10 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                         ),
                       ],
                       AnimatedBuilder(
-                        animation: morphAnimation,
+                        animation: Listenable.merge([
+                          morphAnimation,
+                          _scrollSidebarController.sidebarAnimation,
+                        ]),
                         builder: (context, _) {
                           final currentMorphProgress =
                               _morphProgressAnimation.value;
@@ -1405,128 +1426,164 @@ class DraggableAiCloudState extends State<DraggableAiCloud>
                                                   ? _scrollSidebarController
                                                       .closeSidebar
                                                   : null,
-                                              child: Transform.scale(
-                                                scale: currentMorphProgress,
-                                                alignment: Alignment(
-                                                  2 *
-                                                          activeCloudCenter.dx /
-                                                          layout.viewportSize
-                                                              .width -
-                                                      1,
-                                                  2 *
-                                                          activeCloudCenter.dy /
-                                                          layout.viewportSize
-                                                              .height -
-                                                      1,
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                  32 *
+                                                      _scrollSidebarController
+                                                          .sidebarAnimation
+                                                          .value,
                                                 ),
-                                                child: Stack(
-                                                  clipBehavior: Clip.none,
-                                                  children: [
-                                                    _buildChatContent(
-                                                      layout: layout,
-                                                      theme: theme,
-                                                      fullscreenProgress:
-                                                          fullscreenProgress,
-                                                      appearanceProgress:
-                                                          appearanceProgress,
-                                                    ),
-                                                    CloudOverlayHeaderToolbar(
-                                                      safeRect:
-                                                          layout.activeSafeRect,
-                                                      fullscreenProgress:
-                                                          fullscreenProgress,
-                                                      appearanceProgress:
-                                                          appearanceProgress,
-                                                      surfaceColor:
-                                                          overlaySurface,
-                                                      foregroundColor:
-                                                          overlayForeground,
-                                                      controlFill:
-                                                          overlayControlFill(
-                                                        theme,
-                                                        appearanceProgress,
+                                                child: Transform.scale(
+                                                  scale: currentMorphProgress,
+                                                  alignment: Alignment(
+                                                    2 *
+                                                            activeCloudCenter
+                                                                .dx /
+                                                            layout.viewportSize
+                                                                .width -
+                                                        1,
+                                                    2 *
+                                                            activeCloudCenter
+                                                                .dy /
+                                                            layout.viewportSize
+                                                                .height -
+                                                        1,
+                                                  ),
+                                                  child: Stack(
+                                                    clipBehavior: Clip.none,
+                                                    children: [
+                                                      _buildChatContent(
+                                                        layout: layout,
+                                                        theme: theme,
+                                                        fullscreenProgress:
+                                                            fullscreenProgress,
+                                                        appearanceProgress:
+                                                            appearanceProgress,
                                                       ),
-                                                      isExpanded: _isExpanded,
-                                                      isFullscreen:
-                                                          _isFullscreen,
-                                                      hasChatTurns:
-                                                          _chatCoordinator
-                                                              .chatTurns
-                                                              .isNotEmpty,
-                                                      activeConversationTitle:
-                                                          _chatCoordinator
-                                                              .activeConversationTitle,
-                                                      autoApproveDataRequests:
-                                                          _chatCoordinator
-                                                              .autoApproveDataRequests,
-                                                      useStaticGlass:
-                                                          _isClosing ||
-                                                              (_isExpanded &&
-                                                                  morphAnimation
-                                                                          .value <
-                                                                      1),
-                                                      onToggleSidebar:
-                                                          _scrollSidebarController
-                                                              .toggleSidebar,
-                                                      onToggleFullscreen:
-                                                          _toggleFullscreen,
-                                                      onStartNewChat: () {
-                                                        if (_scrollSidebarController
-                                                                .sidebarAnimation
-                                                                .value >
-                                                            0) {
-                                                          _scrollSidebarController
-                                                              .closeSidebar();
-                                                        }
-                                                        _chatCoordinator
-                                                            .startNewChat();
-                                                        _chatInputController
-                                                            .clear();
-                                                        WidgetsBinding.instance
-                                                            .addPostFrameCallback(
-                                                                (_) {
-                                                          if (!mounted ||
-                                                              !_isExpanded) {
-                                                            return;
-                                                          }
-                                                          if (_scrollSidebarController
-                                                              .chatScrollController
-                                                              .hasClients) {
+                                                      CloudOverlayHeaderToolbar(
+                                                        safeRect: layout
+                                                            .activeSafeRect,
+                                                        fullscreenProgress:
+                                                            fullscreenProgress,
+                                                        appearanceProgress:
+                                                            appearanceProgress,
+                                                        surfaceColor:
+                                                            overlaySurface,
+                                                        foregroundColor:
+                                                            overlayForeground,
+                                                        controlFill:
+                                                            overlayControlFill(
+                                                          theme,
+                                                          appearanceProgress,
+                                                        ),
+                                                        isExpanded: _isExpanded,
+                                                        isFullscreen:
+                                                            _isFullscreen,
+                                                        hasChatTurns:
+                                                            _chatCoordinator
+                                                                .chatTurns
+                                                                .isNotEmpty,
+                                                        activeConversationTitle:
+                                                            _chatCoordinator
+                                                                .activeConversationTitle,
+                                                        autoApproveDataRequests:
+                                                            _chatCoordinator
+                                                                .autoApproveDataRequests,
+                                                        useStaticGlass: _isClosing ||
+                                                            (_isExpanded &&
+                                                                morphAnimation
+                                                                        .value <
+                                                                    1),
+                                                        onToggleSidebar:
                                                             _scrollSidebarController
-                                                                .chatScrollController
-                                                                .jumpTo(0);
+                                                                .toggleSidebar,
+                                                        onToggleFullscreen:
+                                                            _toggleFullscreen,
+                                                        onStartNewChat: () {
+                                                          if (_scrollSidebarController
+                                                                  .sidebarAnimation
+                                                                  .value >
+                                                              0) {
+                                                            _scrollSidebarController
+                                                                .closeSidebar();
                                                           }
+                                                          _chatCoordinator
+                                                              .startNewChat();
+                                                          _chatInputController
+                                                              .clear();
+                                                          WidgetsBinding
+                                                              .instance
+                                                              .addPostFrameCallback(
+                                                                  (_) {
+                                                            if (!mounted ||
+                                                                !_isExpanded) {
+                                                              return;
+                                                            }
+                                                            if (_scrollSidebarController
+                                                                .chatScrollController
+                                                                .hasClients) {
+                                                              _scrollSidebarController
+                                                                  .chatScrollController
+                                                                  .jumpTo(0);
+                                                            }
+                                                            unawaited(
+                                                              _focusNewChatComposer(),
+                                                            );
+                                                          });
+                                                        },
+                                                        onToggleAutoApprove:
+                                                            () => unawaited(
+                                                          _chatCoordinator
+                                                              .toggleAutoApproveDataRequests(),
+                                                        ),
+                                                        onOpenSettings: () {
                                                           unawaited(
-                                                            _focusNewChatComposer(),
+                                                            _navigateFromOverlay(
+                                                              (_) =>
+                                                                  const AiSettingsScreen(),
+                                                            ),
                                                           );
-                                                        });
-                                                      },
-                                                      onToggleAutoApprove: () =>
-                                                          unawaited(
-                                                        _chatCoordinator
-                                                            .toggleAutoApproveDataRequests(),
+                                                        },
+                                                        onToggleExpanded:
+                                                            _toggleExpanded,
+                                                        onHeaderDragStart:
+                                                            _scrollSidebarController
+                                                                .handleHeaderDragStart,
+                                                        onHeaderDragUpdate:
+                                                            _scrollSidebarController
+                                                                .handleHeaderDragUpdate,
+                                                        onHeaderDragEnd:
+                                                            _scrollSidebarController
+                                                                .handleHeaderDragEnd,
                                                       ),
-                                                      onOpenSettings: () {
-                                                        unawaited(
-                                                          _navigateFromOverlay(
-                                                            (_) =>
-                                                                const AiSettingsScreen(),
+                                                      if (_scrollSidebarController
+                                                              .sidebarAnimation
+                                                              .value >
+                                                          0)
+                                                        Positioned.fill(
+                                                          child:
+                                                              GestureDetector(
+                                                            behavior:
+                                                                HitTestBehavior
+                                                                    .opaque,
+                                                            onTap:
+                                                                _scrollSidebarController
+                                                                    .closeSidebar,
+                                                            child: ColoredBox(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withValues(
+                                                                alpha: 0.55 *
+                                                                    _scrollSidebarController
+                                                                        .sidebarAnimation
+                                                                        .value,
+                                                              ),
+                                                            ),
                                                           ),
-                                                        );
-                                                      },
-                                                      onToggleExpanded:
-                                                          _toggleExpanded,
-                                                      onHeaderDragStart:
-                                                          _scrollSidebarController
-                                                              .handleHeaderDragStart,
-                                                      onHeaderDragUpdate:
-                                                          _scrollSidebarController
-                                                              .handleHeaderDragUpdate,
-                                                      onHeaderDragEnd:
-                                                          _scrollSidebarController
-                                                              .handleHeaderDragEnd,
-                                                    ),
-                                                  ],
+                                                        ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ),

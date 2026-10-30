@@ -26,6 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- AI chat resumes recent conversations and starts a fresh chat after 30 minutes away, while preserving drafts, ongoing responses, and pending data approvals.
+- Improved AI chat sidebar swipes with velocity-aware settling, more reliable vertical scrolling, and a dimmed, rounded chat surface while the sidebar is open.
+- Prepared the 1.7.0 beta release and updated TestFlight testing priorities; iOS builds resolve the matching beta notes from their numeric marketing version.
 - Clarified privacy, AI data-sharing, health, backup, and telemetry disclosures across legal documents and app settings, and repaired language switching on legal website pages.
 - Optimized `SleepPipelineService` by combining night session metric iterations and eliminating redundant map lookups (#748).
 - Optimized `_WaterSparkline` daily intake min/max calculation using a single-pass loop without intermediate list allocations (#747).

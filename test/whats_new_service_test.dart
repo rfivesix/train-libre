@@ -71,6 +71,16 @@ void main() {
   });
 
   group('pendingReleases', () {
+    test('numeric iOS version finds matching beta notes on first upgrade',
+        () async {
+      configure(version: '1.7.0');
+      service.catalogOverride = {
+        'en': [_release('1.7.0-beta.1'), _release('1.6.0')],
+      };
+      expect((await service.pendingReleases('en')).map((r) => r.version),
+          ['1.7.0-beta.1']);
+    });
+
     test('nothing stored yet shows only the running version', () async {
       configure(version: '1.0.3', lastSeen: null);
 

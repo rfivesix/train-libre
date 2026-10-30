@@ -6,7 +6,7 @@
   Regenera con: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.0 (2026-10-29)
+## 1.7.0-beta.1 (2026-10-29)
 
 {sparkles} Conoce el nuevo chat de IA: pregunta sobre nutrición y entrenamiento. Puede crear borradores de planes de entrenamiento, rutinas y recetas. Tus datos personales solo se comparten con tu permiso y puedes revisar las propuestas antes de aplicarlas.
 

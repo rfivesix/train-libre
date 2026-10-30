@@ -6,7 +6,7 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.7.0 (2026-10-29)
+## 1.7.0-beta.1 (2026-10-29)
 
 {sparkles} Meet the new AI chat: Ask about nutrition and training. It can create training plans, routines, and recipes as drafts. Personal data is shared only with your permission, and you review suggestions before applying them.
 

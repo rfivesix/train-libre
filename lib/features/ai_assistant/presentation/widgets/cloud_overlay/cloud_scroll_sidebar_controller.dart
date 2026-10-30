@@ -24,8 +24,13 @@ class CloudScrollSidebarController extends ChangeNotifier {
 
   double _sidebarDragStartProgress = 0;
   Offset? _sidebarPointerStart;
+  Duration? _sidebarPointerStartTime;
+  Duration? _sidebarLastMoveTime;
   int? _sidebarPointerId;
   bool _sidebarPointerDragging = false;
+  bool _sidebarPointerRejected = false;
+  gestures.VelocityTracker? _sidebarVelocityTracker;
+  int _sidebarVelocitySamples = 0;
   bool _sidebarPastSnapPoint = false;
   double? _sidebarDragStartScrollOffset;
   bool _sidebarDragStartFollowChatTail = true;
@@ -52,7 +57,7 @@ class CloudScrollSidebarController extends ChangeNotifier {
     _sidebarController = AnimationController(
       vsync: vsync,
       duration: const Duration(milliseconds: 320),
-    )..addListener(_onSidebarAnimationTick);
+    );
     chatScrollController.addListener(_handleChatScroll);
   }
 
@@ -61,10 +66,6 @@ class CloudScrollSidebarController extends ChangeNotifier {
   bool get showScrollToBottom => _showScrollToBottom;
   int get chatUserScrollRevision => _chatUserScrollRevision;
   void incrementUserScrollRevision() => _chatUserScrollRevision++;
-
-  void _onSidebarAnimationTick() {
-    if (!_isDisposed) notifyListeners();
-  }
 
   double sidebarWidth(double viewportWidth) =>
       math.min(viewportWidth * 0.82, 340.0);
@@ -156,26 +157,40 @@ class CloudScrollSidebarController extends ChangeNotifier {
 
   void handleSidebarPointerDown(PointerDownEvent event) {
     if (!isFullscreenGetter()) return;
+    if (_sidebarPointerId != null) return;
     _sidebarPointerId = event.pointer;
+    _sidebarVelocityTracker = gestures.VelocityTracker.withKind(event.kind)
+      ..addPosition(event.timeStamp, event.position);
+    _sidebarPointerRejected = false;
+    _sidebarVelocitySamples = 1;
     _sidebarPointerStart = event.position;
+    _sidebarPointerStartTime = event.timeStamp;
+    _sidebarLastMoveTime = event.timeStamp;
     _sidebarDragStartProgress = _sidebarController.value;
     _sidebarDragStartScrollOffset = captureChatScrollOffset();
     _sidebarDragStartFollowChatTail = _followChatTail;
     _sidebarPointerDragging = false;
     _sidebarPastSnapPoint = _sidebarController.value >= 0.5;
-    _sidebarController.stop();
   }
 
   void handleSidebarPointerMove(PointerMoveEvent event, double width) {
     if (event.pointer != _sidebarPointerId || !isFullscreenGetter()) return;
     final start = _sidebarPointerStart;
     if (start == null) return;
+    _sidebarVelocityTracker?.addPosition(event.timeStamp, event.position);
+    _sidebarVelocitySamples++;
+    _sidebarLastMoveTime = event.timeStamp;
     final offset = event.position - start;
+    if (_sidebarPointerRejected) return;
     if (!_sidebarPointerDragging) {
-      if (offset.dx.abs() < gestures.kTouchSlop ||
-          offset.dx.abs() < offset.dy.abs()) {
+      if (offset.distance < gestures.kTouchSlop) return;
+      if (offset.dx.abs() <= offset.dy.abs() ||
+          (_sidebarDragStartProgress == 0 && offset.dx < 0) ||
+          (_sidebarDragStartProgress == 1 && offset.dx > 0)) {
+        _sidebarPointerRejected = true;
         return;
       }
+      _sidebarController.stop();
       _sidebarPointerDragging = true;
       onUnfocus?.call();
     }
@@ -193,8 +208,26 @@ class CloudScrollSidebarController extends ChangeNotifier {
   void finishSidebarPointer(PointerEvent event) {
     if (event.pointer != _sidebarPointerId) return;
     if (_sidebarPointerDragging) {
+      final estimate = _sidebarVelocitySamples >= 3
+          ? _sidebarVelocityTracker?.getVelocityEstimate()
+          : null;
+      final elapsed =
+          event.timeStamp - (_sidebarPointerStartTime ?? event.timeStamp);
+      final velocity = event.timeStamp - _sidebarLastMoveTime! >
+              const Duration(milliseconds: 100)
+          ? 0.0
+          : estimate?.pixelsPerSecond.dx ??
+              (elapsed.inMilliseconds > 0 && elapsed.inMilliseconds <= 100
+                  ? (event.position.dx - _sidebarPointerStart!.dx) /
+                      (elapsed.inMicroseconds / Duration.microsecondsPerSecond)
+                  : 0.0);
+      final target = event is PointerCancelEvent
+          ? (_sidebarDragStartProgress >= 0.5 ? 1.0 : 0.0)
+          : velocity.abs() >= 500
+              ? (velocity > 0 ? 1.0 : 0.0)
+              : (_sidebarController.value >= 0.5 ? 1.0 : 0.0);
       _sidebarController.animateTo(
-        _sidebarController.value >= 0.5 ? 1 : 0,
+        target,
         duration: const Duration(milliseconds: 240),
         curve: Curves.easeOutCubic,
       );
@@ -205,6 +238,10 @@ class CloudScrollSidebarController extends ChangeNotifier {
     }
     _sidebarPointerId = null;
     _sidebarPointerStart = null;
+    _sidebarPointerStartTime = null;
+    _sidebarLastMoveTime = null;
+    _sidebarVelocityTracker = null;
+    _sidebarPointerRejected = false;
     _sidebarPointerDragging = false;
     _sidebarDragStartScrollOffset = null;
     _sidebarDragStartFollowChatTail = true;

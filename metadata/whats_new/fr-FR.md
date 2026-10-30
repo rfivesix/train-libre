@@ -6,7 +6,7 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.0 (2026-10-29)
+## 1.7.0-beta.1 (2026-10-29)
 
 {sparkles} Découvrez le nouveau chat IA : Posez vos questions sur la nutrition et l’entraînement. Il peut créer des programmes, des routines et des recettes sous forme de brouillons. Vos données personnelles ne sont partagées qu’avec votre accord, et vous vérifiez les propositions avant de les appliquer.
 

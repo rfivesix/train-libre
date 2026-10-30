@@ -6,7 +6,7 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.0 (2026-10-29)
+## 1.7.0-beta.1 (2026-10-29)
 
 {sparkles} Scopri la nuova chat IA: fai domande su alimentazione e allenamento. Può creare bozze di piani di allenamento, routine e ricette. I dati personali vengono condivisi solo con il tuo consenso e puoi controllare i suggerimenti prima di applicarli.
 

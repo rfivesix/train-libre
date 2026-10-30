@@ -15,7 +15,7 @@ class AiAssistantUpdateIntroService {
   Future<bool> isDue() async {
     try {
       final info = await PackageInfo.fromPlatform();
-      if (AppVersion.parse(info.version) < AppVersion.parse(_introVersion)) {
+      if (AppVersion.parse(info.version) < AppVersion.parse('1.7.0-beta.1')) {
         return false;
       }
       final prefs = await SharedPreferences.getInstance();

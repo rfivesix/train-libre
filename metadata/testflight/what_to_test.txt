@@ -1,15 +1,15 @@
-Train Libre 1.6.0
+Train Libre 1.7.0-beta.1
 
-Please focus on these flows:
+Please prioritise these checks and report crashes, lost data, incorrect totals, or changes made without approval. Include your device, iOS version, steps, and screenshots where helpful.
 
-• AI meals, replies, and food search: On a supported iPhone, scan a mixed meal with Apple Intelligence and check that all ingredients remain in the review. Edit suggested foods and portions before saving. In AI chat, copy a response as Markdown, regenerate it, and check the displayed model and response time. Search common foods in the downloaded BLS 4.0 catalog, including while offline; try everyday German names and check that AI suggestions do not match the wrong animal species. Confirm branded products still appear through Open Food Facts. An external AI provider can also be tested with your own API key.
+1. Update and data safety: Back up an existing 1.6.0 installation, then update to the beta. Confirm the app starts and your diary, workouts, plans, goals, settings, and photos are intact after restarting. Check the What's New and AI introduction. If possible, restore the backup on a test device and verify the same data.
 
-• Workout history: Import a Hevy, Strong, or generic CSV export from onboarding or Settings > Data & Backup. Inspect the preview for units, dates, duplicates, and invalid rows. In the exercise catalog, filter for previously trained exercises and check their history labels.
+2. AI permissions and changes: Ask the assistant about your diary or training. Deny access first, then approve only the requested data and check the answer against the app. Create or revise a routine, plan, or recipe: discard one proposal and apply another, verifying nothing changes before approval and the applied result persists. Try follow-up questions, chat history after restarting, and hiding/reopening the assistant.
 
-• Sharing and recipes: Share a routine, plan, or recipe by link, text, or JSON and check the import preview before confirming. Export a completed workout as text or JSON. Scale a saved recipe by servings or cooked weight, then log it to the diary.
+3. Meals and macro totals: Scan or describe a mixed meal and a drink, review and edit ingredients, portions, liquid amount and caffeine, then save. Compare diary and daily calorie/macro totals; edit, move and delete entries. Also try manual macro entry and an AI chat meal proposal. Cancel a scan and confirm the camera and diary remain responsive. Test camera, photo attachment and voice on a physical iPhone if available.
 
-• Workout notes and controls: Add a pinned exercise note, a routine-specific note, and a note for one workout. Check that each appears in the right context. Try the progression toggle, set-type menu, and workout keyboard controls while logging sets.
+4. Apple Health nutrition: With permission, import daily nutrition, refresh twice, and check totals and duplicates. Edit or delete an imported entry and refresh again; local changes should remain. Export a manual macro entry and check the result in Health. Try denying permissions as well.
 
-• Statistics, health, and maintenance: Reorder Statistics cards and open nutrition and recovery details. Check the consolidated Health settings and available Apple Health permissions. On Android, export a completed strength workout to Health Connect and confirm its sets include repetitions, load, and order; repeat the export to check that it does not create duplicates. If available, check that upcoming weekly goal-review reminders are scheduled and delivered while the app is closed. If you have an existing backup, restore it and confirm that goals and workout history remain intact. Please also report accessibility, localisation, and small-screen layout issues.
+5. Core flows and setup: Complete a workout and restart the app to verify sets are saved. Try a fresh install, onboarding, optional AI/analytics consent, and offline startup. Test Spanish or Dutch, catalog search, and custom colours in light and dark mode if available.
 
 Thank you for testing Train Libre!

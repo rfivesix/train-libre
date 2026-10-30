@@ -6,7 +6,7 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.7.0 (2026-10-29)
+## 1.7.0-beta.1 (2026-10-29)
 
 {sparkles} Ein neuer KI-Chat: Stelle Fragen zu Ernährung und Training. Der Chat kann direkt Trainingspläne, Routinen und Rezepte als Entwurf erstellen. Persönliche Daten werden erst nach deiner Zustimmung freigegeben; Vorschläge prüfst du, bevor du sie übernimmst.
 
