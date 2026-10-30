@@ -643,7 +643,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'Your export is processed on this device. If anonymous analytics is enabled, we record whether you start, skip, or complete an import, never workout details.';
+      'Your export is processed on this device. If pseudonymous usage statistics are enabled, the import status may be recorded; workout details from this import are not included.';
 
   @override
   String get workoutImportButton => 'Import Workout Data';
@@ -1817,7 +1817,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onbPrivacyBody =>
-      'Your data stays on the device. No cloud accounts, no background sync.';
+      'Train Libre stores records mainly on the device. Optional features can send or copy data outside it.';
 
   @override
   String get onbFinishTitle => 'All set';
@@ -2104,7 +2104,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'Permanently delete user-owned data stored on this device and reset Train Libre to a fresh local state.';
+      'Remove local app records and settings. Some copies may remain.';
 
   @override
   String get deleteAllLocalAppData => 'Delete all local app data';
@@ -2114,7 +2114,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'This permanently deletes locally stored workouts, nutrition logs, measurements, supplements, settings/state, cached analytics, and local app data.\n\nThis does not delete data already exported to Apple Health or Health Connect.\n\nThis does not delete external provider data or remote public catalog sources. Bundled app assets and required default catalogs are kept or recreated so the app can launch after reset.';
+      'Reset removes many local records and settings. Some attachments or configuration may remain. It does not delete backups, exports, health-platform records or data held by external providers.';
 
   @override
   String get localDataDeletionTypeDeleteLabel => 'Type DELETE to confirm';
@@ -2808,7 +2808,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Track macros, water, and use optional AI image recognition.';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100% Private & Local';
+  String get onboardingFeaturePrivacyTitle => 'Local-first & privacy';
 
   @override
   String get onboardingFeaturePrivacyBody =>
@@ -3057,7 +3057,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      'Images, text, and generated prompts are sent to the selected AI provider only when you use an AI action. Provider retention and processing follow that provider\'s terms. Your API key is stored encrypted on this device only.';
+      'AI features can send text, images and context to the model handling the request. Chat may fall back to another configured provider. Stored app records require an access request unless automatic approval is enabled. Check the provider\'s terms; API keys use platform secure storage.';
 
   @override
   String get aiMealCapture => 'AI Meal';
@@ -5929,7 +5929,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre needs to read your step data to show daily/weekly statistics. Your data stays locally on your device; there is no external server.';
+      'Train Libre uses step data for daily and weekly statistics. Imported data can also be included in backups or shared with AI when you use that feature. Manage health access in your device settings.';
 
   @override
   String get health_permission_continue => 'Continue';
@@ -5946,11 +5946,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.';
+      'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights, as described in the Privacy Policy. For questions about withdrawing my consent, I can contact feedback@schotte.me.';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Optional) I want to share pseudonymised usage statistics to help improve app stability and features (zero personal or health data).';
+      '(Optional) I want to share pseudonymous usage statistics. Events may include technical identifiers and usage measurements that can be personal or health-related even without my name.';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -6000,7 +6000,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiSettingsInstructionBody =>
-      'Train Libre offers AI features such as chat and meal recognition. For meal recognition, AI analyzes food images and estimates nutrients. Images and text are sent to your selected AI provider only when you use an AI feature. With your own API key (BYOK), your data stays on your device until then.';
+      'AI features include chat and meal recognition. Messages, images and context go to the model handling a request. Chat can use a fallback provider. Stored records need approval unless automatic approval is enabled.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Setup Guide';
@@ -6152,11 +6152,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      'Converts meal photos or text descriptions into structured diary entries and matches them against your private product database.';
+      'In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• Translates imprecise descriptions (e.g., \'a slice of bread\') into metric weight estimates.\n• Matches AI suggestions offline against the local product database on your device.\n• Computes nutrition locally instead of delegating calculations to external servers.';
+      'In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.';
 
   @override
   String get infoAiMealTechnicalTitle =>
@@ -6164,7 +6164,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Uses a Bring-Your-Own-Key (BYOK) privacy model. The AI functions strictly as a suggestion layer. Matching is performed offline using a tokenized Jaro-Winkler filter against the local SQLite database. The AI provider is strictly prohibited from performing nutritional calculations via system prompts.';
+      'In catalog mode, AI suggestions are matched against local food data. Direct-estimate mode can use AI-generated nutrition estimates. Review results before saving.';
 
   @override
   String get infoSleepTitle => 'Sleep Quality (SHS v3.5)';
@@ -6722,7 +6722,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      'Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request (\$delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.';
+      'Train Libre will attempt to reset local telemetry identifiers and counters and request deletion from PostHog. The request may fail, does not confirm server-side deletion, and may not cover older identifiers or backups.';
 
   @override
   String get telemetryDeleteConfirmButton => 'Delete data now';
@@ -6736,15 +6736,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      'Pseudonymised: No name, no email, no workout, diary, weight, nutrition, or health data. Only screen views, feature usage, and error reports are transmitted.';
+      'Pseudonymous: Events may include technical identifiers, app and device context, screen and feature use, exact workout counts and duration, food-entry counts, AI request status, and indicators derived from nutrition or weight-related features. These can be personal or health-related even without your name.';
 
   @override
   String get telemetryConsentPointNotSold =>
-      'Not for advertising: Data is never sold and never used for marketing or advertising. Processed on servers in the EU.';
+      'No in-app advertising: Train Libre does not show ads. Usage events are sent for app statistics; processing and hosting depend on the service configuration.';
 
   @override
   String get telemetryConsentPointRevocable =>
-      'Voluntary: Can be disabled in Settings at any time. Stored telemetry data can also be deleted there.';
+      'Voluntary: You can turn off future transmissions in Settings. The deletion control resets local identifiers and counters and attempts a deletion request; it does not confirm server-side deletion.';
 
   @override
   String get telemetryConsentAccept => 'Yes, share usage data';
@@ -6758,14 +6758,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'Helps improve the app. Pseudonymised, without personal or health data.';
+      'Optional usage statistics may include technical identifiers and measurements that can be personal or health-related even without your name.';
 
   @override
   String get settingsTelemetryDeleteTitle => 'Delete telemetry data';
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'Deletes all stored IDs locally and on the PostHog server';
+      'Resets local identifiers and attempts a deletion request; server-side deletion is not confirmed.';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -8041,7 +8041,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalReasonPrivacyNotice =>
-      'Your note stays 100% private on your device and is never shared.';
+      'Your note is stored in the app and may be included in backups or in an approved AI request.';
 
   @override
   String get goalStep7Question => 'Review & Activate';
@@ -9185,7 +9185,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryDeleteSuccess =>
-      'Telemetry identifiers and data were deleted locally and from the server.';
+      'Telemetry reset was attempted. Server-side deletion has not been confirmed.';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -9300,7 +9300,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackReportDirectRequiresTelemetry =>
-      'Direct submission requires anonymous usage statistics. Enable them in Settings, or use email or share instead.';
+      'Direct submission requires pseudonymous usage statistics to be enabled. Enable them in Settings, or use email or share instead.';
 
   @override
   String get feedbackReportDirectSent =>
@@ -9314,7 +9314,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroBody =>
-      'Ask about training and nutrition. The assistant can summarize data you approve and prepare routines, training plans, or recipes as drafts. You review each data request and change before it is used. Set up a provider in AI Settings for live answers.';
+      'Ask about training and nutrition or prepare drafts. Your message and images go to the model when you send them. Access to stored records requires approval unless automatic approval is enabled. The recipient can change through fallback.';
 
   @override
   String get aiAssistantUpdateIntroDemoLabel => 'Example chat';
@@ -9325,7 +9325,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroExampleAnswer =>
-      'The chat answers questions about training and nutrition and reviews relevant data with your permission. It drafts routines, training plans, and recipes. You can review and confirm meal entries before saving; nothing is saved without your approval.';
+      'The assistant can prepare routines, plans and recipes as drafts. Review suggestions and meal entries before applying or saving them.';
 
   @override
   String get aiAssistantUpdateIntroAiEnabled => 'Enable AI features';

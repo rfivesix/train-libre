@@ -30,9 +30,9 @@ S'agissant d'un projet de développeur indépendant et les critères de désigna
 Train Libre repose sur les principes de « Privacy by Design » et « Privacy by Default » (Article 25 du RGPD) ainsi que sur le principe de minimisation des données (Article 5(1)(c) du RGPD).
 
 * **Pas de compte utilisateur :** Aucune inscription n'est requise. Aucun identifiant, mot de passe ou adresse e-mail n'est stocké sur des serveurs distants.
-* **Architecture Local-First :** Vos données de profil, vos entraînements, vos repas, vos mesures corporelles et vos constantes restent stockés exclusivement dans une base SQLite locale sur votre appareil.
-* **Pas de serveur applicatif central :** Nous n'hébergeons aucun cloud pour collecter ou traiter vos informations quotidiennes. Vos données restent sous votre possession physique.
-* **Pas de suivi commercial (Télémétrie anonyme optionnelle) :** Train Libre renonce aux réseaux publicitaires, au suivi commercial et au profilage comportemental. Une intégration de statistiques d'utilisation purement anonyme (PostHog EU) est désactivée par défaut et ne collecte aucune donnée à caractère personnel (PII) ni aucun contenu personnel d'entraînement ou de nutrition.
+* **Architecture Local-First :** Vos données de profil, entraînements, nutrition, santé et mesures sont principalement stockées localement. Des fonctions facultatives peuvent transmettre des données ou créer des copies hors de l’appareil, comme décrit ci-dessous.
+* **Pas de serveur applicatif central :** Nous n’exploitons pas de base de données cloud centrale pour stocker vos journaux d’entraînement et de nutrition. Des services facultatifs et des sauvegardes peuvent toutefois recevoir ou conserver des copies.
+* **Pas de publicité :** Train Libre n’utilise pas de réseaux publicitaires ni de publicité comportementale. Les statistiques facultatives sont désactivées par défaut. Lorsqu’elles sont activées, les événements peuvent inclure des identifiants techniques et des indicateurs issus de fonctions liées à la nutrition ou au poids ; ils peuvent être personnels ou liés à la santé même sans nom. Voir la section 6 C.
 * **Hébergement web & Cookies (Visite du site) :** Lorsque vous visitez ce site, votre navigateur se connecte aux serveurs de notre hébergeur (GitHub Pages / GitHub Inc., 88 Colin P. Kelly Jr St, San Francisco, CA 94107, USA) pour des raisons techniques. Des fichiers de log technique standard (IP, agent utilisateur, horodatage) sont traités pour délivrer la page, sur la base de notre intérêt légitime (Art. 6(1)(f) RGPD). Ce site n'utilise aucun cookie ni script analytique.
 
 ---
@@ -53,8 +53,8 @@ L'utilisation de l'application implique le traitement de vos données par le sys
 9. **Segments de pas :** Pas importés des interfaces système avec nettoyage des doublons.
 
 ### B. Base légale du traitement
-* **Données générales et paramètres (Art. 6(1)(b) RGPD) :** Le traitement est nécessaire à l'exécution de la relation d'utilisation (fourniture des fonctions de l'application).
-* **Données de santé (Art. 9(2)(a) en conjonction avec Art. 6(1)(a) RGPD) :** En saisissant vos mesures corporelles ou en activant l'import des données de santé (sommeil, pouls), vous consentez explicitement au traitement local. Vous pouvez retirer ce consentement à tout moment en supprimant vos entrées ou en réinitialisant l'application.
+
+La base juridique dépend de la fonction et de la finalité du traitement. Certains traitements reposent sur votre consentement, qui peut être retiré pour l’avenir. Supprimer des enregistrements ou réinitialiser l’application ne constitue pas automatiquement un retrait et n’annule pas les traitements déjà effectués. Les transmissions facultatives sont décrites dans les sections correspondantes. L’évaluation juridique précise doit être vérifiée à partir de la configuration réelle.
 
 ---
 
@@ -62,36 +62,17 @@ L'utilisation de l'application implique le traitement de vos données par le sys
 
 Pour fournir des fonctions avancées, l'application dispose d'interfaces vers des services externes. Ces fonctions sont facultatives et nécessitent votre action.
 
-### A. Reconnaissance des repas par IA (Sur l'appareil & BYOK)
-Train Libre vous permet d'analyser vos repas par photo ou texte au moyen de l'intelligence artificielle. Selon la configuration choisie et la compatibilité de votre appareil, l'analyse s'effectue soit **entièrement localement sur l'appareil**, soit via des API de cloud externes selon le principe du **« Bring-Your-Own-Key » (BYOK)** :
+### A. Intelligence artificielle : chat, reconnaissance des repas et brouillons
 
-1. **Traitement sur l'appareil (Apple Intelligence / Foundation Models) :**  
-   Sur les appareils Apple compatibles (iOS avec Apple Intelligence), Train Libre utilise nativement le framework `FoundationModels` (`SystemLanguageModel.default`).
-   * **Zéro transfert réseau :** Le traitement du texte et des images est réalisé à 100 % localement sur l'Apple Neural Engine de votre appareil. Aucun octet ne quitte votre appareil (0 octet transmis).
-   * **Aucune clé API requise :** La reconnaissance locale ne nécessite aucun compte tiers ni clé API.
-   * **Aucun entraînement :** Vos données ne sont jamais utilisées pour entraîner des modèles d'IA.
+Train Libre propose des fonctions facultatives d’IA pour le chat, la reconnaissance des repas et la préparation de brouillons (repas, routines, plans d’entraînement et recettes). Les estimations et suggestions peuvent être incomplètes ou erronées.
 
-2. **Bring-Your-Own-Key (BYOK) pour les fournisseurs Cloud :**  
-   Alternativement, vous pouvez utiliser des services cloud tiers en renseignant votre propre clé API dans l'application.
-   * **Fournisseurs pris en charge :** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama et end-points compatibles OpenAI.
-   * **Stockage sécurisé :** Votre clé API est chiffrée en AES-256 via `flutter_secure_storage` dans le trousseau sécurisé de l'appareil (iOS Keychain / Android Keystore) et n'est jamais transmise de notre côté.
-   * **Transmission limitée :** L'image ou la description est envoyée chiffrée en HTTPS directement à l'API du fournisseur sélectionné. Aucune métadonnée personnelle n'est jointe.
-   * **Responsabilité :** L'utilisation de votre clé implique une relation directe avec le fournisseur d'IA. Veuillez consulter sa charte de confidentialité avant utilisation.
+**Votre contenu envoyé.** Lorsque vous envoyez un message, le texte saisi ou dicté et les images jointes sont transmis au modèle utilisé pour cette requête, avant toute demande distincte d’accès aux données enregistrées dans l’application. Votre message ou votre image peut lui-même contenir des données personnelles ou de santé. La requête peut inclure un contexte limité de conversations antérieures, des instructions, l’identifiant du modèle et des contenus précédents. Toutes les requêtes ne contiennent pas de données stockées dans l’application : envoyer un message est distinct de l’autorisation d’accéder à ces données. La dictée peut utiliser un service de reconnaissance vocale selon l’appareil et ses réglages. Le nettoyage facultatif de la transcription d’un repas peut transmettre le texte avant l’envoi du repas.
 
-3. **Garanties communes de confidentialité :**
-   * **Traitement analytique :** L'IA est utilisée uniquement pour décomposer la description ou l'image en ingrédients. Train Libre ne génère pas de conseils ou de plans de repas via l'IA.
-   * **Protection par prompt système :** Le prompt système demande au modèle de ne pas calculer les nutriments. Les aliments sont mis en correspondance localement sur votre appareil avec la base SQLite hors-ligne pour en déduire les macros.
-   * **Algorithme local :** Les calculs de calories et le suivi restent 100% locaux sur votre appareil et ne servent pas à entraîner les modèles globaux d'IA.
+**Données enregistrées dans l’application.** L’assistant peut demander des catégories telles que les entraînements, le journal alimentaire, les pas, le sommeil, la récupération, les mesures, les objectifs, le profil, les compléments, les recettes, les exercices, les routines et les plans. Les nouveaux accès sont soumis à une demande d’autorisation. L’approbation automatique est désactivée par défaut ; si elle est activée, des demandes ultérieures peuvent être approuvées sans nouvelle décision. La carte indique les catégories et la période, mais ne prévisualise pas nécessairement chaque valeur transmise. Les résultats de requêtes locales et les échanges d’outils associés peuvent être envoyés au modèle. Désactiver l’approbation automatique ne rappelle pas les données déjà envoyées et n’arrête pas nécessairement une opération en cours.
 
-| Fournisseur | Charte de confidentialité |
-| :--- | :--- |
-| Apple Intelligence | https://www.apple.com/legal/privacy/ |
-| OpenAI | https://openai.com/policies/privacy-policy |
-| Google Gemini | https://policies.google.com/privacy |
-| Anthropic Claude | https://www.anthropic.com/privacy |
-| Mistral AI | https://mistral.ai/privacy-policy |
-| xAI Grok | https://x.ai/privacy-policy |
-| Ollama | https://ollama.com/privacy |
+**Destinataire.** L’autorisation n’est pas liée à un fournisseur précis. Pour le chat texte, l’application peut basculer vers un autre fournisseur configuré si le fournisseur sélectionné est indisponible ou sans identifiants, puis le résoudre à nouveau après l’approbation. Un autre destinataire peut donc être utilisé ; la carte d’autorisation n’identifie pas elle-même ce destinataire. Les configurations prises en charge comprennent Apple Foundation Models, OpenAI, Google, Anthropic, Mistral, xAI, DeepSeek, Ollama et des points de terminaison OpenAI compatibles personnalisés. Un serveur personnalisé peut être local ou distant et transmettre les données ailleurs. Train Libre ne peut pas vérifier les pratiques externes de conservation, d’examen humain, d’entraînement, de transfert ou d’effacement. Consultez les conditions de l’API ou de l’exploitant concerné.
+
+**Historique et suppression.** Les messages, réponses, erreurs, identifiants de fournisseur et de modèle, autorisations et références aux pièces jointes peuvent être stockés localement ; les pièces jointes peuvent aussi être des fichiers. La suppression d’une conversation tente de supprimer ses pièces jointes. La réinitialisation supprime de nombreuses données et clés, mais ne garantit pas la suppression de chaque fichier, cache ou paramètre. Les sauvegardes, exports, plateformes de santé et données déjà envoyées à un fournisseur sont distincts. La suppression de l’historique local ne demande pas la suppression auprès du fournisseur d’IA.
 
 ### B. Mises à jour des catalogues hors-ligne
 * **Fonctionnement :** L'application vérifie périodiquement la disponibilité de mises à jour des catalogues d'aliments (Open Food Facts) et d'exercices (wger) via HTTPS vers les serveurs d'hébergement.
@@ -101,69 +82,29 @@ Train Libre vous permet d'analyser vos repas par photo ou texte au moyen de l'in
 
 ---
 
-## 5. Données de santé du système (HealthKit / Health Connect)
+## 5. Interfaces de données de santé
 
-Train Libre peut interagir avec les bases de santé système (Apple HealthKit ou Google Health Connect). Cela requiert votre autorisation explicite et peut être révoqué dans les réglages système.
-
-* **Importation (Lecture) :** Mensurations corporelles (poids, masse grasse, tour de taille), pas, sommeil et fréquence cardiaque pour affichage local et étalonnage du métabolisme.
-* **Exportation (Écriture) :** Séances, repas et poids.
-* **Protection contre les doublons :** Registre local d'idempotence (`health_export_records`) pour éviter les écritures en double.
-
----
+Train Libre peut utiliser Apple HealthKit ou Google Health Connect si vous activez les fonctions correspondantes et accordez les autorisations de la plateforme. Vous pouvez modifier ces autorisations dans les réglages système. Les données importées sont stockées et analysées dans l’application et peuvent être incluses dans des sauvegardes ou dans une requête d’IA selon les règles d’autorisation de la section 4. Modifier une autorisation système ne supprime pas automatiquement les données déjà importées ou exportées. L’autorisation d’accès aux données par l’assistant est distincte de l’autorisation Health.
 
 ## 6. Sécurité des données, sauvegardes et télémétrie
 
-Puisque toutes les données résident sur votre appareil, la sécurité physique et logique de ce dernier est essentielle.
+La sécurité de votre appareil est importante pour protéger les données locales et les identifiants.
 
 ### A. Isolation applicative
 Le système d'exploitation isole l'application dans un bac à sable (sandbox), empêchant les autres applications d'accéder à sa base SQLite ou aux clés API.
 
 ### B. Sauvegardes
-1. **Exportation de fichiers :** Vous pouvez générer une sauvegarde JSON complète exportable via le menu de partage.
-2. **Chiffrement :** Les sauvegardes peuvent être chiffrées localement par mot de passe.
-3. **Sauvegardes automatiques :** Sur Android via SAF (Storage Access Framework).
-4. **Sauvegardes système :** Incluses dans iCloud/Google Drive Backup si activé au niveau système.
-5. **Sauvegarde iCloud (iOS uniquement) :** Optionnelle et gérée par votre identifiant Apple. Chiffrée par Apple.
 
-### C. Statistiques d'utilisation pseudonymisées optionnelles
+Vous pouvez créer et partager des sauvegardes ou exports, et activer des sauvegardes automatiques vers un emplacement choisi. Selon l’option, ils peuvent contenir des enregistrements de la base de données, des réglages, l’historique IA et des médias. L’export chiffré par mot de passe est disponible ; protégez les mots de passe et les copies non chiffrées. L’emplacement choisi ou le système d’exploitation peut stocker une copie dans un service cloud. La synchronisation iCloud facultative peut téléverser un instantané de la base et des médias après activation. Vérifiez les réglages et pratiques du fournisseur de stockage. La réinitialisation de l’application ne supprime pas les sauvegardes, exports, données des plateformes de santé ou copies chez les fournisseurs. Des fichiers temporaires ou un nettoyage incomplet peuvent laisser d’autres copies ; leur suppression immédiate et complète n’est pas garantie.
 
-Train Libre propose une mesure d'utilisation purement optionnelle et respectueuse de la vie privée, destinée à améliorer la stabilité de l'application et l'usage des fonctionnalités, opérée via PostHog EU (https://eu.i.posthog.com). Dans l'application, la fonction est intitulée « Partager des statistiques d'utilisation anonymes ». PostHog associant des identifiants techniques aux événements transmis, il s'agit juridiquement de données pseudonymisées ; une anonymité complète ne peut être garantie pour des données techniques d'utilisation.
+### C. Statistiques d’utilisation facultatives
 
-1. **Opt-in strict par défaut:** La télémétrie est entièrement désactivée par défaut. Tant que vous n'avez pas expressément consenti, la bibliothèque de télémétrie n'est même pas initialisée. Aucun événement n'est transmis et aucune connexion réseau vers PostHog n'est établie — pas même une requête technique de configuration. Ce n'est qu'au moment où vous activez « Partager des statistiques d'utilisation anonymes » dans les Paramètres, sous Support & Info, que l'application contacte PostHog pour la première fois. Un identifiant d'appareil aléatoire est certes généré localement dès le premier lancement, afin que le décompte des appareils actifs fonctionne à partir de votre consentement ; cette génération a lieu exclusivement sur votre appareil et sans aucune transmission.
-2. **Étendue des événements collectés:** Si vous avez consenti, seules les catégories suivantes sont collectées :
+Les statistiques sont désactivées par défaut. Lorsqu’elles sont activées, l’application utilise le point d’entrée PostHog EU pour des événements pseudonymes. Ceux-ci peuvent inclure des identifiants techniques, le contexte de l’application et de l’appareil, l’utilisation des écrans et fonctions, des nombres exacts d’exercices et leur durée, le nombre d’entrées alimentaires, l’état des requêtes d’IA et des indicateurs issus de fonctions liées à la nutrition ou au poids. Même sans nom, ces événements peuvent être personnels ou liés à la santé. L’application configure des options liées à l’IP et à la géolocalisation, mais le traitement réseau et serveur dépend également de la configuration du service.
 
-   - Lancements de l'application (pour déterminer le nombre d'appareils actifs)
-   - Écrans ouverts, identifiés uniquement par des identifiants techniques issus d'une liste figée dans le code source (par exemple diary_tab, live_workout)
-   - Fonctions déclenchées, également au moyen d'identifiants fixes (par exemple routine_created, barcode_scanned)
-   - Un compteur agrégé des entrées alimentaires enregistrées (le nombre ainsi que le mode de saisie, par exemple recherche, scan de code-barres ou reconnaissance par IA)
-   - Indicateurs des séances d'entraînement terminées : nombre d'exercices, de séries et de minuteurs de repos, durée en minutes, ainsi que des indications par oui/non sur les fonctions d'entraînement utilisées. Le type de séance est transmis exclusivement sous la forme « routine » ou « custom », jamais sous forme de nom
-   - Progression dans l'intégration initiale (numéro d'étape, nom de l'étape, temps passé)
-   - Paramètres modifiés (identifiant du paramètre et nouvelle valeur)
-   - État des requêtes IA de reconnaissance de repas (fournisseur choisi, succès ou code d'erreur, temps de réponse par plages larges telles que « 2-5s »)
-   - État des migrations de base de données (version de départ et version cible, succès)
-   - Indicateurs de l'estimation calorique adaptative : nombre d'entrées de poids et d'alimentation prises en compte, longueur de la fenêtre d'analyse, niveau de confiance et indicateurs de qualité — mais aucune valeur de poids, de calories ou d'objectif
-   - Données techniques de contexte : version de l'application, build, système d'exploitation et sa version, plateforme, fuseau horaire, ainsi qu'une indication précisant si l'application s'exécute dans un émulateur
-
-   Les compteurs tels que le nombre d'exercices ou de séries et la durée de l'entraînement sont transmis sous forme de valeurs numériques exactes et non de plages. Ces valeurs sont transmises sans nom, adresse e-mail ni identifiant d'appareil du fabricant. L'identification d'utilisateurs individuels n'est ni recherchée ni techniquement prévue.
-
-3. **Aucun contenu ni valeur de santé:** Aucun nom, adresse e-mail, identifiant de compte ou identifiant d'appareil du fabricant n'est collecté, ni aucun contenu que vous saisissez — en particulier aucun titre de programme d'entraînement, nom d'exercice ou d'aliment, nom de recette, note ou texte libre. De même, aucune mensuration corporelle, aucun poids, aucune valeur calorique ou nutritionnelle n'est transmis. Tous les événements sont envoyés avec $ip : 0.0.0.0 ; les adresses IP ne sont pas conservées comme données d'événement et la résolution de localisation basée sur l'IP est expressément désactivée au moyen de $geoip_disable.
-4. **Pays et langue:** Afin d'analyser la répartition géographique de l'application, votre pays, votre continent et votre paramètre de langue sont transmis (par exemple « DE », « Europe », « de_DE »). Ces informations sont déduites sur votre appareil à partir de vos réglages système, et non de votre adresse IP. Aucune résolution jusqu'à la ville, la région, le code postal ou les coordonnées n'a lieu ; elle est désactivée côté serveur.
-5. **Rapport de diagnostic volontaire:** Dans la section Retour d'expérience, vous pouvez envoyer activement un rapport de diagnostic au développeur. Le rapport vous est présenté intégralement dans un aperçu avant l'envoi, et vous sélectionnez individuellement les sections incluses. Si vous le transmettez par e-mail, via le menu de partage, le presse-papiers ou l'export de fichier, il parvient directement au développeur sous votre propre contrôle et non par l'intermédiaire de PostHog. Pour l'envoi direct vers PostHog proposé en complément, le point 3 s'applique sans changement : votre note en texte libre, votre poids corporel ainsi que vos valeurs caloriques et de macronutriments ne sont pas transmis ; seules le sont des mesures techniques telles que le nombre d'entrées, les niveaux de confiance, les indicateurs de qualité et l'état de vos sauvegardes. L'envoi direct suppose un consentement actif au sens du point 1 ; si les statistiques d'utilisation sont désactivées, l'application vous en informe au lieu de signaler un envoi.
-6. **Révocation et effacement:** Vous pouvez retirer votre consentement à tout moment dans les Paramètres, ce qui interrompt immédiatement toute transmission. Le bouton « Supprimer les données de télémétrie » dans les Paramètres vous permet en outre de demander l'effacement des données associées à votre identifiant de télémétrie chez PostHog ; dans le même temps, tous les identifiants stockés localement sont réinitialisés. L'effacement peut faire l'objet d'exceptions techniques, par exemple pour les copies de sauvegarde. Un simple e-mail à feedback@schotte.me suffit également.
-7. **Base légale:** Le traitement des données de télémétrie repose exclusivement sur votre consentement explicite conformément à l'article 6, paragraphe 1, point a) du RGPD.
-8. **Sous-traitant:** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) agit en qualité de sous-traitant au sens de l'article 28 du RGPD. Un contrat de sous-traitance (Data Processing Agreement, DPA) a été conclu.
-9. **Lieu de stockage, durée de conservation et transferts hors UE:** Le projet PostHog EU utilisé s'appuie, comme infrastructure d'hébergement principale, sur des serveurs situés à Francfort-sur-le-Main, en Allemagne (AWS eu-central-1). Les données de télémétrie sont automatiquement supprimées après 12 mois au maximum. Selon les processus d'assistance, de sécurité et de sous-traitance ultérieure, des accès ou des traitements peuvent également avoir lieu en dehors de l'UE. De tels transferts sont couverts par les garanties appropriées convenues dans le contrat de sous-traitance, complétées par la certification au titre du EU-US Data Privacy Framework (DPF).
-10. **Transparence complète:** Le catalogue complet de tous les événements et des attributs transmis pour chacun d'eux est consultable publiquement dans le dépôt du code source, dans le fichier TELEMETRY.md. Les versions F-Droid et hors ligne sont compilées sans la bibliothèque de télémétrie et n'en contiennent pas le code.
-
----
+Vous pouvez désactiver les futurs envois dans les réglages. La commande d’effacement réinitialise les identifiants et compteurs locaux et tente une demande d’effacement ; elle ne confirme pas l’effacement côté serveur et peut ne pas couvrir les identifiants antérieurs ou les sauvegardes. Contactez feedback@schotte.me pour obtenir de l’aide. Les rapports de diagnostic peuvent aussi être partagés par les moyens que vous choisissez ; leur envoi direct à PostHog nécessite l’activation des statistiques. Vérifiez le contenu et le destinataire avant le partage. La conservation, les accords de sous-traitance, les lieux d’hébergement et les transferts internationaux doivent être confirmés à partir de la configuration et des accords actuels du service.
 
 ## 7. Vos droits (RGPD)
 
-Vous disposez de droits étendus sous le RGPD :
+Selon le droit applicable, vous pouvez disposer de droits d’accès, de rectification, d’effacement, de portabilité, de limitation ou d’opposition, ainsi que du droit de retirer un consentement lorsque le traitement repose sur celui-ci. Le retrait n’annule pas les traitements déjà effectués. Vous pouvez également déposer une plainte auprès d’une autorité de contrôle compétente. Pour toute demande, contactez feedback@schotte.me.
 
-* **Accès et portabilité (Art. 15 & 20 RGPD) :** Exportation JSON complète.
-* **Rectification (Art. 16 RGPD) :** Modification directe dans l'application.
-* **Effacement (Art. 17 RGPD) :** Suppression manuelle d'enregistrements.
-* **Réinitialisation totale (AppData Reset) :** Effacement définitif de toutes les données locales, paramètres et clés API.
-* **Droits relatifs aux données de télémétrie :** Si vous avez accepté la télémétrie anonyme, vous pouvez exercer vos droits (accès, effacement, opposition) concernant les données de télémétrie traitées en contactant le responsable du traitement à feedback@schotte.me. Sur simple demande, tous vos événements de télémétrie seront supprimés des serveurs de PostHog.
-* **Réclamation auprès d'une autorité de contrôle (Art. 77 RGPD) :** Droit de déposer une plainte auprès de la CNIL ou de l'autorité compétente.
+Vous pouvez modifier ou supprimer de nombreux enregistrements dans l’application et exporter des données. La réinitialisation locale supprime de nombreux enregistrements, réglages et identifiants de fournisseur, mais ne garantit pas la suppression de chaque pièce jointe, cache ou paramètre. Elle ne supprime pas les copies dans les sauvegardes, exports, Apple Health, Health Connect ou services d’IA externes. Gérez ces copies séparément et contactez le fournisseur concerné si nécessaire. La commande d’effacement de télémétrie tente une demande mais ne confirme pas l’effacement à distance.

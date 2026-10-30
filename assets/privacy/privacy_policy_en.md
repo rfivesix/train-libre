@@ -5,7 +5,7 @@
 
 This privacy policy informs you in accordance with Articles 13 and 14 of the General Data Protection Regulation (GDPR) about the processing of personal data and health-related data in the mobile application "Train Libre". 
 
-Since Train Libre is designed as a local-first application, full control over your data remains directly with you at all times. We do not operate any central database or application servers to store your profiles, workouts, or nutrition logs.
+Train Libre is designed as a local-first application; optional features can transmit data or create copies outside your device. We do not operate any central database or application servers to store your profiles, workouts, or nutrition logs.
 
 ---
 
@@ -30,9 +30,9 @@ Since the controller is an individual developer and the statutory requirements f
 Train Libre is based on the principles of "privacy by design" and "privacy by default" (Article 25 of the GDPR) as well as the principle of data minimization (Article 5(1)(c) of the GDPR).
 
 * **No User Accounts:** No registration or creation of a user account is required to use the app. No email addresses, passwords, or login credentials are stored on external servers.
-* **Local-First Architecture:** All profile settings, athletic activities, nutrition data, vital signs, and measurements entered by you are stored exclusively in a local SQLite database on your own end device.
-* **No Central Backend Server:** We do not operate any cloud databases or application servers to store or process your training and nutrition data. Your data remains in your physical possession.
-* **No Commercial Tracking (Optional Pseudonymised Usage Statistics):** Train Libre dispenses with advertising networks, commercial tracking, and behaviour profiling. A purely optional usage statistics integration (PostHog EU) is disabled by default, establishes no connection whatsoever before you consent, and transmits neither your names and content nor body measurements or nutritional values. See section 6 C for details.
+* **Local-First Architecture:** Profile settings, activities, nutrition data, vital signs, and measurements are primarily stored in a local database on your device. Optional features can transmit or copy data as described below.
+* **No Central Backend Server:** We do not operate any cloud databases or application servers to store or process your training and nutrition data. Optional services and backups can receive or store copies.
+* **No Advertising:** Train Libre does not use advertising networks or behaviour-based advertising. Optional usage statistics are disabled by default. When enabled, events may include technical identifiers and measurements such as counts or indicators derived from nutrition and weight-related features; these can be personal or health-related even without your name. See section 6 C.
 
 ---
 
@@ -56,10 +56,10 @@ The local database includes the following data categories:
 
 ### B. Legal Basis for Processing
 
-Since storage and evaluation take place exclusively locally on your end device, control over data protection and data processing remains in your own sphere. Insofar as the app is considered within the scope of the GDPR, the following legal bases apply:
+Core app storage is generally local to your device, while optional services can transmit or store copies as described in this policy. The legal basis depends on the purpose and context of each processing activity. Insofar as the app is considered within the scope of the GDPR, the following legal bases may apply:
 
 * **General Data and Settings (Article 6(1)(b) of the GDPR):** The processing of general profile settings, training plans, and app preferences is carried out to fulfill the user relationship (provision of app functionalities).
-* **Health Data (Article 9(2)(a) of the GDPR in conjunction with Article 6(1)(a) of the GDPR):** For the processing of physical measurements, heart rate data, sleep analyses, and nutrition logs (which fall under special categories of data as health-related data), you grant your explicit consent by actively entering them or enabling the import. You can withdraw this consent at any time by deleting the corresponding entries or by resetting all app data.
+* **Health Data (Article 9(2)(a) of the GDPR in conjunction with Article 6(1)(a) of the GDPR):** Some processing of health-related data may rely on your explicit consent. Entering a record or enabling an import is not, by itself, consent to every later purpose, such as transmission in an AI request. Where processing relies on consent, you may withdraw it for the future by contacting feedback@schotte.me or using the relevant platform permission controls. Deleting records or resetting the app does not automatically withdraw consent and does not undo processing that has already taken place.
 
 ---
 
@@ -67,39 +67,25 @@ Since storage and evaluation take place exclusively locally on your end device, 
 
 To provide advanced features, the app has interfaces to external services. These functions are optional and require your active participation.
 
-### A. AI Meal Capture (On-Device & BYOK)
+### A. Artificial Intelligence: Chat, Meal Recognition and Drafts
 
-Train Libre offers the option to analyze meals via photos or free-text descriptions using artificial intelligence. Depending on your configuration and device compatibility, analysis is performed either **completely locally on your end device** or via external cloud APIs based on the **"Bring-Your-Own-Key" (BYOK)** principle:
+Train Libre offers optional AI chat and meal recognition. The assistant can answer questions and prepare drafts such as meals, routines, training plans and recipes. Meal recognition can estimate portions and nutrition directly, or match suggested foods against a local catalog. Estimates and suggestions can be wrong and require your judgment.
 
-1. **On-Device Processing (Apple Intelligence / Foundation Models):**  
-   On compatible Apple devices (iOS with Apple Intelligence), Train Libre integrates directly with Apple's native `FoundationModels` framework (`SystemLanguageModel.default`).
-   * **Zero Network Requests:** Text and image processing runs 100% locally on your device's Apple Neural Engine. Absolutely zero image or text data leaves the physical device (0 bytes network transfer).
-   * **No API Key Required:** On-device recognition does not require an account or an API key.
-   * **No Model Training:** Your inputs and photos are never used by Train Libre to train AI models.
+**Your submitted content.** When you send a chat message, the text you type or dictate and the images you attach are sent to the model selected for the request. This happens before the separate request to read stored app records. Your message or image can itself contain personal or health information. The request can include system instructions, relevant documentation, the model identifier, limited earlier conversation context and images from the conversation. Follow-up context can include an earlier user question, categories and dates previously requested, or the name of a pending draft. An earlier data-backed answer is withheld until fresh overlapping access is approved and the provider matches. Not every request contains stored records, and entering a message is different from granting access to those records.
 
-2. **Bring-Your-Own-Key (BYOK) for Cloud Providers:**  
-   Alternatively, you can analyze meals using external cloud AI services by storing your own API key in the app.
-   * **Supported Providers:** OpenAI, Google Gemini, Anthropic Claude, Mistral AI, xAI Grok, Ollama, and custom OpenAI-compatible endpoints.
-   * **Secure Local Key Storage:** The API key you enter is stored encrypted using AES-256 encryption via the `flutter_secure_storage` package in the operating system's secured storage area (iOS Keychain or Android Keystore). The key remains exclusively local to your device and is never transmitted to us.
-   * **Restricted Data Transmission:** When using external AI analysis, your device sends the captured meal photo or entered text description directly via an encrypted HTTPS connection to the API of the selected AI provider. **No personalized account data, user metadata, or historical profile information from Train Libre is attached to these external endpoint payloads.**
-   * **Responsibility:** Since you are using your personal API key, you enter into a direct user relationship with the respective AI provider. Data processing by the AI provider is subject to their respective privacy policies. Please check your provider's privacy policy (especially regarding the use of data for training purposes and server locations) before using the function.
+Dictation uses the device's speech-recognition service, which may use a network service depending on the device and settings. In meal dictation, an optional AI transcript-cleanup feature can send the transcript for processing before the meal is submitted; it can be disabled. Meal analysis sends the submitted description or photos, together with instructions and context needed for the analysis, to the model used for that feature.
 
-3. **Common Privacy Safeguards across all AI Modes:**
-   * **Analytical AI Processing (No Generative Coaching):** The AI analysis is used for the **exclusive analytical purpose** of decomposing meal photos or text descriptions into **atomic ingredients**. Train Libre does **not** use AI to dynamically generate or propose personalized recipes, meal plans, or automated health coaching.
-   * **Hybrid Local Verification:** To maximize your privacy, the app's globally stored system prompt is configured to instruct the AI model to identify only food components and estimate their weight in grams. The AI model is explicitly instructed **not** to perform any nutrient calculations (such as calories, protein, fat, or carbohydrates). The determination of nutrients is then performed via a **hybrid approach**: recognized food names are matched against your **local offline database** using a deterministic **Jaro-Winkler-based matching engine** (SQLite/Drift).
-   * **Local-First Alignment:** Core macro calculations, user profiling, and history tracking remain **strictly local-first** on your device and are never transmitted to external providers or used to train global AI models.
+**Access to existing app records.** The assistant can request categories including workouts, diary and nutrition, steps, sleep, recovery, measurements, goals, profile and daily targets, supplements, recipes, exercise catalog, routines and training plans. A request identifies categories and a period or current snapshot. Fresh reads of those records are gated by approval of the request; the app may request further categories separately. The assistant can query an approved local snapshot and send query results and related tool exchanges to the model. Approval does not mean that every record in a category is necessarily sent. The request card describes categories and period; it is not a complete preview of each value sent.
 
-| Provider | Privacy Policy |
-| :--- | :--- |
-| Apple Intelligence | [https://www.apple.com/legal/privacy/](https://www.apple.com/legal/privacy/) |
-| OpenAI | [https://openai.com/policies/privacy-policy](https://openai.com/policies/privacy-policy) |
-| Google Gemini | [https://policies.google.com/privacy](https://policies.google.com/privacy) |
-| Anthropic Claude | [https://www.anthropic.com/privacy](https://www.anthropic.com/privacy) |
-| Mistral AI | [https://mistral.ai/privacy-policy](https://mistral.ai/privacy-policy) |
-| xAI Grok | [https://x.ai/privacy-policy](https://x.ai/privacy-policy) |
-| Ollama | [https://ollama.com/privacy](https://ollama.com/privacy) |
+Automatic approval of data requests is off by default. If you enable it in the assistant, later requests, including additional categories, can be approved without a separate decision each time. Turn it off in the assistant to return to individual requests. Turning it off does not recall data already sent or necessarily stop work already in progress. Earlier conversation context, draft metadata, responses, retries and tool exchanges can still contain information from prior interactions.
 
-For transmissions to cloud providers outside the European Union (especially the USA), this occurs on the basis of standard contractual clauses or adequacy decisions that you have agreed with the provider.
+**Recipient and configuration.** AI settings show the configured provider and model, and the assistant can display model information. The data-access card does not itself identify the recipient. Approval is not bound to a specific recipient: for text chat, the app can fall back to another configured provider when the selected one is unavailable or lacks credentials, and it resolves the provider again after approval. Changing configuration can therefore result in a different recipient. Image-bearing chat uses a separate selected-provider check instead of that implicit credential fallback. Requests may also retry with another model at the same provider.
+
+Supported configurations include Apple Foundation Models on compatible devices, OpenAI, Google Gemini, Anthropic, Mistral, xAI, DeepSeek, Ollama and custom OpenAI-compatible endpoints. Apple Foundation Models are intended for on-device processing. Ollama normally connects to a local service; a custom endpoint may be local or remote and may forward data elsewhere. A local or self-hosted server is controlled by its operator, not verified by Train Libre. Network protection depends on the endpoint; a local HTTP connection is possible. API keys and AI configuration are stored using platform secure-storage facilities; credentials are used to authenticate with the configured service.
+
+Train Libre cannot verify an external provider's or server operator's retention, human review, training, onward transfers or deletion practices. Review the applicable API terms and account settings before sending sensitive information. Provider and hosting locations, international transfers and safeguards depend on the service and configuration; do not assume a particular transfer mechanism applies. Train Libre does not operate a central service to receive these AI requests: the app communicates with the selected service or endpoint, or invokes the on-device model.
+
+**History and deletion.** Chat messages, responses, errors, provider and model identifiers, access records and attachment references are stored locally; attachments can also be stored as files. Deleting a conversation attempts to remove its attachments. Local reset removes many records and provider keys, but does not establish that every attachment, cache or configuration item has been removed. Backups, exports, health-platform copies and information already sent to a provider are separate. Deleting local history does not request deletion from an AI provider. Contact the provider or server operator about its copies.
 
 ### B. Offline Catalog Updates (Open Food Facts & Exercise Catalog)
 
@@ -114,7 +100,7 @@ To scan food barcodes offline and look up exercises, Train Libre uses local prod
 
 ## 5. Health Data Interfaces
 
-Train Libre can interact with your operating system's system-wide health databases (Apple HealthKit on iOS or Google Health Connect on Android). This interaction takes place exclusively locally on your end device and requires your explicit approval, which can be revoked at any time, in the system settings of the respective operating system.
+Train Libre can interact with Apple HealthKit or Google Health Connect when you enable the relevant features and grant the platform permissions. You can change these permissions in system settings. Imported data is stored and analyzed in the app, and may also be included in backups or in an AI request under the access rules in section 4. Changing system permissions does not automatically delete previously imported or exported records. App-data access approval for the assistant is separate from health-platform permission.
 
 ### A. Data Import (Reading)
 
@@ -124,7 +110,7 @@ If you grant permission to the app, Train Libre reads data from Apple HealthKit 
 * **Sleep Data:** Import of sleep intervals and sleep phases.
 * **Heart Rate:** Import of heart rate samples to calculate local hourly aggregations.
 
-The import is used exclusively for display and local analysis within Train Libre. No transfer of this imported data to external servers takes place.
+Imported data may also be included in backups or shared through optional AI features as described above.
 
 ### B. Data Export (Writing & Idempotency)
 
@@ -139,7 +125,7 @@ At your request, Train Libre can export data manually recorded in the app to the
 
 ## 6. Data Security & Backups
 
-Since all data resides locally on your end device, the security of the device is critical to protecting your data.
+Device security is important to protecting your local data and credentials.
 
 ### A. Local Data Isolation
 
@@ -147,61 +133,18 @@ The operating system (iOS/Android) isolates Train Libre's app data using sandbox
 
 ### B. Manual and Automatic Backups
 
-The app offers functions to back up your data in order to prevent data loss in the event of device replacement or damage.
-
-1. **File Generation and Export:** You can generate a complete backup of all data stored in the SQLite database and in the settings. This backup is generated as a structured JSON file in the operating system's temporary storage area and exported via the system's own share menu (Share Sheet). After the export, the temporary file is deleted immediately.
-2. **Encryption:** To protect your sensitive data, backups can be encrypted with a password of your choice before export. The encryption is performed locally on the device using strong cryptographic algorithms. Unencrypted backups should always be stored in secure locations.
-3. **Automatic Backups:** You can enable automatic backups at configurable intervals. On Android, this feature uses the Storage Access Framework (SAF) to save directly to a target folder selected by you. Alternatively, the file is saved in the local app document directory. These backup files remain on your device unless you actively copy them to an external cloud storage location (e.g., iCloud Drive or Google Drive).
-4. **System Backups:** Please note that if system-wide device backups are enabled (e.g., via Apple iCloud or Google Drive Backup), Train Libre's application data will by default be uploaded to the respective cloud by the operating system. This is beyond our control and can be disabled for Train Libre in your device's system settings.
-5. **iCloud Backup (iOS only):** Train Libre offers an optional iCloud Backup feature on iOS. If enabled by you, the app automatically syncs your local database to your personal iCloud Drive folder via Apple's iCloud infrastructure. This feature is strictly opt-in and controlled exclusively through your Apple ID and iOS system settings — Train Libre does not activate, schedule, or access it without your action. Backup data is encrypted at rest and in transit by Apple's iCloud infrastructure; Train Libre does not store, host, process, or have access to any of your backup files or encryption keys on any external company server. Your data privacy for this feature is governed by Apple's iCloud Privacy Policy (https://www.apple.com/legal/privacy/).
+You can create and share backups or exports, and can enable automatic backups to a selected location. Depending on the option, backups can include database records, settings, AI history and media. Password-encrypted export is available; protect passwords and unencrypted copies. The selected location or operating system may store a copy in a cloud service. Optional iCloud sync can upload a database snapshot and media after it is enabled in the app. Review the settings and practices of the storage provider. Resetting the app does not remove separately stored backups, exports, health-platform data or provider copies. Temporary files and failed cleanup may leave additional copies; do not assume every copy is erased immediately.
 
 ### C. Optional Pseudonymised Usage Statistics
 
-Train Libre includes an optional, privacy-focused usage metrics integration powered by PostHog EU (https://eu.i.posthog.com). The feature is labelled "Share anonymous usage statistics" in the app. Because PostHog assigns technical identifiers to the transmitted events, the data is legally pseudonymised; complete anonymity cannot be guaranteed for technical usage data.
+Usage statistics are disabled by default. When enabled, the app uses the PostHog EU ingestion endpoint for pseudonymous events. Events can include technical identifiers, app and device context, screen and feature use, exact workout counts and duration, food-entry counts, AI request status, and indicators derived from nutrition or weight-related features. These events can be personal or health-related even without your name. The app configures IP and geographic-processing controls, but network and server handling depend on the service configuration.
 
-1. **Strict Opt-In Default:** Telemetry is disabled by default. Until you explicitly consent, the telemetry library is not even initialised. No events are transmitted and no network connection to PostHog is established — not even a technical configuration request. Only when you enable "Share anonymous usage statistics" in Settings under Support & Info does the app contact PostHog for the first time. A random device identifier is generated locally on first launch so that active-device counting works from the moment you consent; this generation happens entirely on your device and involves no transmission.
-2. **Scope of Collected Events:** If you have opted in, only the following categories are recorded:
-
-   - App launches (to determine the number of active devices)
-   - Screens opened, identified solely by technical identifiers from a list fixed in the source code (e.g. diary_tab, live_workout)
-   - Features triggered, likewise by fixed identifiers (e.g. routine_created, barcode_scanned)
-   - An aggregated counter of logged food entries (the count and the entry method, such as search, barcode scan or AI recognition)
-   - Metrics for completed workouts: number of exercises, sets and rest timers, duration in minutes, and yes/no flags for training features used. The session type is transmitted exclusively as "routine" or "custom", never as a name
-   - Onboarding progress (step index, step name, time spent)
-   - Settings changed (the setting's identifier and its new value)
-   - Status of AI meal recognition requests (selected provider, success or error code, response time in coarse ranges such as "2-5s")
-   - Database migration status (source and target version, success)
-   - Metrics for the adaptive calorie estimation: the number of weight and nutrition entries considered, the length of the evaluation window, the confidence level and quality indicators — but no weight, calorie or target values
-   - Technical context: app version, app build, operating system and its version, platform, time zone, and whether the app is running in an emulator
-
-   Counters such as exercise or set counts and workout duration are transmitted as exact numbers rather than ranges. These values are sent without any name, email address or manufacturer device identifier. Identifying individual users is neither intended nor technically provided for.
-
-3. **No Content and No Health Values:** No names, email addresses, account identifiers or manufacturer device identifiers are collected, and none of the content you enter — in particular no routine titles, exercise or food names, recipe names, notes or free text. Likewise no body measurements, weights, calorie or nutritional values are transmitted. All events are sent with $ip: 0.0.0.0; IP addresses are not stored as event data, and IP-based location resolution is explicitly switched off via $geoip_disable.
-4. **Country and Language:** To analyse the geographic distribution of the app, your country, continent and language setting are transmitted (e.g. "DE", "Europe", "de_DE"). These values are derived on your device from your system settings, not from your IP address. No resolution to city, region, postal code or coordinates takes place; it is disabled server-side.
-5. **Voluntary Diagnostic Report:** In the Feedback section you can actively send a diagnostic report to the developer. The report is shown to you in full in a preview before sending, and you select the included sections individually. If you submit it via email, the share sheet, the clipboard or file export, it goes directly to the developer under your own control and not through PostHog. For the additionally offered direct submission to PostHog, section 3 applies unchanged: your free-text note, your body weight and your calorie and macronutrient values are not transmitted — only technical metrics such as entry counts, confidence levels, quality indicators and the status of your backups. Direct submission requires active consent under section 1; if usage statistics are switched off, the app says so rather than reporting a delivery.
-6. **Withdrawal and Erasure:** You may withdraw your consent at any time in Settings, which immediately halts all transmissions. The "Delete telemetry data" action in Settings additionally lets you request erasure of the data associated with your telemetry identifier from PostHog, while resetting all locally stored identifiers. Erasure may be subject to technical exceptions, for example backup copies. Alternatively, an informal email to feedback@schotte.me is sufficient.
-7. **Legal Basis:** The processing of telemetry data is based exclusively on your explicit consent pursuant to Article 6(1)(a) GDPR.
-8. **Data Processor:** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) acts as data processor pursuant to Article 28 GDPR. A Data Processing Agreement (DPA) is in place.
-9. **Storage Location, Retention & Third-Country Transfers:** The PostHog EU project in use runs its primary hosting infrastructure on servers in Frankfurt am Main, Germany (AWS eu-central-1). Telemetry data is automatically deleted after a maximum of 12 months. Depending on support, security and sub-processing operations, access or processing may also take place outside the EU. Such transfers are covered by the appropriate safeguards agreed in the Data Processing Agreement, supplemented by certification under the EU-US Data Privacy Framework (DPF).
-10. **Full Transparency:** The complete catalogue of all events and the properties transmitted with each is publicly documented in the source repository in TELEMETRY.md. F-Droid and offline builds are compiled without the telemetry library and do not contain the code.
+You can turn off future telemetry in Settings. The deletion control resets local identifiers and counters and attempts a deletion request; it does not confirm server-side deletion, and historical identifiers or backups may not be covered. Contact feedback@schotte.me for help. A diagnostic report can also be shared by methods you choose; direct PostHog submission requires telemetry to be enabled. Review the report and its destination before sharing. Details of retention, processor arrangements, locations and international-transfer safeguards require confirmation with the service operator and applicable agreements.
 
 ---
 
 ## 7. Data Subject Rights
 
-As a data subject, you have extensive rights under the GDPR. Because Train Libre is a local-first app, you can exercise most of these rights directly and autonomously within the app, without relying on our involvement.
+Depending on applicable law, you may have rights of access, rectification, erasure, portability, restriction or objection, and the right to withdraw consent where processing is based on consent. Withdrawal does not undo processing that has already occurred. You may also complain to a competent supervisory authority. Contact feedback@schotte.me with a request.
 
-* **Right of Access (Article 15 of the GDPR) & Data Portability (Article 20 of the GDPR):** You have the right to know what data is stored in the app. You can view your entire database yourself at any time and export it in a machine-readable format (JSON file) using the integrated backup export function. You can also export reports in standard formats (such as CSV).
-* **Right to Rectification (Article 16 of the GDPR):** You can correct or change all profile data, workouts, nutrition logs, body weights, and settings entered manually by you at any time directly in the app's user interfaces.
-* **Right to Erasure / "Right to be Forgotten" (Article 17 of the GDPR):** You can manually delete individual records (e.g., a specific workout or food log) in the app.
-* **Irrevocable Data Erasure (AppData Reset):** The app has an integrated deletion function for all local application data. You can execute the complete data deletion function in the settings. This process irrevocably deletes:
-  * All SharedPreferences settings and app states.
-  * All recorded training logs, custom exercises, and routines.
-  * All nutrition logs, meal templates, and custom food items.
-  * All entered body measurements, supplement logbooks, and historical daily goals.
-  * All locally cached heart rate and sleep analysis stages.
-  * All API keys for AI providers stored in the operating system's secure storage.
-* **Telemetry Data Rights:** If you have opted in to usage statistics, you may exercise your rights (access, erasure, objection) regarding the processed telemetry data yourself at any time via the "Delete telemetry data" action in Settings, or by contacting the controller at feedback@schotte.me. Upon request, erasure of the data associated with your telemetry identifier is initiated at PostHog; it may be subject to technical exceptions, for example backup copies.
-  
-  After executing this function, the app is in its factory default state. Please note that data already exported to Apple Health or Google Health Connect cannot be deleted by this internal app function, as it is under the control of the operating system. However, you can delete this exported data at any time directly in the system's own health apps from Apple or Google.
-* **Right to Lodge a Complaint with a Supervisory Authority (Article 77 of the GDPR):** Without prejudice to internal app control options, you have the right to lodge a complaint with a competent data protection supervisory authority. This can be, for example, the supervisory authority of your habitual residence, your place of work, or the place of the alleged infringement (e.g., the Berlin Commissioner for Data Protection and Freedom of Information).
+You can edit or delete many records in the app and export data. The local reset removes many app records, settings and provider keys, but does not guarantee removal of every attachment, cache or configuration item. It does not remove copies in backups, exports, Apple Health, Health Connect or external AI services. Manage those copies separately and contact the provider where appropriate. The telemetry deletion action attempts a request; it does not confirm remote deletion.

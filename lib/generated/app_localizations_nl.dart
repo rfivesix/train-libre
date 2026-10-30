@@ -646,7 +646,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'Je export wordt op dit apparaat verwerkt. Als anonieme statistieken zijn ingeschakeld, registreren we alleen of je een import start, overslaat of afrondt, nooit de trainingsgegevens.';
+      'Je export wordt op dit apparaat verwerkt. Als pseudonieme gebruiksstatistieken zijn ingeschakeld, kan de importstatus worden geregistreerd; trainingsdetails worden niet opgenomen.';
 
   @override
   String get workoutImportButton => 'Trainingsgegevens importeren';
@@ -1828,7 +1828,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get onbPrivacyBody =>
-      'Je gegevens blijven op je apparaat. Geen cloudaccounts of synchronisatie op de achtergrond.';
+      'Train Libre bewaart gegevens vooral op het apparaat. Optionele functies kunnen gegevens daarbuiten versturen of kopiëren.';
 
   @override
   String get onbFinishTitle => 'Klaar';
@@ -2117,7 +2117,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'Verwijder definitief je gegevens op dit apparaat en zet Train Libre terug naar een lege lokale staat.';
+      'Lokale appgegevens en instellingen verwijderen. Sommige kopieën kunnen achterblijven.';
 
   @override
   String get deleteAllLocalAppData => 'Alle lokale appgegevens verwijderen';
@@ -2128,7 +2128,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'Hiermee verwijder je definitief lokaal opgeslagen trainingen, voedingslogs, metingen, supplementen, instellingen en status, gecachte analyses en andere lokale appgegevens.\n\nGegevens die al naar Apple Health of Health Connect zijn geëxporteerd, worden niet verwijderd.\n\nGegevens van externe aanbieders en openbare catalogi op afstand worden ook niet verwijderd. Gebundelde appbestanden en vereiste standaardcatalogi blijven behouden of worden opnieuw aangemaakt, zodat de app na het resetten kan starten.';
+      'Een reset verwijdert veel lokale gegevens en instellingen. Sommige bijlagen of configuraties kunnen achterblijven. Back-ups, exports, gegevens op gezondheidsplatforms en bij externe aanbieders worden niet verwijderd.';
 
   @override
   String get localDataDeletionTypeDeleteLabel => 'Typ DELETE om te bevestigen';
@@ -2830,7 +2830,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Houd macro’s en water bij en gebruik optioneel AI-beeldherkenning.';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100% privé en lokaal';
+  String get onboardingFeaturePrivacyTitle => 'Lokaal eerst en privacy';
 
   @override
   String get onboardingFeaturePrivacyBody =>
@@ -3080,7 +3080,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      'Afbeeldingen, tekst en gegenereerde prompts worden alleen naar de gekozen AI-aanbieder gestuurd wanneer je een AI-functie gebruikt. De aanbieder verwerkt en bewaart gegevens volgens de eigen voorwaarden. Je API-sleutel wordt alleen versleuteld op dit apparaat opgeslagen.';
+      'AI-functies kunnen tekst, afbeeldingen en context naar het gebruikte model sturen. De chat kan terugvallen op een andere ingestelde aanbieder. Toegang tot opgeslagen gegevens vereist toestemming, tenzij automatisch goedkeuren aanstaat. Controleer de voorwaarden van de aanbieder; API-sleutels worden veilig opgeslagen via het platform.';
 
   @override
   String get aiMealCapture => 'AI-maaltijd';
@@ -5996,7 +5996,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre moet je stappengegevens lezen om dag- en weekstatistieken te tonen. Je gegevens blijven op je apparaat; er is geen externe server.';
+      'Train Libre gebruikt stappen voor dag- en weekstatistieken. Geïmporteerde gegevens kunnen ook in back-ups terechtkomen of met AI worden gedeeld wanneer je die functie gebruikt. Beheer gezondheidstoegang in de instellingen van je apparaat.';
 
   @override
   String get health_permission_continue => 'Doorgaan';
@@ -6013,11 +6013,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'Ik geef uitdrukkelijk toestemming voor de verwerking van mijn fitness- en gezondheidsgegevens voor trainingsregistratie en trainingsinzichten. Ik kan deze toestemming op elk moment intrekken via Instellingen.';
+      'Ik geef uitdrukkelijk toestemming voor de verwerking van mijn fitness- en gezondheidsgegevens voor trainingsregistratie en trainingsinzichten, zoals beschreven in het Privacybeleid. Voor vragen over het intrekken van mijn toestemming kan ik contact opnemen via feedback@schotte.me.';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Optioneel) Ik wil geanonimiseerde gebruiksstatistieken delen om de stabiliteit en functies van de app te verbeteren (geen persoonlijke of gezondheidsgegevens).';
+      '(Optioneel) Ik wil pseudonieme gebruiksstatistieken delen. Gebeurtenissen kunnen technische identificatoren en gebruiksmetingen bevatten die ook zonder mijn naam persoonsgegevens of gezondheidsgegevens kunnen zijn.';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -6067,7 +6067,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get aiSettingsInstructionBody =>
-      'Train Libre biedt AI-functies zoals chat en maaltijdherkenning. Bij maaltijdherkenning analyseert AI afbeeldingen van eten en schat het de voedingswaarden. Afbeeldingen en tekst worden alleen naar de door jou gekozen AI-provider gestuurd wanneer je een AI-functie gebruikt. Met je eigen API-sleutel (BYOK) blijven je gegevens tot dat moment op je apparaat.';
+      'AI-functies omvatten chat en maaltijdherkenning. Berichten, afbeeldingen en context gaan naar het gebruikte model. De chat kan terugvallen op een andere aanbieder. Opgeslagen gegevens vereisen toestemming, tenzij automatisch goedkeuren aanstaat.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Installatiehandleiding';
@@ -6219,11 +6219,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      'Zet foto’s of tekstbeschrijvingen van maaltijden om in gestructureerde dagboekregistraties en vergelijkt ze met je persoonlijke productendatabase.';
+      'In catalogusmodus worden AI-suggesties vergeleken met lokale voedingsgegevens. De directe schattingsmodus kan voedingswaarden door AI laten schatten. Controleer de resultaten voordat je ze opslaat.';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• Zet onnauwkeurige beschrijvingen (zoals ‘een snee brood’) om in schattingen in grammen.\n• Vergelijkt AI-suggesties offline met de lokale productendatabase op je apparaat.\n• Berekent voedingswaarden lokaal en besteedt die berekening niet uit aan externe servers.';
+      'In catalogusmodus worden AI-suggesties vergeleken met lokale voedingsgegevens. De directe schattingsmodus kan voedingswaarden door AI laten schatten. Controleer de resultaten voordat je ze opslaat.';
 
   @override
   String get infoAiMealTechnicalTitle =>
@@ -6231,7 +6231,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Gebruikt een privacymodel waarbij je je eigen sleutel meeneemt (BYOK). AI doet uitsluitend suggesties. Het vergelijken gebeurt offline met een getokeniseerd Jaro-Winkler-filter op de lokale SQLite-database. De systeeminstructies verbieden de AI-provider uitdrukkelijk om voedingswaarden te berekenen.';
+      'In catalogusmodus worden AI-suggesties vergeleken met lokale voedingsgegevens. De directe schattingsmodus kan voedingswaarden door AI laten schatten. Controleer de resultaten voordat je ze opslaat.';
 
   @override
   String get infoSleepTitle => 'Slaapkwaliteit (SHS v3.5)';
@@ -6792,7 +6792,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      'Weet je zeker dat je eerdere telemetriegegevens wilt verwijderen?\n\nDit gebeurt er dan:\n• Alle apparaat-UUID’s, sessie-ID’s en lokale tellers op dit apparaat worden gereset.\n• Er wordt een verwijderverzoek (\$delete_person) naar de PostHog-servers in de EU gestuurd om je gegevens daar te wissen.\n• De telemetrie-SDK wordt volledig gereset.';
+      'Train Libre probeert lokale telemetrie-ID’s en tellers te resetten en een verwijderverzoek naar PostHog te sturen. Het verzoek kan mislukken, bevestigt geen verwijdering op de server en omvat mogelijk geen oude ID’s of back-ups.';
 
   @override
   String get telemetryDeleteConfirmButton => 'Gegevens nu verwijderen';
@@ -6806,15 +6806,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      'Gepseudonimiseerd: geen naam, e-mailadres, training, dagboek-, gewichts-, voedings- of gezondheidsgegevens. Alleen schermweergaven, functiegebruik en foutrapporten worden verzonden.';
+      'Pseudoniem: gebeurtenissen kunnen technische identificatoren, app- en apparaatcontext, scherm- en functiegebruik, exacte aantallen en duur van trainingen, aantallen voedingsregistraties, de status van AI-verzoeken en indicatoren uit voedings- of gewichtsfuncties bevatten. Ook zonder naam kunnen dit persoonsgegevens of gezondheidsgegevens zijn.';
 
   @override
   String get telemetryConsentPointNotSold =>
-      'Niet voor advertenties: gegevens worden nooit verkocht of gebruikt voor marketing of reclame. Ze worden verwerkt op servers in de EU.';
+      'Geen advertenties in de app: Train Libre toont geen advertenties. Gebruiksgebeurtenissen worden verzonden voor appstatistieken; verwerking en hosting hangen af van de serviceconfiguratie.';
 
   @override
   String get telemetryConsentPointRevocable =>
-      'Vrijwillig: je kunt dit op elk moment uitschakelen in Instellingen. Daar kun je opgeslagen telemetriegegevens ook verwijderen.';
+      'Vrijwillig: je kunt toekomstige verzendingen uitschakelen in Instellingen. De verwijderoptie reset lokale identificatoren en tellers en probeert een verzoek te sturen; verwijdering aan de serverkant wordt niet bevestigd.';
 
   @override
   String get telemetryConsentAccept => 'Ja, gebruiksgegevens delen';
@@ -6828,14 +6828,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'Helpt de app verbeteren. Gepseudonimiseerd, zonder persoonlijke of gezondheidsgegevens.';
+      'Optionele gebruiksstatistieken kunnen technische identificatoren en metingen bevatten die ook zonder naam persoonsgegevens of gezondheidsgegevens kunnen zijn.';
 
   @override
   String get settingsTelemetryDeleteTitle => 'Telemetriegegevens verwijderen';
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'Verwijdert alle lokaal opgeslagen ID’s en ID’s op de PostHog-server';
+      'Reset lokale identificatoren en probeert een verwijderverzoek te sturen; verwijdering aan de serverkant wordt niet bevestigd.';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -8122,7 +8122,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get goalReasonPrivacyNotice =>
-      'Je notitie blijft volledig privé op je apparaat en wordt nooit gedeeld.';
+      'Je notitie wordt in de app opgeslagen en kan in back-ups of een goedgekeurd AI-verzoek worden opgenomen.';
 
   @override
   String get goalStep7Question => 'Controleren en activeren';
@@ -9276,7 +9276,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get telemetryDeleteSuccess =>
-      'Telemetrie-ID\'s en -gegevens zijn lokaal en op de server verwijderd.';
+      'Het resetten van telemetrie is geprobeerd. Verwijdering op de server is niet bevestigd.';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -9392,7 +9392,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get feedbackReportDirectRequiresTelemetry =>
-      'Voor rechtstreeks verzenden moet je anonieme gebruiksstatistieken inschakelen. Schakel dit in bij Instellingen of gebruik e-mail of delen.';
+      'Voor directe inzending moeten pseudonieme gebruiksstatistieken zijn ingeschakeld. Schakel ze in via Instellingen of gebruik e-mail of delen.';
 
   @override
   String get feedbackReportDirectSent =>
@@ -9407,7 +9407,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroBody =>
-      'Stel vragen over je training en voeding. De assistent kan gegevens die je goedkeurt samenvatten en routines, trainingsschema’s of recepten als concept opstellen. Je kunt elk verzoek om gegevens en elke wijziging controleren voordat je die toepast. Stel een provider in bij AI-instellingen voor echte antwoorden.';
+      'Stel vragen over training en voeding of maak concepten. Je bericht en afbeeldingen worden bij verzending naar het model gestuurd. Toegang tot opgeslagen gegevens vereist toestemming, tenzij automatisch goedkeuren aanstaat. Door terugval kan de ontvanger veranderen.';
 
   @override
   String get aiAssistantUpdateIntroDemoLabel => 'Voorbeeldchat';
@@ -9418,7 +9418,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroExampleAnswer =>
-      'De chat beantwoordt vragen over training en voeding en bekijkt relevante gegevens met jouw toestemming. De chat maakt concepten voor routines, trainingsschema’s en recepten. Je controleert en bevestigt maaltijden vóór het opslaan; zonder jouw toestemming wordt niets opgeslagen.';
+      'De assistent kan routines, plannen en recepten als concept maken. Controleer suggesties en maaltijden voordat je ze toepast of opslaat.';
 
   @override
   String get aiAssistantUpdateIntroAiEnabled => 'AI-functies inschakelen';

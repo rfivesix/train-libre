@@ -647,7 +647,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'El archivo se procesa en este dispositivo. Si las analíticas anónimas están activadas, registramos si empiezas, omites o completas una importación, pero nunca los detalles del entrenamiento.';
+      'Tu exportación se procesa en este dispositivo. Si están activadas las estadísticas de uso seudónimas, se puede registrar el estado de la importación; no se incluyen los detalles del entrenamiento.';
 
   @override
   String get workoutImportButton => 'Importar entrenamientos';
@@ -1836,7 +1836,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onbPrivacyBody =>
-      'Tus datos permanecen en el dispositivo. Sin cuentas en la nube ni sincronización en segundo plano.';
+      'Train Libre guarda los datos principalmente en el dispositivo. Las funciones opcionales pueden enviarlos o copiarlos fuera de él.';
 
   @override
   String get onbFinishTitle => 'Todo listo';
@@ -2132,7 +2132,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'Elimina definitivamente los datos tuyos guardados en este dispositivo y restablece Train Libre a un estado local inicial.';
+      'Eliminar registros y ajustes locales de la aplicación. Pueden quedar algunas copias.';
 
   @override
   String get deleteAllLocalAppData =>
@@ -2144,7 +2144,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'Esto eliminará definitivamente los entrenamientos, registros de alimentación, medidas, suplementos, ajustes y estado, analíticas en caché y otros datos locales de la aplicación.\n\nNo se eliminarán los datos ya exportados a Apple Health o Health Connect.\n\nTampoco se eliminarán los datos de proveedores externos ni los catálogos públicos remotos. Los recursos incluidos con la aplicación y los catálogos predeterminados necesarios se conservarán o se volverán a crear para que la aplicación pueda iniciarse tras el restablecimiento.';
+      'El restablecimiento elimina muchos registros y ajustes locales, pero pueden quedar algunos adjuntos o configuraciones. No elimina copias de seguridad, exportaciones, datos de plataformas de salud ni datos de proveedores externos.';
 
   @override
   String get localDataDeletionTypeDeleteLabel =>
@@ -2851,7 +2851,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Controla tus macronutrientes y el agua, y usa opcionalmente el reconocimiento de imágenes con IA.';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100 % privado y local';
+  String get onboardingFeaturePrivacyTitle =>
+      'Privacidad y almacenamiento local';
 
   @override
   String get onboardingFeaturePrivacyBody =>
@@ -3102,7 +3103,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      'Las imágenes, el texto y las instrucciones generadas solo se envían al proveedor de IA seleccionado cuando usas una función de IA. El proveedor trata y conserva los datos según sus propias condiciones. La clave de API se guarda cifrada únicamente en este dispositivo.';
+      'Las funciones de IA pueden enviar texto, imágenes y contexto al modelo utilizado. El chat puede recurrir a otro proveedor configurado. Los datos guardados requieren una autorización de acceso salvo que esté activa la aprobación automática. Consulta las condiciones del proveedor; las claves API usan el almacenamiento seguro de la plataforma.';
 
   @override
   String get aiMealCapture => 'Comida con IA';
@@ -6034,7 +6035,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre necesita leer tus pasos para mostrar estadísticas diarias y semanales. Tus datos permanecen en tu dispositivo; no se envían a ningún servidor externo.';
+      'Train Libre usa los pasos para estadísticas diarias y semanales. Los datos importados también pueden incluirse en copias de seguridad o compartirse con la IA al usar esa función. Gestiona el acceso a Salud en los ajustes del dispositivo.';
 
   @override
   String get health_permission_continue => 'Continuar';
@@ -6051,11 +6052,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'Doy mi consentimiento expreso para tratar mis datos de actividad física y salud con el fin de registrar entrenamientos y ofrecer estadísticas. Puedo retirar mi consentimiento en cualquier momento desde Ajustes.';
+      'Doy mi consentimiento expreso para tratar mis datos de actividad física y salud con el fin de registrar entrenamientos y ofrecer estadísticas, tal como se describe en la Política de privacidad. Si tengo preguntas sobre cómo retirar mi consentimiento, puedo contactar con feedback@schotte.me.';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Opcional) Quiero compartir estadísticas de uso seudonimizadas para ayudar a mejorar la estabilidad y las funciones de la app (no se incluyen datos personales ni de salud).';
+      '(Opcional) Quiero compartir estadísticas de uso seudónimas. Los eventos pueden incluir identificadores técnicos y métricas de uso que pueden ser datos personales o de salud incluso sin mi nombre.';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -6104,7 +6105,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiSettingsInstructionBody =>
-      'Train Libre ofrece funciones de IA, como el chat y el reconocimiento de comidas. Para reconocer una comida, la IA analiza imágenes y estima los nutrientes. Las imágenes y el texto solo se envían al proveedor de IA que elijas cuando usas una función de IA. Si usas tu propia clave API (BYOK), tus datos permanecen en el dispositivo hasta entonces.';
+      'Las funciones de IA incluyen chat y reconocimiento de comidas. Los mensajes, imágenes y contexto se envían al modelo utilizado. El chat puede recurrir a otro proveedor. Los registros guardados requieren aprobación salvo que esté activa la aprobación automática.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Guía de configuración';
@@ -6256,11 +6257,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      'Convierte fotos o descripciones de comidas en registros estructurados del diario y los compara con tu base de datos privada de productos.';
+      'En el modo de catálogo, las sugerencias de IA se comparan con alimentos locales. El modo de estimación directa puede usar valores nutricionales estimados por IA. Revisa los resultados antes de guardarlos.';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• Convierte descripciones imprecisas (por ejemplo, «una rebanada de pan») en estimaciones de peso en gramos.\n• Compara las sugerencias de la IA sin conexión con la base de datos local de productos de tu dispositivo.\n• Calcula los nutrientes localmente, sin delegar los cálculos en servidores externos.';
+      'En el modo de catálogo, las sugerencias de IA se comparan con alimentos locales. El modo de estimación directa puede usar valores nutricionales estimados por IA. Revisa los resultados antes de guardarlos.';
 
   @override
   String get infoAiMealTechnicalTitle =>
@@ -6268,7 +6269,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Usa un modelo de privacidad Bring Your Own Key (BYOK). La IA solo propone sugerencias. La comparación se realiza sin conexión mediante un filtro Jaro-Winkler tokenizado sobre la base de datos SQLite local. Las instrucciones del sistema prohíben estrictamente que el proveedor de IA calcule los nutrientes.';
+      'En el modo de catálogo, las sugerencias de IA se comparan con alimentos locales. El modo de estimación directa puede usar valores nutricionales estimados por IA. Revisa los resultados antes de guardarlos.';
 
   @override
   String get infoSleepTitle => 'Calidad del sueño (SHS v3.5)';
@@ -6838,7 +6839,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      '¿Seguro que quieres eliminar tus datos de telemetría anteriores?\n\nEsto hará lo siguiente:\n• Se restablecerán todos los UUID de dispositivo, ID de sesión y contadores locales guardados en este dispositivo.\n• Se enviará una solicitud de eliminación (\$delete_person) a los servidores de PostHog en la UE para borrar tus datos.\n• Se restablecerá por completo el SDK de telemetría.';
+      'Train Libre intentará restablecer los identificadores y contadores locales y solicitar su eliminación a PostHog. La solicitud puede fallar, no confirma la eliminación en el servidor y puede no incluir identificadores anteriores o copias de seguridad.';
 
   @override
   String get telemetryDeleteConfirmButton => 'Eliminar datos ahora';
@@ -6852,15 +6853,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      'Seudonimizadas: no se envían tu nombre, correo, entrenamientos, diario, peso, nutrición ni datos de salud. Solo se transmiten vistas de pantalla, uso de funciones e informes de errores.';
+      'Seudónimas: los eventos pueden incluir identificadores técnicos, contexto de la app y el dispositivo, uso de pantallas y funciones, recuentos exactos y duración de entrenamientos, recuentos de registros de comida, estado de solicitudes de IA e indicadores derivados de funciones relacionadas con nutrición o peso. Incluso sin tu nombre, pueden ser datos personales o de salud.';
 
   @override
   String get telemetryConsentPointNotSold =>
-      'Sin publicidad: los datos nunca se venden ni se usan para marketing o publicidad. Se procesan en servidores de la UE.';
+      'Sin publicidad en la app: Train Libre no muestra anuncios. Los eventos de uso se envían para estadísticas de la app; el tratamiento y el alojamiento dependen de la configuración del servicio.';
 
   @override
   String get telemetryConsentPointRevocable =>
-      'Voluntarias: puedes desactivarlas en Ajustes cuando quieras. También puedes borrar allí los datos de telemetría almacenados.';
+      'Voluntarias: puedes desactivar los envíos futuros en Ajustes. La opción de eliminación restablece los identificadores y contadores locales e intenta enviar una solicitud, pero no confirma la eliminación en el servidor.';
 
   @override
   String get telemetryConsentAccept => 'Sí, compartir datos de uso';
@@ -6874,14 +6875,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'Ayuda a mejorar la app. Datos seudonimizados, sin información personal ni de salud.';
+      'Las estadísticas opcionales pueden incluir identificadores técnicos y métricas que pueden ser datos personales o de salud incluso sin tu nombre.';
 
   @override
   String get settingsTelemetryDeleteTitle => 'Eliminar datos de telemetría';
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'Elimina todos los ID guardados localmente y en el servidor de PostHog';
+      'Restablece los identificadores locales e intenta enviar una solicitud de eliminación; no se confirma la eliminación en el servidor.';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -8170,7 +8171,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get goalReasonPrivacyNotice =>
-      'Tu nota se queda completamente privada en tu dispositivo y nunca se comparte.';
+      'Tu nota se guarda en la aplicación y puede incluirse en copias de seguridad o en una solicitud de IA autorizada.';
 
   @override
   String get goalStep7Question => 'Revisar y activar';
@@ -9335,7 +9336,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get telemetryDeleteSuccess =>
-      'Los identificadores y datos de telemetría se han eliminado del dispositivo y del servidor.';
+      'Se intentó restablecer la telemetría. No se ha confirmado la eliminación en el servidor.';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -9451,7 +9452,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get feedbackReportDirectRequiresTelemetry =>
-      'El envío directo requiere las estadísticas de uso anónimas. Actívalas en Ajustes o utiliza el correo electrónico o la opción de compartir.';
+      'El envío directo requiere que estén activadas las estadísticas de uso seudónimas. Actívalas en Ajustes o utiliza el correo electrónico o la opción de compartir.';
 
   @override
   String get feedbackReportDirectSent =>
@@ -9465,7 +9466,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroBody =>
-      'Pregunta sobre tu entrenamiento y nutrición. El asistente puede resumir los datos que autorices y preparar rutinas, planes de entrenamiento o recetas como borradores. Puedes revisar cada solicitud de acceso y cada cambio antes de aplicarlo. Configura un proveedor en Ajustes de IA para obtener respuestas reales.';
+      'Pregunta sobre entrenamiento y nutrición o prepara borradores. Tu mensaje e imágenes se envían al modelo al enviarlos. El acceso a registros guardados requiere aprobación salvo que esté activa la aprobación automática. El destinatario puede cambiar si se usa otro proveedor.';
 
   @override
   String get aiAssistantUpdateIntroDemoLabel => 'Chat de ejemplo';
@@ -9476,7 +9477,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroExampleAnswer =>
-      'El chat responde preguntas sobre entrenamiento y nutrición y analiza datos relevantes con tu permiso. Prepara borradores de rutinas, planes y recetas. Puedes revisar y confirmar las comidas antes de guardarlas; no se guarda nada sin tu consentimiento.';
+      'El asistente puede preparar rutinas, planes y recetas como borradores. Revisa las sugerencias y comidas antes de aplicarlas o guardarlas.';
 
   @override
   String get aiAssistantUpdateIntroAiEnabled => 'Activar funciones de IA';

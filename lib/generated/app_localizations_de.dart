@@ -646,7 +646,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'Dein Export wird lokal verarbeitet. Bei aktivierter anonymer Nutzungsanalyse erfassen wir nur, ob du den Schritt startest, überspringst oder einen Import abschließt – keine Trainingsdaten.';
+      'Dein Export wird lokal verarbeitet. Falls pseudonymisierte Nutzungsstatistiken aktiviert sind, kann der Importstatus erfasst werden; dabei werden keine Trainingsdetails dieses Imports übermittelt.';
 
   @override
   String get workoutImportButton => 'Workout-Daten importieren';
@@ -1824,7 +1824,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onbPrivacyBody =>
-      'Deine Daten bleiben auf dem Gerät. Keine Cloud-Konten, kein Hintergrund-Sync.';
+      'Train Libre speichert Daten überwiegend auf dem Gerät. Optionale Funktionen können Daten außerhalb des Geräts senden oder kopieren.';
 
   @override
   String get onbFinishTitle => 'Alles bereit';
@@ -2112,7 +2112,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'Löscht dauerhaft deine auf diesem Gerät gespeicherten Daten und setzt Train Libre in einen frischen lokalen Zustand zurück.';
+      'Lokale App-Daten und Einstellungen entfernen. Einige Kopien können bestehen bleiben.';
 
   @override
   String get deleteAllLocalAppData => 'Alle lokalen App-Daten löschen';
@@ -2122,7 +2122,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'Dies löscht dauerhaft lokal gespeicherte Workouts, Ernährungslogs, Messwerte, Supplements, Einstellungen/Zustand, zwischengespeicherte Analysen und lokale App-Daten.\n\nDies löscht keine Daten, die bereits zu Apple Health oder Health Connect exportiert wurden.\n\nDies löscht keine Daten externer Anbieter und keine entfernten öffentlichen Katalogquellen. Gebündelte App-Assets und erforderliche Standardkataloge bleiben erhalten oder werden neu angelegt, damit die App nach dem Zurücksetzen starten kann.';
+      'Das Zurücksetzen entfernt viele lokale Daten und Einstellungen. Manche Anhänge oder Konfigurationen können verbleiben. Sicherungen, Exporte, Gesundheitsdaten auf der Plattform und Daten bei externen Anbietern werden nicht gelöscht.';
 
   @override
   String get localDataDeletionTypeDeleteLabel =>
@@ -2822,7 +2822,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tracke Makros, Wasser und nutze optionale KI-Bilderkennung.';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100% Privat & Lokal';
+  String get onboardingFeaturePrivacyTitle => 'Lokal zuerst & Datenschutz';
 
   @override
   String get onboardingFeaturePrivacyBody =>
@@ -3072,7 +3072,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      'Bilder, Texte und erzeugte Prompts werden nur an den gewählten KI-Anbieter gesendet, wenn du eine KI-Aktion nutzt. Speicherung und Verarbeitung beim Anbieter richten sich nach dessen Bedingungen. Dein API-Schlüssel wird verschlüsselt nur auf diesem Gerät gespeichert.';
+      'KI-Funktionen können Text, Bilder und Kontext an das verwendete Modell senden. Der Chat kann auf einen anderen eingerichteten Anbieter zurückgreifen. Gespeicherte App-Daten erfordern eine Zugriffsfreigabe, sofern die automatische Freigabe nicht aktiviert ist. Prüfe die Anbieterbedingungen; API-Schlüssel werden im sicheren Speicher der Plattform abgelegt.';
 
   @override
   String get aiMealCapture => 'KI-Mahlzeit';
@@ -5980,7 +5980,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre möchte deine Schrittdaten lesen, um dir tägliche/wöchentliche Statistiken anzuzeigen. Deine Daten bleiben lokal auf deinem Gerät; es gibt keinen externen Server.';
+      'Train Libre nutzt Schrittdaten für Tages- und Wochenstatistiken. Importierte Daten können auch in Sicherungen enthalten sein oder bei Nutzung der KI-Funktion an diese weitergegeben werden. Verwalte den Gesundheitszugriff in den Geräteeinstellungen.';
 
   @override
   String get health_permission_continue => 'Fortfahren';
@@ -5997,11 +5997,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein. Ich kann meine Einwilligung jederzeit in den Einstellungen widerrufen.';
+      'Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein, wie in der Datenschutzerklärung beschrieben. Für Fragen zum Widerruf meiner Einwilligung wende ich mich an feedback@schotte.me.';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Optional) Ich möchte pseudonymisierte Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten oder Gesundheitsdaten).';
+      '(Optional) Ich möchte pseudonymisierte Nutzungsstatistiken teilen. Ereignisse können technische Kennungen und Kennzahlen enthalten, die auch ohne Namen personenbezogen oder gesundheitsbezogen sein können.';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -6052,7 +6052,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiSettingsInstructionBody =>
-      'Train Libre bietet KI-Funktionen wie Chat und Mahlzeitenerkennung. Bei der Mahlzeitenerkennung analysiert die KI Bilder und schätzt Nährwerte. Bilder und Texte werden nur dann an den ausgewählten KI-Anbieter gesendet, wenn du eine KI-Funktion nutzt. Mit deinem eigenen API-Schlüssel (BYOK) bleiben deine Daten bis dahin auf dem Gerät.';
+      'KI-Funktionen umfassen Chat und Mahlzeitenerkennung. Nachrichten, Bilder und Kontext werden an das verwendete Modell gesendet. Der Chat kann einen Ausweichanbieter nutzen. Gespeicherte Daten benötigen eine Freigabe, sofern die automatische Freigabe nicht aktiviert ist.';
 
   @override
   String get aiSettingsSetupGuideTitle => 'Einrichtungs-Anleitung';
@@ -6203,11 +6203,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      'Trägt Mahlzeitenfotos oder Freitexte in strukturierte Tagebucheinträge ein und gleicht diese mit deiner privaten Produktdatenbank ab.';
+      'Im Katalogmodus werden KI-Vorschläge mit lokalen Lebensmitteldaten abgeglichen. Im direkten Schätzmodus kann die KI Nährwerte schätzen. Prüfe die Ergebnisse vor dem Speichern.';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• Übersetzt ungenaue Beschreibungen (z. B. \'eine Scheibe Brot\') in metrische Gewichtsschätzungen.\n• Gleicht KI-Vorschläge offline mit der lokalen Produktdatenbank du deinem Gerät ab.\n• Berechnet Nährwerte lokal auf deinem Gerät, anstatt Berechnungen an externe Server zu delegieren.';
+      'Im Katalogmodus werden KI-Vorschläge mit lokalen Lebensmitteldaten abgeglichen. Im direkten Schätzmodus kann die KI Nährwerte schätzen. Prüfe die Ergebnisse vor dem Speichern.';
 
   @override
   String get infoAiMealTechnicalTitle =>
@@ -6215,7 +6215,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Nutzt ein Bring-Your-Own-Key (BYOK) Datenschutzmodell. Die KI fungiert ausschließlich als Vorschlagsebene. Der Abgleich erfolgt offline über einen tokenbasierten Jaro-Winkler-Filter (Ähnlichkeit >= 0,82) gegen die SQLite-Datenbank. Dem KI-Anbieter wird die Nährwertberechnung per System-Prompt strikt untersagt.';
+      'Im Katalogmodus werden KI-Vorschläge mit lokalen Lebensmitteldaten abgeglichen. Im direkten Schätzmodus kann die KI Nährwerte schätzen. Prüfe die Ergebnisse vor dem Speichern.';
 
   @override
   String get infoSleepTitle => 'Schlafqualität (SHS v3.5)';
@@ -6778,7 +6778,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      'Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\nFolgendes passiert dabei:\n• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n• Es wird ein Löschauftrag (\$delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n• Das Telemetrie-SDK wird vollständig zurückgesetzt.';
+      'Train Libre versucht, lokale Telemetriekennungen und Zähler zurückzusetzen und eine Löschanfrage an PostHog zu senden. Die Anfrage kann fehlschlagen, bestätigt keine serverseitige Löschung und erfasst möglicherweise frühere Kennungen oder Backups nicht.';
 
   @override
   String get telemetryDeleteConfirmButton => 'Daten jetzt löschen';
@@ -6792,15 +6792,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      'Pseudonymisiert: Kein Name, keine E-Mail, keine Trainings-, Tagebuch-, Gewichts-, Ernährungs- oder Gesundheitsdaten. Übermittelt wird nur, welche Screens und Funktionen genutzt werden und ob Fehler auftreten.';
+      'Pseudonymisiert: Ereignisse können technische Kennungen, App- und Gerätekontext, Bildschirm- und Funktionsnutzung, genaue Trainingszähler und -dauer, Ernährungseintragszähler, den Status von KI-Anfragen sowie Kennzahlen aus Ernährungs- oder Gewichtsbereichen enthalten. Auch ohne Namen können diese Daten personenbezogen oder gesundheitsbezogen sein.';
 
   @override
   String get telemetryConsentPointNotSold =>
-      'Nicht für Werbung: Die Daten werden niemals verkauft und nicht für Marketing oder Werbung verwendet. Die Verarbeitung erfolgt auf Servern in der EU.';
+      'Keine Werbung in der App: Train Libre zeigt keine Werbung. Nutzungsereignisse werden für App-Statistiken übermittelt; Verarbeitung und Hosting hängen von der Dienstkonfiguration ab.';
 
   @override
   String get telemetryConsentPointRevocable =>
-      'Freiwillig: Jederzeit in den Einstellungen deaktivierbar. Gespeicherte Daten können dort auch gelöscht werden.';
+      'Freiwillig: Künftige Übermittlungen kannst du in den Einstellungen ausschalten. Die Löschfunktion setzt lokale Kennungen und Zähler zurück und versucht eine Löschanfrage; sie bestätigt keine serverseitige Löschung.';
 
   @override
   String get telemetryConsentAccept => 'Ja, Nutzungsdaten teilen';
@@ -6814,14 +6814,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'Hilft bei der Verbesserung der App. Pseudonymisiert, ohne persönliche Daten oder Gesundheitsdaten.';
+      'Optionale Nutzungsstatistiken können technische Kennungen und Kennzahlen enthalten, die auch ohne Namen personenbezogen oder gesundheitsbezogen sein können.';
 
   @override
   String get settingsTelemetryDeleteTitle => 'Telemetrie-Daten löschen';
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server';
+      'Setzt lokale Kennungen zurück und versucht eine Löschanfrage; eine serverseitige Löschung wird nicht bestätigt.';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -8106,7 +8106,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get goalReasonPrivacyNotice =>
-      'Deine Notiz bleibt 100 % privat auf deinem Gerät und wird niemals geteilt.';
+      'Deine Notiz wird in der App gespeichert und kann in Sicherungen oder einer freigegebenen KI-Anfrage enthalten sein.';
 
   @override
   String get goalStep7Question => 'Prüfen & Aktivieren';
@@ -9259,7 +9259,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get telemetryDeleteSuccess =>
-      'Telemetrie-IDs und Daten wurden lokal und vom Server gelöscht.';
+      'Das Zurücksetzen der Telemetrie wurde versucht. Die Löschung auf dem Server wurde nicht bestätigt.';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -9374,7 +9374,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get feedbackReportDirectRequiresTelemetry =>
-      'Für den Direktversand muss die anonyme Nutzungsstatistik aktiviert sein. Aktiviere sie in den Einstellungen oder nutze stattdessen E-Mail oder Teilen.';
+      'Für den Direktversand muss die pseudonymisierte Nutzungsstatistik aktiviert sein. Aktiviere sie in den Einstellungen oder nutze stattdessen E-Mail oder Teilen.';
 
   @override
   String get feedbackReportDirectSent =>
@@ -9388,7 +9388,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroBody =>
-      'Stelle Fragen zu Training und Ernährung. Der Assistent kann deine freigegebenen Daten zusammenfassen und Routinen, Trainingspläne oder Rezepte als Entwurf vorbereiten. Du prüfst jede Freigabe und Änderung, bevor sie verwendet wird. Für echte Antworten richtest du einen Anbieter in den KI-Einstellungen ein.';
+      'Stelle Fragen zu Training und Ernährung oder erstelle Entwürfe. Deine Nachricht und Bilder werden beim Senden an das Modell übermittelt. Der Zugriff auf gespeicherte Daten benötigt eine Freigabe, sofern die automatische Freigabe nicht aktiviert ist. Durch einen Ausweichanbieter kann sich der Empfänger ändern.';
 
   @override
   String get aiAssistantUpdateIntroDemoLabel => 'Beispiel-Chat';
@@ -9399,7 +9399,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroExampleAnswer =>
-      'Der Chat beantwortet Fragen zu Training und Ernährung und wertet mit deiner Erlaubnis passende Daten aus. Er erstellt Routinen, Trainingspläne und Rezepte als Entwurf. Mahlzeiten kannst du vor dem Speichern prüfen und bestätigen. Ohne deine Zustimmung wird nichts gespeichert.';
+      'Der Assistent kann Routinen, Pläne und Rezepte als Entwürfe erstellen. Prüfe Vorschläge und Mahlzeiten vor dem Übernehmen oder Speichern.';
 
   @override
   String get aiAssistantUpdateIntroAiEnabled => 'KI-Funktionen aktivieren';

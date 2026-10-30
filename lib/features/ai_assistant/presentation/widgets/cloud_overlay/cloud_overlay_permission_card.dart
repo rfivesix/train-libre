@@ -114,8 +114,8 @@ class CloudOverlayPermissionCard extends StatelessWidget {
                 Text(
                   useLiveAi
                       ? (isDe
-                          ? 'Einmalig freigeben. Nur diese Einträge werden an das ausgewählte Modell gesendet.'
-                          : 'Allow this request once. Only these records will be sent to the selected model.')
+                          ? 'Diese Anfrage kann Daten der genannten Kategorien und des Zeitraums verwenden. Der Anbieter kann durch einen Wechsel oder Ausweichanbieter vom zuvor angezeigten Anbieter abweichen.'
+                          : 'This request may use data from these categories and period. A provider change or fallback can result in a different recipient.')
                       : l10n.aiOverlayDemoPurpose,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: cardTextColor.withValues(alpha: 0.72),

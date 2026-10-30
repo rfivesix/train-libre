@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="description" content="ローカルデータと任意のデータ送信に関する説明。">
+
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <link rel="canonical" href="https://trainlibre.com/privacy-ja.html">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <meta property="og:site_name" content="Train Libre">
+  <meta property="og:locale" content="ja">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://trainlibre.com/privacy-ja.html">
+  <meta property="og:title" content="プライバシーポリシー | Train Libre">
+  <meta property="og:description" content="ローカルデータと任意のデータ送信に関する説明。">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Train Libre — private workout and nutrition tracking">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="プライバシーポリシー | Train Libre">
+  <meta name="twitter:description" content="ローカルデータと任意のデータ送信に関する説明。">
+  <meta name="twitter:image" content="https://trainlibre.com/assets/og-image.png">
+  <meta name="twitter:image:alt" content="Train Libre — private workout and nutrition tracking">
+
+  <title>プライバシーポリシー | Train Libre</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="katex.min.css">
+  <script src="theme.js"></script>
+</head>
+
+<body>
+  <div class="page">
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <div class="nav-links">
+          <a href="#section2" data-i18n="nav_privacy_philosophy">Philosophy</a>
+          <a href="#section3" data-i18n="nav_privacy_local">Local Data</a>
+          <a href="#section4" data-i18n="nav_privacy_thirdparty">BYOK &amp; Services</a>
+          <a href="#section7" data-i18n="nav_privacy_rights">Your Rights</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank"
+            rel="noreferrer">GitHub</a>
+        </div>
+        <div class="nav-controls">
+          <div class="dropdown" id="lang-dropdown">
+            <button class="control-btn" aria-label="Switch Language" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" data-lang="en">
+                <span>English</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="de">
+                <span>Deutsch</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="fr">
+                <span>Français</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="it">
+                <span>Italiano</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="ja">
+                <span>日本語</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+            </div>
+          </div>
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero hero-compact" aria-labelledby="policy-title">
+        <div class="hero-content reveal">
+          <h1 id="policy-title" data-i18n="priv_hero_title">Your data stays with you.</h1>
+          <p class="hero-copy" data-i18n="priv_hero_copy">Train Libre is offline-first. This policy explains how we
+            handle your data locally and when optional features interact with third-party services.</p>
+          <div class="hero-actions">
+            <a href="index.html" class="button button-primary">← Back to home</a>
+            <a class="button button-secondary" href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank"
+              rel="noreferrer">View on GitHub</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="policy-shell">
+        <aside class="toc reveal" aria-label="Privacy policy sections">
+          <p class="toc-title">Sections</p>
+          <nav>
+            <a href="#section1" data-i18n="p_1_t">1. Controller</a>
+            <a href="#section2" data-i18n="p_2_t">2. Core Philosophy</a>
+            <a href="#section3" data-i18n="p_3_t">3. Locally Processed Data</a>
+            <a href="#section4" data-i18n="p_4_t">4. Third-Party Integrations / BYOK</a>
+            <a href="#section5" data-i18n="p_5_t">5. Health Data Interfaces</a>
+            <a href="#section6" data-i18n="p_6_t">6. Data Security & Backups</a>
+            <a href="#section7" data-i18n="p_7_t">7. Data Subject Rights</a>
+            <a href="#section1" data-i18n="p_cont_t">Contact</a>
+          </nav>
+        </aside>
+
+        <article class="policy-card">
+<div class="policy-section reveal"><h1>プライバシーポリシー</h1><div class="last-updated-box"><span>Version 1.8</span> (2026年10月8日)</div><p>本ポリシーはアプリについて説明します。任意のAI、ヘルス連携、バックアップ、テレメトリ、共有機能により、端末外へデータが送信されたりコピーが作成されたりする場合があります。公開ウェブサイトは別途ホストされており、訪問時にホスティング事業者が技術的な接続データを処理する場合があります。</p></div>
+<p><strong>バージョン 1.8</strong> <strong>最終更新日：2026年10月8日</strong></p>
+<p>本プライバシーポリシーは、EU一般データ保護規則（GDPR）第13条および第14条に基づき、モバイルアプリケーション「Train Libre」および本ウェブサイト訪問時における個人データおよび健康関連データの処理についてお知らせするものです。</p>
+<p>Train Libreはローカルファーストアプリケーションとして設計されているため、お客様のデータに対する完全な管理権は常に直接お客様にあります。プロフィール、ワークアウト、食事ログを保存するための中央データベースやアプリケーションサーバーは運用していません。</p>
+<section class="policy-section reveal" id="section1"><h2>1. データ管理者</h2>
+<p>GDPRにおけるデータ管理者は、開発者およびサービスプロバイダーである以下になります：</p>
+<p><strong>Richard Georg Schotte</strong> Bundesallee 114 12161 Berlin ドイツ</p>
+<p>Eメール：feedback@schotte.me 電話番号：(+49) 1520 6915571</p>
+<p>個人開発者であり、GDPR第37条およびドイツ連邦データ保護法（BDSG）第38条に基づくデータ保護責任者の義務的選任の要件を満たさないため、データ保護責任者は選任されていません。データ保護に関するお問い合わせは、上記のEメールアドレス宛に直接お送りください。</p>
+</section>
+<section class="policy-section reveal" id="section2"><h2>2. 基本理念</h2>
+<p>Train Libreは、「設計段階からのプライバシー（プライバシー・バイ・デザイン）」および「初期設定でのプライバシー（プライバシー・バイ・デフォルト）」（GDPR第25条）、並びにデータ最小化の原則（GDPR第5条第1項(c)）に基づいています。</p>
+<ul>
+<li><strong>ユーザーアカウント不要：</strong> 登録は不要です。メールアドレス、パスワード、ログイン資格情報が外部サーバーに保存されることはありません。</li>
+<li><strong>ローカルファースト設計：</strong> プロフィール、トレーニング、栄養、健康、測定データは主に端末内に保存されます。任意機能により、以下の説明のとおりデータが送信されたり、端末外にコピーが作成されたりする場合があります。</li>
+<li><strong>中央サーバーなし：</strong> トレーニングや栄養記録を保存する中央クラウドデータベースは運用していません。ただし、任意サービスやバックアップがデータのコピーを受信・保存する場合があります。</li>
+<li><strong>広告なし：</strong> Train Libreは広告ネットワークや行動ターゲティング広告を使用しません。任意の利用統計は初期設定で無効です。有効にした場合、技術的識別子や栄養・体重関連機能から算出した指標がイベントに含まれることがあります。氏名がなくても個人データまたは健康関連データとなる場合があります。第6項Cをご覧ください。</li>
+<li><strong>ウェブホスティングとCookie（サイト訪問）：</strong> 本ウェブサイトへアクセスする際、技術的な理由によりサーバー（GitHub Pages / GitHub Inc., 米国）へ接続されます。この際、標準的な技術ログ（IP、ユーザーエージェント、タイムスタンプ）が自動で処理されますが、Cookieや解析ツールは使用していません。</li>
+</ul>
+</section>
+<section class="policy-section reveal" id="section3"><h2>3. ローカルで処理されるデータ</h2>
+<p>アプリを使用すると、データはデバイスのSQLiteデータベース（Drift/sqflite経由）でローカルに処理されます。この保存はアプリの動作に不可欠です。</p>
+<h3>A. 処理されるデータのカテゴリ</h3>
+<p>1. <strong>プロフィールと目標：</strong> ユーザー名、生年月日、身長、性別、カロリーや栄養目標（タンパク質、炭水化物、脂質、水分、歩数）。 2. <strong>アクティビティ履歴：</strong> トレーニング計画（ルーチン）、履歴、セット数、重量、レップ数、RIR、カード活動（時間、歩数、消費カロリー）。 3. <strong>栄養と水分補給：</strong> 摂取した食品、グラム数、食事のタイミング、水分のログ。 4. <strong>カスタム食品カタログ：</strong> ユーザーが作成したバーコード、ブランド、および100gあたりの栄養価情報。 5. <strong>サプリメント：</strong> 設定されたサプリメント情報および摂取履歴ログ。 6. <strong>身体寸法：</strong> 体重および各部位のサイズ測定履歴。 7. <strong>心拍数：</strong> デバイス内で算出された心拍数のローカル集計。 8. <strong>睡眠分析：</strong> システムからインポートされた睡眠フェーズ、効率、規則性のデータ。 9. <strong>歩数セグメント：</strong> 重複を排除してインポートされた歩数ログ。</p>
+<h3>B. 処理の法的根拠</h3>
+<p>法的根拠は、機能と処理目的によって異なります。一部の処理は同意に基づき、同意は将来に向けて撤回できます。記録の削除やアプリのリセットが自動的に同意撤回となるわけではなく、既に行われた処理を取り消すものでもありません。任意のデータ送信は該当する項目に記載しています。具体的な法的評価は実際の設定に基づいて確認する必要があります。</p>
+</section>
+<section class="policy-section reveal" id="section4"><h2>4. サードパーティ連携/BYOK</h2>
+<p>高度な機能を提供するために、アプリは外部サービスへのインターフェースを備えています。これらの機能はすべてオプションです。</p>
+<h3>A. AI：チャット、食事認識、下書き</h3>
+<p>Train Libreは、チャット、食事認識、食事・ルーティン・トレーニング計画・レシピなどの下書きを作成する任意のAI機能を提供します。推定や提案は不完全または誤っている場合があります。</p>
+<p><strong>ユーザーが送信する内容。</strong> チャットメッセージを送信すると、入力または音声入力したテキストと添付画像は、そのリクエストで使用されるモデルに送信されます。これは、アプリに保存された記録を読むための別個の承認リクエストより前に行われます。メッセージや画像自体に個人データや健康データが含まれる場合があります。リクエストには、限定された過去の会話コンテキスト、指示、モデル識別子や以前の内容が含まれる場合があります。保存済みアプリデータがすべてのリクエストに含まれるわけではありません。メッセージを送信することと、保存データへのアクセスを許可することは別です。音声入力は端末や設定に応じて音声認識サービスを利用する場合があります。任意の食事文字起こし補正では、食事を送信する前にテキストが処理のため送られる場合があります。</p>
+<p><strong>保存済みアプリデータ。</strong> アシスタントは、トレーニング、食事記録、歩数、睡眠、回復、測定値、目標、プロフィール、サプリメント、レシピ、種目、ルーティン、計画などのカテゴリを要求する場合があります。新たな読み取りには承認リクエストが適用されます。自動承認は初期設定でオフです。有効にすると、後続リクエストは毎回の判断なしに承認される場合があります。リクエストカードはカテゴリと期間を示しますが、送信されるすべての値を必ずしも表示しません。ローカル照会の結果や関連するツール処理がモデルに送信される場合があります。自動承認をオフにしても、既に送信されたデータは回収されず、進行中の処理が必ず停止するわけではありません。</p>
+<p><strong>送信先。</strong> 承認は特定のプロバイダーに紐づいていません。テキストチャットでは、選択されたプロバイダーが利用できない場合や認証情報がない場合、別の設定済みプロバイダーに切り替わることがあり、承認後にプロバイダーが再解決されます。そのため異なる送信先が使われる場合があります。承認カード自体は送信先を表示しません。対応構成にはApple Foundation Models、OpenAI、Google、Anthropic、Mistral、xAI、DeepSeek、Ollama、カスタムのOpenAI互換エンドポイントが含まれます。カスタムエンドポイントはローカルまたはリモートで、データをさらに転送する場合があります。Train Libreは外部サービスの保存、人による確認、学習、転送、削除の慣行を確認できません。該当するAPI条件またはサーバー運営者の条件をご確認ください。</p>
+<p><strong>履歴と削除。</strong> メッセージ、応答、エラー、プロバイダーとモデルの識別情報、承認記録、添付ファイルへの参照が端末に保存される場合があり、添付はファイルとして保存される場合もあります。会話の削除時には添付ファイルの削除を試みます。アプリのリセットで多くの記録とキーは削除されますが、すべてのファイル、キャッシュ、設定が削除される保証はありません。バックアップ、エクスポート、ヘルスプラットフォーム、外部プロバイダーに既に送信されたデータは別に管理されます。ローカル履歴の削除はAIプロバイダーへの削除依頼を行いません。</p>
+<h3>B. オフラインカタログの更新</h3>
+<ul>
+<li><strong>仕組み：</strong> HTTPS接続を通じてホストサーバーから定期的に更新を確認します。</li>
+<li><strong>BLS カタログ：</strong> Max Rubner-Institut の基本食品カタログ BLS 4.0 は GitHub からダウンロードされ、端末内に保存されます。</li>
+<li><strong>最小化：</strong> ダウンロードの際、技術的な接続データ（IP、タイムスタンプ、ユーザーエージェント）のみが送信されます。</li>
+<li><strong>オフライン検索：</strong> バーコードスキャンや検索は100%オフラインで処理されます。</li>
+</ul>
+</section>
+<section class="policy-section reveal" id="section5"><h2>5. ヘルスデータ連携</h2>
+<p>Train Libreは、関連機能を有効にしてプラットフォーム権限を付与した場合、Apple HealthKitまたはGoogle Health Connectを利用することがあります。権限はシステム設定で変更できます。取り込まれたデータはアプリ内で保存・分析され、バックアップ、または第4項の承認ルールに従ったAIリクエストに含まれる場合があります。システム権限を変更しても、既に取り込まれたデータや書き出されたデータは自動削除されません。アシスタントによるアプリデータへのアクセス承認は、Healthプラットフォームの権限とは別です。</p>
+</section>
+<section class="policy-section reveal" id="section6"><h2>6. データセキュリティ、バックアップおよびテレメトリ</h2>
+<p>端末内のデータと認証情報を保護するため、端末のセキュリティが重要です。</p>
+<h3>A. データ隔離</h3>
+<p>OSはアプリをサンドボックスで保護しており、他のアプリがSQLiteデータベースやAPIキーに直接アクセスすることはできません。</p>
+<h3>B. バックアップ</h3>
+<p>バックアップやエクスポートを作成して共有し、選択した保存先への自動バックアップを有効にできます。オプションにより、データベース記録、設定、AI履歴、メディアが含まれる場合があります。パスワードで暗号化したエクスポートを利用できます。パスワードと暗号化されていないコピーを安全に管理してください。選択した保存先またはOSにより、クラウドサービスにコピーが保存される場合があります。任意のiCloud同期を有効にすると、データベースのスナップショットとメディアがアップロードされる場合があります。保存サービスの設定と取扱いをご確認ください。アプリをリセットしても、別途保存されたバックアップ、エクスポート、ヘルスプラットフォームのデータ、プロバイダーのコピーは削除されません。一時ファイルや削除処理の失敗によってコピーが残る場合があり、即時かつ完全な削除は保証できません。</p>
+<h3>C. 任意の利用統計</h3>
+<p>利用統計は初期設定で無効です。有効にした場合、アプリはPostHog EUの受信エンドポイントを使用して仮名化イベントを送信します。イベントには技術的識別子、アプリと端末の情報、画面や機能の利用、正確なトレーニング回数と時間、食事記録数、AIリクエストの状態、栄養または体重関連機能から算出された指標が含まれる場合があります。氏名がなくても個人データまたは健康関連データとなる場合があります。アプリはIPや位置情報処理に関する設定を行いますが、実際のネットワークおよびサーバー処理はサービスの設定にも依存します。</p>
+<p>設定から今後のテレメトリを停止できます。削除操作はローカル識別子とカウンターをリセットし、削除リクエストを送信しようとしますが、サーバー側での削除完了を確認するものではなく、過去の識別子やバックアップを対象にできない場合があります。サポートが必要な場合はfeedback@schotte.meまでご連絡ください。診断レポートは選択した方法で共有できます。PostHogへの直接送信にはテレメトリの有効化が必要です。共有前に内容と送信先をご確認ください。保存期間、処理者との契約、保存場所、国際移転については、サービスの現在の設定と契約に基づく確認が必要です。</p>
+</section>
+<section class="policy-section reveal" id="section7"><h2>7. データ主体の権利（GDPR）</h2>
+<p>適用法令に応じて、アクセス、訂正、削除、データポータビリティ、処理制限、異議申立て、および同意に基づく処理について同意を撤回する権利を有する場合があります。撤回しても、それ以前に行われた処理が取り消されるわけではありません。管轄監督機関に苦情を申し立てることもできます。お問い合わせはfeedback@schotte.meまでご連絡ください。</p>
+<p>アプリでは多くの記録を編集・削除し、データをエクスポートできます。ローカルリセットは多くのアプリ記録、設定、プロバイダーキーを削除しますが、すべての添付、キャッシュ、設定の削除を保証しません。バックアップ、エクスポート、Apple Health、Health Connect、外部AIサービス内のコピーは削除されません。必要に応じてそれぞれを別途管理し、サービス提供者にお問い合わせください。テレメトリ削除操作はリクエストを試みますが、遠隔削除を確認するものではありません。</p>
+</section>
+</article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print" data-i18n="footer_medical">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="docs/">Documentation</a>
+        <a href="privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+        <a href="terms.html" data-i18n="footer_terms">Terms of Service</a>
+        <a href="impressum.html" data-i18n="footer_imprint">Imprint</a>
+        <a href="support.html" data-i18n="footer_support">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+<script src="legal-language.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>

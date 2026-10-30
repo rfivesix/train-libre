@@ -637,7 +637,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingWorkoutImportPrivacy =>
-      'ファイルはこの端末上で処理されます。匿名分析が有効な場合、インポートの開始・スキップ・完了のみを記録し、ワークアウトの詳細は送信しません。';
+      'エクスポートはこの端末上で処理されます。仮名化された利用統計が有効な場合、インポートの状態が記録されることがありますが、ワークアウトの詳細は含まれません。';
 
   @override
   String get workoutImportButton => 'ワークアウトデータのインポート';
@@ -1787,7 +1787,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onbPrivacyTitle => 'オフラインファーストとプライバシー';
 
   @override
-  String get onbPrivacyBody => 'データはデバイス上に残ります。クラウド アカウントもバックグラウンド同期もありません。';
+  String get onbPrivacyBody =>
+      'Train Libreはデータを主に端末内に保存します。任意の機能により端末外に送信またはコピーされる場合があります。';
 
   @override
   String get onbFinishTitle => '準備完了';
@@ -2066,7 +2067,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get localDataDeletionCardDescription =>
-      'このデバイスに保存されているユーザー所有のデータを完全に削除し、Train Libre を新しいローカル状態にリセットします。';
+      'アプリのローカルデータと設定を削除します。一部のコピーが残る場合があります。';
 
   @override
   String get deleteAllLocalAppData => 'ローカルアプリのデータをすべて削除する';
@@ -2076,7 +2077,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get localDataDeletionConfirmBody =>
-      'これにより、ローカルに保存されたワークアウト、栄養ログ、測定値、サプリメント、設定/状態、キャッシュされた分析、ローカル アプリ データが完全に削除されます。\n\nこれによって、すでに Apple Health または Health Connect にエクスポートされたデータは削除されません。\n\nこれにより、外部プロバイダー データやリモート パブリック カタログ ソースは削除されません。バンドルされたアプリのアセットと必要なデフォルトのカタログは、リセット後にアプリを起動できるように保持または再作成されます。';
+      'リセットは多くのローカルデータと設定を削除しますが、一部の添付ファイルや設定が残る場合があります。バックアップ、エクスポート、ヘルスサービス上のデータ、外部プロバイダーのデータは削除しません。';
 
   @override
   String get localDataDeletionTypeDeleteLabel => '「DELETE」と入力して確認します';
@@ -2755,7 +2756,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingFeatureNutritionBody => 'マクロ、水分、任意のAI画像認識を記録します。';
 
   @override
-  String get onboardingFeaturePrivacyTitle => '100%プライベートかつローカル';
+  String get onboardingFeaturePrivacyTitle => 'ローカル優先とプライバシー';
 
   @override
   String get onboardingFeaturePrivacyBody => 'アカウント不要、クラウド強制なし。データはあなたのものです。';
@@ -2994,7 +2995,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiPrivacyDisclosure =>
-      '画像、テキスト、生成されたプロンプトは、AI アクションを使用する場合にのみ、選択した AI プロバイダーに送信されます。プロバイダーの保持と処理は、そのプロバイダーの規約に従います。 API キーはこのデバイスにのみ暗号化されて保存されます。';
+      'AI機能はテキスト、画像、関連する文脈を使用するモデルに送信する場合があります。チャットは設定済みの別のプロバイダーに切り替わる場合があります。保存済みデータの読み取りには、自動承認が有効でない限り承認が必要です。プロバイダーの条件を確認してください。APIキーはプラットフォームの安全な保存領域に保存されます。';
 
   @override
   String get aiMealCapture => 'AIミール';
@@ -5740,7 +5741,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre は、毎日/毎週の統計を表示するために歩数データを読み取る必要があります。データはデバイス上にローカルに残ります。外部サーバーはありません。';
+      'Train Libreは歩数を日別・週別の統計に使用します。取り込んだデータはバックアップに含まれたり、AI機能を使う際に共有されたりすることがあります。ヘルスデータへのアクセスは端末の設定で管理できます。';
 
   @override
   String get health_permission_continue => '続く';
@@ -5757,11 +5758,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get i_agree_to_privacy_policy =>
-      'ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。';
+      'プライバシーポリシーに記載のとおり、ワークアウトの記録と分析のためにフィットネスおよび健康データを処理することに明示的に同意します。同意の撤回についてはfeedback@schotte.meにお問い合わせください。';
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(任意) アプリの安定性と機能向上のため、仮名化された利用統計を共有します（個人データや健康データは含まれません）。';
+      '(任意) 仮名化された利用統計の共有を希望します。イベントには技術的識別子や利用状況の測定値が含まれる場合があり、氏名がなくても個人データまたは健康関連データとなる可能性があります。';
 
   @override
   String get welcome_back_updated_legal_title => 'おかえりなさい & 利用規約改定のお知らせ';
@@ -5808,7 +5809,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiSettingsInstructionBody =>
-      'Train Libreはチャットや食事認識などのAI機能を提供します。食事認識では、AIが食品画像を分析して栄養素を推定します。画像やテキストは、AI機能を使用したときにのみ選択したAIプロバイダーへ送信されます。ご自身のAPIキー（BYOK）を使う場合、それまではデータが端末内に保持されます。';
+      'AI機能にはチャットと食事認識があります。メッセージ、画像、文脈は使用するモデルに送信されます。チャットでは代替プロバイダーを使う場合があります。保存済みデータには、自動承認が有効でない限り承認が必要です。';
 
   @override
   String get aiSettingsSetupGuideTitle => 'セットアップガイド';
@@ -5957,18 +5958,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get infoAiMealExplanation =>
-      '食事の写真やテキストの説明を構造化された日記エントリに変換し、プライベート製品データベースと照合します。';
+      'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• 不正確な説明 (例: 「パンのスライス」) をメートル単位の重量推定値に変換します。\n• AI の提案をオフラインでデバイス上のローカル製品データベースと照合します。\n• 外部サーバーに計算を委任するのではなく、ローカルで栄養を計算します。';
+      'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
   String get infoAiMealTechnicalTitle => 'ハイブリッド BYOK AI と Jaro-Winkler マッチング';
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Bring-Your-Own-Key (BYOK) プライバシー モデルを使用します。 AI は厳密に提案レイヤーとして機能します。マッチングは、ローカル SQLite データベースに対してトークン化された Jaro-Winkler フィルターを使用してオフラインで実行されます。 AI プロバイダーは、システム プロンプトを介して栄養計算を実行することを固く禁じられています。';
+      'カタログモードではAIの提案をローカルの食品データと照合します。直接推定モードではAIが推定した栄養値を使用する場合があります。保存前に結果を確認してください。';
 
   @override
   String get infoSleepTitle => '睡眠の質 (SHS v3.5)';
@@ -6506,7 +6507,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get telemetryDeleteDialogBody =>
-      '過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（\$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。';
+      'Train Libreは端末内のテレメトリー識別子とカウンターのリセット、およびPostHogへの削除依頼を試みます。依頼が失敗する場合があり、サーバー側での削除完了は確認されません。過去の識別子やバックアップは対象外となる場合があります。';
 
   @override
   String get telemetryDeleteConfirmButton => '今すぐデータを削除';
@@ -6520,15 +6521,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get telemetryConsentPointAnonymous =>
-      '仮名化：氏名、メールアドレス、日記、運動、体重、栄養、健康データは一切送信されません。画面の表示、機能の利用状況、エラー発生の有無のみが送信されます。';
+      '仮名化されていますが、イベントには技術的識別子、アプリと端末の情報、画面や機能の利用、正確なトレーニング回数と時間、食事記録数、AIリクエストの状態、栄養や体重に関連する指標が含まれる場合があります。氏名がなくても個人データまたは健康関連データとなる場合があります。';
 
   @override
   String get telemetryConsentPointNotSold =>
-      '広告目的での利用なし：データが販売されたり、マーケティングや広告に使用されることは決してありません。処理はEU域内のサーバーで行われます。';
+      'アプリ内広告なし：Train Libreは広告を表示しません。利用イベントはアプリ統計のため送信され、処理とホスティングはサービス設定に依存します。';
 
   @override
   String get telemetryConsentPointRevocable =>
-      '任意：設定からいつでもオフにできます。保存されたテレメトリデータは設定画面から削除することも可能です。';
+      '任意：設定から今後の送信を停止できます。削除操作はローカル識別子とカウンターをリセットし、削除リクエストを試みますが、サーバー側の削除完了を確認するものではありません。';
 
   @override
   String get telemetryConsentAccept => 'はい、利用データを共有する';
@@ -6541,14 +6542,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsTelemetryToggleSubtitle =>
-      'アプリの改善に役立ちます。仮名化され、個人データや健康データは含まれません。';
+      '任意の利用統計には技術的識別子や測定値が含まれる場合があり、氏名がなくても個人データまたは健康関連データとなることがあります。';
 
   @override
   String get settingsTelemetryDeleteTitle => 'テレメトリーデータを削除';
 
   @override
   String get settingsTelemetryDeleteSubtitle =>
-      'ローカルおよびPostHogサーバー上の保存済みIDをすべて削除します';
+      'ローカル識別子をリセットし、削除リクエストを試みます。サーバー側の削除完了は確認されません。';
 
   @override
   String liveActivitySetPosition(int index, int total) {
@@ -7760,7 +7761,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalReasonPlaceholder => '例: 体を軽くして、もっと軽快に動けるようになりたい...';
 
   @override
-  String get goalReasonPrivacyNotice => 'メモは完全に端末内にのみ保存され、外部に共有されることはありません。';
+  String get goalReasonPrivacyNotice =>
+      'メモはアプリに保存され、バックアップまたは承認済みのAIリクエストに含まれる場合があります。';
 
   @override
   String get goalStep7Question => '確認と開始';
@@ -8854,7 +8856,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appleFoundationNoTransferSubtitle => 'データ転送もAPI費用もありません。';
 
   @override
-  String get telemetryDeleteSuccess => 'テレメトリー識別子とデータを端末内およびサーバーから削除しました。';
+  String get telemetryDeleteSuccess => 'テレメトリーのリセットを試みました。サーバー上の削除は確認されていません。';
 
   @override
   String aiAssistantAskModelHint(String model) {
@@ -8963,7 +8965,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get feedbackReportDirectRequiresTelemetry =>
-      '直接送信には匿名の利用統計が必要です。設定で有効にするか、メールまたは共有を利用してください。';
+      '直接送信には仮名化された利用統計を有効にする必要があります。設定で有効にするか、メールまたは共有を利用してください。';
 
   @override
   String get feedbackReportDirectSent => '診断レポートを開発者に直接送信しました。ありがとうございます！';
@@ -8976,7 +8978,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroBody =>
-      'トレーニングや栄養について質問できます。許可したデータの要約や、ルーティン・トレーニングプラン・レシピの下書き作成もできます。データの共有と変更は、利用前にいつでも確認できます。実際の回答を使うには、AI設定でプロバイダーを設定してください。';
+      'トレーニングや栄養について質問したり、下書きを作成したりできます。メッセージと画像は送信時にモデルに渡されます。保存済みデータへのアクセスには、自動承認が有効でない限り承認が必要です。代替プロバイダーへの切り替えにより送信先が変わる場合があります。';
 
   @override
   String get aiAssistantUpdateIntroDemoLabel => 'チャットの例';
@@ -8987,7 +8989,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiAssistantUpdateIntroExampleAnswer =>
-      'トレーニングや栄養について質問でき、許可すれば関連データも確認できます。ルーティン、トレーニングプラン、レシピの下書きを作成します。食事の記録は保存前に確認・確定でき、許可なく保存されることはありません。';
+      'アシスタントはルーティン、プラン、レシピを下書きとして作成できます。適用や保存の前に提案と食事内容を確認してください。';
 
   @override
   String get aiAssistantUpdateIntroAiEnabled => 'AI機能を有効にする';

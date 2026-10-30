@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Clarified privacy, AI data-sharing, health, backup, and telemetry disclosures across legal documents and app settings, and repaired language switching on legal website pages.
 - Optimized `SleepPipelineService` by combining night session metric iterations and eliminating redundant map lookups (#748).
 - Optimized `_WaterSparkline` daily intake min/max calculation using a single-pass loop without intermediate list allocations (#747).
 - Replaced hard-coded German UI copy that leaked into non-German locales with app-localized text in the AI overlay controls, Developer Settings, analytics empty states, target-rate picker, AI provider status, and telemetry confirmation; added matching strings to all seven supported app locales.
