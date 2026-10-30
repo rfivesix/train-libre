@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Optimized `SleepPipelineService` by combining night session metric iterations and eliminating redundant map lookups (#748).
+- Optimized `_WaterSparkline` daily intake min/max calculation using a single-pass loop without intermediate list allocations (#747).
 - Replaced hard-coded German UI copy that leaked into non-German locales with app-localized text in the AI overlay controls, Developer Settings, analytics empty states, target-rate picker, AI provider status, and telemetry confirmation; added matching strings to all seven supported app locales.
 - Startup keeps the normal animated cloud during remote catalog manifest and freshness checks; the download progress screen appears only once catalog files are actually downloading and stays active through installation.
 - Reorganized Developer Settings into click-through categories for Nutrition Lab, AI meal scan logs, AI Overlay, and performance diagnostics; removed the duplicate experience-level control and obsolete overlay demo labels and live-AI toggle while keeping the overlay debug controls.
@@ -71,6 +73,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Fixed potential SQL injection in `ExportManager` when executing `PRAGMA table_info` by validating table identifiers (#746).
 - Prevented AI meal-scan cancellation from starting the camera session concurrently from the cancel callback, route observer, and scan cleanup; camera restoration is now route-driven and guarded against duplicate starts.
 - Expanded the AI orb's tappable area only when docked near a screen edge, while preserving its cloud-shaped hit target elsewhere.
 - Included drinks in AI meal capture as fluid diary entries measured in millilitres, saved estimated caffeine, and surfaced caffeine from food and macro entries in diary meal summaries.
