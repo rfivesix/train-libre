@@ -152,7 +152,7 @@
       support_meta_copy: "We are fully committed to high software quality. All support requests via email are typically reviewed and answered within <strong>48 hours</strong>.",
 
       // Terms of Service (English)
-      tos_hero_title: "Version 1.0 Terms of Service",
+      tos_hero_title: "Version 1.9 Terms of Service",
       tos_hero_copy: "Minimalist Terms of Service for Train Libre. Local-first, open source, and privacy-respecting.",
       tos_toc_title: "Pillars",
       tos_toc_1: "1. No Medical Advice",
@@ -165,8 +165,8 @@
       tos_p4_t: "4. Open Source Governing",
 
       // LEGAL & PRIVACY (Verbatim from assets/legal/privacy_policy.md)
-      legal_version: "Version 1.8",
-      legal_date: "8. Oktober 2026 / October 8, 2026",
+      legal_version: "Version 1.9",
+      legal_date: "30. Oktober 2026 / October 30, 2026",
 
       // Legal Notice (English)
       imp_angaben: "Information according to § 5 DDG:",
@@ -395,7 +395,7 @@
       support_meta_copy: "Wir setzen uns voll und ganz für eine hohe Softwarequalität ein. Alle Supportanfragen per E-Mail werden in der Regel innerhalb von <strong>48 Stunden</strong> geprüft und beantwortet.",
 
       // Terms of Service (German)
-      tos_hero_title: "Nutzungsbedingungen Version 1.0",
+      tos_hero_title: "Nutzungsbedingungen Version 1.9",
       tos_hero_copy: "Minimalistische Nutzungsbedingungen für Train Libre. Local-first, Open Source und datenschutzfreundlich.",
       tos_toc_title: "Säulen",
       tos_toc_1: "1. Keine medizinische Beratung",
@@ -408,8 +408,8 @@
       tos_p4_t: "4. Open-Source-Regelung",
 
       // LEGAL & PRIVACY (Verbatim from assets/legal/privacy_policy.md)
-      legal_version: "Version 1.8",
-      legal_date: "8. Oktober 2026 / October 8, 2026",
+      legal_version: "Version 1.9",
+      legal_date: "30. Oktober 2026 / October 30, 2026",
 
       // Impressum (Deutsch)
       imp_angaben: "Angaben gemäß § 5 DDG:",
@@ -636,7 +636,7 @@
       "support_issues_copy": 'Train Libre est Open Source. Vous pouvez directement consulter les bugs connus ou soumettre des rapports de bugs techniques sur notre dépôt GitHub : <a href="https://github.com/rfivesix/train-libre/issues" target="_blank">Soumettre un rapport de bug</a>',
       "support_meta_title": "Délai de réponse attendu",
       "support_meta_copy": "Nous sommes pleinement engagés à fournir des logiciels de haute qualité. Toutes les demandes d'assistance par e-mail sont généralement examinées et traitées sous <strong>48 heures</strong>.",
-      "tos_hero_title": "Conditions d'utilisation (v1.0)",
+      "tos_hero_title": "Conditions d'utilisation (v1.9)",
       "tos_hero_copy": "Conditions simplifiées pour Train Libre. Hors-ligne, open source et respectueux de la vie privée.",
       "tos_toc_title": "Piliers",
       "tos_toc_1": "1. Pas de conseil médical",
@@ -647,8 +647,8 @@
       "tos_p2_t": "2. Exclusion de garantie / Garantie « en l'état »",
       "tos_p3_t": "3. Autonomie des données",
       "tos_p4_t": "4. Licence open source",
-      "legal_version": "Version 1.8",
-      "legal_date": "8 octobre 2026",
+      "legal_version": "Version 1.9",
+      "legal_date": "30 octobre 2026",
       "imp_angaben": "Informations conformément à l'article 5 de la loi DDG Allemande :",
       "imp_service_provider": "Prestataire de services / Responsable de l'application Train Libre :",
       "imp_name": "Richard Georg Schotte",
@@ -870,7 +870,7 @@
       "support_issues_copy": 'Train Libre è Open Source. Puoi sfogliare direttamente i bug noti o inviare segnalazioni di problemi tecnici sulla nostra repository GitHub: <a href="https://github.com/rfivesix/train-libre/issues" target="_blank">Invia una segnalazione</a>',
       "support_meta_title": "Tempo di risposta previsto",
       "support_meta_copy": "Ci impegniamo al massimo per garantire un'elevata qualità del software. Tutte le richieste di supporto via email vengono solitamente esaminate e riscontrate entro <strong>48 ore</strong>.",
-      "tos_hero_title": "Termini di servizio (v1.0)",
+      "tos_hero_title": "Termini di servizio (v1.9)",
       "tos_hero_copy": "Termini di servizio semplificati per Train Libre. Offline-first, open source e rispettoso della privacy.",
       "tos_toc_title": "Pilastri",
       "tos_toc_1": "1. Nessun consiglio medico",
@@ -881,8 +881,8 @@
       "tos_p2_t": "2. Esclusione di garanzia / Garanzia «così com'è»",
       "tos_p3_t": "3. Autonomia dei dati",
       "tos_p4_t": "4. Licenza open source",
-      "legal_version": "Versione 1.8",
-      "legal_date": "8 ottobre 2026",
+      "legal_version": "Versione 1.9",
+      "legal_date": "30 ottobre 2026",
       "imp_angaben": "Informazioni ai sensi dell'art. 5 della legge tedesca DDG:",
       "imp_service_provider": "Fornitore di servizi / Responsabile dell'applicazione Train Libre:",
       "imp_name": "Richard Georg Schotte",
@@ -1077,7 +1077,7 @@
       "support_issues_copy": 'Train Libreはオープンソースです。既知のバグを直接閲覧するか、GitHubリポジトリで技術的な問題報告を送信できます: <a href="https://github.com/rfivesix/train-libre/issues" target="_blank">バグ報告を送信</a>',
       "support_meta_title": "予想される応答時間",
       "support_meta_copy": "私たちは高いソフトウェア品質に全力を尽くしています。メールによるすべてのサポートリクエストは、通常 <strong>48時間</strong> 以内に確認され、返信されます。",
-      "tos_hero_title": "利用規約 (v1.0)",
+      "tos_hero_title": "利用規約 (v1.9)",
       "tos_hero_copy": "Train Libreのシンプルな利用規約。ローカルファースト、オープンソース、プライバシー尊重。",
       "tos_toc_title": "柱",
       "tos_toc_1": "1. 医療アドバイスの排除",
@@ -1088,8 +1088,8 @@
       "tos_p2_t": "2. 免責事項／現状有姿（As-Is）の保証否認",
       "tos_p3_t": "3. データの自主性",
       "tos_p4_t": "4. オープンソースによる統治",
-      "legal_version": "バージョン 1.8",
-      "legal_date": "2026年10月8日",
+      "legal_version": "バージョン 1.9",
+      "legal_date": "2026年10月30日",
       "imp_angaben": "ドイツDDG法第5条に基づく情報：",
       "imp_service_provider": "サービスプロバイダー/Train Libreアプリ責任者：",
       "imp_name": "Richard Georg Schotte",

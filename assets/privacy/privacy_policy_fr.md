@@ -1,7 +1,7 @@
 # Charte de confidentialité pour l'application mobile « Train Libre » et le site web
 
-**Version 1.8**  
-**En date du : 8 octobre 2026**
+**Version 1.9**<br>
+**En date du : 30 octobre 2026**
 
 Cette charte de confidentialité vous informe conformément aux articles 13 et 14 du Règlement Général sur la Protection des Données (RGPD) du traitement des données à caractère personnel et des données relatives à la santé dans l'application mobile « Train Libre » ainsi que lors de votre visite sur ce site web.
 

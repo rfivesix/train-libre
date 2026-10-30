@@ -1,7 +1,7 @@
 # Privacy Policy for the App "Train Libre"
 
-**Version:** 1.8  
-**As of:** October 8, 2026  
+**Version:** 1.9<br>
+**As of:** October 30, 2026<br>
 
 This privacy policy informs you in accordance with Articles 13 and 14 of the General Data Protection Regulation (GDPR) about the processing of personal data and health-related data in the mobile application "Train Libre". 
 

@@ -14,7 +14,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 
 /// Single source of truth for the active Privacy Policy & Terms of Service version.
-const String kCurrentLegalVersion = '1.8';
+const String kCurrentLegalVersion = '1.9';
 
 class LegalScreen extends StatefulWidget {
   const LegalScreen({super.key});
@@ -521,8 +521,8 @@ class _LegalSection {
 }
 
 const _germanLegalDocument = _LegalDocument(
-  version: '1.8',
-  date: '8. Oktober 2026',
+  version: '1.9',
+  date: '30. Oktober 2026',
   legalNotice: '''
 Angaben gemäß § 5 DDG:
 
@@ -681,8 +681,8 @@ Der Quellcode von Train Libre wird unter der GNU General Public License v3.0 (GP
 );
 
 const _englishLegalDocument = _LegalDocument(
-  version: '1.8',
-  date: 'October 8, 2026',
+  version: '1.9',
+  date: 'October 30, 2026',
   legalNotice: '''
 Information according to § 5 DDG:
 

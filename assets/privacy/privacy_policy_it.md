@@ -1,7 +1,7 @@
 # Informativa sulla privacy per l'applicazione mobile «Train Libre» e il sito web
 
-**Versione 1.8**  
-**Aggiornato al: 8 ottobre 2026**
+**Versione 1.9**<br>
+**Aggiornato al: 30 ottobre 2026**
 
 Questa informativa sulla privacy vi informa, ai sensi degli articoli 13 e 14 del Regolamento generale sulla protezione dei dati (GDPR), sul trattamento dei dati personali e dei dati relativi alla salute nell'applicazione mobile "Train Libre" e durante la visita a questo sito web.
 

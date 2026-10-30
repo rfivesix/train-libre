@@ -1,5 +1,5 @@
-**Version:** 1.8  
-**Stand:** 8. Oktober 2026  
+**Version:** 1.9<br>
+**Stand:** 30. Oktober 2026<br>
 
 Diese Datenschutzerklärung informiert Sie gemäß Art. 13 und 14 der Datenschutz-Grundverordnung (DSGVO) über die Verarbeitung personenbezogener Daten und gesundheitsbezogener Daten in der mobilen Applikation „Train Libre“. 
 

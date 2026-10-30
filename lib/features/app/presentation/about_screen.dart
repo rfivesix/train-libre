@@ -98,14 +98,6 @@ class _AboutScreenState extends State<AboutScreen> {
                         onTap: () => _openWhatsNew(context),
                       ),
                       AppLinkRow(
-                        title: l10n.aiAssistantIntroAboutRow,
-                        subtitle: l10n.aiAssistantIntroAboutRowSubtitle,
-                        onTap: () => showAiAssistantUpdateIntroSheet(
-                          context,
-                          markSeen: false,
-                        ),
-                      ),
-                      AppLinkRow(
                         title: l10n.used_libraries,
                         onTap: () => _openUsedPackages(context),
                       ),

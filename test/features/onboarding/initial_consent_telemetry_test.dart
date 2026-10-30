@@ -83,6 +83,9 @@ void main() {
     final l10n = await pumpConsent(tester);
     await accept(tester, l10n);
 
+    await tester
+        .ensureVisible(find.byKey(const Key('telemetry_consent_decline')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('telemetry_consent_decline')));
     await tester.pumpAndSettle();
 
@@ -98,6 +101,9 @@ void main() {
     final l10n = await pumpConsent(tester);
     await accept(tester, l10n);
 
+    await tester
+        .ensureVisible(find.byKey(const Key('telemetry_consent_accept')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('telemetry_consent_accept')));
     await tester.pumpAndSettle();
 

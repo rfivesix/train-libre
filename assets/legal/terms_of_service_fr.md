@@ -1,6 +1,6 @@
-# Conditions d'utilisation - Train Libre (Version 1.0)
+# Conditions d'utilisation - Train Libre (Version 1.9)
 
-Dernière mise à jour : 26 mai 2026
+Dernière mise à jour : 30 octobre 2026
 
 ## 1. Aucun conseil médical
 Train Libre fournit des informations sur la forme physique et la nutrition, notamment des estimations fondées sur des modèles ainsi que des réponses, estimations de repas et brouillons générés par IA en option. Ces résultats peuvent être incomplets, inexacts ou inadaptés. Ils ne constituent pas un conseil médical, nutritionnel ou un entraînement professionnel et ne remplacent pas un professionnel qualifié. Vérifiez les ingrédients, allergènes, portions, valeurs nutritionnelles et consignes d’exercice avant de vous y fier, et faites preuve de discernement.

@@ -1,6 +1,6 @@
-# Nutzungsbedingungen - Train Libre (Version 1.0)
+# Nutzungsbedingungen - Train Libre (Version 1.9)
 
-Letzte Aktualisierung: 26. Mai 2026
+Letzte Aktualisierung: 30. Oktober 2026
 
 ## 1. Keine medizinische Beratung
 Train Libre stellt Fitness- und Ernährungsinformationen bereit, darunter modellbasierte Schätzungen sowie optionale KI-Antworten, Mahlzeitenschätzungen und Entwürfe. Diese können unvollständig, ungenau oder für Sie ungeeignet sein. Sie sind keine medizinische, ernährungsbezogene oder professionelle Trainingsberatung und ersetzen keine qualifizierte Fachkraft. Prüfen Sie Zutaten, Allergene, Portionsgrößen, Nährwerte und Übungsanleitungen, bevor Sie sich darauf verlassen, und entscheiden Sie eigenverantwortlich.

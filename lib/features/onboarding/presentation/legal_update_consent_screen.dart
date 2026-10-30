@@ -12,6 +12,8 @@ import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../app/presentation/legal_screen.dart';
+import '../data/telemetry_consent_prompt.dart';
+import 'telemetry_consent_sheet.dart';
 
 /// Re-consent screen displayed when the Privacy Policy or Terms of Service
 /// have been updated to a new version (e.g. v1.6).
@@ -27,7 +29,7 @@ class LegalUpdateConsentScreen extends StatefulWidget {
 
 class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
   bool _healthDataAccepted = false;
-  bool _telemetryAccepted = false;
+  bool _processing = false;
   late TapGestureRecognizer _termsRecognizer;
   late TapGestureRecognizer _legalRecognizer;
 
@@ -36,16 +38,6 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
     super.initState();
     _termsRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
     _legalRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
-    _loadCurrentTelemetryState();
-  }
-
-  Future<void> _loadCurrentTelemetryState() async {
-    final isOptedIn = await TelemetryService.instance.isOptedIn();
-    if (mounted) {
-      setState(() {
-        _telemetryAccepted = isOptedIn;
-      });
-    }
   }
 
   @override
@@ -62,15 +54,22 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
   }
 
   Future<void> _acceptAndProceed() async {
+    if (_processing) return;
+    setState(() => _processing = true);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasAcceptedConsent', true);
-    await prefs.setString('acceptedLegalVersion', kCurrentLegalVersion);
-
-    if (_telemetryAccepted) {
-      await TelemetryService.instance.optIn();
-    } else {
-      await TelemetryService.instance.optOut();
+    final isOptedIn = await TelemetryService.instance.isOptedIn();
+    if (!mounted) return;
+    if (!isOptedIn) {
+      final optedIn = await showTelemetryConsentSheet(context) ?? false;
+      if (optedIn) {
+        await TelemetryService.instance.optIn();
+      }
+      // This update prompt also counts as the optional follow-up, avoiding a
+      // second reminder immediately after the user has made a choice.
+      await TelemetryConsentPrompt.instance.markFollowUpShown();
     }
+    await prefs.setString('acceptedLegalVersion', kCurrentLegalVersion);
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
@@ -157,21 +156,13 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
                           kCurrentLegalVersion),
                       theme: theme,
                     ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    // Optional anonymous telemetry tile
-                    _buildConsentTile(
-                      value: _telemetryAccepted,
-                      onChanged: (val) =>
-                          setState(() => _telemetryAccepted = val),
-                      text: l10n.i_agree_to_optional_telemetry,
-                      theme: theme,
-                    ),
                     const SizedBox(height: DesignConstants.spacingL),
                     SizedBox(
                       width: double.infinity,
                       child: AppButton.primary(
-                        onPressed:
-                            _healthDataAccepted ? _acceptAndProceed : null,
+                        onPressed: _healthDataAccepted && !_processing
+                            ? _acceptAndProceed
+                            : null,
                         label: l10n.accept_and_continue,
                         tooltip: l10n.accept_and_continue,
                       ),

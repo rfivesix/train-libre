@@ -60,8 +60,7 @@ Future<void> showWhatsNewSheet(
   }
 }
 
-/// Opens the AI chat introduction directly. About-screen previews do not mark
-/// the one-time startup presentation as seen.
+/// Opens the AI chat introduction and marks the startup presentation as seen.
 Future<void> showAiAssistantUpdateIntroSheet(
   BuildContext context, {
   bool markSeen = true,

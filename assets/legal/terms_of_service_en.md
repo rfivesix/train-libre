@@ -1,6 +1,6 @@
-# Terms of Service - Train Libre (Version 1.0)
+# Terms of Service - Train Libre (Version 1.9)
 
-Last updated: May 26, 2026
+Last updated: October 30, 2026
 
 ## 1. No Medical Advice
 
