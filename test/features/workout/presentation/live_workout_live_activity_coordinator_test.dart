@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
 import 'package:train_libre/features/workout/data/live_activity/workout_live_activity_service.dart';
 import 'package:train_libre/features/workout/domain/live_activity/workout_live_activity_content.dart';
+import 'package:train_libre/features/workout/domain/live_workout_notification_preferences.dart';
 import 'package:train_libre/features/workout/domain/live_activity/workout_live_activity_strings.dart';
 import 'package:train_libre/features/workout/domain/models/routine_exercise.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
@@ -14,6 +17,26 @@ import 'package:train_libre/services/unit_service.dart';
 class FakeLiveActivityService extends WorkoutLiveActivityService {
   @override
   bool get isPlatformSupported => true;
+
+  final soundScheduled = Completer<void>();
+  bool? bannerEnabled;
+  bool? soundIgnoresSilent;
+
+  @override
+  Future<void> setRestNotificationsEnabled(bool enabled,
+      {bool refreshPending = true}) async {
+    bannerEnabled = enabled;
+  }
+
+  @override
+  Future<void> scheduleRestSound(
+      {required DateTime endsAt,
+      required String title,
+      required String body,
+      bool ignoreSilentMode = true}) async {
+    soundIgnoresSilent = ignoreSilentMode;
+    soundScheduled.complete();
+  }
 
   int startCalls = 0;
   int updateCalls = 0;
@@ -194,6 +217,21 @@ void main() {
         host: host,
         liveActivityService: service,
       );
+    });
+
+    test('schedules the rest sound even when the notification banner is off',
+        () async {
+      SharedPreferences.setMockInitialValues({
+        LiveWorkoutNotificationPreferences.restNotificationsKey: false,
+        LiveWorkoutNotificationPreferences.ignoreSilentModeKey: false,
+      });
+      host.isActive = false;
+      coordinator.configure(strings: testStrings, localeName: 'en');
+      coordinator
+          .scheduleRestSound(DateTime.now().add(const Duration(seconds: 20)));
+      await service.soundScheduled.future;
+      expect(service.bannerEnabled, isFalse);
+      expect(service.soundIgnoresSilent, isFalse);
     });
 
     test('configure triggers initial sync when host is active', () async {

@@ -8607,6 +8607,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Workout, goal, and review reminders';
 
   @override
+  String get notificationExactAlarmTitle => 'Allow precise timers';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Allow alarms and reminders in Android settings so rest sounds can play on time in the background.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Live workout';
+
+  @override
+  String get notificationRestTimerTitle => 'Rest timer notifications';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Show a system notification when a rest timer ends.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Ignore silent mode';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Play the rest timer sound in the app even in silent mode. Background notifications follow system settings.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Workout plan';
 
   @override

@@ -8747,6 +8747,30 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rappels d’entraînement, d’objectifs et de bilans';
 
   @override
+  String get notificationExactAlarmTitle => 'Autoriser les minuteurs précis';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Autorisez les alarmes et rappels dans les réglages Android pour que le son de pause retentisse à temps en arrière-plan.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Entraînement en cours';
+
+  @override
+  String get notificationRestTimerTitle => 'Notifications de pause';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Afficher une notification système à la fin du repos.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Ignorer le mode silencieux';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Émettre le son de pause dans l’app même en mode silencieux. Les notifications en arrière-plan suivent les réglages système.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Plan d’entraînement';
 
   @override

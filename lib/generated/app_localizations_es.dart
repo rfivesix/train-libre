@@ -8744,6 +8744,30 @@ class AppLocalizationsEs extends AppLocalizations {
       'Recordatorios de entrenamientos, objetivos y revisiones';
 
   @override
+  String get notificationExactAlarmTitle => 'Permitir temporizadores precisos';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Permite alarmas y recordatorios en Android para que el sonido de descanso suene a tiempo en segundo plano.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Entrenamiento en curso';
+
+  @override
+  String get notificationRestTimerTitle => 'Notificaciones de descanso';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Mostrar una notificación del sistema al terminar el descanso.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Ignorar modo silencio';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Reproducir el sonido de descanso en la app incluso en silencio. Las notificaciones en segundo plano siguen los ajustes del sistema.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Plan de entrenamiento';
 
   @override

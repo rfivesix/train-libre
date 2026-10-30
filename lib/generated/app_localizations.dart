@@ -15126,6 +15126,48 @@ abstract class AppLocalizations {
   /// **'Workout, goal, and review reminders'**
   String get notificationSettingsSubtitle;
 
+  /// No description provided for @notificationExactAlarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow precise timers'**
+  String get notificationExactAlarmTitle;
+
+  /// No description provided for @notificationExactAlarmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow alarms and reminders in Android settings so rest sounds can play on time in the background.'**
+  String get notificationExactAlarmSubtitle;
+
+  /// No description provided for @notificationLiveWorkoutSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live workout'**
+  String get notificationLiveWorkoutSectionTitle;
+
+  /// No description provided for @notificationRestTimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest timer notifications'**
+  String get notificationRestTimerTitle;
+
+  /// No description provided for @notificationRestTimerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a system notification when a rest timer ends.'**
+  String get notificationRestTimerSubtitle;
+
+  /// No description provided for @notificationIgnoreSilentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore silent mode'**
+  String get notificationIgnoreSilentTitle;
+
+  /// No description provided for @notificationIgnoreSilentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play the rest timer sound in the app even in silent mode. Background notifications follow system settings.'**
+  String get notificationIgnoreSilentSubtitle;
+
   /// No description provided for @notificationWorkoutSectionTitle.
   ///
   /// In en, this message translates to:

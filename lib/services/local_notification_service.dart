@@ -5,12 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../generated/app_localizations.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import '../features/nutrition_recommendation/data/recommendation_repository.dart';
-import '../features/nutrition_recommendation/domain/adaptive_recommendation_snapshot.dart';
 import '../features/profile/data/goal_repository_impl.dart';
 import '../features/profile/domain/models/goal_model.dart';
 import 'notification_navigation.dart';
 import '../features/workout/domain/workout_plan_notification_scheduler.dart';
+import '../features/workout/domain/live_workout_notification_preferences.dart';
 
 /// Handles local notification setup and rest timer notifications.
 class LocalNotificationService implements WorkoutPlanNotificationScheduler {
@@ -23,16 +22,12 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
   static const int tdeeRecalculationNotificationId = 8803;
   static const int weeklyGoalReviewNotificationId = 8804;
   static const int goalTargetDateNotificationId = 8805;
-  static const String _restChannelId = 'rest_timer_channel';
+  static const String _restChannelId = 'rest_timer_silent_banner_v1';
   static const String _adaptiveRecommendationChannelId =
       'adaptive_recommendation_channel';
-  static const String _tdeeRecalculationChannelId =
-      'tdee_recalculation_channel';
   static const String _weeklyGoalReviewChannelId = 'weekly_goal_review_channel';
   static const String _goalTargetDateChannelId = 'goal_target_date_channel';
   static const String _workoutPlanChannelId = 'workout_plan_channel';
-
-  StreamSubscription<AdaptiveRecommendationSnapshot>? _tdeeSubscription;
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -77,18 +72,6 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
       }
       await _requestPermissions();
       tz.initializeTimeZones();
-
-      // Subscribe to TDEE updates stream!
-      final repository = RecommendationRepository();
-      _tdeeSubscription?.cancel();
-      _tdeeSubscription = repository.onRecommendationUpdated.listen((snapshot) {
-        showTdeeRecalculationNotification(
-          calories: snapshot.recommendation.recommendedCalories,
-          protein: snapshot.recommendation.recommendedProteinGrams,
-          carbs: snapshot.recommendation.recommendedCarbsGrams,
-          fat: snapshot.recommendation.recommendedFatGrams,
-        );
-      });
 
       _isInitialized = true;
     } catch (e) {
@@ -152,6 +135,19 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
     return true;
   }
 
+  /// Android 12+ may require special access for timely background alarms.
+  Future<bool?> canScheduleExactRestAlarms() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return android?.canScheduleExactNotifications();
+  }
+
+  Future<bool?> requestExactRestAlarmsPermission() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return android?.requestExactAlarmsPermission();
+  }
+
   Future<void> _requestPermissions() async {
     await requestNotificationPermissions();
   }
@@ -164,20 +160,20 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
         channelDescription: 'Alerts when the workout rest timer is finished.',
         importance: Importance.max,
         priority: Priority.high,
-        playSound: true,
+        playSound: false,
         enableVibration: hapticsEnabled,
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBanner: true,
-        presentSound: true,
+        presentSound: false,
         presentBadge: true,
         presentList: true,
       ),
       macOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBanner: true,
-        presentSound: true,
+        presentSound: false,
         presentBadge: true,
         presentList: true,
       ),
@@ -232,6 +228,9 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
   Future<void> scheduleRestTimerDoneNotification({
     required int secondsFromNow,
   }) async {
+    if (!await LiveWorkoutNotificationPreferences.restNotificationsEnabled()) {
+      return;
+    }
     if (!_isInitialized) await initialize();
     if (!_isInitialized) return;
     final texts = _localizedRestTexts();
@@ -266,6 +265,9 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
   }
 
   Future<void> showRestTimerDoneNotification({bool foreground = false}) async {
+    if (!await LiveWorkoutNotificationPreferences.restNotificationsEnabled()) {
+      return;
+    }
     if (!_isInitialized) await initialize();
     if (!_isInitialized) return;
     final texts = _localizedRestTexts();
@@ -276,25 +278,25 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
     final details = foreground
         ? NotificationDetails(
             android: AndroidNotificationDetails(
-              'rest_timer_foreground_v4',
+              'rest_timer_foreground_silent_v1',
               'Rest Timer (Foreground)',
               channelDescription:
                   'Alerts when the rest timer finishes while in the foreground.',
               importance: Importance.max,
               priority: Priority.high,
-              playSound: true,
+              playSound: false,
               enableVibration: hapticsEnabled,
             ),
             iOS: const DarwinNotificationDetails(
               presentAlert: true,
-              presentSound: true,
+              presentSound: false,
               presentBadge: false,
               presentBanner: true,
               presentList: true,
             ),
             macOS: const DarwinNotificationDetails(
               presentAlert: true,
-              presentSound: true,
+              presentSound: false,
               presentBadge: false,
             ),
           )
@@ -381,79 +383,6 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
           'LocalNotificationService: showAdaptiveRecommendationDueNotification failed: $e\n$st');
       return false;
     }
-  }
-
-  NotificationDetails _tdeeRecalculationNotificationDetails() {
-    return const NotificationDetails(
-      android: AndroidNotificationDetails(
-        _tdeeRecalculationChannelId,
-        'TDEE Recalculation',
-        channelDescription:
-            'Alerts when a new TDEE recalculation is completed.',
-        importance: Importance.max,
-        priority: Priority.high,
-        playSound: true,
-      ),
-      iOS: DarwinNotificationDetails(
-        presentAlert: true,
-        presentBanner: true,
-        presentSound: true,
-        presentBadge: true,
-        presentList: true,
-      ),
-      macOS: DarwinNotificationDetails(
-        presentAlert: true,
-        presentBanner: true,
-        presentSound: true,
-        presentBadge: true,
-        presentList: true,
-      ),
-    );
-  }
-
-  ({String title, String body}) _localizedTdeeRecalculationTexts({
-    required int calories,
-    required int protein,
-    required int carbs,
-    required int fat,
-  }) {
-    final locale = WidgetsBinding.instance.platformDispatcher.locale;
-    final l10n = lookupAppLocalizations(locale);
-    return (
-      title: l10n.tdeeRecalculationNotificationTitle,
-      body:
-          l10n.tdeeRecalculationNotificationBody(calories, protein, carbs, fat),
-    );
-  }
-
-  Future<void> showTdeeRecalculationNotification({
-    required int calories,
-    required int protein,
-    required int carbs,
-    required int fat,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!(prefs.getBool('notify_adaptive_recommendation') ?? true)) return;
-    if (!_isInitialized) await initialize();
-    if (!_isInitialized) return;
-    final texts = _localizedTdeeRecalculationTexts(
-      calories: calories,
-      protein: protein,
-      carbs: carbs,
-      fat: fat,
-    );
-    final activeGoal = await GoalRepositoryImpl().getActiveGoal();
-
-    await _plugin.show(
-      id: tdeeRecalculationNotificationId,
-      title: texts.title,
-      body: texts.body,
-      notificationDetails: _tdeeRecalculationNotificationDetails(),
-      payload: AppNotificationPayload(
-        type: AppNotificationType.adaptiveRecommendation,
-        goalId: activeGoal?.id,
-      ).encode(),
-    );
   }
 
   NotificationDetails _weeklyGoalReviewNotificationDetails() {

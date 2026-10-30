@@ -8691,6 +8691,30 @@ class AppLocalizationsNl extends AppLocalizations {
       'Herinneringen voor trainingen, doelen en evaluaties';
 
   @override
+  String get notificationExactAlarmTitle => 'Nauwkeurige timers toestaan';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Sta alarmen en herinneringen toe in Android zodat het pauzegeluid op tijd klinkt op de achtergrond.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Actieve training';
+
+  @override
+  String get notificationRestTimerTitle => 'Pauzetimermeldingen';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Toon een systeemmelding wanneer de pauze afloopt.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Stille modus negeren';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Speel het pauzegeluid in de app ook af in stille modus. Achtergrondmeldingen volgen de systeeminstellingen.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Trainingsplan';
 
   @override

@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 
 import '../../../services/local_notification_service.dart';
 import '../../../services/unit_service.dart';
@@ -13,6 +10,7 @@ import '../domain/live_activity/workout_live_activity_strings.dart';
 import '../domain/models/routine_exercise.dart';
 import '../domain/models/set_log.dart';
 import '../domain/models/workout_log.dart';
+import '../domain/live_workout_notification_preferences.dart';
 
 typedef NextOpenSet = ({int exerciseIndex, int templateIndex, int templateId});
 
@@ -61,6 +59,7 @@ class LiveWorkoutLiveActivityCoordinator {
   String _localeName = 'en';
   bool _running = false;
   Future<void> _syncChain = Future<void>.value();
+  int _restScheduleGeneration = 0;
 
   LiveWorkoutLiveActivityCoordinator({
     required LiveWorkoutLiveActivityHost host,
@@ -168,39 +167,39 @@ class LiveWorkoutLiveActivityCoordinator {
     await _liveActivityService.end();
   }
 
-  /// Whether the rest sound is handled natively instead of through
-  /// [LocalNotificationService].
-  ///
-  /// Only on iOS, and only while a Live Activity is up: its App Intents can
-  /// move the pause while the app is suspended, and only the native scheduler
-  /// can be moved with it.
-  ///
-  /// Android has a live update of its own now, but its buttons reach a
-  /// BroadcastReceiver in the app's own process rather than a separate
-  /// extension, so [LocalNotificationService] can still be rescheduled from
-  /// Dart — and keeping it means the app needs no exact-alarm permission.
-  bool get _usesNativeRestSound => _running && !kIsWeb && Platform.isIOS;
-
   void scheduleRestSound(DateTime endsAt) {
+    final generation = ++_restScheduleGeneration;
+    unawaited(_scheduleRestSound(endsAt, generation));
+  }
+
+  Future<void> _scheduleRestSound(DateTime endsAt, int generation) async {
     final strings = _strings;
-    if (_usesNativeRestSound && strings != null) {
-      unawaited(_liveActivityService.scheduleRestSound(
+    if (_liveActivityService.isPlatformSupported && strings != null) {
+      final enabled =
+          await LiveWorkoutNotificationPreferences.restNotificationsEnabled();
+      final ignoreSilent =
+          await LiveWorkoutNotificationPreferences.ignoreSilentMode();
+      if (generation != _restScheduleGeneration) return;
+      await _liveActivityService.setRestNotificationsEnabled(enabled,
+          refreshPending: false);
+      if (generation != _restScheduleGeneration) return;
+      await _liveActivityService.scheduleRestSound(
         endsAt: endsAt,
         title: strings.restDoneTitle,
         body: strings.restDoneBody,
-      ));
+        ignoreSilentMode: ignoreSilent,
+      );
       return;
     }
-    LocalNotificationService.instance.scheduleRestTimerDoneNotification(
+    await LocalNotificationService.instance.scheduleRestTimerDoneNotification(
       secondsFromNow: endsAt.difference(DateTime.now()).inSeconds,
     );
   }
 
   void cancelRestSound() {
+    _restScheduleGeneration++;
     LocalNotificationService.instance.cancelRestTimerNotification();
-    if (_usesNativeRestSound) {
-      unawaited(_liveActivityService.cancelRestSound());
-    }
+    unawaited(_liveActivityService.cancelRestSound());
   }
 
   /// Applies the commands that Live Activity buttons produced while the app

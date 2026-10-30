@@ -18,6 +18,8 @@
     <!-- <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Precise rest-timer alarms need special access on Android 12+. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <!-- Android 16+: lets the running workout notification be promoted to a
          Live Update, with a status bar chip and a lock screen card. -->
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"/>
@@ -43,6 +45,9 @@
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
         
+        <!-- Consent is handled in Dart before explicitly setting up PostHog. -->
+        <meta-data android:name="com.posthog.posthog.AUTO_INIT" android:value="false" />
+
         <!-- No <uses-permission> tags may appear here anymore. -->
         
         <activity
@@ -305,6 +310,7 @@
         </service>
         <!-- The workout live update's buttons. Not exported: only the
              notification's own PendingIntents may raise these. -->
+        <receiver android:name=".liveupdate.RestTimerSoundReceiver" android:exported="false" />
         <receiver
             android:name=".liveupdate.LiveUpdateActionReceiver"
             android:exported="false" />

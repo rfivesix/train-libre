@@ -8720,6 +8720,30 @@ class AppLocalizationsIt extends AppLocalizations {
       'Promemoria per allenamenti, obiettivi e revisioni';
 
   @override
+  String get notificationExactAlarmTitle => 'Consenti timer precisi';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Consenti sveglie e promemoria nelle impostazioni Android per riprodurre il suono di pausa in orario in background.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Allenamento in corso';
+
+  @override
+  String get notificationRestTimerTitle => 'Notifiche di pausa';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Mostra una notifica di sistema al termine della pausa.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Ignora modalità silenziosa';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Riproduci il suono della pausa nell’app anche in modalità silenziosa. Le notifiche in background seguono le impostazioni di sistema.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Piano di allenamento';
 
   @override

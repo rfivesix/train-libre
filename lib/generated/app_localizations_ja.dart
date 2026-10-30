@@ -8304,6 +8304,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationSettingsSubtitle => 'ワークアウト、目標、レビューのリマインダー';
 
   @override
+  String get notificationExactAlarmTitle => '正確なタイマーを許可';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Androidの設定でアラームとリマインダーを許可すると、バックグラウンドでも休憩終了音を時間どおりに再生できます。';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'ワークアウト中';
+
+  @override
+  String get notificationRestTimerTitle => '休憩タイマーの通知';
+
+  @override
+  String get notificationRestTimerSubtitle => '休憩タイマーの終了時にシステム通知を表示します。';
+
+  @override
+  String get notificationIgnoreSilentTitle => '消音モードを無視';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'アプリ使用中は消音モードでも休憩終了音を再生します。バックグラウンド通知はシステム設定に従います。';
+
+  @override
   String get notificationWorkoutSectionTitle => 'トレーニングプラン';
 
   @override

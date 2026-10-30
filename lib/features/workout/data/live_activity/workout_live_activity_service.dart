@@ -60,13 +60,29 @@ class WorkoutLiveActivityService {
     required DateTime endsAt,
     required String title,
     required String body,
+    bool ignoreSilentMode = true,
   }) async {
     if (!isPlatformSupported) return;
     await _invoke('scheduleRestSound', {
       'endsAtEpochMs': endsAt.millisecondsSinceEpoch,
       'title': title,
       'body': body,
+      'ignoreSilentMode': ignoreSilentMode,
     });
+  }
+
+  Future<void> setRestNotificationsEnabled(bool enabled,
+      {bool refreshPending = true}) async {
+    if (!isPlatformSupported) return;
+    await _invoke('setRestNotificationsEnabled', {
+      'enabled': enabled,
+      'refreshPending': refreshPending,
+    });
+  }
+
+  Future<void> setRestIgnoreSilentMode(bool enabled) async {
+    if (!isPlatformSupported) return;
+    await _invoke('setRestIgnoreSilentMode', {'enabled': enabled});
   }
 
   Future<void> cancelRestSound() async {

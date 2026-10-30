@@ -31,6 +31,7 @@ import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Percentage
 import androidx.health.connect.client.units.Volume
+import com.rfivesix.trainlibre.liveupdate.RestTimerSound
 import com.rfivesix.trainlibre.liveupdate.WorkoutLiveActivityBridge
 import com.rfivesix.trainlibre.media.ImageOpsPlugin
 import com.rfivesix.trainlibre.widgets.HomeWidgetBridge
@@ -51,6 +52,16 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 class MainActivity : FlutterActivity() {
+    override fun onResume() {
+        super.onResume()
+        RestTimerSound.appVisible = true
+    }
+
+    override fun onPause() {
+        RestTimerSound.appVisible = false
+        super.onPause()
+    }
+
     private companion object {
         private const val exportDebugTag = "HealthExportHC"
         private const val exportIntervalSeconds = 1L

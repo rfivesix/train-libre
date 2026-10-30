@@ -8676,6 +8676,30 @@ class AppLocalizationsDe extends AppLocalizations {
       'Erinnerungen für Training, Ziele und Reviews';
 
   @override
+  String get notificationExactAlarmTitle => 'Genaue Timer erlauben';
+
+  @override
+  String get notificationExactAlarmSubtitle =>
+      'Erlaube Wecker und Erinnerungen in den Android-Einstellungen, damit Pausentöne im Hintergrund pünktlich erklingen.';
+
+  @override
+  String get notificationLiveWorkoutSectionTitle => 'Live-Workout';
+
+  @override
+  String get notificationRestTimerTitle => 'Pausentimer-Benachrichtigungen';
+
+  @override
+  String get notificationRestTimerSubtitle =>
+      'Systembenachrichtigung anzeigen, wenn ein Pausentimer endet.';
+
+  @override
+  String get notificationIgnoreSilentTitle => 'Stummmodus ignorieren';
+
+  @override
+  String get notificationIgnoreSilentSubtitle =>
+      'Pausenton in der geöffneten App auch im Stummmodus abspielen. Hintergrundbenachrichtigungen folgen den Systemeinstellungen.';
+
+  @override
   String get notificationWorkoutSectionTitle => 'Trainingsplan';
 
   @override

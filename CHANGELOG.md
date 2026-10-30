@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Added live workout settings for rest-timer notifications and the in-app silent-mode override, and removed the duplicate calorie recalculation notification.
+- Fixed the iOS background rest-timer notification to use the bundled CAF conversion of the app's `timer_done.mp3` chime.
 - Updated PostHog and compatible Flutter dependencies, including file picking, fonts, and loading placeholders; migrated telemetry calls to the current PostHog API.
 - Updated the user guides and feature documentation for direct AI nutrition estimates, manual macros, health nutrition imports, AI data access, and current catalog languages and regions.
 - AI chat resumes recent conversations and starts a fresh chat after 30 minutes away, while preserving drafts, ongoing responses, and pending data approvals.
@@ -80,6 +82,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Kept rest-timer sounds independent of optional workout banners in the background, and avoided requesting Android audio focus for the timer chime.
+- Disabled PostHog Android auto-initialization so telemetry setup remains consent-controlled and startup no longer reports a missing manifest token.
 - Preserve localized privacy and terms pages in the generated website sitemap when syncing documentation.
 - Fixed potential SQL injection in `ExportManager` when executing `PRAGMA table_info` by validating table identifiers (#746).
 - Prevented AI meal-scan cancellation from starting the camera session concurrently from the cancel callback, route observer, and scan cleanup; camera restoration is now route-driven and guarded against duplicate starts.

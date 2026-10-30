@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
+import '../features/workout/domain/live_workout_notification_preferences.dart';
+
 /// Centralized sound service for playing audio effects (e.g. workout timer completion).
 class SoundService {
   SoundService._();
@@ -9,28 +11,35 @@ class SoundService {
   static final SoundService instance = SoundService._();
 
   final AudioPlayer _player = AudioPlayer();
-  bool _initialized = false;
+  bool? _ignoreSilentMode;
 
-  Future<void> _ensureInitialized() async {
-    if (_initialized) return;
-    try {
-      await _player.setAudioContext(
-        AudioContext(
-          android: const AudioContextAndroid(
-            stayAwake: false,
-            contentType: AndroidContentType.sonification,
-            usageType: AndroidUsageType.alarm,
-            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
-          ),
-          iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.playback,
-            options: const {
-              AVAudioSessionOptions.mixWithOthers,
-            },
-          ),
+  @visibleForTesting
+  static AudioContext timerAudioContext(bool ignoreSilentMode) => AudioContext(
+        android: AudioContextAndroid(
+          stayAwake: false,
+          contentType: AndroidContentType.sonification,
+          usageType: ignoreSilentMode
+              ? AndroidUsageType.alarm
+              : AndroidUsageType.notification,
+          audioFocus: AndroidAudioFocus.none,
+        ),
+        iOS: AudioContextIOS(
+          category: ignoreSilentMode
+              ? AVAudioSessionCategory.playback
+              : AVAudioSessionCategory.ambient,
+          options: ignoreSilentMode
+              ? const {AVAudioSessionOptions.mixWithOthers}
+              : const {},
         ),
       );
-      _initialized = true;
+
+  Future<void> _ensureInitialized() async {
+    final ignoreSilentMode =
+        await LiveWorkoutNotificationPreferences.ignoreSilentMode();
+    if (_ignoreSilentMode == ignoreSilentMode) return;
+    try {
+      await _player.setAudioContext(timerAudioContext(ignoreSilentMode));
+      _ignoreSilentMode = ignoreSilentMode;
     } catch (e) {
       debugPrint('SoundService audio context initialization info: $e');
     }
