@@ -19,7 +19,7 @@ dependencies:
   sqflite: ^2.4.3
   path: ^1.8.3
 
-  # cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   flutter_gen: ^5.14.1
   shared_preferences: ^2.2.3
   dynamic_color: ^1.9.0 # 2.x switches to package:material_ui, whose ColorScheme/MaterialApp
@@ -27,14 +27,14 @@ dependencies:
   # migrating every material.dart import in the app first.
   url_launcher: ^6.2.6
   path_provider: ^2.1.6
-  file_picker: ^12.1.2 # 12.1 returns List<PlatformFile> from pickFiles, not FilePickerResult?
+  file_picker: ^13.3.0
   share_plus: ^13.2.1
   fl_chart: ^1.1.0
   flutter_svg: ^2.3.0
   vibration: ^3.2.0
   csv: ^8.0.0
   provider: ^6.1.5+1
-  google_fonts: ^8.2.1
+  google_fonts: ^9.0.0
   package_info_plus: ^10.2.1 # or the latest version
   # Device model for the performance section of the feedback report: "9.7% jank"
   # is far less useful without knowing which iPhone produced it.
@@ -81,9 +81,9 @@ dependencies:
   liquid_glass_widgets: ^1.2.2
   flutter_lucide: ^1.38.0 # 1.38 renamed LucideIcons.history to rotate_ccw_clock
   icloud_storage: ^2.0.3
-  skeletonizer: ^2.1.3
+  skeletonizer: ^3.0.0
   workmanager: ^0.10.7
-  posthog_flutter: ^5.36.0
+  posthog_flutter: ^5.58.3
   audioplayers: ^6.1.0
   speech_to_text: ^7.4.0
 dev_dependencies:
@@ -91,7 +91,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  build_runner: ^2.15.1 # 2.16.0 needs meta 1.18.3; flutter_test pins meta 1.18.0.
+  build_runner: ^2.15.1
   drift_dev: ^2.34.4
   # Imported directly by the camera/permission widget tests, which mock the
   # platform interfaces rather than the plugin facades.

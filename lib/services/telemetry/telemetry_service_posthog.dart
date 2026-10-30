@@ -134,7 +134,7 @@ class PostHogTelemetryService implements TelemetryService {
         // the source rather than filtered after the fact.
         ..sessionReplay = false
         ..surveys = false
-        ..sendFeatureFlagEvents = false
+        ..sendFeatureFlagEvent = false
         ..preloadFeatureFlags = false
         ..capturePushNotificationSubscriptions = false
         ..capturePushNotificationOpened = false
@@ -172,7 +172,7 @@ class PostHogTelemetryService implements TelemetryService {
       // makes PostHog create a person profile complete with IP-derived city,
       // postal code and coordinates.
       await Posthog().reset();
-      await Posthog().enable();
+      await Posthog().optIn();
     } catch (e) {
       debugPrint('PostHogTelemetryService _configureSdk error: $e');
     }
@@ -257,7 +257,7 @@ class PostHogTelemetryService implements TelemetryService {
       // First contact with PostHog happens here, never earlier.
       await _configureSdk();
       if (_sdkConfigured) {
-        await Posthog().enable();
+        await Posthog().optIn();
       }
     } catch (e) {
       debugPrint('PostHogTelemetryService optIn error: $e');
@@ -271,7 +271,7 @@ class PostHogTelemetryService implements TelemetryService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefOptInKey, false);
       if (_sdkConfigured) {
-        await Posthog().disable();
+        await Posthog().optOut();
       }
     } catch (e) {
       debugPrint('PostHogTelemetryService optOut error: $e');

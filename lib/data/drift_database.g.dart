@@ -30772,17 +30772,16 @@ class $$ProfilesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (appSettingsRefs)
-                    await $_getPrefetchedData<Profile, $ProfilesTable,
-                            AppSetting>(
+                    await $_getPrefetchedDataByColumns<Profile, $ProfilesTable,
+                            AppSetting, $AppSettingsTable>(
                         currentTable: table,
                         referencedTable:
                             $$ProfilesTableReferences._appSettingsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ProfilesTableReferences(db, table, p0)
                                 .appSettingsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.userId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'user_id',
                         typedResults: items)
                 ];
               },
@@ -32170,69 +32169,76 @@ class $$ExercisesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (routineExercisesRefs)
-                    await $_getPrefetchedData<Exercise, $ExercisesTable,
-                            RoutineExercise>(
+                    await $_getPrefetchedDataByColumns<
+                            Exercise,
+                            $ExercisesTable,
+                            RoutineExercise,
+                            $RoutineExercisesTable>(
                         currentTable: table,
                         referencedTable: $$ExercisesTableReferences
                             ._routineExercisesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ExercisesTableReferences(db, table, p0)
                                 .routineExercisesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.exerciseId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'exercise_id',
                         typedResults: items),
                   if (setLogsRefs)
-                    await $_getPrefetchedData<Exercise, $ExercisesTable,
-                            SetLog>(
+                    await $_getPrefetchedDataByColumns<Exercise,
+                            $ExercisesTable, SetLog, $SetLogsTable>(
                         currentTable: table,
                         referencedTable:
                             $$ExercisesTableReferences._setLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ExercisesTableReferences(db, table, p0)
                                 .setLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.exerciseId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'exercise_id',
                         typedResults: items),
                   if (workoutExerciseLogsRefs)
-                    await $_getPrefetchedData<Exercise, $ExercisesTable,
-                            WorkoutExerciseLog>(
+                    await $_getPrefetchedDataByColumns<
+                            Exercise,
+                            $ExercisesTable,
+                            WorkoutExerciseLog,
+                            $WorkoutExerciseLogsTable>(
                         currentTable: table,
                         referencedTable: $$ExercisesTableReferences
                             ._workoutExerciseLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ExercisesTableReferences(db, table, p0)
                                 .workoutExerciseLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.exerciseId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'exercise_id',
                         typedResults: items),
                   if (pinnedExerciseNotesRefs)
-                    await $_getPrefetchedData<Exercise, $ExercisesTable,
-                            PinnedExerciseNote>(
+                    await $_getPrefetchedDataByColumns<
+                            Exercise,
+                            $ExercisesTable,
+                            PinnedExerciseNote,
+                            $PinnedExerciseNotesTable>(
                         currentTable: table,
                         referencedTable: $$ExercisesTableReferences
                             ._pinnedExerciseNotesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ExercisesTableReferences(db, table, p0)
                                 .pinnedExerciseNotesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.exerciseId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'exercise_id',
                         typedResults: items),
                   if (exerciseTranslationsRefs)
-                    await $_getPrefetchedData<Exercise, $ExercisesTable,
-                            ExerciseTranslation>(
+                    await $_getPrefetchedDataByColumns<
+                            Exercise,
+                            $ExercisesTable,
+                            ExerciseTranslation,
+                            $ExerciseTranslationsTable>(
                         currentTable: table,
                         referencedTable: $$ExercisesTableReferences
                             ._exerciseTranslationsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ExercisesTableReferences(db, table, p0)
                                 .exerciseTranslationsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.exerciseId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'exercise_id',
                         typedResults: items)
                 ];
               },
@@ -32596,30 +32602,28 @@ class $$RoutinesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (routineExercisesRefs)
-                    await $_getPrefetchedData<Routine, $RoutinesTable,
-                            RoutineExercise>(
+                    await $_getPrefetchedDataByColumns<Routine, $RoutinesTable,
+                            RoutineExercise, $RoutineExercisesTable>(
                         currentTable: table,
                         referencedTable: $$RoutinesTableReferences
                             ._routineExercisesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$RoutinesTableReferences(db, table, p0)
                                 .routineExercisesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.routineId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'routine_id',
                         typedResults: items),
                   if (workoutLogsRefs)
-                    await $_getPrefetchedData<Routine, $RoutinesTable,
-                            WorkoutLog>(
+                    await $_getPrefetchedDataByColumns<Routine, $RoutinesTable,
+                            WorkoutLog, $WorkoutLogsTable>(
                         currentTable: table,
                         referencedTable:
                             $$RoutinesTableReferences._workoutLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$RoutinesTableReferences(db, table, p0)
                                 .workoutLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.routineId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'routine_id',
                         typedResults: items)
                 ];
               },
@@ -33148,17 +33152,19 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (routineSetTemplatesRefs)
-                    await $_getPrefetchedData<RoutineExercise,
-                            $RoutineExercisesTable, RoutineSetTemplate>(
+                    await $_getPrefetchedDataByColumns<
+                            RoutineExercise,
+                            $RoutineExercisesTable,
+                            RoutineSetTemplate,
+                            $RoutineSetTemplatesTable>(
                         currentTable: table,
                         referencedTable: $$RoutineExercisesTableReferences
                             ._routineSetTemplatesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$RoutineExercisesTableReferences(db, table, p0)
                                 .routineSetTemplatesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.routineExerciseId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'routine_exercise_id',
                         typedResults: items)
                 ];
               },
@@ -34243,55 +34249,61 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (setLogsRefs)
-                    await $_getPrefetchedData<WorkoutLog, $WorkoutLogsTable,
-                            SetLog>(
+                    await $_getPrefetchedDataByColumns<WorkoutLog,
+                            $WorkoutLogsTable, SetLog, $SetLogsTable>(
                         currentTable: table,
                         referencedTable:
                             $$WorkoutLogsTableReferences._setLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$WorkoutLogsTableReferences(db, table, p0)
                                 .setLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.workoutLogId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'workout_log_id',
                         typedResults: items),
                   if (cardioActivitiesRefs)
-                    await $_getPrefetchedData<WorkoutLog, $WorkoutLogsTable,
-                            CardioActivity>(
+                    await $_getPrefetchedDataByColumns<
+                            WorkoutLog,
+                            $WorkoutLogsTable,
+                            CardioActivity,
+                            $CardioActivitiesTable>(
                         currentTable: table,
                         referencedTable: $$WorkoutLogsTableReferences
                             ._cardioActivitiesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$WorkoutLogsTableReferences(db, table, p0)
                                 .cardioActivitiesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.workoutLogId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'workout_log_id',
                         typedResults: items),
                   if (workoutExerciseLogsRefs)
-                    await $_getPrefetchedData<WorkoutLog, $WorkoutLogsTable, WorkoutExerciseLog>(
+                    await $_getPrefetchedDataByColumns<
+                            WorkoutLog,
+                            $WorkoutLogsTable,
+                            WorkoutExerciseLog,
+                            $WorkoutExerciseLogsTable>(
                         currentTable: table,
                         referencedTable: $$WorkoutLogsTableReferences
                             ._workoutExerciseLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$WorkoutLogsTableReferences(db, table, p0)
                                 .workoutExerciseLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.workoutLogId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'workout_log_id',
                         typedResults: items),
                   if (trainingPlanOccurrencesRefs)
-                    await $_getPrefetchedData<WorkoutLog, $WorkoutLogsTable,
-                            TrainingPlanOccurrence>(
+                    await $_getPrefetchedDataByColumns<
+                            WorkoutLog,
+                            $WorkoutLogsTable,
+                            TrainingPlanOccurrence,
+                            $TrainingPlanOccurrencesTable>(
                         currentTable: table,
                         referencedTable: $$WorkoutLogsTableReferences
                             ._trainingPlanOccurrencesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$WorkoutLogsTableReferences(db, table, p0)
                                 .trainingPlanOccurrencesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.workoutLogId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'workout_log_id',
                         typedResults: items)
                 ];
               },
@@ -35500,17 +35512,19 @@ class $$CardioActivitiesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (cardioSamplesRefs)
-                    await $_getPrefetchedData<CardioActivity,
-                            $CardioActivitiesTable, CardioSample>(
+                    await $_getPrefetchedDataByColumns<
+                            CardioActivity,
+                            $CardioActivitiesTable,
+                            CardioSample,
+                            $CardioSamplesTable>(
                         currentTable: table,
                         referencedTable: $$CardioActivitiesTableReferences
                             ._cardioSamplesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$CardioActivitiesTableReferences(db, table, p0)
                                 .cardioSamplesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.cardioActivityId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'cardio_activity_id',
                         typedResults: items)
                 ];
               },
@@ -36644,30 +36658,28 @@ class $$ProductsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (nutritionLogsRefs)
-                    await $_getPrefetchedData<Product, $ProductsTable,
-                            NutritionLog>(
+                    await $_getPrefetchedDataByColumns<Product, $ProductsTable,
+                            NutritionLog, $NutritionLogsTable>(
                         currentTable: table,
                         referencedTable: $$ProductsTableReferences
                             ._nutritionLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ProductsTableReferences(db, table, p0)
                                 .nutritionLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.productId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'product_id',
                         typedResults: items),
                   if (mealItemsRefs)
-                    await $_getPrefetchedData<Product, $ProductsTable,
-                            MealItem>(
+                    await $_getPrefetchedDataByColumns<Product, $ProductsTable,
+                            MealItem, $MealItemsTable>(
                         currentTable: table,
                         referencedTable:
                             $$ProductsTableReferences._mealItemsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$ProductsTableReferences(db, table, p0)
                                 .mealItemsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.productId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'product_id',
                         typedResults: items)
                 ];
               },
@@ -37222,17 +37234,19 @@ class $$OffProductsArchiveTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (nutritionLogsRefs)
-                    await $_getPrefetchedData<OffProductsArchiveData,
-                            $OffProductsArchiveTable, NutritionLog>(
+                    await $_getPrefetchedDataByColumns<
+                            OffProductsArchiveData,
+                            $OffProductsArchiveTable,
+                            NutritionLog,
+                            $NutritionLogsTable>(
                         currentTable: table,
                         referencedTable: $$OffProductsArchiveTableReferences
                             ._nutritionLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$OffProductsArchiveTableReferences(db, table, p0)
                                 .nutritionLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.archiveLocalId == item.localId),
+                        currentColumn: 'local_id',
+                        referencedColumn: 'archive_local_id',
                         typedResults: items)
                 ];
               },
@@ -37669,30 +37683,31 @@ class $$MealEntriesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (nutritionLogsRefs)
-                    await $_getPrefetchedData<MealEntry, $MealEntriesTable,
-                            NutritionLog>(
+                    await $_getPrefetchedDataByColumns<
+                            MealEntry,
+                            $MealEntriesTable,
+                            NutritionLog,
+                            $NutritionLogsTable>(
                         currentTable: table,
                         referencedTable: $$MealEntriesTableReferences
                             ._nutritionLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$MealEntriesTableReferences(db, table, p0)
                                 .nutritionLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.mealEntryId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'meal_entry_id',
                         typedResults: items),
                   if (macroEntriesRefs)
-                    await $_getPrefetchedData<MealEntry, $MealEntriesTable,
-                            MacroEntry>(
+                    await $_getPrefetchedDataByColumns<MealEntry,
+                            $MealEntriesTable, MacroEntry, $MacroEntriesTable>(
                         currentTable: table,
                         referencedTable: $$MealEntriesTableReferences
                             ._macroEntriesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$MealEntriesTableReferences(db, table, p0)
                                 .macroEntriesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.mealEntryId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'meal_entry_id',
                         typedResults: items)
                 ];
               },
@@ -38369,30 +38384,31 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (supplementLogsRefs)
-                    await $_getPrefetchedData<NutritionLog, $NutritionLogsTable,
-                            SupplementLog>(
+                    await $_getPrefetchedDataByColumns<
+                            NutritionLog,
+                            $NutritionLogsTable,
+                            SupplementLog,
+                            $SupplementLogsTable>(
                         currentTable: table,
                         referencedTable: $$NutritionLogsTableReferences
                             ._supplementLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$NutritionLogsTableReferences(db, table, p0)
                                 .supplementLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems.where(
-                                (e) => e.sourceNutritionLogId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'source_nutrition_log_id',
                         typedResults: items),
                   if (fluidLogsRefs)
-                    await $_getPrefetchedData<NutritionLog, $NutritionLogsTable,
-                            FluidLog>(
+                    await $_getPrefetchedDataByColumns<NutritionLog,
+                            $NutritionLogsTable, FluidLog, $FluidLogsTable>(
                         currentTable: table,
                         referencedTable: $$NutritionLogsTableReferences
                             ._fluidLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$NutritionLogsTableReferences(db, table, p0)
                                 .fluidLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems.where(
-                                (e) => e.linkedNutritionLogId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'linked_nutrition_log_id',
                         typedResults: items)
                 ];
               },
@@ -38983,17 +38999,16 @@ class $$MacroEntriesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (fluidLogsRefs)
-                    await $_getPrefetchedData<MacroEntry, $MacroEntriesTable,
-                            FluidLog>(
+                    await $_getPrefetchedDataByColumns<MacroEntry,
+                            $MacroEntriesTable, FluidLog, $FluidLogsTable>(
                         currentTable: table,
                         referencedTable: $$MacroEntriesTableReferences
                             ._fluidLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$MacroEntriesTableReferences(db, table, p0)
                                 .fluidLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.linkedMacroEntryId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'linked_macro_entry_id',
                         typedResults: items)
                 ];
               },
@@ -39441,30 +39456,34 @@ class $$SupplementsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (supplementLogsRefs)
-                    await $_getPrefetchedData<Supplement, $SupplementsTable,
-                            SupplementLog>(
+                    await $_getPrefetchedDataByColumns<
+                            Supplement,
+                            $SupplementsTable,
+                            SupplementLog,
+                            $SupplementLogsTable>(
                         currentTable: table,
                         referencedTable: $$SupplementsTableReferences
                             ._supplementLogsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$SupplementsTableReferences(db, table, p0)
                                 .supplementLogsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.supplementId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'supplement_id',
                         typedResults: items),
                   if (supplementSettingsHistoryRefs)
-                    await $_getPrefetchedData<Supplement, $SupplementsTable,
-                            SupplementSettingsHistoryData>(
+                    await $_getPrefetchedDataByColumns<
+                            Supplement,
+                            $SupplementsTable,
+                            SupplementSettingsHistoryData,
+                            $SupplementSettingsHistoryTable>(
                         currentTable: table,
                         referencedTable: $$SupplementsTableReferences
                             ._supplementSettingsHistoryRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$SupplementsTableReferences(db, table, p0)
                                 .supplementSettingsHistoryRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.supplementId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'supplement_id',
                         typedResults: items)
                 ];
               },
@@ -40695,17 +40714,16 @@ class $$MeasurementsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (userGoalsRefs)
-                    await $_getPrefetchedData<Measurement, $MeasurementsTable,
-                            UserGoal>(
+                    await $_getPrefetchedDataByColumns<Measurement,
+                            $MeasurementsTable, UserGoal, $UserGoalsTable>(
                         currentTable: table,
                         referencedTable: $$MeasurementsTableReferences
                             ._userGoalsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$MeasurementsTableReferences(db, table, p0)
                                 .userGoalsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems.where(
-                                (e) => e.baselineMeasurementId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'baseline_measurement_id',
                         typedResults: items)
                 ];
               },
@@ -41020,17 +41038,16 @@ class $$PostsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (socialInteractionsRefs)
-                    await $_getPrefetchedData<Post, $PostsTable,
-                            SocialInteraction>(
+                    await $_getPrefetchedDataByColumns<Post, $PostsTable,
+                            SocialInteraction, $SocialInteractionsTable>(
                         currentTable: table,
                         referencedTable: $$PostsTableReferences
                             ._socialInteractionsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$PostsTableReferences(db, table, p0)
                                 .socialInteractionsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.postId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'post_id',
                         typedResults: items)
                 ];
               },
@@ -41675,15 +41692,15 @@ class $$MealsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (mealItemsRefs)
-                    await $_getPrefetchedData<Meal, $MealsTable, MealItem>(
+                    await $_getPrefetchedDataByColumns<Meal, $MealsTable,
+                            MealItem, $MealItemsTable>(
                         currentTable: table,
                         referencedTable:
                             $$MealsTableReferences._mealItemsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$MealsTableReferences(db, table, p0).mealItemsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.mealId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'meal_id',
                         typedResults: items)
                 ];
               },
@@ -44671,19 +44688,19 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (userFoodOverrideTranslationsRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                             UserFoodOverride,
                             $UserFoodOverridesTable,
-                            UserFoodOverrideTranslation>(
+                            UserFoodOverrideTranslation,
+                            $UserFoodOverrideTranslationsTable>(
                         currentTable: table,
                         referencedTable: $$UserFoodOverridesTableReferences
                             ._userFoodOverrideTranslationsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$UserFoodOverridesTableReferences(db, table, p0)
                                 .userFoodOverrideTranslationsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.userFoodOverrideId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'user_food_override_id',
                         typedResults: items)
                 ];
               },
@@ -47643,30 +47660,28 @@ class $$UserGoalsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (goalEventsRefs)
-                    await $_getPrefetchedData<UserGoal, $UserGoalsTable,
-                            GoalEvent>(
+                    await $_getPrefetchedDataByColumns<UserGoal,
+                            $UserGoalsTable, GoalEvent, $GoalEventsTable>(
                         currentTable: table,
                         referencedTable:
                             $$UserGoalsTableReferences._goalEventsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$UserGoalsTableReferences(db, table, p0)
                                 .goalEventsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.goalId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'goal_id',
                         typedResults: items),
                   if (goalReviewsRefs)
-                    await $_getPrefetchedData<UserGoal, $UserGoalsTable,
-                            GoalReview>(
+                    await $_getPrefetchedDataByColumns<UserGoal,
+                            $UserGoalsTable, GoalReview, $GoalReviewsTable>(
                         currentTable: table,
                         referencedTable: $$UserGoalsTableReferences
                             ._goalReviewsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$UserGoalsTableReferences(db, table, p0)
                                 .goalReviewsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.goalId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'goal_id',
                         typedResults: items)
                 ];
               },
@@ -49080,43 +49095,49 @@ class $$TrainingPlansTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (trainingPlanRevisionsRefs)
-                    await $_getPrefetchedData<TrainingPlan, $TrainingPlansTable,
-                            TrainingPlanRevision>(
+                    await $_getPrefetchedDataByColumns<
+                            TrainingPlan,
+                            $TrainingPlansTable,
+                            TrainingPlanRevision,
+                            $TrainingPlanRevisionsTable>(
                         currentTable: table,
                         referencedTable: $$TrainingPlansTableReferences
                             ._trainingPlanRevisionsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$TrainingPlansTableReferences(db, table, p0)
                                 .trainingPlanRevisionsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.planId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'plan_id',
                         typedResults: items),
                   if (trainingPlanActivationsRefs)
-                    await $_getPrefetchedData<TrainingPlan, $TrainingPlansTable,
-                            TrainingPlanActivation>(
+                    await $_getPrefetchedDataByColumns<
+                            TrainingPlan,
+                            $TrainingPlansTable,
+                            TrainingPlanActivation,
+                            $TrainingPlanActivationsTable>(
                         currentTable: table,
                         referencedTable: $$TrainingPlansTableReferences
                             ._trainingPlanActivationsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$TrainingPlansTableReferences(db, table, p0)
                                 .trainingPlanActivationsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.planId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'plan_id',
                         typedResults: items),
                   if (trainingPlanOccurrencesRefs)
-                    await $_getPrefetchedData<TrainingPlan, $TrainingPlansTable,
-                            TrainingPlanOccurrence>(
+                    await $_getPrefetchedDataByColumns<
+                            TrainingPlan,
+                            $TrainingPlansTable,
+                            TrainingPlanOccurrence,
+                            $TrainingPlanOccurrencesTable>(
                         currentTable: table,
                         referencedTable: $$TrainingPlansTableReferences
                             ._trainingPlanOccurrencesRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$TrainingPlansTableReferences(db, table, p0)
                                 .trainingPlanOccurrencesRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.planId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'plan_id',
                         typedResults: items)
                 ];
               },
@@ -49543,10 +49564,11 @@ class $$TrainingPlanRevisionsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (trainingPlanOccurrencesRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                             TrainingPlanRevision,
                             $TrainingPlanRevisionsTable,
-                            TrainingPlanOccurrence>(
+                            TrainingPlanOccurrence,
+                            $TrainingPlanOccurrencesTable>(
                         currentTable: table,
                         referencedTable: $$TrainingPlanRevisionsTableReferences
                             ._trainingPlanOccurrencesRefsTable(db),
@@ -49554,9 +49576,8 @@ class $$TrainingPlanRevisionsTableTableManager extends RootTableManager<
                             $$TrainingPlanRevisionsTableReferences(
                                     db, table, p0)
                                 .trainingPlanOccurrencesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.revisionId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'revision_id',
                         typedResults: items)
                 ];
               },
@@ -49983,10 +50004,11 @@ class $$TrainingPlanActivationsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (trainingPlanOccurrencesRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                             TrainingPlanActivation,
                             $TrainingPlanActivationsTable,
-                            TrainingPlanOccurrence>(
+                            TrainingPlanOccurrence,
+                            $TrainingPlanOccurrencesTable>(
                         currentTable: table,
                         referencedTable:
                             $$TrainingPlanActivationsTableReferences
@@ -49995,9 +50017,8 @@ class $$TrainingPlanActivationsTableTableManager extends RootTableManager<
                             $$TrainingPlanActivationsTableReferences(
                                     db, table, p0)
                                 .trainingPlanOccurrencesRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.activationId == item.id),
+                        currentColumn: 'id',
+                        referencedColumn: 'activation_id',
                         typedResults: items)
                 ];
               },

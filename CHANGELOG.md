@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Updated PostHog and compatible Flutter dependencies, including file picking, fonts, and loading placeholders; migrated telemetry calls to the current PostHog API.
 - Updated the user guides and feature documentation for direct AI nutrition estimates, manual macros, health nutrition imports, AI data access, and current catalog languages and regions.
 - AI chat resumes recent conversations and starts a fresh chat after 30 minutes away, while preserving drafts, ongoing responses, and pending data approvals.
 - Improved AI chat sidebar swipes with velocity-aware settling, more reliable vertical scrolling, and a dimmed, rounded chat surface while the sidebar is open.
