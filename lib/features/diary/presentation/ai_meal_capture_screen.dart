@@ -137,7 +137,15 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   // Photo state
   final List<File> _images = [];
   final Map<String, DepthCaptureResult> _depthCaptures = {};
-  DepthCaptureResult? _lastDepthCapture;
+  // Only use depth belonging to a photo still included in the request.
+  DepthCaptureResult? get _lastDepthCapture {
+    for (final image in _images.reversed) {
+      final capture = _depthCaptures[image.path];
+      if (capture != null) return capture;
+    }
+    return null;
+  }
+
   static const int _maxImages = 4;
   final PhotoPreProcessor _preProcessor = PhotoPreProcessor();
 
@@ -604,7 +612,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (res != null && mounted) {
         final capture = res;
         setState(() {
-          _lastDepthCapture = capture;
           _depthCaptures[capture.imageFile.path] = capture;
           _images.add(capture.imageFile);
           _distanceHint =
@@ -878,6 +885,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       // around: the band scale is fitted to the frame, so it only exists once the
       // capture it belongs to does.
       final depthMap = await depthReady;
+      final depthPhotoIndex = _lastDepthCapture == null
+          ? -1
+          : _images.indexWhere(
+              (image) => image.path == _lastDepthCapture!.imageFile.path);
+      final depthLegend = depthMap == null || depthPhotoIndex < 0
+          ? null
+          : 'This depth map corresponds to meal photo ${depthPhotoIndex + 1} '
+              '(counting meal photos in order). ${depthMap.describeForPrompt()}';
       if (!mounted || _analysisCancelled) return;
 
       if (_analysisCancelled) return;
@@ -1061,8 +1076,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     textHint: text.isNotEmpty ? text : null,
                     languageCode: matchingContext.appLanguage,
                     depthFacts: depthFacts,
+                    depthPhotoIndex: depthPhotoIndex,
                     depthMap: depthMap?.file,
-                    depthMapLegend: depthMap?.describeForPrompt(),
+                    depthMapLegend: depthLegend,
                     usageCollector: usageCollector,
                   )
                 : AiService.instance.analyzeDirectNutritionText(
@@ -1076,8 +1092,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     textHint: text.isNotEmpty ? text : null,
                     matchingContext: matchingContext,
                     depthFacts: depthFacts,
+                    depthPhotoIndex: depthPhotoIndex,
                     depthMap: depthMap?.file,
-                    depthMapLegend: depthMap?.describeForPrompt(),
+                    depthMapLegend: depthLegend,
                     usageCollector: usageCollector,
                   )
                 : AiService.instance.analyzeText(

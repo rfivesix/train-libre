@@ -275,30 +275,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     return l10n.mealFallbackTitle;
   }
 
-  String _getLocalizedMealName(BuildContext context, String key) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (key.toLowerCase()) {
-      case 'mealtypebreakfast':
-      case 'breakfast':
-      case 'frühstück':
-        return l10n.mealtypeBreakfast;
-      case 'mealtypelunch':
-      case 'lunch':
-      case 'mittagessen':
-        return l10n.mealtypeLunch;
-      case 'mealtypedinner':
-      case 'dinner':
-      case 'abendessen':
-        return l10n.mealtypeDinner;
-      case 'mealtypesnack':
-      case 'snack':
-      case 'snacks':
-        return l10n.mealtypeSnack;
-      default:
-        return key;
-    }
-  }
-
   /// Lets the user correct when the meal happened before it is written.
   ///
   /// Nothing is in the diary yet at this point, so this only moves the
@@ -1445,7 +1421,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       _selectedTimestamp,
       locale: Localizations.localeOf(context).toString(),
     );
-    final localizedMealType = _getLocalizedMealName(context, _selectedMealType);
     final mealTitle = _getDerivedMealTitle(context);
     final tokenUsageText = _tokenUsageLabel(l10n);
     final photoHeight = (MediaQuery.sizeOf(context).height * 0.58)
@@ -1462,58 +1437,55 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                mealTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                  color: titleColor,
+                ),
+              ),
               Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      mealTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 17,
-                        color: titleColor,
+                  Flexible(
+                    child: InkWell(
+                      key: const ValueKey('ai_review_pinned_timestamp_button'),
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: _pickTimestamp,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 1),
+                        child: Text(
+                          timeStr,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                            color: subtitleColor,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  if (tokenUsageText != null) ...[
-                    const SizedBox(width: 8),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 120),
+                  if (tokenUsageText != null)
+                    Flexible(
                       child: Text(
-                        tokenUsageText,
+                        ' · $tokenUsageText',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: 'Inter',
-                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
                           color: subtitleColor,
                         ),
                       ),
                     ),
-                  ],
                 ],
-              ),
-              InkWell(
-                key: const ValueKey('ai_review_pinned_timestamp_button'),
-                borderRadius: BorderRadius.circular(8),
-                onTap: _pickTimestamp,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  child: Text(
-                    '$localizedMealType · $timeStr',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w500,
-                      fontSize: 13,
-                      color: subtitleColor,
-                    ),
-                  ),
-                ),
               ),
               if (!_scanFailed)
                 Skeletonizer(

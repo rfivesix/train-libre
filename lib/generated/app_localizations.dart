@@ -5679,13 +5679,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiReviewTokensUsed.
   ///
   /// In en, this message translates to:
-  /// **'AI usage: {count} tokens'**
+  /// **'{count} tokens'**
   String aiReviewTokensUsed(int count);
 
   /// No description provided for @aiReviewTokensPending.
   ///
   /// In en, this message translates to:
-  /// **'AI usage: updating…'**
+  /// **'updating…'**
   String get aiReviewTokensPending;
 
   /// No description provided for @aiReviewTokensUnknown.

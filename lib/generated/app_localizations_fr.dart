@@ -3164,11 +3164,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'Utilisation de l’IA : $count jetons';
+    return '$count jetons';
   }
 
   @override
-  String get aiReviewTokensPending => 'Utilisation de l’IA : mise à jour…';
+  String get aiReviewTokensPending => 'mise à jour…';
 
   @override
   String get aiReviewTokensUnknown => 'Utilisation de l’IA : indisponible';

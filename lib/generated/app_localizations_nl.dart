@@ -3145,11 +3145,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'AI-gebruik: $count tokens';
+    return '$count tokens';
   }
 
   @override
-  String get aiReviewTokensPending => 'AI-gebruik: wordt bijgewerkt…';
+  String get aiReviewTokensPending => 'wordt bijgewerkt…';
 
   @override
   String get aiReviewTokensUnknown => 'AI-gebruik: niet beschikbaar';

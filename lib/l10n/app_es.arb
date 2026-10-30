@@ -1264,7 +1264,7 @@
   "aiReviewAddItem": "Añadir alimento manualmente",
   "aiReviewReplaceItem": "Sustituir alimento",
   "aiReviewSaveToDiary": "Guardar en el diario",
-  "aiReviewTokensUsed": "Uso de IA: {count} tokens",
+  "aiReviewTokensUsed": "{count} tokens",
   "@aiReviewTokensUsed": {
     "placeholders": {
       "count": {
@@ -1272,7 +1272,7 @@
       }
     }
   },
-  "aiReviewTokensPending": "Uso de IA: actualizando…",
+  "aiReviewTokensPending": "actualizando…",
   "aiReviewTokensUnknown": "Uso de IA: no disponible",
   "aiReviewPreliminaryNutrition": "Información nutricional preliminar: aún se está comprobando.",
   "aiReviewScanFailed": "No se ha podido completar el análisis. Vuelve atrás e inténtalo de nuevo.",

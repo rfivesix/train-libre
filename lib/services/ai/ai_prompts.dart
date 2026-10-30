@@ -133,16 +133,16 @@ BLS BASE-FOOD CATALOG NAMING:
     if (depthFacts != null && depthFacts.isValid) {
       depthBlockBuffer.write('''
 
-LIDAR SCALE MEASUREMENT (measured, not estimated — trust these numbers over visual impression):
+LIDAR SCENE SCALE (approximate, derived from depth and camera calibration):
 - Distance: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm. Visible frame: ${depthFacts.frameWidthCm.toStringAsFixed(0)} x ${depthFacts.frameHeightCm.toStringAsFixed(0)} cm.
-- Nearest surface: ${depthFacts.nearCm.toStringAsFixed(0)} cm, farthest: ${depthFacts.farCm.toStringAsFixed(0)} cm.
-Use this to calibrate the absolute portion size and plate dimensions.''');
+- Near and far scene depth percentiles: ${depthFacts.nearCm.toStringAsFixed(0)} and ${depthFacts.farCm.toStringAsFixed(0)} cm.
+The frame dimensions are at the central subject distance, not a measurement of the plate or food. Use them as approximate scale cues; scene surfaces and camera angle can affect them.''');
     }
 
     if (depthMapLegend != null && depthMapLegend.trim().isNotEmpty) {
       depthBlockBuffer.write('''
 
-DEPTH MAP IMAGE: The attached relief image indicates physical food height/volume. $depthMapLegend''');
+DEPTH MAP IMAGE: This is camera-to-surface distance, not a measured food height or volume. Camera angle and the plate or background also affect depth. Use it cautiously alongside the corresponding photo; do not treat scene depth differences as food height. $depthMapLegend''');
     }
 
     final langRule = langRuleBuffer.toString();
@@ -177,11 +177,13 @@ CRITICAL RULES:
 1. Decompose EVERY meal into its atomic, single ingredient components (e.g. "Reis", "Hähnchenfleisch", "Tomaten", "Zwiebeln", "Olivenöl", "Käse").
 2. Do NOT return composite meal names as ingredients (e.g. NEVER return "Sandwich mit Fleisch", "Döner", "Pizza" inside items). Always separate bread, meat, vegetables, cheese, sauce.
 3. Use SIMPLE, SHORT base food names only (e.g. "Reis" not "Gebratener Basmatireis", "Ei" not "Gekochtes Hühnerei", "Tomaten" not "Reife Tomatenscheiben"). Keep names generic so they match local nutrition databases reliably.
-4. Estimate weights in grams realistically. Calibrate to the whole serving (a standard full main meal typically weighs 350–700g total).
+4. Estimate the entire visible or described serving, including heaped, deep, stacked or unusually large portions. Use visible dimensions, depth cues when available, and reasonable food density; do not assume a standard serving or cap the total. Respect explicit user-provided quantities. Check that component weights together plausibly account for the whole serving without double counting.
 5. The database commonly stores nutrition for RAW or UNPREPARED food. Provide both "servedGrams" (visible cooked/eaten weight) and "estimatedGrams" (raw equivalent weight used for database lookup). For raw or non-swelling foods, both numbers are identical.
 6. Provide "stateHint" ("cooked", "raw", "fried", "baked", "boiled", "grilled") to resolve the correct database preparation state.
 7. Provide 1-2 specific "searchTerms" for each item using only synonyms of the ingredient itself. Include a canonical BLS term when its formal catalog wording differs from everyday wording. NEVER use broad category words like "fruit", "vegetable", "dairy", "starch", "topping", "snack" as search terms.
 8. Consolidate duplicate items into a single entry with total combined weight.$langRule
+
+If providing expectedKcalRange, estimate it for this entire serving, including unusually large portions; do not use the example values as a default.
 
 $catalogNamingGuidance
 
@@ -239,12 +241,12 @@ Rules:
     final anchorBlock = mealContext != null
         ? '\n\nMEAL CONTEXT ANCHOR:\n'
             '- Dish: ${mealContext.dishType}\n'
-            '- Target calories: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]} kcal\n'
-            '- Target macros: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
+            '- Estimated calories: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]} kcal\n'
+            '- Estimated macros: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
             'C${mealContext.expectedMacroProfile["carbsPercent"]}% '
             'F${mealContext.expectedMacroProfile["fatPercent"]}%\n'
             '- Cooking: ${mealContext.cookingMethod ?? "unknown"}\n'
-            'Adjust portion grams so the total calories match this target.'
+            'These are uncertain AI estimates, not targets that override the visible portion or user-provided quantities.'
         : '';
 
     final depthBlock = (depthFacts != null && depthFacts.isValid)
@@ -257,7 +259,7 @@ You are repairing an AI meal candidate after deterministic local database valida
 RULES:
 1. When CANDIDATES are listed for an item, pick the EXACT name and [id] from that item's list. Return the [id] as `matchedBarcode`, including for base foods. This selects a supplied catalog entry; it is not evidence of packaging. For generic ingredients prefer a suitable [base] candidate. Use [off] only when no suitable base candidate exists or original packaged-product evidence identifies that product.
 2. If no candidates are listed, use simple, generic base food names in "$effectiveLang" that exist in standard nutrition tables.
-3. Adjust portion weights (`servedGrams` and `estimatedGrams`) so the overall meal calories align with the target meal context.
+3. Change portion weights (`servedGrams` and `estimatedGrams`) only when the feedback or available evidence supports it. Do not force weights to match the uncertain calorie range; preserve explicit user quantities.
 4. Keep names simple and in the "$effectiveLang" language.
 5. For generic ingredient matching, include the German BLS food-class term in `searchTerms` when the everyday term differs from the source catalog wording. Preserve the correct composition and preparation state.
 6. Do NOT output calorie numbers in the JSON array.$anchorBlock$depthBlock

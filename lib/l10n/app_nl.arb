@@ -1264,7 +1264,7 @@
   "aiReviewAddItem": "Voedingsmiddel handmatig toevoegen",
   "aiReviewReplaceItem": "Voedingsmiddel vervangen",
   "aiReviewSaveToDiary": "Opslaan in dagboek",
-  "aiReviewTokensUsed": "AI-gebruik: {count} tokens",
+  "aiReviewTokensUsed": "{count} tokens",
   "@aiReviewTokensUsed": {
     "placeholders": {
       "count": {
@@ -1272,7 +1272,7 @@
       }
     }
   },
-  "aiReviewTokensPending": "AI-gebruik: wordt bijgewerkt…",
+  "aiReviewTokensPending": "wordt bijgewerkt…",
   "aiReviewTokensUnknown": "AI-gebruik: niet beschikbaar",
   "aiReviewPreliminaryNutrition": "Voorlopige voedingswaarden: controle loopt nog.",
   "aiReviewScanFailed": "De scan kon niet worden voltooid. Ga terug en probeer het opnieuw.",

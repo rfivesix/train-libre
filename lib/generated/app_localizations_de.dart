@@ -3137,11 +3137,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'KI-Nutzung: $count Tokens';
+    return '$count Tokens';
   }
 
   @override
-  String get aiReviewTokensPending => 'KI-Nutzung: wird aktualisiert…';
+  String get aiReviewTokensPending => 'wird aktualisiert…';
 
   @override
   String get aiReviewTokensUnknown => 'KI-Nutzung: nicht verfügbar';

@@ -747,6 +747,7 @@ class AiService {
     String? languageCode,
     AiMatchingContext? matchingContext,
     DepthScaleFacts? depthFacts,
+    int? depthPhotoIndex,
     File? depthMap,
     String? depthMapLegend,
     AiUsageCollector? usageCollector,
@@ -770,7 +771,7 @@ class AiService {
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
-      systemPrompt: prompt,
+      systemPrompt: '$prompt${_depthPhotoContext(depthFacts, depthPhotoIndex)}',
       images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.3,
       usageCollector: usageCollector,
@@ -814,6 +815,7 @@ class AiService {
     String? textHint,
     String? languageCode,
     DepthScaleFacts? depthFacts,
+    int? depthPhotoIndex,
     File? depthMap,
     String? depthMapLegend,
     AiUsageCollector? usageCollector,
@@ -830,7 +832,7 @@ class AiService {
       userContent: textHint?.trim().isNotEmpty == true
           ? 'Meal description: $textHint. Estimate the visible ingredients and their nutrition.'
           : 'Analyze the meal and estimate each ingredient and its nutrition.',
-      systemPrompt: prompt,
+      systemPrompt: '$prompt${_depthPhotoContext(depthFacts, depthPhotoIndex)}',
       images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.25,
       usageCollector: usageCollector,
@@ -955,17 +957,26 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
     final language = languageCode ?? 'de';
     final depth = depthFacts == null || !depthFacts.isValid
         ? ''
-        : '\nUse the valid LiDAR portion scale as a weight cue: ${depthFacts.toMap()}.';
+        : '\nUse this approximate LiDAR scene scale as a size cue: ${depthFacts.toMap()}. Frame dimensions apply at the central subject distance, not directly to the plate or food.';
     final depthMap = depthMapLegend == null
         ? ''
-        : '\nA depth image follows the meal photos. Use it only as a portion-size cue: $depthMapLegend.';
+        : '\nA depth image follows the meal photos. It shows camera-to-surface distance, not food height or volume; camera angle and background affect it. Use it cautiously as a size cue: $depthMapLegend.';
     return '''You are a nutrition estimation engine. Analyze the meal and return atomic ingredients with estimated eaten weight and nutrient values per 100 g. Write all food names and meal title in $language.$depth$depthMap
 
 Do not search, cite, or imitate any food database or branded catalog entry. Estimate the actual visible/prepared food. Break composite meals into useful ingredients without inventing tiny ingredients that cannot be distinguished.
+Estimate the entire visible or described serving, including heaped, deep, stacked or unusually large portions. Use visible dimensions, depth cues when available, and reasonable food density; do not assume a standard serving or cap the total. Respect explicit user-provided quantities. Check that component weights plausibly account for the whole serving without double counting.
 Include every consumed food and drink. For each item include `name`, `estimatedGrams` (positive integer, or millilitres for drinks), `servedGrams` (positive integer), `isFluid` (true for drinks, false for foods), `confidence` (0..1), and `nutritionPer100g` (or per 100ml for drinks) with `protein`, `carbs`, and `fat` as non-negative numbers. Include `sugar`, `fiber`, `salt`, or `caffeine` only when you can make a reasonable estimate; otherwise use null or omit the field. Do not return calories: the app calculates calories from the three macros using 4/4/9.
 Return only JSON, with a top-level `dishType` and `items` array:
 {"dishType":"Meal title","items":[{"name":"ingredient","estimatedGrams":120,"servedGrams":120,"isFluid":false,"confidence":0.8,"nutritionPer100g":{"protein":10.2,"carbs":15.5,"fat":6.1,"sugar":2.0,"fiber":1.3,"salt":0.4,"caffeine":0}}]}''';
   }
+
+  String _depthPhotoContext(DepthScaleFacts? facts, int? index) => facts
+                  ?.isValid ==
+              true &&
+          index != null &&
+          index >= 0
+      ? '\nThe LiDAR scene scale corresponds to meal photo ${index + 1} (counting meal photos in order).'
+      : '';
 
   /// Turns a raw dictation transcript into bullets, correcting mishearings.
   ///

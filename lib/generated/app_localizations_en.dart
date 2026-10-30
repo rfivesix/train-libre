@@ -3122,11 +3122,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'AI usage: $count tokens';
+    return '$count tokens';
   }
 
   @override
-  String get aiReviewTokensPending => 'AI usage: updating…';
+  String get aiReviewTokensPending => 'updating…';
 
   @override
   String get aiReviewTokensUnknown => 'AI usage: unavailable';

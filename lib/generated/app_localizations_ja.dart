@@ -3057,11 +3057,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String aiReviewTokensUsed(int count) {
-    return 'AI使用量: $countトークン';
+    return '$countトークン';
   }
 
   @override
-  String get aiReviewTokensPending => 'AI使用量: 更新中…';
+  String get aiReviewTokensPending => '更新中…';
 
   @override
   String get aiReviewTokensUnknown => 'AI使用量: 取得できません';
