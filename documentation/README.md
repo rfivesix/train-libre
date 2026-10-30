@@ -6,6 +6,8 @@ This suite has three sections for different readers. Use the [public documentati
 
 For people using the app who need task-based instructions, including workouts, plans, nutrition, statistics, notifications, health data, and backups, start with the [User Guide overview](user_guide/overview.md).
 
+Start with [Use the AI assistant](user_guide/ai_chat.md) for setup, questions about your records, data access, photos, and reviewed changes.
+
 For AI-assisted routines, see [Create a workout routine with an AI assistant](user_guide/ai_workout_routines.md) or its [public guide page](https://trainlibre.com/docs/user-guide/ai-workout-routines/). It uses the existing routine import format and the [OpenExerciseDB exercise search](https://rfivesix.github.io/OpenExerciseDB/exercise-search.html) and [JSON catalog](https://rfivesix.github.io/OpenExerciseDB/exercises.json) for exercise IDs.
 
 To log a meal from text or chat photos with a reviewed macro estimate, see [Log food with the AI chat](user_guide/ai_chat_food_logging.md). The assistant's data-access and write boundaries are documented in [AI assistant data access and change proposals](features/ai_assistant_data_access.md) and [AI assistant meal logging](features/ai_assistant_meal_logging.md).

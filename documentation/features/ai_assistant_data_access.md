@@ -4,14 +4,15 @@ The floating assistant stores chat history locally. It can answer ordinary
 questions, request a limited read of app data, and prepare supported change
 proposals. Model output never directly writes a record.
 
+For step-by-step setup, questions, permissions, photos, and draft review, see [Use the AI assistant](../user_guide/ai_chat.md).
+
 ## Reading app data
 
 For data questions, the intent planner asks for the smallest useful data
-categories and date scope. Before any app records are retrieved or sent to a
-model, the overlay shows the requested categories and period. **Allow once**
+categories and date scope. Unless automatic approval is enabled, before app records are retrieved or sent to a
+model the overlay shows the requested categories and period. **Allow once**
 approves that request; **Deny** sends no app records. Pending approvals expire
-after 30 minutes. Follow-up questions require new approval. Previous
-data-grounded answers and records are excluded from later interpretation.
+after 30 minutes. Follow-up questions require new approval. Follow-ups may use a previous data-grounded answer as context after fresh approval of overlapping data for the same provider.
 
 After approval, selected records are copied into a separate, in-memory SQLite
 database in a disposable isolate. The model receives the schema and column
@@ -24,9 +25,7 @@ bounded, and a failed read does not send partial records.
 The local **Data access** audit records request and decision times,
 provider/model, status, queried tables, result fields and row counts,
 truncation state, and hashes of SQL and provider-bound results. It stores this
-manifest rather than another copy of personal records. The selected provider
-is used; on-device generation is available only when that provider is
-available on the device.
+manifest rather than another copy of personal records. Text chat can fall back to another configured provider; image-bearing chat uses a separate selected-provider check. The recipient can change if configuration changes, so review AI settings. On-device generation is available only when the relevant provider is available on the device.
 
 ## Supported changes
 

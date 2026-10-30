@@ -265,6 +265,15 @@ DOCS_STRUCTURE = [
                 "desc": "Create reusable workout routines, organize exercises, and update saved templates."
             },
             {
+                "id": "user-guide-ai-chat",
+                "title": "Use the AI assistant",
+                "slug": "ai-chat",
+                "src_file": SRC_DOC_DIR / "user_guide" / "ai_chat.md",
+                "out_dir": OUTPUT_DOCS_DIR / "user-guide" / "ai-chat",
+                "url": "/docs/user-guide/ai-chat/",
+                "desc": "Set up AI chat, ask about app data, review permissions, images, and proposed changes."
+            },
+            {
                 "id": "user-guide-ai-workout-routines",
                 "title": "Create a workout routine with an AI assistant",
                 "slug": "ai-workout-routines",
@@ -1189,7 +1198,9 @@ def write_sitemap(all_items: list[dict]) -> None:
         "/",
         "/about.html",
         "/privacy.html",
+        *[f"/privacy-{language}.html" for language in ("de", "fr", "it", "ja")],
         "/terms.html",
+        *[f"/terms-{language}.html" for language in ("de", "fr", "it", "ja")],
         "/support.html",
         "/impressum.html",
     ] + [item["url"] for item in all_items]

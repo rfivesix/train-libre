@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.7.0] - unreleased
 
 ### Added
+- Added a dedicated AI assistant user guide covering setup, data access, reviewed changes, photos, and chat history.
 - Added Spanish and Dutch as app localization targets, including selectable base-food display language preferences and locale-aware automatic selection.
 - Added Spanish and Dutch translations for active exercise names, descriptions, and search terms in the OpenExerciseDB catalog.
 - Added Spanish and Dutch names and category labels to BLS schema 3, with local database migration and localized search/display support.
@@ -26,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Updated the user guides and feature documentation for direct AI nutrition estimates, manual macros, health nutrition imports, AI data access, and current catalog languages and regions.
 - AI chat resumes recent conversations and starts a fresh chat after 30 minutes away, while preserving drafts, ongoing responses, and pending data approvals.
 - Improved AI chat sidebar swipes with velocity-aware settling, more reliable vertical scrolling, and a dimmed, rounded chat surface while the sidebar is open.
 - Prepared the 1.7.0 beta release and updated TestFlight testing priorities; iOS builds resolve the matching beta notes from their numeric marketing version.
@@ -77,6 +79,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Preserve localized privacy and terms pages in the generated website sitemap when syncing documentation.
 - Fixed potential SQL injection in `ExportManager` when executing `PRAGMA table_info` by validating table identifiers (#746).
 - Prevented AI meal-scan cancellation from starting the camera session concurrently from the cancel callback, route observer, and scan cleanup; camera restoration is now route-driven and guarded against duplicate starts.
 - Expanded the AI orb's tappable area only when docked near a screen edge, while preserving its cloud-shaped hit target elsewhere.

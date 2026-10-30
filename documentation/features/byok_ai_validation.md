@@ -1,8 +1,8 @@
 # AI Meal Capture & Deterministic Validation Engine
 
-Train Libre sends a meal description or prepared image to the selected AI provider, then matches the returned food suggestions against the local food catalog and checks the resulting candidate before diary save. The selected provider may be an online service, a user-configured OpenAI-compatible endpoint, Ollama at `localhost`, or Apple Foundation Models when available. The app computes matched-item nutrition from catalog data and proposed grams; some response shapes also contain model-proposed meal-level calorie and macro ranges for heuristic validation, not verified nutrition facts.
+Train Libre sends a meal description or prepared image to the selected AI provider. In local catalog mode it matches returned suggestions against the food catalog and checks the candidate before diary save. Direct AI estimate mode instead saves reviewed nutrition estimates as macro snapshots without catalog matching. The selected provider may be an online service, a user-configured OpenAI-compatible endpoint, Ollama at `localhost`, or Apple Foundation Models when available. The app computes matched-item nutrition from catalog data and proposed grams; some response shapes also contain model-proposed meal-level calorie and macro ranges for heuristic validation, not verified nutrition facts.
 
-This document describes the analysis and validation engine. The surrounding photo, text, voice, barcode, meal grouping, and photo-storage flows are described in [Meal Capture Pipeline](meal_capture_pipeline.md).
+The matching and validation details below describe local catalog mode; they do not guarantee verification of direct AI nutrition estimates. This document describes the analysis and validation engine. The surrounding photo, text, voice, barcode, meal grouping, and photo-storage flows are described in [Meal Capture Pipeline](meal_capture_pipeline.md).
 
 ---
 
@@ -16,6 +16,7 @@ The request path is selected in the app; there is no Train Libre AI proxy in the
 | Gemini | `https://generativelanguage.googleapis.com/{v1beta or v1}/models/{model}:generateContent`; API key is a query parameter, and the client can try alternate model/version routes after model/version errors. |
 | Anthropic | `https://api.anthropic.com/v1/messages` |
 | Mistral | `https://api.mistral.ai/v1/chat/completions` |
+| DeepSeek | `https://api.deepseek.com/chat/completions` |
 | xAI | `https://api.x.ai/v1/chat/completions` |
 | Ollama | `http://localhost:11434/v1/chat/completions` |
 | Custom | The configured base URL with `/chat/completions` appended. |
@@ -33,6 +34,7 @@ For providers that require a key, Train Libre reads and writes a per-provider ke
 *   `ai_api_key_gemini`: Secure key for Google Gemini.
 *   `ai_api_key_anthropic`: Secure key for Anthropic Claude.
 *   `ai_api_key_mistral`: Secure key for Mistral.
+*   `ai_api_key_deepseek`: Secure key for DeepSeek.
 *   `ai_api_key_xai`: Secure key for xAI Grok.
 *   `ai_api_key_ollama`: Optional — the app does not attach an API key to its Ollama request.
 *   `ai_api_key_custom`: Optional key for any OpenAI-compatible endpoint.

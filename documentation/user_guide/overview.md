@@ -9,6 +9,12 @@ Use this guide when you want to know how to complete a task in the app. For deta
 - [Get started with Train Libre](getting_started.md): Set up your profile, units, preferences, and learn the main navigation.
 - [Manage app support and privacy settings](settings_and_privacy.md): Use support tools, manage optional usage statistics, and reset local data.
 
+## AI Assistant
+
+- [Use the AI assistant](ai_chat.md): Set up chat, ask questions about your records, review data access and proposed changes, and attach photos.
+- [Log food with the AI chat](ai_chat_food_logging.md): Review and save a meal draft from text or photos.
+- [Create a workout routine with an AI assistant](ai_workout_routines.md): Create and review a routine with the built-in assistant or import one from an external assistant.
+
 ## Workouts
 
 - [Track a workout](tracking_a_workout.md): Start and finish a workout, record exercises and sets, and manage rest.
@@ -29,7 +35,6 @@ Use this guide when you want to know how to complete a task in the app. For deta
 - [Choose food catalog settings](food_catalogs.md): Select the database region and food display language.
 - [Create and reuse recipes](saved_meals.md): Save a meal and add it to the Diary later.
 - [Configure and use AI Meal Capture](ai_meal_capture.md): Set up a provider and review a captured meal.
-- [Log food with the AI chat](ai_chat_food_logging.md): Ask the assistant to draft a meal from text or photos, review the estimates, and save them to the Diary.
 - [Log water and drinks](water_and_drinks.md): Record fluid amounts and review water, sugar, and caffeine totals.
 - [Set daily targets](daily_targets.md): Edit calorie, macronutrient, water, and step targets.
 

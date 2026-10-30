@@ -16,6 +16,8 @@ Available share actions depend on the screen:
 - **Training plans and recipes:** share a web link when available, formatted text, or portable JSON.
 - **Micronutrients, Water, and Muscle Readiness:** use the share icon on the detail view to share its current summary as text. For the micronutrient data limits, see [Statistics](statistics.md#review-micronutrients).
 
+For a complete walkthrough, see [Use the AI assistant](ai_chat.md). Open the built-in chat via the floating cloud or **AI Chat** in the Add menu. For questions about stored app data, review the requested categories and period and choose **Allow once** or **Deny**. The chat menu also offers automatic approval; when enabled, requests can proceed without a separate approval card. Follow-ups need fresh access. AI responses and proposed changes can be wrong: inspect each proposal and choose **Apply** to save or **Discard** to leave records unchanged. Text chat can fall back to another configured provider, so review the provider settings and privacy notice. See [AI assistant data access](../features/ai_assistant_data_access.md).
+
 The in-app **AI Meal Capture** analyzes a meal description or photos that you provide. The floating AI chat can also prepare a macro-only diary meal when you explicitly ask it to log food; it shows a review card and saves attached photos with the Diary entry after you apply the draft. See [Log food with the AI chat](ai_chat_food_logging.md) and [Configure and use AI Meal Capture](ai_meal_capture.md).
 
 ## Share a broader history export
@@ -30,4 +32,4 @@ If you want to bring an AI-prepared or shared item back into Train Libre, use th
 
 For an AI-generated routine, follow [Create a workout routine with an AI assistant](ai_workout_routines.md) so exercise IDs and fields match the format Train Libre accepts. For workout history from another app, use the CSV/XLSX importer in [Import workout history and other data](importing_data.md#import-workout-history). Restoring a full backup replaces the data currently in Train Libre; see [Restore a Train Libre backup](importing_data.md#restore-a-train-libre-backup).
 
-When you share data through the system share sheet or upload an export, the receiving app or AI provider handles that content under its own privacy rules. The app's provider and privacy settings for meal capture apply only to that in-app AI feature; review the receiving service before sending other records.
+When you share data through the system share sheet or upload an export, the receiving app or AI provider handles that content under its own privacy rules. The in-app AI settings govern the app's AI features, while an external receiving service has its own privacy terms; review those terms before sending records.

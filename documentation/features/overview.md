@@ -44,10 +44,11 @@ A deterministic allocator converts a calorie target and profile/goal inputs into
 
 ### 3. Meal Capture and BYOK AI Validation
 
-Meal capture can use image, text, voice, or barcode workflows. AI analysis uses the selected provider; network providers receive the request content, while Apple Foundation Models can run on-device when available. Validation checks structured output against the local food catalog, but suggestions can remain ambiguous or require user correction.
+Meal capture can use image, text, voice, or barcode workflows. AI analysis uses the selected provider; network providers receive the request content, while Apple Foundation Models can run on-device when available. Direct-estimate mode uses AI nutrition estimates; the alternative catalog mode validates suggestions against local food data. Both can require user correction.
 
 * [Meal capture and AI validation](meal_capture_pipeline.md)
 * [BYOK providers and validation](byok_ai_validation.md)
+* [Use the AI assistant](../user_guide/ai_chat.md)
 * [AI assistant data access and change proposals](ai_assistant_data_access.md)
 * [AI assistant meal logging](ai_assistant_meal_logging.md)
 

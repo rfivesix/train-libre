@@ -130,6 +130,7 @@
 <li><a href="../tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
 <li><a href="../supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
 <li><a href="../workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../ai-chat/index.html" class="sidebar-link">Use the AI assistant</a></li>
 <li><a href="../ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
 <li><a href="../exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
 <li><a href="../workout-history/index.html" class="sidebar-link">Review workout history</a></li>
@@ -183,7 +184,9 @@
 <li>If a permission was denied or changed later, review Train Libre’s read access in Apple Health or Health Connect settings. The status below each switch shows whether access is ready, partial, denied, or unavailable.</li>
 <li>To refresh records manually, use the refresh action beside <strong>Enable steps tracking</strong>, <strong>Enable sleep tracking</strong>, or the body-measurement option. The action labels are <strong>Sync steps now</strong> and <strong>Import sleep data now</strong>; body measurements use <strong>Import now</strong>.</li>
 </ol>
-<p>Train Libre reads data from the health store on the device. Steps, sleep, and pulse are opt-in separately. Enabling body-measurement import requests access and imports available records; it reads weight and body fat on both platforms, and waist measurements from Apple Health. Train Libre skips its own measurement records. Health Connect may provide only recent body-measurement history unless full-history access is available.</p>
+<p>Train Libre reads data from the health store on the device. Steps, sleep, pulse, and nutrition are opt-in separately. Enabling body-measurement import requests access and imports available records; it reads weight and body fat on both platforms, and waist measurements from Apple Health. Train Libre skips its own measurement records. Health Connect may provide only recent body-measurement history unless full-history access is available.</p>
+<h2 id="import-nutrition-totals" class="doc-h2">Import nutrition totals<a href="#import-nutrition-totals" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>In <strong>Profile > Settings > Health</strong>, enable <strong>Import nutrition</strong> and grant the requested health-store access. Daily nutrition totals are imported as separate Diary entries; pull to refresh in Diary to request updated totals. Manual entries remain separate, so check for overlapping intake before interpreting your daily totals. If you edit an imported day locally, later imports do not overwrite that local edit; deleting it prevents the importer from recreating it. Health export is a separate setting.</p>
 <h2 id="find-imported-data" class="doc-h2">Find imported data<a href="#find-imported-data" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
 <li><strong>Steps:</strong> Open <strong>Diary</strong> and choose a day. The Steps card appears when there are step records for that day. In <strong>Statistics</strong>, the <strong>Steps</strong> card appears when step tracking is enabled. Tapping it opens <strong>Steps</strong> at <strong>Day</strong> for today, regardless of the hub period. In <strong>Steps</strong>, choose <strong>Day</strong>, <strong>7D</strong>, or <strong>1M</strong>; the date controls and picker move this view independently. <strong>Day</strong> shows an hourly timeline, total, active hours, and peak hour. <strong>7D</strong> shows daily steps for the week. <strong>1M</strong> shows daily steps for the month and a summary with average per day and goal progress. The source name and last update may appear below the chart. Step counts and the goal line depend on available records and your step goal.</li>
@@ -204,6 +207,7 @@
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
 <li class="toc-item toc-item-l2"><a href="#connect-a-health-source">Connect a health source</a></li>
+<li class="toc-item toc-item-l2"><a href="#import-nutrition-totals">Import nutrition totals</a></li>
 <li class="toc-item toc-item-l2"><a href="#find-imported-data">Find imported data</a></li>
 </ul></div></aside>
     </div>

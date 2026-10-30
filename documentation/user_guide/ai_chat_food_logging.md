@@ -1,6 +1,6 @@
 # Log food with the AI chat
 
-Use the floating AI assistant to turn a written meal description or an attached
+Use the [AI assistant](ai_chat.md) to turn a written meal description or an attached
 photo into a diary entry. The assistant creates a review draft in the chat; it
 never adds the entry until you apply it.
 
@@ -9,8 +9,7 @@ never adds the entry until you apply it.
 1. Open the AI assistant and describe what you ate. You can attach one or more
    meal photos to the same message.
 2. Ask explicitly to log it, for example: “Log this as dinner” or “Add this
-   meal to today's diary.” A photo by itself or a question about its contents
-   does not create a diary entry.
+   meal to today's diary.” A photo sent without text uses a default request that can prepare a food draft. A question alone does not save an entry; every draft still needs your approval.
 3. Review the meal draft shown below the assistant's reply. Check the meal name,
    date and meal period, each food name and portion weight, and the estimated
    calories and macros.

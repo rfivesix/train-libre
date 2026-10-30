@@ -5,13 +5,13 @@ Choose which regional product catalog Nutrition Explorer searches and which lang
 ## Choose the product catalog region
 
 1. During setup, use **Select Region** and choose the country where you buy groceries. To change it later, open **Profile** > **Settings** and scroll to **Nutrition & Data**.
-2. Tap **Food database region**. Search or scroll the country list, select a region, then tap **Save**. The available regions are Germany, Switzerland, United States, United Kingdom, France, Italy, Japan, and Austria.
+2. Tap **Food database region**. Search or scroll the country list, select a region, then tap **Save**. The available regions are Germany, Switzerland, United States, United Kingdom, France, Italy, Japan, Austria, Netherlands, Spain, and Australia.
 3. The selected region changes the Open Food Facts source used for product search. The change applies on the next catalog refresh or import. To start that process manually, tap **Update Databases** in **Nutrition & Data** and follow the progress screen.
 
 ## Choose the language for built-in food names
 
 1. In **Profile** > **Settings** > **Nutrition & Data**, tap **Base food display language**.
-2. Choose **Follow app language**, **English**, **German**, **French**, **Italian**, or **Japanese**, then tap **Save**.
+2. Choose **Follow app language**, **English**, **German**, **French**, **Italian**, **Japanese**, **Spanish**, or **Dutch**, then tap **Save**.
 3. The choice controls the language used for Train Libre’s built-in food names. **Follow app language** uses the app’s language, with the selected region used as a fallback when needed. A language change takes effect after the food catalog is imported again on the next app startup.
 
 ## Update the databases manually

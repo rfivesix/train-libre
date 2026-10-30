@@ -4,7 +4,7 @@ Train Libre has separate localization systems for app UI strings and catalog con
 
 ## App UI strings
 
-The canonical message catalogs are `lib/l10n/app_en.arb`, `app_de.arb`, `app_fr.arb`, `app_it.arb`, and `app_ja.arb`. Flutter's generated localization output is under `lib/generated/`; edit the ARB sources, not generated Dart. `lib/main.dart` configures the generated delegates and `AppLocalizations.supportedLocales` on the app's `MaterialApp`.
+The canonical message catalogs are `lib/l10n/app_en.arb`, `app_de.arb`, `app_fr.arb`, `app_it.arb`, `app_ja.arb`, `app_es.arb`, and `app_nl.arb`. Flutter's generated localization output is under `lib/generated/`; edit the ARB sources, not generated Dart. `lib/main.dart` configures the generated delegates and `AppLocalizations.supportedLocales` on the app's `MaterialApp`.
 
 To add or change UI translations:
 
@@ -17,7 +17,7 @@ Fallback behavior for Flutter-generated messages follows the configured Flutter 
 
 ## Food catalog display languages
 
-`BaseFoodLanguageService` (`lib/services/base_food_language_service.dart`) persists a separate food display preference (`auto`, `en`, `de`, `fr`, `it`, `ja`) in SharedPreferences. In automatic mode it considers the app language and active OFF catalog country, then falls back to English. It returns a language code used by catalog lookup; it does not control the app's UI locale.
+`BaseFoodLanguageService` (`lib/services/base_food_language_service.dart`) persists a separate food display preference (`auto`, `en`, `de`, `fr`, `it`, `ja`, `es`, `nl`) in SharedPreferences. In automatic mode it considers the app language and active OFF catalog country, then falls back to English. It returns a language code used by catalog lookup; it does not control the app's UI locale.
 
 The base-food import and product schema are implemented in `lib/data/` and catalog tooling. Current data uses localized fields for supported languages, while exercise catalog translations use their own catalog schema and locale-selection logic. Check the actual importer, catalog manifest, and schema before adding a translation column or claiming an exercise fallback chain. Food search/index behavior is described in [Food search](food_search.md).
 

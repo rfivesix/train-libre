@@ -9,7 +9,11 @@ Connect Apple Health or Health Connect to view steps, sleep, pulse, and supporte
 3. If a permission was denied or changed later, review Train Libre’s read access in Apple Health or Health Connect settings. The status below each switch shows whether access is ready, partial, denied, or unavailable.
 4. To refresh records manually, use the refresh action beside **Enable steps tracking**, **Enable sleep tracking**, or the body-measurement option. The action labels are **Sync steps now** and **Import sleep data now**; body measurements use **Import now**.
 
-Train Libre reads data from the health store on the device. Steps, sleep, and pulse are opt-in separately. Enabling body-measurement import requests access and imports available records; it reads weight and body fat on both platforms, and waist measurements from Apple Health. Train Libre skips its own measurement records. Health Connect may provide only recent body-measurement history unless full-history access is available.
+Train Libre reads data from the health store on the device. Steps, sleep, pulse, and nutrition are opt-in separately. Enabling body-measurement import requests access and imports available records; it reads weight and body fat on both platforms, and waist measurements from Apple Health. Train Libre skips its own measurement records. Health Connect may provide only recent body-measurement history unless full-history access is available.
+
+## Import nutrition totals
+
+In **Profile > Settings > Health**, enable **Import nutrition** and grant the requested health-store access. Daily nutrition totals are imported as separate Diary entries; pull to refresh in Diary to request updated totals. Manual entries remain separate, so check for overlapping intake before interpreting your daily totals. If you edit an imported day locally, later imports do not overwrite that local edit; deleting it prevents the importer from recreating it. Health export is a separate setting.
 
 ## Find imported data
 
