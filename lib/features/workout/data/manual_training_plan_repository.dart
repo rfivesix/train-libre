@@ -640,11 +640,16 @@ class ManualTrainingPlanRepository {
         ifAbsent: () => 1,
       );
     }
-    final allDone =
-        requirements.isNotEmpty &&
-        List.generate(requirements.length, (index) => index).every(
-          (index) => (completedByBlock[index] ?? 0) >= requirements[index],
-        );
+    // BOLT OPTIMIZATION: Replace List.generate(...).every() with short-circuiting loop
+    var allDone = requirements.isNotEmpty;
+    if (allDone) {
+      for (var index = 0; index < requirements.length; index++) {
+        if ((completedByBlock[index] ?? 0) < requirements[index]) {
+          allDone = false;
+          break;
+        }
+      }
+    }
     final status = allDone ? 'completed' : 'partial';
     await (_db.update(_db.trainingPlanOccurrences)..where(
           (t) => t.id.equals(occurrence.id) & t.status.equals('ongoing'),
