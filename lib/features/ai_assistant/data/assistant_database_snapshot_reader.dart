@@ -1389,6 +1389,9 @@ class AssistantDatabaseSnapshotReader {
     List<Object?> values = const [],
     List<String>? columns,
   }) async {
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) {
+      throw ArgumentError('Invalid table name: $table');
+    }
     final variables = [
       for (final value in values)
         if (value is int)
