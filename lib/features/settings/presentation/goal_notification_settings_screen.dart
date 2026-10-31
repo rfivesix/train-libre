@@ -9,6 +9,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../services/local_notification_service.dart';
+import '../../../services/sound_service.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
 import '../../workout/data/manual_training_plan_repository.dart';
@@ -136,6 +137,7 @@ class _GoalNotificationSettingsScreenState
     await prefs.setBool(
         LiveWorkoutNotificationPreferences.ignoreSilentModeKey, value);
     await WorkoutLiveActivityService.instance.setRestIgnoreSilentMode(value);
+    await SoundService.instance.refreshAudioContext();
     if (mounted) setState(() => _ignoreSilentMode = value);
   }
 

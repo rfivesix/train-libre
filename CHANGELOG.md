@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Replaced the workout rest-timer completion chime across in-app playback (`assets/sounds/timer_done.mp3` and `assets/sounds/timer_done.wav`), iOS background notifications (`ios/Runner/timer_done.caf`), and Android background alarms (`android/app/src/main/res/raw/rest_timer_done.mp3`) with a custom synthesized stereo two-step chime.
 - Added live workout settings for rest-timer notifications and the in-app silent-mode override, and removed the duplicate calorie recalculation notification.
+- Apply the live-workout silent-mode preference immediately so the iOS audio session no longer remains in playback mode after the switch is turned off.
 - Fixed the iOS background rest-timer notification to use the bundled CAF conversion of the app's `timer_done.mp3` chime.
 - Updated PostHog and compatible Flutter dependencies, including file picking, fonts, and loading placeholders; migrated telemetry calls to the current PostHog API.
 - Updated the user guides and feature documentation for direct AI nutrition estimates, manual macros, health nutrition imports, AI data access, and current catalog languages and regions.

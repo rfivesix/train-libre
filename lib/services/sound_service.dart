@@ -45,6 +45,15 @@ class SoundService {
     }
   }
 
+  /// Applies the current preference immediately, rather than waiting for the
+  /// next timer chime. On iOS this is the global AVAudioSession category, so
+  /// leaving it in `playback` after the preference is disabled can make later
+  /// background notification sounds ignore the hardware silent switch.
+  Future<void> refreshAudioContext() async {
+    _ignoreSilentMode = null;
+    await _ensureInitialized();
+  }
+
   /// Plays the timer completion chime over active headphones or speaker output.
   Future<void> playTimerDoneSound() async {
     try {
