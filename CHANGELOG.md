@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.7.0] - unreleased
+## [1.7.0-beta.1] - 2026-10-31
 
 ### Added
 - Added a dedicated AI assistant user guide covering setup, data access, reviewed changes, photos, and chat history.
