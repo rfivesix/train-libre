@@ -26,147 +26,153 @@ void main() {
   });
 
   testWidgets(
-      'AppInitializerScreen in modal mode uses OperationProgressWidget and no AI cloud orb',
-      (tester) async {
-    await tester.pumpWidget(
-      _buildApp(
-        const AppInitializerScreen(
-          forceUpdate: true,
-          isModal: true,
-          skipOffDatabase: true,
-        ),
-      ),
-    );
-
-    // Initial frame should immediately render horizontal progress widget, not AI neural orb.
-    expect(find.byType(AiNeuralCloudOrbWidget), findsNothing);
-    expect(find.byType(OperationProgressWidget), findsOneWidget);
-    expect(find.byIcon(LucideIcons.download), findsOneWidget);
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    expect(find.text('0%'), findsOneWidget);
-  });
-
-  testWidgets(
-      'LongRunningOperationOverlay uses OperationProgressWidget and shows percentage',
-      (tester) async {
-    await tester.pumpWidget(
-      _buildApp(
-        LongRunningOperationOverlay(
-          title: 'Restoring',
-          initialStatus: 'Restoring database...',
-          icon: LucideIcons.download,
-          operation: (token, updateProgress) async {
-            updateProgress('Restoring tables...', 0.45);
-          },
-        ),
-      ),
-    );
-
-    // Frame after callback runs
-    await tester.pump();
-    expect(find.byType(OperationProgressWidget), findsOneWidget);
-    expect(find.text('45%'), findsOneWidget);
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    expect(find.text('Restoring tables'), findsOneWidget);
-  });
-
-  testWidgets(
-      'OperationProgressWidget displays icon, title, detail, horizontal bar, and percentage',
-      (tester) async {
-    await tester.pumpWidget(
-      _buildApp(
-        const Scaffold(
-          body: OperationProgressWidget(
-            icon: LucideIcons.database,
-            title: 'Exporting Data',
-            detail: 'Processing workouts...',
-            progress: 0.68,
+    'AppInitializerScreen in modal mode uses OperationProgressWidget and no AI cloud orb',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          const AppInitializerScreen(
+            forceUpdate: true,
+            isModal: true,
+            skipOffDatabase: true,
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.byType(SummaryCard), findsOneWidget);
-    expect(find.byType(AdaptiveGlass), findsOneWidget);
-    expect(find.byIcon(LucideIcons.database), findsOneWidget);
-    expect(find.text('Exporting Data'), findsOneWidget);
-    expect(find.text('Processing workouts'), findsOneWidget);
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    expect(find.text('68%'), findsOneWidget);
-  });
-
-  testWidgets(
-      'OperationProgressWidget formats indeterminate state correctly without percentage',
-      (tester) async {
-    await tester.pumpWidget(
-      _buildApp(
-        const Scaffold(
-          body: OperationProgressWidget(
-            icon: LucideIcons.cloud_upload,
-            title: 'Preparing Backup',
-            progress: null,
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(SummaryCard), findsOneWidget);
-    expect(find.byIcon(LucideIcons.cloud_upload), findsOneWidget);
-    expect(find.text('Preparing Backup'), findsOneWidget);
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    expect(find.textContaining('%'), findsNothing);
-  });
+      // Initial frame should immediately render horizontal progress widget, not AI neural orb.
+      expect(find.byType(AiNeuralCloudOrbWidget), findsNothing);
+      expect(find.byType(OperationProgressWidget), findsOneWidget);
+      expect(find.byIcon(LucideIcons.download), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.text('0%'), findsOneWidget);
+    },
+  );
 
   testWidgets(
-      'OperationProgressWidget renders detail on left and percentage on right in a single row',
-      (tester) async {
-    await tester.pumpWidget(
-      _buildApp(
-        const Scaffold(
-          body: OperationProgressWidget(
+    'LongRunningOperationOverlay uses OperationProgressWidget and shows percentage',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          LongRunningOperationOverlay(
+            title: 'Restoring',
+            initialStatus: 'Restoring database...',
             icon: LucideIcons.download,
-            title: 'Update Lebensmittel-Datenbank (DE)',
-            detail: '105.000 / 238.930 Einträge',
-            progress: 0.42,
+            operation: (token, updateProgress) async {
+              updateProgress('Restoring tables...', 0.45);
+            },
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('Update Lebensmittel-Datenbank (DE)'), findsOneWidget);
-    expect(find.text('105.000 / 238.930 Einträge'), findsOneWidget);
-    expect(find.text('42%'), findsOneWidget);
+      // Frame after callback runs
+      await tester.pump();
+      expect(find.byType(OperationProgressWidget), findsOneWidget);
+      expect(find.text('45%'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.text('Restoring tables'), findsOneWidget);
+    },
+  );
 
-    final detailTextWidget =
-        tester.widget<Text>(find.text('105.000 / 238.930 Einträge'));
-    expect(detailTextWidget.maxLines, 1);
-    expect(detailTextWidget.overflow, TextOverflow.ellipsis);
-    expect(detailTextWidget.textAlign, TextAlign.left);
+  testWidgets(
+    'OperationProgressWidget displays icon, title, detail, horizontal bar, and percentage',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          const Scaffold(
+            body: OperationProgressWidget(
+              icon: LucideIcons.database,
+              title: 'Exporting Data',
+              detail: 'Processing workouts...',
+              progress: 0.68,
+            ),
+          ),
+        ),
+      );
 
-    final percentTextWidget = tester.widget<Text>(find.text('42%'));
-    expect(percentTextWidget.textAlign, TextAlign.right);
+      expect(find.byType(SummaryCard), findsOneWidget);
+      expect(find.byType(AdaptiveGlass), findsOneWidget);
+      expect(find.byIcon(LucideIcons.database), findsOneWidget);
+      expect(find.text('Exporting Data'), findsOneWidget);
+      expect(find.text('Processing workouts'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.text('68%'), findsOneWidget);
+    },
+  );
 
-    // Verify both are inside the same Row
-    final rowFinder = find.ancestor(
-      of: find.text('105.000 / 238.930 Einträge'),
-      matching: find.byType(Row),
-    );
-    expect(rowFinder, findsOneWidget);
-    expect(
-      find.descendant(of: rowFinder, matching: find.text('42%')),
-      findsOneWidget,
-    );
+  testWidgets(
+    'OperationProgressWidget formats indeterminate state correctly without percentage',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          const Scaffold(
+            body: OperationProgressWidget(
+              icon: LucideIcons.cloud_upload,
+              title: 'Preparing Backup',
+              progress: null,
+            ),
+          ),
+        ),
+      );
 
-    // Verify AdaptiveGlass icon is outside SummaryCard and positioned above it
-    expect(
-      find.descendant(
-        of: find.byType(SummaryCard),
-        matching: find.byType(AdaptiveGlass),
-      ),
-      findsNothing,
-    );
-    final iconTop = tester.getTopLeft(find.byType(AdaptiveGlass)).dy;
-    final cardTop = tester.getTopLeft(find.byType(SummaryCard)).dy;
-    expect(iconTop, lessThan(cardTop));
-  });
+      expect(find.byType(SummaryCard), findsOneWidget);
+      expect(find.byIcon(LucideIcons.cloud_upload), findsOneWidget);
+      expect(find.text('Preparing Backup'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.textContaining('%'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'OperationProgressWidget renders detail on left and percentage on right in a single row',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          const Scaffold(
+            body: OperationProgressWidget(
+              icon: LucideIcons.download,
+              title: 'Update Lebensmittel-Datenbank (DE)',
+              detail: '105.000 / 238.930 Einträge',
+              progress: 0.42,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Update Lebensmittel-Datenbank (DE)'), findsOneWidget);
+      expect(find.text('105.000 / 238.930 Einträge'), findsOneWidget);
+      expect(find.text('42%'), findsOneWidget);
+
+      final detailTextWidget = tester.widget<Text>(
+        find.text('105.000 / 238.930 Einträge'),
+      );
+      expect(detailTextWidget.maxLines, 1);
+      expect(detailTextWidget.overflow, TextOverflow.ellipsis);
+      expect(detailTextWidget.textAlign, TextAlign.left);
+
+      final percentTextWidget = tester.widget<Text>(find.text('42%'));
+      expect(percentTextWidget.textAlign, TextAlign.right);
+
+      // Verify both are inside the same Row
+      final rowFinder = find.ancestor(
+        of: find.text('105.000 / 238.930 Einträge'),
+        matching: find.byType(Row),
+      );
+      expect(rowFinder, findsOneWidget);
+      expect(
+        find.descendant(of: rowFinder, matching: find.text('42%')),
+        findsOneWidget,
+      );
+
+      // Verify AdaptiveGlass icon is outside SummaryCard and positioned above it
+      expect(
+        find.descendant(
+          of: find.byType(SummaryCard),
+          matching: find.byType(AdaptiveGlass),
+        ),
+        findsNothing,
+      );
+      final iconTop = tester.getTopLeft(find.byType(AdaptiveGlass)).dy;
+      final cardTop = tester.getTopLeft(find.byType(SummaryCard)).dy;
+      expect(iconTop, lessThan(cardTop));
+    },
+  );
 }

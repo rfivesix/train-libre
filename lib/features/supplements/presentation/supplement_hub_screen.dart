@@ -1,5 +1,6 @@
 // lib/features/supplements/presentation/supplement_hub_screen.dart
 import 'package:flutter/material.dart';
+
 import '../domain/repositories/supplement_repository.dart';
 import '../data/supplement_repository_impl.dart';
 import '../data/sources/supplement_local_data_source.dart';
@@ -14,11 +15,15 @@ import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/glass_actionable_card.dart';
 import '../../../widgets/common/morph_source.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for managing the catalog of available supplements (Supplement Hub).
@@ -32,7 +37,8 @@ class SupplementHubScreen extends StatefulWidget {
 }
 
 class _SupplementHubScreenState extends State<SupplementHubScreen> {
-  late final SupplementRepository _repository = widget.repository ??
+  late final SupplementRepository _repository =
+      widget.repository ??
       SupplementRepositoryImpl(
         localDataSource: SupplementLocalDataSource.instance,
       );
@@ -43,8 +49,11 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.supplementsOverview));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.supplementsOverview,
+      ),
+    );
     _load();
   }
 
@@ -79,7 +88,9 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
         sourceBuilder: sourceBuilder,
         onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (_) => CreateSupplementScreen(
-            supplementToEdit: s, repository: _repository),
+          supplementToEdit: s,
+          repository: _repository,
+        ),
       ),
     );
     if (changed == true) _load();
@@ -88,7 +99,8 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
   Future<void> _delete(Supplement s) async {
     final l10n = AppLocalizations.of(context)!;
     try {
-      final ok = await showGlassBottomMenu<bool>(
+      final ok =
+          await showGlassBottomMenu<bool>(
             context: context,
             title: l10n.deleteConfirmTitle,
             contentBuilder: (ctx, close) {
@@ -139,13 +151,11 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
       await _repository.deleteSupplement(s.id!);
       if (!mounted) return;
       _load();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.deleted)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.deleted)));
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.operationNotAllowed)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.operationNotAllowed)));
     }
   }
 
@@ -179,8 +189,9 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
                       ].join('  •  '),
                     )
                   : null,
-              trailing:
-                  isBuiltin ? null : const Icon(LucideIcons.chevron_right),
+              trailing: isBuiltin
+                  ? null
+                  : const Icon(LucideIcons.chevron_right),
               onTap: () => _navigateToEdit(
                 s,
                 sourceContext: cardCtx,
@@ -270,9 +281,9 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
           child: Builder(
             builder: (fabCtx) {
               Widget buildFab({VoidCallback? onPressed}) => GlassFab(
-                    label: l10n.createSupplementTitle,
-                    onPressed: onPressed ?? () {},
-                  );
+                label: l10n.createSupplementTitle,
+                onPressed: onPressed ?? () {},
+              );
 
               return GlassFab(
                 label: l10n.createSupplementTitle,

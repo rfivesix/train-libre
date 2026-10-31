@@ -27,9 +27,11 @@ WorkoutNextSet? findNextWorkoutSet(
     final exercise = exercises[exerciseIndex];
     final group = exercise.supersetGroup;
     if (group == null) {
-      for (var templateIndex = 0;
-          templateIndex < exercise.setTemplates.length;
-          templateIndex++) {
+      for (
+        var templateIndex = 0;
+        templateIndex < exercise.setTemplates.length;
+        templateIndex++
+      ) {
         final id = exercise.setTemplates[templateIndex].id;
         if (id != null && setLogs[id]?.isCompleted != true) {
           return WorkoutNextSet(

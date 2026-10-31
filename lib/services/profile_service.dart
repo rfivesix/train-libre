@@ -1,10 +1,12 @@
 // lib/services/profile_service.dart
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 // Important for ImageCache
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../features/profile/domain/models/user_gender.dart';
 import '../features/profile/domain/repositories/profile_repository.dart';
 
@@ -103,7 +105,9 @@ class ProfileService extends ChangeNotifier {
 
   /// Updates the user's gender and persists it to the database.
   Future<void> updateGender(
-      UserGender newGender, IProfileRepository repository) async {
+    UserGender newGender,
+    IProfileRepository repository,
+  ) async {
     if (_disposed) return;
     if (_gender == newGender) return;
 

@@ -44,10 +44,10 @@ class CardMorphRoute<T> extends PageRoute<T> {
     Duration collapseDuration = const Duration(milliseconds: 360),
     bool maintainState = true,
     bool fullscreenDialog = false,
-  })  : _expandDuration = expandDuration,
-        _collapseDuration = collapseDuration,
-        _maintainState = maintainState,
-        _fullscreenDialog = fullscreenDialog;
+  }) : _expandDuration = expandDuration,
+       _collapseDuration = collapseDuration,
+       _maintainState = maintainState,
+       _fullscreenDialog = fullscreenDialog;
 
   final WidgetBuilder builder;
 
@@ -389,10 +389,7 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
       final WidgetBuilder? builder = widget.sourceBuilder;
       _sourceCopy = builder == null
           ? null
-          : Material(
-              type: MaterialType.transparency,
-              child: builder(context),
-            );
+          : Material(type: MaterialType.transparency, child: builder(context));
     }
     final Widget? source = _sourceCopy;
 
@@ -423,18 +420,15 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                 fit: StackFit.expand,
                 children: [
                   ColoredBox(color: Colors.black.withValues(alpha: scrimAlpha)),
-                  Transform.translate(
-                    offset: Offset(0.0, slideY),
-                    child: page,
-                  ),
+                  Transform.translate(offset: Offset(0.0, slideY), child: page),
                 ],
               );
             }
 
             final Curve curve =
                 widget.animation.status == AnimationStatus.reverse
-                    ? _kCollapseCurve
-                    : _kExpandCurve;
+                ? _kCollapseCurve
+                : _kExpandCurve;
             final double t = curve.transform(raw);
 
             final Rect rect = Rect.lerp(widget.sourceRect, fullRect, t)!;
@@ -471,8 +465,9 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                         Positioned.fromRect(
                           rect: rect,
                           child: ColoredBox(
-                            color: theme.scaffoldBackgroundColor
-                                .withValues(alpha: pageOpacity),
+                            color: theme.scaffoldBackgroundColor.withValues(
+                              alpha: pageOpacity,
+                            ),
                           ),
                         ),
 
@@ -494,7 +489,11 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                             transform: Matrix4.identity()
                               ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
                               ..scaleByDouble(
-                                  sourceScale, sourceScale, 1.0, 1.0),
+                                sourceScale,
+                                sourceScale,
+                                1.0,
+                                1.0,
+                              ),
                             child: SizedBox(
                               width: widget.sourceRect.width,
                               height: widget.sourceRect.height,
@@ -502,7 +501,8 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                                 type: MaterialType.transparency,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(
-                                      widget.sourceBorderRadius),
+                                    widget.sourceBorderRadius,
+                                  ),
                                   child: OverflowBox(
                                     alignment: Alignment.topLeft,
                                     minWidth: widget.sourceRect.width,

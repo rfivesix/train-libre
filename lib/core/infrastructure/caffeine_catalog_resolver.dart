@@ -21,13 +21,13 @@ class CaffeineCatalogResolver {
     'bls:N390100': 6.5, // Cola-Misch-Getränk Orange (Spezi)
     'bls:N340000': 0.0, // Colagetränk koffeinfrei
     'bls:N352000': 0.0, // Colagetränk koffeinfrei, mit Süßungsmitteln
-
     // Coffee beverages & preparations
     'bls:N410100': 40.0, // Kaffee (Getränk)
     'bls:N410200': 35.0, // Kaffee (Getränk) mit Milch 3,5 % Fett
     'bls:N410300': 35.0, // Kaffee (Getränk) mit Milch 3,5 % Fett und Zucker
     'bls:N410400': 35.0, // Kaffee (Getränk) mit Kondensmilch 7,5 % Fett
-    'bls:N410500': 35.0, // Kaffee (Getränk) mit Kondensmilch 7,5 % Fett und Zucker
+    'bls:N410500':
+        35.0, // Kaffee (Getränk) mit Kondensmilch 7,5 % Fett und Zucker
     'bls:N410600': 40.0, // Kaffee (Getränk) mit Zucker
     'bls:N410800': 35.0, // Kaffee (Getränk) mit Alkohol
     'bls:N411100': 212.0, // Espresso
@@ -40,14 +40,12 @@ class CaffeineCatalogResolver {
     'bls:N4A2000': 35.0, // Kaffee (Getränk) mit Sojadrink, ungesüßt
     'bls:Y997043': 30.0, // Eiskaffee
     'bls:S220200': 10.0, // Kaffeeeis
-
     // Decaffeinated coffee
     'bls:N414100': 0.0, // Kaffee entkoffeiniert, mit Milch 3,5 % Fett
     'bls:N414200': 0.0, // Kaffee entkoffeiniert, mit Kondensmilch 7,5 % Fett
     'bls:N415000': 0.0, // Kaffee entkoffeiniert
     'bls:N440100': 0.0, // Kaffee entkoffeiniert, aus Instantpulver
     'bls:N440900': 0.0, // Instantkaffeepulver entkoffeiniert
-
     // Coffee substitutes (grain / chicory - no caffeine)
     'bls:N500100': 0.0,
     'bls:N500200': 0.0,
@@ -74,7 +72,6 @@ class CaffeineCatalogResolver {
     'bls:N630700': 20.0, // Schwarztee mit Zitronensaft und Zucker
     'bls:N670100': 0.0, // Schwarztee entkoffeiniert
     'bls:N019000': 5.0, // Eistee mit Zitronen-/Pfirsichgeschmack
-
     // Herbal & Fruit infusions (caffeine-free)
     'bls:N601000': 0.0, // Roibusch-/Rooibos-Tee
     'bls:N710000': 0.0, // Früchtetee
@@ -86,7 +83,6 @@ class CaffeineCatalogResolver {
     'bls:N720500': 0.0,
     'bls:N720600': 0.0,
     'bls:N721000': 0.0, // Pfefferminztee
-
     // Legacy base food mappings fallback
     'base_food_cola': 10.0,
     'base_food_sugar_free_cola': 10.0,

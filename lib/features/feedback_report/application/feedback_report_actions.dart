@@ -27,20 +27,18 @@ class FeedbackReportActions {
     ShareInvoker? shareInvoker,
     UrlOpener? urlOpener,
     ActionNowProvider? nowProvider,
-  })  : _clipboardWriter = clipboardWriter ?? _defaultClipboardWriter,
-        _temporaryDirectoryProvider =
-            temporaryDirectoryProvider ?? getTemporaryDirectory,
-        _shareInvoker = shareInvoker ?? _defaultShareInvoker,
-        _urlOpener = urlOpener ?? _defaultUrlOpener,
-        _nowProvider = nowProvider ?? DateTime.now;
+  }) : _clipboardWriter = clipboardWriter ?? _defaultClipboardWriter,
+       _temporaryDirectoryProvider =
+           temporaryDirectoryProvider ?? getTemporaryDirectory,
+       _shareInvoker = shareInvoker ?? _defaultShareInvoker,
+       _urlOpener = urlOpener ?? _defaultUrlOpener,
+       _nowProvider = nowProvider ?? DateTime.now;
 
   Future<void> copyReport(String reportText) async {
     await _clipboardWriter(reportText);
   }
 
-  Future<File> saveReportToTemporaryFile({
-    required String reportText,
-  }) async {
+  Future<File> saveReportToTemporaryFile({required String reportText}) async {
     final tempDir = await _temporaryDirectoryProvider();
     final now = _nowProvider();
     final stamp =
@@ -111,10 +109,7 @@ class FeedbackReportActions {
     return Uri(
       scheme: 'mailto',
       path: recipient,
-      queryParameters: {
-        'subject': subject,
-        'body': bodyBuffer.toString(),
-      },
+      queryParameters: {'subject': subject, 'body': bodyBuffer.toString()},
     );
   }
 

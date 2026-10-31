@@ -22,8 +22,9 @@ class SupersetConnectorButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final label =
-        isConnected ? l10n.disconnectSupersetShort : l10n.connectSupersetShort;
+    final label = isConnected
+        ? l10n.disconnectSupersetShort
+        : l10n.connectSupersetShort;
 
     return TextButton(
       onPressed: onPressed,
@@ -39,15 +40,13 @@ class SupersetConnectorButton extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              semanticsLabel:
-                  isConnected ? l10n.disconnectSuperset : l10n.connectSuperset,
+              semanticsLabel: isConnected
+                  ? l10n.disconnectSuperset
+                  : l10n.connectSuperset,
             ),
           ),
           const SizedBox(width: 6),
-          Icon(
-            isConnected ? LucideIcons.unlink : LucideIcons.link,
-            size: 18,
-          ),
+          Icon(isConnected ? LucideIcons.unlink : LucideIcons.link, size: 18),
         ],
       ),
     );

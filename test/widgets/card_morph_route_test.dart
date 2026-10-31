@@ -6,81 +6,84 @@ import 'package:train_libre/widgets/common/card_morph_route.dart';
 
 void main() {
   testWidgets(
-      'CardMorphRoute morphs a card to full-screen and collapses back cleanly',
-      (tester) async {
-    final navigatorKey = GlobalKey<NavigatorState>();
-    final cardKey = GlobalKey();
+    'CardMorphRoute morphs a card to full-screen and collapses back cleanly',
+    (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final cardKey = GlobalKey();
 
-    await tester.pumpWidget(
-      MaterialApp(
-        navigatorKey: navigatorKey,
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              key: cardKey,
-              width: 200,
-              height: 100,
-              child: const Text('card_source'),
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                key: cardKey,
+                width: 200,
+                height: 100,
+                child: const Text('card_source'),
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('card_source'), findsOneWidget);
+      expect(find.text('card_source'), findsOneWidget);
 
-    navigatorKey.currentState!.push(
-      CardMorphRoute<void>(
-        sourceContext: cardKey.currentContext,
-        builder: (_) => const Scaffold(body: Text('destination_page')),
-      ),
-    );
+      navigatorKey.currentState!.push(
+        CardMorphRoute<void>(
+          sourceContext: cardKey.currentContext,
+          builder: (_) => const Scaffold(body: Text('destination_page')),
+        ),
+      );
 
-    // Mid-flight verification
-    await tester.pump();
-    await tester.pump(Duration.zero);
-    await tester.pump(const Duration(milliseconds: 150));
+      // Mid-flight verification
+      await tester.pump();
+      await tester.pump(Duration.zero);
+      await tester.pump(const Duration(milliseconds: 150));
 
-    expect(find.text('destination_page'), findsOneWidget);
-    expect(find.text('card_source'), findsOneWidget);
-    expect(find.byType(ClipRRect), findsWidgets);
+      expect(find.text('destination_page'), findsOneWidget);
+      expect(find.text('card_source'), findsOneWidget);
+      expect(find.byType(ClipRRect), findsWidgets);
 
-    // Fully settled at destination
-    await tester.pumpAndSettle();
-    expect(find.text('destination_page'), findsOneWidget);
+      // Fully settled at destination
+      await tester.pumpAndSettle();
+      expect(find.text('destination_page'), findsOneWidget);
 
-    // Pop and collapse back
-    navigatorKey.currentState!.pop();
-    await tester.pumpAndSettle();
+      // Pop and collapse back
+      navigatorKey.currentState!.pop();
+      await tester.pumpAndSettle();
 
-    expect(find.text('destination_page'), findsNothing);
-    expect(find.text('card_source'), findsOneWidget);
-  });
+      expect(find.text('destination_page'), findsNothing);
+      expect(find.text('card_source'), findsOneWidget);
+    },
+  );
 
   testWidgets(
-      'CardMorphRoute falls back gracefully when no source bounds are found',
-      (tester) async {
-    final navigatorKey = GlobalKey<NavigatorState>();
+    'CardMorphRoute falls back gracefully when no source bounds are found',
+    (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
 
-    await tester.pumpWidget(
-      MaterialApp(
-        navigatorKey: navigatorKey,
-        home: const Scaffold(body: Text('home')),
-      ),
-    );
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          home: const Scaffold(body: Text('home')),
+        ),
+      );
 
-    navigatorKey.currentState!.push(
-      CardMorphRoute<void>(
-        builder: (_) => const Scaffold(body: Text('destination')),
-      ),
-    );
+      navigatorKey.currentState!.push(
+        CardMorphRoute<void>(
+          builder: (_) => const Scaffold(body: Text('destination')),
+        ),
+      );
 
-    await tester.pumpAndSettle();
-    expect(find.text('destination'), findsOneWidget);
-  });
+      await tester.pumpAndSettle();
+      expect(find.text('destination'), findsOneWidget);
+    },
+  );
 
-  testWidgets('collapsing fades the card back in instead of switching it on',
-      (tester) async {
+  testWidgets('collapsing fades the card back in instead of switching it on', (
+    tester,
+  ) async {
     final harness = _MorphHarness(tester);
     await harness.pumpApp();
     harness.push();
@@ -93,21 +96,30 @@ void main() {
     // only the page peeling off it brings it up. Switched on the way it used
     // to be, the first frame it exists on would already show it at full
     // density.
-    expect(samples.first, lessThan(0.05),
-        reason: 'the card appeared at ${samples.first} density out of nowhere');
+    expect(
+      samples.first,
+      lessThan(0.05),
+      reason: 'the card appeared at ${samples.first} density out of nowhere',
+    );
     // Leading 0.0 for the frames before the copy is drawn at all, so the
     // moment it enters is measured as a step of the ramp like any other.
-    _expectRamp(<double>[0.0, ...samples],
-        reason: 'the collapse must dissolve');
-    expect(samples.last, greaterThan(0.95),
-        reason: 'the copy has to reach full density before it is handed over');
+    _expectRamp(<double>[
+      0.0,
+      ...samples,
+    ], reason: 'the collapse must dissolve');
+    expect(
+      samples.last,
+      greaterThan(0.95),
+      reason: 'the copy has to reach full density before it is handed over',
+    );
 
     await tester.pumpAndSettle();
     expect(find.text('card'), findsOneWidget);
   });
 
-  testWidgets('expanding covers the card by the same ramp, in reverse',
-      (tester) async {
+  testWidgets('expanding covers the card by the same ramp, in reverse', (
+    tester,
+  ) async {
     final harness = _MorphHarness(tester);
     await harness.pumpApp();
     harness.push();
@@ -126,8 +138,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('the copy is painted below the page, which is what fades it',
-      (tester) async {
+  testWidgets('the copy is painted below the page, which is what fades it', (
+    tester,
+  ) async {
     final harness = _MorphHarness(tester);
     await harness.pumpApp();
     harness.push();
@@ -152,14 +165,19 @@ void main() {
     final int pageFadeIndex = order.indexOf(
       find
           .ancestor(
-              of: find.text('destination'), matching: find.byType(Opacity))
+            of: find.text('destination'),
+            matching: find.byType(Opacity),
+          )
           .evaluate()
           .first,
     );
     expect(copyIndex, greaterThanOrEqualTo(0));
     expect(pageFadeIndex, greaterThanOrEqualTo(0));
-    expect(copyIndex, lessThan(pageFadeIndex),
-        reason: 'the copy is painted on top of the page — nothing can fade it');
+    expect(
+      copyIndex,
+      lessThan(pageFadeIndex),
+      reason: 'the copy is painted on top of the page — nothing can fade it',
+    );
 
     await tester.pumpAndSettle();
   });
@@ -174,8 +192,9 @@ void main() {
     // would be flat for the whole hand-over and then snap in when the fade
     // ends.
     for (var i = 0; i < 40; i++) {
-      await tester
-          .pump(i == 0 ? Duration.zero : const Duration(milliseconds: 16));
+      await tester.pump(
+        i == 0 ? Duration.zero : const Duration(milliseconds: 16),
+      );
       if (!harness.sourceHidden.value) continue;
       expect(
         find.ancestor(of: find.text('card'), matching: find.byType(Opacity)),
@@ -186,8 +205,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('the screen takes its card back while the copy still covers it',
-      (tester) async {
+  testWidgets('the screen takes its card back while the copy still covers it', (
+    tester,
+  ) async {
     final harness = _MorphHarness(tester);
     await harness.pumpApp();
     harness.push();
@@ -198,11 +218,12 @@ void main() {
 
     var restoredWhileCopyStillDrawn = false;
     for (var i = 0; i < 60; i++) {
-      await tester
-          .pump(i == 0 ? Duration.zero : const Duration(milliseconds: 16));
+      await tester.pump(
+        i == 0 ? Duration.zero : const Duration(milliseconds: 16),
+      );
       final bool routeStillUp =
           find.text('destination').evaluate().isNotEmpty ||
-              harness.navigatorKey.currentState!.canPop();
+          harness.navigatorKey.currentState!.canPop();
       final int cards = find.text('card').evaluate().length;
       if (!harness.sourceHidden.value && cards == 2 && routeStillUp) {
         restoredWhileCopyStillDrawn = true;
@@ -213,8 +234,11 @@ void main() {
     // that overlap is the hand-over. Restoring only on `dismissed` left the
     // real card to arrive on the very last frame with nothing having faded
     // it in.
-    expect(restoredWhileCopyStillDrawn, isTrue,
-        reason: 'the card came back only after the copy was already gone');
+    expect(
+      restoredWhileCopyStillDrawn,
+      isTrue,
+      reason: 'the card came back only after the copy was already gone',
+    );
 
     await tester.pumpAndSettle();
     expect(harness.sourceHidden.value, isFalse);
@@ -299,8 +323,9 @@ class _MorphHarness {
   Future<List<double>> sampleFlight({int frames = 60}) async {
     final List<double> samples = <double>[];
     for (var i = 0; i < frames; i++) {
-      await tester
-          .pump(i == 0 ? Duration.zero : const Duration(milliseconds: 16));
+      await tester.pump(
+        i == 0 ? Duration.zero : const Duration(milliseconds: 16),
+      );
       final double? visibility = sourceVisibility();
       if (visibility != null) samples.add(visibility);
     }
@@ -309,8 +334,11 @@ class _MorphHarness {
 }
 
 void _expectRamp(List<double> samples, {required String reason}) {
-  expect(samples.length, greaterThanOrEqualTo(5),
-      reason: '$reason — only ${samples.length} frames to do it in');
+  expect(
+    samples.length,
+    greaterThanOrEqualTo(5),
+    reason: '$reason — only ${samples.length} frames to do it in',
+  );
   double biggestStep = 0.0;
   for (var i = 1; i < samples.length; i++) {
     biggestStep = math.max(biggestStep, (samples[i] - samples[i - 1]).abs());

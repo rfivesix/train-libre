@@ -8,15 +8,16 @@ import '../../diary/domain/models/meal_entry.dart';
 import '../../diary/domain/repositories/diary_repository.dart';
 import '../../../features/sharing/share_link_repository.dart';
 import '../domain/assistant_change_proposal.dart';
+
 import 'package:uuid/uuid.dart';
 
 /// Applies only a proposal that has already passed the in-app user review.
 /// All payloads are decoded by the existing portable import codec first.
 class AssistantChangeExecutor {
-  const AssistantChangeExecutor(
-      {ShareLinkRepository sharing = const ShareLinkRepository(),
-      this.diaryRepository})
-      : _sharing = sharing;
+  const AssistantChangeExecutor({
+    ShareLinkRepository sharing = const ShareLinkRepository(),
+    this.diaryRepository,
+  }) : _sharing = sharing;
 
   final ShareLinkRepository _sharing;
   final IDiaryRepository? diaryRepository;
@@ -52,21 +53,21 @@ class AssistantChangeExecutor {
         final targetId = proposal.targetId!;
         switch (payload.type) {
           case 'routine':
-            final target = await (database.select(database.routines)
-                  ..where((row) => row.id.equals(targetId)))
-                .getSingleOrNull();
+            final target = await (database.select(
+              database.routines,
+            )..where((row) => row.id.equals(targetId))).getSingleOrNull();
             if (target == null) throw StateError('Routine no longer exists.');
             await _sharing.replaceRoutine(target.localId, payload);
           case 'recipe':
-            final target = await (database.select(database.meals)
-                  ..where((row) => row.id.equals(targetId)))
-                .getSingleOrNull();
+            final target = await (database.select(
+              database.meals,
+            )..where((row) => row.id.equals(targetId))).getSingleOrNull();
             if (target == null) throw StateError('Recipe no longer exists.');
             await _sharing.replaceRecipe(target.localId, payload);
           case 'plan':
-            final target = await (database.select(database.trainingPlans)
-                  ..where((row) => row.id.equals(targetId)))
-                .getSingleOrNull();
+            final target = await (database.select(
+              database.trainingPlans,
+            )..where((row) => row.id.equals(targetId))).getSingleOrNull();
             if (target == null) throw StateError('Plan no longer exists.');
             await _sharing.replacePlan(
               target.id,
@@ -115,7 +116,9 @@ class AssistantChangeExecutor {
         final stored = await MealPhotoStore.instance.save(source);
         if (stored == null) {
           throw FileSystemException(
-              'Could not persist meal photo', source.path);
+            'Could not persist meal photo',
+            source.path,
+          );
         }
         storedPhotos.add(stored);
       }
@@ -138,38 +141,38 @@ class AssistantChangeExecutor {
         mealType: mealType,
         source: storedPhotos.isEmpty ? 'aiText' : 'aiPhoto',
         photoPath: storedPhotos.isEmpty ? null : storedPhotos.first.photoPath,
-        photoThumbPath:
-            storedPhotos.isEmpty ? null : storedPhotos.first.thumbPath,
+        photoThumbPath: storedPhotos.isEmpty
+            ? null
+            : storedPhotos.first.thumbPath,
         captureMeta: captureMeta.toJson(),
       );
-      final macroEntries = rawItems.map((raw) {
-        final item = Map<String, dynamic>.from(raw as Map);
-        final protein = (item['protein'] as num).toDouble();
-        final carbs = (item['carbs'] as num).toDouble();
-        final fat = (item['fat'] as num).toDouble();
-        return MacroEntry(
-          id: uuid.v4(),
-          mealEntryId: mealId,
-          timestamp: consumedAt,
-          mealType: mealType,
-          name: (item['name'] as String).trim(),
-          amount: (item['grams'] as num).toDouble(),
-          amountUnit: 'g',
-          calories: protein * 4 + carbs * 4 + fat * 9,
-          protein: protein,
-          carbs: carbs,
-          fat: fat,
-          sugar: (item['sugar'] as num?)?.toDouble(),
-          fiber: (item['fiber'] as num?)?.toDouble(),
-          salt: (item['salt'] as num?)?.toDouble(),
-          caffeine: (item['caffeine'] as num?)?.toDouble(),
-          calculatedNutrient: 'calories',
-        );
-      }).toList(growable: false);
-      await repository.insertMealEntryWithMacroEntries(
-        mealEntry,
-        macroEntries,
-      );
+      final macroEntries = rawItems
+          .map((raw) {
+            final item = Map<String, dynamic>.from(raw as Map);
+            final protein = (item['protein'] as num).toDouble();
+            final carbs = (item['carbs'] as num).toDouble();
+            final fat = (item['fat'] as num).toDouble();
+            return MacroEntry(
+              id: uuid.v4(),
+              mealEntryId: mealId,
+              timestamp: consumedAt,
+              mealType: mealType,
+              name: (item['name'] as String).trim(),
+              amount: (item['grams'] as num).toDouble(),
+              amountUnit: 'g',
+              calories: protein * 4 + carbs * 4 + fat * 9,
+              protein: protein,
+              carbs: carbs,
+              fat: fat,
+              sugar: (item['sugar'] as num?)?.toDouble(),
+              fiber: (item['fiber'] as num?)?.toDouble(),
+              salt: (item['salt'] as num?)?.toDouble(),
+              caffeine: (item['caffeine'] as num?)?.toDouble(),
+              calculatedNutrient: 'calories',
+            );
+          })
+          .toList(growable: false);
+      await repository.insertMealEntryWithMacroEntries(mealEntry, macroEntries);
     } catch (_) {
       if (storedPhotos.isNotEmpty) {
         await MealPhotoStore.instance.delete(

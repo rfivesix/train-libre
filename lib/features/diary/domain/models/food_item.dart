@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart'; // Added for BuildContext
+
 import '../../../../core/infrastructure/caffeine_catalog_resolver.dart';
 
 enum FoodItemSource {
@@ -242,9 +243,11 @@ class FoodItem {
     Map<String, dynamic> map, {
     required FoodItemSource source,
   }) {
-    final rawCaffeine100ml = _toDoubleOrNull(map['caffeine_mg_per_100ml']) ??
+    final rawCaffeine100ml =
+        _toDoubleOrNull(map['caffeine_mg_per_100ml']) ??
         _toDoubleOrNull(map['caffeine']);
-    final rawCaffeine100g = _toDoubleOrNull(map['caffeine_mg_per_100g']) ??
+    final rawCaffeine100g =
+        _toDoubleOrNull(map['caffeine_mg_per_100g']) ??
         _toDoubleOrNull(map['caffeine_mg_per100g']);
     final parsedIsFluid = _readBool(map['is_fluid']) ?? false;
     final parsedIsLiquid = _readBool(map['is_liquid']);
@@ -254,7 +257,8 @@ class FoodItem {
       map['barcode']?.toString(),
       (map['name_de'] ?? map['name'])?.toString(),
     );
-    final finalCaffeine100ml = rawCaffeine100ml ??
+    final finalCaffeine100ml =
+        rawCaffeine100ml ??
         (isDrink ? rawCaffeine100g : null) ??
         rawCaffeine100g ??
         resolvedFallback;

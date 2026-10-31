@@ -64,9 +64,8 @@ class AppearanceSettingsScreen extends StatelessWidget {
                 ),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => AppColorSettingsScreen(
-                      showSystemColors: isAndroid,
-                    ),
+                    builder: (_) =>
+                        AppColorSettingsScreen(showSystemColors: isAndroid),
                   ),
                 ),
                 trailing: Row(
@@ -80,9 +79,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
                     Icon(
                       LucideIcons.chevron_right,
                       size: 20,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
+                      color: Theme.of(context).colorScheme.onSurface
                           .withValues(alpha: 0.4),
                     ),
                   ],

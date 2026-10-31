@@ -5,8 +5,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
+
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,19 +25,26 @@ import '../../services/bls_food_catalog_refresh_service.dart';
 import '../../services/telemetry/telemetry_service.dart';
 import 'caffeine_catalog_resolver.dart';
 import 'basis_data_row_mappers.dart';
+
 import 'package:package_info_plus/package_info_plus.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
 import '../../features/exercise_catalog/domain/exercise_alias_migration.dart';
 import '../../features/app/presentation/widgets/glass_bottom_menu.dart'; // Added
 import '../../features/app/presentation/app_initializer_screen.dart'; // Added
 import '../../util/design_constants.dart'; // Added
+
 import 'package:flutter_lucide/flutter_lucide.dart'; // Added
+
 import '../../widgets/common/app_button.dart';
 
 // Type definition for the callback
 typedef ProgressCallback = void Function(
-    String task, String detail, double progress);
+  String task,
+  String detail,
+  double progress,
+);
 typedef RemoteCatalogProgressCallback = void Function(
   String task,
   String detail,
@@ -70,9 +79,13 @@ List<dynamic> _parseBatchInIsolate(_BatchImportPayload payload) {
       return payload.rows.map(BasisDataRowMappers.mapCategoryRow).toList();
     case BatchImportType.productsBase:
       return payload.rows
-          .map((r) => BasisDataRowMappers.mapProductRow(r,
+          .map(
+            (r) => BasisDataRowMappers.mapProductRow(
+              r,
               sourceLabel: 'base',
-              preferredLanguage: payload.preferredLanguage))
+              preferredLanguage: payload.preferredLanguage,
+            ),
+          )
           .toList();
     case BatchImportType.productsOff:
       return payload.rows
@@ -142,13 +155,16 @@ class BasisDataManager {
 
   Future<bool> isOffDatabaseInitialized() async {
     final prefs = await SharedPreferences.getInstance();
-    final activeOffSource =
-        OffCatalogCountryService.activeSourceFromPrefs(prefs);
-    final activeOffCountry =
-        OffCatalogCountryCodec.parseOrDefault(activeOffSource.countryCode);
+    final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
+      prefs,
+    );
+    final activeOffCountry = OffCatalogCountryCodec.parseOrDefault(
+      activeOffSource.countryCode,
+    );
     final activeOffVersionKey =
         OffCatalogCountryService.installedVersionKeyForCountry(
-            activeOffCountry);
+          activeOffCountry,
+        );
     final version = prefs.getString(activeOffVersionKey);
     if (version == null || version == '0' || version == '') return false;
     // Same reasoning as above — verify the OFF rows actually landed on this
@@ -156,10 +172,12 @@ class BasisDataManager {
     if (_offRowsVerified) return true;
     try {
       final mainDb = await DatabaseHelper.instance.database;
-      final row = await mainDb.customSelect(
-        'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-        variables: [drift.Variable.withString('off')],
-      ).getSingleOrNull();
+      final row = await mainDb
+          .customSelect(
+            'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+            variables: [drift.Variable.withString('off')],
+          )
+          .getSingleOrNull();
       _offRowsVerified = row != null;
       return _offRowsVerified;
     } catch (e) {
@@ -197,8 +215,8 @@ class BasisDataManager {
   /// The search index can be rebuilt from the installed sidecar. A stale index
   /// must not make the food catalog appear missing or trigger another download.
   Future<bool> _isBlsAliasIndexCurrent() async {
-    final path =
-        await BlsFoodCatalogRefreshService.instance.installedDatabasePath();
+    final path = await BlsFoodCatalogRefreshService.instance
+        .installedDatabasePath();
     if (!await File(path).exists()) return false;
     try {
       final catalogDb = await sqflite.openDatabase(path, readOnly: true);
@@ -211,24 +229,33 @@ class BasisDataManager {
         // otherwise a catalog containing duplicates is rebuilt every launch.
         final catalogCount = aliasTable.isEmpty
             ? 0
-            : sqflite.Sqflite.firstIntValue(await catalogDb.rawQuery('''
+            : sqflite.Sqflite.firstIntValue(
+                    await catalogDb.rawQuery('''
                 SELECT COUNT(*) FROM (
                   SELECT barcode, language_code, alias
                   FROM food_aliases
                   GROUP BY barcode, language_code, alias
                 )
-              ''')) ?? 0;
-        final versionRows = await catalogDb.query('metadata',
-            columns: ['value'], where: 'key = ?', whereArgs: ['version']);
-        final catalogVersion =
-            versionRows.isEmpty ? null : versionRows.first['value']?.toString();
+              '''),
+                  ) ??
+                  0;
+        final versionRows = await catalogDb.query(
+          'metadata',
+          columns: ['value'],
+          where: 'key = ?',
+          whereArgs: ['version'],
+        );
+        final catalogVersion = versionRows.isEmpty
+            ? null
+            : versionRows.first['value']?.toString();
         final mainDb = await DatabaseHelper.instance.database;
-        final localCount = (await mainDb
-                .customSelect(
-                  'SELECT COUNT(*) AS count FROM bls_food_alias_index',
-                )
-                .getSingle())
-            .read<int>('count');
+        final localCount =
+            (await mainDb
+                    .customSelect(
+                      'SELECT COUNT(*) AS count FROM bls_food_alias_index',
+                    )
+                    .getSingle())
+                .read<int>('count');
         final state = await mainDb
             .customSelect(
               'SELECT catalog_version, alias_count '
@@ -252,16 +279,18 @@ class BasisDataManager {
   Future<int?> getRemoteFileSize(Uri uri) async {
     try {
       final client = http.Client();
-      final response =
-          await client.head(uri).timeout(const Duration(seconds: 4));
+      final response = await client
+          .head(uri)
+          .timeout(const Duration(seconds: 4));
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final contentLength = response.headers['content-length'];
         if (contentLength != null) {
           return int.tryParse(contentLength);
         }
       }
-      final response2 = await client.get(uri,
-          headers: {'Range': 'bytes=0-0'}).timeout(const Duration(seconds: 4));
+      final response2 = await client
+          .get(uri, headers: {'Range': 'bytes=0-0'})
+          .timeout(const Duration(seconds: 4));
       if (response2.statusCode == 206) {
         final contentRange = response2.headers['content-range'];
         if (contentRange != null) {
@@ -278,7 +307,8 @@ class BasisDataManager {
   }
 
   Future<void> promptOffDatabaseDownloadIfFirstTime(
-      BuildContext context) async {
+    BuildContext context,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final wgerInitialized = await isExerciseCatalogInitialized();
     final offInitialized = await isOffDatabaseInitialized();
@@ -292,17 +322,19 @@ class BasisDataManager {
     double? blsSize;
 
     try {
-      final wgerManifest =
-          await ExerciseCatalogRefreshService.instance.fetchManifestDirect();
+      final wgerManifest = await ExerciseCatalogRefreshService.instance
+          .fetchManifestDirect();
       if (wgerManifest != null) {
         final wgerInstalled = prefs.getString(_keyVersionTraining) ?? '0';
         wgerUpdateAvailable =
             ExerciseCatalogRefreshService.isRemoteVersionNewer(
-          remoteVersion: wgerManifest.version,
-          installedVersion: wgerInstalled,
-        );
+              remoteVersion: wgerManifest.version,
+              installedVersion: wgerInstalled,
+            );
         await prefs.setString(
-            'exercise_catalog_last_remote_version', wgerManifest.version);
+          'exercise_catalog_last_remote_version',
+          wgerManifest.version,
+        );
         final wgerBytes = await getRemoteFileSize(wgerManifest.dbUri);
         if (wgerBytes != null) {
           wgerSize = wgerBytes / (1024 * 1024);
@@ -313,24 +345,28 @@ class BasisDataManager {
     }
 
     try {
-      final offManifest =
-          await OffCatalogRefreshService.instance.fetchManifestDirect();
+      final offManifest = await OffCatalogRefreshService.instance
+          .fetchManifestDirect();
       if (offManifest != null) {
-        final activeOffSource =
-            OffCatalogCountryService.activeSourceFromPrefs(prefs);
-        final activeOffCountry =
-            OffCatalogCountryCodec.parseOrDefault(activeOffSource.countryCode);
+        final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
+          prefs,
+        );
+        final activeOffCountry = OffCatalogCountryCodec.parseOrDefault(
+          activeOffSource.countryCode,
+        );
         final activeOffVersionKey =
             OffCatalogCountryService.installedVersionKeyForCountry(
-                activeOffCountry);
+              activeOffCountry,
+            );
         final offInstalled = prefs.getString(activeOffVersionKey) ?? '0';
         offUpdateAvailable = OffCatalogRefreshService.isRemoteVersionNewer(
           remoteVersion: offManifest.version,
           installedVersion: offInstalled,
         );
         await prefs.setString(
-            'off_catalog_last_remote_version_${activeOffCountry.code}',
-            offManifest.version);
+          'off_catalog_last_remote_version_${activeOffCountry.code}',
+          offManifest.version,
+        );
         final offBytes = await getRemoteFileSize(offManifest.dbUri);
         if (offBytes != null) {
           offSize = offBytes / (1024 * 1024);
@@ -341,17 +377,20 @@ class BasisDataManager {
     }
 
     try {
-      final blsManifest =
-          await BlsFoodCatalogRefreshService.instance.fetchManifestDirect();
+      final blsManifest = await BlsFoodCatalogRefreshService.instance
+          .fetchManifestDirect();
       final blsInstalled =
           await BlsFoodCatalogRefreshService.instance.installedVersion() ?? '0';
-      blsUpdateAvailable = !blsInitialized ||
+      blsUpdateAvailable =
+          !blsInitialized ||
           BlsFoodCatalogRefreshService.isRemoteVersionNewer(
             remoteVersion: blsManifest.version,
             installedVersion: blsInstalled,
           );
       await prefs.setString(
-          'bls_food_catalog_last_remote_version', blsManifest.version);
+        'bls_food_catalog_last_remote_version',
+        blsManifest.version,
+      );
       blsSize = blsManifest.downloadSizeBytes / (1024 * 1024);
     } catch (e) {
       debugPrint('Error getting BLS manifest: $e');
@@ -385,18 +424,23 @@ class BasisDataManager {
           prefs.getString('last_prompted_bls_version') ?? '';
       final currentWgerRemote =
           prefs.getString('exercise_catalog_last_remote_version') ?? '';
-      final currentOffRemote = prefs.getString(
-              'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
+      final currentOffRemote =
+          prefs.getString(
+            'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}',
+          ) ??
           '';
       final currentBlsRemote =
           prefs.getString('bls_food_catalog_last_remote_version') ?? '';
 
-      bool wgerMatch = !wgerUpdateAvailable ||
+      bool wgerMatch =
+          !wgerUpdateAvailable ||
           (lastPromptedWger == currentWgerRemote &&
               currentWgerRemote.isNotEmpty);
-      bool offMatch = !offUpdateAvailable ||
+      bool offMatch =
+          !offUpdateAvailable ||
           (lastPromptedOff == currentOffRemote && currentOffRemote.isNotEmpty);
-      bool blsMatch = !blsUpdateAvailable ||
+      bool blsMatch =
+          !blsUpdateAvailable ||
           (lastPromptedBls == currentBlsRemote && currentBlsRemote.isNotEmpty);
       if (wgerMatch && offMatch && blsMatch) {
         return;
@@ -404,15 +448,19 @@ class BasisDataManager {
     }
 
     if (wgerUpdateAvailable) {
-      await prefs.setString('last_prompted_wger_version',
-          prefs.getString('exercise_catalog_last_remote_version') ?? '');
+      await prefs.setString(
+        'last_prompted_wger_version',
+        prefs.getString('exercise_catalog_last_remote_version') ?? '',
+      );
     }
     if (offUpdateAvailable) {
       await prefs.setString(
-          'last_prompted_off_version',
-          prefs.getString(
-                  'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
-              '');
+        'last_prompted_off_version',
+        prefs.getString(
+              'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}',
+            ) ??
+            '',
+      );
     }
     if (blsUpdateAvailable) {
       await prefs.setString(
@@ -426,33 +474,37 @@ class BasisDataManager {
 
     final shouldDownload = await showGlassBottomMenu<bool>(
       context: context,
-      title:
-          isMissingEither ? l10n.offDownloadTitle : l10n.updateAvailableTitle,
+      title: isMissingEither
+          ? l10n.offDownloadTitle
+          : l10n.updateAvailableTitle,
       isDismissible: true,
       enableDrag: true,
       contentBuilder: (ctx, close) {
         final wgerStatus = wgerInitialized
             ? (wgerUpdateAvailable
-                ? l10n.updateAvailableTitle
-                : l10n.statusReady)
+                  ? l10n.updateAvailableTitle
+                  : l10n.statusReady)
             : l10n.statusRequired;
         final offStatus = offInitialized
             ? (offUpdateAvailable
-                ? l10n.updateAvailableTitle
-                : l10n.statusReady)
+                  ? l10n.updateAvailableTitle
+                  : l10n.statusReady)
             : l10n.statusRequired;
         final blsStatus = blsInitialized
             ? (blsUpdateAvailable
-                ? l10n.updateAvailableTitle
-                : l10n.statusReady)
+                  ? l10n.updateAvailableTitle
+                  : l10n.statusReady)
             : l10n.statusRequired;
 
-        final wgerSizeText =
-            wgerSize != null ? '${wgerSize.toStringAsFixed(1)} MB' : '1.4 MB';
-        final offSizeText =
-            offSize != null ? '${offSize.toStringAsFixed(1)} MB' : '41.2 MB';
-        final blsSizeText =
-            blsSize != null ? '${blsSize.toStringAsFixed(1)} MB' : '25.6 MB';
+        final wgerSizeText = wgerSize != null
+            ? '${wgerSize.toStringAsFixed(1)} MB'
+            : '1.4 MB';
+        final offSizeText = offSize != null
+            ? '${offSize.toStringAsFixed(1)} MB'
+            : '41.2 MB';
+        final blsSizeText = blsSize != null
+            ? '${blsSize.toStringAsFixed(1)} MB'
+            : '25.6 MB';
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -471,8 +523,10 @@ class BasisDataManager {
                 const Icon(LucideIcons.dumbbell, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: Text(l10n.exerciseCatalogWger,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    l10n.exerciseCatalogWger,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Text(
                   "$wgerStatus ($wgerSizeText)",
@@ -491,8 +545,10 @@ class BasisDataManager {
                 const Icon(LucideIcons.database, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: Text(l10n.nutritionCatalogBls,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    l10n.nutritionCatalogBls,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Text(
                   '$blsStatus ($blsSizeText)',
@@ -511,8 +567,10 @@ class BasisDataManager {
                 const Icon(LucideIcons.database, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: Text(l10n.nutritionCatalogOff,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    l10n.nutritionCatalogOff,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Text(
                   "$offStatus ($offSizeText)",
@@ -580,10 +638,8 @@ class BasisDataManager {
     if (shouldDownload == true && context.mounted) {
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => const AppInitializerScreen(
-            forceUpdate: true,
-            isModal: true,
-          ),
+          builder: (context) =>
+              const AppInitializerScreen(forceUpdate: true, isModal: true),
         ),
       );
     }
@@ -620,29 +676,29 @@ class BasisDataManager {
     }
 
     Future<void> importSource([String? path]) => _updateDatabaseFromSource(
-          assetPath: AppDataSources.trainingAssetDbPath,
-          sourceFilePath: path,
-          prefKey: _keyVersionTraining,
-          prefs: prefs,
-          tableName: 'exercises',
-          driftTableName: null,
-          legacyAssetPath: AppDataSources.legacyTrainingAssetDbPath,
-          importType: BatchImportType.exercises,
-          preferredLanguage: null,
-          taskLabel: 'Übungen',
-          onProgress: onProgress,
-          forceImport: false,
-          enableOffReplacementRetention: false,
-        );
+      assetPath: AppDataSources.trainingAssetDbPath,
+      sourceFilePath: path,
+      prefKey: _keyVersionTraining,
+      prefs: prefs,
+      tableName: 'exercises',
+      driftTableName: null,
+      legacyAssetPath: AppDataSources.legacyTrainingAssetDbPath,
+      importType: BatchImportType.exercises,
+      preferredLanguage: null,
+      taskLabel: 'Übungen',
+      onProgress: onProgress,
+      forceImport: false,
+      enableOffReplacementRetention: false,
+    );
 
     // The small manifest avoids copying/opening the bundled SQLite file on
     // every launch. The importer still checks the database's own version.
     var checkBundle = true;
     if (healthy) {
       try {
-        final manifest = jsonDecode(await rootBundle.loadString(
-          AppDataSources.trainingAssetManifestPath,
-        )) as Map<String, dynamic>;
+        final manifest = jsonDecode(
+          await rootBundle.loadString(AppDataSources.trainingAssetManifestPath),
+        ) as Map<String, dynamic>;
         final version = manifest['version']?.toString().trim() ?? '';
         if (version.isNotEmpty) {
           checkBundle = ExerciseCatalogRefreshService.isRemoteVersionNewer(
@@ -660,14 +716,15 @@ class BasisDataManager {
       try {
         // Read AFTER the bundled import: remote and cached data must be newer
         // than both the previously installed catalog and the bundled one.
-        final candidate = await (catalogRefreshService ??
-                ExerciseCatalogRefreshService.instance)
-            .prepareUpdateCandidate(
-          installedVersion: prefs.getString(_keyVersionTraining) ?? '0',
-          force: force,
-          onProgress: onRemoteProgress,
-          isSkipRequested: isRemoteSkipRequested,
-        );
+        final candidate =
+            await (catalogRefreshService ??
+                    ExerciseCatalogRefreshService.instance)
+                .prepareUpdateCandidate(
+                  installedVersion: prefs.getString(_keyVersionTraining) ?? '0',
+                  force: force,
+                  onProgress: onRemoteProgress,
+                  isSkipRequested: isRemoteSkipRequested,
+                );
         if (candidate != null) await importSource(candidate.localDbPath);
       } catch (e) {
         debugPrint('[ExerciseCatalog] Remote update failed (non-fatal): $e');
@@ -676,7 +733,9 @@ class BasisDataManager {
 
     _exerciseRowsVerified = await hasCatalog();
     await prefs.setBool(
-        'is_exercise_catalog_initialized', _exerciseRowsVerified);
+      'is_exercise_catalog_initialized',
+      _exerciseRowsVerified,
+    );
   }
 
   /// Checks for updates to the basis data and performs an import if necessary.
@@ -735,8 +794,8 @@ class BasisDataManager {
     );
     final activeOffVersionKey =
         OffCatalogCountryService.installedVersionKeyForCountry(
-      activeOffCountry,
-    );
+          activeOffCountry,
+        );
 
     // Drop an OFF version claim that no rows on this device back up, so the
     // "download required" prompt is offered instead of the app silently
@@ -773,8 +832,10 @@ class BasisDataManager {
     // on disk here. Verify the rows before trusting the gate, and clear the
     // installed-version keys so the importer does not skip a second time.
     final bool hasBaseFoodData = await isBlsFoodCatalogInitialized();
-    final bool hasCategoryData =
-        await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionCats);
+    final bool hasCategoryData = await _hasInitializedData(
+      mainDb: mainDb,
+      prefKey: _keyVersionCats,
+    );
     final bool bundledDataMissing = !hasBaseFoodData || !hasCategoryData;
 
     String? remoteOffDbPath;
@@ -786,13 +847,13 @@ class BasisDataManager {
           'Suche nach Remote-OFF-Katalog-Updates...',
           0.0,
         );
-        final remoteOffCandidate =
-            await OffCatalogRefreshService.instance.prepareUpdateCandidate(
-          installedVersion: installedOffVersion,
-          force: force,
-          onProgress: onRemoteProgress,
-          isSkipRequested: isRemoteSkipRequested,
-        );
+        final remoteOffCandidate = await OffCatalogRefreshService.instance
+            .prepareUpdateCandidate(
+              installedVersion: installedOffVersion,
+              force: force,
+              onProgress: onRemoteProgress,
+              isSkipRequested: isRemoteSkipRequested,
+            );
         if (remoteOffCandidate != null) {
           remoteOffDbPath = remoteOffCandidate.localDbPath;
           onProgress?.call(
@@ -821,23 +882,16 @@ class BasisDataManager {
       }
     }
 
-    final bool shouldSync = force ||
+    final bool shouldSync =
+        force ||
         currentAppBuild != lastDbSyncAppVersion ||
         forceEnrichment ||
         bundledDataMissing ||
         remoteOffDbPath != null;
 
     if (!shouldSync) {
-      onProgress?.call(
-        'Basis-Produkte',
-        'Basis-Produkte sind aktuell.',
-        1.0,
-      );
-      onProgress?.call(
-        'Kategorien',
-        'Kategorien sind aktuell.',
-        1.0,
-      );
+      onProgress?.call('Basis-Produkte', 'Basis-Produkte sind aktuell.', 1.0);
+      onProgress?.call('Kategorien', 'Kategorien sind aktuell.', 1.0);
       onProgress?.call(
         'Produktdatenbank (${activeOffCountry.upperCode})',
         'OFF-Datenbank ist aktuell (Version: $currentAppVersion).',
@@ -885,9 +939,15 @@ class BasisDataManager {
       onProgress?.call('Kategorien', 'BLS-Kategorien sind aktuell.', 1.0);
     } else {
       onProgress?.call(
-          'Basis-Produkte', 'BLS-Katalog wartet auf den Download.', 1.0);
+        'Basis-Produkte',
+        'BLS-Katalog wartet auf den Download.',
+        1.0,
+      );
       onProgress?.call(
-          'Kategorien', 'BLS-Kategorien warten auf den Download.', 1.0);
+        'Kategorien',
+        'BLS-Kategorien warten auf den Download.',
+        1.0,
+      );
     }
 
     if (skipOffDatabase) {
@@ -902,8 +962,8 @@ class BasisDataManager {
 
     final hasBundledOffAsset =
         await OffCatalogCountryService.bundledAssetAvailableForCountry(
-      activeOffCountry,
-    );
+          activeOffCountry,
+        );
 
     if (remoteOffDbPath == null && !hasBundledOffAsset) {
       onProgress?.call(
@@ -967,10 +1027,15 @@ class BasisDataManager {
           final localDb = await sqflite.openDatabase(localPath, readOnly: true);
           String? sourceVersion;
           try {
-            final metadata = await localDb.query('metadata',
-                columns: ['value'], where: 'key = ?', whereArgs: ['version']);
-            sourceVersion =
-                metadata.isEmpty ? null : metadata.first['value']?.toString();
+            final metadata = await localDb.query(
+              'metadata',
+              columns: ['value'],
+              where: 'key = ?',
+              whereArgs: ['version'],
+            );
+            sourceVersion = metadata.isEmpty
+                ? null
+                : metadata.first['value']?.toString();
           } finally {
             await localDb.close();
           }
@@ -1005,11 +1070,7 @@ class BasisDataManager {
         final path = await service.installedDatabasePath();
         final version = await service.installedVersion();
         if (version != null) {
-          await _importBlsFoodCatalog(
-            path,
-            version,
-            onProgress: onProgress,
-          );
+          await _importBlsFoodCatalog(path, version, onProgress: onProgress);
           return true;
         }
       }
@@ -1042,30 +1103,38 @@ class BasisDataManager {
     final sourceDb = await sqflite.openDatabase(sourcePath, readOnly: true);
     final mainDb = await DatabaseHelper.instance.database;
     final prefs = await SharedPreferences.getInstance();
-    final languageChoice =
-        await BaseFoodLanguageService.readChoice(prefs: prefs);
-    final activeCountry =
-        OffCatalogCountryService.readActiveCountryFromPrefs(prefs);
+    final languageChoice = await BaseFoodLanguageService.readChoice(
+      prefs: prefs,
+    );
+    final activeCountry = OffCatalogCountryService.readActiveCountryFromPrefs(
+      prefs,
+    );
     final language = BasisDataRowMappers.resolveBaseFoodLangCode(
       choice: languageChoice,
       offCountry: activeCountry,
     );
     try {
-      final count = sqflite.Sqflite.firstIntValue(
+      final count =
+          sqflite.Sqflite.firstIntValue(
             await sourceDb.rawQuery('SELECT COUNT(*) FROM products'),
           ) ??
           0;
-      final facts = sqflite.Sqflite.firstIntValue(
+      final facts =
+          sqflite.Sqflite.firstIntValue(
             await sourceDb.rawQuery('SELECT COUNT(*) FROM food_nutrients'),
           ) ??
           0;
       if (count <= 0 || facts <= 0) {
         throw StateError(
-            'BLS catalog is incomplete ($count foods, $facts nutrient facts).');
+          'BLS catalog is incomplete ($count foods, $facts nutrient facts).',
+        );
       }
 
       onProgress?.call(
-          'Basis-Produkte', 'Importiere BLS-Lebensmittel...', 0.03);
+        'Basis-Produkte',
+        'Importiere BLS-Lebensmittel...',
+        0.03,
+      );
       // Keep historical product rows and their foreign-key references. They
       // remain available to old diary entries and saved meals, but disappear
       // from current catalog search once their replacements are installed.
@@ -1103,7 +1172,8 @@ class BasisDataManager {
       if (sourceSchema >= 3) {
         if (translationTable.isEmpty) {
           throw StateError(
-              'BLS schema 3 catalog has no food_translations table.');
+            'BLS schema 3 catalog has no food_translations table.',
+          );
         }
         final translations = await sourceDb.rawQuery('''
           SELECT t.barcode, t.language_code, t.name, t.category_name, p.category
@@ -1128,7 +1198,8 @@ class BasisDataManager {
               categoryName.isEmpty ||
               (languageCode != 'es' && languageCode != 'nl')) {
             throw StateError(
-                'BLS schema 3 contains an invalid food translation.');
+              'BLS schema 3 contains an invalid food translation.',
+            );
           }
           final nameField = 'name_$languageCode';
           final existingProductFields = productTranslationFields.putIfAbsent(
@@ -1137,7 +1208,8 @@ class BasisDataManager {
           );
           if (existingProductFields.containsKey(nameField)) {
             throw StateError(
-                'BLS schema 3 has duplicate translations for $barcode/$languageCode.');
+              'BLS schema 3 has duplicate translations for $barcode/$languageCode.',
+            );
           }
           existingProductFields[nameField] = name;
           categoryTranslationValues
@@ -1152,7 +1224,8 @@ class BasisDataManager {
                   !fields.containsKey('name_nl'),
             )) {
           throw StateError(
-              'BLS schema 3 does not translate every product in both locales.');
+            'BLS schema 3 does not translate every product in both locales.',
+          );
         }
       }
       final categoryTranslationFields = <String, Map<String, String>>{};
@@ -1164,7 +1237,8 @@ class BasisDataManager {
             spanish.length != 1 ||
             dutch.length != 1) {
           throw StateError(
-              'BLS schema 3 has inconsistent translated labels for category ${entry.key}.');
+            'BLS schema 3 has inconsistent translated labels for category ${entry.key}.',
+          );
         }
         categoryTranslationFields[entry.key] = {
           'name_es': spanish.single,
@@ -1223,7 +1297,8 @@ class BasisDataManager {
             final targetBarcode = row['target_barcode']?.toString();
             final legacyId = row['legacy_product_id']?.toString();
             if (targetBarcode != null && legacyId != null) {
-              await mainDb.customStatement('''
+              await mainDb.customStatement(
+                '''
                 UPDATE products
                 SET caffeine = (
                   SELECT caffeine_mg_per_100g FROM products
@@ -1236,25 +1311,22 @@ class BasisDataManager {
                   LIMIT 1
                 )
                 WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
-              ''', [
-                legacyId,
-                legacyId,
-                targetBarcode,
-              ]);
+              ''',
+                [legacyId, legacyId, targetBarcode],
+              );
             }
           }
         }
         for (final entry
             in CaffeineCatalogResolver.knownBlsCaffeineMap.entries) {
-          await mainDb.customStatement('''
+          await mainDb.customStatement(
+            '''
             UPDATE products
             SET caffeine = ?, caffeine_mg_per_100g = ?
             WHERE barcode = ? AND (caffeine IS NULL OR caffeine = 0)
-          ''', [
-            entry.value,
-            entry.value,
-            entry.key,
-          ]);
+          ''',
+            [entry.value, entry.value, entry.key],
+          );
         }
       });
       _blsRowsVerified = true;
@@ -1301,11 +1373,13 @@ class BasisDataManager {
                       aliases.length))) {
         throw StateError('BLS alias data does not match catalog metadata.');
       }
-      await mainDb.transaction(() => _replaceBlsAliasIndex(
-            mainDb: mainDb,
-            aliases: aliases,
-            catalogVersion: sourceVersion,
-          ));
+      await mainDb.transaction(
+        () => _replaceBlsAliasIndex(
+          mainDb: mainDb,
+          aliases: aliases,
+          catalogVersion: sourceVersion,
+        ),
+      );
     } finally {
       await sourceDb.close();
     }
@@ -1390,7 +1464,8 @@ class BasisDataManager {
           sourceFilePath.isNotEmpty &&
           await File(sourceFilePath).exists()) {
         debugPrint(
-            '[ExerciseCatalog]   [$taskLabel] Opening REMOTE source: $sourceFilePath');
+          '[ExerciseCatalog]   [$taskLabel] Opening REMOTE source: $sourceFilePath',
+        );
         try {
           assetDb = await sqflite.openDatabase(sourceFilePath, readOnly: true);
         } catch (e) {
@@ -1400,7 +1475,8 @@ class BasisDataManager {
         }
       } else {
         debugPrint(
-            '[ExerciseCatalog]   [$taskLabel] No remote source → will use bundled asset: $assetPath');
+          '[ExerciseCatalog]   [$taskLabel] No remote source → will use bundled asset: $assetPath',
+        );
       }
 
       if (assetDb == null) {
@@ -1412,26 +1488,31 @@ class BasisDataManager {
           try {
             byteData = await rootBundle.load(assetPath);
             debugPrint(
-                '[ExerciseCatalog]   [$taskLabel] Bundled asset loaded: $assetPath (${byteData.lengthInBytes} bytes)');
+              '[ExerciseCatalog]   [$taskLabel] Bundled asset loaded: $assetPath (${byteData.lengthInBytes} bytes)',
+            );
             // Guard: a 0-byte asset is an empty placeholder — opening it as a
             // SQLite DB produces a valid empty database with no tables, which
             // causes the importer to silently skip without importing anything.
             if (byteData.lengthInBytes == 0) {
               debugPrint(
-                  '[ExerciseCatalog] ❌ [$taskLabel] Bundled asset is 0 bytes – import aborted. '
-                  'Drop a real SQLite file at $assetPath.');
+                '[ExerciseCatalog] ❌ [$taskLabel] Bundled asset is 0 bytes – import aborted. '
+                'Drop a real SQLite file at $assetPath.',
+              );
               return;
             }
           } catch (_) {
             if (legacyAssetPath == null) rethrow;
             debugPrint(
-                '[ExerciseCatalog]   [$taskLabel] Primary asset missing → trying legacy: $legacyAssetPath');
+              '[ExerciseCatalog]   [$taskLabel] Primary asset missing → trying legacy: $legacyAssetPath',
+            );
             byteData = await rootBundle.load(legacyAssetPath);
             debugPrint(
-                '[ExerciseCatalog]   [$taskLabel] Legacy asset loaded: $legacyAssetPath (${byteData.lengthInBytes} bytes)');
+              '[ExerciseCatalog]   [$taskLabel] Legacy asset loaded: $legacyAssetPath (${byteData.lengthInBytes} bytes)',
+            );
             if (byteData.lengthInBytes == 0) {
               debugPrint(
-                  '[ExerciseCatalog] ❌ [$taskLabel] Legacy asset is also 0 bytes – import aborted.');
+                '[ExerciseCatalog] ❌ [$taskLabel] Legacy asset is also 0 bytes – import aborted.',
+              );
               return;
             }
           }
@@ -1464,7 +1545,8 @@ class BasisDataManager {
         if (tables.isEmpty) {
           checkTable = 'exercise';
           debugPrint(
-              '[ExerciseCatalog] [$taskLabel] Using fallback table name "exercise"');
+            '[ExerciseCatalog] [$taskLabel] Using fallback table name "exercise"',
+          );
         }
       } else {
         final tables = await assetDb.query(
@@ -1475,7 +1557,8 @@ class BasisDataManager {
         );
         if (tables.isEmpty) {
           debugPrint(
-              '[ExerciseCatalog] ❌ [$taskLabel] Source table "$tableName" not found in asset DB – aborting.');
+            '[ExerciseCatalog] ❌ [$taskLabel] Source table "$tableName" not found in asset DB – aborting.',
+          );
           return;
         }
       }
@@ -1493,7 +1576,8 @@ class BasisDataManager {
         }
       } catch (_) {
         debugPrint(
-            '[ExerciseCatalog]   [$taskLabel] No metadata table in asset DB – assetVersion = "0"');
+          '[ExerciseCatalog]   [$taskLabel] No metadata table in asset DB – assetVersion = "0"',
+        );
       }
 
       final String installedVersion = prefs.getString(prefKey) ?? '0';
@@ -1538,20 +1622,26 @@ class BasisDataManager {
           );
         }
 
-        final storedVersion =
-            storedVersionAfterImport(assetVersion: assetVersion);
+        final storedVersion = storedVersionAfterImport(
+          assetVersion: assetVersion,
+        );
         await prefs.setString(prefKey, storedVersion);
 
-        if (prefKey
-            .startsWith(OffCatalogCountryService.installedVersionKeyPrefix)) {
+        if (prefKey.startsWith(
+          OffCatalogCountryService.installedVersionKeyPrefix,
+        )) {
           if (installedVersion == '0') {
-            unawaited(TelemetryService.instance.trackFeatureUsed(
-              featureKey: FeatureKey.offCatalogInstalled,
-            ));
+            unawaited(
+              TelemetryService.instance.trackFeatureUsed(
+                featureKey: FeatureKey.offCatalogInstalled,
+              ),
+            );
           } else {
-            unawaited(TelemetryService.instance.trackFeatureUsed(
-              featureKey: FeatureKey.offCatalogUpdated,
-            ));
+            unawaited(
+              TelemetryService.instance.trackFeatureUsed(
+                featureKey: FeatureKey.offCatalogUpdated,
+              ),
+            );
           }
         }
 
@@ -1613,16 +1703,20 @@ class BasisDataManager {
             .getSingleOrNull();
         return row != null;
       case _keyVersionFood:
-        final row = await mainDb.customSelect(
-          'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-          variables: [drift.Variable.withString('base')],
-        ).getSingleOrNull();
+        final row = await mainDb
+            .customSelect(
+              'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+              variables: [drift.Variable.withString('base')],
+            )
+            .getSingleOrNull();
         return row != null;
       case OffCatalogCountryService.legacyInstalledVersionKey:
-        final row = await mainDb.customSelect(
-          'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-          variables: [drift.Variable.withString('off')],
-        ).getSingleOrNull();
+        final row = await mainDb
+            .customSelect(
+              'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+              variables: [drift.Variable.withString('off')],
+            )
+            .getSingleOrNull();
         return row != null;
       case _keyVersionCats:
         final row = await mainDb
@@ -1633,10 +1727,12 @@ class BasisDataManager {
         if (prefKey.startsWith(
           OffCatalogCountryService.installedVersionKeyPrefix,
         )) {
-          final row = await mainDb.customSelect(
-            'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-            variables: [drift.Variable.withString('off')],
-          ).getSingleOrNull();
+          final row = await mainDb
+              .customSelect(
+                'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+                variables: [drift.Variable.withString('off')],
+              )
+              .getSingleOrNull();
           return row != null;
         }
         return false;
@@ -1674,7 +1770,8 @@ class BasisDataManager {
 
     if (totalCount == 0) {
       debugPrint(
-          '[ExerciseCatalog] ❌ [$taskLabel] Source table has 0 rows – import skipped entirely!');
+        '[ExerciseCatalog] ❌ [$taskLabel] Source table has 0 rows – import skipped entirely!',
+      );
       return importedProductBarcodes;
     }
 
@@ -1684,18 +1781,22 @@ class BasisDataManager {
     int originalForeignKeys = 1; // ON
     if (!withinCatalogTransaction) {
       try {
-        final journalModeRow =
-            await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
+        final journalModeRow = await mainDb
+            .customSelect('PRAGMA journal_mode;')
+            .getSingle();
         originalJournalMode = journalModeRow.read<String>('journal_mode');
-        final syncRow =
-            await mainDb.customSelect('PRAGMA synchronous;').getSingle();
+        final syncRow = await mainDb
+            .customSelect('PRAGMA synchronous;')
+            .getSingle();
         originalSynchronous = syncRow.read<int>('synchronous');
-        final fkRow =
-            await mainDb.customSelect('PRAGMA foreign_keys;').getSingle();
+        final fkRow = await mainDb
+            .customSelect('PRAGMA foreign_keys;')
+            .getSingle();
         originalForeignKeys = fkRow.read<int>('foreign_keys');
       } catch (e) {
         debugPrint(
-            '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
+          '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e',
+        );
       }
     }
 
@@ -1707,7 +1808,8 @@ class BasisDataManager {
         await mainDb.customStatement('PRAGMA foreign_keys = OFF;');
       } catch (e) {
         debugPrint(
-            '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
+          '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e',
+        );
       }
     }
 
@@ -1729,14 +1831,17 @@ class BasisDataManager {
 
           final rowsForMapping = localizedFieldsByKey.isEmpty
               ? rows
-              : rows.map((row) {
-                  final key = row[localizedFieldsKey]?.toString();
-                  final localizedFields =
-                      key == null ? null : localizedFieldsByKey[key];
-                  return localizedFields == null
-                      ? row
-                      : <String, dynamic>{...row, ...localizedFields};
-                }).toList(growable: false);
+              : rows
+                    .map((row) {
+                      final key = row[localizedFieldsKey]?.toString();
+                      final localizedFields = key == null
+                          ? null
+                          : localizedFieldsByKey[key];
+                      return localizedFields == null
+                          ? row
+                          : <String, dynamic>{...row, ...localizedFields};
+                    })
+                    .toList(growable: false);
 
           final mappedCompanions = await compute(
             _parseBatchInIsolate,
@@ -1789,7 +1894,8 @@ class BasisDataManager {
                 }
               } catch (e) {
                 debugPrint(
-                    '[ExerciseCatalog]   [$taskLabel] Skipping malformed non-exercise row: $e');
+                  '[ExerciseCatalog]   [$taskLabel] Skipping malformed non-exercise row: $e',
+                );
               }
             }
           });
@@ -1803,22 +1909,30 @@ class BasisDataManager {
               for (final bundle in exerciseBundles) {
                 try {
                   final fields = bundle.exerciseFields;
-                  final exerciseId =
-                      BasisDataRowMappers.parseString(fields['id']);
+                  final exerciseId = BasisDataRowMappers.parseString(
+                    fields['id'],
+                  );
                   if (exerciseId.isEmpty) {
                     debugPrint(
-                        '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping exercise with empty id');
+                      '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping exercise with empty id',
+                    );
                     return;
                   }
                   final exerciseCompanion = ExercisesCompanion(
                     id: drift.Value(exerciseId),
-                    categoryName: drift.Value(BasisDataRowMappers.parseString(
-                        fields['category_name'])),
-                    musclesPrimary: drift.Value(BasisDataRowMappers.parseString(
-                        fields['muscles_primary'])),
+                    categoryName: drift.Value(
+                      BasisDataRowMappers.parseString(fields['category_name']),
+                    ),
+                    musclesPrimary: drift.Value(
+                      BasisDataRowMappers.parseString(
+                        fields['muscles_primary'],
+                      ),
+                    ),
                     musclesSecondary: drift.Value(
-                        BasisDataRowMappers.parseString(
-                            fields['muscles_secondary'])),
+                      BasisDataRowMappers.parseString(
+                        fields['muscles_secondary'],
+                      ),
+                    ),
                     isCustom: const drift.Value(false),
                     createdBy: const drift.Value('system'),
                     source: const drift.Value('wger'),
@@ -1826,30 +1940,54 @@ class BasisDataManager {
                     // carry the column: on a v1 asset this must leave whatever
                     // a previous v2 import wrote alone instead of erasing it.
                     status: BasisDataRowMappers.optionalText(fields, 'status'),
-                    mergedInto:
-                        BasisDataRowMappers.optionalText(fields, 'merged_into'),
-                    modality:
-                        BasisDataRowMappers.optionalText(fields, 'modality'),
-                    mechanic:
-                        BasisDataRowMappers.optionalText(fields, 'mechanic'),
+                    mergedInto: BasisDataRowMappers.optionalText(
+                      fields,
+                      'merged_into',
+                    ),
+                    modality: BasisDataRowMappers.optionalText(
+                      fields,
+                      'modality',
+                    ),
+                    mechanic: BasisDataRowMappers.optionalText(
+                      fields,
+                      'mechanic',
+                    ),
                     forceVector: BasisDataRowMappers.optionalText(
-                        fields, 'force_vector'),
+                      fields,
+                      'force_vector',
+                    ),
                     movementPattern: BasisDataRowMappers.optionalText(
-                        fields, 'movement_pattern'),
-                    laterality:
-                        BasisDataRowMappers.optionalText(fields, 'laterality'),
-                    difficulty:
-                        BasisDataRowMappers.optionalText(fields, 'difficulty'),
+                      fields,
+                      'movement_pattern',
+                    ),
+                    laterality: BasisDataRowMappers.optionalText(
+                      fields,
+                      'laterality',
+                    ),
+                    difficulty: BasisDataRowMappers.optionalText(
+                      fields,
+                      'difficulty',
+                    ),
                     trackingType: BasisDataRowMappers.optionalText(
-                        fields, 'tracking_type'),
-                    loadMode:
-                        BasisDataRowMappers.optionalText(fields, 'load_mode'),
+                      fields,
+                      'tracking_type',
+                    ),
+                    loadMode: BasisDataRowMappers.optionalText(
+                      fields,
+                      'load_mode',
+                    ),
                     supportsAddedWeight: BasisDataRowMappers.optionalBool(
-                        fields, 'supports_added_weight'),
+                      fields,
+                      'supports_added_weight',
+                    ),
                     primaryEquipment: BasisDataRowMappers.optionalText(
-                        fields, 'primary_equipment'),
-                    bodyRegion:
-                        BasisDataRowMappers.optionalText(fields, 'body_region'),
+                      fields,
+                      'primary_equipment',
+                    ),
+                    bodyRegion: BasisDataRowMappers.optionalText(
+                      fields,
+                      'body_region',
+                    ),
                   );
                   batch.insert(
                     mainDb.exercises,
@@ -1862,7 +2000,8 @@ class BasisDataManager {
                   batchExCount++;
                 } catch (e) {
                   debugPrint(
-                      '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed exercise: $e');
+                    '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed exercise: $e',
+                  );
                 }
               }
             });
@@ -1874,11 +2013,14 @@ class BasisDataManager {
                   try {
                     final companion = ExerciseTranslationsCompanion(
                       exerciseId: drift.Value(
-                          BasisDataRowMappers.parseString(t['exercise_id'])),
+                        BasisDataRowMappers.parseString(t['exercise_id']),
+                      ),
                       languageCode: drift.Value(
-                          BasisDataRowMappers.parseString(t['language_code'])),
+                        BasisDataRowMappers.parseString(t['language_code']),
+                      ),
                       name: drift.Value(
-                          BasisDataRowMappers.parseString(t['name'])),
+                        BasisDataRowMappers.parseString(t['name']),
+                      ),
                       description: drift.Value(t['description'] as String?),
                     );
                     batch.insert(
@@ -1895,7 +2037,8 @@ class BasisDataManager {
                     batchTrCount++;
                   } catch (e) {
                     debugPrint(
-                        '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed translation: $e');
+                      '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed translation: $e',
+                    );
                   }
                 }
               }
@@ -1910,10 +2053,13 @@ class BasisDataManager {
 
           // Progress melden
           if (onProgress != null) {
-            final double baseMax =
-                importType == BatchImportType.exercises ? 0.70 : 0.95;
-            final double progress =
-                ((processed / totalCount) * baseMax).clamp(0.0, baseMax);
+            final double baseMax = importType == BatchImportType.exercises
+                ? 0.70
+                : 0.95;
+            final double progress = ((processed / totalCount) * baseMax).clamp(
+              0.0,
+              baseMax,
+            );
             onProgress(
               "Update $taskLabel",
               "$processed / $totalCount Einträge",
@@ -1964,10 +2110,12 @@ class BasisDataManager {
               await mainDb.batch((batch) {
                 for (final t in trRows) {
                   try {
-                    final exerciseId =
-                        BasisDataRowMappers.parseString(t['exercise_id']);
-                    final langCode =
-                        BasisDataRowMappers.parseString(t['language_code']);
+                    final exerciseId = BasisDataRowMappers.parseString(
+                      t['exercise_id'],
+                    );
+                    final langCode = BasisDataRowMappers.parseString(
+                      t['language_code'],
+                    );
                     final name = BasisDataRowMappers.parseString(t['name']);
                     if (exerciseId.isEmpty ||
                         langCode.isEmpty ||
@@ -2002,8 +2150,8 @@ class BasisDataManager {
 
               trOffset += trRows.length;
               if (onProgress != null && trTotal > 0) {
-                final double trProgress =
-                    (0.70 + (0.30 * (trOffset / trTotal))).clamp(0.70, 1.0);
+                final double trProgress = (0.70 + (0.30 * (trOffset / trTotal)))
+                    .clamp(0.70, 1.0);
                 onProgress(
                   "Update $taskLabel",
                   "$trOffset / $trTotal Übersetzungen",
@@ -2056,24 +2204,30 @@ class BasisDataManager {
         );
         if (totalExercisesInserted == 0) {
           debugPrint(
-              '[ExerciseCatalog] ❌ [$taskLabel] ZERO exercises written – check source DB and mapping!');
+            '[ExerciseCatalog] ❌ [$taskLabel] ZERO exercises written – check source DB and mapping!',
+          );
         } else if (totalTranslationsInserted == 0) {
           debugPrint(
-              '[ExerciseCatalog] ❌ [$taskLabel] ZERO translations written – exercises will be invisible!');
+            '[ExerciseCatalog] ❌ [$taskLabel] ZERO translations written – exercises will be invisible!',
+          );
         }
       }
     } finally {
       // Restore original PRAGMAs
       if (!withinCatalogTransaction) {
         debugPrint(
-            '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys');
+          '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys',
+        );
         try {
-          await mainDb
-              .customStatement('PRAGMA synchronous = $originalSynchronous;');
-          await mainDb
-              .customStatement('PRAGMA journal_mode = $originalJournalMode;');
-          await mainDb
-              .customStatement('PRAGMA foreign_keys = $originalForeignKeys;');
+          await mainDb.customStatement(
+            'PRAGMA synchronous = $originalSynchronous;',
+          );
+          await mainDb.customStatement(
+            'PRAGMA journal_mode = $originalJournalMode;',
+          );
+          await mainDb.customStatement(
+            'PRAGMA foreign_keys = $originalForeignKeys;',
+          );
         } catch (e) {
           debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
         }
@@ -2107,10 +2261,7 @@ class BasisDataManager {
       'sqlite_master',
       columns: ['name'],
       where: "type = 'table'",
-    ))
-        .map((row) => row['name']?.toString())
-        .whereType<String>()
-        .toSet();
+    )).map((row) => row['name']?.toString()).whereType<String>().toSet();
 
     Future<void> copy({
       required String source,
@@ -2157,13 +2308,16 @@ class BasisDataManager {
               MusclesCompanion.insert(
                 id: id,
                 parentId: drift.Value(
-                    BasisDataRowMappers.nullableString(row['parent_id'])),
+                  BasisDataRowMappers.nullableString(row['parent_id']),
+                ),
                 level: BasisDataRowMappers.parseString(row['level']),
                 groupId: groupId,
                 legacyGroup: drift.Value(
-                    BasisDataRowMappers.nullableString(row['legacy_group'])),
+                  BasisDataRowMappers.nullableString(row['legacy_group']),
+                ),
                 bodySlugs: drift.Value(
-                    BasisDataRowMappers.nullableString(row['body_slugs'])),
+                  BasisDataRowMappers.nullableString(row['body_slugs']),
+                ),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2232,8 +2386,9 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final equipmentId =
-                BasisDataRowMappers.parseString(row['equipment_id']);
+            final equipmentId = BasisDataRowMappers.parseString(
+              row['equipment_id'],
+            );
             final lang = BasisDataRowMappers.parseString(row['language_code']);
             final name = BasisDataRowMappers.parseString(row['name']);
             if (equipmentId.isEmpty || lang.isEmpty || name.isEmpty) continue;
@@ -2268,15 +2423,18 @@ class BasisDataManager {
                 code: code,
                 tier: BasisDataRowMappers.parseString(row['tier']),
                 completeness: drift.Value(
-                    BasisDataRowMappers.parseNullableDouble(
-                            row['completeness']) ??
-                        0),
+                  BasisDataRowMappers.parseNullableDouble(
+                        row['completeness'],
+                      ) ??
+                      0,
+                ),
                 // The data repo decides which languages are fit to show. The
                 // app reads that decision rather than re-deriving one from
                 // `completeness`, which would rebuild exactly the coupling
                 // that moving the vocabulary into the data removes.
                 displayable: drift.Value(
-                    BasisDataRowMappers.parseBool(row['displayable'])),
+                  BasisDataRowMappers.parseBool(row['displayable']),
+                ),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2294,8 +2452,9 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final exerciseId =
-                BasisDataRowMappers.parseString(row['exercise_id']);
+            final exerciseId = BasisDataRowMappers.parseString(
+              row['exercise_id'],
+            );
             final muscleId = BasisDataRowMappers.parseString(row['muscle_id']);
             if (exerciseId.isEmpty || muscleId.isEmpty) continue;
             batch.insert(
@@ -2305,8 +2464,8 @@ class BasisDataManager {
                 muscleId: muscleId,
                 role: BasisDataRowMappers.parseString(row['role']),
                 contribution: drift.Value(
-                    BasisDataRowMappers.parseNullableDouble(
-                        row['contribution'])),
+                  BasisDataRowMappers.parseNullableDouble(row['contribution']),
+                ),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2324,10 +2483,12 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final exerciseId =
-                BasisDataRowMappers.parseString(row['exercise_id']);
-            final equipmentId =
-                BasisDataRowMappers.parseString(row['equipment_id']);
+            final exerciseId = BasisDataRowMappers.parseString(
+              row['exercise_id'],
+            );
+            final equipmentId = BasisDataRowMappers.parseString(
+              row['equipment_id'],
+            );
             if (exerciseId.isEmpty || equipmentId.isEmpty) continue;
             batch.insert(
               mainDb.exerciseEquipment,
@@ -2352,8 +2513,9 @@ class BasisDataManager {
         var n = 0;
         await mainDb.batch((batch) {
           for (final row in rows) {
-            final exerciseId =
-                BasisDataRowMappers.parseString(row['exercise_id']);
+            final exerciseId = BasisDataRowMappers.parseString(
+              row['exercise_id'],
+            );
             final tag = BasisDataRowMappers.parseString(row['tag']);
             if (exerciseId.isEmpty || tag.isEmpty) continue;
             batch.insert(
@@ -2384,9 +2546,11 @@ class BasisDataManager {
                 oldId: oldId,
                 newId: newId,
                 reason: drift.Value(
-                    BasisDataRowMappers.nullableString(row['reason'])),
+                  BasisDataRowMappers.nullableString(row['reason']),
+                ),
                 sinceVersion: drift.Value(
-                    BasisDataRowMappers.nullableString(row['since_version'])),
+                  BasisDataRowMappers.nullableString(row['since_version']),
+                ),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
@@ -2430,7 +2594,8 @@ class BasisDataManager {
   /// database, and a real sqflite factory to be installed.
   @visibleForTesting
   Future<void> importExerciseCatalogFromFileForTesting(
-      String sourcePath) async {
+    String sourcePath,
+  ) async {
     final assetDb = await sqflite.openDatabase(sourcePath, readOnly: true);
     try {
       await _performBatchImport(
@@ -2464,9 +2629,15 @@ class BasisDataManager {
   }
 
   @visibleForTesting
-  ProductsCompanion mapProductRowForTesting(Map<String, dynamic> row,
-      {required String sourceLabel, String? preferredLanguage}) {
-    return BasisDataRowMappers.mapProductRow(row,
-        sourceLabel: sourceLabel, preferredLanguage: preferredLanguage);
+  ProductsCompanion mapProductRowForTesting(
+    Map<String, dynamic> row, {
+    required String sourceLabel,
+    String? preferredLanguage,
+  }) {
+    return BasisDataRowMappers.mapProductRow(
+      row,
+      sourceLabel: sourceLabel,
+      preferredLanguage: preferredLanguage,
+    );
   }
 }

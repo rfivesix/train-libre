@@ -1,4 +1,5 @@
 import '../../../services/unit_service.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -15,7 +16,7 @@ typedef SharedPreferencesLoader = Future<SharedPreferences> Function();
 
 class RecommendationRepository {
   static final StreamController<AdaptiveRecommendationSnapshot>
-      _updateController =
+  _updateController =
       StreamController<AdaptiveRecommendationSnapshot>.broadcast();
 
   Stream<AdaptiveRecommendationSnapshot> get onRecommendationUpdated =>
@@ -57,10 +58,11 @@ class RecommendationRepository {
   final SharedPreferencesLoader _prefsLoader;
   final UnitService _unitService;
 
-  RecommendationRepository(
-      {SharedPreferencesLoader? prefsLoader, UnitService? unitService})
-      : _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
-        _unitService = unitService ?? UnitService();
+  RecommendationRepository({
+    SharedPreferencesLoader? prefsLoader,
+    UnitService? unitService,
+  }) : _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
+       _unitService = unitService ?? UnitService();
 
   Future<BodyweightGoal> getGoal() async {
     final prefs = await _prefsLoader();
@@ -76,11 +78,16 @@ class RecommendationRepository {
     final goal = await getGoal();
     final raw = prefs.getDouble(_targetRateKey);
     if (raw == null) {
-      return WeeklyTargetRateCatalog.defaultForGoal(goal, _unitService)
-          .kgPerWeek;
+      return WeeklyTargetRateCatalog.defaultForGoal(
+        goal,
+        _unitService,
+      ).kgPerWeek;
     }
     return WeeklyTargetRateCatalog.coerceTargetRate(
-        goal: goal, kgPerWeek: raw, unitService: _unitService);
+      goal: goal,
+      kgPerWeek: raw,
+      unitService: _unitService,
+    );
   }
 
   Future<void> saveGoalAndTargetRate({
@@ -179,7 +186,7 @@ class RecommendationRepository {
   }
 
   Future<AdaptiveRecommendationSnapshot?>
-      getLatestRecommendationSnapshot() async {
+  getLatestRecommendationSnapshot() async {
     final prefs = await _prefsLoader();
     final encoded = prefs.getString(_latestSnapshotKey);
     if (encoded != null && encoded.isNotEmpty) {
@@ -312,10 +319,7 @@ class RecommendationRepository {
     }
 
     final prefs = await _prefsLoader();
-    await prefs.setString(
-      _latestRecursiveStateKey,
-      jsonEncode(state.toJson()),
-    );
+    await prefs.setString(_latestRecursiveStateKey, jsonEncode(state.toJson()));
   }
 
   Future<String?> getLastGeneratedDueWeekKey() async {
@@ -373,7 +377,8 @@ class RecommendationRepository {
   Future<AdaptiveRecommendationSnapshot?> _migrateLegacySnapshot(
     SharedPreferences prefs,
   ) async {
-    final migrated = await _migrateLegacyBayesianSnapshot(prefs) ??
+    final migrated =
+        await _migrateLegacyBayesianSnapshot(prefs) ??
         await _migrateLegacyFragmentedBayesianSnapshot(prefs) ??
         await _migrateLegacyGeneratedRecommendationSnapshot(prefs);
 
@@ -403,9 +408,7 @@ class RecommendationRepository {
   }
 
   Future<AdaptiveRecommendationSnapshot?>
-      _migrateLegacyFragmentedBayesianSnapshot(
-    SharedPreferences prefs,
-  ) async {
+  _migrateLegacyFragmentedBayesianSnapshot(SharedPreferences prefs) async {
     final recommendation = _loadRecommendationFromPrefs(
       prefs,
       _legacyLatestGeneratedBayesianKey,
@@ -429,8 +432,9 @@ class RecommendationRepository {
       return null;
     }
 
-    final legacyLastGeneratedDueWeekKey =
-        prefs.getString(_legacyLastGeneratedDueWeekBayesianKey);
+    final legacyLastGeneratedDueWeekKey = prefs.getString(
+      _legacyLastGeneratedDueWeekBayesianKey,
+    );
     if (legacyLastGeneratedDueWeekKey != null &&
         legacyLastGeneratedDueWeekKey.isNotEmpty &&
         legacyLastGeneratedDueWeekKey != dueWeekKey) {
@@ -447,30 +451,32 @@ class RecommendationRepository {
   }
 
   Future<AdaptiveRecommendationSnapshot?>
-      _migrateLegacyGeneratedRecommendationSnapshot(
-    SharedPreferences prefs,
-  ) async {
-    final recommendation =
-        _loadRecommendationFromPrefs(prefs, _legacyLatestGeneratedKey);
+  _migrateLegacyGeneratedRecommendationSnapshot(SharedPreferences prefs) async {
+    final recommendation = _loadRecommendationFromPrefs(
+      prefs,
+      _legacyLatestGeneratedKey,
+    );
     if (recommendation == null) {
       return null;
     }
 
-    final dueWeekKey = recommendation.dueWeekKey?.trim() ??
+    final dueWeekKey =
+        recommendation.dueWeekKey?.trim() ??
         prefs.getString(_lastGeneratedDueWeekKey)?.trim();
     if (dueWeekKey == null || dueWeekKey.isEmpty) {
       return null;
     }
 
     final syntheticEstimate = BayesianMaintenanceEstimate(
-      posteriorMaintenanceCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
+      posteriorMaintenanceCalories: recommendation.estimatedMaintenanceCalories
+          .toDouble(),
       posteriorStdDevCalories:
           const BayesianEstimatorConfig().priorStdDevCalories,
-      profilePriorMaintenanceCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
-      priorMeanUsedCalories:
-          recommendation.estimatedMaintenanceCalories.toDouble(),
+      profilePriorMaintenanceCalories: recommendation
+          .estimatedMaintenanceCalories
+          .toDouble(),
+      priorMeanUsedCalories: recommendation.estimatedMaintenanceCalories
+          .toDouble(),
       priorStdDevUsedCalories:
           const BayesianEstimatorConfig().priorStdDevCalories,
       priorSource: BayesianPriorSource.profilePriorBootstrap,
@@ -514,12 +520,15 @@ class RecommendationRepository {
       return null;
     }
 
-    final posteriorVariance =
-        math.pow(estimate.posteriorStdDevCalories, 2).toDouble();
-    final priorVariance =
-        math.pow(estimate.priorStdDevUsedCalories, 2).toDouble();
-    final residualFromDebug =
-        _asDouble(estimate.debugInfo['observationResidualCalories']);
+    final posteriorVariance = math
+        .pow(estimate.posteriorStdDevCalories, 2)
+        .toDouble();
+    final priorVariance = math
+        .pow(estimate.priorStdDevUsedCalories, 2)
+        .toDouble();
+    final residualFromDebug = _asDouble(
+      estimate.debugInfo['observationResidualCalories'],
+    );
     final observedMaintenance = estimate.observationImpliedMaintenanceCalories;
 
     final state = BayesianEstimatorState(

@@ -26,8 +26,8 @@ class WorkoutProgressionService {
   WorkoutProgressionService({
     required IWorkoutRepository repository,
     required UnitService unitService,
-  })  : _repository = repository,
-        _unitService = unitService;
+  }) : _repository = repository,
+       _unitService = unitService;
 
   /// Compatibility entry point for callers that request one template. It now
   /// follows the same first-working-set rule as the live workout and no longer
@@ -61,8 +61,8 @@ class WorkoutProgressionService {
       return const {};
     }
     final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
-    final mask =
-        ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
+    final mask = ExerciseLogMask.forExercise(exercise)
+        .withSnapshotMode(mode.name);
     if (!mask.supportsLoadRepProgression) return const {};
 
     final previous = _latestFirstWorkingSet(
@@ -99,15 +99,16 @@ class WorkoutProgressionService {
     ProgressionConfig config = const ProgressionConfig(),
     double? bodyweightKg,
   }) async {
-    final targetIndex = workingTemplates
-        .indexWhere((template) => template.id == targetTemplateId);
+    final targetIndex = workingTemplates.indexWhere(
+      (template) => template.id == targetTemplateId,
+    );
     if (targetIndex <= 0 || targetIndex >= currentWorkingSets.length) {
       return null;
     }
 
     final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
-    final mask =
-        ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
+    final mask = ExerciseLogMask.forExercise(exercise)
+        .withSnapshotMode(mode.name);
     if (!mask.supportsLoadRepProgression) return null;
 
     final previous = currentWorkingSets[targetIndex - 1];
@@ -154,7 +155,8 @@ class WorkoutProgressionService {
     final firstTemplateWeight = workingTemplates.first.targetWeight;
     final targetTemplateWeight = workingTemplates[targetIndex].targetWeight;
     final firstActualWeight = currentWorkingSets.first.weightKg;
-    final hasRelativeBackoff = firstTemplateWeight != null &&
+    final hasRelativeBackoff =
+        firstTemplateWeight != null &&
         firstTemplateWeight > 0 &&
         targetTemplateWeight != null &&
         targetTemplateWeight > 0 &&
@@ -199,12 +201,14 @@ class WorkoutProgressionService {
 
     final latest = sessions.values.reduce((left, right) {
       final leftDate = left
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
+          .map(
+            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
+          )
           .reduce((a, b) => a.isAfter(b) ? a : b);
       final rightDate = right
-          .map((set) =>
-              set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0))
+          .map(
+            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
+          )
           .reduce((a, b) => a.isAfter(b) ? a : b);
       return leftDate.isAfter(rightDate) ? left : right;
     });

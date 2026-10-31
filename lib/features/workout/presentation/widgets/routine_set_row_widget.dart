@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
@@ -9,7 +10,9 @@ import '../../domain/models/set_template.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'set_type_chip.dart';
 import 'set_type_menu.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../util/time_util.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
@@ -58,8 +61,9 @@ class RoutineSetRowWidget extends StatelessWidget {
     // The header above these rows reads the same level, so the column comes
     // and goes as a whole. The controller keeps its value either way — an
     // already-planned target RIR survives a trip through the lower levels.
-    final showsIntensity =
-        context.watch<ExperienceLevelService>().showsIntensity;
+    final showsIntensity = context
+        .watch<ExperienceLevelService>()
+        .showsIntensity;
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
 
@@ -127,8 +131,9 @@ class RoutineSetRowWidget extends StatelessWidget {
                   readOnly: !isEditMode || mask.logsDuration,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
-                  inputFormatters:
-                      mask.logsDuration ? [TimerInputFormatter()] : null,
+                  inputFormatters: mask.logsDuration
+                      ? [TimerInputFormatter()]
+                      : null,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -140,17 +145,21 @@ class RoutineSetRowWidget extends StatelessWidget {
                       ? () async {
                           final currentSeconds =
                               parsePauseDuration(repsController.text) ?? 0;
-                          final newDuration =
-                              await adaptive_pickers.showAdaptiveDurationPicker(
-                            context: context,
-                            initialDuration: Duration(seconds: currentSeconds),
-                            title: AppLocalizations.of(context)!.durationLabel,
-                            allowClear: true,
-                          );
+                          final newDuration = await adaptive_pickers
+                              .showAdaptiveDurationPicker(
+                                context: context,
+                                initialDuration: Duration(
+                                  seconds: currentSeconds,
+                                ),
+                                title: AppLocalizations.of(context)!
+                                    .durationLabel,
+                                allowClear: true,
+                              );
                           if (newDuration != null) {
                             final seconds = newDuration.inSeconds;
-                            repsController.text =
-                                seconds > 0 ? formatPauseDuration(seconds) : "";
+                            repsController.text = seconds > 0
+                                ? formatPauseDuration(seconds)
+                                : "";
                           }
                         }
                       : null,
@@ -195,9 +204,9 @@ class RoutineSetRowWidget extends StatelessWidget {
                     isDense: true,
                     fillColor: Colors.transparent,
                     hintText: isEditMode
-                        ? context
-                            .read<UnitService>()
-                            .suffixFor(UnitDimension.weight)
+                        ? context.read<UnitService>().suffixFor(
+                            UnitDimension.weight,
+                          )
                         : "-",
                   ),
                 ),

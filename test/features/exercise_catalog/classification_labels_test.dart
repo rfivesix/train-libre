@@ -70,10 +70,12 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: Locale(locale),
-        home: Builder(builder: (context) {
-          captured = context;
-          return const SizedBox.shrink();
-        }),
+        home: Builder(
+          builder: (context) {
+            captured = context;
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
     return captured;
@@ -110,8 +112,10 @@ void main() {
         expect(label!.trim(), isNotEmpty);
       }
       for (final value in _movementPatterns) {
-        final label =
-            ExerciseClassificationLabels.movementPattern(context, value);
+        final label = ExerciseClassificationLabels.movementPattern(
+          context,
+          value,
+        );
         expect(label, isNotNull, reason: 'movement pattern $value in $locale');
         expect(label!.trim(), isNotEmpty);
       }
@@ -121,8 +125,11 @@ void main() {
       }
       // Two values of one axis reading identically would make the filter
       // offer the same chip twice.
-      expect(labels.toSet().length, labels.length,
-          reason: 'duplicate labels in $locale: $labels');
+      expect(
+        labels.toSet().length,
+        labels.length,
+        reason: 'duplicate labels in $locale: $labels',
+      );
     });
   }
 

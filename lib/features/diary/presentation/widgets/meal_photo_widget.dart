@@ -141,12 +141,12 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
     final referenceAspectRatio = _smallestPhotoAspectRatio;
     final frameHeight =
         widget.matchSmallestPhotoAspectRatio && referenceAspectRatio != null
-            ? MediaQuery.sizeOf(context).width / referenceAspectRatio
-            : widget.height;
+        ? MediaQuery.sizeOf(context).width / referenceAspectRatio
+        : widget.height;
     final effectiveFit =
         widget.matchSmallestPhotoAspectRatio && referenceAspectRatio != null
-            ? BoxFit.cover
-            : widget.imageFit;
+        ? BoxFit.cover
+        : widget.imageFit;
     if ((frameHeight - _lastReportedHeight).abs() > 0.5) {
       _lastReportedHeight = frameHeight;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -166,7 +166,8 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
               widget.onPageChanged?.call(idx);
             },
             itemBuilder: (context, idx) {
-              final depth = widget.depthImages?[idx] ??
+              final depth =
+                  widget.depthImages?[idx] ??
                   (idx == 0 ? widget.depthImage : null);
               if (depth != null) {
                 return RawImage(
@@ -224,11 +225,11 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
       borderRadius: widget.roundedAll
           ? BorderRadius.circular(24)
           : widget.roundedTop
-              ? const BorderRadius.only(
-                  topLeft: Radius.circular(19),
-                  topRight: Radius.circular(19),
-                )
-              : BorderRadius.zero,
+          ? const BorderRadius.only(
+              topLeft: Radius.circular(19),
+              topRight: Radius.circular(19),
+            )
+          : BorderRadius.zero,
       child: SizedBox(
         height: frameHeight,
         width: double.infinity,
@@ -237,11 +238,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
           children: [
             parallaxLayer,
             if (widget.overlayTrailing != null)
-              Positioned(
-                top: 12,
-                right: 16,
-                child: widget.overlayTrailing!,
-              ),
+              Positioned(top: 12, right: 16, child: widget.overlayTrailing!),
             if (hasMultiple)
               Positioned(
                 bottom: 42,

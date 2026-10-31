@@ -172,8 +172,11 @@ void main() {
         loggedWeightKg: 40,
         bodyweightKg: 80,
       )!;
-      expect(heavy, lessThan(light),
-          reason: 'this is the sign error the whole field exists to prevent');
+      expect(
+        heavy,
+        lessThan(light),
+        reason: 'this is the sign error the whole field exists to prevent',
+      );
     });
 
     test('assistance beyond body weight is not negative load', () {
@@ -308,27 +311,30 @@ void main() {
       // The finding this exists for. More help from the machine is less work
       // by the user, and the curve has to go down.
       double e1rm(double assistance) => estimatedOneRepMaxKg(
-            trackingType: 'bodyweight_reps',
-            loadMode: 'assisted',
-            loggedWeightKg: assistance,
-            reps: 5,
-            bodyweightKg: 80,
-          )!;
+        trackingType: 'bodyweight_reps',
+        loadMode: 'assisted',
+        loggedWeightKg: assistance,
+        reps: 5,
+        bodyweightKg: 80,
+      )!;
 
       final early = e1rm(20);
       final later = e1rm(40);
-      expect(later, lessThan(early),
-          reason: 'more assistance was read as more strength');
+      expect(
+        later,
+        lessThan(early),
+        reason: 'more assistance was read as more strength',
+      );
     });
 
     test('falling assistance means a RISING e1RM', () {
       double e1rm(double assistance) => estimatedOneRepMaxKg(
-            trackingType: 'bodyweight_reps',
-            loadMode: 'assisted',
-            loggedWeightKg: assistance,
-            reps: 5,
-            bodyweightKg: 80,
-          )!;
+        trackingType: 'bodyweight_reps',
+        loadMode: 'assisted',
+        loggedWeightKg: assistance,
+        reps: 5,
+        bodyweightKg: 80,
+      )!;
 
       expect(e1rm(20), greaterThan(e1rm(40)));
     });

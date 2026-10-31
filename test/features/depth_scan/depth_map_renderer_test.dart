@@ -1,6 +1,7 @@
 // test/features/depth_scan/depth_map_renderer_test.dart
 
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/depth_scan/data/depth_map_renderer.dart';
 

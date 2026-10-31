@@ -9,7 +9,11 @@ import 'assistant_image_attachment.dart';
 
 class AssistantConversation {
   const AssistantConversation(
-      this.id, this.title, this.createdAt, this.updatedAt);
+    this.id,
+    this.title,
+    this.createdAt,
+    this.updatedAt,
+  );
   final String id;
   final String title;
   final DateTime createdAt;
@@ -86,17 +90,21 @@ class AssistantHistoryRepository {
         )
         .get();
     return rows
-        .map((row) => AssistantConversation(
-              row.read<String>('id'),
-              row.read<String>('title'),
-              DateTime.parse(row.read<String>('created_at')),
-              DateTime.parse(row.read<String>('updated_at')),
-            ))
+        .map(
+          (row) => AssistantConversation(
+            row.read<String>('id'),
+            row.read<String>('title'),
+            DateTime.parse(row.read<String>('created_at')),
+            DateTime.parse(row.read<String>('updated_at')),
+          ),
+        )
         .toList();
   }
 
-  Future<AssistantConversation> createConversation(String firstPrompt,
-      {String locale = 'en'}) async {
+  Future<AssistantConversation> createConversation(
+    String firstPrompt, {
+    String locale = 'en',
+  }) async {
     final now = DateTime.now().toUtc();
     final id = _uuid.v4();
     final shortTitle = _cleanTitle(firstPrompt);
@@ -140,27 +148,32 @@ class AssistantHistoryRepository {
   }
 
   Future<List<AssistantMessage>> messages(String conversationId) async {
-    await AssistantImageAttachmentStore.instance
-        .ensureRelativeStorage(database);
-    final rows = await database.customSelect(
-      'SELECT * FROM assistant_messages WHERE conversation_id = ? ORDER BY created_at, rowid',
-      variables: [drift.Variable.withString(conversationId)],
-    ).get();
+    await AssistantImageAttachmentStore.instance.ensureRelativeStorage(
+      database,
+    );
+    final rows = await database
+        .customSelect(
+          'SELECT * FROM assistant_messages WHERE conversation_id = ? ORDER BY created_at, rowid',
+          variables: [drift.Variable.withString(conversationId)],
+        )
+        .get();
     final messages = <AssistantMessage>[];
     for (final row in rows) {
       final id = row.read<String>('id');
-      messages.add(AssistantMessage(
-        id: id,
-        conversationId: row.read<String>('conversation_id'),
-        role: row.read<String>('role'),
-        content: row.read<String>('content'),
-        createdAt: DateTime.parse(row.read<String>('created_at')),
-        status: row.read<String>('status'),
-        providerId: row.read<String?>('provider_id'),
-        modelId: row.read<String?>('model_id'),
-        error: row.read<String?>('error'),
-        attachments: await attachmentsForMessage(id),
-      ));
+      messages.add(
+        AssistantMessage(
+          id: id,
+          conversationId: row.read<String>('conversation_id'),
+          role: row.read<String>('role'),
+          content: row.read<String>('content'),
+          createdAt: DateTime.parse(row.read<String>('created_at')),
+          status: row.read<String>('status'),
+          providerId: row.read<String?>('provider_id'),
+          modelId: row.read<String?>('model_id'),
+          error: row.read<String?>('error'),
+          attachments: await attachmentsForMessage(id),
+        ),
+      );
     }
     return messages;
   }
@@ -169,20 +182,24 @@ class AssistantHistoryRepository {
     String messageId,
   ) async {
     await AppMediaStore.instance.ensureInitialized();
-    final rows = await database.customSelect(
-      'SELECT * FROM assistant_message_attachments WHERE message_id = ? ORDER BY created_at, rowid',
-      variables: [drift.Variable.withString(messageId)],
-    ).get();
+    final rows = await database
+        .customSelect(
+          'SELECT * FROM assistant_message_attachments WHERE message_id = ? ORDER BY created_at, rowid',
+          variables: [drift.Variable.withString(messageId)],
+        )
+        .get();
     return rows.map(_attachmentFromRow).toList();
   }
 
   Future<List<AssistantMessageAttachment>> _attachmentsForConversation(
     String conversationId,
   ) async {
-    final rows = await database.customSelect(
-      'SELECT a.* FROM assistant_message_attachments a JOIN assistant_messages m ON m.id = a.message_id WHERE m.conversation_id = ?',
-      variables: [drift.Variable.withString(conversationId)],
-    ).get();
+    final rows = await database
+        .customSelect(
+          'SELECT a.* FROM assistant_message_attachments a JOIN assistant_messages m ON m.id = a.message_id WHERE m.conversation_id = ?',
+          variables: [drift.Variable.withString(conversationId)],
+        )
+        .get();
     return rows.map(_attachmentFromRow).toList();
   }
 
@@ -197,10 +214,12 @@ class AssistantHistoryRepository {
       );
 
   Future<AssistantMessage?> message(String id) async {
-    final row = await database.customSelect(
-      'SELECT * FROM assistant_messages WHERE id = ?',
-      variables: [drift.Variable.withString(id)],
-    ).getSingleOrNull();
+    final row = await database
+        .customSelect(
+          'SELECT * FROM assistant_messages WHERE id = ?',
+          variables: [drift.Variable.withString(id)],
+        )
+        .getSingleOrNull();
     if (row == null) return null;
     return AssistantMessage(
       id: row.read<String>('id'),
@@ -225,7 +244,7 @@ class AssistantHistoryRepository {
     final entries = await messages(conversationId);
     final accesses = await accessForConversation(conversationId);
     final accessByMessage = {
-      for (final access in accesses) access.messageId: access
+      for (final access in accesses) access.messageId: access,
     };
     final isDe = locale.toLowerCase().startsWith('de');
     final interruptedReply = isDe
@@ -250,15 +269,20 @@ class AssistantHistoryRepository {
       // user's decision; it is not an interrupted answer.
       if (access?.status == 'pending') {
         if (user.status == 'generating') {
-          await updateMessage(user.id,
-              content: user.content, status: 'complete');
+          await updateMessage(
+            user.id,
+            content: user.content,
+            status: 'complete',
+          );
         }
         continue;
       }
 
-      final generatingReply = replies.where((message) =>
-          message.status == 'generating' ||
-          (message.status == 'interrupted' && message.content.trim().isEmpty));
+      final generatingReply = replies.where(
+        (message) =>
+            message.status == 'generating' ||
+            (message.status == 'interrupted' && message.content.trim().isEmpty),
+      );
       if (generatingReply.isNotEmpty) {
         final reply = generatingReply.last;
         await updateMessage(
@@ -269,8 +293,11 @@ class AssistantHistoryRepository {
           status: 'interrupted',
           error: 'Generation interrupted',
         );
-        await updateMessage(user.id,
-            content: user.content, status: 'interrupted');
+        await updateMessage(
+          user.id,
+          content: user.content,
+          status: 'interrupted',
+        );
         continue;
       }
 
@@ -278,8 +305,11 @@ class AssistantHistoryRepository {
         // The reply was saved just before a crash, but the user row's state
         // update may not have completed yet.
         if (user.status == 'generating') {
-          await updateMessage(user.id,
-              content: user.content, status: 'complete');
+          await updateMessage(
+            user.id,
+            content: user.content,
+            status: 'complete',
+          );
         }
         continue;
       }
@@ -297,8 +327,11 @@ class AssistantHistoryRepository {
         status: 'interrupted',
         error: 'Generation interrupted',
       );
-      await updateMessage(user.id,
-          content: user.content, status: 'interrupted');
+      await updateMessage(
+        user.id,
+        content: user.content,
+        status: 'interrupted',
+      );
     }
   }
 
@@ -350,28 +383,30 @@ class AssistantHistoryRepository {
       );
     });
     return AssistantMessage(
-        id: id,
-        conversationId: conversationId,
-        role: role,
-        content: content,
-        createdAt: now,
-        status: status,
-        providerId: providerId,
-        modelId: modelId,
-        error: error,
-        attachments: await attachmentsForMessage(id));
+      id: id,
+      conversationId: conversationId,
+      role: role,
+      content: content,
+      createdAt: now,
+      status: status,
+      providerId: providerId,
+      modelId: modelId,
+      error: error,
+      attachments: await attachmentsForMessage(id),
+    );
   }
 
-  Future<void> updateMessage(String id,
-          {required String content,
-          required String status,
-          String? error,
-          String? providerId,
-          String? modelId}) =>
-      database.customStatement(
-        'UPDATE assistant_messages SET content=?, status=?, error=?, provider_id=COALESCE(?,provider_id), model_id=COALESCE(?,model_id) WHERE id=?',
-        [content, status, error, providerId, modelId, id],
-      );
+  Future<void> updateMessage(
+    String id, {
+    required String content,
+    required String status,
+    String? error,
+    String? providerId,
+    String? modelId,
+  }) => database.customStatement(
+    'UPDATE assistant_messages SET content=?, status=?, error=?, provider_id=COALESCE(?,provider_id), model_id=COALESCE(?,model_id) WHERE id=?',
+    [content, status, error, providerId, modelId, id],
+  );
 
   Future<AssistantAccessRecord> requestAccess({
     required String conversationId,
@@ -394,20 +429,21 @@ class AssistantHistoryRepository {
         now.toIso8601String(),
         'pending',
         providerId,
-        modelId
+        modelId,
       ],
     );
     return AssistantAccessRecord(
-        id: id,
-        conversationId: conversationId,
-        messageId: messageId,
-        categories: categories,
-        scope: scope,
-        requestedAt: now,
-        status: 'pending',
-        sharedManifest: const {},
-        providerId: providerId,
-        modelId: modelId);
+      id: id,
+      conversationId: conversationId,
+      messageId: messageId,
+      categories: categories,
+      scope: scope,
+      requestedAt: now,
+      status: 'pending',
+      sharedManifest: const {},
+      providerId: providerId,
+      modelId: modelId,
+    );
   }
 
   Future<void> decideAccess(String id, {required bool approved}) =>
@@ -416,7 +452,7 @@ class AssistantHistoryRepository {
         [
           approved ? 'approved' : 'denied',
           DateTime.now().toUtc().toIso8601String(),
-          id
+          id,
         ],
       );
 
@@ -427,27 +463,31 @@ class AssistantHistoryRepository {
       );
 
   Future<void> markNotShared(String id) => database.customStatement(
-        "UPDATE assistant_data_access SET status='not_shared' WHERE id=? AND status='approved'",
-        [id],
-      );
+    "UPDATE assistant_data_access SET status='not_shared' WHERE id=? AND status='approved'",
+    [id],
+  );
 
   Future<void> setAccessProvider(
-          String id, String providerId, String modelId) =>
-      database.customStatement(
-        "UPDATE assistant_data_access SET provider_id=?, model_id=? WHERE id=? AND status='approved'",
-        [providerId, modelId, id],
-      );
+    String id,
+    String providerId,
+    String modelId,
+  ) => database.customStatement(
+    "UPDATE assistant_data_access SET provider_id=?, model_id=? WHERE id=? AND status='approved'",
+    [providerId, modelId, id],
+  );
 
   Future<void> failAccess(String id, String error) => database.customStatement(
-        "UPDATE assistant_data_access SET status='error', error=? WHERE id=? AND status IN ('pending','approved','shared')",
-        [error, id],
-      );
+    "UPDATE assistant_data_access SET status='error', error=? WHERE id=? AND status IN ('pending','approved','shared')",
+    [error, id],
+  );
 
   Future<AssistantAccessRecord?> access(String id) async {
-    final row = await database.customSelect(
-      'SELECT * FROM assistant_data_access WHERE id=?',
-      variables: [drift.Variable.withString(id)],
-    ).getSingleOrNull();
+    final row = await database
+        .customSelect(
+          'SELECT * FROM assistant_data_access WHERE id=?',
+          variables: [drift.Variable.withString(id)],
+        )
+        .getSingleOrNull();
     if (row == null) return null;
     return AssistantAccessRecord(
       id: row.read<String>('id'),
@@ -463,55 +503,65 @@ class AssistantHistoryRepository {
       status: row.read<String>('status'),
       providerId: row.read<String?>('provider_id'),
       modelId: row.read<String?>('model_id'),
-      sharedManifest:
-          (jsonDecode(row.read<String>('shared_manifest_json')) as Map)
-              .cast<String, dynamic>(),
+      sharedManifest: (jsonDecode(
+        row.read<String>('shared_manifest_json'),
+      ) as Map).cast<String, dynamic>(),
       error: row.read<String?>('error'),
     );
   }
 
   Future<void> expireAccess(String id) => database.customStatement(
-        "UPDATE assistant_data_access SET status='expired', decided_at=? WHERE id=? AND status='pending'",
-        [DateTime.now().toUtc().toIso8601String(), id],
-      );
+    "UPDATE assistant_data_access SET status='expired', decided_at=? WHERE id=? AND status='pending'",
+    [DateTime.now().toUtc().toIso8601String(), id],
+  );
 
   Future<void> markUnresolved(String id) => database.customStatement(
-        "UPDATE assistant_data_access SET status='unresolved' WHERE id=? AND status='approved'",
-        [id],
-      );
+    "UPDATE assistant_data_access SET status='unresolved' WHERE id=? AND status='approved'",
+    [id],
+  );
 
   Future<void> markNoData(String id) => database.customStatement(
-        "UPDATE assistant_data_access SET status='no_data' WHERE id=? AND status='approved'",
-        [id],
-      );
+    "UPDATE assistant_data_access SET status='no_data' WHERE id=? AND status='approved'",
+    [id],
+  );
 
-  Future<AssistantAccessRecord?> latestAccess(String conversationId,
-      {required String status}) async {
-    final row = await database.customSelect(
-      'SELECT id FROM assistant_data_access WHERE conversation_id=? AND status=? ORDER BY requested_at DESC LIMIT 1',
-      variables: [
-        drift.Variable.withString(conversationId),
-        drift.Variable.withString(status)
-      ],
-    ).getSingleOrNull();
+  Future<AssistantAccessRecord?> latestAccess(
+    String conversationId, {
+    required String status,
+  }) async {
+    final row = await database
+        .customSelect(
+          'SELECT id FROM assistant_data_access WHERE conversation_id=? AND status=? ORDER BY requested_at DESC LIMIT 1',
+          variables: [
+            drift.Variable.withString(conversationId),
+            drift.Variable.withString(status),
+          ],
+        )
+        .getSingleOrNull();
     return row == null ? null : access(row.read<String>('id'));
   }
 
   Future<AssistantAccessRecord?> latestContextAccess(
-      String conversationId) async {
-    final row = await database.customSelect(
-      "SELECT id FROM assistant_data_access WHERE conversation_id=? AND status IN ('shared','unresolved') ORDER BY requested_at DESC LIMIT 1",
-      variables: [drift.Variable.withString(conversationId)],
-    ).getSingleOrNull();
+    String conversationId,
+  ) async {
+    final row = await database
+        .customSelect(
+          "SELECT id FROM assistant_data_access WHERE conversation_id=? AND status IN ('shared','unresolved') ORDER BY requested_at DESC LIMIT 1",
+          variables: [drift.Variable.withString(conversationId)],
+        )
+        .getSingleOrNull();
     return row == null ? null : access(row.read<String>('id'));
   }
 
   Future<List<AssistantAccessRecord>> accessForConversation(
-      String conversationId) async {
-    final rows = await database.customSelect(
-      'SELECT id FROM assistant_data_access WHERE conversation_id=? ORDER BY requested_at',
-      variables: [drift.Variable.withString(conversationId)],
-    ).get();
+    String conversationId,
+  ) async {
+    final rows = await database
+        .customSelect(
+          'SELECT id FROM assistant_data_access WHERE conversation_id=? ORDER BY requested_at',
+          variables: [drift.Variable.withString(conversationId)],
+        )
+        .get();
     final records = <AssistantAccessRecord>[];
     for (final row in rows) {
       final record = await access(row.read<String>('id'));

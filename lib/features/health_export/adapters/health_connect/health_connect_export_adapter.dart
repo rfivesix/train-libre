@@ -4,7 +4,7 @@ import '../../platform/health_connect_export_platform.dart';
 
 class HealthConnectExportAdapter implements HealthExportAdapter {
   HealthConnectExportAdapter({HealthConnectExportPlatform? platform})
-      : _platform = platform ?? const HealthConnectExportPlatform();
+    : _platform = platform ?? const HealthConnectExportPlatform();
 
   final HealthConnectExportPlatform _platform;
 

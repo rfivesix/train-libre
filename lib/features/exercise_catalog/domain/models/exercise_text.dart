@@ -16,9 +16,9 @@ class ExerciseText {
   bool get isEmpty => name.trim().isEmpty;
 
   ExerciseText copyWith({String? name, String? description}) => ExerciseText(
-        name: name ?? this.name,
-        description: description ?? this.description,
-      );
+    name: name ?? this.name,
+    description: description ?? this.description,
+  );
 
   @override
   bool operator ==(Object other) =>

@@ -56,9 +56,7 @@ class _CalculationBasisScreenState extends State<CalculationBasisScreen> {
     return Scaffold(
       appBar: GlobalAppBar(
         title: l10n.calculationBasisTitle,
-        actions: [
-          TextButton(onPressed: _save, child: Text(l10n.save)),
-        ],
+        actions: [TextButton(onPressed: _save, child: Text(l10n.save))],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -72,10 +70,12 @@ class _CalculationBasisScreenState extends State<CalculationBasisScreen> {
                     labelText: l10n.adaptivePriorActivityLabel,
                   ),
                   items: PriorActivityLevel.values
-                      .map((value) => DropdownMenuItem(
-                            value: value,
-                            child: Text(_activityLabel(l10n, value)),
-                          ))
+                      .map(
+                        (value) => DropdownMenuItem(
+                          value: value,
+                          child: Text(_activityLabel(l10n, value)),
+                        ),
+                      )
                       .toList(growable: false),
                   onChanged: (value) {
                     if (value != null) setState(() => _activity = value);
@@ -91,10 +91,12 @@ class _CalculationBasisScreenState extends State<CalculationBasisScreen> {
                     labelText: l10n.adaptiveExtraCardioLabel,
                   ),
                   items: ExtraCardioHoursCatalog.supportedOptions
-                      .map((value) => DropdownMenuItem(
-                            value: value,
-                            child: Text(_cardioLabel(l10n, value)),
-                          ))
+                      .map(
+                        (value) => DropdownMenuItem(
+                          value: value,
+                          child: Text(_cardioLabel(l10n, value)),
+                        ),
+                      )
                       .toList(growable: false),
                   onChanged: (value) {
                     if (value != null) setState(() => _cardio = value);

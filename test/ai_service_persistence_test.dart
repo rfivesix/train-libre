@@ -149,28 +149,30 @@ void main() {
       }
     });
 
-    test('setSelectedModel persists normalized model ids where applicable',
-        () async {
-      final storage = _InMemorySecureStorage();
-      final service = _serviceWith(storage: storage);
+    test(
+      'setSelectedModel persists normalized model ids where applicable',
+      () async {
+        final storage = _InMemorySecureStorage();
+        final service = _serviceWith(storage: storage);
 
-      await service.setSelectedModel(AiProvider.openai, 'gpt-5.4-2026-03-01');
-      await service.setSelectedModel(
-        AiProvider.gemini,
-        'models/gemini-flash-latest',
-      );
-      await service.setSelectedModel(AiProvider.anthropic, 'claude-opus-4-6');
+        await service.setSelectedModel(AiProvider.openai, 'gpt-5.4-2026-03-01');
+        await service.setSelectedModel(
+          AiProvider.gemini,
+          'models/gemini-flash-latest',
+        );
+        await service.setSelectedModel(AiProvider.anthropic, 'claude-opus-4-6');
 
-      expect(await service.getSelectedModel(AiProvider.openai), 'gpt-5.4');
-      expect(
-        await service.getSelectedModel(AiProvider.gemini),
-        'gemini-flash-latest',
-      );
-      expect(
-        await service.getSelectedModel(AiProvider.anthropic),
-        'claude-opus-4-6',
-      );
-    });
+        expect(await service.getSelectedModel(AiProvider.openai), 'gpt-5.4');
+        expect(
+          await service.getSelectedModel(AiProvider.gemini),
+          'gemini-flash-latest',
+        );
+        expect(
+          await service.getSelectedModel(AiProvider.anthropic),
+          'claude-opus-4-6',
+        );
+      },
+    );
 
     test('stored valid model stays unchanged after resolve', () async {
       final storage = _InMemorySecureStorage();
@@ -183,48 +185,56 @@ void main() {
       );
       await service.setSelectedModel(AiProvider.openai, 'gpt-4o');
 
-      final resolved =
-          await service.resolveAndPersistSelectedModel(AiProvider.openai);
+      final resolved = await service.resolveAndPersistSelectedModel(
+        AiProvider.openai,
+      );
 
       expect(resolved, 'gpt-4o');
       expect(await service.getSelectedModel(AiProvider.openai), 'gpt-4o');
     });
 
-    test('invalid saved model resolves to provider default when dynamic fails',
-        () async {
-      final storage = _InMemorySecureStorage();
-      final service = _serviceWith(storage: storage);
+    test(
+      'invalid saved model resolves to provider default when dynamic fails',
+      () async {
+        final storage = _InMemorySecureStorage();
+        final service = _serviceWith(storage: storage);
 
-      for (final provider in AiProvider.values) {
-        if (provider == AiProvider.ollama || provider == AiProvider.custom) {
-          continue;
+        for (final provider in AiProvider.values) {
+          if (provider == AiProvider.ollama || provider == AiProvider.custom) {
+            continue;
+          }
+          await service.setSelectedModel(provider, 'totally-invalid-model');
+          final resolved = await service.resolveAndPersistSelectedModel(
+            provider,
+          );
+          final meta = service.getProviderMetadata(provider);
+          expect(resolved, meta.defaultModel);
+          expect(await service.getSelectedModel(provider), meta.defaultModel);
         }
-        await service.setSelectedModel(provider, 'totally-invalid-model');
-        final resolved = await service.resolveAndPersistSelectedModel(provider);
-        final meta = service.getProviderMetadata(provider);
-        expect(resolved, meta.defaultModel);
-        expect(await service.getSelectedModel(provider), meta.defaultModel);
-      }
-    });
+      },
+    );
 
-    test('stale saved model is replaced when no longer dynamically supported',
-        () async {
-      final storage = _InMemorySecureStorage();
-      final service = _serviceWith(
-        storage: storage,
-        dynamicModelIdsLoader: (provider) async => switch (provider) {
-          AiProvider.openai => {'gpt-5.4', 'gpt-5.4-mini'},
-          _ => null,
-        },
-      );
-      await service.setSelectedModel(AiProvider.openai, 'gpt-4o');
+    test(
+      'stale saved model is replaced when no longer dynamically supported',
+      () async {
+        final storage = _InMemorySecureStorage();
+        final service = _serviceWith(
+          storage: storage,
+          dynamicModelIdsLoader: (provider) async => switch (provider) {
+            AiProvider.openai => {'gpt-5.4', 'gpt-5.4-mini'},
+            _ => null,
+          },
+        );
+        await service.setSelectedModel(AiProvider.openai, 'gpt-4o');
 
-      final resolved =
-          await service.resolveAndPersistSelectedModel(AiProvider.openai);
+        final resolved = await service.resolveAndPersistSelectedModel(
+          AiProvider.openai,
+        );
 
-      expect(resolved, 'gpt-5.4');
-      expect(await service.getSelectedModel(AiProvider.openai), 'gpt-5.4');
-    });
+        expect(resolved, 'gpt-5.4');
+        expect(await service.getSelectedModel(AiProvider.openai), 'gpt-5.4');
+      },
+    );
 
     test('saved model is isolated per provider', () async {
       final storage = _InMemorySecureStorage();
@@ -252,8 +262,9 @@ void main() {
       await service.setSelectedModel(AiProvider.openai, 'gpt-4o');
       await service.setSelectedProvider(AiProvider.gemini);
 
-      final resolvedGemini =
-          await service.resolveAndPersistSelectedModel(AiProvider.gemini);
+      final resolvedGemini = await service.resolveAndPersistSelectedModel(
+        AiProvider.gemini,
+      );
 
       expect(await service.getSelectedProvider(), AiProvider.gemini);
       expect(resolvedGemini, 'gemini-pro-latest');
@@ -362,56 +373,74 @@ void main() {
       }
     });
 
-    test('dynamic model lists are filtered and normalized per provider',
-        () async {
-      final openAiModels = await service.getModelOptions(AiProvider.openai);
-      final geminiModels = await service.getModelOptions(AiProvider.gemini);
-      final anthropicModels =
-          await service.getModelOptions(AiProvider.anthropic);
-      final mistralModels = await service.getModelOptions(AiProvider.mistral);
-      final xaiModels = await service.getModelOptions(AiProvider.xai);
+    test(
+      'dynamic model lists are filtered and normalized per provider',
+      () async {
+        final openAiModels = await service.getModelOptions(AiProvider.openai);
+        final geminiModels = await service.getModelOptions(AiProvider.gemini);
+        final anthropicModels = await service.getModelOptions(
+          AiProvider.anthropic,
+        );
+        final mistralModels = await service.getModelOptions(AiProvider.mistral);
+        final xaiModels = await service.getModelOptions(AiProvider.xai);
 
-      expect(openAiModels.map((m) => m.id), contains('gpt-5.4'));
-      expect(openAiModels.map((m) => m.id), contains('gpt-4o'));
-      expect(
-        openAiModels
-            .any((m) => m.id.contains('embedding') || m.id == 'whisper-1'),
-        isFalse,
-      );
+        expect(openAiModels.map((m) => m.id), contains('gpt-5.4'));
+        expect(openAiModels.map((m) => m.id), contains('gpt-4o'));
+        expect(
+          openAiModels.any(
+            (m) => m.id.contains('embedding') || m.id == 'whisper-1',
+          ),
+          isFalse,
+        );
 
-      expect(geminiModels.map((m) => m.id), contains('gemini-pro-latest'));
-      expect(geminiModels.map((m) => m.id), contains('gemini-flash-latest'));
-      expect(geminiModels.any((m) => m.id.startsWith('models/')), isFalse);
-      expect(geminiModels.any((m) => m.id.contains('embedding')), isFalse);
+        expect(geminiModels.map((m) => m.id), contains('gemini-pro-latest'));
+        expect(geminiModels.map((m) => m.id), contains('gemini-flash-latest'));
+        expect(geminiModels.any((m) => m.id.startsWith('models/')), isFalse);
+        expect(geminiModels.any((m) => m.id.contains('embedding')), isFalse);
 
-      expect(anthropicModels.map((m) => m.id), contains('claude-opus-4-6'));
-      expect(
-          anthropicModels.map((m) => m.id), isNot(contains('claude-3-haiku')));
+        expect(anthropicModels.map((m) => m.id), contains('claude-opus-4-6'));
+        expect(
+          anthropicModels.map((m) => m.id),
+          isNot(contains('claude-3-haiku')),
+        );
 
-      expect(mistralModels.map((m) => m.id), contains('mistral-large-3'));
-      expect(mistralModels.map((m) => m.id), contains('pixtral-large-latest'));
-      expect(
-          mistralModels.map((m) => m.id), isNot(contains('codestral-latest')));
+        expect(mistralModels.map((m) => m.id), contains('mistral-large-3'));
+        expect(
+          mistralModels.map((m) => m.id),
+          contains('pixtral-large-latest'),
+        );
+        expect(
+          mistralModels.map((m) => m.id),
+          isNot(contains('codestral-latest')),
+        );
 
-      expect(xaiModels.map((m) => m.id), contains('grok-4.20-0309-reasoning'));
-      expect(
-          xaiModels.map((m) => m.id), isNot(contains('grok-image-1-imagine')));
-    });
+        expect(
+          xaiModels.map((m) => m.id),
+          contains('grok-4.20-0309-reasoning'),
+        );
+        expect(
+          xaiModels.map((m) => m.id),
+          isNot(contains('grok-image-1-imagine')),
+        );
+      },
+    );
 
-    test('dynamic loading failure uses conservative provider fallback',
-        () async {
-      final failingService = _serviceWith(
-        storage: storage,
-        httpGet: (uri, {headers}) async => http.Response('boom', 500),
-      );
+    test(
+      'dynamic loading failure uses conservative provider fallback',
+      () async {
+        final failingService = _serviceWith(
+          storage: storage,
+          httpGet: (uri, {headers}) async => http.Response('boom', 500),
+        );
 
-      for (final provider in AiProvider.values) {
-        final options = await failingService.getModelOptions(provider);
-        final meta = failingService.getProviderMetadata(provider);
-        expect(options, isNotEmpty);
-        expect(options.first.id, meta.defaultModel);
-        expect(options.every((o) => o.isFallback), isTrue);
-      }
-    });
+        for (final provider in AiProvider.values) {
+          final options = await failingService.getModelOptions(provider);
+          final meta = failingService.getProviderMetadata(provider);
+          expect(options, isNotEmpty);
+          expect(options.first.id, meta.defaultModel);
+          expect(options.every((o) => o.isFallback), isTrue);
+        }
+      },
+    );
   });
 }

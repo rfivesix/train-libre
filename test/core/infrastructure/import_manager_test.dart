@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:train_libre/core/infrastructure/import_manager.dart';
@@ -30,8 +31,9 @@ void main() {
       expect(result.length, 2);
 
       // Verify first workout (Upper Body Workout)
-      final workout1 =
-          result.firstWhere((w) => w.title == 'Upper Body Workout');
+      final workout1 = result.firstWhere(
+        (w) => w.title == 'Upper Body Workout',
+      );
       expect(workout1.notes, isNull);
       expect(workout1.startTime, DateTime(2026, 5, 20, 10, 0, 0));
       expect(workout1.endTime, DateTime(2026, 5, 20, 11, 30, 0));
@@ -67,65 +69,72 @@ void main() {
       expect(cardioSet.rpe, 8);
     });
 
-    test('CSV parsing with German headers and set-type abbreviations',
-        () async {
-      final csvString = 'übung,typ,gewicht,wiederholungen,notiz,datum,name\n'
-          'Kniebeugen,w,120,5,Erster Satz,23.05.2026 15:30,Leg Day\n'
-          'Kniebeugen,f,150,3,Failure set,23.05.2026 15:30,Leg Day\n'
-          'Kreuzheben,d,100,8,Drop set,23.05.2026 15:30,Leg Day\n';
+    test(
+      'CSV parsing with German headers and set-type abbreviations',
+      () async {
+        final csvString =
+            'übung,typ,gewicht,wiederholungen,notiz,datum,name\n'
+            'Kniebeugen,w,120,5,Erster Satz,23.05.2026 15:30,Leg Day\n'
+            'Kniebeugen,f,150,3,Failure set,23.05.2026 15:30,Leg Day\n'
+            'Kreuzheben,d,100,8,Drop set,23.05.2026 15:30,Leg Day\n';
 
-      final params = ImportBackgroundTaskParams(
-        fileBytes: Uint8List.fromList(utf8.encode(csvString)),
-        extension: 'csv',
-        isImperial: false,
-      );
-
-      final result = await ImportManager.decodeAndGroupWorkouts(params);
-
-      expect(result.length, 1);
-      final workout = result.first;
-      expect(workout.title, 'Leg Day');
-      expect(workout.startTime, DateTime(2026, 5, 23, 15, 30, 0));
-      expect(workout.sets.length, 3);
-
-      expect(workout.notes, 'Erster Satz');
-      expect(workout.sets[0].exerciseName, 'Kniebeugen');
-      expect(workout.sets[0].setType, 'warmup');
-      expect(workout.sets[0].weightKg, 120.0);
-      expect(workout.sets[0].reps, 5);
-      expect(workout.sets[0].notes, isNull);
-
-      expect(workout.sets[1].exerciseName, 'Kniebeugen');
-      expect(workout.sets[1].setType, 'failure');
-      expect(workout.sets[1].weightKg, 150.0);
-      expect(workout.sets[1].reps, 3);
-
-      expect(workout.sets[2].exerciseName, 'Kreuzheben');
-      expect(workout.sets[2].setType, 'dropset');
-      expect(workout.sets[2].weightKg, 100.0);
-      expect(workout.sets[2].reps, 8);
-    });
-
-    test('semicolon CSV with decimal commas is parsed as a German export',
-        () async {
-      final csvString = 'Workout;Date;Exercise Name;Weight;Weight Unit;Reps\n'
-          'Beine;23.05.2026 15:30;Kniebeuge;100,5;kg;6\n';
-      final result = await ImportManager.decodeAndGroupWorkouts(
-        ImportBackgroundTaskParams(
+        final params = ImportBackgroundTaskParams(
           fileBytes: Uint8List.fromList(utf8.encode(csvString)),
           extension: 'csv',
           isImperial: false,
-        ),
-      );
+        );
 
-      expect(result, hasLength(1));
-      expect(result.single.title, 'Beine');
-      expect(result.single.sets.single.weightKg, 100.5);
-      expect(result.single.sets.single.reps, 6);
-    });
+        final result = await ImportManager.decodeAndGroupWorkouts(params);
+
+        expect(result.length, 1);
+        final workout = result.first;
+        expect(workout.title, 'Leg Day');
+        expect(workout.startTime, DateTime(2026, 5, 23, 15, 30, 0));
+        expect(workout.sets.length, 3);
+
+        expect(workout.notes, 'Erster Satz');
+        expect(workout.sets[0].exerciseName, 'Kniebeugen');
+        expect(workout.sets[0].setType, 'warmup');
+        expect(workout.sets[0].weightKg, 120.0);
+        expect(workout.sets[0].reps, 5);
+        expect(workout.sets[0].notes, isNull);
+
+        expect(workout.sets[1].exerciseName, 'Kniebeugen');
+        expect(workout.sets[1].setType, 'failure');
+        expect(workout.sets[1].weightKg, 150.0);
+        expect(workout.sets[1].reps, 3);
+
+        expect(workout.sets[2].exerciseName, 'Kreuzheben');
+        expect(workout.sets[2].setType, 'dropset');
+        expect(workout.sets[2].weightKg, 100.0);
+        expect(workout.sets[2].reps, 8);
+      },
+    );
+
+    test(
+      'semicolon CSV with decimal commas is parsed as a German export',
+      () async {
+        final csvString =
+            'Workout;Date;Exercise Name;Weight;Weight Unit;Reps\n'
+            'Beine;23.05.2026 15:30;Kniebeuge;100,5;kg;6\n';
+        final result = await ImportManager.decodeAndGroupWorkouts(
+          ImportBackgroundTaskParams(
+            fileBytes: Uint8List.fromList(utf8.encode(csvString)),
+            extension: 'csv',
+            isImperial: false,
+          ),
+        );
+
+        expect(result, hasLength(1));
+        expect(result.single.title, 'Beine');
+        expect(result.single.sets.single.weightKg, 100.5);
+        expect(result.single.sets.single.reps, 6);
+      },
+    );
 
     test('CSV parsing with imperial flag converts lbs to kg', () async {
-      final csvString = 'workout,start,exercise,mass,reps\n'
+      final csvString =
+          'workout,start,exercise,mass,reps\n'
           'Chest Day,2026-05-22 18:00,Incline Press,220.46,8\n';
 
       final params = ImportBackgroundTaskParams(
@@ -158,7 +167,8 @@ void main() {
       ];
 
       for (final rawDate in formats) {
-        final csvString = 'title,start_time,exercise,weight,reps\n'
+        final csvString =
+            'title,start_time,exercise,weight,reps\n'
             'Test Date,"$rawDate",Curls,20,10\n';
 
         final params = ImportBackgroundTaskParams(
@@ -168,18 +178,24 @@ void main() {
         );
 
         final result = await ImportManager.decodeAndGroupWorkouts(params);
-        expect(result.length, 1,
-            reason: 'Failed parsing date string: $rawDate');
+        expect(
+          result.length,
+          1,
+          reason: 'Failed parsing date string: $rawDate',
+        );
         expect(result.first.startTime.year, 2026);
         expect(
-            result.first.startTime.hour, rawDate.contains('14:21') ? 14 : 14);
+          result.first.startTime.hour,
+          rawDate.contains('14:21') ? 14 : 14,
+        );
         expect(
-            result.first.startTime.minute, rawDate.contains('14:21') ? 21 : 35);
+          result.first.startTime.minute,
+          rawDate.contains('14:21') ? 21 : 35,
+        );
       }
     });
 
-    test('CSV parsing with Hevy German format ("25 Juli 2026, 14:21")',
-        () async {
+    test('CSV parsing with Hevy German format ("25 Juli 2026, 14:21")', () async {
       final csvString =
           '"title","start_time","end_time","description","exercise_title","superset_id","exercise_notes","set_index","set_type","weight_kg","reps","distance_km","duration_seconds","rpe"\n'
           '"Beine","25 Juli 2026, 14:21","25 Juli 2026, 16:27","","Hackenschmidt Squat (Maschine)",,"Die schwere Variante",0,"warmup",20,10,,,\n'
@@ -207,40 +223,45 @@ void main() {
       expect(workout.exerciseNotesByBlock[0], 'Die schwere Variante');
     });
 
-    test('Hevy profile converts explicit pounds and miles automatically',
-        () async {
-      final csvString =
-          '\uFEFFtitle,start_time,exercise_title,set_type,weight_lbs,reps,distance_miles,duration_seconds\n'
-          'Run and lift,2026-07-25 14:21,Run,normal,220.46,5,3.1,3600\n';
-      final result = await ImportManager.decodeAndGroupWorkouts(
-        ImportBackgroundTaskParams(
-          fileBytes: Uint8List.fromList(utf8.encode(csvString)),
-          extension: 'csv',
-          isImperial: false,
-        ),
-      );
+    test(
+      'Hevy profile converts explicit pounds and miles automatically',
+      () async {
+        final csvString =
+            '\uFEFFtitle,start_time,exercise_title,set_type,weight_lbs,reps,distance_miles,duration_seconds\n'
+            'Run and lift,2026-07-25 14:21,Run,normal,220.46,5,3.1,3600\n';
+        final result = await ImportManager.decodeAndGroupWorkouts(
+          ImportBackgroundTaskParams(
+            fileBytes: Uint8List.fromList(utf8.encode(csvString)),
+            extension: 'csv',
+            isImperial: false,
+          ),
+        );
 
-      expect(result, hasLength(1));
-      expect(result.single.sourceProfile, WorkoutImportProfile.hevy);
-      expect(result.single.sets.single.weightKg, closeTo(100, 0.1));
-      expect(result.single.sets.single.distanceKm, closeTo(4.989, 0.001));
-      expect(result.single.sets.single.durationSeconds, 3600);
-    });
+        expect(result, hasLength(1));
+        expect(result.single.sourceProfile, WorkoutImportProfile.hevy);
+        expect(result.single.sets.single.weightKg, closeTo(100, 0.1));
+        expect(result.single.sets.single.distanceKm, closeTo(4.989, 0.001));
+        expect(result.single.sets.single.durationSeconds, 3600);
+      },
+    );
 
-    test('Hevy kilogram columns are not converted by a global imperial choice',
-        () async {
-      final csvString = 'title,start_time,exercise_title,weight_kg,reps\n'
-          'Chest,2026-07-25 14:21,Bench Press,140,5\n';
-      final result = await ImportManager.decodeAndGroupWorkouts(
-        ImportBackgroundTaskParams(
-          fileBytes: Uint8List.fromList(utf8.encode(csvString)),
-          extension: 'csv',
-          isImperial: true,
-        ),
-      );
+    test(
+      'Hevy kilogram columns are not converted by a global imperial choice',
+      () async {
+        final csvString =
+            'title,start_time,exercise_title,weight_kg,reps\n'
+            'Chest,2026-07-25 14:21,Bench Press,140,5\n';
+        final result = await ImportManager.decodeAndGroupWorkouts(
+          ImportBackgroundTaskParams(
+            fileBytes: Uint8List.fromList(utf8.encode(csvString)),
+            extension: 'csv',
+            isImperial: true,
+          ),
+        );
 
-      expect(result.single.sets.single.weightKg, 140);
-    });
+        expect(result.single.sets.single.weightKg, 140);
+      },
+    );
 
     test('Strong profile maps common export headers and set fields', () async {
       final csvString =
@@ -271,9 +292,8 @@ void main() {
     });
 
     test('redacted Hevy export imports German month abbreviations', () async {
-      final bytes = await File(
-        'test/fixtures/workout_import/hevy_redacted.csv',
-      ).readAsBytes();
+      final bytes = await File('test/fixtures/workout_import/hevy_redacted.csv')
+          .readAsBytes();
       final result = await ImportManager.decodeAndGroupWorkouts(
         ImportBackgroundTaskParams(
           fileBytes: bytes,
@@ -285,7 +305,8 @@ void main() {
       expect(result, hasLength(8));
       expect(
         result.every(
-            (workout) => workout.sourceProfile == WorkoutImportProfile.hevy),
+          (workout) => workout.sourceProfile == WorkoutImportProfile.hevy,
+        ),
         isTrue,
       );
       expect(result.first.startTime, DateTime(2000, 10, 1, 7, 25));
@@ -296,35 +317,38 @@ void main() {
       expect(sets.any((set) => set.setType == 'warmup'), isTrue);
     });
 
-    test('redacted German Strong export skips rest rows and attaches pauses',
-        () async {
-      final bytes = await File(
-        'test/fixtures/workout_import/strong_redacted.csv',
-      ).readAsBytes();
-      final result = await ImportManager.decodeAndGroupWorkouts(
-        ImportBackgroundTaskParams(
-          fileBytes: bytes,
-          extension: 'csv',
-          isImperial: false,
-        ),
-      );
+    test(
+      'redacted German Strong export skips rest rows and attaches pauses',
+      () async {
+        final bytes = await File(
+          'test/fixtures/workout_import/strong_redacted.csv',
+        ).readAsBytes();
+        final result = await ImportManager.decodeAndGroupWorkouts(
+          ImportBackgroundTaskParams(
+            fileBytes: bytes,
+            extension: 'csv',
+            isImperial: false,
+          ),
+        );
 
-      expect(result, hasLength(1));
-      final workout = result.single;
-      expect(workout.sourceProfile, WorkoutImportProfile.strong);
-      expect(workout.title, 'Redacted Strong Test');
-      expect(workout.startTime, DateTime(2026, 1, 15, 12));
-      expect(workout.endTime, DateTime(2026, 1, 15, 12, 2));
-      expect(workout.sets, hasLength(11));
-      expect(workout.sets.any((set) => set.setType == 'warmup'), isTrue);
-      expect(workout.sets.any((set) => set.setType == 'dropset'), isTrue);
-      expect(workout.sets.any((set) => set.setType == 'failure'), isTrue);
-      expect(workout.sets.any((set) => set.restTimeSeconds == 120), isTrue);
-      expect(workout.sets.any((set) => set.durationSeconds == 1), isTrue);
-    });
+        expect(result, hasLength(1));
+        final workout = result.single;
+        expect(workout.sourceProfile, WorkoutImportProfile.strong);
+        expect(workout.title, 'Redacted Strong Test');
+        expect(workout.startTime, DateTime(2026, 1, 15, 12));
+        expect(workout.endTime, DateTime(2026, 1, 15, 12, 2));
+        expect(workout.sets, hasLength(11));
+        expect(workout.sets.any((set) => set.setType == 'warmup'), isTrue);
+        expect(workout.sets.any((set) => set.setType == 'dropset'), isTrue);
+        expect(workout.sets.any((set) => set.setType == 'failure'), isTrue);
+        expect(workout.sets.any((set) => set.restTimeSeconds == 120), isTrue);
+        expect(workout.sets.any((set) => set.durationSeconds == 1), isTrue);
+      },
+    );
 
     test('generic imports preserve reps in reserve', () async {
-      const csvString = 'title,start_time,exercise,weight_kg,reps,rir\n'
+      const csvString =
+          'title,start_time,exercise,weight_kg,reps,rir\n'
           'Upper,2026-05-20 10:00:00,Bench Press,100,6,2\n';
       final result = await ImportManager.decodeAndGroupWorkouts(
         ImportBackgroundTaskParams(
@@ -338,7 +362,8 @@ void main() {
     });
 
     test('Missing date fallback returns current date', () async {
-      final csvString = 'title,start_time,exercise,weight,reps\n'
+      final csvString =
+          'title,start_time,exercise,weight,reps\n'
           'Test Date,,Curls,20,10\n';
 
       final params = ImportBackgroundTaskParams(
@@ -351,17 +376,19 @@ void main() {
       expect(result.length, 0); // start_time is required in CSV row grouping!
     });
 
-    test('Handles malformed file extensions or data errors gracefully',
-        () async {
-      final params = ImportBackgroundTaskParams(
-        fileBytes: Uint8List.fromList(utf8.encode('random,garbage,data')),
-        extension: 'unsupported',
-        isImperial: false,
-      );
+    test(
+      'Handles malformed file extensions or data errors gracefully',
+      () async {
+        final params = ImportBackgroundTaskParams(
+          fileBytes: Uint8List.fromList(utf8.encode('random,garbage,data')),
+          extension: 'unsupported',
+          isImperial: false,
+        );
 
-      final result = await ImportManager.decodeAndGroupWorkouts(params);
-      expect(result, isEmpty);
-    });
+        final result = await ImportManager.decodeAndGroupWorkouts(params);
+        expect(result, isEmpty);
+      },
+    );
 
     test('Handles empty and minimal CSV inputs without crashing', () async {
       final paramsEmpty = ImportBackgroundTaskParams(
@@ -374,14 +401,16 @@ void main() {
       expect(result1, isEmpty);
 
       final paramsHeaderOnly = ImportBackgroundTaskParams(
-        fileBytes:
-            Uint8List.fromList(utf8.encode('title,start_time,exercise\n')),
+        fileBytes: Uint8List.fromList(
+          utf8.encode('title,start_time,exercise\n'),
+        ),
         extension: 'csv',
         isImperial: false,
       );
 
-      final result2 =
-          await ImportManager.decodeAndGroupWorkouts(paramsHeaderOnly);
+      final result2 = await ImportManager.decodeAndGroupWorkouts(
+        paramsHeaderOnly,
+      );
       expect(result2, isEmpty);
     });
   });

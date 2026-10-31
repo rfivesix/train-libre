@@ -3,6 +3,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+
 import '../../statistics/domain/analytics_state.dart';
 import '../../statistics/domain/consistency_domain_service.dart';
 import '../../statistics/domain/consistency_payload_models.dart';
@@ -14,14 +15,18 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../statistics/domain/timeframe_block.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 enum _ConsistencyMetric { volume, duration, frequency }
@@ -49,11 +54,11 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   ];
 
   List<String> _timeRanges(AppLocalizations l10n) => [
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter6MonthsShort,
-        l10n.filter1YearShort,
-      ];
+    l10n.filter1MonthShort,
+    l10n.filter3MonthsShort,
+    l10n.filter6MonthsShort,
+    l10n.filter1YearShort,
+  ];
 
   bool _isLoading = true;
   TrainingStatsPayload _trainingStats = const TrainingStatsPayload(
@@ -74,8 +79,11 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.consistencyTracker));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.consistencyTracker,
+      ),
+    );
     _loadTimeframeData();
     _loadCalendarData();
   }
@@ -96,8 +104,10 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       _ => 4,
     };
 
-    final daysBack =
-        DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+    final daysBack = DateTime.now()
+        .difference(bounds.start)
+        .inDays
+        .clamp(1, 3650);
 
     final stats = WorkoutLocalDataSource.instance.getTrainingStats();
     final weekly = WorkoutLocalDataSource.instance.getWeeklyConsistencyMetrics(
@@ -172,8 +182,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
 
   String _metricUnit(AppLocalizations l10n) {
     return switch (_selectedMetric) {
-      _ConsistencyMetric.volume =>
-        context.read<UnitService>().suffixFor(UnitDimension.weight),
+      _ConsistencyMetric.volume => context.read<UnitService>().suffixFor(
+        UnitDimension.weight,
+      ),
       _ConsistencyMetric.duration => 'min',
       _ConsistencyMetric.frequency => l10n.workoutsLabel,
     };
@@ -222,10 +233,10 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     final multiplier = normalized <= 1
         ? 1
         : normalized <= 2
-            ? 2
-            : normalized <= 5
-                ? 5
-                : 10;
+        ? 2
+        : normalized <= 5
+        ? 5
+        : 10;
     return (multiplier * magnitude).toDouble();
   }
 
@@ -282,27 +293,30 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
-    final displayMetrics =
-        hasNoData ? getMockWeeklyMetrics(bounds) : _weeklyMetrics;
+    final displayMetrics = hasNoData
+        ? getMockWeeklyMetrics(bounds)
+        : _weeklyMetrics;
     final displayStats = hasNoData ? getMockTrainingStats() : _trainingStats;
 
     final trainingDaysPerWeek = hasNoData
         ? 2.5
         : (_isRolling
-            ? ConsistencyDomainService.computeTrainingDaysPerWeekLast4(
-                workoutDayCounts: _timeframeWorkoutDayCounts,
-              )
-            : ((_timeframeWorkoutDayCounts.entries
-                    .where((e) =>
-                        (e.key.isAfter(bounds.start) ||
-                            e.key.isAtSameMomentAs(bounds.start)) &&
-                        (e.key.isBefore(bounds.end) ||
-                            e.key.isAtSameMomentAs(bounds.end)) &&
-                        e.value > 0)
-                    .length) /
-                (_weeklyMetrics.isEmpty
-                    ? 1.0
-                    : _weeklyMetrics.length.toDouble())));
+              ? ConsistencyDomainService.computeTrainingDaysPerWeekLast4(
+                  workoutDayCounts: _timeframeWorkoutDayCounts,
+                )
+              : ((_timeframeWorkoutDayCounts.entries
+                        .where(
+                          (e) =>
+                              (e.key.isAfter(bounds.start) ||
+                                  e.key.isAtSameMomentAs(bounds.start)) &&
+                              (e.key.isBefore(bounds.end) ||
+                                  e.key.isAtSameMomentAs(bounds.end)) &&
+                              e.value > 0,
+                        )
+                        .length) /
+                    (_weeklyMetrics.isEmpty
+                        ? 1.0
+                        : _weeklyMetrics.length.toDouble())));
 
     final rhythmDelta = hasNoData
         ? 0.5
@@ -352,10 +366,13 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       },
       onPrevious: () {
         setState(() {
-          final currentBounds =
-              _activeBlock.getBounds(DateTime.now(), DateTime(2020));
+          final currentBounds = _activeBlock.getBounds(
+            DateTime.now(),
+            DateTime(2020),
+          );
           final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-          final isOngoing = !_isRolling &&
+          final isOngoing =
+              !_isRolling &&
               myBounds.start.isAtSameMomentAs(currentBounds.start);
 
           if (isOngoing) {
@@ -376,11 +393,16 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
             _anchorDate = DateTime.now();
           } else {
             final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
-            final previousBounds =
-                _activeBlock.getBounds(previousAnchor, DateTime(2020));
-            final myBounds =
-                _activeBlock.getBounds(_anchorDate, DateTime(2020));
-            final isPreviousToOngoing = !_isRolling &&
+            final previousBounds = _activeBlock.getBounds(
+              previousAnchor,
+              DateTime(2020),
+            );
+            final myBounds = _activeBlock.getBounds(
+              _anchorDate,
+              DateTime(2020),
+            );
+            final isPreviousToOngoing =
+                !_isRolling &&
                 myBounds.start.isAtSameMomentAs(previousBounds.start);
 
             if (isPreviousToOngoing) {
@@ -414,16 +436,19 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       nextEnabled: _isRolling
           ? true
           : !_activeBlock
-              .getBounds(_anchorDate, DateTime(2020))
-              .start
-              .isAtSameMomentAs(
-                  _activeBlock.getBounds(DateTime.now(), DateTime(2020)).start),
+                .getBounds(_anchorDate, DateTime(2020))
+                .start
+                .isAtSameMomentAs(
+                  _activeBlock.getBounds(DateTime.now(), DateTime(2020)).start,
+                ),
     );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-          title: l10n.consistencyTrackerTitle, bottom: timeframeFilter),
+        title: l10n.consistencyTrackerTitle,
+        bottom: timeframeFilter,
+      ),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
         isEmpty: false, // Handle empty state at timeframe/content level
@@ -456,9 +481,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: alpha),
+                color: Theme.of(context).colorScheme.primary
+                    .withValues(alpha: alpha),
                 shape: BoxShape.circle,
               ),
             ),
@@ -482,7 +506,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   }
 
   List<WeeklyConsistencyMetricPayload> getMockWeeklyMetrics(
-      DateTimeRange range) {
+    DateTimeRange range,
+  ) {
     final start = range.start;
     final end = range.end;
     final duration = end.difference(start);
@@ -529,13 +554,14 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     }
     final total = isRolling ? stats.totalWorkouts : timeframeTotalWorkouts;
     final thisWeek = isRolling ? stats.thisWeekCount : timeframeTotalWorkouts;
-    final streak =
-        isRolling ? stats.streakWeeks : _computeMaxStreak(weeklyMetrics);
+    final streak = isRolling
+        ? stats.streakWeeks
+        : _computeMaxStreak(weeklyMetrics);
     final avgPerWeek = isRolling
         ? stats.avgPerWeek
         : (weeklyMetrics.isEmpty
-            ? 0.0
-            : timeframeTotalWorkouts / weeklyMetrics.length.toDouble());
+              ? 0.0
+              : timeframeTotalWorkouts / weeklyMetrics.length.toDouble());
 
     final timeframeSubtitle = l10n.analyticsInTimeframe;
     final chartInterval = _chartInterval(weeklyMetrics);
@@ -557,8 +583,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                           ? l10n.metricsWorkoutsWeek
                           : l10n.totalWorkoutsLabel,
                       value: '$thisWeek',
-                      subtitle:
-                          isRolling ? l10n.thisWeekLabel : timeframeSubtitle,
+                      subtitle: isRolling
+                          ? l10n.thisWeekLabel
+                          : timeframeSubtitle,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
@@ -624,8 +651,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                       valueColor: rhythmDelta > 0
                           ? Theme.of(context).colorScheme.primary
                           : rhythmDelta < 0
-                              ? Theme.of(context).colorScheme.error
-                              : null,
+                          ? Theme.of(context).colorScheme.error
+                          : null,
                     ),
                   ),
                 ],
@@ -634,9 +661,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
           ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        AppSectionHeader(
-          title: l10n.consistencyTrackerTitle,
-        ),
+        AppSectionHeader(title: l10n.consistencyTrackerTitle),
         PlatformAdaptiveDropdownFormField<_ConsistencyMetric>(
           value: _selectedMetric,
           onChanged: (val) {
@@ -661,7 +686,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
         RepaintBoundary(
           child: SizedBox(
             height: 210,
-            child: (weeklyMetrics.isEmpty ||
+            child:
+                (weeklyMetrics.isEmpty ||
                     weeklyMetrics.every((m) => _metricValue(m) <= 0))
                 ? AnalyticsChartDefaults.stateView(
                     context: context,
@@ -676,8 +702,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                       minY: 0,
                       maxY: chartMaxY,
                       borderData: AnalyticsChartDefaults.noBorder,
-                      gridData:
-                          AnalyticsChartDefaults.themeAwareCompactGrid(context),
+                      gridData: AnalyticsChartDefaults.themeAwareCompactGrid(
+                        context,
+                      ),
                       barTouchData: BarTouchData(
                         enabled: true,
                         touchTooltipData: BarTouchTooltipData(
@@ -697,9 +724,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                 : DesignConstants.summaryCardSecondaryLightMode;
                           },
                           tooltipBorder: BorderSide(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
+                            color: Theme.of(context).colorScheme.onSurface
                                 .withValues(alpha: 0.08),
                           ),
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -711,14 +736,15 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             return BarTooltipItem(
                               '${_formatWeekRange(context, row)}\n${rod.toY.round()} ${_metricUnit(l10n)}',
                               Theme.of(context).textTheme.labelSmall?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                        fontWeight: FontWeight.w600,
-                                      ) ??
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ) ??
                                   TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
                                   ),
                             );
                           },
@@ -766,9 +792,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                               toY: value,
                               width: _chartBarWidth(weeklyMetrics.length),
                               borderRadius: BorderRadius.circular(4),
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
+                              color: Theme.of(context).colorScheme.primary
                                   .withValues(
                                     alpha: _weeklyBarAlpha(
                                       index: entry.key,
@@ -814,9 +838,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
               headerStyle: HeaderStyle(
                 titleCentered: true,
                 formatButtonVisible: false,
-                titleTextStyle: Theme.of(context)
-                        .textTheme
-                        .titleSmall
+                titleTextStyle:
+                    Theme.of(context).textTheme.titleSmall
                         ?.copyWith(fontWeight: FontWeight.bold) ??
                     const TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -833,9 +856,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                   return Container(
                     margin: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
+                      color: Theme.of(context).colorScheme.primary
                           .withValues(alpha: intensity),
                       shape: BoxShape.circle,
                     ),
@@ -890,9 +911,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
             ),
             Text(
               '$total',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
+              style: Theme.of(context).textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],

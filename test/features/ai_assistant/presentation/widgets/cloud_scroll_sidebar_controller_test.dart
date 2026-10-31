@@ -16,23 +16,28 @@ void main() {
     });
 
     void swipe(double start, double end) {
-      controller.handleSidebarPointerDown(PointerDownEvent(
-        pointer: 1,
-        position: Offset(start, 0),
-        timeStamp: Duration.zero,
-      ));
+      controller.handleSidebarPointerDown(
+        PointerDownEvent(
+          pointer: 1,
+          position: Offset(start, 0),
+          timeStamp: Duration.zero,
+        ),
+      );
       controller.handleSidebarPointerMove(
-          PointerMoveEvent(
-            pointer: 1,
-            position: Offset(end, 0),
-            timeStamp: const Duration(milliseconds: 40),
-          ),
-          300);
-      controller.finishSidebarPointer(PointerUpEvent(
-        pointer: 1,
-        position: Offset(end, 0),
-        timeStamp: const Duration(milliseconds: 45),
-      ));
+        PointerMoveEvent(
+          pointer: 1,
+          position: Offset(end, 0),
+          timeStamp: const Duration(milliseconds: 40),
+        ),
+        300,
+      );
+      controller.finishSidebarPointer(
+        PointerUpEvent(
+          pointer: 1,
+          position: Offset(end, 0),
+          timeStamp: const Duration(milliseconds: 45),
+        ),
+      );
     }
 
     swipe(0, 60);
@@ -43,8 +48,9 @@ void main() {
     expect(controller.sidebarAnimation.value, 0);
   });
 
-  testWidgets('vertical scrolling cannot turn into a sidebar drag',
-      (tester) async {
+  testWidgets('vertical scrolling cannot turn into a sidebar drag', (
+    tester,
+  ) async {
     final morph = AnimationController(vsync: tester);
     final controller = CloudScrollSidebarController(
       vsync: tester,

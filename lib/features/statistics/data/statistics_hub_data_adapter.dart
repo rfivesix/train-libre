@@ -1,4 +1,5 @@
 import 'dart:isolate';
+
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
 import '../../../util/perf_debug_timer.dart';
@@ -17,8 +18,8 @@ class StatisticsHubDataAdapter {
     required WorkoutLocalDataSource workoutDatabaseHelper,
     StatisticsRangePolicyService rangePolicy =
         StatisticsRangePolicyService.instance,
-  })  : _workoutDatabaseHelper = workoutDatabaseHelper,
-        _rangePolicy = rangePolicy;
+  }) : _workoutDatabaseHelper = workoutDatabaseHelper,
+       _rangePolicy = rangePolicy;
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> fetch({
     required TimeframeBlock selectedBlockType,
@@ -107,7 +108,8 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'recovery',
         action: () => _workoutDatabaseHelper.getRecoveryAnalytics(
-          lookbackDays: recoveryRange.effectiveDays ??
+          lookbackDays:
+              recoveryRange.effectiveDays ??
               RecoveryDomainService.recoveryLookbackDays,
         ),
       );
@@ -141,22 +143,24 @@ class StatisticsHubDataAdapter {
         bodyNutrition,
       ]);
 
-      final payload = await Isolate.run(() => StatisticsHubPayload(
-            recentPrs: results[0] as List<Map<String, dynamic>>,
-            weeklyVolume: results[1] as List<Map<String, dynamic>>,
-            workoutsPerWeek: results[2] as List<Map<String, dynamic>>,
-            weeklyConsistencyMetrics: (results[3] as List<Map<String, dynamic>>)
-                .map(WeeklyConsistencyMetricPayload.fromMap)
-                .toList(),
-            muscleAnalytics: results[4] as Map<String, dynamic>,
-            trainingStats: TrainingStatsPayload.fromMap(
-              results[5] as Map<String, dynamic>,
-            ),
-            recoveryAnalytics: RecoveryAnalyticsPayload.fromMap(
-              results[6] as Map<String, dynamic>,
-            ),
-            notableImprovements: results[7] as List<Map<String, dynamic>>,
-          ));
+      final payload = await Isolate.run(
+        () => StatisticsHubPayload(
+          recentPrs: results[0] as List<Map<String, dynamic>>,
+          weeklyVolume: results[1] as List<Map<String, dynamic>>,
+          workoutsPerWeek: results[2] as List<Map<String, dynamic>>,
+          weeklyConsistencyMetrics: (results[3] as List<Map<String, dynamic>>)
+              .map(WeeklyConsistencyMetricPayload.fromMap)
+              .toList(),
+          muscleAnalytics: results[4] as Map<String, dynamic>,
+          trainingStats: TrainingStatsPayload.fromMap(
+            results[5] as Map<String, dynamic>,
+          ),
+          recoveryAnalytics: RecoveryAnalyticsPayload.fromMap(
+            results[6] as Map<String, dynamic>,
+          ),
+          notableImprovements: results[7] as List<Map<String, dynamic>>,
+        ),
+      );
 
       return (payload, results[8] as BodyNutritionAnalyticsResult);
     } finally {
@@ -185,7 +189,8 @@ class StatisticsHubDataAdapter {
       area: 'statistics',
       label: 'recovery',
       action: () => _workoutDatabaseHelper.getRecoveryAnalytics(
-        lookbackDays: recoveryRange.effectiveDays ??
+        lookbackDays:
+            recoveryRange.effectiveDays ??
             RecoveryDomainService.recoveryLookbackDays,
       ),
       fields: {'fixed': '${recoveryRange.effectiveDays}d'},
@@ -194,11 +199,13 @@ class StatisticsHubDataAdapter {
   }
 
   Future<
-      ({
-        List<Map<String, dynamic>> workoutsPerWeek,
-        List<WeeklyConsistencyMetricPayload> weeklyConsistencyMetrics,
-        TrainingStatsPayload trainingStats,
-      })> fetchConsistency({
+    ({
+      List<Map<String, dynamic>> workoutsPerWeek,
+      List<WeeklyConsistencyMetricPayload> weeklyConsistencyMetrics,
+      TrainingStatsPayload trainingStats,
+    })
+  >
+  fetchConsistency({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
     bool isRolling = false,
@@ -250,10 +257,12 @@ class StatisticsHubDataAdapter {
   }
 
   Future<
-      ({
-        List<Map<String, dynamic>> recentPrs,
-        List<Map<String, dynamic>> notableImprovements,
-      })> fetchPerformanceRecords({
+    ({
+      List<Map<String, dynamic>> recentPrs,
+      List<Map<String, dynamic>> notableImprovements,
+    })
+  >
+  fetchPerformanceRecords({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
     bool isRolling = false,
@@ -288,10 +297,12 @@ class StatisticsHubDataAdapter {
   }
 
   Future<
-      ({
-        List<Map<String, dynamic>> weeklyVolume,
-        Map<String, dynamic> muscleAnalytics,
-      })> fetchVolumeMuscles({
+    ({
+      List<Map<String, dynamic>> weeklyVolume,
+      Map<String, dynamic> muscleAnalytics,
+    })
+  >
+  fetchVolumeMuscles({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
     bool isRolling = false,

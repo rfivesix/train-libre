@@ -2,6 +2,7 @@
 
 import '../data/meal_photo_store.dart';
 import '../domain/models/meal_capture_meta.dart';
+
 import 'dart:async';
 import 'dart:io';
 
@@ -71,8 +72,7 @@ class _PinnedMealSummaryDelegate extends SliverPersistentHeaderDelegate {
     BuildContext context,
     double shrinkOffset,
     bool overlapsContent,
-  ) =>
-      child;
+  ) => child;
 
   @override
   bool shouldRebuild(covariant _PinnedMealSummaryDelegate oldDelegate) =>
@@ -112,12 +112,13 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
         return;
       }
       final position = _mealScrollController.position;
-      final target = (_resolvedMealPhotoHeight! +
-              DesignConstants.spacingL +
-              52 -
-              position.viewportDimension)
-          .clamp(0.0, position.maxScrollExtent)
-          .toDouble();
+      final target =
+          (_resolvedMealPhotoHeight! +
+                  DesignConstants.spacingL +
+                  52 -
+                  position.viewportDimension)
+              .clamp(0.0, position.maxScrollExtent)
+              .toDouble();
       if ((position.pixels - target).abs() > 1) {
         _mealScrollController.jumpTo(target);
       }
@@ -225,8 +226,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final index = _items.indexOf(item);
     if (index < 0) return;
     final current = _items[index];
-    final controller =
-        TextEditingController(text: '${current.entry.quantityInGrams}');
+    final controller = TextEditingController(
+      text: '${current.entry.quantityInGrams}',
+    );
     final l10n = AppLocalizations.of(context)!;
     ThemeService? themeService;
     try {
@@ -256,8 +258,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 labelText: l10n.mealDetailAmountInGrams,
                 suffixText: 'g',
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
             ),
@@ -297,10 +300,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
   Future<void> _openItemDetail(TrackedFoodItem tracked) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => FoodDetailScreen(
-          foodItem: tracked.item,
-          trackedItem: tracked,
-        ),
+        builder: (_) =>
+            FoodDetailScreen(foodItem: tracked.item, trackedItem: tracked),
       ),
     );
   }
@@ -347,12 +348,14 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                   onPressed: () {
                     final value = formKey.currentState?.createEntry();
                     if (value == null) return;
-                    Navigator.of(sheetContext).pop(value.copyWith(
-                      id: entry.id,
-                      mealEntryId: _mealEntry.id,
-                      timestamp: _mealEntry.consumedAt,
-                      mealType: _mealEntry.mealType,
-                    ));
+                    Navigator.of(sheetContext).pop(
+                      value.copyWith(
+                        id: entry.id,
+                        mealEntryId: _mealEntry.id,
+                        timestamp: _mealEntry.consumedAt,
+                        mealType: _mealEntry.mealType,
+                      ),
+                    );
                   },
                   label: l10n.save,
                   tooltip: l10n.save,
@@ -414,11 +417,13 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                   onPressed: () {
                     final value = formKey.currentState?.createEntry();
                     if (value == null) return;
-                    Navigator.of(sheetContext).pop(value.copyWith(
-                      mealEntryId: _mealEntry.id,
-                      timestamp: _mealEntry.consumedAt,
-                      mealType: _mealEntry.mealType,
-                    ));
+                    Navigator.of(sheetContext).pop(
+                      value.copyWith(
+                        mealEntryId: _mealEntry.id,
+                        timestamp: _mealEntry.consumedAt,
+                        mealType: _mealEntry.mealType,
+                      ),
+                    );
                   },
                   label: l10n.save,
                   tooltip: l10n.save,
@@ -464,23 +469,23 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
   Future<void> _addNewIngredient() async {
     final selectedFood = await Navigator.of(context).push<FoodItem>(
-      MaterialPageRoute(
-        builder: (_) => const GeneralFoodSelectionScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const GeneralFoodSelectionScreen()),
     );
 
     if (selectedFood != null && mounted) {
       setState(() {
-        _items.add(TrackedFoodItem(
-          item: selectedFood,
-          entry: FoodEntry(
-            barcode: selectedFood.barcode,
-            timestamp: _mealEntry.consumedAt,
-            quantityInGrams: 100,
-            mealType: _mealEntry.mealType,
-            mealEntryId: _mealEntry.id,
+        _items.add(
+          TrackedFoodItem(
+            item: selectedFood,
+            entry: FoodEntry(
+              barcode: selectedFood.barcode,
+              timestamp: _mealEntry.consumedAt,
+              quantityInGrams: 100,
+              mealType: _mealEntry.mealType,
+              mealEntryId: _mealEntry.id,
+            ),
           ),
-        ));
+        );
       });
     }
   }
@@ -555,8 +560,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final l10n = AppLocalizations.of(context)!;
     final title =
         (_mealEntry.title != null && _mealEntry.title!.trim().isNotEmpty)
-            ? _mealEntry.title!.trim()
-            : _getLocalizedMealName(context, _mealEntry.mealType);
+        ? _mealEntry.title!.trim()
+        : _getLocalizedMealName(context, _mealEntry.mealType);
 
     final mealId = await DatabaseHelper.instance.insertMeal(
       name: title,
@@ -571,9 +576,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     }
     if (mounted) {
       HapticFeedbackService.instance.confirmationFeedback();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.mealDetailSavedAsTemplate)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.mealDetailSavedAsTemplate)));
     }
   }
 
@@ -597,8 +602,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 labelText: l10n.mealNameLabel,
                 hintText: l10n.mealEditorHintExample,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
               onSubmitted: (val) {
@@ -632,8 +638,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     if (result != null && mounted) {
       final trimmed = result.trim();
       setState(() {
-        _mealEntry =
-            _mealEntry.copyWith(title: trimmed.isEmpty ? null : trimmed);
+        _mealEntry = _mealEntry.copyWith(
+          title: trimmed.isEmpty ? null : trimmed,
+        );
       });
     }
   }
@@ -682,9 +689,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       _mealEntry = rescheduled.entry;
       _items = rescheduled.items;
       _macroEntries = _macroEntries
-          .map((entry) => entry.copyWith(
-                timestamp: entry.timestamp.add(timestampDelta),
-              ))
+          .map(
+            (entry) =>
+                entry.copyWith(timestamp: entry.timestamp.add(timestampDelta)),
+          )
           .toList(growable: false);
     });
 
@@ -796,8 +804,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 );
               }
               for (var i = 0; i < _macroEntries.length; i++) {
-                _macroEntries[i] =
-                    _macroEntries[i].copyWith(mealType: entry.$1);
+                _macroEntries[i] = _macroEntries[i].copyWith(
+                  mealType: entry.$1,
+                );
               }
             });
           },
@@ -836,13 +845,16 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
         photoFiles.add(file);
         continue;
       }
-      final thumb = MealPhotoStore.instance
-          .resolveSync(MealPhotoStore.thumbPathFor(path));
+      final thumb = MealPhotoStore.instance.resolveSync(
+        MealPhotoStore.thumbPathFor(path),
+      );
       if (thumb != null && thumb.existsSync()) photoFiles.add(thumb);
     }
     final hasPhoto = photoFiles.isNotEmpty;
-    final localizedMealType =
-        _getLocalizedMealName(context, _mealEntry.mealType);
+    final localizedMealType = _getLocalizedMealName(
+      context,
+      _mealEntry.mealType,
+    );
     final photoHeight = (MediaQuery.sizeOf(context).height * 0.58)
         .clamp(300.0, 560.0)
         .toDouble();
@@ -868,13 +880,22 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
               ),
               const Spacer(),
               _buildMacroPill(
-                  'P', '${_totalProtein.round()}g', const Color(0xFFFF453A)),
+                'P',
+                '${_totalProtein.round()}g',
+                const Color(0xFFFF453A),
+              ),
               const SizedBox(width: 8),
               _buildMacroPill(
-                  'C', '${_totalCarbs.round()}g', const Color(0xFF30D158)),
+                'C',
+                '${_totalCarbs.round()}g',
+                const Color(0xFF30D158),
+              ),
               const SizedBox(width: 8),
               _buildMacroPill(
-                  'F', '${_totalFat.round()}g', const Color(0xFFBF5AF2)),
+                'F',
+                '${_totalFat.round()}g',
+                const Color(0xFFBF5AF2),
+              ),
             ],
           ),
         ),
@@ -997,23 +1018,22 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                   kcal: item.calculatedCalories,
                                 ),
                               ),
-                              ..._macroEntries
-                                  .map((entry) => MealIngredientSummaryItem(
-                                        key: 'macro-${entry.id}',
-                                        name: entry.name?.trim().isNotEmpty ==
-                                                true
-                                            ? entry.name!.trim()
-                                            : l10n.macroEntryDefaultName,
-                                        grams: entry.amount?.round(),
-                                        amountLabel: entry.amount == null
-                                            ? null
-                                            : '${entry.amount!.round()} ${entry.amountUnit ?? 'g'}',
-                                        kcal: entry.totalCalories.round(),
-                                      )),
+                              ..._macroEntries.map(
+                                (entry) => MealIngredientSummaryItem(
+                                  key: 'macro-${entry.id}',
+                                  name: entry.name?.trim().isNotEmpty == true
+                                      ? entry.name!.trim()
+                                      : l10n.macroEntryDefaultName,
+                                  grams: entry.amount?.round(),
+                                  amountLabel: entry.amount == null
+                                      ? null
+                                      : '${entry.amount!.round()} ${entry.amountUnit ?? 'g'}',
+                                  kcal: entry.totalCalories.round(),
+                                ),
+                              ),
                             ],
-                            onEdit: () => setState(
-                              () => _isEditing = !_isEditing,
-                            ),
+                            onEdit: () =>
+                                setState(() => _isEditing = !_isEditing),
                             showEditButton: !_isEditing,
                             onIngredientTap: (index) {
                               if (index < _items.length) {
@@ -1038,7 +1058,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                       _replaceIngredient(_items[index]);
                                     } else {
                                       _deleteMacroEntry(
-                                          _macroEntries[index - _items.length]);
+                                        _macroEntries[index - _items.length],
+                                      );
                                     }
                                   }
                                 : null,
@@ -1048,7 +1069,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                       _deleteItem(_items[index]);
                                     } else {
                                       _deleteMacroEntry(
-                                          _macroEntries[index - _items.length]);
+                                        _macroEntries[index - _items.length],
+                                      );
                                     }
                                   }
                                 : null,
@@ -1098,7 +1120,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final gap = DesignConstants.spacingS;
-        final fitsSideBySide = constraints.maxWidth >=
+        final fitsSideBySide =
+            constraints.maxWidth >=
             buttonWidth(addIngredientLabel) + buttonWidth(addMacroLabel) + gap;
         final addIngredient = AppButton.secondary(
           onPressed: _addNewIngredient,

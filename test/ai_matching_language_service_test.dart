@@ -26,25 +26,38 @@ void main() {
       expect(OffCatalogCountry.au.primaryLanguageCode, equals('en'));
     });
 
-    test('AiMatchingContext identifies different catalog language correctly',
-        () {
-      const same = AiMatchingContext(appLanguage: 'de', catalogLanguage: 'de');
-      expect(same.hasDifferentCatalogLanguage, isFalse);
+    test(
+      'AiMatchingContext identifies different catalog language correctly',
+      () {
+        const same = AiMatchingContext(
+          appLanguage: 'de',
+          catalogLanguage: 'de',
+        );
+        expect(same.hasDifferentCatalogLanguage, isFalse);
 
-      const diff = AiMatchingContext(appLanguage: 'de', catalogLanguage: 'fr');
-      expect(diff.hasDifferentCatalogLanguage, isTrue);
-    });
+        const diff = AiMatchingContext(
+          appLanguage: 'de',
+          catalogLanguage: 'fr',
+        );
+        expect(diff.hasDifferentCatalogLanguage, isTrue);
+      },
+    );
 
-    test('writeActiveCountry sets catalog language correctly in prefs',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
-      await OffCatalogCountryService.writeActiveCountry(OffCatalogCountry.fr,
-          prefs: prefs);
+    test(
+      'writeActiveCountry sets catalog language correctly in prefs',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        await OffCatalogCountryService.writeActiveCountry(
+          OffCatalogCountry.fr,
+          prefs: prefs,
+        );
 
-      final country =
-          OffCatalogCountryService.readActiveCountryFromPrefs(prefs);
-      expect(country, equals(OffCatalogCountry.fr));
-      expect(country.primaryLanguageCode, equals('fr'));
-    });
+        final country = OffCatalogCountryService.readActiveCountryFromPrefs(
+          prefs,
+        );
+        expect(country, equals(OffCatalogCountry.fr));
+        expect(country.primaryLanguageCode, equals('fr'));
+      },
+    );
   });
 }

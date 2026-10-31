@@ -10,11 +10,9 @@ import 'package:train_libre/features/workout/domain/models/manual_training_plan.
 void main() {
   late AppDatabase database;
   late ManualTrainingPlanRepository repository;
-  const workout = TrainingPlanDay(routineSnapshot: {
-    'id': 1,
-    'name': 'A',
-    'exercises': [],
-  });
+  const workout = TrainingPlanDay(
+    routineSnapshot: {'id': 1, 'name': 'A', 'exercises': []},
+  );
   const rest = TrainingPlanDay();
 
   setUp(() {
@@ -39,21 +37,23 @@ void main() {
     expect(days.last.status, PlannedDayStatus.planned);
   });
 
-  test('calendar does not project plan days before the first activation',
-      () async {
-    final id = await repository.createPlan(
-      name: 'Week',
-      kind: TrainingPlanKind.week,
-      days: List.filled(7, workout),
-    );
-    final today = DateTime.now();
-    final yesterday = DateTime(today.year, today.month, today.day - 1);
+  test(
+    'calendar does not project plan days before the first activation',
+    () async {
+      final id = await repository.createPlan(
+        name: 'Week',
+        kind: TrainingPlanKind.week,
+        days: List.filled(7, workout),
+      );
+      final today = DateTime.now();
+      final yesterday = DateTime(today.year, today.month, today.day - 1);
 
-    final days = await repository.calendar(id, yesterday, today);
+      final days = await repository.calendar(id, yesterday, today);
 
-    expect(days, hasLength(1));
-    expect(DateUtils.isSameDay(days.single.date, today), isTrue);
-  });
+      expect(days, hasLength(1));
+      expect(DateUtils.isSameDay(days.single.date, today), isTrue);
+    },
+  );
 
   test('sequence holds a missed workout until explicit skip', () async {
     final id = await repository.createPlan(
@@ -63,12 +63,14 @@ void main() {
     );
     final today = DateTime.now();
     final yesterday = DateTime(today.year, today.month, today.day - 1);
-    final activation =
-        await database.select(database.trainingPlanActivations).getSingle();
-    await (database.update(database.trainingPlanActivations)
-          ..where((row) => row.id.equals(activation.id)))
-        .write(TrainingPlanActivationsCompanion(
-            startedOn: drift.Value(yesterday)));
+    final activation = await database
+        .select(database.trainingPlanActivations)
+        .getSingle();
+    await (database.update(
+      database.trainingPlanActivations,
+    )..where((row) => row.id.equals(activation.id))).write(
+      TrainingPlanActivationsCompanion(startedOn: drift.Value(yesterday)),
+    );
     final plan = (await repository.activePlan())!;
     var days = await repository.calendar(id, yesterday, today);
     expect(days.map((day) => day.slotIndex), [0, 0]);
@@ -79,52 +81,52 @@ void main() {
     expect(days.last.status, PlannedDayStatus.rest);
   });
 
-  test('edits append revisions without changing earlier calendar days',
-      () async {
-    final today = DateTime.now();
-    final id = await repository.createPlan(
-      name: 'Week',
-      kind: TrainingPlanKind.week,
-      days: List.filled(7, workout),
-    );
-    await repository.revisePlan(
-      planId: id,
-      name: 'Week edited',
-      kind: TrainingPlanKind.week,
-      days: [rest, workout, workout, workout, workout, workout, workout],
-      nextCycle: true,
-    );
-    expect(await repository.revisions(id), hasLength(2));
-    final days = await repository.calendar(id, today, today);
-    expect(days.single.day.isRest, false);
-  });
+  test(
+    'edits append revisions without changing earlier calendar days',
+    () async {
+      final today = DateTime.now();
+      final id = await repository.createPlan(
+        name: 'Week',
+        kind: TrainingPlanKind.week,
+        days: List.filled(7, workout),
+      );
+      await repository.revisePlan(
+        planId: id,
+        name: 'Week edited',
+        kind: TrainingPlanKind.week,
+        days: [rest, workout, workout, workout, workout, workout, workout],
+        nextCycle: true,
+      );
+      expect(await repository.revisions(id), hasLength(2));
+      final days = await repository.calendar(id, today, today);
+      expect(days.single.day.isRest, false);
+    },
+  );
 
   test('only the linked workout resolves a plan occurrence', () async {
-    const prescribed = TrainingPlanDay(routineSnapshot: {
-      'name': 'Push',
-      'exercises': [
-        {
-          'exercise': {
-            'id': 1,
-            'uuid': 'exercise-1',
-            'source': 'user',
-            'texts': {
-              'en': {'name': 'Press', 'description': ''}
-            },
-            'category_name': '',
-            'primaryMuscles': <String>[],
-            'secondaryMuscles': <String>[],
-          },
-          'setTemplates': [
-            {
+    const prescribed = TrainingPlanDay(
+      routineSnapshot: {
+        'name': 'Push',
+        'exercises': [
+          {
+            'exercise': {
               'id': 1,
-              'set_type': 'normal',
-              'target_reps': '8-12',
-            }
-          ],
-        }
-      ],
-    });
+              'uuid': 'exercise-1',
+              'source': 'user',
+              'texts': {
+                'en': {'name': 'Press', 'description': ''},
+              },
+              'category_name': '',
+              'primaryMuscles': <String>[],
+              'secondaryMuscles': <String>[],
+            },
+            'setTemplates': [
+              {'id': 1, 'set_type': 'normal', 'target_reps': '8-12'},
+            ],
+          },
+        ],
+      },
+    );
     final id = await repository.createPlan(
       name: 'Linked',
       kind: TrainingPlanKind.sequence,
@@ -133,7 +135,9 @@ void main() {
     final plan = (await repository.activePlan())!;
     final today = DateTime.now();
 
-    await database.into(database.workoutLogs).insert(
+    await database
+        .into(database.workoutLogs)
+        .insert(
           WorkoutLogsCompanion.insert(
             startTime: today,
             status: const drift.Value('completed'),
@@ -147,7 +151,9 @@ void main() {
     final day = (await repository.calendar(id, today, today)).single;
     final started = await repository.start(plan, day);
     for (var index = 0; index < 2; index++) {
-      await database.into(database.setLogs).insert(
+      await database
+          .into(database.setLogs)
+          .insert(
             SetLogsCompanion.insert(
               workoutLogId: started.log.id,
               exerciseNameSnapshot: const drift.Value('Press'),

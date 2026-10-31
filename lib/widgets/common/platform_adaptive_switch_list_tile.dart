@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'platform_adaptive_switch.dart';
 
 class PlatformAdaptiveSwitchListTile extends StatelessWidget {
@@ -28,10 +29,7 @@ class PlatformAdaptiveSwitchListTile extends StatelessWidget {
         leading: secondary,
         title: title,
         subtitle: subtitle,
-        trailing: PlatformAdaptiveSwitch(
-          value: value,
-          onChanged: onChanged,
-        ),
+        trailing: PlatformAdaptiveSwitch(value: value, onChanged: onChanged),
         onTap: onChanged != null ? () => onChanged!(!value) : null,
       ),
     );

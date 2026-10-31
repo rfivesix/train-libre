@@ -405,8 +405,9 @@ void main() {
     final startLocal = startUtc.toLocal();
     final endLocal = endUtc.toLocal();
     final startFloor = (startLocal.hour * 60 + startLocal.minute) ~/ 60 * 60;
-    final startBoundary =
-        (startLocal.minute == 0 ? startFloor - 60 : startFloor);
+    final startBoundary = (startLocal.minute == 0
+        ? startFloor - 60
+        : startFloor);
     final endCeil = ((endLocal.hour * 60 + endLocal.minute + 59) ~/ 60) * 60;
     final endBoundary = (endLocal.minute == 0 ? endCeil + 60 : endCeil);
     String formatHourLabel(int minute) {
@@ -765,8 +766,8 @@ void main() {
           widget is Text &&
           widget.key is ValueKey<String> &&
           (widget.key! as ValueKey<String>).value.startsWith(
-                'sleep-timeline-tick-',
-              ),
+            'sleep-timeline-tick-',
+          ),
     );
     expect(tickFinder, findsAtLeastNWidgets(3));
   });
@@ -797,8 +798,8 @@ void main() {
           widget is Text &&
           widget.key is ValueKey<String> &&
           (widget.key! as ValueKey<String>).value.startsWith(
-                'sleep-timeline-tick-',
-              ),
+            'sleep-timeline-tick-',
+          ),
     );
 
     await pumpWithMode(ThemeMode.light);

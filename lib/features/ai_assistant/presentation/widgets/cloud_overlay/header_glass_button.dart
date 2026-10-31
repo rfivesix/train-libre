@@ -47,16 +47,18 @@ class HeaderGlassButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: showBorder
             ? backgroundColor ??
-                (isDarkSurface
-                    ? DesignConstants.glassNeutralTint(true)
-                    : Colors.black.withValues(alpha: 0.04))
+                  (isDarkSurface
+                      ? DesignConstants.glassNeutralTint(true)
+                      : Colors.black.withValues(alpha: 0.04))
             : Colors.transparent,
         shape: BoxShape.circle,
         border: showBorder
             ? Border.all(color: foreground.withValues(alpha: 0.14), width: 0.5)
             : null,
       ),
-      child: Center(child: Icon(icon, size: iconSize, color: foreground)),
+      child: Center(
+        child: Icon(icon, size: iconSize, color: foreground),
+      ),
     );
     final glassContent = !showBorder
         ? buttonSurface
@@ -75,8 +77,9 @@ class HeaderGlassButton extends StatelessWidget {
                     : const Duration(milliseconds: 360),
                 curve: Curves.easeOutCubic,
                 builder: (context, visibility, _) {
-                  final visibleSettings =
-                      settings.copyWith(visibility: visibility);
+                  final visibleSettings = settings.copyWith(
+                    visibility: visibility,
+                  );
                   final glass = AdaptiveGlass(
                     settings: visibleSettings,
                     quality: DesignConstants.defaultGlassQuality,
@@ -104,8 +107,9 @@ class HeaderGlassButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          boxShadow:
-              showBorder ? DesignConstants.glassShadow(isDarkSurface) : null,
+          boxShadow: showBorder
+              ? DesignConstants.glassShadow(isDarkSurface)
+              : null,
         ),
         child: glassContent,
       ),

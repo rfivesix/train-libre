@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../../../util/design_constants.dart';
 
 class SpeedDialMenuOverlay extends StatelessWidget {
@@ -108,14 +110,18 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                             final double offsetY = 72.0 + reverseIndex * 68.0;
 
                             // Staggered label fade & slide
-                            final double labelTv =
-                                ((tv - 0.4) / 0.6).clamp(0.0, 1.0);
+                            final double labelTv = ((tv - 0.4) / 0.6).clamp(
+                              0.0,
+                              1.0,
+                            );
                             final double labelOpacity = labelTv;
                             final double labelOffsetX = (1.0 - labelTv) * -20.0;
 
                             // Scale button from 0.1 -> 1.0 as it emerges out of the FAB
-                            final double btnScale =
-                                (0.1 + 0.9 * tv).clamp(0.0, 1.25);
+                            final double btnScale = (0.1 + 0.9 * tv).clamp(
+                              0.0,
+                              1.25,
+                            );
 
                             // Liquid stretch parameters — scale from fabSize to match FAB appearance
                             final double stretch = _getStretch(tv);
@@ -142,9 +148,9 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                           style: TextStyle(
                                             color:
                                                 Theme.of(context).brightness ==
-                                                        Brightness.light
-                                                    ? Colors.black87
-                                                    : Colors.white,
+                                                    Brightness.light
+                                                ? Colors.black87
+                                                : Colors.white,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
                                           ),
@@ -152,7 +158,8 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(
-                                        width: DesignConstants.spacingL),
+                                      width: DesignConstants.spacingL,
+                                    ),
                                     Transform.scale(
                                       scale: btnScale,
                                       child: SizedBox(
@@ -172,20 +179,20 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                         child: ClipPath(
                                                           clipper:
                                                               ShadowOuterClipper(
-                                                            borderRadius:
-                                                                rLiquid,
-                                                            isOval: true,
-                                                          ),
+                                                                borderRadius:
+                                                                    rLiquid,
+                                                                isOval: true,
+                                                              ),
                                                           child: Container(
-                                                            decoration:
-                                                                BoxDecoration(
+                                                            decoration: BoxDecoration(
                                                               borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          rLiquid),
-                                                              boxShadow: DesignConstants
-                                                                  .glassShadow(
-                                                                      isDarkLocal),
+                                                                  BorderRadius.circular(
+                                                                    rLiquid,
+                                                                  ),
+                                                              boxShadow:
+                                                                  DesignConstants.glassShadow(
+                                                                    isDarkLocal,
+                                                                  ),
                                                             ),
                                                           ),
                                                         ),
@@ -200,9 +207,10 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                         child: AdaptiveGlass(
                                                           shape:
                                                               const LiquidOval(),
-                                                          settings: DesignConstants
-                                                              .liquidGlassSettings(
-                                                                  isDarkLocal),
+                                                          settings:
+                                                              DesignConstants.liquidGlassSettings(
+                                                                isDarkLocal,
+                                                              ),
                                                           quality: DesignConstants
                                                               .defaultGlassQuality,
                                                           useOwnLayer: true,
@@ -214,37 +222,36 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                               customBorder:
                                                                   const CircleBorder(),
                                                               onTap: () {
-                                                                onActionTap(action[
-                                                                    'action']);
+                                                                onActionTap(
+                                                                  action['action'],
+                                                                );
                                                               },
                                                               child: SizedBox(
                                                                 width: btnWidth,
                                                                 height:
                                                                     btnHeight,
                                                                 child: Center(
-                                                                  child: action[
-                                                                              'gradient'] ==
+                                                                  child:
+                                                                      action['gradient'] ==
                                                                           true
                                                                       ? ShaderMask(
                                                                           blendMode:
                                                                               BlendMode.srcIn,
-                                                                          shaderCallback: (bounds) =>
-                                                                              DesignConstants.createAiGradientShader(
+                                                                          shaderCallback: (
                                                                             bounds,
-                                                                          ),
-                                                                          child:
-                                                                              Icon(
+                                                                          ) => DesignConstants.createAiGradientShader(bounds),
+                                                                          child: Icon(
                                                                             action['icon'],
                                                                             size:
                                                                                 28,
                                                                           ),
                                                                         )
                                                                       : Icon(
-                                                                          action[
-                                                                              'icon'],
+                                                                          action['icon'],
                                                                           size:
                                                                               28,
-                                                                          color: isDarkLocal
+                                                                          color:
+                                                                              isDarkLocal
                                                                               ? Colors.white
                                                                               : Colors.black,
                                                                         ),
@@ -267,8 +274,9 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                           }).toList(),
                         ),
                         if (aiChatActionKey != null &&
-                            actions
-                                .any((action) => action['action'] == 'ai_chat'))
+                            actions.any(
+                              (action) => action['action'] == 'ai_chat',
+                            ))
                           Positioned(
                             right: 27.5,
                             top: 37.0,
@@ -292,16 +300,19 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                       children: [
                         ClipPath(
                           clipper: ShadowOuterClipper(
-                              borderRadius: DesignConstants.fabSize / 2,
-                              isOval: true),
+                            borderRadius: DesignConstants.fabSize / 2,
+                            isOval: true,
+                          ),
                           child: Container(
                             width: DesignConstants.fabSize,
                             height: DesignConstants.fabSize,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(
-                                  DesignConstants.fabSize / 2),
-                              boxShadow:
-                                  DesignConstants.glassShadow(isDarkLocal),
+                                DesignConstants.fabSize / 2,
+                              ),
+                              boxShadow: DesignConstants.glassShadow(
+                                isDarkLocal,
+                              ),
                             ),
                           ),
                         ),
@@ -311,11 +322,11 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                           child: AdaptiveGlass(
                             shape: const LiquidOval(),
                             settings: DesignConstants.liquidGlassSettings(
-                                isDarkLocal),
+                              isDarkLocal,
+                            ),
                             quality: DesignConstants.defaultGlassQuality,
                             useOwnLayer: true,
-                            isInteractive:
-                                false, // Force background blur during animations
+                            isInteractive: false, // Force background blur during animations
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -327,18 +338,20 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                   child: Center(
                                     child: RotationTransition(
                                       turns:
-                                          Tween<double>(begin: 0.0, end: 0.375)
-                                              .animate(
-                                        CurvedAnimation(
-                                          parent: animation,
-                                          curve: Curves.easeOutCubic,
-                                        ),
-                                      ),
+                                          Tween<double>(
+                                            begin: 0.0,
+                                            end: 0.375,
+                                          ).animate(
+                                            CurvedAnimation(
+                                              parent: animation,
+                                              curve: Curves.easeOutCubic,
+                                            ),
+                                          ),
                                       child: Icon(
                                         LucideIcons.plus,
-                                        semanticLabel:
-                                            MaterialLocalizations.of(context)
-                                                .closeButtonTooltip,
+                                        semanticLabel: MaterialLocalizations.of(
+                                          context,
+                                        ).closeButtonTooltip,
                                         color: isDarkLocal
                                             ? Colors.white
                                             : Colors.black,

@@ -17,24 +17,24 @@ BLS BASE-FOOD CATALOG NAMING:
     'properties': {
       'name': {'type': 'string'},
       'catalogSearchTerm': {
-        'type': ['string', 'null']
+        'type': ['string', 'null'],
       },
       'packagedProductEvidence': {
-        'type': ['string', 'null']
+        'type': ['string', 'null'],
       },
       'servedGrams': {'type': 'integer'},
       'estimatedGrams': {'type': 'integer'},
       'isFluid': {'type': 'boolean'},
       'confidence': {'type': 'number'},
       'stateHint': {
-        'type': ['string', 'null']
+        'type': ['string', 'null'],
       },
       'searchTerms': {
         'type': 'array',
-        'items': {'type': 'string'}
+        'items': {'type': 'string'},
       },
       'matchedBarcode': {
-        'type': ['string', 'null']
+        'type': ['string', 'null'],
       },
     },
     'required': [
@@ -62,7 +62,7 @@ BLS BASE-FOOD CATALOG NAMING:
           'dishType': {'type': 'string'},
           'expectedKcalRange': {
             'type': 'array',
-            'items': {'type': 'integer'}
+            'items': {'type': 'integer'},
           },
           'expectedMacroProfile': {
             'type': 'object',
@@ -70,15 +70,15 @@ BLS BASE-FOOD CATALOG NAMING:
             'properties': {
               'proteinPercent': {
                 'type': 'array',
-                'items': {'type': 'integer'}
+                'items': {'type': 'integer'},
               },
               'carbsPercent': {
                 'type': 'array',
-                'items': {'type': 'integer'}
+                'items': {'type': 'integer'},
               },
               'fatPercent': {
                 'type': 'array',
-                'items': {'type': 'integer'}
+                'items': {'type': 'integer'},
               },
             },
             'required': ['proteinPercent', 'carbsPercent', 'fatPercent'],
@@ -131,18 +131,22 @@ BLS BASE-FOOD CATALOG NAMING:
 
     final depthBlockBuffer = StringBuffer();
     if (depthFacts != null && depthFacts.isValid) {
-      depthBlockBuffer.write('''
+      depthBlockBuffer.write(
+        '''
 
 LIDAR SCENE SCALE (approximate, derived from depth and camera calibration):
 - Distance: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm. Visible frame: ${depthFacts.frameWidthCm.toStringAsFixed(0)} x ${depthFacts.frameHeightCm.toStringAsFixed(0)} cm.
 - Near and far scene depth percentiles: ${depthFacts.nearCm.toStringAsFixed(0)} and ${depthFacts.farCm.toStringAsFixed(0)} cm.
-The frame dimensions are at the central subject distance, not a measurement of the plate or food. Use them as approximate scale cues; scene surfaces and camera angle can affect them.''');
+The frame dimensions are at the central subject distance, not a measurement of the plate or food. Use them as approximate scale cues; scene surfaces and camera angle can affect them.''',
+      );
     }
 
     if (depthMapLegend != null && depthMapLegend.trim().isNotEmpty) {
-      depthBlockBuffer.write('''
+      depthBlockBuffer.write(
+        '''
 
-DEPTH MAP IMAGE: This is camera-to-surface distance, not a measured food height or volume. Camera angle and the plate or background also affect depth. Use it cautiously alongside the corresponding photo; do not treat scene depth differences as food height. $depthMapLegend''');
+DEPTH MAP IMAGE: This is camera-to-surface distance, not a measured food height or volume. Camera angle and the plate or background also affect depth. Use it cautiously alongside the corresponding photo; do not treat scene depth differences as food height. $depthMapLegend''',
+      );
     }
 
     final langRule = langRuleBuffer.toString();
@@ -240,13 +244,13 @@ Rules:
 
     final anchorBlock = mealContext != null
         ? '\n\nMEAL CONTEXT ANCHOR:\n'
-            '- Dish: ${mealContext.dishType}\n'
-            '- Estimated calories: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]} kcal\n'
-            '- Estimated macros: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
-            'C${mealContext.expectedMacroProfile["carbsPercent"]}% '
-            'F${mealContext.expectedMacroProfile["fatPercent"]}%\n'
-            '- Cooking: ${mealContext.cookingMethod ?? "unknown"}\n'
-            'These are uncertain AI estimates, not targets that override the visible portion or user-provided quantities.'
+              '- Dish: ${mealContext.dishType}\n'
+              '- Estimated calories: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]} kcal\n'
+              '- Estimated macros: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
+              'C${mealContext.expectedMacroProfile["carbsPercent"]}% '
+              'F${mealContext.expectedMacroProfile["fatPercent"]}%\n'
+              '- Cooking: ${mealContext.cookingMethod ?? "unknown"}\n'
+              'These are uncertain AI estimates, not targets that override the visible portion or user-provided quantities.'
         : '';
 
     final depthBlock = (depthFacts != null && depthFacts.isValid)

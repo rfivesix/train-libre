@@ -124,9 +124,7 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                   label: l10n.createGoalTitle,
                   onPressed: () async {
                     final result = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (_) => const CreateGoalFlow(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const CreateGoalFlow()),
                     );
                     if (result == true) onRefresh?.call();
                   },
@@ -178,8 +176,8 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                     label: isActive
                         ? l10n.goalStatusActive
                         : (isRetired
-                            ? l10n.goalStatusRetired
-                            : l10n.goalStatusSuperseded),
+                              ? l10n.goalStatusRetired
+                              : l10n.goalStatusSuperseded),
                     active: isActive,
                   ),
                   if (onHeaderTap != null) ...[
@@ -241,8 +239,8 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                 label: l10n.goalTargetHeader,
                 value: activeGoal.targetValue == null
                     ? (activeGoal.isMaintenanceOrRecomp
-                        ? l10n.goalMaintainCorridor
-                        : l10n.goalDirectionalOnly)
+                          ? l10n.goalMaintainCorridor
+                          : l10n.goalDirectionalOnly)
                     : formatWeight(activeGoal.targetValue),
                 subtitle: activeGoal.targetDate == null
                     ? l10n.goalNoTargetDateShort
@@ -282,9 +280,10 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(99),
                   child: LinearProgressIndicator(
                     minHeight: 6,
-                    value: (progress!.progressPercentage ??
-                            (progress!.isInToleranceBand ? 1.0 : 0.0))
-                        .clamp(0.0, 1.0),
+                    value:
+                        (progress!.progressPercentage ??
+                                (progress!.isInToleranceBand ? 1.0 : 0.0))
+                            .clamp(0.0, 1.0),
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   ),
                 ),
@@ -356,7 +355,8 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
             builder: (context) {
               final startWeight =
                   progress?.baselineValue ?? chartPoints.first.value;
-              final targetDate = activeGoal.targetDate ??
+              final targetDate =
+                  activeGoal.targetDate ??
                   activeGoal.startDate.add(const Duration(days: 84));
               final domainEnd = targetDate.isAfter(DateTime.now())
                   ? targetDate
@@ -405,9 +405,7 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingL),
         ],
 
-        if (bottomActions != null) ...[
-          bottomActions!,
-        ],
+        if (bottomActions != null) ...[bottomActions!],
       ],
     );
   }

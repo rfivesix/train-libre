@@ -50,7 +50,8 @@ void main() {
     await loader.load();
     final icons = FontLoader('packages/flutter_lucide/lucide');
     icons.addFont(
-        rootBundle.load('packages/flutter_lucide/lib/fonts/lucide.ttf'));
+      rootBundle.load('packages/flutter_lucide/lib/fonts/lucide.ttf'),
+    );
     await icons.load();
   });
 
@@ -93,42 +94,46 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(ChangeNotifierProvider.value(
-      value: units,
-      child: MaterialApp(
-        locale: Locale(language),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        theme: ThemeData(
-          useMaterial3: false,
-          brightness: brightness,
-          fontFamily: 'Inter',
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: DesignConstants.brandAccentColor,
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: units,
+        child: MaterialApp(
+          locale: Locale(language),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: ThemeData(
+            useMaterial3: false,
             brightness: brightness,
-          ).copyWith(
-              primary: DesignConstants.brandAccentColor,
-              onPrimary: Colors.black),
-        ),
-        navigatorObservers: [if (observer != null) observer],
-        home: Scaffold(
-          body: MediaQuery(
-            data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: RepaintBoundary(
-                key: const ValueKey('capture'),
-                child: WeightCard(
-                  key: const ValueKey('card'),
-                  date: date ?? today,
-                  dataSource: dataSource ?? source,
+            fontFamily: 'Inter',
+            colorScheme:
+                ColorScheme.fromSeed(
+                  seedColor: DesignConstants.brandAccentColor,
+                  brightness: brightness,
+                ).copyWith(
+                  primary: DesignConstants.brandAccentColor,
+                  onPrimary: Colors.black,
+                ),
+          ),
+          navigatorObservers: [if (observer != null) observer],
+          home: Scaffold(
+            body: MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: RepaintBoundary(
+                  key: const ValueKey('capture'),
+                  child: WeightCard(
+                    key: const ValueKey('card'),
+                    date: date ?? today,
+                    dataSource: dataSource ?? source,
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     // Drift native queries complete on the real event loop.
     await tester.runAsync(() async {
@@ -142,7 +147,8 @@ void main() {
   Future<void> capture(WidgetTester tester, String name) async {
     if (!const bool.fromEnvironment('WEIGHT_QA')) return;
     final boundary = tester.renderObject<RenderRepaintBoundary>(
-        find.byKey(const ValueKey('capture')));
+      find.byKey(const ValueKey('capture')),
+    );
     await tester.runAsync(() async {
       final image = await boundary.toImage(pixelRatio: 2);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
@@ -168,8 +174,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  cardTest('never weighed: pitch, wide action and neutral draft',
-      (tester) async {
+  cardTest('never weighed: pitch, wide action and neutral draft', (
+    tester,
+  ) async {
     await mount(tester);
     expect(find.text('Gewicht eintragen'), findsOneWidget);
     expect(find.textContaining('Kalorienempfehlung'), findsOneWidget);
@@ -184,32 +191,36 @@ void main() {
     expect(await rows(tester), isEmpty);
   });
 
-  cardTest('matches the sleep score value and existing chevron styles',
-      (tester) async {
+  cardTest('matches the sleep score value and existing chevron styles', (
+    tester,
+  ) async {
     await seed(tester, 84.2, today);
     await mount(tester);
 
-    final colorScheme =
-        Theme.of(tester.element(find.byType(WeightCard))).colorScheme;
+    final colorScheme = Theme.of(tester.element(find.byType(WeightCard)))
+        .colorScheme;
     final label = tester.widget<Text>(find.text('Gewicht'));
-    final value =
-        tester.widget<Text>(find.byKey(const ValueKey('weight-value')));
+    final value = tester.widget<Text>(
+      find.byKey(const ValueKey('weight-value')),
+    );
     final unit = tester.widget<Text>(find.text('kg'));
 
     expect(
-        label.style?.fontSize,
-        Theme.of(tester.element(find.byType(WeightCard)))
-            .textTheme
-            .titleMedium
-            ?.fontSize);
+      label.style?.fontSize,
+      Theme.of(tester.element(find.byType(WeightCard)))
+          .textTheme
+          .titleMedium
+          ?.fontSize,
+    );
     expect(label.style?.color, Colors.black);
     expect(label.style?.fontWeight, FontWeight.bold);
     expect(
-        value.style?.fontSize,
-        Theme.of(tester.element(find.byType(WeightCard)))
-            .textTheme
-            .titleLarge
-            ?.fontSize);
+      value.style?.fontSize,
+      Theme.of(tester.element(find.byType(WeightCard)))
+          .textTheme
+          .titleLarge
+          ?.fontSize,
+    );
     expect(value.style?.color, colorScheme.onSurface);
     expect(unit.style?.fontSize, value.style?.fontSize);
     expect(unit.style?.fontWeight, value.style?.fontWeight);
@@ -219,8 +230,9 @@ void main() {
     expect(chevron.color, colorScheme.onSurface);
   });
 
-  cardTest('ruler moves continuously while the displayed value stays decimal',
-      (tester) async {
+  cardTest('ruler moves continuously while the displayed value stays decimal', (
+    tester,
+  ) async {
     await mount(tester);
     await tester.tap(find.text('Gewicht eintragen'));
     await tester.pumpAndSettle();
@@ -242,10 +254,14 @@ void main() {
     expect(await rows(tester), isEmpty);
   });
 
-  cardTest('stale value shows calendar age and preselects latest weight',
-      (tester) async {
+  cardTest('stale value shows calendar age and preselects latest weight', (
+    tester,
+  ) async {
     await seed(
-        tester, 85.1, DateTime(today.year, today.month, today.day - 3, 23));
+      tester,
+      85.1,
+      DateTime(today.year, today.month, today.day - 3, 23),
+    );
     await mount(tester);
     expect(find.text('85,1'), findsOneWidget);
     expect(find.text('vor 3 Tagen'), findsOneWidget);
@@ -255,8 +271,9 @@ void main() {
     expect(tester.widget<WeightRuler>(find.byType(WeightRuler)).value, 85.1);
   });
 
-  cardTest('today shows latest daily value and opens weight history',
-      (tester) async {
+  cardTest('today shows latest daily value and opens weight history', (
+    tester,
+  ) async {
     await seed(tester, 84.8, today.add(const Duration(hours: 7)));
     await seed(tester, 84.2, today.add(const Duration(hours: 8)));
     final observer = _NavigationObserver();
@@ -270,22 +287,26 @@ void main() {
     final destination = route.builder(tester.element(find.byType(WeightCard)));
     expect(destination, isA<MeasurementsScreen>());
     expect(
-        (destination as MeasurementsScreen).initialMeasurementType, 'weight');
+      (destination as MeasurementsScreen).initialMeasurementType,
+      'weight',
+    );
     // Navigation is checked without starting the unrelated profile screen.
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
   for (final imperial in [false, true]) {
-    cardTest('drag and save persists kg with imperial=$imperial',
-        (tester) async {
+    cardTest('drag and save persists kg with imperial=$imperial', (
+      tester,
+    ) async {
       if (imperial) await units.setUnitSystem(UnitSystem.imperial);
       await mount(tester);
       await tester.tap(find.text('Gewicht eintragen'));
       await tester.pumpAndSettle();
       await tester.drag(find.byType(WeightRuler), const Offset(-70, 0));
       await tester.pumpAndSettle();
-      final displayed =
-          tester.widget<WeightRuler>(find.byType(WeightRuler)).value;
+      final displayed = tester
+          .widget<WeightRuler>(find.byType(WeightRuler))
+          .value;
       expect(displayed, greaterThan(imperial ? 165.3 : 75.0));
       await capture(tester, imperial ? 'edit-lbs' : 'edit-kg');
       expect(await rows(tester), isEmpty, reason: 'release must never save');
@@ -294,15 +315,18 @@ void main() {
       expect(saved, hasLength(1));
       expect(saved.single.type, 'weight');
       expect(saved.single.unit, 'kg');
-      expect(saved.single.value,
-          closeTo(imperial ? UnitService.lbsToKg(displayed) : displayed, 1e-8));
+      expect(
+        saved.single.value,
+        closeTo(imperial ? UnitService.lbsToKg(displayed) : displayed, 1e-8),
+      );
       expect(DateUtils.isSameDay(saved.single.date, today), isTrue);
       expect(find.text('heute'), findsOneWidget);
     });
   }
 
-  cardTest('expansion completes in 300 ms and never saves during animation',
-      (tester) async {
+  cardTest('expansion completes in 300 ms and never saves during animation', (
+    tester,
+  ) async {
     await seed(tester, 81.3, today.subtract(const Duration(days: 1)));
     await mount(tester);
     final card = find.byKey(const ValueKey('card'));
@@ -328,8 +352,9 @@ void main() {
     expect(find.text('heute'), findsOneWidget);
   });
 
-  cardTest('cancel discards drag; reopening restores persisted value',
-      (tester) async {
+  cardTest('cancel discards drag; reopening restores persisted value', (
+    tester,
+  ) async {
     await seed(tester, 81.3, today.subtract(const Duration(days: 1)));
     await mount(tester);
     await tester.tap(find.text('Eintragen'));
@@ -344,8 +369,9 @@ void main() {
     expect(tester.widget<WeightRuler>(find.byType(WeightRuler)).value, 81.3);
   });
 
-  cardTest('imperial setting change while editing preserves physical weight',
-      (tester) async {
+  cardTest('imperial setting change while editing preserves physical weight', (
+    tester,
+  ) async {
     await mount(tester);
     await tester.tap(find.text('Gewicht eintragen'));
     await tester.pumpAndSettle();
@@ -353,36 +379,44 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('165,3'), findsOneWidget);
     await save(tester);
-    expect((await rows(tester)).single.value,
-        closeTo(UnitService.lbsToKg(165.3), 1e-8));
-  });
-
-  cardTest('historical diary day excludes future weights and saves to that day',
-      (tester) async {
-    final past = today.subtract(const Duration(days: 3));
-    await seed(tester, 83.5, past.subtract(const Duration(days: 1)));
-    await seed(tester, 82.0, today);
-    await mount(tester, date: past);
-    expect(find.text('83,5'), findsOneWidget);
-    expect(find.text('vor 1 Tag'), findsOneWidget);
-    await tester.tap(find.text('Eintragen'));
-    await tester.pumpAndSettle();
-    await save(tester);
-    final all = await rows(tester);
     expect(
-        all.where((row) => DateUtils.isSameDay(row.date, past)), hasLength(1));
-    expect(find.text('heute'), findsNothing);
+      (await rows(tester)).single.value,
+      closeTo(UnitService.lbsToKg(165.3), 1e-8),
+    );
   });
 
-  cardTest('out-of-range draft disables saving without rating color',
-      (tester) async {
+  cardTest(
+    'historical diary day excludes future weights and saves to that day',
+    (tester) async {
+      final past = today.subtract(const Duration(days: 3));
+      await seed(tester, 83.5, past.subtract(const Duration(days: 1)));
+      await seed(tester, 82.0, today);
+      await mount(tester, date: past);
+      expect(find.text('83,5'), findsOneWidget);
+      expect(find.text('vor 1 Tag'), findsOneWidget);
+      await tester.tap(find.text('Eintragen'));
+      await tester.pumpAndSettle();
+      await save(tester);
+      final all = await rows(tester);
+      expect(
+        all.where((row) => DateUtils.isSameDay(row.date, past)),
+        hasLength(1),
+      );
+      expect(find.text('heute'), findsNothing);
+    },
+  );
+
+  cardTest('out-of-range draft disables saving without rating color', (
+    tester,
+  ) async {
     await seed(tester, 28.4, today.subtract(const Duration(days: 1)));
     await mount(tester);
     await tester.tap(find.text('Eintragen'));
     await tester.pumpAndSettle();
     expect(find.text('Wert außerhalb des üblichen Bereichs'), findsOneWidget);
-    final button = tester
-        .widget<FilledButton>(find.widgetWithText(FilledButton, 'Speichern'));
+    final button = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Speichern'),
+    );
     expect(button.onPressed, isNull);
   });
 
@@ -395,27 +429,30 @@ void main() {
     expect(find.textContaining('nicht gespeichert'), findsOneWidget);
     expect(find.byType(WeightRuler), findsOneWidget);
     expect(
-        tester
-            .widget<FilledButton>(
-                find.widgetWithText(FilledButton, 'Speichern'))
-            .onPressed,
-        isNotNull);
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Speichern'))
+          .onPressed,
+      isNotNull,
+    );
     expect(await rows(tester), isEmpty);
   });
 
-  cardTest('ruler exposes one-decimal accessibility adjustments',
-      (tester) async {
+  cardTest('ruler exposes one-decimal accessibility adjustments', (
+    tester,
+  ) async {
     final semantics = tester.ensureSemantics();
 
     await mount(tester);
     await tester.tap(find.text('Gewicht eintragen'));
     await tester.pumpAndSettle();
     final node = tester.getSemantics(find.byType(WeightRuler));
-    tester.binding.performSemanticsAction(ui.SemanticsActionEvent(
-      type: ui.SemanticsAction.increase,
-      viewId: tester.view.viewId,
-      nodeId: node.id,
-    ));
+    tester.binding.performSemanticsAction(
+      ui.SemanticsActionEvent(
+        type: ui.SemanticsAction.increase,
+        viewId: tester.view.viewId,
+        nodeId: node.id,
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('75,1'), findsOneWidget);
     semantics.dispose();
@@ -428,8 +465,9 @@ void main() {
     expect(find.byKey(const ValueKey('weight-stale-nudge')), findsNothing);
   });
 
-  cardTest('five days without a weigh-in nudges next to the value',
-      (tester) async {
+  cardTest('five days without a weigh-in nudges next to the value', (
+    tester,
+  ) async {
     await seed(tester, 84.2, today.subtract(const Duration(days: 5)));
     await mount(tester);
     // The nudge is additive: the last known weight stays visible.
@@ -463,16 +501,20 @@ void main() {
 
   for (final language in ['de', 'en', 'fr', 'it', 'ja']) {
     for (final brightness in Brightness.values) {
-      cardTest('$language $brightness narrow imperial layout has no overflow',
-          (tester) async {
+      cardTest('$language $brightness narrow imperial layout has no overflow', (
+        tester,
+      ) async {
         await units.setUnitSystem(UnitSystem.imperial);
-        await mount(tester,
-            width: 320,
-            textScale: 1.5,
-            language: language,
-            brightness: brightness);
-        final l10n =
-            AppLocalizations.of(tester.element(find.byType(WeightCard)))!;
+        await mount(
+          tester,
+          width: 320,
+          textScale: 1.5,
+          language: language,
+          brightness: brightness,
+        );
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(WeightCard)),
+        )!;
         await tester.tap(find.text(l10n.diaryWeightLogLong));
         await tester.pumpAndSettle();
         expect(find.text(l10n.cancel), findsOneWidget);

@@ -11,8 +11,9 @@ import 'cloud_overlay_permission_card.dart';
 
 /// Renders the scrollable list of chat turns with gradient edge fading and permission card.
 class CloudChatTurnListView extends StatelessWidget {
-  static const permissionCardKey =
-      ValueKey<String>('ai-overlay-permission-card');
+  static const permissionCardKey = ValueKey<String>(
+    'ai-overlay-permission-card',
+  );
 
   final ScrollController scrollController;
   final GlobalKey latestMessageEndKey;
@@ -43,7 +44,7 @@ class CloudChatTurnListView extends StatelessWidget {
   final ValueChanged<AiChatTurn> onRetryPrompt;
   final ValueChanged<AssistantAccessRecord> onShowAccessAudit;
   final Future<void> Function(AiChatTurn turn, {required bool approved})
-      onResolveProposal;
+  onResolveProposal;
   final VoidCallback onIncrementUserScrollRevision;
   final VoidCallback onScrollMetricsChanged;
   final VoidCallback onPermissionCardSizeEnd;
@@ -110,12 +111,7 @@ class CloudChatTurnListView extends StatelessWidget {
               Colors.white,
               Colors.white,
             ],
-            stops: [
-              0,
-              topFadeOpaqueStartStop,
-              topFadeEndStop,
-              1,
-            ],
+            stops: [0, topFadeOpaqueStartStop, topFadeEndStop, 1],
           ).createShader(bounds);
         }
         return LinearGradient(
@@ -204,7 +200,8 @@ class CloudChatTurnListView extends StatelessWidget {
                             contrastColor: contrastColor,
                             softColor: softColor,
                             isStreaming: isGenerating && isLastTurn,
-                            showLoadingCloud: isLastTurn &&
+                            showLoadingCloud:
+                                isLastTurn &&
                                 isLoadingCloudVisible &&
                                 turn.response.isEmpty,
                             loadingCloudAnimation: loadingCloudAnimation,

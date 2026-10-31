@@ -1,8 +1,10 @@
 // lib/features/profile/presentation/profile_screen.dart
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../domain/repositories/profile_repository.dart';
 import '../domain/models/user_gender.dart';
 import '../../../data/drift_database.dart' as db; // Access to Profile class
@@ -20,7 +22,9 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/global_app_bar.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 
 /// A screen for managing user-specific identity and data.
@@ -104,12 +108,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       text: _userProfile?.height == null
           ? ''
           : unitService
-              .convertDisplayValue(
-                _userProfile!.height!.toDouble(),
-                UnitDimension.height,
-              )
-              .toStringAsFixed(1)
-              .replaceAll('.0', ''),
+                .convertDisplayValue(
+                  _userProfile!.height!.toDouble(),
+                  UnitDimension.height,
+                )
+                .toStringAsFixed(1)
+                .replaceAll('.0', ''),
     );
 
     await showGlassBottomMenu(
@@ -120,9 +124,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           builder: (context, setModalState) {
             final dateText = selectedDate == null
                 ? l10n.selectBirthday
-                : DateFormat.yMMMd(
-                    Localizations.localeOf(context).toString(),
-                  ).format(selectedDate!);
+                : DateFormat.yMMMd(Localizations.localeOf(context).toString())
+                      .format(selectedDate!);
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -232,11 +235,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           final heightMetric = parsedHeight == null
                               ? null
                               : unitService
-                                  .convertToMetric(
-                                    parsedHeight,
-                                    UnitDimension.height,
-                                  )
-                                  .round();
+                                    .convertToMetric(
+                                      parsedHeight,
+                                      UnitDimension.height,
+                                    )
+                                    .round();
 
                           final profileService = context.read<ProfileService>();
                           await _repository.saveUserProfile(
@@ -337,15 +340,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         .withValues(alpha: 0.1),
                                     backgroundImage:
                                         profileService.profileImagePath != null
-                                            ? FileImage(
-                                                File(
-                                                  profileService
-                                                      .profileImagePath!,
-                                                ),
-                                              )
-                                            : null,
-                                    child: profileService.profileImagePath ==
-                                            null
+                                        ? FileImage(
+                                            File(
+                                              profileService.profileImagePath!,
+                                            ),
+                                          )
+                                        : null,
+                                    child:
+                                        profileService.profileImagePath == null
                                         ? Icon(
                                             LucideIcons.user,
                                             size: 40,

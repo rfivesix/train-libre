@@ -60,9 +60,7 @@ class NoOpTelemetryService implements TelemetryService {
   }) async {}
 
   @override
-  Future<void> trackScreenView({
-    required String screenName,
-  }) async {}
+  Future<void> trackScreenView({required String screenName}) async {}
 
   @override
   Future<void> trackFeatureUsed({
@@ -71,9 +69,7 @@ class NoOpTelemetryService implements TelemetryService {
   }) async {}
 
   @override
-  Future<void> incrementFoodLogCount({
-    required String source,
-  }) async {}
+  Future<void> incrementFoodLogCount({required String source}) async {}
 
   @override
   Future<void> flushDailyFoodLog() async {}
@@ -237,9 +233,7 @@ class NoOpTelemetryService implements TelemetryService {
   }) async {}
 
   @override
-  Future<void> trackTrainingPlanDeleted({
-    required String kind,
-  }) async {}
+  Future<void> trackTrainingPlanDeleted({required String kind}) async {}
 
   @override
   Future<void> trackTrainingPlanSessionStarted({

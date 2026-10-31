@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
@@ -7,7 +9,9 @@ import 'package:intl/intl.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 
 typedef SleepWindowDayLabelBuilder = String Function(
-    BuildContext context, DateTime date);
+  BuildContext context,
+  DateTime date,
+);
 
 class SleepWindowChartCard extends StatelessWidget {
   const SleepWindowChartCard({
@@ -36,7 +40,8 @@ class SleepWindowChartCard extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal),
+            horizontal: DesignConstants.cardPaddingInternal,
+          ),
           child: Text(title, style: Theme.of(context).textTheme.titleMedium),
         ),
         const SizedBox(height: DesignConstants.spacingS),
@@ -122,8 +127,10 @@ class SleepWindowChartCard extends StatelessWidget {
     );
   }
 
-  List<int> _buildTickMinutes(
-      {required int minMinutes, required int maxMinutes}) {
+  List<int> _buildTickMinutes({
+    required int minMinutes,
+    required int maxMinutes,
+  }) {
     final spanMinutes = math.max(60, maxMinutes - minMinutes);
     final spanHours = (spanMinutes / 60).ceil();
     final stepHours = switch (spanHours) {
@@ -188,59 +195,66 @@ class _SleepWindowChart extends StatelessWidget {
                   Positioned.fill(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
-                      children: windows.map((window) {
-                        final top = window.normalizedTop(
-                          minMinutes: minMinutes,
-                          maxMinutes: maxMinutes,
-                        );
-                        final height = window.normalizedHeight(
-                          minMinutes: minMinutes,
-                          maxMinutes: maxMinutes,
-                        );
-                        return Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final maxHeight = constraints.maxHeight;
-                                final barTop = top * maxHeight;
-                                final barHeight = height * maxHeight;
-                                return Stack(
-                                  children: [
-                                    Positioned.fill(
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .surfaceContainerHighest,
-                                          borderRadius:
-                                              BorderRadius.circular(6),
-                                        ),
-                                      ),
-                                    ),
-                                    if (window.hasData)
-                                      Positioned(
-                                        top: barTop,
-                                        left: 0,
-                                        right: 0,
-                                        height: barHeight.clamp(4, maxHeight),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                            borderRadius:
-                                                BorderRadius.circular(6),
+                      children: windows
+                          .map((window) {
+                            final top = window.normalizedTop(
+                              minMinutes: minMinutes,
+                              maxMinutes: maxMinutes,
+                            );
+                            final height = window.normalizedHeight(
+                              minMinutes: minMinutes,
+                              maxMinutes: maxMinutes,
+                            );
+                            return Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final maxHeight = constraints.maxHeight;
+                                    final barTop = top * maxHeight;
+                                    final barHeight = height * maxHeight;
+                                    return Stack(
+                                      children: [
+                                        Positioned.fill(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      }).toList(growable: false),
+                                        if (window.hasData)
+                                          Positioned(
+                                            top: barTop,
+                                            left: 0,
+                                            right: 0,
+                                            height: barHeight.clamp(
+                                              4,
+                                              maxHeight,
+                                            ),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          })
+                          .toList(growable: false),
                     ),
                   ),
                   Positioned.fill(
@@ -250,9 +264,8 @@ class _SleepWindowChart extends StatelessWidget {
                           tickMinutes: tickMinutes,
                           minMinutes: minMinutes,
                           maxMinutes: maxMinutes,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outlineVariant.withValues(alpha: 0.6),
+                          color: Theme.of(context).colorScheme.outlineVariant
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                     ),
@@ -316,8 +329,8 @@ class _TimeAxisLabels extends StatelessWidget {
                 child: Text(
                   _formatTickLabel(minute),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
           ],

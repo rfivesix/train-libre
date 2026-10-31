@@ -53,17 +53,22 @@ void main() {
       expect(equipment, isNotEmpty);
 
       for (final entry in equipment) {
-        final used = await db.customSelect(
-          '''
+        final used = await db
+            .customSelect(
+              '''
               SELECT COUNT(*) AS c FROM exercise_equipment ee
               JOIN exercises e ON e.id = ee.exercise_id
               WHERE ee.equipment_id = ? AND ee.kind = 'primary'
                 AND (e.status IS NULL OR e.status = 'active')
               ''',
-          variables: [Variable.withString(entry.id)],
-        ).getSingle();
-        expect(used.read<int>('c'), greaterThan(0),
-            reason: '${entry.id} is a chip that selects nothing');
+              variables: [Variable.withString(entry.id)],
+            )
+            .getSingle();
+        expect(
+          used.read<int>('c'),
+          greaterThan(0),
+          reason: '${entry.id} is a chip that selects nothing',
+        );
       }
     });
 
@@ -95,16 +100,18 @@ void main() {
       expect(filtered.length, lessThan(all.length));
 
       for (final exercise in filtered) {
-        final row = await db.customSelect(
-          '''
+        final row = await db
+            .customSelect(
+              '''
               SELECT COUNT(*) AS c FROM exercise_equipment
               WHERE exercise_id = ? AND kind = 'primary' AND equipment_id = ?
               ''',
-          variables: [
-            Variable.withString(exercise.uuid!),
-            Variable.withString(pick),
-          ],
-        ).getSingle();
+              variables: [
+                Variable.withString(exercise.uuid!),
+                Variable.withString(pick),
+              ],
+            )
+            .getSingle();
         expect(row.read<int>('c'), greaterThan(0));
       }
     });
@@ -128,8 +135,9 @@ void main() {
       final equipmentId = setupOnly.first.read<String>('id');
       final exerciseId = setupOnly.first.read<String>('ex');
 
-      final filtered =
-          await source.searchExercises(equipmentIds: [equipmentId]);
+      final filtered = await source.searchExercises(
+        equipmentIds: [equipmentId],
+      );
       expect(filtered.map((e) => e.uuid), isNot(contains(exerciseId)));
     });
 
@@ -143,14 +151,16 @@ void main() {
       expect(filtered.length, lessThanOrEqualTo(all.length));
 
       for (final exercise in filtered) {
-        final row = await db.customSelect(
-          'SELECT COUNT(*) AS c FROM exercise_tags '
-          'WHERE exercise_id = ? AND tag = ?',
-          variables: [
-            Variable.withString(exercise.uuid!),
-            Variable.withString(pick),
-          ],
-        ).getSingle();
+        final row = await db
+            .customSelect(
+              'SELECT COUNT(*) AS c FROM exercise_tags '
+              'WHERE exercise_id = ? AND tag = ?',
+              variables: [
+                Variable.withString(exercise.uuid!),
+                Variable.withString(pick),
+              ],
+            )
+            .getSingle();
         expect(row.read<int>('c'), greaterThan(0));
       }
     });
@@ -163,8 +173,9 @@ void main() {
         equipmentIds: [equipment.first.id],
         usageTags: [tags.first],
       );
-      final byEquipmentOnly =
-          await source.searchExercises(equipmentIds: [equipment.first.id]);
+      final byEquipmentOnly = await source.searchExercises(
+        equipmentIds: [equipment.first.id],
+      );
 
       expect(combined.length, lessThanOrEqualTo(byEquipmentOnly.length));
 
@@ -175,9 +186,11 @@ void main() {
         equipmentIds: [equipment.first.id],
       );
       for (final exercise in withText) {
-        expect(exercise.allNames.any((n) => n.toLowerCase().contains('press')),
-            isTrue,
-            reason: '${exercise.uuid} matched no name containing "press"');
+        expect(
+          exercise.allNames.any((n) => n.toLowerCase().contains('press')),
+          isTrue,
+          reason: '${exercise.uuid} matched no name containing "press"',
+        );
       }
     });
 
@@ -195,10 +208,12 @@ void main() {
       for (final entry in equipment.take(3)) {
         final results = await source.searchExercises(equipmentIds: [entry.id]);
         for (final exercise in results) {
-          final row = await db.customSelect(
-            'SELECT status FROM exercises WHERE id = ?',
-            variables: [Variable.withString(exercise.uuid!)],
-          ).getSingle();
+          final row = await db
+              .customSelect(
+                'SELECT status FROM exercises WHERE id = ?',
+                variables: [Variable.withString(exercise.uuid!)],
+              )
+              .getSingle();
           expect(row.read<String?>('status'), anyOf(isNull, 'active'));
         }
       }

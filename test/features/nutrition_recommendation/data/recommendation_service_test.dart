@@ -63,7 +63,9 @@ void main() {
         targetRateKgPerWeek: 0,
       );
 
-      await database.into(database.products).insert(
+      await database
+          .into(database.products)
+          .insert(
             const ProductsCompanion(
               barcode: drift.Value('test-food'),
               name: drift.Value('Test Food'),
@@ -121,23 +123,18 @@ void main() {
       expect(await repository.getLastGeneratedDueWeekKey(), '2026-04-06');
     });
 
-    test(
-        'forced regeneration stays stable within due week even with new in-week logs',
-        () async {
+    test('forced regeneration stays stable within due week even with new in-week logs', () async {
       final monday = DateTime(2026, 4, 6, 10, 0);
-      final first =
-          await service.refreshRecommendationIfDue(now: monday, force: true);
+      final first = await service.refreshRecommendationIfDue(
+        now: monday,
+        force: true,
+      );
 
       await dbHelper.insertMeasurementSession(
         MeasurementSession(
           timestamp: DateTime(2026, 4, 7, 7, 0),
           measurements: [
-            Measurement(
-              sessionId: 0,
-              type: 'weight',
-              value: 70,
-              unit: 'kg',
-            ),
+            Measurement(sessionId: 0, type: 'weight', value: 70, unit: 'kg'),
           ],
         ),
       );
@@ -193,7 +190,9 @@ void main() {
       expect(
         state.posteriorMeanCalories,
         closeTo(
-            snapshot.maintenanceEstimate.posteriorMaintenanceCalories, 0.001),
+          snapshot.maintenanceEstimate.posteriorMaintenanceCalories,
+          0.001,
+        ),
       );
 
       // Legacy experimental persistence keys stay migration-only (not written).
@@ -211,9 +210,7 @@ void main() {
       );
     });
 
-    test(
-        'algorithm upgrade recomputes once without applying targets or carrying old calibration history',
-        () async {
+    test('algorithm upgrade recomputes once without applying targets or carrying old calibration history', () async {
       const legacyVersion =
           'tdee_adaptive_recommendation_1_1_bayesian_recursive';
       const dueWeekKey = '2026-04-06';
@@ -254,19 +251,23 @@ void main() {
       final upgraded = await service.refreshRecommendationIfDue(
         now: DateTime(2026, 4, 6, 12),
       );
-      final upgradedSnapshot =
-          await repository.getLatestRecommendationSnapshot();
+      final upgradedSnapshot = await repository
+          .getLatestRecommendationSnapshot();
       final upgradedState = await repository.getLatestEstimatorState();
       final applied = await repository.getLatestAppliedRecommendation();
       final settings = await dbHelper.getAppSettings();
 
       expect(upgraded, isNotNull);
-      expect(upgraded!.algorithmVersion,
-          AdaptiveNutritionRecommendationService.algorithmVersion);
+      expect(
+        upgraded!.algorithmVersion,
+        AdaptiveNutritionRecommendationService.algorithmVersion,
+      );
       expect(upgraded.trajectoryCorrectionCalories, 0);
       expect(upgraded.trajectoryCorrectionStatus, startsWith('inactive_'));
-      expect(upgradedSnapshot!.algorithmVersion,
-          AdaptiveNutritionRecommendationService.algorithmVersion);
+      expect(
+        upgradedSnapshot!.algorithmVersion,
+        AdaptiveNutritionRecommendationService.algorithmVersion,
+      );
       expect(upgradedState!.recentPosteriorMeansCalories, isEmpty);
       expect(upgradedState.recentObservationResidualsCalories, isEmpty);
       expect(
@@ -283,45 +284,42 @@ void main() {
       expect(replay!.generatedAt, upgraded.generatedAt);
     });
 
-    test('recursive state is restored and chained across service restart',
-        () async {
-      final first = await service.refreshRecommendationIfDue(
-        now: DateTime(2026, 4, 6, 10, 0),
-        force: true,
-      );
-
-      final restoredService = AdaptiveNutritionRecommendationService(
-        repository: repository,
-        databaseHelper: dbHelper,
-        dueNotifier: dueNotifier,
-      );
-      final second = await restoredService.refreshRecommendationIfDue(
-        now: DateTime(2026, 4, 13, 10, 0),
-        force: true,
-      );
-
-      final snapshot = await repository.getLatestRecommendationSnapshot();
-
-      expect(first, isNotNull);
-      expect(second, isNotNull);
-      expect(snapshot, isNotNull);
-      expect(snapshot!.dueWeekKey, '2026-04-13');
-      expect(
-        snapshot.maintenanceEstimate.priorSource,
-        BayesianPriorSource.chainedPosterior,
-      );
-      expect(
-        snapshot.maintenanceEstimate.priorMeanUsedCalories,
-        closeTo(
-          first!.estimatedMaintenanceCalories.toDouble(),
-          400,
-        ),
-      );
-    });
-
     test(
-        'missing-observation week runs prediction-only (no jump, higher uncertainty)',
-        () async {
+      'recursive state is restored and chained across service restart',
+      () async {
+        final first = await service.refreshRecommendationIfDue(
+          now: DateTime(2026, 4, 6, 10, 0),
+          force: true,
+        );
+
+        final restoredService = AdaptiveNutritionRecommendationService(
+          repository: repository,
+          databaseHelper: dbHelper,
+          dueNotifier: dueNotifier,
+        );
+        final second = await restoredService.refreshRecommendationIfDue(
+          now: DateTime(2026, 4, 13, 10, 0),
+          force: true,
+        );
+
+        final snapshot = await repository.getLatestRecommendationSnapshot();
+
+        expect(first, isNotNull);
+        expect(second, isNotNull);
+        expect(snapshot, isNotNull);
+        expect(snapshot!.dueWeekKey, '2026-04-13');
+        expect(
+          snapshot.maintenanceEstimate.priorSource,
+          BayesianPriorSource.chainedPosterior,
+        );
+        expect(
+          snapshot.maintenanceEstimate.priorMeanUsedCalories,
+          closeTo(first!.estimatedMaintenanceCalories.toDouble(), 400),
+        );
+      },
+    );
+
+    test('missing-observation week runs prediction-only (no jump, higher uncertainty)', () async {
       await service.refreshRecommendationIfDue(
         now: DateTime(2026, 4, 6, 10, 0),
         force: true,
@@ -348,153 +346,164 @@ void main() {
       );
       expect(
         _debugDouble(
-            snapshot.maintenanceEstimate, 'posteriorVarianceCalories2'),
-        greaterThan(_debugDouble(
-            snapshot.maintenanceEstimate, 'priorVarianceCalories2')),
-      );
-    });
-
-    test('long-gap behavior increases uncertainty but avoids near-unity reset',
-        () async {
-      await service.refreshRecommendationIfDue(
-        now: DateTime(2026, 4, 6, 10, 0),
-        force: true,
-      );
-
-      await service.refreshRecommendationIfDue(
-        now: DateTime(2026, 8, 31, 10, 0),
-        force: true,
-      );
-
-      final start = DateTime(2026, 8, 17);
-      for (var i = 0; i < 21; i++) {
-        final day = start.add(Duration(days: i));
-        await dbHelper.insertMeasurementSession(
-          MeasurementSession(
-            timestamp: DateTime(day.year, day.month, day.day, 7, 0),
-            measurements: [
-              Measurement(
-                sessionId: 0,
-                type: 'weight',
-                value: 80.0 - (i * 0.03),
-                unit: 'kg',
-              ),
-            ],
-          ),
-        );
-        await dbHelper.insertFoodEntry(
-          FoodEntry(
-            barcode: 'test-food',
-            timestamp: DateTime(day.year, day.month, day.day, 12, 0),
-            quantityInGrams: 850,
-            mealType: 'mealtypeLunch',
-          ),
-        );
-      }
-
-      final afterGap = await service.refreshRecommendationIfDue(
-        now: DateTime(2026, 9, 7, 10, 0),
-        force: true,
-      );
-      final snapshot = await repository.getLatestRecommendationSnapshot();
-
-      expect(afterGap, isNotNull);
-      expect(snapshot, isNotNull);
-
-      final gain = _debugDouble(snapshot!.maintenanceEstimate, 'kalmanGain');
-      final cap =
-          _debugDouble(snapshot.maintenanceEstimate, 'varianceCapCalories2');
-      final postVar = _debugDouble(
-          snapshot.maintenanceEstimate, 'posteriorVarianceCalories2');
-      expect(gain, lessThan(0.93));
-      expect(postVar, lessThanOrEqualTo(cap + 0.0001));
-    });
-
-    test('refresh does not overwrite active goals until explicit apply',
-        () async {
-      final goalRepository = GoalRepositoryImpl(database: database);
-      final goal = await goalRepository.createGoal(
-        baselineValueKg: 80,
-        baselineDate: DateTime(2026, 1, 1),
-        preset: GoalPreset.gainWeight,
-        title: 'Gain',
-        startDate: DateTime(2026, 3, 16),
-        targetDate: DateTime(2026, 8, 1),
-        targetMetric: 'weight',
-        targetValue: 88,
-        targetUnit: 'kg',
-        desiredWeeklyRateKg: 0.3,
-      );
-      final monday = DateTime(2026, 4, 6, 10, 0);
-      final beforeRefreshSettings = await dbHelper.getAppSettings();
-      expect(beforeRefreshSettings, isNotNull);
-      expect(beforeRefreshSettings!.targetCalories, 2400);
-
-      final recommendation =
-          await service.refreshRecommendationIfDue(now: monday);
-      final afterRefreshSettings = await dbHelper.getAppSettings();
-
-      expect(recommendation, isNotNull);
-      expect(afterRefreshSettings, isNotNull);
-      expect(afterRefreshSettings!.targetCalories, 2400);
-
-      final applied = await service.applyLatestRecommendationToActiveTargets();
-      final afterApplySettings = await dbHelper.getAppSettings();
-
-      expect(applied, isTrue);
-      expect(afterApplySettings, isNotNull);
-      expect(
-        afterApplySettings!.targetCalories,
-        recommendation!.recommendedCalories,
-      );
-      expect(
-        afterApplySettings.targetProtein,
-        recommendation.recommendedProteinGrams,
-      );
-      expect(
-        (await goalRepository.getGoalById(goal.id))!.desiredWeeklyRateKg,
-        0.3,
+          snapshot.maintenanceEstimate,
+          'posteriorVarianceCalories2',
+        ),
+        greaterThan(
+          _debugDouble(snapshot.maintenanceEstimate, 'priorVarianceCalories2'),
+        ),
       );
     });
 
     test(
-        'applyLatestRecommendationToActiveTargets returns false when missing generated recommendation',
-        () async {
+      'long-gap behavior increases uncertainty but avoids near-unity reset',
+      () async {
+        await service.refreshRecommendationIfDue(
+          now: DateTime(2026, 4, 6, 10, 0),
+          force: true,
+        );
+
+        await service.refreshRecommendationIfDue(
+          now: DateTime(2026, 8, 31, 10, 0),
+          force: true,
+        );
+
+        final start = DateTime(2026, 8, 17);
+        for (var i = 0; i < 21; i++) {
+          final day = start.add(Duration(days: i));
+          await dbHelper.insertMeasurementSession(
+            MeasurementSession(
+              timestamp: DateTime(day.year, day.month, day.day, 7, 0),
+              measurements: [
+                Measurement(
+                  sessionId: 0,
+                  type: 'weight',
+                  value: 80.0 - (i * 0.03),
+                  unit: 'kg',
+                ),
+              ],
+            ),
+          );
+          await dbHelper.insertFoodEntry(
+            FoodEntry(
+              barcode: 'test-food',
+              timestamp: DateTime(day.year, day.month, day.day, 12, 0),
+              quantityInGrams: 850,
+              mealType: 'mealtypeLunch',
+            ),
+          );
+        }
+
+        final afterGap = await service.refreshRecommendationIfDue(
+          now: DateTime(2026, 9, 7, 10, 0),
+          force: true,
+        );
+        final snapshot = await repository.getLatestRecommendationSnapshot();
+
+        expect(afterGap, isNotNull);
+        expect(snapshot, isNotNull);
+
+        final gain = _debugDouble(snapshot!.maintenanceEstimate, 'kalmanGain');
+        final cap = _debugDouble(
+          snapshot.maintenanceEstimate,
+          'varianceCapCalories2',
+        );
+        final postVar = _debugDouble(
+          snapshot.maintenanceEstimate,
+          'posteriorVarianceCalories2',
+        );
+        expect(gain, lessThan(0.93));
+        expect(postVar, lessThanOrEqualTo(cap + 0.0001));
+      },
+    );
+
+    test(
+      'refresh does not overwrite active goals until explicit apply',
+      () async {
+        final goalRepository = GoalRepositoryImpl(database: database);
+        final goal = await goalRepository.createGoal(
+          baselineValueKg: 80,
+          baselineDate: DateTime(2026, 1, 1),
+          preset: GoalPreset.gainWeight,
+          title: 'Gain',
+          startDate: DateTime(2026, 3, 16),
+          targetDate: DateTime(2026, 8, 1),
+          targetMetric: 'weight',
+          targetValue: 88,
+          targetUnit: 'kg',
+          desiredWeeklyRateKg: 0.3,
+        );
+        final monday = DateTime(2026, 4, 6, 10, 0);
+        final beforeRefreshSettings = await dbHelper.getAppSettings();
+        expect(beforeRefreshSettings, isNotNull);
+        expect(beforeRefreshSettings!.targetCalories, 2400);
+
+        final recommendation = await service.refreshRecommendationIfDue(
+          now: monday,
+        );
+        final afterRefreshSettings = await dbHelper.getAppSettings();
+
+        expect(recommendation, isNotNull);
+        expect(afterRefreshSettings, isNotNull);
+        expect(afterRefreshSettings!.targetCalories, 2400);
+
+        final applied = await service
+            .applyLatestRecommendationToActiveTargets();
+        final afterApplySettings = await dbHelper.getAppSettings();
+
+        expect(applied, isTrue);
+        expect(afterApplySettings, isNotNull);
+        expect(
+          afterApplySettings!.targetCalories,
+          recommendation!.recommendedCalories,
+        );
+        expect(
+          afterApplySettings.targetProtein,
+          recommendation.recommendedProteinGrams,
+        );
+        expect(
+          (await goalRepository.getGoalById(goal.id))!.desiredWeeklyRateKg,
+          0.3,
+        );
+      },
+    );
+
+    test('applyLatestRecommendationToActiveTargets returns false when missing generated recommendation', () async {
       final applied = await service.applyLatestRecommendationToActiveTargets();
       expect(applied, isFalse);
     });
 
-    test('manual recalculate uses stable window and does not auto-apply goals',
-        () async {
-      final monday = DateTime(2026, 4, 6, 10, 0);
-      final first = await service.refreshRecommendationIfDue(
-        now: monday,
-        force: true,
-      );
-      expect(first, isNotNull);
-
-      await repository.saveGoalAndTargetRate(
-        goal: BodyweightGoal.loseWeight,
-        targetRateKgPerWeek: -0.5,
-      );
-
-      final recalculated = await service.recalculateRecommendationNow(
-        now: DateTime(2026, 4, 8, 12, 30),
-      );
-      final settingsAfter = await dbHelper.getAppSettings();
-
-      expect(recalculated, isNotNull);
-      expect(recalculated!.dueWeekKey, '2026-04-06');
-      expect(recalculated.windowEnd, DateTime(2026, 4, 5, 23, 59, 59));
-      expect(recalculated.generatedAt, DateTime(2026, 4, 8, 12, 30));
-      expect(recalculated.goal, BodyweightGoal.loseWeight);
-      expect(settingsAfter, isNotNull);
-      expect(settingsAfter!.targetCalories, 2400);
-    });
-
     test(
-        'target-rate changes inside same goal direction do not reset confirmed phase',
-        () async {
+      'manual recalculate uses stable window and does not auto-apply goals',
+      () async {
+        final monday = DateTime(2026, 4, 6, 10, 0);
+        final first = await service.refreshRecommendationIfDue(
+          now: monday,
+          force: true,
+        );
+        expect(first, isNotNull);
+
+        await repository.saveGoalAndTargetRate(
+          goal: BodyweightGoal.loseWeight,
+          targetRateKgPerWeek: -0.5,
+        );
+
+        final recalculated = await service.recalculateRecommendationNow(
+          now: DateTime(2026, 4, 8, 12, 30),
+        );
+        final settingsAfter = await dbHelper.getAppSettings();
+
+        expect(recalculated, isNotNull);
+        expect(recalculated!.dueWeekKey, '2026-04-06');
+        expect(recalculated.windowEnd, DateTime(2026, 4, 5, 23, 59, 59));
+        expect(recalculated.generatedAt, DateTime(2026, 4, 8, 12, 30));
+        expect(recalculated.goal, BodyweightGoal.loseWeight);
+        expect(settingsAfter, isNotNull);
+        expect(settingsAfter!.targetCalories, 2400);
+      },
+    );
+
+    test('target-rate changes inside same goal direction do not reset confirmed phase', () async {
       await service.saveGoalAndTargetRate(
         goal: BodyweightGoal.loseWeight,
         targetRateKgPerWeek: -0.25,
@@ -521,100 +530,104 @@ void main() {
       );
     });
 
-    test('loadState exposes recommendation freshness and next-due metadata',
-        () async {
-      final monday = DateTime(2026, 4, 6, 10, 0);
-      final before = await service.loadState(
-        now: monday,
-        refreshIfDue: false,
-      );
-      expect(before.latestGeneratedAt, isNull);
-      expect(before.latestMaintenanceEstimate, isNull);
-      expect(before.isAdaptiveRecommendationDueNow, isTrue);
-      expect(before.nextAdaptiveRecommendationDueAt, DateTime(2026, 4, 6));
-      expect(before.currentDueWeekKey, '2026-04-06');
+    test(
+      'loadState exposes recommendation freshness and next-due metadata',
+      () async {
+        final monday = DateTime(2026, 4, 6, 10, 0);
+        final before = await service.loadState(
+          now: monday,
+          refreshIfDue: false,
+        );
+        expect(before.latestGeneratedAt, isNull);
+        expect(before.latestMaintenanceEstimate, isNull);
+        expect(before.isAdaptiveRecommendationDueNow, isTrue);
+        expect(before.nextAdaptiveRecommendationDueAt, DateTime(2026, 4, 6));
+        expect(before.currentDueWeekKey, '2026-04-06');
 
-      final generated = await service.refreshRecommendationIfDue(now: monday);
-      final after = await service.loadState(
-        now: DateTime(2026, 4, 8, 10, 0),
-        refreshIfDue: false,
-      );
+        final generated = await service.refreshRecommendationIfDue(now: monday);
+        final after = await service.loadState(
+          now: DateTime(2026, 4, 8, 10, 0),
+          refreshIfDue: false,
+        );
 
-      expect(generated, isNotNull);
-      expect(after.latestGeneratedAt, generated!.generatedAt);
-      expect(after.latestMaintenanceEstimate, isNotNull);
-      expect(
-        after.latestMaintenanceEstimate!.posteriorMaintenanceCalories,
-        closeTo(generated.estimatedMaintenanceCalories.toDouble(), 400),
-      );
-      expect(after.isAdaptiveRecommendationDueNow, isFalse);
-      expect(after.nextAdaptiveRecommendationDueAt, DateTime(2026, 4, 13));
-      expect(after.currentDueWeekKey, '2026-04-06');
-    });
-
-    test('scheduler-based due notification is emitted once per due week',
-        () async {
-      final firstNotified = await service.notifyIfNewRecommendationDue(
-        now: DateTime(2026, 4, 6, 8, 0),
-      );
-      final duplicateNotified = await service.notifyIfNewRecommendationDue(
-        now: DateTime(2026, 4, 8, 8, 0),
-      );
-
-      await service.refreshRecommendationIfDue(
-          now: DateTime(2026, 4, 6, 10, 0));
-      final notDueAfterGeneration = await service.notifyIfNewRecommendationDue(
-        now: DateTime(2026, 4, 10, 9, 0),
-      );
-
-      final nextWeekNotified = await service.notifyIfNewRecommendationDue(
-        now: DateTime(2026, 4, 13, 8, 0),
-      );
-
-      expect(firstNotified, isTrue);
-      expect(duplicateNotified, isFalse);
-      expect(notDueAfterGeneration, isFalse);
-      expect(nextWeekNotified, isTrue);
-      expect(dueNotifier.notifications, hasLength(2));
-      expect(dueNotifier.notifications[0].dueWeekKey, '2026-04-06');
-      expect(dueNotifier.notifications[1].dueWeekKey, '2026-04-13');
-    });
-
-    test('disabled adaptive notifications are consumed, not replayed',
-        () async {
-      final preference = _FakeNotificationPreference(false);
-      final gatedService = AdaptiveNutritionRecommendationService(
-        repository: repository,
-        databaseHelper: dbHelper,
-        dueNotifier: dueNotifier,
-        notificationPreference: preference,
-      );
-
-      expect(
-        await gatedService.notifyIfNewRecommendationDue(
-          now: DateTime(2026, 4, 6, 8),
-        ),
-        isFalse,
-      );
-      preference.enabled = true;
-      expect(
-        await gatedService.notifyIfNewRecommendationDue(
-          now: DateTime(2026, 4, 8, 8),
-        ),
-        isFalse,
-      );
-      expect(
-        await gatedService.notifyIfNewRecommendationDue(
-          now: DateTime(2026, 4, 13, 8),
-        ),
-        isTrue,
-      );
-      expect(dueNotifier.notifications.single.dueWeekKey, '2026-04-13');
-    });
+        expect(generated, isNotNull);
+        expect(after.latestGeneratedAt, generated!.generatedAt);
+        expect(after.latestMaintenanceEstimate, isNotNull);
+        expect(
+          after.latestMaintenanceEstimate!.posteriorMaintenanceCalories,
+          closeTo(generated.estimatedMaintenanceCalories.toDouble(), 400),
+        );
+        expect(after.isAdaptiveRecommendationDueNow, isFalse);
+        expect(after.nextAdaptiveRecommendationDueAt, DateTime(2026, 4, 13));
+        expect(after.currentDueWeekKey, '2026-04-06');
+      },
+    );
 
     test(
-        'due notification does not fire when current due-week snapshot exists even without due-week marker key',
-        () async {
+      'scheduler-based due notification is emitted once per due week',
+      () async {
+        final firstNotified = await service.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 6, 8, 0),
+        );
+        final duplicateNotified = await service.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 8, 8, 0),
+        );
+
+        await service.refreshRecommendationIfDue(
+          now: DateTime(2026, 4, 6, 10, 0),
+        );
+        final notDueAfterGeneration = await service
+            .notifyIfNewRecommendationDue(now: DateTime(2026, 4, 10, 9, 0));
+
+        final nextWeekNotified = await service.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 13, 8, 0),
+        );
+
+        expect(firstNotified, isTrue);
+        expect(duplicateNotified, isFalse);
+        expect(notDueAfterGeneration, isFalse);
+        expect(nextWeekNotified, isTrue);
+        expect(dueNotifier.notifications, hasLength(2));
+        expect(dueNotifier.notifications[0].dueWeekKey, '2026-04-06');
+        expect(dueNotifier.notifications[1].dueWeekKey, '2026-04-13');
+      },
+    );
+
+    test(
+      'disabled adaptive notifications are consumed, not replayed',
+      () async {
+        final preference = _FakeNotificationPreference(false);
+        final gatedService = AdaptiveNutritionRecommendationService(
+          repository: repository,
+          databaseHelper: dbHelper,
+          dueNotifier: dueNotifier,
+          notificationPreference: preference,
+        );
+
+        expect(
+          await gatedService.notifyIfNewRecommendationDue(
+            now: DateTime(2026, 4, 6, 8),
+          ),
+          isFalse,
+        );
+        preference.enabled = true;
+        expect(
+          await gatedService.notifyIfNewRecommendationDue(
+            now: DateTime(2026, 4, 8, 8),
+          ),
+          isFalse,
+        );
+        expect(
+          await gatedService.notifyIfNewRecommendationDue(
+            now: DateTime(2026, 4, 13, 8),
+          ),
+          isTrue,
+        );
+        expect(dueNotifier.notifications.single.dueWeekKey, '2026-04-13');
+      },
+    );
+
+    test('due notification does not fire when current due-week snapshot exists even without due-week marker key', () async {
       final prefs = await SharedPreferences.getInstance();
       final snapshot = AdaptiveRecommendationSnapshot(
         recommendation: _recommendationForDueWeek('2026-04-06'),
@@ -641,39 +654,39 @@ void main() {
       expect(dueNotifier.notifications, isEmpty);
     });
 
-    test('onboarding recommendation can be persisted and marked as applied',
-        () async {
-      final recommendation = await service.generateOnboardingRecommendation(
-        goal: BodyweightGoal.gainWeight,
-        targetRateKgPerWeek: 0.25,
-        weightKg: 80,
-        heightCm: 180,
-        birthday: DateTime(1996, 1, 2),
-        gender: 'male',
-        now: DateTime(2026, 4, 5, 9, 0),
-      );
-
-      await service.persistGeneratedRecommendation(
-        recommendation: recommendation,
-        markAsApplied: true,
-      );
-
-      final generated = await repository.getLatestGeneratedRecommendation();
-      final applied = await repository.getLatestAppliedRecommendation();
-      final snapshot = await repository.getLatestRecommendationSnapshot();
-
-      expect(generated, isNotNull);
-      expect(applied, isNotNull);
-      expect(snapshot, isNotNull);
-      expect(generated!.goal, BodyweightGoal.gainWeight);
-      expect(generated.targetRateKgPerWeek, 0.25);
-      expect(applied!.recommendedCalories, generated.recommendedCalories);
-      expect(snapshot!.isCoherent, isTrue);
-    });
-
     test(
-        'onboarding preview returns maintenance estimate including stabilization flags',
-        () async {
+      'onboarding recommendation can be persisted and marked as applied',
+      () async {
+        final recommendation = await service.generateOnboardingRecommendation(
+          goal: BodyweightGoal.gainWeight,
+          targetRateKgPerWeek: 0.25,
+          weightKg: 80,
+          heightCm: 180,
+          birthday: DateTime(1996, 1, 2),
+          gender: 'male',
+          now: DateTime(2026, 4, 5, 9, 0),
+        );
+
+        await service.persistGeneratedRecommendation(
+          recommendation: recommendation,
+          markAsApplied: true,
+        );
+
+        final generated = await repository.getLatestGeneratedRecommendation();
+        final applied = await repository.getLatestAppliedRecommendation();
+        final snapshot = await repository.getLatestRecommendationSnapshot();
+
+        expect(generated, isNotNull);
+        expect(applied, isNotNull);
+        expect(snapshot, isNotNull);
+        expect(generated!.goal, BodyweightGoal.gainWeight);
+        expect(generated.targetRateKgPerWeek, 0.25);
+        expect(applied!.recommendedCalories, generated.recommendedCalories);
+        expect(snapshot!.isCoherent, isTrue);
+      },
+    );
+
+    test('onboarding preview returns maintenance estimate including stabilization flags', () async {
       final preview = await service.generateOnboardingRecommendationPreview(
         goal: BodyweightGoal.maintainWeight,
         targetRateKgPerWeek: 0,
@@ -711,9 +724,7 @@ void main() {
       );
     });
 
-    test(
-        'onboarding prior differentiates body-fat percentage and declared activity level',
-        () async {
+    test('onboarding prior differentiates body-fat percentage and declared activity level', () async {
       final lowerBodyFat = await service.generateOnboardingRecommendation(
         goal: BodyweightGoal.maintainWeight,
         targetRateKgPerWeek: 0,
@@ -772,37 +783,41 @@ void main() {
       );
     });
 
-    test('refreshRecommendationIfDue broadcasts updated snapshot on stream',
-        () async {
-      final monday = DateTime(2026, 4, 6, 10, 0);
-
-      // Pre-populate with a dummy snapshot to ensure there is a previous snapshot
-      await repository.saveLatestRecommendationSnapshot(
-        snapshot: AdaptiveRecommendationSnapshot(
-          recommendation: _recommendationForDueWeek('2026-03-30'),
-          maintenanceEstimate: _estimateForDueWeek('2026-03-30'),
-          dueWeekKey: '2026-03-30',
-          algorithmVersion:
-              AdaptiveNutritionRecommendationService.algorithmVersion,
-        ),
-      );
-
-      final futureSnapshot = repository.onRecommendationUpdated.first;
-
-      final recommendation =
-          await service.refreshRecommendationIfDue(now: monday, force: true);
-
-      final broadcasted = await futureSnapshot;
-
-      expect(recommendation, isNotNull);
-      expect(broadcasted.recommendation.recommendedCalories,
-          recommendation!.recommendedCalories);
-      expect(broadcasted.dueWeekKey, '2026-04-06');
-    });
-
     test(
-        'recalculateAndApply recomputes recommendation and updates active targets',
-        () async {
+      'refreshRecommendationIfDue broadcasts updated snapshot on stream',
+      () async {
+        final monday = DateTime(2026, 4, 6, 10, 0);
+
+        // Pre-populate with a dummy snapshot to ensure there is a previous snapshot
+        await repository.saveLatestRecommendationSnapshot(
+          snapshot: AdaptiveRecommendationSnapshot(
+            recommendation: _recommendationForDueWeek('2026-03-30'),
+            maintenanceEstimate: _estimateForDueWeek('2026-03-30'),
+            dueWeekKey: '2026-03-30',
+            algorithmVersion:
+                AdaptiveNutritionRecommendationService.algorithmVersion,
+          ),
+        );
+
+        final futureSnapshot = repository.onRecommendationUpdated.first;
+
+        final recommendation = await service.refreshRecommendationIfDue(
+          now: monday,
+          force: true,
+        );
+
+        final broadcasted = await futureSnapshot;
+
+        expect(recommendation, isNotNull);
+        expect(
+          broadcasted.recommendation.recommendedCalories,
+          recommendation!.recommendedCalories,
+        );
+        expect(broadcasted.dueWeekKey, '2026-04-06');
+      },
+    );
+
+    test('recalculateAndApply recomputes recommendation and updates active targets', () async {
       final monday = DateTime(2026, 4, 6, 10, 0);
       final recommendation = await service.recalculateAndApply(now: monday);
 

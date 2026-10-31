@@ -21,7 +21,7 @@ class ShareExportFormatter {
 
     String setLine(Map set, int index) {
       final parts = <String>[
-        '${index + 1}. ${_setType(set['type'] as String, l10n)}'
+        '${index + 1}. ${_setType(set['type'] as String, l10n)}',
       ];
       if (set['reps'] != null) parts.add('${set['reps']} ${l10n.repsShort}');
       if (set['weight'] is num) parts.add(weight(set['weight'] as num));
@@ -59,20 +59,24 @@ class ShareExportFormatter {
       case 'plan':
         final days = payload.data['days'] as List;
         buffer
-          ..writeln(payload.data['kind'] == 'week'
-              ? l10n.sharePlanWeekly
-              : l10n.sharePlanSequence)
+          ..writeln(
+            payload.data['kind'] == 'week'
+                ? l10n.sharePlanWeekly
+                : l10n.sharePlanSequence,
+          )
           ..writeln('${days.length} ${l10n.shareDays}')
           ..writeln();
         for (final entry in days.asMap().entries) {
           final raw = entry.value;
           if (raw == null) {
             buffer.writeln(
-                '${l10n.shareDay} ${entry.key + 1}: ${l10n.shareRestDay}');
+              '${l10n.shareDay} ${entry.key + 1}: ${l10n.shareRestDay}',
+            );
             continue;
           }
-          final routine =
-              ShareLinkPayload.fromJson(Map<String, dynamic>.from(raw as Map));
+          final routine = ShareLinkPayload.fromJson(
+            Map<String, dynamic>.from(raw as Map),
+          );
           buffer.writeln('${l10n.shareDay} ${entry.key + 1}: ${routine.name}');
           appendRoutine(buffer, routine);
           buffer.writeln();
@@ -80,25 +84,27 @@ class ShareExportFormatter {
       case 'recipe':
         final items = payload.data['items'] as List;
         double total(String key) => items.fold<double>(0, (sum, raw) {
-              final item = raw as Map;
-              return sum +
-                  ((item[key] as num?)?.toDouble() ?? 0) *
-                      (item['grams'] as num).toDouble() /
-                      100;
-            });
+          final item = raw as Map;
+          return sum +
+              ((item[key] as num?)?.toDouble() ?? 0) *
+                  (item['grams'] as num).toDouble() /
+                  100;
+        });
         buffer
           ..writeln('${l10n.sharePortions}: ${payload.data['portions'] ?? 1}')
           ..writeln(
-              '${l10n.shareTotal}: ${number.format(total('kcal').round())} kcal · '
-              'P ${number.format(total('protein'))} g · '
-              'C ${number.format(total('carbs'))} g · '
-              'F ${number.format(total('fat'))} g')
+            '${l10n.shareTotal}: ${number.format(total('kcal').round())} kcal · '
+            'P ${number.format(total('protein'))} g · '
+            'C ${number.format(total('carbs'))} g · '
+            'F ${number.format(total('fat'))} g',
+          )
           ..writeln()
           ..writeln('${l10n.shareIngredients}:');
         for (final raw in items) {
           final item = raw as Map;
           buffer.writeln(
-              '• ${item['name']} · ${number.format(item['grams'])} ${item['unit'] ?? 'g'}');
+            '• ${item['name']} · ${number.format(item['grams'])} ${item['unit'] ?? 'g'}',
+          );
         }
         if ((payload.data['notes'] as String?)?.trim().isNotEmpty == true) {
           buffer
@@ -110,22 +116,26 @@ class ShareExportFormatter {
         if ((payload.data['notes'] as String?)?.trim().isNotEmpty == true) {
           buffer
             ..writeln()
-            ..writeln('${l10n.notesLabel}: '
-                '${(payload.data['notes'] as String).trim()}');
+            ..writeln(
+              '${l10n.notesLabel}: '
+              '${(payload.data['notes'] as String).trim()}',
+            );
         }
         final groups = <String, List<Map>>{};
         for (final raw in sets) {
           final set = raw as Map;
           final block = set['exercise_block'];
-          final key =
-              block == null ? 'name:${set['exercise_name']}' : 'block:$block';
+          final key = block == null
+              ? 'name:${set['exercise_name']}'
+              : 'block:$block';
           groups.putIfAbsent(key, () => <Map>[]).add(set);
         }
         for (final group in groups.values) {
           if (group.isEmpty) continue;
           final first = group.first;
           buffer.writeln('• ${first['exercise_name']}');
-          final note = group
+          final note =
+              group
                   .map((set) => set['workout_exercise_note'])
                   .whereType<String>()
                   .firstOrNull ??
@@ -134,12 +144,13 @@ class ShareExportFormatter {
           if (note is String && note.trim().isNotEmpty) {
             buffer.writeln('  ${l10n.notesLabel}: ${note.trim()}');
           }
-          final pauses = group
-              .map((set) => set['rest_time_seconds'])
-              .whereType<int>()
-              .toSet()
-              .toList()
-            ..sort();
+          final pauses =
+              group
+                  .map((set) => set['rest_time_seconds'])
+                  .whereType<int>()
+                  .toSet()
+                  .toList()
+                ..sort();
           if (pauses.isNotEmpty) {
             buffer.writeln(
               '  ${l10n.pauseTimerLabel}: ${pauses.map((seconds) => seconds > 0 ? formatPauseDuration(seconds) : l10n.timerOffLabel.toUpperCase()).join(' / ')}',
@@ -148,12 +159,7 @@ class ShareExportFormatter {
           for (final entry in group.asMap().entries) {
             final rawSet = entry.value;
             buffer.writeln(
-              '  ${setLine({
-                    'type': rawSet['set_type'],
-                    'reps': rawSet['reps'],
-                    'weight': rawSet['weight_kg'],
-                    'rir': rawSet['rir'],
-                  }, entry.key)}',
+              '  ${setLine({'type': rawSet['set_type'], 'reps': rawSet['reps'], 'weight': rawSet['weight_kg'], 'rir': rawSet['rir']}, entry.key)}',
             );
           }
         }
@@ -165,10 +171,10 @@ class ShareExportFormatter {
   }
 
   static String _setType(String raw, AppLocalizations l10n) => switch (raw) {
-        'warmup' => l10n.setTypeWarmup,
-        'failure' => l10n.setTypeFailure,
-        'dropset' => l10n.setTypeDropset,
-        'superset' => l10n.setTypeSuperset,
-        _ => l10n.setTypeWork,
-      };
+    'warmup' => l10n.setTypeWarmup,
+    'failure' => l10n.setTypeFailure,
+    'dropset' => l10n.setTypeDropset,
+    'superset' => l10n.setTypeSuperset,
+    _ => l10n.setTypeWork,
+  };
 }

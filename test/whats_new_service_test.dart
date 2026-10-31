@@ -6,16 +6,16 @@ import 'package:train_libre/features/whats_new/domain/whats_new_content.g.dart';
 import 'package:train_libre/features/whats_new/domain/whats_new_release.dart';
 
 WhatsNewRelease _release(String version) => WhatsNewRelease(
-      version: version,
-      releasedOn: '2026-08-11',
-      entries: [
-        WhatsNewEntry(
-          icon: const IconData(0x1, fontFamily: 'test'),
-          title: 'Title $version',
-          body: 'Body $version',
-        ),
-      ],
-    );
+  version: version,
+  releasedOn: '2026-08-11',
+  entries: [
+    WhatsNewEntry(
+      icon: const IconData(0x1, fontFamily: 'test'),
+      title: 'Title $version',
+      body: 'Body $version',
+    ),
+  ],
+);
 
 /// Catalog newest first, exactly as the generator emits it.
 final _catalog = {
@@ -71,15 +71,18 @@ void main() {
   });
 
   group('pendingReleases', () {
-    test('numeric iOS version finds matching beta notes on first upgrade',
-        () async {
-      configure(version: '1.7.0');
-      service.catalogOverride = {
-        'en': [_release('1.7.0-beta.1'), _release('1.6.0')],
-      };
-      expect((await service.pendingReleases('en')).map((r) => r.version),
-          ['1.7.0-beta.1']);
-    });
+    test(
+      'numeric iOS version finds matching beta notes on first upgrade',
+      () async {
+        configure(version: '1.7.0');
+        service.catalogOverride = {
+          'en': [_release('1.7.0-beta.1'), _release('1.6.0')],
+        };
+        expect((await service.pendingReleases('en')).map((r) => r.version), [
+          '1.7.0-beta.1',
+        ]);
+      },
+    );
 
     test('nothing stored yet shows only the running version', () async {
       configure(version: '1.0.3', lastSeen: null);
@@ -89,12 +92,14 @@ void main() {
       expect(pending.map((r) => r.version), ['1.0.3']);
     });
 
-    test('nothing stored and no notes for the running version shows nothing',
-        () async {
-      configure(version: '1.0.9', lastSeen: null);
+    test(
+      'nothing stored and no notes for the running version shows nothing',
+      () async {
+        configure(version: '1.0.9', lastSeen: null);
 
-      expect(await service.pendingReleases('en'), isEmpty);
-    });
+        expect(await service.pendingReleases('en'), isEmpty);
+      },
+    );
 
     test('already seen the running version shows nothing', () async {
       configure(version: '1.0.3', lastSeen: '1.0.3');
@@ -188,8 +193,9 @@ void main() {
 
     test('releases are ordered newest first and versions are parsable', () {
       for (final entry in kWhatsNewContent.entries) {
-        final versions =
-            entry.value.map((r) => AppVersion.parse(r.version)).toList();
+        final versions = entry.value
+            .map((r) => AppVersion.parse(r.version))
+            .toList();
         for (var i = 1; i < versions.length; i++) {
           expect(
             versions[i - 1] > versions[i],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../../util/design_constants.dart';
 import 'curved_arrow.dart';
 
@@ -39,10 +40,12 @@ class ColdStartEmptyState extends StatelessWidget {
             : double.infinity;
         final textScale = textScaler.scale(1.0);
         final isTight = availableHeight < 560 || textScale > 1.15;
-        final estimatedContentHeight = (isTight ? 190.0 : 240.0) +
+        final estimatedContentHeight =
+            (isTight ? 190.0 : 240.0) +
             (hasCta ? (isTight ? 45.0 : 70.0) : 0.0);
         final totalNeededHeight = (estimatedContentHeight * textScale) + 120.0;
-        final shouldShowArrow = showArrow && availableHeight >= totalNeededHeight;
+        final shouldShowArrow =
+            showArrow && availableHeight >= totalNeededHeight;
 
         Widget content = Column(
           mainAxisSize: MainAxisSize.min,
@@ -50,7 +53,8 @@ class ColdStartEmptyState extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL),
+                horizontal: DesignConstants.spacingL,
+              ),
               child: AdaptiveGlass(
                 settings: LiquidGlassSettings(
                   thickness: 0,
@@ -63,9 +67,11 @@ class ColdStartEmptyState extends StatelessWidget {
                 ),
                 shape: const LiquidRoundedSuperellipse(borderRadius: 100),
                 child: Container(
-                  padding: EdgeInsets.all(isTight
-                      ? DesignConstants.spacingL
-                      : DesignConstants.spacingXL),
+                  padding: EdgeInsets.all(
+                    isTight
+                        ? DesignConstants.spacingL
+                        : DesignConstants.spacingXL,
+                  ),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isDark
@@ -96,12 +102,14 @@ class ColdStartEmptyState extends StatelessWidget {
               ),
             ),
             SizedBox(
-                height: isTight
-                    ? DesignConstants.spacingM
-                    : DesignConstants.spacingL),
+              height: isTight
+                  ? DesignConstants.spacingM
+                  : DesignConstants.spacingL,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL),
+                horizontal: DesignConstants.spacingL,
+              ),
               child: Text(
                 title,
                 style: theme.textTheme.headlineSmall?.copyWith(
@@ -113,7 +121,8 @@ class ColdStartEmptyState extends StatelessWidget {
             const SizedBox(height: DesignConstants.spacingS),
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL),
+                horizontal: DesignConstants.spacingL,
+              ),
               child: Text(
                 subtitle,
                 style: theme.textTheme.bodyLarge?.copyWith(
@@ -124,12 +133,14 @@ class ColdStartEmptyState extends StatelessWidget {
             ),
             if (hasCta) ...[
               SizedBox(
-                  height: isTight
-                      ? DesignConstants.spacingL
-                      : DesignConstants.spacingXXL),
+                height: isTight
+                    ? DesignConstants.spacingL
+                    : DesignConstants.spacingXXL,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingL),
+                  horizontal: DesignConstants.spacingL,
+                ),
                 child: Text(
                   callToAction!.trim(),
                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -171,8 +182,9 @@ class ColdStartEmptyState extends StatelessWidget {
         return Center(
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
-            padding:
-                const EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
+            padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingM,
+            ),
             child: content,
           ),
         );

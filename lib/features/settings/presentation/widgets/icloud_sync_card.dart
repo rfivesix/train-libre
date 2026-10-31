@@ -23,7 +23,7 @@ import '../../../../widgets/common/app_button.dart';
 class ICloudSyncCard extends StatefulWidget {
   /// Called when the user initiates a manual "Backup Now" action.
   final Future<bool> Function({void Function(double progress)? onProgress})
-      onBackupNow;
+  onBackupNow;
 
   const ICloudSyncCard({super.key, required this.onBackupNow});
 
@@ -89,8 +89,9 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
           try {
             await widget.onBackupNow(
               onProgress: (progress) {
-                final normProgress =
-                    progress > 1.0 ? progress / 100.0 : progress;
+                final normProgress = progress > 1.0
+                    ? progress / 100.0
+                    : progress;
                 final percent = (normProgress * 100).toStringAsFixed(0);
                 updateProgress('Uploading... $percent%', normProgress);
               },
@@ -226,7 +227,8 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
           Text(
             _lastSyncDate != null
                 ? l10n.icloudLastSynced(
-                    '${DateFormat.yMMMMd(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}, ${DateFormat.Hm(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}')
+                    '${DateFormat.yMMMMd(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}, ${DateFormat.Hm(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}',
+                  )
                 : l10n.icloudNeverSynced,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
@@ -323,7 +325,8 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                   AppButton.primary(
                     onPressed: () async {
                       await Clipboard.setData(
-                          ClipboardData(text: _nativeDiagnosticLog!));
+                        ClipboardData(text: _nativeDiagnosticLog!),
+                      );
                       if (context.mounted) {
                         final l10n = AppLocalizations.of(context)!;
                         ScaffoldMessenger.of(context).showSnackBar(

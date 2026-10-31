@@ -11,8 +11,9 @@ import '../../domain/live_activity/workout_live_activity_content.dart';
 /// and an offline-first app should not take on a package for ~100 lines of
 /// Swift.
 class WorkoutLiveActivityService {
-  static const MethodChannel _channel =
-      MethodChannel('trainlibre.workout/live_activity');
+  static const MethodChannel _channel = MethodChannel(
+    'trainlibre.workout/live_activity',
+  );
 
   static WorkoutLiveActivityService instance = WorkoutLiveActivityService();
 
@@ -71,8 +72,10 @@ class WorkoutLiveActivityService {
     });
   }
 
-  Future<void> setRestNotificationsEnabled(bool enabled,
-      {bool refreshPending = true}) async {
+  Future<void> setRestNotificationsEnabled(
+    bool enabled, {
+    bool refreshPending = true,
+  }) async {
     if (!isPlatformSupported) return;
     await _invoke('setRestNotificationsEnabled', {
       'enabled': enabled,
@@ -101,13 +104,15 @@ class WorkoutLiveActivityService {
   Future<List<Map<String, Object?>>> consumePendingCommands() async {
     if (!isPlatformSupported) return const [];
     try {
-      final raw = await _channel
-          .invokeListMethod<Map<Object?, Object?>>('consumePendingCommands');
+      final raw = await _channel.invokeListMethod<Map<Object?, Object?>>(
+        'consumePendingCommands',
+      );
       if (raw == null) return const [];
       return raw
-          .map((entry) => entry.map(
-                (key, value) => MapEntry(key.toString(), value),
-              ))
+          .map(
+            (entry) =>
+                entry.map((key, value) => MapEntry(key.toString(), value)),
+          )
           .toList();
     } on PlatformException catch (error) {
       debugPrint('Live Activity: consumePendingCommands failed: $error');

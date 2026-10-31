@@ -36,8 +36,9 @@ class PulseAnalysisEngine {
     final quality = _classifyQuality(
       sampleCount: samples.length,
       windowDuration: window.duration,
-      coverageSpan:
-          samples.last.sampledAtUtc.difference(samples.first.sampledAtUtc),
+      coverageSpan: samples.last.sampledAtUtc.difference(
+        samples.first.sampledAtUtc,
+      ),
     );
 
     return PulseAnalysisSummary(
@@ -86,25 +87,21 @@ class PulseAnalysisEngine {
 
     // BOLT OPTIMIZATION: Replaced chained .map().toList() and .fold() with a
     // standard for loop to eliminate intermediate MappedIterable closures.
-    final result = List<PulseSamplePoint>.generate(
-      timestamps.length,
-      (i) {
-        final timestamp = timestamps[i];
-        final values = groupedByTimestamp[timestamp]!;
-        double sum = 0.0;
-        for (var j = 0; j < values.length; j++) {
-          sum += values[j];
-        }
-        return PulseSamplePoint(
-          sampledAtUtc: DateTime.fromMillisecondsSinceEpoch(
-            timestamp,
-            isUtc: true,
-          ),
-          bpm: sum / values.length,
-        );
-      },
-      growable: false,
-    );
+    final result = List<PulseSamplePoint>.generate(timestamps.length, (i) {
+      final timestamp = timestamps[i];
+      final values = groupedByTimestamp[timestamp]!;
+      double sum = 0.0;
+      for (var j = 0; j < values.length; j++) {
+        sum += values[j];
+      }
+      return PulseSamplePoint(
+        sampledAtUtc: DateTime.fromMillisecondsSinceEpoch(
+          timestamp,
+          isUtc: true,
+        ),
+        bpm: sum / values.length,
+      );
+    }, growable: false);
     return result;
   }
 

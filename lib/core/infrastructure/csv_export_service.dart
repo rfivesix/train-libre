@@ -34,19 +34,27 @@ class CsvExportService {
     ProductLocalDataSource? productDb,
     WorkoutLocalDataSource? workoutDb,
     ProfileLocalDataSource? profileDb,
-  })  : _dbHelper = dbHelper ?? DatabaseHelper.instance,
-        _diaryDb = diaryDb ??
-            DiaryLocalDataSource(
-                (dbHelper ?? DatabaseHelper.instance).dbInstance),
-        _productDb = productDb ??
-            ProductLocalDataSource(
-                (dbHelper ?? DatabaseHelper.instance).dbInstance),
-        _workoutDb = workoutDb ??
-            WorkoutLocalDataSource(
-                (dbHelper ?? DatabaseHelper.instance).dbInstance),
-        _profileDb = profileDb ??
-            ProfileLocalDataSource(
-                (dbHelper ?? DatabaseHelper.instance).dbInstance);
+  }) : _dbHelper = dbHelper ?? DatabaseHelper.instance,
+       _diaryDb =
+           diaryDb ??
+           DiaryLocalDataSource(
+             (dbHelper ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _productDb =
+           productDb ??
+           ProductLocalDataSource(
+             (dbHelper ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _workoutDb =
+           workoutDb ??
+           WorkoutLocalDataSource(
+             (dbHelper ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _profileDb =
+           profileDb ??
+           ProfileLocalDataSource(
+             (dbHelper ?? DatabaseHelper.instance).dbInstance,
+           );
 
   ui.Rect _sharePositionOrigin() {
     final views = ui.PlatformDispatcher.instance.views;
@@ -54,7 +62,11 @@ class CsvExportService {
     final view = views.first;
     final logicalSize = view.physicalSize / view.devicePixelRatio;
     return ui.Rect.fromLTWH(
-        0, 0, math.max(1, logicalSize.width), math.max(1, logicalSize.height));
+      0,
+      0,
+      math.max(1, logicalSize.width),
+      math.max(1, logicalSize.height),
+    );
   }
 
   Future<void> _deleteQuietly(File file) async {
@@ -66,16 +78,24 @@ class CsvExportService {
   }
 
   Future<Map<String, double>?> _getWorkoutHeartRate(
-      String workoutLogId, DateTime startTime, DateTime endTime) async {
+    String workoutLogId,
+    DateTime startTime,
+    DateTime endTime,
+  ) async {
     final dbInst = _dbHelper.dbInstance;
     // 1. Try to read from cardio_samples
     try {
-      final rows = await dbInst.customSelect('''
+      final rows = await dbInst
+          .customSelect(
+            '''
         SELECT s.data_json
         FROM cardio_activities a
         JOIN cardio_samples s ON a.id = s.cardio_activity_id
         WHERE a.workout_log_id = ? AND s.data_type = 'HeartRate'
-      ''', variables: [drift.Variable<String>(workoutLogId)]).get();
+      ''',
+            variables: [drift.Variable<String>(workoutLogId)],
+          )
+          .get();
       if (rows.isNotEmpty) {
         final dataJson = rows.first.read<String>('data_json');
         final decoded = jsonDecode(dataJson);
@@ -111,14 +131,19 @@ class CsvExportService {
     try {
       final startMs = startTime.millisecondsSinceEpoch;
       final endMs = endTime.millisecondsSinceEpoch;
-      final rows = await dbInst.customSelect('''
+      final rows = await dbInst
+          .customSelect(
+            '''
         SELECT min_bpm, max_bpm, sum_bpm, sample_count
         FROM pulse_hourly_aggregates
         WHERE bucket_end_ms > ? AND bucket_start_ms < ?
-      ''', variables: [
-        drift.Variable<int>(startMs),
-        drift.Variable<int>(endMs)
-      ]).get();
+      ''',
+            variables: [
+              drift.Variable<int>(startMs),
+              drift.Variable<int>(endMs),
+            ],
+          )
+          .get();
       if (rows.isNotEmpty) {
         double min = double.infinity;
         double max = double.negativeInfinity;
@@ -166,8 +191,9 @@ class CsvExportService {
 
     if (archiveIdsSet.isNotEmpty) {
       final archiveIds = archiveIdsSet.toList();
-      final archivedProducts =
-          await _productDb.getProductsByArchiveIds(archiveIds);
+      final archivedProducts = await _productDb.getProductsByArchiveIds(
+        archiveIds,
+      );
       archiveProductsMap.addAll(archivedProducts);
     }
 
@@ -193,8 +219,8 @@ class CsvExportService {
         'sugar_g',
         'fiber_g',
         'caffeine_mg',
-        'water_liquids_ml'
-      ]
+        'water_liquids_ml',
+      ],
     ];
 
     for (final e in entries) {
@@ -225,7 +251,7 @@ class CsvExportService {
           sugar.toStringAsFixed(1),
           fiber.toStringAsFixed(1),
           caffeine.toStringAsFixed(1),
-          0
+          0,
         ]);
       }
     }
@@ -250,7 +276,7 @@ class CsvExportService {
         sugar.toStringAsFixed(1),
         0.0.toStringAsFixed(1),
         caffeine.toStringAsFixed(1),
-        f.quantityInMl
+        f.quantityInMl,
       ]);
     }
 
@@ -268,8 +294,11 @@ class CsvExportService {
     await _deleteQuietly(file);
     final exported = res.status == ShareResultStatus.success;
     if (exported) {
-      unawaited(TelemetryService.instance
-          .trackFeatureUsed(featureKey: FeatureKey.csvExported));
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: FeatureKey.csvExported,
+        ),
+      );
     }
     return exported;
   }
@@ -296,8 +325,8 @@ class CsvExportService {
         'set_notes',
         'workout_notes',
         'exercise_block',
-        'workout_exercise_note'
-      ]
+        'workout_exercise_note',
+      ],
     ];
     for (final l in logs) {
       for (final s in l.sets) {
@@ -319,7 +348,7 @@ class CsvExportService {
           s.notes ?? '',
           l.notes ?? '',
           s.exerciseBlock ?? '',
-          l.exerciseNotesByBlock[s.exerciseBlock] ?? ''
+          l.exerciseNotesByBlock[s.exerciseBlock] ?? '',
         ]);
       }
     }
@@ -338,8 +367,11 @@ class CsvExportService {
     await _deleteQuietly(file);
     final exported = res.status == ShareResultStatus.success;
     if (exported) {
-      unawaited(TelemetryService.instance
-          .trackFeatureUsed(featureKey: FeatureKey.csvExported));
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: FeatureKey.csvExported,
+        ),
+      );
     }
     return exported;
   }
@@ -352,7 +384,7 @@ class CsvExportService {
     // 1. Measurements CSV
     final sessions = await _profileDb.getMeasurementSessions();
     List<List<dynamic>> measurementRows = [
-      ['date', 'type', 'value', 'unit']
+      ['date', 'type', 'value', 'unit'],
     ];
     for (final s in sessions) {
       for (final m in s.measurements) {
@@ -360,7 +392,7 @@ class CsvExportService {
           DateFormat('yyyy-MM-dd').format(s.timestamp),
           m.type,
           m.value,
-          m.unit
+          m.unit,
         ]);
       }
     }
@@ -415,15 +447,17 @@ class CsvExportService {
           'Light Minutes',
           'REM Minutes',
           'Awake Minutes',
-          'Sleep Score'
-        ]
+          'Sleep Score',
+        ],
       ];
       for (final r in sleepRows) {
         final sessionId = r.read<String>('session_id');
-        final startTime =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('started_at'));
-        final endTime =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('ended_at'));
+        final startTime = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('started_at'),
+        );
+        final endTime = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('ended_at'),
+        );
         final stages = sessionStages[sessionId] ?? {};
 
         sleepCsvRows.add([
@@ -435,7 +469,7 @@ class CsvExportService {
           (stages['light'] ?? 0.0).toStringAsFixed(1),
           (stages['rem'] ?? 0.0).toStringAsFixed(1),
           (stages['awake'] ?? 0.0).toStringAsFixed(1),
-          r.readNullable<double>('score') ?? 0.0
+          r.readNullable<double>('score') ?? 0.0,
         ]);
       }
       final sCsv = csv.encode(sleepCsvRows);
@@ -457,13 +491,13 @@ class CsvExportService {
       ''').get();
 
       List<List<dynamic>> stepsCsvRows = [
-        ['Date', 'Total Steps', 'Core Source Origin']
+        ['Date', 'Total Steps', 'Core Source Origin'],
       ];
       for (final r in stepRows) {
         stepsCsvRows.add([
           r.read<String>('day_local'),
           r.read<int>('total_steps'),
-          r.read<String>('source_key')
+          r.read<String>('source_key'),
         ]);
       }
       final stepsCsvStr = csv.encode(stepsCsvRows);
@@ -487,11 +521,12 @@ class CsvExportService {
       ''').get();
 
       List<List<dynamic>> hrCsvRows = [
-        ['Date/Timestamp', 'Context', 'Min BPM', 'Max BPM', 'Avg BPM']
+        ['Date/Timestamp', 'Context', 'Min BPM', 'Max BPM', 'Avg BPM'],
       ];
       for (final r in baselineRows) {
-        final t =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('bucket_start_ms'));
+        final t = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('bucket_start_ms'),
+        );
         final count = r.read<num>('sample_count').toInt();
         final avg = count > 0 ? r.read<double>('sum_bpm') / count : 0.0;
         hrCsvRows.add([
@@ -499,16 +534,18 @@ class CsvExportService {
           'Daily Baseline',
           r.read<double>('min_bpm'),
           r.read<double>('max_bpm'),
-          avg.toStringAsFixed(1)
+          avg.toStringAsFixed(1),
         ]);
       }
 
       for (final w in workoutList) {
         final wId = w.read<String>('id');
-        final startTime =
-            DateTime.fromMillisecondsSinceEpoch(w.read<int>('start_time'));
-        final endTime =
-            DateTime.fromMillisecondsSinceEpoch(w.read<int>('end_time'));
+        final startTime = DateTime.fromMillisecondsSinceEpoch(
+          w.read<int>('start_time'),
+        );
+        final endTime = DateTime.fromMillisecondsSinceEpoch(
+          w.read<int>('end_time'),
+        );
         final hr = await _getWorkoutHeartRate(wId, startTime, endTime);
         if (hr != null) {
           hrCsvRows.add([
@@ -516,7 +553,7 @@ class CsvExportService {
             'Workout Session ID: $wId',
             hr['min']!,
             hr['max']!,
-            hr['avg']!.toStringAsFixed(1)
+            hr['avg']!.toStringAsFixed(1),
           ]);
         }
       }
@@ -540,8 +577,11 @@ class CsvExportService {
     }
     final exported = res.status == ShareResultStatus.success;
     if (exported) {
-      unawaited(TelemetryService.instance
-          .trackFeatureUsed(featureKey: FeatureKey.csvExported));
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: FeatureKey.csvExported,
+        ),
+      );
     }
     return exported;
   }

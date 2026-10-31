@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 
 class WeightSlide extends StatelessWidget {
   final TextEditingController weightController;
 
-  const WeightSlide({
-    super.key,
-    required this.weightController,
-  });
+  const WeightSlide({super.key, required this.weightController});
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +27,8 @@ class WeightSlide extends StatelessWidget {
           Text(
             '${l10n.onboardingWeightTitle} ($suffix)',
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
           TextField(
@@ -45,7 +43,8 @@ class WeightSlide extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               contentPadding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingXL),
+                vertical: DesignConstants.spacingXL,
+              ),
             ),
           ),
         ],

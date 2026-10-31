@@ -111,57 +111,60 @@ void main() {
       expect(reversal.calories, 0);
     });
 
-    test('sparse data, phase changes, and legacy versions suppress correction',
-        () {
-      final previous = _previous(
-        goal: BodyweightGoal.gainWeight,
-        targetRate: 0.37,
-        slope: 0.18,
-      );
-      final sparse = controller.evaluate(
-        input: _input(slope: 0.17, intakeDays: 6),
-        goal: BodyweightGoal.gainWeight,
-        targetRateKgPerWeek: 0.37,
-        algorithmVersion: _algorithmVersion,
-        phaseContext: _maturePhase,
-        previousRecommendation: previous,
-      );
-      final phaseChange = controller.evaluate(
-        input: _input(slope: 0.17),
-        goal: BodyweightGoal.gainWeight,
-        targetRateKgPerWeek: 0.37,
-        algorithmVersion: _algorithmVersion,
-        phaseContext: const BayesianObservationPhaseContext(
-          confirmedPhase: AdaptiveDietPhase.bulk,
-          confirmedPhaseAgeDays: 30,
-          pendingPhase: AdaptiveDietPhase.maintain,
-          pendingPhaseAgeDays: 2,
-        ),
-        previousRecommendation: previous,
-      );
-      final legacy = controller.evaluate(
-        input: _input(slope: 0.17),
-        goal: BodyweightGoal.gainWeight,
-        targetRateKgPerWeek: 0.37,
-        algorithmVersion: 'new_version',
-        phaseContext: _maturePhase,
-        previousRecommendation: previous,
-      );
+    test(
+      'sparse data, phase changes, and legacy versions suppress correction',
+      () {
+        final previous = _previous(
+          goal: BodyweightGoal.gainWeight,
+          targetRate: 0.37,
+          slope: 0.18,
+        );
+        final sparse = controller.evaluate(
+          input: _input(slope: 0.17, intakeDays: 6),
+          goal: BodyweightGoal.gainWeight,
+          targetRateKgPerWeek: 0.37,
+          algorithmVersion: _algorithmVersion,
+          phaseContext: _maturePhase,
+          previousRecommendation: previous,
+        );
+        final phaseChange = controller.evaluate(
+          input: _input(slope: 0.17),
+          goal: BodyweightGoal.gainWeight,
+          targetRateKgPerWeek: 0.37,
+          algorithmVersion: _algorithmVersion,
+          phaseContext: const BayesianObservationPhaseContext(
+            confirmedPhase: AdaptiveDietPhase.bulk,
+            confirmedPhaseAgeDays: 30,
+            pendingPhase: AdaptiveDietPhase.maintain,
+            pendingPhaseAgeDays: 2,
+          ),
+          previousRecommendation: previous,
+        );
+        final legacy = controller.evaluate(
+          input: _input(slope: 0.17),
+          goal: BodyweightGoal.gainWeight,
+          targetRateKgPerWeek: 0.37,
+          algorithmVersion: 'new_version',
+          phaseContext: _maturePhase,
+          previousRecommendation: previous,
+        );
 
-      expect(sparse.status, 'inactive_sparse_data');
-      expect(phaseChange.status, 'inactive_phase_transition');
-      expect(legacy.status, 'inactive_no_compatible_history');
-    });
+        expect(sparse.status, 'inactive_sparse_data');
+        expect(phaseChange.status, 'inactive_phase_transition');
+        expect(legacy.status, 'inactive_no_compatible_history');
+      },
+    );
 
     test('legacy recommendation JSON defaults controller fields safely', () {
-      final encoded = _previous(
-        goal: BodyweightGoal.maintainWeight,
-        targetRate: 0,
-        slope: 0,
-      ).toJson()
-        ..remove('trajectoryCorrectionCalories')
-        ..remove('trajectoryRateErrorKgPerWeek')
-        ..remove('trajectoryCorrectionStatus');
+      final encoded =
+          _previous(
+              goal: BodyweightGoal.maintainWeight,
+              targetRate: 0,
+              slope: 0,
+            ).toJson()
+            ..remove('trajectoryCorrectionCalories')
+            ..remove('trajectoryRateErrorKgPerWeek')
+            ..remove('trajectoryCorrectionStatus');
 
       final decoded = NutritionRecommendation.fromJson(encoded);
 

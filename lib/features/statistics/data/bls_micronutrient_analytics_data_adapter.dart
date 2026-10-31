@@ -43,12 +43,17 @@ class BlsMicronutrientAnalyticsDataAdapter {
     required DateTimeRange range,
     required String languageCode,
   }) async {
-    final start =
-        DateTime(range.start.year, range.start.month, range.start.day);
+    final start = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
     final end = DateTime(range.end.year, range.end.month, range.end.day);
     final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
-    final foodEntries =
-        await DatabaseHelper.instance.getEntriesForDateRange(start, endOfDay);
+    final foodEntries = await DatabaseHelper.instance.getEntriesForDateRange(
+      start,
+      endOfDay,
+    );
     final blsEntries = foodEntries
         .where((entry) => entry.barcode.startsWith('bls:'))
         .where((entry) => entry.quantityInGrams > 0)
@@ -62,8 +67,8 @@ class BlsMicronutrientAnalyticsDataAdapter {
       );
     }
 
-    final catalogAvailable =
-        await BlsFoodCatalogRefreshService.instance.isInstalled();
+    final catalogAvailable = await BlsFoodCatalogRefreshService.instance
+        .isInstalled();
     if (!catalogAvailable) {
       return MicronutrientPeriodSummary(
         nutrients: const [],
@@ -113,15 +118,17 @@ class BlsMicronutrientAnalyticsDataAdapter {
       final values = entry.value.values;
       final loggedDays = values.length;
       if (loggedDays == 0) continue;
-      averages.add(MicronutrientAverage(
-        code: nutrient.code,
-        name: nutrient.name,
-        group: nutrient.group,
-        unit: nutrient.unit,
-        averagePerLoggedDay:
-            values.fold<double>(0, (sum, value) => sum + value) / loggedDays,
-        loggedDays: loggedDays,
-      ));
+      averages.add(
+        MicronutrientAverage(
+          code: nutrient.code,
+          name: nutrient.name,
+          group: nutrient.group,
+          unit: nutrient.unit,
+          averagePerLoggedDay:
+              values.fold<double>(0, (sum, value) => sum + value) / loggedDays,
+          loggedDays: loggedDays,
+        ),
+      );
     }
     averages.sort((a, b) {
       final groupComparison = a.group.compareTo(b.group);

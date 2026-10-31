@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../domain/models/fluid_entry.dart';
 import '../../../../widgets/common/glass_actionable_card.dart';
@@ -28,8 +29,8 @@ class FluidEntryTile extends StatelessWidget {
         : 0.0;
     final totalCaffeine =
         (entry.caffeinePer100ml != null && entry.caffeinePer100ml! > 0)
-            ? (entry.caffeinePer100ml! / 100.0 * entry.quantityInMl)
-            : 0.0;
+        ? (entry.caffeinePer100ml! / 100.0 * entry.quantityInMl)
+        : 0.0;
 
     final extraColumns = <Widget>[];
 
@@ -68,10 +69,10 @@ class FluidEntryTile extends StatelessWidget {
       confirmDelete: entry.linkedMacroEntryId == null
           ? null
           : () => showDeleteConfirmation(
-                context,
-                title: l10n.deleteConfirmTitle,
-                content: l10n.macroEntryDeleteConfirm,
-              ),
+              context,
+              title: l10n.deleteConfirmTitle,
+              content: l10n.macroEntryDeleteConfirm,
+            ),
       onTap: () => onEdit(entry),
       child: DiaryFoodRow(
         name: entry.name,

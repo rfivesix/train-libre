@@ -11,11 +11,7 @@ void main() {
     testWidgets('renders properly with default parameters', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: AiNeuralCloudOrbWidget(),
-            ),
-          ),
+          home: Scaffold(body: Center(child: AiNeuralCloudOrbWidget())),
         ),
       );
 
@@ -27,8 +23,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
     });
 
-    testWidgets('triggers impulse on tap and calls onTap callback',
-        (tester) async {
+    testWidgets('triggers impulse on tap and calls onTap callback', (
+      tester,
+    ) async {
       bool tapped = false;
       final key = GlobalKey<AiNeuralCloudOrbWidgetState>();
 
@@ -60,16 +57,15 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
     });
 
-    testWidgets('pauses animation on lifecycle pause and resumes on resume',
-        (tester) async {
+    testWidgets('pauses animation on lifecycle pause and resumes on resume', (
+      tester,
+    ) async {
       final key = GlobalKey<AiNeuralCloudOrbWidgetState>();
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: Center(
-              child: AiNeuralCloudOrbWidget(key: key),
-            ),
+            body: Center(child: AiNeuralCloudOrbWidget(key: key)),
           ),
         ),
       );
@@ -87,8 +83,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     });
 
-    testWidgets('renders properly with edgeBlurSigma and bounded layer',
-        (tester) async {
+    testWidgets('renders properly with edgeBlurSigma and bounded layer', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

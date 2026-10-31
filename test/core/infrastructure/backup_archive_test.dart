@@ -41,10 +41,13 @@ void main() {
 
       final target = Directory(p.join(workDir.path, 'restored'));
       expect(await contents.extractThumbnails((_) => target), 1);
-      expect(
-        await File(p.join(target.path, 'abc_thumb.jpg')).readAsBytes(),
-        [1, 2, 3, 4, 5],
-      );
+      expect(await File(p.join(target.path, 'abc_thumb.jpg')).readAsBytes(), [
+        1,
+        2,
+        3,
+        4,
+        5,
+      ]);
     });
 
     test('an encrypted archive leaves nothing readable in the clear', () async {
@@ -62,8 +65,10 @@ void main() {
       expect(String.fromCharCodes(raw), isNot(contains('BREAKFAST')));
       expect(String.fromCharCodes(raw), isNot(contains('PREVIEW')));
 
-      final contents =
-          await BackupArchive.open(archive.path, passphrase: 'correct horse');
+      final contents = await BackupArchive.open(
+        archive.path,
+        passphrase: 'correct horse',
+      );
       addTearDown(contents.close);
       expect(contents.payload['secret'], 'BREAKFAST');
 
@@ -75,37 +80,42 @@ void main() {
       );
     });
 
-    test('an encrypted archive refuses to open without the passphrase',
-        () async {
-      final archive = await BackupArchive.write(
-        targetPath: p.join(workDir.path, 'backup.zip'),
-        payloadJson: '{}',
-        thumbnails: const [],
-        passphrase: 'correct horse',
-      );
+    test(
+      'an encrypted archive refuses to open without the passphrase',
+      () async {
+        final archive = await BackupArchive.write(
+          targetPath: p.join(workDir.path, 'backup.zip'),
+          payloadJson: '{}',
+          thumbnails: const [],
+          passphrase: 'correct horse',
+        );
 
-      expect(
-        () => BackupArchive.open(archive.path),
-        throwsA(isA<BackupPassphraseRequired>()),
-      );
-      expect(
-        () => BackupArchive.open(archive.path, passphrase: 'wrong'),
-        throwsA(anything),
-      );
-    });
+        expect(
+          () => BackupArchive.open(archive.path),
+          throwsA(isA<BackupPassphraseRequired>()),
+        );
+        expect(
+          () => BackupArchive.open(archive.path, passphrase: 'wrong'),
+          throwsA(anything),
+        );
+      },
+    );
 
     test('files the previews by feature, next to the payload', () async {
       final archive = await BackupArchive.write(
         targetPath: p.join(workDir.path, 'backup.zip'),
         payloadJson: '{}',
         thumbnails: [
-          await writeThumb('abc_thumb.jpg', [1])
+          await writeThumb('abc_thumb.jpg', [1]),
         ],
       );
 
       final input = InputFileStream(archive.path);
-      final names =
-          ZipDecoder().decodeStream(input).files.map((f) => f.name).toList();
+      final names = ZipDecoder()
+          .decodeStream(input)
+          .files
+          .map((f) => f.name)
+          .toList();
       await input.close();
 
       expect(names, contains('backup.json'));
@@ -129,10 +139,9 @@ void main() {
 
       final target = Directory(p.join(workDir.path, 'restored'));
       expect(await contents.extractThumbnails((_) => target), 1);
-      expect(
-        await File(p.join(target.path, 'abc_thumb.jpg')).readAsBytes(),
-        [9],
-      );
+      expect(await File(p.join(target.path, 'abc_thumb.jpg')).readAsBytes(), [
+        9,
+      ]);
     });
 
     test('leaves another feature\'s previews to that feature', () async {
@@ -141,8 +150,9 @@ void main() {
       final path = p.join(workDir.path, 'future.zip');
       final encoder = ZipFileEncoder();
       encoder.create(path);
-      encoder
-          .addArchiveFile(ArchiveFile.bytes('backup.json', utf8.encode('{}')));
+      encoder.addArchiveFile(
+        ArchiveFile.bytes('backup.json', utf8.encode('{}')),
+      );
       encoder.addArchiveFile(ArchiveFile.bytes('thumbs/workouts/x.jpg', [1]));
       await encoder.close();
 

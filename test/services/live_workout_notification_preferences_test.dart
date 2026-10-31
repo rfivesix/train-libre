@@ -20,17 +20,22 @@ void main() {
     expect(disabled.android.audioFocus, AndroidAudioFocus.none);
   });
 
-  test('defaults preserve the existing workout notification and sound behavior',
-      () async {
-    SharedPreferences.setMockInitialValues({});
-    expect(await LiveWorkoutNotificationPreferences.restNotificationsEnabled(),
-        isTrue);
-    expect(await LiveWorkoutNotificationPreferences.ignoreSilentMode(), isTrue);
-  });
-
   test(
-      'disabled rest notifications do not initialize or call the notification plugin',
-      () async {
+    'defaults preserve the existing workout notification and sound behavior',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      expect(
+        await LiveWorkoutNotificationPreferences.restNotificationsEnabled(),
+        isTrue,
+      );
+      expect(
+        await LiveWorkoutNotificationPreferences.ignoreSilentMode(),
+        isTrue,
+      );
+    },
+  );
+
+  test('disabled rest notifications do not initialize or call the notification plugin', () async {
     SharedPreferences.setMockInitialValues({
       LiveWorkoutNotificationPreferences.restNotificationsKey: false,
       LiveWorkoutNotificationPreferences.ignoreSilentModeKey: false,
@@ -39,18 +44,23 @@ void main() {
     const channel = MethodChannel('dexterous.com/flutter/local_notifications');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      calls.add(call);
-      return null;
-    });
-    addTearDown(() => TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null));
-    await LocalNotificationService.instance
-        .scheduleRestTimerDoneNotification(secondsFromNow: 10);
-    await LocalNotificationService.instance
-        .showRestTimerDoneNotification(foreground: true);
+          calls.add(call);
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    await LocalNotificationService.instance.scheduleRestTimerDoneNotification(
+      secondsFromNow: 10,
+    );
+    await LocalNotificationService.instance.showRestTimerDoneNotification(
+      foreground: true,
+    );
     expect(calls, isEmpty);
     expect(
-        await LiveWorkoutNotificationPreferences.ignoreSilentMode(), isFalse);
+      await LiveWorkoutNotificationPreferences.ignoreSilentMode(),
+      isFalse,
+    );
   });
 }

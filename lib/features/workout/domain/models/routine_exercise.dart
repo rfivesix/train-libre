@@ -72,10 +72,12 @@ class RoutineExercise {
       id: id ?? this.id,
       exercise: exercise ?? this.exercise,
       setTemplates: setTemplates ?? this.setTemplates,
-      pauseSeconds:
-          clearPauseSeconds ? null : (pauseSeconds ?? this.pauseSeconds),
-      supersetGroup:
-          clearSupersetGroup ? null : (supersetGroup ?? this.supersetGroup),
+      pauseSeconds: clearPauseSeconds
+          ? null
+          : (pauseSeconds ?? this.pauseSeconds),
+      supersetGroup: clearSupersetGroup
+          ? null
+          : (supersetGroup ?? this.supersetGroup),
       notes: clearNotes ? null : (notes ?? this.notes),
     );
   }
@@ -86,9 +88,7 @@ class RoutineExercise {
 /// A group is valid only when it occurs in exactly one run containing at least
 /// two exercises. The returned list preserves input order and object identity
 /// for exercises that do not need changing.
-List<RoutineExercise> normalizeSupersetGroups(
-  List<RoutineExercise> exercises,
-) {
+List<RoutineExercise> normalizeSupersetGroups(List<RoutineExercise> exercises) {
   final runCountByGroup = <int, int>{};
   int? previousGroup;
   for (final exercise in exercises) {
@@ -109,7 +109,8 @@ List<RoutineExercise> normalizeSupersetGroups(
 
   return exercises.map((exercise) {
     final group = exercise.supersetGroup;
-    final valid = group == null ||
+    final valid =
+        group == null ||
         (runCountByGroup[group] == 1 && memberCountByGroup[group]! >= 2);
     return valid ? exercise : exercise.copyWith(clearSupersetGroup: true);
   }).toList();
@@ -152,8 +153,8 @@ SupersetMembership? supersetMembershipAt(
     start--;
   }
   var end = index;
-  while (
-      end + 1 < exercises.length && exercises[end + 1].supersetGroup == group) {
+  while (end + 1 < exercises.length &&
+      exercises[end + 1].supersetGroup == group) {
     end++;
   }
 
@@ -194,8 +195,9 @@ List<T> reorderWithSupersets<T>({
 
   final oldGroup = getGroup(moving);
   final prevNeighbor = targetIndex > 0 ? remaining[targetIndex - 1] : null;
-  final nextNeighbor =
-      targetIndex < remaining.length ? remaining[targetIndex] : null;
+  final nextNeighbor = targetIndex < remaining.length
+      ? remaining[targetIndex]
+      : null;
   final prevGroup = prevNeighbor != null ? getGroup(prevNeighbor) : null;
   final nextGroup = nextNeighbor != null ? getGroup(nextNeighbor) : null;
 
@@ -243,7 +245,8 @@ List<T> normalizeListWithSupersets<T>(
 
   return items.map((item) {
     final group = getGroup(item);
-    final valid = group == null ||
+    final valid =
+        group == null ||
         (runCountByGroup[group] == 1 && (memberCountByGroup[group] ?? 0) >= 2);
     return valid ? item : withGroup(item, null);
   }).toList();
@@ -272,8 +275,7 @@ List<RoutineExercise> moveRoutineExerciseGroup(
   List<RoutineExercise> exercises,
   int oldIndex,
   int newIndex,
-) =>
-    reorderRoutineExercise(exercises, oldIndex, newIndex);
+) => reorderRoutineExercise(exercises, oldIndex, newIndex);
 
 /// Toggles the connection between two adjacent exercises.
 ///
@@ -343,8 +345,8 @@ int _nextSupersetGroup(List<RoutineExercise> exercises) {
   while (start > 0 && exercises[start - 1].supersetGroup == group) {
     start--;
   }
-  while (
-      end + 1 < exercises.length && exercises[end + 1].supersetGroup == group) {
+  while (end + 1 < exercises.length &&
+      exercises[end + 1].supersetGroup == group) {
     end++;
   }
   return (start, end);

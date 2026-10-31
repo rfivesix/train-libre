@@ -11,10 +11,12 @@ import 'share_labels.dart';
 import 'share_set_type.dart';
 
 class WorkoutShareFormatter {
-  const WorkoutShareFormatter(this.labels,
-      {this.locale,
-      this.exerciseDetails = const {},
-      required this.unitService});
+  const WorkoutShareFormatter(
+    this.labels, {
+    this.locale,
+    this.exerciseDetails = const {},
+    required this.unitService,
+  });
 
   final ShareLabels labels;
   final String? locale;
@@ -72,16 +74,19 @@ class WorkoutShareFormatter {
       if (workoutNote?.trim().isNotEmpty == true) {
         buffer.writeln('${labels.notes}: ${workoutNote!.trim()}');
       }
-      final pauseTimes = entry.value
-          .map((set) => set.restTimeSeconds)
-          .whereType<int>()
-          .toSet()
-          .toList()
-        ..sort();
+      final pauseTimes =
+          entry.value
+              .map((set) => set.restTimeSeconds)
+              .whereType<int>()
+              .toSet()
+              .toList()
+            ..sort();
       if (pauseTimes.isNotEmpty) {
         final formattedPauseTimes = pauseTimes
-            .map((seconds) =>
-                seconds > 0 ? formatPauseDuration(seconds) : labels.timerOff)
+            .map(
+              (seconds) =>
+                  seconds > 0 ? formatPauseDuration(seconds) : labels.timerOff,
+            )
             .join(' / ');
         buffer.writeln('${labels.pauseTimer}: $formattedPauseTimes');
       }
@@ -105,8 +110,9 @@ class WorkoutShareFormatter {
       title: _workoutName(workout),
       date: workoutDate(workout),
       duration: _formatWorkoutDuration(workout),
-      volume:
-          totalVolume(workout) > 0 ? _formatWeight(totalVolume(workout)) : null,
+      volume: totalVolume(workout) > 0
+          ? _formatWeight(totalVolume(workout))
+          : null,
       exerciseCount: _groupByExercise(completedSets).length,
       setCount: completedSets.length,
     );
@@ -117,12 +123,15 @@ class WorkoutShareFormatter {
     int visibleExerciseLimit = 6,
   }) {
     final groups = _groupByExercise(_completedSets(workout));
-    return groups.entries.take(visibleExerciseLimit).map((entry) {
-      return WorkoutShareExerciseSummary(
-        name: _exerciseName(entry.key.exerciseName),
-        detail: '${entry.value.length}x',
-      );
-    }).toList(growable: false);
+    return groups.entries
+        .take(visibleExerciseLimit)
+        .map((entry) {
+          return WorkoutShareExerciseSummary(
+            name: _exerciseName(entry.key.exerciseName),
+            detail: '${entry.value.length}x',
+          );
+        })
+        .toList(growable: false);
   }
 
   List<WorkoutShareExerciseSummary> topVolumeSummaries(
@@ -130,21 +139,23 @@ class WorkoutShareFormatter {
     int visibleExerciseLimit = 4,
   }) {
     final groups = _groupByExercise(_completedSets(workout));
-    final summaries = groups.entries.map((entry) {
-      final volume = entry.value.fold<double>(
-        0,
-        (sum, set) => sum + ((set.weightKg ?? 0) * (set.reps ?? 0)),
-      );
-      return WorkoutShareExerciseSummary(
-        name: _exerciseName(entry.key.exerciseName),
-        detail: volume > 0 ? _formatWeight(volume) : '${entry.value.length}x',
-      );
-    }).toList()
-      ..sort((a, b) {
-        final av = _parseFormattedWeight(a.detail);
-        final bv = _parseFormattedWeight(b.detail);
-        return bv.compareTo(av);
-      });
+    final summaries =
+        groups.entries.map((entry) {
+          final volume = entry.value.fold<double>(
+            0,
+            (sum, set) => sum + ((set.weightKg ?? 0) * (set.reps ?? 0)),
+          );
+          return WorkoutShareExerciseSummary(
+            name: _exerciseName(entry.key.exerciseName),
+            detail: volume > 0
+                ? _formatWeight(volume)
+                : '${entry.value.length}x',
+          );
+        }).toList()..sort((a, b) {
+          final av = _parseFormattedWeight(a.detail);
+          final bv = _parseFormattedWeight(b.detail);
+          return bv.compareTo(av);
+        });
     return summaries.take(visibleExerciseLimit).toList(growable: false);
   }
 
@@ -159,33 +170,41 @@ class WorkoutShareFormatter {
       if (volume <= 0) continue;
 
       final exercise = exerciseDetails[set.exerciseName];
-      final muscles = exercise?.primaryMuscles
+      final muscles =
+          exercise?.primaryMuscles
               .map((muscle) => muscle.trim())
               .where((muscle) => muscle.isNotEmpty)
               .toList(growable: false) ??
           const <String>[];
 
       if (muscles.isEmpty) {
-        volumeByMuscle.update('Other', (value) => value + volume,
-            ifAbsent: () => volume);
+        volumeByMuscle.update(
+          'Other',
+          (value) => value + volume,
+          ifAbsent: () => volume,
+        );
       } else {
         for (final muscle in muscles) {
-          volumeByMuscle.update(muscle, (value) => value + volume,
-              ifAbsent: () => volume);
+          volumeByMuscle.update(
+            muscle,
+            (value) => value + volume,
+            ifAbsent: () => volume,
+          );
         }
       }
     }
 
-    final summaries = volumeByMuscle.entries
-        .map(
-          (entry) => MuscleVolumeSummary(
-            name: entry.key,
-            volume: entry.value,
-            formattedVolume: _formatWeight(entry.value),
-          ),
-        )
-        .toList()
-      ..sort((a, b) => b.volume.compareTo(a.volume));
+    final summaries =
+        volumeByMuscle.entries
+            .map(
+              (entry) => MuscleVolumeSummary(
+                name: entry.key,
+                volume: entry.value,
+                formattedVolume: _formatWeight(entry.value),
+              ),
+            )
+            .toList()
+          ..sort((a, b) => b.volume.compareTo(a.volume));
 
     return summaries.take(visibleMuscleLimit).toList(growable: false);
   }
@@ -243,7 +262,8 @@ class WorkoutShareFormatter {
 
   Map<ExerciseBlockKey, List<SetLog>> _groupByExercise(List<SetLog> sets) {
     final groups = <ExerciseBlockKey, List<SetLog>>{};
-    final sorted = [...sets]..sort((a, b) {
+    final sorted = [...sets]
+      ..sort((a, b) {
         final order = (a.logOrder ?? 0).compareTo(b.logOrder ?? 0);
         return order != 0 ? order : a.exerciseName.compareTo(b.exerciseName);
       });
@@ -264,7 +284,7 @@ class WorkoutShareFormatter {
     int index,
   ) {
     final groups = [
-      for (final entry in entries) entry.value.first.supersetGroup
+      for (final entry in entries) entry.value.first.supersetGroup,
     ];
     final group = groups[index];
     if (group == null) return null;
@@ -303,20 +323,26 @@ class WorkoutShareFormatter {
     final hasDuration = set.durationSeconds != null && set.durationSeconds! > 0;
 
     if (hasWeight && hasReps) {
-      final dispW =
-          unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      final dispW = unitService.convertDisplayValue(
+        set.weightKg!,
+        UnitDimension.weight,
+      );
       parts.add('${_formatNumber(dispW)} ${labels.kg} x ${set.reps}');
     } else if (hasReps) {
       parts.add('${set.reps} ${labels.reps}');
     } else if (hasWeight) {
-      final dispW =
-          unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      final dispW = unitService.convertDisplayValue(
+        set.weightKg!,
+        UnitDimension.weight,
+      );
       parts.add('${_formatNumber(dispW)} ${labels.kg}');
     }
 
     if (hasDistance) {
       final dispD = unitService.convertDisplayValue(
-          set.distanceKm!, UnitDimension.distance);
+        set.distanceKm!,
+        UnitDimension.distance,
+      );
       parts.add('${_formatNumber(dispD)} ${labels.km}');
     }
     if (hasDuration) {

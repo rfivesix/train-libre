@@ -51,8 +51,10 @@ void main() {
       );
 
       expect(result.hasData, isFalse);
-      expect(result.muscles,
-          hasLength(RecoveryDomainService.trackedMuscleGroups.length));
+      expect(
+        result.muscles,
+        hasLength(RecoveryDomainService.trackedMuscleGroups.length),
+      );
     });
 
     test('uses the latest session load rather than the whole history sum', () {
@@ -68,57 +70,53 @@ void main() {
       final latestOnly = muscle([latest], 'chest');
       final withOldFailure = muscle([oldFailure, latest], 'chest');
 
-      expect(withOldFailure.lastSessionLoad,
-          closeTo(latestOnly.lastSessionLoad, 0.0001));
+      expect(
+        withOldFailure.lastSessionLoad,
+        closeTo(latestOnly.lastSessionLoad, 0.0001),
+      );
       expect(withOldFailure.highLastSessionFatigue, isFalse);
-      expect(withOldFailure.residualLoad - latestOnly.residualLoad,
-          lessThan(0.02));
+      expect(
+        withOldFailure.residualLoad - latestOnly.residualLoad,
+        lessThan(0.02),
+      );
     });
 
-    test('weights primary exposure above otherwise equal secondary exposure',
-        () {
-      final direct = muscle(
-        [set(session: 'direct', muscle: 'chest', rir: 2)],
-        'chest',
-      );
-      final indirect = muscle(
-        [
+    test(
+      'weights primary exposure above otherwise equal secondary exposure',
+      () {
+        final direct = muscle([
+          set(session: 'direct', muscle: 'chest', rir: 2),
+        ], 'chest');
+        final indirect = muscle([
           set(
             session: 'indirect',
             muscle: 'triceps',
             role: RecoveryMuscleRole.secondary,
             rir: 2,
           ),
-        ],
-        'triceps',
-      );
+        ], 'triceps');
 
-      expect(direct.lastSessionLoad, greaterThan(indirect.lastSessionLoad));
-      expect(direct.readinessScore, lessThan(indirect.readinessScore));
-    });
+        expect(direct.lastSessionLoad, greaterThan(indirect.lastSessionLoad));
+        expect(direct.readinessScore, lessThan(indirect.readinessScore));
+      },
+    );
 
     test('uses an explicit catalog contribution when one is supplied', () {
-      final fallback = muscle(
-        [
-          set(
-            session: 'fallback-secondary',
-            muscle: 'triceps',
-            role: RecoveryMuscleRole.secondary,
-          ),
-        ],
-        'triceps',
-      );
-      final catalogWeighted = muscle(
-        [
-          set(
-            session: 'catalog-secondary',
-            muscle: 'triceps',
-            role: RecoveryMuscleRole.secondary,
-            catalogContribution: 0.5,
-          ),
-        ],
-        'triceps',
-      );
+      final fallback = muscle([
+        set(
+          session: 'fallback-secondary',
+          muscle: 'triceps',
+          role: RecoveryMuscleRole.secondary,
+        ),
+      ], 'triceps');
+      final catalogWeighted = muscle([
+        set(
+          session: 'catalog-secondary',
+          muscle: 'triceps',
+          role: RecoveryMuscleRole.secondary,
+          catalogContribution: 0.5,
+        ),
+      ], 'triceps');
 
       expect(
         catalogWeighted.lastSessionLoad,
@@ -127,35 +125,39 @@ void main() {
       expect(catalogWeighted.lastSessionLoad, closeTo(0.4, 0.0001));
     });
 
-    test('retains several small secondary exposures instead of discarding them',
-        () {
-      final inputs = List.generate(
-        3,
-        (index) => set(
-          session: 'compound',
-          muscle: 'triceps',
-          role: RecoveryMuscleRole.secondary,
-          rir: 2,
-        ),
-      );
+    test(
+      'retains several small secondary exposures instead of discarding them',
+      () {
+        final inputs = List.generate(
+          3,
+          (index) => set(
+            session: 'compound',
+            muscle: 'triceps',
+            role: RecoveryMuscleRole.secondary,
+            rir: 2,
+          ),
+        );
 
-      final result = muscle(inputs, 'triceps');
+        final result = muscle(inputs, 'triceps');
 
-      expect(result.lastSessionLoad, closeTo(0.72, 0.0001));
-      expect(result.residualLoad, closeTo(0.72, 0.0001));
-    });
+        expect(result.lastSessionLoad, closeTo(0.72, 0.0001));
+        expect(result.residualLoad, closeTo(0.72, 0.0001));
+      },
+    );
 
     test('scales effort smoothly by RIR and treats failure as RIR zero', () {
-      final rirZero =
-          muscle([set(session: 'r0', muscle: 'chest', rir: 0)], 'chest');
-      final rirTwo =
-          muscle([set(session: 'r2', muscle: 'chest', rir: 2)], 'chest');
-      final rirFive =
-          muscle([set(session: 'r5', muscle: 'chest', rir: 5)], 'chest');
-      final failure = muscle(
-        [set(session: 'failure', muscle: 'chest', rir: 5, setType: 'failure')],
-        'chest',
-      );
+      final rirZero = muscle([
+        set(session: 'r0', muscle: 'chest', rir: 0),
+      ], 'chest');
+      final rirTwo = muscle([
+        set(session: 'r2', muscle: 'chest', rir: 2),
+      ], 'chest');
+      final rirFive = muscle([
+        set(session: 'r5', muscle: 'chest', rir: 5),
+      ], 'chest');
+      final failure = muscle([
+        set(session: 'failure', muscle: 'chest', rir: 5, setType: 'failure'),
+      ], 'chest');
 
       expect(rirZero.lastSessionLoad, greaterThan(rirTwo.lastSessionLoad));
       expect(rirTwo.lastSessionLoad, greaterThan(rirFive.lastSessionLoad));
@@ -163,66 +165,61 @@ void main() {
     });
 
     test(
-        'uses a neutral fallback and reports low confidence when RIR is absent',
-        () {
-      final result = muscle(
-        [set(session: 'unknown-rir', muscle: 'chest', rir: null)],
-        'chest',
-      );
+      'uses a neutral fallback and reports low confidence when RIR is absent',
+      () {
+        final result = muscle([
+          set(session: 'unknown-rir', muscle: 'chest', rir: null),
+        ], 'chest');
 
-      expect(result.lastSessionLoad, closeTo(0.7, 0.0001));
-      expect(result.setsWithRir, 0);
-      expect(result.dataConfidence, 'low');
-    });
+        expect(result.lastSessionLoad, closeTo(0.7, 0.0001));
+        expect(result.setsWithRir, 0);
+        expect(result.dataConfidence, 'low');
+      },
+    );
 
     test('uses the workout completion time as the recovery clock', () {
-      final result = muscle(
-        [
-          set(
-            session: 'finished-two-hours-ago',
-            muscle: 'chest',
-            completedAt: now.subtract(const Duration(hours: 2)),
-          ),
-        ],
-        'chest',
-      );
+      final result = muscle([
+        set(
+          session: 'finished-two-hours-ago',
+          muscle: 'chest',
+          completedAt: now.subtract(const Duration(hours: 2)),
+        ),
+      ], 'chest');
 
       expect(result.hoursSinceLastSession, closeTo(2.0, 0.001));
     });
 
     test(
-        'keeps slower muscle profiles under more residual load at the same time',
-        () {
-      final completedAt = now.subtract(const Duration(hours: 72));
-      final chest = muscle(
-        [set(session: 'chest', muscle: 'chest', completedAt: completedAt)],
-        'chest',
-      );
-      final quads = muscle(
-        [set(session: 'quads', muscle: 'quads', completedAt: completedAt)],
-        'quads',
-      );
+      'keeps slower muscle profiles under more residual load at the same time',
+      () {
+        final completedAt = now.subtract(const Duration(hours: 72));
+        final chest = muscle([
+          set(session: 'chest', muscle: 'chest', completedAt: completedAt),
+        ], 'chest');
+        final quads = muscle([
+          set(session: 'quads', muscle: 'quads', completedAt: completedAt),
+        ], 'quads');
 
-      expect(quads.residualLoad, greaterThan(chest.residualLoad));
-      expect(quads.readinessScore, lessThan(chest.readinessScore));
-    });
+        expect(quads.residualLoad, greaterThan(chest.residualLoad));
+        expect(quads.readinessScore, lessThan(chest.readinessScore));
+      },
+    );
 
     test('derives state from the same score returned to presentation', () {
       final recovering = muscle(
         List.generate(
-            8, (index) => set(session: 'hard', muscle: 'chest', rir: 0)),
+          8,
+          (index) => set(session: 'hard', muscle: 'chest', rir: 0),
+        ),
         'chest',
       );
-      final ready = muscle(
-        [
-          set(
-            session: 'moderate-old',
-            muscle: 'chest',
-            completedAt: now.subtract(const Duration(hours: 40)),
-          ),
-        ],
-        'chest',
-      );
+      final ready = muscle([
+        set(
+          session: 'moderate-old',
+          muscle: 'chest',
+          completedAt: now.subtract(const Duration(hours: 40)),
+        ),
+      ], 'chest');
 
       expect(recovering.readinessScore, lessThan(60));
       expect(recovering.state, RecoveryDomainService.stateRecovering);
@@ -231,23 +228,23 @@ void main() {
     });
 
     test(
-        'keeps movement patterns as explanation metadata without double counting',
-        () {
-      final result = muscle(
-        [
+      'keeps movement patterns as explanation metadata without double counting',
+      () {
+        final result = muscle([
           set(
             session: 'push',
             muscle: 'chest',
             rir: 2,
             pattern: 'horizontal_push',
           ),
-        ],
-        'chest',
-      );
+        ], 'chest');
 
-      expect(result.movementPatterns, ['horizontal_push']);
-      expect(result.lastSessionDirectLoad,
-          closeTo(result.lastSessionLoad, 0.0001));
-    });
+        expect(result.movementPatterns, ['horizontal_push']);
+        expect(
+          result.lastSessionDirectLoad,
+          closeTo(result.lastSessionLoad, 0.0001),
+        );
+      },
+    );
   });
 }

@@ -37,10 +37,12 @@ class ExerciseMuscleBodyView extends StatelessWidget {
     // the fifteen-name vocabulary could still express. 38 active exercises
     // have the former and nothing in the latter.
     final useIds = !vocabulary.isEmpty && exercise.primaryMuscleIds.isNotEmpty;
-    final primaryLabels =
-        useIds ? exercise.primaryMuscleIds : exercise.primaryMuscles;
-    final secondaryLabels =
-        useIds ? exercise.secondaryMuscleIds : exercise.secondaryMuscles;
+    final primaryLabels = useIds
+        ? exercise.primaryMuscleIds
+        : exercise.primaryMuscles;
+    final secondaryLabels = useIds
+        ? exercise.secondaryMuscleIds
+        : exercise.secondaryMuscles;
     final hasMuscles = primaryLabels.isNotEmpty || secondaryLabels.isNotEmpty;
 
     if (!hasMuscles) {
@@ -66,14 +68,17 @@ class ExerciseMuscleBodyView extends StatelessWidget {
             secondaryMuscles: exercise.secondaryMuscles,
           );
 
-    final frontHighlights =
-        BodySlugMapper.forSide(allHighlights, BodySide.front);
+    final frontHighlights = BodySlugMapper.forSide(
+      allHighlights,
+      BodySide.front,
+    );
     final backHighlights = BodySlugMapper.forSide(allHighlights, BodySide.back);
 
     // The names are coarsened, the highlights above are not: a beginner reads
     // "shoulders" while the body map still paints the single head that works.
-    final coarse =
-        context.watch<ExperienceLevelService>().usesCoarseMuscleNames;
+    final coarse = context
+        .watch<ExperienceLevelService>()
+        .usesCoarseMuscleNames;
     final resolvedVocabulary = useIds ? vocabulary : null;
     final primaryNames = BodySlugMapper.localizeAll(
       context,

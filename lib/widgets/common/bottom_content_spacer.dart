@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../features/workout/presentation/live_workout_view_model.dart';
 
 /// Visual overlay heights (your glass bar + detached FAB)
@@ -20,14 +21,13 @@ class BottomContentSpacer extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isRunning = false;
     try {
-      isRunning = context.select<LiveWorkoutViewModel, bool>(
-        (m) => m.isActive,
-      );
+      isRunning = context.select<LiveWorkoutViewModel, bool>((m) => m.isActive);
     } on ProviderNotFoundException {
       isRunning = false;
     }
     final double safe = MediaQuery.of(context).padding.bottom;
-    final double h = kOverlayBaseHeight +
+    final double h =
+        kOverlayBaseHeight +
         (isRunning ? kOverlayRunningExtra : 0) +
         safe +
         extra;

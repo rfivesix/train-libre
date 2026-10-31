@@ -101,27 +101,31 @@ void main() {
       expect(sent.single['session_stall_index'], 1);
     });
 
-    test('stops after the per-session cap so a freeze loop cannot spam',
-        () async {
-      final recorder = JankRecorder.createForTest();
-      final sent = <Map<String, dynamic>>[];
-      final reporter = StallTelemetryReporter(
-        recorder: recorder,
-        deviceLabelResolver: () async => 'unavailable',
-        sender: (properties) async => sent.add(properties),
-        maxEventsPerSession: 2,
-      );
+    test(
+      'stops after the per-session cap so a freeze loop cannot spam',
+      () async {
+        final recorder = JankRecorder.createForTest();
+        final sent = <Map<String, dynamic>>[];
+        final reporter = StallTelemetryReporter(
+          recorder: recorder,
+          deviceLabelResolver: () async => 'unavailable',
+          sender: (properties) async => sent.add(properties),
+          maxEventsPerSession: 2,
+        );
 
-      for (var i = 0; i < 6; i++) {
-        await reporter.report(StallEvent(
-          screen: 'DiaryTab',
-          at: DateTime.now(),
-          durationMs: 1500,
-        ));
-      }
+        for (var i = 0; i < 6; i++) {
+          await reporter.report(
+            StallEvent(
+              screen: 'DiaryTab',
+              at: DateTime.now(),
+              durationMs: 1500,
+            ),
+          );
+        }
 
-      expect(sent, hasLength(2));
-    });
+        expect(sent, hasLength(2));
+      },
+    );
 
     test('buckets the duration the way the other latency events do', () {
       expect(PerformanceTelemetry.stallBucket(1500), '1-2s');

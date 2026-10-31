@@ -32,19 +32,22 @@ class HealthConnectWeightRecord {
   final String unit;
 
   String get fingerprint => sha256
-      .convert(utf8.encode(
-          '$measurementType|$timestampUtc|${weightKg.toStringAsPrecision(15)}|$sourcePackageName'))
+      .convert(
+        utf8.encode(
+          '$measurementType|$timestampUtc|${weightKg.toStringAsPrecision(15)}|$sourcePackageName',
+        ),
+      )
       .toString();
 
   factory HealthConnectWeightRecord.fromMap(Map<dynamic, dynamic> map) =>
       HealthConnectWeightRecord(
         recordId: map['recordId'] as String,
-        lastModifiedAtUtc:
-            DateTime.tryParse(map['lastModifiedAtUtcIso'] as String? ?? '')
-                ?.toUtc(),
+        lastModifiedAtUtc: DateTime.tryParse(
+          map['lastModifiedAtUtcIso'] as String? ?? '',
+        )?.toUtc(),
         timestampUtc: DateTime.parse(map['timestampUtcIso'] as String).toUtc(),
-        weightKg:
-            ((map['value'] as num?) ?? (map['weightKg'] as num)).toDouble(),
+        weightKg: ((map['value'] as num?) ?? (map['weightKg'] as num))
+            .toDouble(),
         sourcePackageName: map['sourcePackageName'] as String? ?? '',
         measurementType: map['measurementType'] as String? ?? 'weight',
         unit: map['unit'] as String? ?? 'kg',
@@ -76,8 +79,9 @@ class HealthConnectWeightImportStatus {
 }
 
 class HealthConnectWeightImportPlatform {
-  static const MethodChannel _channel =
-      MethodChannel('trainlibre.health/import_weight_health_connect');
+  static const MethodChannel _channel = MethodChannel(
+    'trainlibre.health/import_weight_health_connect',
+  );
 
   Future<HealthConnectWeightImportStatus> getStatus() async {
     final raw = await _channel.invokeMethod<Map<dynamic, dynamic>>('getStatus');
@@ -96,8 +100,10 @@ class HealthConnectWeightImportPlatform {
       'toUtcIso': toUtc.toUtc().toIso8601String(),
     });
     return (raw ?? const [])
-        .map((row) =>
-            HealthConnectWeightRecord.fromMap(row as Map<dynamic, dynamic>))
+        .map(
+          (row) =>
+              HealthConnectWeightRecord.fromMap(row as Map<dynamic, dynamic>),
+        )
         .toList(growable: false);
   }
 }
@@ -135,9 +141,9 @@ class HealthConnectWeightImportService implements WeightImportService {
     HealthConnectWeightImportPlatform? platform,
     DatabaseHelper? databaseHelper,
     bool? isAndroid,
-  })  : _platform = platform ?? HealthConnectWeightImportPlatform(),
-        _dbHelper = databaseHelper ?? DatabaseHelper.instance,
-        _isAndroid = isAndroid ?? Platform.isAndroid;
+  }) : _platform = platform ?? HealthConnectWeightImportPlatform(),
+       _dbHelper = databaseHelper ?? DatabaseHelper.instance,
+       _isAndroid = isAndroid ?? Platform.isAndroid;
 
   final HealthConnectWeightImportPlatform _platform;
   final DatabaseHelper _dbHelper;
@@ -199,19 +205,23 @@ class HealthConnectWeightImportService implements WeightImportService {
   Future<_WeightUpsert> _upsert(HealthConnectWeightRecord record) async {
     final db = await _dbHelper.database;
     return db.transaction(() async {
-      final existing = await db.customSelect(
-        '''SELECT local_measurement_id, last_modified_at, payload_fingerprint
+      final existing = await db
+          .customSelect(
+            '''SELECT local_measurement_id, last_modified_at, payload_fingerprint
            FROM health_import_records
            WHERE platform = ? AND domain = ? AND external_record_id = ?''',
-        variables: [
-          drift.Variable.withString('healthConnect'),
-          drift.Variable.withString(record.measurementType),
-          drift.Variable.withString(record.recordId),
-        ],
-      ).getSingleOrNull();
+            variables: [
+              drift.Variable.withString('healthConnect'),
+              drift.Variable.withString(record.measurementType),
+              drift.Variable.withString(record.recordId),
+            ],
+          )
+          .getSingleOrNull();
       final modifiedMillis = record.lastModifiedAtUtc?.millisecondsSinceEpoch;
       if (existing == null) {
-        final row = await db.into(db.measurements).insertReturning(
+        final row = await db
+            .into(db.measurements)
+            .insertReturning(
               db_model.MeasurementsCompanion.insert(
                 type: record.measurementType,
                 value: record.weightKg,
@@ -232,32 +242,35 @@ class HealthConnectWeightImportService implements WeightImportService {
             record.recordId,
             row.localId,
             modifiedMillis,
-            record.fingerprint
+            record.fingerprint,
           ],
         );
         return _WeightUpsert.imported;
       }
       final previousModified = existing.readNullable<int>('last_modified_at');
       final previousFingerprint = existing.read<String>('payload_fingerprint');
-      final changed = (modifiedMillis != null &&
+      final changed =
+          (modifiedMillis != null &&
               (previousModified == null ||
                   modifiedMillis > previousModified)) ||
           ((modifiedMillis == null || modifiedMillis == previousModified) &&
               previousFingerprint != record.fingerprint);
       if (!changed) return _WeightUpsert.unchanged;
-      await (db.update(db.measurements)
-            ..where((table) => table.localId
-                .equals(existing.read<int>('local_measurement_id'))))
+      await (db.update(db.measurements)..where(
+            (table) => table.localId.equals(
+              existing.read<int>('local_measurement_id'),
+            ),
+          ))
           .write(
-        db_model.MeasurementsCompanion(
-          value: drift.Value(record.weightKg),
-          date: drift.Value(record.timestampUtc),
-          legacySessionId: drift.Value(
-            record.timestampUtc.millisecondsSinceEpoch,
-          ),
-          updatedAt: drift.Value(DateTime.now().toUtc()),
-        ),
-      );
+            db_model.MeasurementsCompanion(
+              value: drift.Value(record.weightKg),
+              date: drift.Value(record.timestampUtc),
+              legacySessionId: drift.Value(
+                record.timestampUtc.millisecondsSinceEpoch,
+              ),
+              updatedAt: drift.Value(DateTime.now().toUtc()),
+            ),
+          );
       await db.customStatement(
         '''UPDATE health_import_records SET last_modified_at = ?, payload_fingerprint = ?
            WHERE platform = ? AND domain = ? AND external_record_id = ?''',
@@ -266,7 +279,7 @@ class HealthConnectWeightImportService implements WeightImportService {
           record.fingerprint,
           'healthConnect',
           record.measurementType,
-          record.recordId
+          record.recordId,
         ],
       );
       return _WeightUpsert.updated;

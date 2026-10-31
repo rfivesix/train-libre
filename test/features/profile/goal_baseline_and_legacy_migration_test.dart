@@ -64,89 +64,104 @@ void main() {
       expect(reloaded!.baselineValueKg, 82.4);
       expect(reloaded.baselineDate, date);
 
-      await (database.delete(database.measurements)
-            ..where((row) => row.id.equals(measurements.single.id)))
-          .go();
+      await (database.delete(
+        database.measurements,
+      )..where((row) => row.id.equals(measurements.single.id))).go();
       reloaded = await repository.getGoalById(goal.id);
       expect(reloaded!.baselineMeasurementId, equals(null));
       expect(reloaded.baselineValueKg, 82.4);
       expect(reloaded.baselineDate, date);
     });
 
-    test('replacement is scoped to nutrition and leaves workout goals active',
-        () async {
-      final date = DateTime(2026, 1, 1);
-      await database.into(database.userGoals).insert(
-            UserGoalsCompanion.insert(
-              id: const Value('workout-goal'),
-              area: const Value('workout'),
-              preset: 'custom',
-              title: 'Stronger',
-              startDate: date,
-            ),
-          );
-      final first = await repository.createGoal(
-        preset: GoalPreset.loseWeight,
-        title: 'Loss',
-        startDate: date,
-        baselineValueKg: 82,
-        baselineDate: date,
-      );
-      final second = await repository.createGoal(
-        preset: GoalPreset.gainWeight,
-        title: 'Gain',
-        startDate: date.add(const Duration(days: 1)),
-        baselineValueKg: 81,
-        baselineDate: date.add(const Duration(days: 1)),
-      );
+    test(
+      'replacement is scoped to nutrition and leaves workout goals active',
+      () async {
+        final date = DateTime(2026, 1, 1);
+        await database
+            .into(database.userGoals)
+            .insert(
+              UserGoalsCompanion.insert(
+                id: const Value('workout-goal'),
+                area: const Value('workout'),
+                preset: 'custom',
+                title: 'Stronger',
+                startDate: date,
+              ),
+            );
+        final first = await repository.createGoal(
+          preset: GoalPreset.loseWeight,
+          title: 'Loss',
+          startDate: date,
+          baselineValueKg: 82,
+          baselineDate: date,
+        );
+        final second = await repository.createGoal(
+          preset: GoalPreset.gainWeight,
+          title: 'Gain',
+          startDate: date.add(const Duration(days: 1)),
+          baselineValueKg: 81,
+          baselineDate: date.add(const Duration(days: 1)),
+        );
 
-      expect((await repository.getGoalById(first.id))!.status,
-          GoalStatus.superseded);
-      expect(
-          (await repository.getGoalById(second.id))!.status, GoalStatus.active);
-      final workout = await (database.select(database.userGoals)
-            ..where((row) => row.id.equals('workout-goal')))
-          .getSingle();
-      expect(workout.status, 'active');
-    });
+        expect(
+          (await repository.getGoalById(first.id))!.status,
+          GoalStatus.superseded,
+        );
+        expect(
+          (await repository.getGoalById(second.id))!.status,
+          GoalStatus.active,
+        );
+        final workout = await (database.select(
+          database.userGoals,
+        )..where((row) => row.id.equals('workout-goal'))).getSingle();
+        expect(workout.status, 'active');
+      },
+    );
 
-    test('a migrated goal starts driving the engine only after capture',
-        () async {
-      final start = DateTime(2026, 1, 1);
-      await database.into(database.userGoals).insert(
-            UserGoalsCompanion.insert(
-              id: const Value('missing-baseline'),
-              preset: 'loseWeight',
-              title: 'Legacy loss',
-              startDate: start,
-              desiredWeeklyRateKg: const Value(-0.5),
-              isNutritionDriver: const Value(true),
-            ),
-          );
-      final service = AdaptiveNutritionRecommendationService(
-        databaseHelper: DatabaseHelper.forTesting(database),
-        goalRepository: repository,
-      );
-      expect(
-        await service.refreshRecommendationIfDue(now: DateTime(2026, 1, 12)),
-        equals(null),
-      );
+    test(
+      'a migrated goal starts driving the engine only after capture',
+      () async {
+        final start = DateTime(2026, 1, 1);
+        await database
+            .into(database.userGoals)
+            .insert(
+              UserGoalsCompanion.insert(
+                id: const Value('missing-baseline'),
+                preset: 'loseWeight',
+                title: 'Legacy loss',
+                startDate: start,
+                desiredWeeklyRateKg: const Value(-0.5),
+                isNutritionDriver: const Value(true),
+              ),
+            );
+        final service = AdaptiveNutritionRecommendationService(
+          databaseHelper: DatabaseHelper.forTesting(database),
+          goalRepository: repository,
+        );
+        expect(
+          await service.refreshRecommendationIfDue(now: DateTime(2026, 1, 12)),
+          equals(null),
+        );
 
-      await database.into(database.measurements).insert(
-            MeasurementsCompanion.insert(
-              id: const Value('new-real-weight'),
-              type: 'weight',
-              value: 81,
-              unit: 'kg',
-              date: DateTime(2026, 1, 12),
-            ),
-          );
-      final captured =
-          await repository.captureMissingBaseline('missing-baseline');
-      expect(captured.baselineMeasurementId, 'new-real-weight');
-      expect(captured.baselineValueKg, 81);
-      expect(captured.baselineDate, DateTime(2026, 1, 12));
-    });
+        await database
+            .into(database.measurements)
+            .insert(
+              MeasurementsCompanion.insert(
+                id: const Value('new-real-weight'),
+                type: 'weight',
+                value: 81,
+                unit: 'kg',
+                date: DateTime(2026, 1, 12),
+              ),
+            );
+        final captured = await repository.captureMissingBaseline(
+          'missing-baseline',
+        );
+        expect(captured.baselineMeasurementId, 'new-real-weight');
+        expect(captured.baselineValueKg, 81);
+        expect(captured.baselineDate, DateTime(2026, 1, 12));
+      },
+    );
   });
 
   group('legacy nutrition goal migration', () {
@@ -155,39 +170,44 @@ void main() {
       (BodyweightGoal.gainWeight, 0.3, GoalPreset.gainWeight),
       (BodyweightGoal.maintainWeight, 0.0, GoalPreset.maintainWeight),
     ]) {
-      test('converts ${entry.$1.name} once with the real latest measurement',
-          () async {
-        SharedPreferences.setMockInitialValues({
-          'adaptive_nutrition_recommendation.goal_direction': entry.$1.name,
-          'adaptive_nutrition_recommendation.target_rate_kg_per_week': entry.$2,
-        });
-        final database = AppDatabase(NativeDatabase.memory());
-        addTearDown(database.close);
-        final date = DateTime(2026, 1, 10);
-        await database.into(database.measurements).insert(
-              MeasurementsCompanion.insert(
-                id: const Value('baseline'),
-                type: 'weight',
-                value: 80,
-                unit: 'kg',
-                date: date.subtract(const Duration(days: 1)),
-              ),
-            );
-        final migration = LegacyGoalMigration(
-          database: database,
-          legacyRepository: RecommendationRepository(),
-        );
+      test(
+        'converts ${entry.$1.name} once with the real latest measurement',
+        () async {
+          SharedPreferences.setMockInitialValues({
+            'adaptive_nutrition_recommendation.goal_direction': entry.$1.name,
+            'adaptive_nutrition_recommendation.target_rate_kg_per_week':
+                entry.$2,
+          });
+          final database = AppDatabase(NativeDatabase.memory());
+          addTearDown(database.close);
+          final date = DateTime(2026, 1, 10);
+          await database
+              .into(database.measurements)
+              .insert(
+                MeasurementsCompanion.insert(
+                  id: const Value('baseline'),
+                  type: 'weight',
+                  value: 80,
+                  unit: 'kg',
+                  date: date.subtract(const Duration(days: 1)),
+                ),
+              );
+          final migration = LegacyGoalMigration(
+            database: database,
+            legacyRepository: RecommendationRepository(),
+          );
 
-        expect(await migration.run(now: date), isTrue);
-        expect(await migration.run(now: date), isFalse);
-        final rows = await database.select(database.userGoals).get();
-        expect(rows, hasLength(1));
-        expect(rows.single.preset, entry.$3.key);
-        expect(rows.single.trackingMode, GoalTrackingMode.weeklyRate.name);
-        expect(rows.single.desiredWeeklyRateKg, entry.$2);
-        expect(rows.single.baselineMeasurementId, 'baseline');
-        expect(rows.single.baselineValueKg, 80);
-      });
+          expect(await migration.run(now: date), isTrue);
+          expect(await migration.run(now: date), isFalse);
+          final rows = await database.select(database.userGoals).get();
+          expect(rows, hasLength(1));
+          expect(rows.single.preset, entry.$3.key);
+          expect(rows.single.trackingMode, GoalTrackingMode.weeklyRate.name);
+          expect(rows.single.desiredWeeklyRateKg, entry.$2);
+          expect(rows.single.baselineMeasurementId, 'baseline');
+          expect(rows.single.baselineValueKg, 80);
+        },
+      );
     }
 
     test('defers conversion when no real weight measurement exists', () async {

@@ -133,299 +133,349 @@ void main() {
   });
 
   testWidgets(
-      'Onboarding order asks Activity before Goal Decision, and no training plan exists',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(_buildOnboardingTestApp(
-      goalRepository: goalRepository,
-      databaseHelper: dbHelper,
-      recommendationService: recommendationService,
-    ));
-    await tester.pumpAndSettle();
-
-    await _advanceToMeasurements(tester);
-
-    // Enter weight
-    await _setOnboardingWeight(tester, '80');
-
-    final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-
-    // Verify Page 5: Activity comes before goal decision
-    expect(find.byKey(const Key('onboarding_activity_page')), findsOneWidget);
-    expect(find.text('Wie aktiv bist du aktuell?'), findsOneWidget);
-    expect(find.byKey(const Key('onboarding_prior_activity_dropdown')),
-        findsOneWidget);
-    expect(find.byKey(const Key('onboarding_extra_cardio_dropdown')),
-        findsOneWidget);
-
-    // Verify no training plan UI in onboarding
-    expect(find.text('Trainingsplan'), findsNothing);
-    expect(find.text('Trainingspläne'), findsNothing);
-
-    // Advance to Page 6: Goal Decision
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-
-    expect(
-        find.byKey(const Key('onboarding_goal_decision_page')), findsOneWidget);
-    expect(find.text('Möchtest du ein persönliches Ernährungsziel verfolgen?'),
-        findsOneWidget);
-    expect(find.byKey(const Key('onboarding_goal_decision_now_button')),
-        findsOneWidget);
-    expect(find.byKey(const Key('onboarding_goal_decision_later_button')),
-        findsOneWidget);
-  });
-
-  testWidgets(
-      'Goal decision "Später einrichten" skips directly to Nutrition Review with neutral defaults',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(_buildOnboardingTestApp(
-      goalRepository: goalRepository,
-      databaseHelper: dbHelper,
-      recommendationService: recommendationService,
-    ));
-    await tester.pumpAndSettle();
-
-    await _advanceToMeasurements(tester);
-
-    await _setOnboardingWeight(tester, '75');
-
-    final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
-    await tester.tap(nextButton); // to Activity
-    await tester.pumpAndSettle();
-
-    await tester.tap(nextButton); // to Goal Decision
-    await tester.pumpAndSettle();
-
-    final laterFinder =
-        find.byKey(const Key('onboarding_goal_decision_later_button'));
-    await tester.ensureVisible(laterFinder);
-    await tester.pumpAndSettle();
-    await tester.tap(laterFinder);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-
-    // Directly in Nutrition Review (Page 11)
-    expect(find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
-    expect(find.text('Deine Ernährungsziele'), findsOneWidget);
-
-    // Goal steps (Preset, Target, Pace, Motivation) were skipped
-    expect(find.text('Was möchtest du erreichen?'), findsNothing);
-    expect(find.byKey(const Key('goal_duration_dropdown')), findsNothing);
-
-    // Tapping back returns to Goal Decision
-    final backButton = find.byIcon(LucideIcons.arrow_left);
-    await tester.tap(backButton);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-
-    expect(
-        find.byKey(const Key('onboarding_goal_decision_page')), findsOneWidget);
-  });
-
-  testWidgets(
-      'Goal decision "Jetzt einrichten" walks through Preset, Target, Pace, Motivation to Review',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(_buildOnboardingTestApp(
-      goalRepository: goalRepository,
-      databaseHelper: dbHelper,
-      recommendationService: recommendationService,
-    ));
-    await tester.pumpAndSettle();
-
-    await _advanceToMeasurements(tester);
-
-    await _setOnboardingWeight(tester, '85');
-
-    final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
-    await tester.tap(nextButton); // to Activity
-    await tester.pumpAndSettle();
-
-    await tester.tap(nextButton); // to Goal Decision
-    await tester.pumpAndSettle();
-
-    // Tap "Jetzt einrichten"
-    await tester
-        .tap(find.byKey(const Key('onboarding_goal_decision_now_button')));
-    await tester.pumpAndSettle();
-
-    // Page 7: Goal Preset
-    expect(find.text('Was möchtest du erreichen?'), findsOneWidget);
-    expect(find.text('Gewicht reduzieren'), findsOneWidget);
-    expect(find.text('Gewicht halten'), findsOneWidget);
-
-    // Select "Gewicht reduzieren"
-    await tester.tap(find.byKey(const Key('goal_preset_loseWeight')));
-    await tester.pumpAndSettle();
-
-    // Advance to Page 8: Goal Target
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-    expect(find.text('Was ist dein Zielgewicht?'), findsOneWidget);
-
-    // Verify baseline was populated from measurements (85 kg)
-    expect(find.text('85.0 kg'), findsWidgets);
-
-    // Advance to Page 9: Pace & Timeline
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-    expect(find.text('Tempo & Zieldatum planen'), findsOneWidget);
-    expect(find.text('Geplante Wochenrate'), findsOneWidget);
-
-    // Advance to Page 10: Motivation
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-    expect(find.text('Warum ist dir das wichtig?'), findsOneWidget);
-    expect(find.byKey(const ValueKey('reason_text_field')), findsOneWidget);
-
-    // Advance to Page 11: Nutrition Review
-    await tester.tap(nextButton);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-    expect(find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
-
-    // Only 1 LinearProgressIndicator exists (no nested progress bars)
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
-  });
-
-  testWidgets(
-      'Target weight validation prevents advancing when lose target >= baseline',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(_buildOnboardingTestApp(
-      goalRepository: goalRepository,
-      databaseHelper: dbHelper,
-      recommendationService: recommendationService,
-    ));
-    await tester.pumpAndSettle();
-
-    await _advanceToMeasurements(tester);
-
-    await _setOnboardingWeight(tester, '80');
-
-    final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
-    await tester.tap(nextButton); // to Activity
-    await tester.pumpAndSettle();
-    await tester.tap(nextButton); // to Goal Decision
-    await tester.pumpAndSettle();
-
-    await tester
-        .tap(find.byKey(const Key('onboarding_goal_decision_now_button')));
-    await tester.pumpAndSettle();
-
-    // Page 7: Select "Gewicht reduzieren" (Lose Weight)
-    await tester.tap(find.byKey(const Key('goal_preset_loseWeight')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(nextButton); // to Target Weight
-    await tester.pumpAndSettle();
-
-    // Switch to manual input and enter 85 kg (greater than baseline 80 kg)
-    final editButton = find.byIcon(LucideIcons.pencil);
-    if (editButton.evaluate().isNotEmpty) {
-      await tester.tap(editButton.first);
+    'Onboarding order asks Activity before Goal Decision, and no training plan exists',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _buildOnboardingTestApp(
+          goalRepository: goalRepository,
+          databaseHelper: dbHelper,
+          recommendationService: recommendationService,
+        ),
+      );
       await tester.pumpAndSettle();
-      final targetInput = find.byKey(const Key('goal_target_weight_input'));
-      if (targetInput.evaluate().isNotEmpty) {
-        await tester.enterText(targetInput, '85');
-        await tester.pumpAndSettle();
-      }
-    }
 
-    // Try to advance: validation error should prevent it
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
+      await _advanceToMeasurements(tester);
 
-    // Still on Target Weight step
-    expect(find.text('Was ist dein Zielgewicht?'), findsOneWidget);
-    expect(find.text('Tempo & Zieldatum planen'), findsNothing);
-  });
+      // Enter weight
+      await _setOnboardingWeight(tester, '80');
 
-  testWidgets(
-      'Completing onboarding creates exactly one active goal without duplicates from LegacyGoalMigration',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(_buildOnboardingTestApp(
-      goalRepository: goalRepository,
-      databaseHelper: dbHelper,
-      recommendationService: recommendationService,
-      onFinish: () {},
-    ));
-    await tester.pumpAndSettle();
-
-    await _advanceToMeasurements(tester);
-
-    await _setOnboardingWeight(tester, '80');
-
-    final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
-    await tester.tap(nextButton); // to Activity
-    await tester.pumpAndSettle();
-
-    await tester.tap(nextButton); // to Goal Decision
-    await tester.pumpAndSettle();
-
-    // Setup later (neutral maintain default)
-    final laterFinder =
-        find.byKey(const Key('onboarding_goal_decision_later_button'));
-    await tester.ensureVisible(laterFinder);
-    await tester.pumpAndSettle();
-    await tester.tap(laterFinder);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-
-    // Page 11: Nutrition Review
-    expect(find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
-
-    // Wait for recommendation computation to finish so next button is enabled
-    await tester.runAsync(() async {
-      await Future.delayed(const Duration(milliseconds: 600));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    // Advance to permissions (the optional import prompt was skipped above).
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-    if (find
-        .byKey(const Key('onboarding_workout_import_page'))
-        .evaluate()
-        .isNotEmpty) {
+      final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
-    }
-    expect(find.byKey(const Key('onboarding_ai_health_page')), findsOneWidget);
-    expect(find.byKey(const Key('onboarding_health_settings_link')),
-        findsOneWidget);
-    expect(find.text('Gesundheit'), findsOneWidget);
-    expect(find.text('Schritte'), findsNothing);
-    expect(find.text('Schlaf'), findsNothing);
-    expect(find.text('Puls'), findsNothing);
 
-    // On Page 12: Tap "LOSLEGEN" (Finish)
-    await tester.tap(nextButton);
-    await tester.runAsync(() async {
-      await Future.delayed(const Duration(milliseconds: 600));
-    });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      // Verify Page 5: Activity comes before goal decision
+      expect(find.byKey(const Key('onboarding_activity_page')), findsOneWidget);
+      expect(find.text('Wie aktiv bist du aktuell?'), findsOneWidget);
+      expect(
+        find.byKey(const Key('onboarding_prior_activity_dropdown')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('onboarding_extra_cardio_dropdown')),
+        findsOneWidget,
+      );
 
-    // Verify exactly 1 goal was created and is active
-    final activeGoal = await goalRepository.getActiveNutritionGoal();
-    expect(activeGoal, isNotNull);
-    expect(activeGoal!.isNutritionDriver, isTrue);
+      // Verify no training plan UI in onboarding
+      expect(find.text('Trainingsplan'), findsNothing);
+      expect(find.text('Trainingspläne'), findsNothing);
 
-    final allGoals = await database.select(database.userGoals).get();
-    expect(allGoals.length, 1);
-    expect(allGoals.first.status, 'active');
-    expect(allGoals.first.isNutritionDriver, isTrue);
-  });
+      // Advance to Page 6: Goal Decision
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
 
-  testWidgets('Baseline weight edit in goal flow syncs with onboarding state',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(_buildOnboardingTestApp(
-      goalRepository: goalRepository,
-      databaseHelper: dbHelper,
-      recommendationService: recommendationService,
-    ));
+      expect(
+        find.byKey(const Key('onboarding_goal_decision_page')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Möchtest du ein persönliches Ernährungsziel verfolgen?'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('onboarding_goal_decision_now_button')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('onboarding_goal_decision_later_button')),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'Goal decision "Später einrichten" skips directly to Nutrition Review with neutral defaults',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _buildOnboardingTestApp(
+          goalRepository: goalRepository,
+          databaseHelper: dbHelper,
+          recommendationService: recommendationService,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _advanceToMeasurements(tester);
+
+      await _setOnboardingWeight(tester, '75');
+
+      final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
+      await tester.tap(nextButton); // to Activity
+      await tester.pumpAndSettle();
+
+      await tester.tap(nextButton); // to Goal Decision
+      await tester.pumpAndSettle();
+
+      final laterFinder = find.byKey(
+        const Key('onboarding_goal_decision_later_button'),
+      );
+      await tester.ensureVisible(laterFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(laterFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // Directly in Nutrition Review (Page 11)
+      expect(
+        find.byKey(const Key('onboarding_nutrition_page')),
+        findsOneWidget,
+      );
+      expect(find.text('Deine Ernährungsziele'), findsOneWidget);
+
+      // Goal steps (Preset, Target, Pace, Motivation) were skipped
+      expect(find.text('Was möchtest du erreichen?'), findsNothing);
+      expect(find.byKey(const Key('goal_duration_dropdown')), findsNothing);
+
+      // Tapping back returns to Goal Decision
+      final backButton = find.byIcon(LucideIcons.arrow_left);
+      await tester.tap(backButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+
+      expect(
+        find.byKey(const Key('onboarding_goal_decision_page')),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'Goal decision "Jetzt einrichten" walks through Preset, Target, Pace, Motivation to Review',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _buildOnboardingTestApp(
+          goalRepository: goalRepository,
+          databaseHelper: dbHelper,
+          recommendationService: recommendationService,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _advanceToMeasurements(tester);
+
+      await _setOnboardingWeight(tester, '85');
+
+      final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
+      await tester.tap(nextButton); // to Activity
+      await tester.pumpAndSettle();
+
+      await tester.tap(nextButton); // to Goal Decision
+      await tester.pumpAndSettle();
+
+      // Tap "Jetzt einrichten"
+      await tester.tap(
+        find.byKey(const Key('onboarding_goal_decision_now_button')),
+      );
+      await tester.pumpAndSettle();
+
+      // Page 7: Goal Preset
+      expect(find.text('Was möchtest du erreichen?'), findsOneWidget);
+      expect(find.text('Gewicht reduzieren'), findsOneWidget);
+      expect(find.text('Gewicht halten'), findsOneWidget);
+
+      // Select "Gewicht reduzieren"
+      await tester.tap(find.byKey(const Key('goal_preset_loseWeight')));
+      await tester.pumpAndSettle();
+
+      // Advance to Page 8: Goal Target
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+      expect(find.text('Was ist dein Zielgewicht?'), findsOneWidget);
+
+      // Verify baseline was populated from measurements (85 kg)
+      expect(find.text('85.0 kg'), findsWidgets);
+
+      // Advance to Page 9: Pace & Timeline
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+      expect(find.text('Tempo & Zieldatum planen'), findsOneWidget);
+      expect(find.text('Geplante Wochenrate'), findsOneWidget);
+
+      // Advance to Page 10: Motivation
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+      expect(find.text('Warum ist dir das wichtig?'), findsOneWidget);
+      expect(find.byKey(const ValueKey('reason_text_field')), findsOneWidget);
+
+      // Advance to Page 11: Nutrition Review
+      await tester.tap(nextButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(
+        find.byKey(const Key('onboarding_nutrition_page')),
+        findsOneWidget,
+      );
+
+      // Only 1 LinearProgressIndicator exists (no nested progress bars)
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Target weight validation prevents advancing when lose target >= baseline',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _buildOnboardingTestApp(
+          goalRepository: goalRepository,
+          databaseHelper: dbHelper,
+          recommendationService: recommendationService,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _advanceToMeasurements(tester);
+
+      await _setOnboardingWeight(tester, '80');
+
+      final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
+      await tester.tap(nextButton); // to Activity
+      await tester.pumpAndSettle();
+      await tester.tap(nextButton); // to Goal Decision
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('onboarding_goal_decision_now_button')),
+      );
+      await tester.pumpAndSettle();
+
+      // Page 7: Select "Gewicht reduzieren" (Lose Weight)
+      await tester.tap(find.byKey(const Key('goal_preset_loseWeight')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(nextButton); // to Target Weight
+      await tester.pumpAndSettle();
+
+      // Switch to manual input and enter 85 kg (greater than baseline 80 kg)
+      final editButton = find.byIcon(LucideIcons.pencil);
+      if (editButton.evaluate().isNotEmpty) {
+        await tester.tap(editButton.first);
+        await tester.pumpAndSettle();
+        final targetInput = find.byKey(const Key('goal_target_weight_input'));
+        if (targetInput.evaluate().isNotEmpty) {
+          await tester.enterText(targetInput, '85');
+          await tester.pumpAndSettle();
+        }
+      }
+
+      // Try to advance: validation error should prevent it
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+
+      // Still on Target Weight step
+      expect(find.text('Was ist dein Zielgewicht?'), findsOneWidget);
+      expect(find.text('Tempo & Zieldatum planen'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Completing onboarding creates exactly one active goal without duplicates from LegacyGoalMigration',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _buildOnboardingTestApp(
+          goalRepository: goalRepository,
+          databaseHelper: dbHelper,
+          recommendationService: recommendationService,
+          onFinish: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _advanceToMeasurements(tester);
+
+      await _setOnboardingWeight(tester, '80');
+
+      final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
+      await tester.tap(nextButton); // to Activity
+      await tester.pumpAndSettle();
+
+      await tester.tap(nextButton); // to Goal Decision
+      await tester.pumpAndSettle();
+
+      // Setup later (neutral maintain default)
+      final laterFinder = find.byKey(
+        const Key('onboarding_goal_decision_later_button'),
+      );
+      await tester.ensureVisible(laterFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(laterFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+
+      // Page 11: Nutrition Review
+      expect(
+        find.byKey(const Key('onboarding_nutrition_page')),
+        findsOneWidget,
+      );
+
+      // Wait for recommendation computation to finish so next button is enabled
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 600));
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Advance to permissions (the optional import prompt was skipped above).
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+      if (find
+          .byKey(const Key('onboarding_workout_import_page'))
+          .evaluate()
+          .isNotEmpty) {
+        await tester.tap(nextButton);
+        await tester.pumpAndSettle();
+      }
+      expect(
+        find.byKey(const Key('onboarding_ai_health_page')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('onboarding_health_settings_link')),
+        findsOneWidget,
+      );
+      expect(find.text('Gesundheit'), findsOneWidget);
+      expect(find.text('Schritte'), findsNothing);
+      expect(find.text('Schlaf'), findsNothing);
+      expect(find.text('Puls'), findsNothing);
+
+      // On Page 12: Tap "LOSLEGEN" (Finish)
+      await tester.tap(nextButton);
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 600));
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verify exactly 1 goal was created and is active
+      final activeGoal = await goalRepository.getActiveNutritionGoal();
+      expect(activeGoal, isNotNull);
+      expect(activeGoal!.isNutritionDriver, isTrue);
+
+      final allGoals = await database.select(database.userGoals).get();
+      expect(allGoals.length, 1);
+      expect(allGoals.first.status, 'active');
+      expect(allGoals.first.isNutritionDriver, isTrue);
+    },
+  );
+
+  testWidgets('Baseline weight edit in goal flow syncs with onboarding state', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildOnboardingTestApp(
+        goalRepository: goalRepository,
+        databaseHelper: dbHelper,
+        recommendationService: recommendationService,
+      ),
+    );
     await tester.pumpAndSettle();
 
     await _advanceToMeasurements(tester);
@@ -439,8 +489,9 @@ void main() {
     await tester.tap(nextButton); // to Goal Decision
     await tester.pumpAndSettle();
 
-    await tester
-        .tap(find.byKey(const Key('onboarding_goal_decision_now_button')));
+    await tester.tap(
+      find.byKey(const Key('onboarding_goal_decision_now_button')),
+    );
     await tester.pumpAndSettle();
 
     // Page 7: Select "Gewicht reduzieren"
@@ -474,7 +525,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-        find.byKey(const Key('onboarding_measurements_page')), findsOneWidget);
+      find.byKey(const Key('onboarding_measurements_page')),
+      findsOneWidget,
+    );
     expect(find.text('82.5 kg'), findsOneWidget);
   });
 }

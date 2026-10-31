@@ -167,20 +167,10 @@ class CloudOverlayMarkdown extends StatelessWidget {
           ),
         ),
       ),
-      builders: {
-        'latex': LatexElementBuilder(
-          textStyle: bodyStyle,
-        ),
-      },
+      builders: {'latex': LatexElementBuilder(textStyle: bodyStyle)},
       extensionSet: md.ExtensionSet(
-        [
-          ...md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-          LatexBlockSyntax(),
-        ],
-        [
-          ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
-          LatexInlineSyntax(),
-        ],
+        [...md.ExtensionSet.gitHubFlavored.blockSyntaxes, LatexBlockSyntax()],
+        [...md.ExtensionSet.gitHubFlavored.inlineSyntaxes, LatexInlineSyntax()],
       ),
     );
   }

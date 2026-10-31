@@ -67,7 +67,8 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
     final fullscreenInset = 12.0 * fullscreenProgress;
     final expandedToolbarTop = safeRect.top - 62;
     final fullscreenToolbarTop = MediaQuery.paddingOf(context).top + 10;
-    final toolbarTop = expandedToolbarTop +
+    final toolbarTop =
+        expandedToolbarTop +
         (fullscreenToolbarTop - expandedToolbarTop) * fullscreenProgress;
 
     return Positioned(
@@ -162,8 +163,11 @@ class CloudOverlayHeaderToolbar extends StatelessWidget {
                     label: l10n.aiOverlayAutoApprove,
                     icon: LucideIcons.shield_check,
                     customTrailing: autoApproveDataRequests
-                        ? Icon(LucideIcons.check,
-                            color: foregroundColor, size: 18)
+                        ? Icon(
+                            LucideIcons.check,
+                            color: foregroundColor,
+                            size: 18,
+                          )
                         : null,
                   ),
                   PlatformAdaptivePopupMenuItem(

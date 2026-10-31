@@ -23,16 +23,18 @@ void main() {
   late LiveWorkoutViewModel manager;
 
   LiveWorkoutViewModel buildManager() => LiveWorkoutViewModel.forTesting(
-        workoutDb: WorkoutRepository(
-          localDataSource: WorkoutLocalDataSource(database),
-        ),
-      );
+    workoutDb: WorkoutRepository(
+      localDataSource: WorkoutLocalDataSource(database),
+    ),
+  );
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     database = AppDatabase(NativeDatabase.memory());
     for (var i = 1; i <= 3; i++) {
-      await database.into(database.exercises).insert(
+      await database
+          .into(database.exercises)
+          .insert(
             ExercisesCompanion(
               id: Value('uuid-ex-$i'),
               trackingType: const Value('weight_reps'),
@@ -51,20 +53,18 @@ void main() {
   });
 
   model.Exercise exerciseNamed(String name, int id) => model.Exercise(
-        id: id,
-        uuid: 'uuid-ex-$id',
-        texts: {
-          'de': model.ExerciseText(name: name, description: ''),
-          'en': model.ExerciseText(name: name, description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: const ['chest'],
-        secondaryMuscles: const [],
-      );
+    id: id,
+    uuid: 'uuid-ex-$id',
+    texts: {
+      'de': model.ExerciseText(name: name, description: ''),
+      'en': model.ExerciseText(name: name, description: ''),
+    },
+    categoryName: 'Strength',
+    primaryMuscles: const ['chest'],
+    secondaryMuscles: const [],
+  );
 
-  test(
-      'Routine workout copies prescription as snapshot and remains immutable on template change',
-      () async {
+  test('Routine workout copies prescription as snapshot and remains immutable on template change', () async {
     // 1. Create a routine in the database
     final routine = await workoutDb.createRoutine('Hypertrophy Day');
     final template = SetTemplate(
@@ -76,9 +76,7 @@ void main() {
     );
 
     // 2. Start live workout from this routine
-    final startLog = await workoutDb.startWorkout(
-      routineName: routine.name,
-    );
+    final startLog = await workoutDb.startWorkout(routineName: routine.name);
 
     final reForSession = RoutineExercise(
       id: 100,
@@ -101,11 +99,9 @@ void main() {
     expect(setLog.valuesAutoFilled, isFalse);
 
     // 3. Mutate the routine template in database (simulating user editing routine later)
-    await workoutDb.updateSetTemplate(template.copyWith(
-      targetReps: '10-15',
-      targetWeight: 100.0,
-      targetRir: 1,
-    ));
+    await workoutDb.updateSetTemplate(
+      template.copyWith(targetReps: '10-15', targetWeight: 100.0, targetRir: 1),
+    );
 
     // 4. Verify the logged set in DB still carries the original snapshot
     final setsInDb = await workoutDb.getSetLogsForWorkout(startLog.id!);
@@ -118,9 +114,7 @@ void main() {
     expect(loggedSet.prescribedRir, equals(2));
   });
 
-  test(
-      'Spontaneous set added during session gets origin none and null prescribed values',
-      () async {
+  test('Spontaneous set added during session gets origin none and null prescribed values', () async {
     final startLog = await workoutDb.startWorkout(routineName: 'Push A');
     final ex = exerciseNamed('Bench Press', 1);
     final re = RoutineExercise(
@@ -129,11 +123,12 @@ void main() {
       pauseSeconds: 60,
       setTemplates: [
         SetTemplate(
-            id: 101,
-            setType: 'normal',
-            targetReps: '8-12',
-            targetWeight: 70.0,
-            targetRir: 2),
+          id: 101,
+          setType: 'normal',
+          targetReps: '8-12',
+          targetWeight: 70.0,
+          targetRir: 2,
+        ),
       ],
     );
 
@@ -147,71 +142,82 @@ void main() {
     final spontaneousSet = manager.setLogs[spontaneousTemplate.id!];
 
     expect(spontaneousSet, isNotNull);
-    expect(spontaneousSet!.prescriptionOrigin,
-        equals(PrescriptionOrigin.none.name));
+    expect(
+      spontaneousSet!.prescriptionOrigin,
+      equals(PrescriptionOrigin.none.name),
+    );
     expect(spontaneousSet.prescribedRepMin, isNull);
     expect(spontaneousSet.prescribedRepMax, isNull);
     expect(spontaneousSet.prescribedWeight, isNull);
     expect(spontaneousSet.prescribedRir, isNull);
   });
 
-  test('Workout without routine gets prescriptionOrigin none for all sets',
-      () async {
-    // Routine-less workout
-    final startLog = await workoutDb.startWorkout(); // no routine
-    final ex = exerciseNamed('Overhead Press', 2);
-    final re = RoutineExercise(
-      id: 20,
-      exercise: ex,
-      pauseSeconds: 60,
-      setTemplates: [
-        SetTemplate(
-            id: 201, setType: 'normal', targetReps: '10', targetWeight: 50.0),
-      ],
-    );
+  test(
+    'Workout without routine gets prescriptionOrigin none for all sets',
+    () async {
+      // Routine-less workout
+      final startLog = await workoutDb.startWorkout(); // no routine
+      final ex = exerciseNamed('Overhead Press', 2);
+      final re = RoutineExercise(
+        id: 20,
+        exercise: ex,
+        pauseSeconds: 60,
+        setTemplates: [
+          SetTemplate(
+            id: 201,
+            setType: 'normal',
+            targetReps: '10',
+            targetWeight: 50.0,
+          ),
+        ],
+      );
 
-    await manager.startWorkout(startLog, [re]);
+      await manager.startWorkout(startLog, [re]);
 
-    final setLog = manager.setLogs[201];
-    expect(setLog, isNotNull);
-    expect(setLog!.prescriptionOrigin, equals(PrescriptionOrigin.none.name));
-    expect(setLog.prescribedRepMin, isNull);
-    expect(setLog.prescribedRepMax, isNull);
-    expect(setLog.prescribedWeight, isNull);
-    expect(setLog.prescribedRir, isNull);
-  });
-
-  test('Warm-up set in routine receives prescription snapshot like normal sets',
-      () async {
-    final startLog = await workoutDb.startWorkout(routineName: 'Leg Day');
-    final ex = exerciseNamed('Squat', 3);
-    final warmupTemplate = SetTemplate(
-      id: 301,
-      setType: 'warmup',
-      targetReps: '15',
-      targetWeight: 20.0,
-    );
-    final re = RoutineExercise(
-      id: 30,
-      exercise: ex,
-      pauseSeconds: 60,
-      setTemplates: [warmupTemplate],
-    );
-
-    await manager.startWorkout(startLog, [re]);
-
-    final setLog = manager.setLogs[301];
-    expect(setLog, isNotNull);
-    expect(setLog!.setType, equals('warmup'));
-    expect(setLog.prescriptionOrigin, equals(PrescriptionOrigin.routine.name));
-    expect(setLog.prescribedRepMin, equals(15));
-    expect(setLog.prescribedRepMax, equals(15));
-    expect(setLog.prescribedWeight, equals(20.0));
-  });
+      final setLog = manager.setLogs[201];
+      expect(setLog, isNotNull);
+      expect(setLog!.prescriptionOrigin, equals(PrescriptionOrigin.none.name));
+      expect(setLog.prescribedRepMin, isNull);
+      expect(setLog.prescribedRepMax, isNull);
+      expect(setLog.prescribedWeight, isNull);
+      expect(setLog.prescribedRir, isNull);
+    },
+  );
 
   test(
-      'valuesAutoFilled is true when completing empty set from template and false when user inputs values',
-      () {
+    'Warm-up set in routine receives prescription snapshot like normal sets',
+    () async {
+      final startLog = await workoutDb.startWorkout(routineName: 'Leg Day');
+      final ex = exerciseNamed('Squat', 3);
+      final warmupTemplate = SetTemplate(
+        id: 301,
+        setType: 'warmup',
+        targetReps: '15',
+        targetWeight: 20.0,
+      );
+      final re = RoutineExercise(
+        id: 30,
+        exercise: ex,
+        pauseSeconds: 60,
+        setTemplates: [warmupTemplate],
+      );
+
+      await manager.startWorkout(startLog, [re]);
+
+      final setLog = manager.setLogs[301];
+      expect(setLog, isNotNull);
+      expect(setLog!.setType, equals('warmup'));
+      expect(
+        setLog.prescriptionOrigin,
+        equals(PrescriptionOrigin.routine.name),
+      );
+      expect(setLog.prescribedRepMin, equals(15));
+      expect(setLog.prescribedRepMax, equals(15));
+      expect(setLog.prescribedWeight, equals(20.0));
+    },
+  );
+
+  test('valuesAutoFilled is true when completing empty set from template and false when user inputs values', () {
     final useCase = LogWorkoutSetUseCase();
     final template = SetTemplate(
       id: 500,

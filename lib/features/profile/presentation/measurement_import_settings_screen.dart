@@ -69,19 +69,20 @@ class _MeasurementImportSettingsScreenState
         final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.healthConnectWeightImportResult(
-              result.imported,
-              result.updated,
-            )),
+            content: Text(
+              l10n.healthConnectWeightImportResult(
+                result.imported,
+                result.updated,
+              ),
+            ),
           ),
         );
       }
       _changed = result != null;
     } on PlatformException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? error.code)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message ?? error.code)));
       }
     } finally {
       if (mounted) setState(() => _importing = false);
@@ -97,18 +98,19 @@ class _MeasurementImportSettingsScreenState
         final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.healthConnectWeightImportResult(
-              result.imported,
-              result.updated,
-            )),
+            content: Text(
+              l10n.healthConnectWeightImportResult(
+                result.imported,
+                result.updated,
+              ),
+            ),
           ),
         );
       }
     } on PlatformException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? error.code)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message ?? error.code)));
       }
     } finally {
       if (mounted) setState(() => _importing = false);
@@ -153,11 +155,11 @@ class _MeasurementImportSettingsScreenState
                 leading: const Icon(LucideIcons.download),
                 subtitle: _status?.available != true
                     ? isIos
-                        ? l10n.healthExportPlatformUnavailable
-                        : l10n.healthConnectWeightImportUnavailable
+                          ? l10n.healthExportPlatformUnavailable
+                          : l10n.healthConnectWeightImportUnavailable
                     : (_status?.isLimited ?? true)
-                        ? l10n.healthConnectWeightImportLimited
-                        : l10n.healthConnectWeightImportReady,
+                    ? l10n.healthConnectWeightImportLimited
+                    : l10n.healthConnectWeightImportReady,
                 trailing: _importing
                     ? const SizedBox(
                         width: 18,
@@ -168,14 +170,10 @@ class _MeasurementImportSettingsScreenState
                         LucideIcons.download,
                         size: 20,
                         color: (_enabled && !_importing)
-                            ? Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.4)
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.2),
+                            ? Theme.of(context).colorScheme.onSurface
+                                  .withValues(alpha: 0.4)
+                            : Theme.of(context).colorScheme.onSurface
+                                  .withValues(alpha: 0.2),
                       ),
                 onTap: _enabled && !_importing ? _importNow : null,
               ),

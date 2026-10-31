@@ -56,7 +56,8 @@ class WeeklyGoalTrajectoryAssessmentService {
           ? -(currentSmoothedValue - expectedValue).abs()
           : direction * (currentSmoothedValue - expectedValue);
       final tolerance = math.max(0.3, (plannedRate ?? 0).abs() * 0.75);
-      final targetMet = target != null &&
+      final targetMet =
+          target != null &&
           direction != 0 &&
           direction * (currentSmoothedValue - target) >= 0;
       if (targetMet) {
@@ -72,7 +73,8 @@ class WeeklyGoalTrajectoryAssessmentService {
       }
     }
 
-    final sufficient = weightObservationCount >=
+    final sufficient =
+        weightObservationCount >=
             WeeklyGoalReviewService.minWeightObservationsForReview &&
         nutritionLoggedDays >=
             WeeklyGoalReviewService.minLoggedIntakeDaysForReview &&
@@ -81,16 +83,17 @@ class WeeklyGoalTrajectoryAssessmentService {
     final rateDifference = recentRateKgPerWeek == null || plannedRate == null
         ? null
         : direction == 0
-            ? recentRateKgPerWeek.abs() - plannedRate.abs()
-            : direction * (recentRateKgPerWeek - plannedRate);
+        ? recentRateKgPerWeek.abs() - plannedRate.abs()
+        : direction * (recentRateKgPerWeek - plannedRate);
     String momentum = 'unclear';
     if (rateDifference != null && sufficient) {
       if (rateDifference.abs() <
           WeeklyGoalReviewService.minDivergenceThresholdKgPerWeek) {
         momentum = 'matching_plan';
       } else if (overallStatus == 'behind') {
-        momentum =
-            rateDifference > 0 ? 'catching_up' : 'falling_further_behind';
+        momentum = rateDifference > 0
+            ? 'catching_up'
+            : 'falling_further_behind';
       } else {
         momentum = rateDifference > 0 ? 'moving_faster' : 'moving_slower';
       }
@@ -113,10 +116,12 @@ class WeeklyGoalTrajectoryAssessmentService {
       final weeks = (target - currentSmoothedValue) / operatingRateKgPerWeek;
       projectedDate = reviewDate.add(Duration(days: (weeks * 7).round()));
     }
-    final requiredRateIsSafe = requiredRate == null ||
+    final requiredRateIsSafe =
+        requiredRate == null ||
         GoalTrajectoryCalculator.isRateSafe(requiredRate);
     final calorieTolerance = math.max(100.0, (currentCalories ?? 0) * 0.05);
-    final intakeExplainsGap = averageLoggedCalories != null &&
+    final intakeExplainsGap =
+        averageLoggedCalories != null &&
         currentCalories != null &&
         ((direction > 0 &&
                 averageLoggedCalories < currentCalories - calorieTolerance) ||
@@ -162,7 +167,7 @@ class WeeklyGoalTrajectoryAssessmentService {
 
 class WeeklyReviewEvaluation {
   final String
-      trajectoryStatus; // 'on_track', 'slower', 'faster', 'calibrating'
+  trajectoryStatus; // 'on_track', 'slower', 'faster', 'calibrating'
   final String confidenceLevel; // 'high', 'moderate', 'low', 'uncalibrated'
   final bool isSufficiencyGateMet;
   final int weightObservationCount;
@@ -219,7 +224,7 @@ class WeeklyGoalReviewService {
     // 1. Check Sufficiency Gate
     final isSufficient =
         weightObservationCount >= minWeightObservationsForReview &&
-            loggedIntakeDaysCount >= minLoggedIntakeDaysForReview;
+        loggedIntakeDaysCount >= minLoggedIntakeDaysForReview;
 
     if (!isSufficient || observedRateKgPerWeek == null) {
       return WeeklyReviewEvaluation(

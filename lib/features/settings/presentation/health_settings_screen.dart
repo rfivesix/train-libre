@@ -54,13 +54,15 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     adapters: [AppleHealthExportAdapter(), HealthConnectExportAdapter()],
   );
   late final SleepPermissionController _pulsePermissions =
-      SleepPermissionController(Platform.isIOS
-          ? const HealthKitSleepPermissionsService(
-              HealthKitSleepMethodChannelBridge(),
-            )
-          : const HealthConnectSleepPermissionsService(
-              HealthConnectSleepMethodChannelBridge(),
-            ));
+      SleepPermissionController(
+        Platform.isIOS
+            ? const HealthKitSleepPermissionsService(
+                HealthKitSleepMethodChannelBridge(),
+              )
+            : const HealthConnectSleepPermissionsService(
+                HealthConnectSleepMethodChannelBridge(),
+              ),
+      );
 
   bool _stepsEnabled = false;
   bool _sleepEnabled = false;
@@ -212,10 +214,9 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     await _run(() async {
       final result = await _measurement.requestAccessAndImport();
       if (result != null) {
-        _message(l10n.healthConnectWeightImportResult(
-          result.imported,
-          result.updated,
-        ));
+        _message(
+          l10n.healthConnectWeightImportResult(result.imported, result.updated),
+        );
         _markChanged();
       }
     });
@@ -250,10 +251,9 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     await _run(() async {
       final result = await _nutritionImport.requestAccessAndImport();
       if (result != null) {
-        _message(l10n.healthConnectWeightImportResult(
-          result.imported,
-          result.updated,
-        ));
+        _message(
+          l10n.healthConnectWeightImportResult(result.imported, result.updated),
+        );
         _markChanged();
       }
       await _load();
@@ -267,10 +267,9 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
       if (result == null) {
         _message(l10n.healthExportStatePermissionRequired);
       } else {
-        _message(l10n.healthConnectWeightImportResult(
-          result.imported,
-          result.updated,
-        ));
+        _message(
+          l10n.healthConnectWeightImportResult(result.imported, result.updated),
+        );
       }
       await _load();
     });
@@ -295,9 +294,11 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
         lookbackDays: 365,
         forceFullSync: true,
       );
-      _message(result.success
-          ? l10n.healthSettingsSleepSyncResult(result.importedSessions)
-          : (result.message ?? l10n.healthExportResultFailed));
+      _message(
+        result.success
+            ? l10n.healthSettingsSleepSyncResult(result.importedSessions)
+            : (result.message ?? l10n.healthExportResultFailed),
+      );
     });
   }
 
@@ -306,10 +307,9 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     return _run(() async {
       final result = await _measurement.importNow();
       if (result != null) {
-        _message(l10n.healthConnectWeightImportResult(
-          result.imported,
-          result.updated,
-        ));
+        _message(
+          l10n.healthConnectWeightImportResult(result.imported, result.updated),
+        );
       }
       await _load();
     });
@@ -319,11 +319,14 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     return _run(() async {
       final permission = await _export.requestPermissions(_platform);
-      final result =
-          permission.success ? await _export.exportNow(_platform) : permission;
-      _message(result.success
-          ? l10n.healthExportResultComplete
-          : _localizeExportMessage(result.message));
+      final result = permission.success
+          ? await _export.exportNow(_platform)
+          : permission;
+      _message(
+        result.success
+            ? l10n.healthExportResultComplete
+            : _localizeExportMessage(result.message),
+      );
       await _load();
     });
   }
@@ -382,19 +385,21 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final statuses = _exportStatuses[_platform];
     if (statuses == null) return l10n.healthExportStateIdle;
-    return HealthExportDomain.values.map((domain) {
-      final status = statuses.statusFor(domain);
-      final label = switch (status.state) {
-        HealthExportState.idle => l10n.healthExportStateIdle,
-        HealthExportState.exporting => l10n.healthExportStateExporting,
-        HealthExportState.success => l10n.healthExportStateSuccess,
-        HealthExportState.failed => l10n.healthExportStateFailed,
-        HealthExportState.permissionRequired =>
-          l10n.healthExportStatePermissionRequired,
-        HealthExportState.disabled => l10n.healthExportStateDisabled,
-      };
-      return '${_domainLabel(domain)}: $label';
-    }).join(' · ');
+    return HealthExportDomain.values
+        .map((domain) {
+          final status = statuses.statusFor(domain);
+          final label = switch (status.state) {
+            HealthExportState.idle => l10n.healthExportStateIdle,
+            HealthExportState.exporting => l10n.healthExportStateExporting,
+            HealthExportState.success => l10n.healthExportStateSuccess,
+            HealthExportState.failed => l10n.healthExportStateFailed,
+            HealthExportState.permissionRequired =>
+              l10n.healthExportStatePermissionRequired,
+            HealthExportState.disabled => l10n.healthExportStateDisabled,
+          };
+          return '${_domainLabel(domain)}: $label';
+        })
+        .join(' · ');
   }
 
   String _domainLabel(HealthExportDomain domain) {
@@ -471,97 +476,98 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
         ),
         children: [
           AppSectionHeader(
-              title: Platform.isIOS ? 'Apple Health' : 'Health Connect'),
+            title: Platform.isIOS ? 'Apple Health' : 'Health Connect',
+          ),
           ValueListenableBuilder<SleepPermissionStatus>(
             valueListenable: widget.sleepPermissionController.state,
-            builder: (context, permission, _) => Column(children: [
-              _row(
-                icon: LucideIcons.footprints,
-                title: l10n.stepsSettingsEnableTrackingTitle,
-                subtitle: _stepsStatusLabel(l10n),
-                value: _stepsEnabled,
-                onChanged: _setSteps,
-                actionLabel: l10n.healthSettingsSyncSteps,
-                onAction: _syncSteps,
-              ),
-              _row(
-                icon: LucideIcons.moon,
-                title: l10n.sleepEnableTrackingTitle,
-                subtitle: _permissionLabel(permission),
-                value: _sleepEnabled,
-                onChanged: _setSleep,
-                actionLabel: l10n.sleepImportNowTitle,
-                onAction: _syncSleep,
-              ),
-              ValueListenableBuilder<SleepPermissionStatus>(
-                valueListenable: _pulsePermissions.state,
-                builder: (context, pulsePermission, _) => _row(
-                  icon: LucideIcons.heart_pulse,
-                  title: l10n.pulseSettingsEnableTitle,
-                  subtitle: _permissionLabel(pulsePermission),
-                  value: _pulseEnabled,
-                  onChanged: _setPulse,
+            builder: (context, permission, _) => Column(
+              children: [
+                _row(
+                  icon: LucideIcons.footprints,
+                  title: l10n.stepsSettingsEnableTrackingTitle,
+                  subtitle: _stepsStatusLabel(l10n),
+                  value: _stepsEnabled,
+                  onChanged: _setSteps,
+                  actionLabel: l10n.healthSettingsSyncSteps,
+                  onAction: _syncSteps,
                 ),
-              ),
-              _row(
-                icon: LucideIcons.ruler,
-                title: Platform.isIOS
-                    ? l10n.appleHealthWeightImportTitle
-                    : l10n.healthConnectWeightImportTitle,
-                subtitle: _measurementStatus?.available == true
-                    ? ((_measurementStatus?.isLimited ?? false)
-                        ? l10n.healthConnectWeightImportLimited
-                        : l10n.healthConnectWeightImportReady)
-                    : l10n.healthExportPlatformUnavailable,
-                value: _measurementEnabled,
-                onChanged: _setMeasurement,
-                actionLabel: l10n.healthConnectWeightImportNow,
-                onAction: _syncMeasurement,
-              ),
-              _row(
-                icon: LucideIcons.chart_pie,
-                title: l10n.healthNutritionImportTitle,
-                subtitle: _nutritionImportStatus?.available != true
-                    ? l10n.healthExportPlatformUnavailable
-                    : !_nutritionImportEnabled
-                        ? l10n.healthExportStateIdle
-                        : (_nutritionImportStatus?.limitedHistory ?? false)
+                _row(
+                  icon: LucideIcons.moon,
+                  title: l10n.sleepEnableTrackingTitle,
+                  subtitle: _permissionLabel(permission),
+                  value: _sleepEnabled,
+                  onChanged: _setSleep,
+                  actionLabel: l10n.sleepImportNowTitle,
+                  onAction: _syncSleep,
+                ),
+                ValueListenableBuilder<SleepPermissionStatus>(
+                  valueListenable: _pulsePermissions.state,
+                  builder: (context, pulsePermission, _) => _row(
+                    icon: LucideIcons.heart_pulse,
+                    title: l10n.pulseSettingsEnableTitle,
+                    subtitle: _permissionLabel(pulsePermission),
+                    value: _pulseEnabled,
+                    onChanged: _setPulse,
+                  ),
+                ),
+                _row(
+                  icon: LucideIcons.ruler,
+                  title: Platform.isIOS
+                      ? l10n.appleHealthWeightImportTitle
+                      : l10n.healthConnectWeightImportTitle,
+                  subtitle: _measurementStatus?.available == true
+                      ? ((_measurementStatus?.isLimited ?? false)
                             ? l10n.healthConnectWeightImportLimited
-                            : l10n.healthConnectWeightImportReady,
-                value: _nutritionImportEnabled,
-                onChanged: _setNutritionImport,
-                actionLabel: l10n.healthConnectWeightImportNow,
-                onAction: _syncNutritionImport,
-              ),
-              if (_nutritionImportEnabled)
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 44,
-                    right: 16,
-                    bottom: 12,
-                  ),
-                  child: Text(
-                    l10n.healthNutritionImportPolicy,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.65),
-                        ),
-                  ),
+                            : l10n.healthConnectWeightImportReady)
+                      : l10n.healthExportPlatformUnavailable,
+                  value: _measurementEnabled,
+                  onChanged: _setMeasurement,
+                  actionLabel: l10n.healthConnectWeightImportNow,
+                  onAction: _syncMeasurement,
                 ),
-              _row(
-                icon: LucideIcons.heart,
-                title: Platform.isIOS
-                    ? l10n.healthExportAppleHealthTitle
-                    : l10n.healthExportHealthConnectTitle,
-                subtitle: _exportStatusLabel(),
-                value: _exportEnabled,
-                onChanged: _setExport,
-                actionLabel: l10n.healthSettingsSyncExport,
-                onAction: _syncExport,
-              ),
-            ]),
+                _row(
+                  icon: LucideIcons.chart_pie,
+                  title: l10n.healthNutritionImportTitle,
+                  subtitle: _nutritionImportStatus?.available != true
+                      ? l10n.healthExportPlatformUnavailable
+                      : !_nutritionImportEnabled
+                      ? l10n.healthExportStateIdle
+                      : (_nutritionImportStatus?.limitedHistory ?? false)
+                      ? l10n.healthConnectWeightImportLimited
+                      : l10n.healthConnectWeightImportReady,
+                  value: _nutritionImportEnabled,
+                  onChanged: _setNutritionImport,
+                  actionLabel: l10n.healthConnectWeightImportNow,
+                  onAction: _syncNutritionImport,
+                ),
+                if (_nutritionImportEnabled)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 44,
+                      right: 16,
+                      bottom: 12,
+                    ),
+                    child: Text(
+                      l10n.healthNutritionImportPolicy,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface
+                            .withValues(alpha: 0.65),
+                      ),
+                    ),
+                  ),
+                _row(
+                  icon: LucideIcons.heart,
+                  title: Platform.isIOS
+                      ? l10n.healthExportAppleHealthTitle
+                      : l10n.healthExportHealthConnectTitle,
+                  subtitle: _exportStatusLabel(),
+                  value: _exportEnabled,
+                  onChanged: _setExport,
+                  actionLabel: l10n.healthSettingsSyncExport,
+                  onAction: _syncExport,
+                ),
+              ],
+            ),
           ),
           if (_stepsAvailability == StepsAvailability.notAvailable)
             AppInfoRow(

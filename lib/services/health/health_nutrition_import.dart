@@ -36,16 +36,20 @@ class HealthNutritionDay {
       '${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
 
   String get fingerprint => sha256
-      .convert(utf8.encode([
-        day.toIso8601String(),
-        calories,
-        protein,
-        carbs,
-        fat,
-        sugar,
-        fiber,
-        salt,
-      ].join('|')))
+      .convert(
+        utf8.encode(
+          [
+            day.toIso8601String(),
+            calories,
+            protein,
+            carbs,
+            fat,
+            sugar,
+            fiber,
+            salt,
+          ].join('|'),
+        ),
+      )
       .toString();
 
   factory HealthNutritionDay.fromMap(Map<dynamic, dynamic> map) {
@@ -105,11 +109,9 @@ class HealthNutritionImportResult {
 }
 
 class HealthNutritionImportService {
-  HealthNutritionImportService({
-    bool? isIos,
-    DatabaseHelper? databaseHelper,
-  })  : _isIos = isIos ?? Platform.isIOS,
-        _dbHelper = databaseHelper ?? DatabaseHelper.instance;
+  HealthNutritionImportService({bool? isIos, DatabaseHelper? databaseHelper})
+    : _isIos = isIos ?? Platform.isIOS,
+      _dbHelper = databaseHelper ?? DatabaseHelper.instance;
 
   static const _enabledKey = 'health_nutrition_import_enabled';
   static const _iosChannel = MethodChannel(
@@ -167,11 +169,10 @@ class HealthNutritionImportService {
     final from = status.limitedHistory
         ? now.subtract(const Duration(days: 30))
         : DateTime.utc(1970);
-    final raw =
-        await _channel.invokeMethod<List<dynamic>>('readNutritionDays', {
-      'fromUtcIso': from.toIso8601String(),
-      'toUtcIso': now.toIso8601String(),
-    });
+    final raw = await _channel.invokeMethod<List<dynamic>>(
+      'readNutritionDays',
+      {'fromUtcIso': from.toIso8601String(), 'toUtcIso': now.toIso8601String()},
+    );
     var imported = 0;
     var updated = 0;
     var unchanged = 0;
@@ -212,15 +213,17 @@ class HealthNutritionImportService {
     final database = await _dbHelper.database;
     final timestamp = day.day;
     return database.transaction(() async {
-      final existing = await database.customSelect(
-        '''SELECT local_macro_entry_id, payload_fingerprint, sync_state
+      final existing = await database
+          .customSelect(
+            '''SELECT local_macro_entry_id, payload_fingerprint, sync_state
            FROM health_nutrition_import_records
            WHERE platform = ? AND external_record_id = ?''',
-        variables: [
-          drift.Variable.withString(_platform),
-          drift.Variable.withString(day.externalId),
-        ],
-      ).getSingleOrNull();
+            variables: [
+              drift.Variable.withString(_platform),
+              drift.Variable.withString(day.externalId),
+            ],
+          )
+          .getSingleOrNull();
       if (existing != null) {
         final state = existing.read<String>('sync_state');
         if (state != 'active') return _ImportOutcome.localChange;
@@ -228,9 +231,9 @@ class HealthNutritionImportService {
           return _ImportOutcome.unchanged;
         }
         final id = existing.read<String>('local_macro_entry_id');
-        await (database.update(database.macroEntries)
-              ..where((row) => row.id.equals(id)))
-            .write(
+        await (database.update(
+          database.macroEntries,
+        )..where((row) => row.id.equals(id))).write(
           db_model.MacroEntriesCompanion(
             consumedAt: drift.Value(timestamp),
             name: drift.Value(_displayName),
@@ -252,14 +255,16 @@ class HealthNutritionImportService {
             day.fingerprint,
             DateTime.now().millisecondsSinceEpoch,
             _platform,
-            day.externalId
+            day.externalId,
           ],
         );
         return _ImportOutcome.updated;
       }
 
       final id = const Uuid().v4();
-      await database.into(database.macroEntries).insert(
+      await database
+          .into(database.macroEntries)
+          .insert(
             db_model.MacroEntriesCompanion.insert(
               id: drift.Value(id),
               consumedAt: timestamp,

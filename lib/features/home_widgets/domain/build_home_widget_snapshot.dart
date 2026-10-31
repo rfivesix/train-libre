@@ -203,8 +203,9 @@ HomeWidgetRecovery buildHomeWidgetRecovery({
   return HomeWidgetRecovery(
     hasData: payload.hasData,
     headline: _recoveryOverallLabel(l10n, payload.overallState),
-    headlineColorHex:
-        overallColor == null ? null : homeWidgetColorHex(overallColor),
+    headlineColorHex: overallColor == null
+        ? null
+        : homeWidgetColorHex(overallColor),
     states: payload.hasData
         ? [
             pill(RecoveryDomainService.stateRecovering, totals.recovering),
@@ -333,7 +334,9 @@ List<HomeWidgetMeasurementMetric> buildHomeWidgetMeasurements({
   for (final session in ordered) {
     final epochMs = session.timestamp.millisecondsSinceEpoch.toDouble();
     for (final measurement in session.measurements) {
-      byType.putIfAbsent(measurement.type, () => []).add(
+      byType
+          .putIfAbsent(measurement.type, () => [])
+          .add(
             HomeWidgetMeasurementPoint(
               epochMs: epochMs,
               value: _displayMeasurementValue(

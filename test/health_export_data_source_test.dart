@@ -72,52 +72,53 @@ void main() {
       },
     );
 
-    test('does not export Health Connect weights imported from Health Connect',
-        () async {
-      final measurement = (await db.select(db.measurements).get())
-          .firstWhere((row) => row.type == 'weight');
-      await db.customStatement(
-        '''INSERT INTO health_import_records
+    test(
+      'does not export Health Connect weights imported from Health Connect',
+      () async {
+        final measurement = (await db.select(db.measurements).get()).firstWhere(
+          (row) => row.type == 'weight',
+        );
+        await db.customStatement(
+          '''INSERT INTO health_import_records
            (platform, domain, external_record_id, local_measurement_id,
             last_modified_at, payload_fingerprint)
            VALUES (?, ?, ?, ?, ?, ?)''',
-        [
-          'healthConnect',
-          'weight',
-          'source-weight-1',
-          measurement.localId,
-          DateTime.now().toUtc().millisecondsSinceEpoch,
-          'fingerprint',
-        ],
-      );
-      final source = HealthExportDataSource(databaseHelper: dbHelper);
+          [
+            'healthConnect',
+            'weight',
+            'source-weight-1',
+            measurement.localId,
+            DateTime.now().toUtc().millisecondsSinceEpoch,
+            'fingerprint',
+          ],
+        );
+        final source = HealthExportDataSource(databaseHelper: dbHelper);
 
-      final healthConnect = await source.loadMeasurements(
-        options: const HealthExportLoadOptions(
-          lookbackDays: 10,
-          platform: HealthExportPlatform.healthConnect,
-        ),
-      );
-      final appleHealth = await source.loadMeasurements(
-        options: const HealthExportLoadOptions(
-          lookbackDays: 10,
-          platform: HealthExportPlatform.appleHealth,
-        ),
-      );
+        final healthConnect = await source.loadMeasurements(
+          options: const HealthExportLoadOptions(
+            lookbackDays: 10,
+            platform: HealthExportPlatform.healthConnect,
+          ),
+        );
+        final appleHealth = await source.loadMeasurements(
+          options: const HealthExportLoadOptions(
+            lookbackDays: 10,
+            platform: HealthExportPlatform.appleHealth,
+          ),
+        );
 
-      expect(
-        healthConnect.where((record) => record.type.name == 'weight'),
-        isEmpty,
-      );
-      expect(
-        appleHealth.where((record) => record.type.name == 'weight'),
-        hasLength(1),
-      );
-    });
+        expect(
+          healthConnect.where((record) => record.type.name == 'weight'),
+          isEmpty,
+        );
+        expect(
+          appleHealth.where((record) => record.type.name == 'weight'),
+          hasLength(1),
+        );
+      },
+    );
 
-    test(
-        'exports completed strength sets as non-overlapping Health Connect segments',
-        () async {
+    test('exports completed strength sets as non-overlapping Health Connect segments', () async {
       final source = HealthExportDataSource(databaseHelper: dbHelper);
       final healthConnect = await source.loadWorkouts(
         options: const HealthExportLoadOptions(
@@ -133,19 +134,26 @@ void main() {
       final appleWorkout = appleHealth.single;
 
       expect(workout.segments, hasLength(13));
-      expect(workout.segments.first.exerciseType,
-          ExportWorkoutSegmentType.weightlifting);
+      expect(
+        workout.segments.first.exerciseType,
+        ExportWorkoutSegmentType.weightlifting,
+      );
       expect(workout.segments.first.repetitions, 20);
       expect(workout.segments.first.weightKg, 20);
       expect(workout.segments.first.setIndex, 0);
-      expect(
-        workout.segments.take(5).map((segment) => segment.setIndex),
-        [0, 1, 2, 3, 4],
-      );
+      expect(workout.segments.take(5).map((segment) => segment.setIndex), [
+        0,
+        1,
+        2,
+        3,
+        4,
+      ]);
       expect(workout.segments[5].setIndex, 0);
       expect(appleWorkout.segments, isEmpty);
       expect(
-          appleWorkout.payloadFingerprint, isNot(workout.payloadFingerprint));
+        appleWorkout.payloadFingerprint,
+        isNot(workout.payloadFingerprint),
+      );
 
       expect(workout.segments.first.startUtc, workout.startUtc);
       expect(workout.segments.last.endUtc, workout.endUtc);
@@ -163,49 +171,57 @@ void main() {
       }
     });
 
-    test('uses set creation times when they fit the workout in order',
-        () async {
-      final workout = await db.select(db.workoutLogs).getSingle();
-      final setRows = await (db.select(db.setLogs)
-            ..where((tbl) => tbl.workoutLogId.equals(workout.id))
-            ..orderBy([
-              (tbl) => drift.OrderingTerm(expression: tbl.logOrder),
-              (tbl) => drift.OrderingTerm(expression: tbl.localId),
-            ]))
-          .get();
-      for (var index = 0; index < setRows.length; index++) {
-        await (db.update(db.setLogs)
-              ..where((tbl) => tbl.localId.equals(setRows[index].localId)))
-            .write(
-          SetLogsCompanion(
-            createdAt: drift.Value(
-              workout.startTime.add(Duration(seconds: index * 2)),
+    test(
+      'uses set creation times when they fit the workout in order',
+      () async {
+        final workout = await db.select(db.workoutLogs).getSingle();
+        final setRows =
+            await (db.select(db.setLogs)
+                  ..where((tbl) => tbl.workoutLogId.equals(workout.id))
+                  ..orderBy([
+                    (tbl) => drift.OrderingTerm(expression: tbl.logOrder),
+                    (tbl) => drift.OrderingTerm(expression: tbl.localId),
+                  ]))
+                .get();
+        for (var index = 0; index < setRows.length; index++) {
+          await (db.update(
+            db.setLogs,
+          )..where((tbl) => tbl.localId.equals(setRows[index].localId))).write(
+            SetLogsCompanion(
+              createdAt: drift.Value(
+                workout.startTime.add(Duration(seconds: index * 2)),
+              ),
             ),
-          ),
+          );
+        }
+
+        final records = await HealthExportDataSource(databaseHelper: dbHelper)
+            .loadWorkouts(
+              options: const HealthExportLoadOptions(
+                platform: HealthExportPlatform.healthConnect,
+              ),
+            );
+
+        expect(
+          records.single.segments.first.startUtc,
+          workout.startTime.toUtc(),
         );
-      }
-
-      final records =
-          await HealthExportDataSource(databaseHelper: dbHelper).loadWorkouts(
-        options: const HealthExportLoadOptions(
-          platform: HealthExportPlatform.healthConnect,
-        ),
-      );
-
-      expect(records.single.segments.first.startUtc, workout.startTime.toUtc());
-      expect(
-        records.single.segments[1].startUtc,
-        workout.startTime.toUtc().add(const Duration(seconds: 2)),
-      );
-      expect(
-        records.single.segments.last.startUtc,
-        workout.startTime.toUtc().add(const Duration(seconds: 26)),
-      );
-    });
+        expect(
+          records.single.segments[1].startUtc,
+          workout.startTime.toUtc().add(const Duration(seconds: 2)),
+        );
+        expect(
+          records.single.segments.last.startUtc,
+          workout.startTime.toUtc().add(const Duration(seconds: 26)),
+        );
+      },
+    );
 
     test('omits unfinished sets and known non-strength modalities', () async {
       final workoutRow = await db.select(db.workoutLogs).getSingle();
-      await db.into(db.setLogs).insert(
+      await db
+          .into(db.setLogs)
+          .insert(
             SetLogsCompanion(
               workoutLogId: drift.Value(workoutRow.id),
               exerciseNameSnapshot: const drift.Value('Incomplete Bench Press'),
@@ -215,13 +231,17 @@ void main() {
               logOrder: const drift.Value(20),
             ),
           );
-      final cardioId = await db.into(db.exercises).insert(
+      final cardioId = await db
+          .into(db.exercises)
+          .insert(
             const ExercisesCompanion(
               id: drift.Value('exercise-cardio-test'),
               modality: drift.Value('cardio'),
             ),
           );
-      await db.into(db.setLogs).insert(
+      await db
+          .into(db.setLogs)
+          .insert(
             SetLogsCompanion(
               workoutLogId: drift.Value(workoutRow.id),
               exerciseId: drift.Value('exercise-cardio-test'),
@@ -232,7 +252,9 @@ void main() {
               logOrder: const drift.Value(21),
             ),
           );
-      await db.into(db.setLogs).insert(
+      await db
+          .into(db.setLogs)
+          .insert(
             SetLogsCompanion(
               workoutLogId: drift.Value(workoutRow.id),
               exerciseNameSnapshot: const drift.Value('Bodyweight Pull Up'),
@@ -241,7 +263,9 @@ void main() {
               logOrder: const drift.Value(22),
             ),
           );
-      await db.into(db.setLogs).insert(
+      await db
+          .into(db.setLogs)
+          .insert(
             SetLogsCompanion(
               workoutLogId: drift.Value(workoutRow.id),
               exerciseNameSnapshot: const drift.Value('Invalid Load Set'),
@@ -253,12 +277,12 @@ void main() {
             ),
           );
 
-      final records =
-          await HealthExportDataSource(databaseHelper: dbHelper).loadWorkouts(
-        options: const HealthExportLoadOptions(
-          platform: HealthExportPlatform.healthConnect,
-        ),
-      );
+      final records = await HealthExportDataSource(databaseHelper: dbHelper)
+          .loadWorkouts(
+            options: const HealthExportLoadOptions(
+              platform: HealthExportPlatform.healthConnect,
+            ),
+          );
 
       expect(records.single.segments, hasLength(15));
       expect(records.single.segments[13].repetitions, 0);
@@ -273,7 +297,9 @@ void main() {
 
 Future<void> _seed(AppDatabase db) async {
   final now = DateTime.now().toUtc();
-  await db.into(db.products).insert(
+  await db
+      .into(db.products)
+      .insert(
         const ProductsCompanion(
           barcode: drift.Value('prod-1'),
           name: drift.Value('Protein Bar'),
@@ -288,7 +314,9 @@ Future<void> _seed(AppDatabase db) async {
         ),
       );
 
-  await db.into(db.nutritionLogs).insert(
+  await db
+      .into(db.nutritionLogs)
+      .insert(
         NutritionLogsCompanion(
           consumedAt: drift.Value(now.subtract(const Duration(days: 1))),
           amount: const drift.Value(120),
@@ -297,7 +325,9 @@ Future<void> _seed(AppDatabase db) async {
         ),
       );
 
-  await db.into(db.fluidLogs).insert(
+  await db
+      .into(db.fluidLogs)
+      .insert(
         FluidLogsCompanion(
           consumedAt: drift.Value(now.subtract(const Duration(days: 1))),
           amountMl: const drift.Value(750),
@@ -305,7 +335,9 @@ Future<void> _seed(AppDatabase db) async {
         ),
       );
 
-  await db.into(db.measurements).insert(
+  await db
+      .into(db.measurements)
+      .insert(
         MeasurementsCompanion(
           date: drift.Value(now.subtract(const Duration(days: 1))),
           type: const drift.Value('weight'),
@@ -314,7 +346,9 @@ Future<void> _seed(AppDatabase db) async {
           legacySessionId: const drift.Value(10),
         ),
       );
-  await db.into(db.measurements).insert(
+  await db
+      .into(db.measurements)
+      .insert(
         MeasurementsCompanion(
           date: drift.Value(now.subtract(const Duration(days: 1))),
           type: const drift.Value('fat_percent'),
@@ -324,7 +358,9 @@ Future<void> _seed(AppDatabase db) async {
         ),
       );
 
-  final workout = await db.into(db.workoutLogs).insertReturning(
+  final workout = await db
+      .into(db.workoutLogs)
+      .insertReturning(
         WorkoutLogsCompanion(
           startTime: drift.Value(now.subtract(const Duration(hours: 2))),
           endTime: drift.Value(now.subtract(const Duration(hours: 1))),
@@ -333,13 +369,17 @@ Future<void> _seed(AppDatabase db) async {
           notes: const drift.Value('Session note'),
         ),
       );
-  await db.into(db.exercises).insert(
+  await db
+      .into(db.exercises)
+      .insert(
         const ExercisesCompanion(
           id: drift.Value('exercise-cardio-seed'),
           modality: drift.Value('cardio'),
         ),
       );
-  await db.into(db.exercises).insert(
+  await db
+      .into(db.exercises)
+      .insert(
         const ExercisesCompanion(
           id: drift.Value('exercise-strength-seed'),
           modality: drift.Value('strength'),

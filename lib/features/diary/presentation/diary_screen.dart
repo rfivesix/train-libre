@@ -1,9 +1,11 @@
 import '../../../services/unit_service.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+
 import '../../../data/database_helper.dart';
 import '../domain/models/daily_nutrition.dart';
 import 'dialogs/fluid_dialog_content.dart';
@@ -57,8 +59,11 @@ import '../domain/models/meal_entry.dart';
 import 'widgets/pending_review_diary_card.dart';
 import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
+
 import 'package:skeletonizer/skeletonizer.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
@@ -125,9 +130,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
       }
     }
   }
@@ -138,8 +142,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
   Future<void> syncHealthData({bool forceStepsRefresh = false}) async {
     await context.read<DiaryViewModel>().syncHealthData(
-          forceStepsRefresh: forceStepsRefresh,
-        );
+      forceStepsRefresh: forceStepsRefresh,
+    );
   }
 
   @Deprecated('Use setSelectedDate or syncHealthData instead')
@@ -212,28 +216,31 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       return;
                     }
                     try {
-                      await vm.updateMacroEntry(updated.copyWith(
-                        id: entry.id,
-                        mealEntryId: entry.mealEntryId,
-                        timestamp: entry.mealEntryId == null
-                            ? updated.timestamp
-                            : (vm.mealEntriesById[entry.mealEntryId]
-                                    ?.consumedAt ??
-                                entry.timestamp),
-                        mealType: entry.mealEntryId == null
-                            ? updated.mealType
-                            : (vm.mealEntriesById[entry.mealEntryId]
-                                    ?.mealType ??
-                                entry.mealType),
-                      ));
+                      await vm.updateMacroEntry(
+                        updated.copyWith(
+                          id: entry.id,
+                          mealEntryId: entry.mealEntryId,
+                          timestamp: entry.mealEntryId == null
+                              ? updated.timestamp
+                              : (vm
+                                        .mealEntriesById[entry.mealEntryId]
+                                        ?.consumedAt ??
+                                    entry.timestamp),
+                          mealType: entry.mealEntryId == null
+                              ? updated.mealType
+                              : (vm
+                                        .mealEntriesById[entry.mealEntryId]
+                                        ?.mealType ??
+                                    entry.mealType),
+                        ),
+                      );
                       if (sheetContext.mounted) {
                         Navigator.of(sheetContext).pop(true);
                       }
                     } catch (_) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.error)),
-                      );
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(l10n.error)));
                     }
                   },
                   label: l10n.buttonSave,
@@ -270,8 +277,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               );
 
               final logs = vm.supplementLogsForSupplement(supplement.id!);
-              final timeSuffix =
-                  switch (Localizations.localeOf(context).languageCode) {
+              final timeSuffix = switch (Localizations.localeOf(context)
+                  .languageCode) {
                 'de' => ' Uhr',
                 'nl' => ' uur',
                 _ => '',
@@ -291,9 +298,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
+                          style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -301,9 +306,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         right: 0,
                         child: Text(
                           '${currentTracked.totalDosedToday.toStringAsFixed(1).replaceAll('.0', '')} ${supplement.unit}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
@@ -323,13 +326,10 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       child: Center(
                         child: Text(
                           AppLocalizations.of(context)!.emptySupplementLogs,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.5),
+                                color: Theme.of(context).colorScheme.onSurface
+                                    .withValues(alpha: 0.5),
                               ),
                         ),
                       ),
@@ -344,7 +344,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           final log = logs[index];
                           final timeStr =
                               DateFormat.Hm().format(log.timestamp) +
-                                  timeSuffix;
+                              timeSuffix;
                           final doseStr =
                               '${log.dose.toStringAsFixed(1).replaceAll('.0', '')} ${log.unit}';
 
@@ -366,13 +366,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                               confirmDelete: () async {
                                 return await showDeleteConfirmation(
                                   context,
-                                  title: AppLocalizations.of(
-                                    context,
-                                  )!
+                                  title: AppLocalizations.of(context)!
                                       .deleteConfirmTitle,
-                                  content: AppLocalizations.of(
-                                    context,
-                                  )!
+                                  content: AppLocalizations.of(context)!
                                       .deleteSupplementLogConfirm,
                                 );
                               },
@@ -415,9 +411,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                           .bodyLarge
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
                                           ),
                                     ),
                                   ],
@@ -442,13 +438,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                               ),
                             );
                           },
-                          label: AppLocalizations.of(
-                            context,
-                          )!
+                          label: AppLocalizations.of(context)!
                               .manageSupplementsTitle,
-                          tooltip: AppLocalizations.of(
-                            context,
-                          )!
+                          tooltip: AppLocalizations.of(context)!
                               .manageSupplementsTitle,
                         ),
                       ),
@@ -613,9 +605,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         close();
                       } catch (e) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(l10n.error)));
                       }
                     },
                     label: l10n.save,
@@ -635,83 +626,85 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final GlobalKey<QuantityDialogContentState> dialogStateKey = GlobalKey();
     final vm = viewModel;
 
-    final result = await showGlassBottomMenu<
-        ({
-          int quantity,
-          DateTime timestamp,
-          String mealType,
-          bool isLiquid,
-          double? sugarPer100ml,
-          double? caffeinePer100ml,
-        })?>(
-      context: context,
-      title: trackedItem.item.getLocalizedName(context),
-      contentBuilder: (ctx, close) {
-        final linkedFluid = vm.fluidEntries
-            .where((f) => f.linkedFoodEntryId == trackedItem.entry.id)
-            .firstOrNull;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Dialog content, now used as bottom-sheet content
-            QuantityDialogContent(
-              key: dialogStateKey,
-              item: trackedItem.item,
-              initialQuantity: trackedItem.entry.quantityInGrams,
-              initialTimestamp: trackedItem.entry.timestamp,
-              initialMealType: trackedItem.entry.mealType,
-              initialIsLiquid: linkedFluid != null ? true : null,
-              initialSugar: linkedFluid?.sugarPer100ml,
-              initialCaffeine: linkedFluid?.caffeinePer100ml,
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-            Row(
+    final result =
+        await showGlassBottomMenu<
+          ({
+            int quantity,
+            DateTime timestamp,
+            String mealType,
+            bool isLiquid,
+            double? sugarPer100ml,
+            double? caffeinePer100ml,
+          })?
+        >(
+          context: context,
+          title: trackedItem.item.getLocalizedName(context),
+          contentBuilder: (ctx, close) {
+            final linkedFluid = vm.fluidEntries
+                .where((f) => f.linkedFoodEntryId == trackedItem.entry.id)
+                .firstOrNull;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: AppButton.secondary(
-                    onPressed: close,
-                    label: l10n.cancel,
-                    tooltip: l10n.cancel,
-                  ),
+                // Dialog content, now used as bottom-sheet content
+                QuantityDialogContent(
+                  key: dialogStateKey,
+                  item: trackedItem.item,
+                  initialQuantity: trackedItem.entry.quantityInGrams,
+                  initialTimestamp: trackedItem.entry.timestamp,
+                  initialMealType: trackedItem.entry.mealType,
+                  initialIsLiquid: linkedFluid != null ? true : null,
+                  initialSugar: linkedFluid?.sugarPer100ml,
+                  initialCaffeine: linkedFluid?.caffeinePer100ml,
                 ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: AppButton.primary(
-                    onPressed: () {
-                      final state = dialogStateKey.currentState;
-                      if (state != null) {
-                        final quantity = int.tryParse(state.quantityText);
-                        final caffeine = double.tryParse(
-                          state.caffeineText.replaceAll(',', '.'),
-                        );
-                        final sugar = double.tryParse(
-                          state.sugarText.replaceAll(',', '.'),
-                        );
+                const SizedBox(height: DesignConstants.spacingM),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton.secondary(
+                        onPressed: close,
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Expanded(
+                      child: AppButton.primary(
+                        onPressed: () {
+                          final state = dialogStateKey.currentState;
+                          if (state != null) {
+                            final quantity = int.tryParse(state.quantityText);
+                            final caffeine = double.tryParse(
+                              state.caffeineText.replaceAll(',', '.'),
+                            );
+                            final sugar = double.tryParse(
+                              state.sugarText.replaceAll(',', '.'),
+                            );
 
-                        if (quantity != null && quantity > 0) {
-                          close();
-                          // Return the correct anonymous tuple here.
-                          Navigator.of(ctx).pop((
-                            quantity: quantity,
-                            timestamp: state.selectedDateTime,
-                            mealType: state.selectedMealType,
-                            isLiquid: state.isLiquid,
-                            sugarPer100ml: sugar,
-                            caffeinePer100ml: caffeine,
-                          ));
-                        }
-                      }
-                    },
-                    label: l10n.save,
-                    tooltip: l10n.save,
-                  ),
+                            if (quantity != null && quantity > 0) {
+                              close();
+                              // Return the correct anonymous tuple here.
+                              Navigator.of(ctx).pop((
+                                quantity: quantity,
+                                timestamp: state.selectedDateTime,
+                                mealType: state.selectedMealType,
+                                isLiquid: state.isLiquid,
+                                sugarPer100ml: sugar,
+                                caffeinePer100ml: caffeine,
+                              ));
+                            }
+                          }
+                        },
+                        label: l10n.save,
+                        tooltip: l10n.save,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
         );
-      },
-    );
 
     // Continue processing the result data.
     if (result != null) {
@@ -794,9 +787,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       final savedItems = await DatabaseHelper.instance.getMealItems(newMealId);
       final meals = await DatabaseHelper.instance.getMeals();
       final created = meals.cast<Map<String, dynamic>?>().firstWhere(
-            (m) => m?['id'] == newMealId,
-            orElse: () => null,
-          );
+        (m) => m?['id'] == newMealId,
+        orElse: () => null,
+      );
       if (created != null &&
           (created['name'] as String).isEmpty &&
           savedItems.isEmpty) {
@@ -885,14 +878,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   // In lib/screens/diary_screen.dart
 
   Future<
-      ({
-        int quantity,
-        DateTime timestamp,
-        String mealType,
-        bool isLiquid,
-        double? sugarPer100ml,
-        double? caffeinePer100ml,
-      })?> _showQuantityMenu(
+    ({
+      int quantity,
+      DateTime timestamp,
+      String mealType,
+      bool isLiquid,
+      double? sugarPer100ml,
+      double? caffeinePer100ml,
+    })?
+  >
+  _showQuantityMenu(
     FoodItem item,
     String mealType, {
     DateTime? initialDate, // <--- New parameter
@@ -1017,9 +1012,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       (vm) => vm.workoutSummary != null,
     );
     final l10n = AppLocalizations.of(context)!;
-    final double appBarHeight = MediaQuery.paddingOf(
-      context,
-    ).top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.paddingOf(context)
+        .top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding = DesignConstants
@@ -1052,15 +1046,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             child: weightCard(),
           ),
           Expanded(
-              child: Padding(
-            padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
-            child: ColdStartEmptyState(
-              icon: LucideIcons.notebook_pen,
-              title: l10n.emptyStateDiaryColdStartTitle,
-              subtitle: l10n.emptyStateDiaryColdStartSubtitle,
-              callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+            child: Padding(
+              padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
+              child: ColdStartEmptyState(
+                icon: LucideIcons.notebook_pen,
+                title: l10n.emptyStateDiaryColdStartTitle,
+                subtitle: l10n.emptyStateDiaryColdStartSubtitle,
+                callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+              ),
             ),
-          )),
+          ),
         ],
       );
     }
@@ -1068,7 +1063,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     // Today is a valid, initially empty diary. Showing the loading skeleton and
     // the "no data" overlay there hides the actions a user needs to begin.
     // Older empty days remain a gap in the historical record.
-    final bool showSkeleton = (!hasDataForSelectedDate && !isToday) ||
+    final bool showSkeleton =
+        (!hasDataForSelectedDate && !isToday) ||
         isLoading ||
         hasEverLoggedData == null;
 
@@ -1085,12 +1081,13 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Selector<
-                      DiaryViewModel,
-                      ({
-                        DailyNutrition? dailyNutrition,
-                        DateTime selectedDate,
-                        String overviewExtraNutrient,
-                      })>(
+                    DiaryViewModel,
+                    ({
+                      DailyNutrition? dailyNutrition,
+                      DateTime selectedDate,
+                      String overviewExtraNutrient,
+                    })
+                  >(
                     selector: (context, vm) => (
                       dailyNutrition: showSkeleton
                           ? DailyNutrition(
@@ -1128,26 +1125,27 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   ),
                   const SizedBox(height: DesignConstants.spacingXS),
                   Selector<
-                      DiaryViewModel,
-                      ({
-                        List<TrackedSupplement> trackedSupplements,
-                        DateTime selectedDate,
-                      })>(
+                    DiaryViewModel,
+                    ({
+                      List<TrackedSupplement> trackedSupplements,
+                      DateTime selectedDate,
+                    })
+                  >(
                     selector: (context, vm) => (
                       trackedSupplements:
                           (showSkeleton && vm.trackedSupplements.isEmpty)
-                              ? [
-                                  TrackedSupplement(
-                                    supplement: Supplement(
-                                      name: 'Whey Protein',
-                                      defaultDose: 30,
-                                      dailyLimit: 100,
-                                      unit: 'g',
-                                    ),
-                                    totalDosedToday: 30,
-                                  ),
-                                ]
-                              : vm.trackedSupplements,
+                          ? [
+                              TrackedSupplement(
+                                supplement: Supplement(
+                                  name: 'Whey Protein',
+                                  defaultDose: 30,
+                                  dailyLimit: 100,
+                                  unit: 'g',
+                                ),
+                                totalDosedToday: 30,
+                              ),
+                            ]
+                          : vm.trackedSupplements,
                       selectedDate: vm.selectedDate,
                     ),
                     builder: (context, data, child) {
@@ -1183,46 +1181,51 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                   duration: const Duration(milliseconds: 250),
                                   child: workoutSummary == null
                                       ? const SizedBox.shrink(
-                                          key: ValueKey('no_summary'))
+                                          key: ValueKey('no_summary'),
+                                        )
                                       : Builder(
                                           key: const ValueKey('has_summary'),
                                           builder: (cardCtx) {
-                                            Widget buildSummaryCard(
-                                                    {VoidCallback? onTap}) =>
-                                                RepaintBoundary(
-                                                  child:
-                                                      TodaysWorkoutSummaryCard(
-                                                    duration: workoutSummary[
-                                                        'duration'] as Duration,
-                                                    volume:
-                                                        workoutSummary['volume']
-                                                            as double,
-                                                    sets: workoutSummary['sets']
+                                            Widget buildSummaryCard({
+                                              VoidCallback? onTap,
+                                            }) => RepaintBoundary(
+                                              child: TodaysWorkoutSummaryCard(
+                                                duration:
+                                                    workoutSummary['duration']
+                                                        as Duration,
+                                                volume:
+                                                    workoutSummary['volume']
+                                                        as double,
+                                                sets:
+                                                    workoutSummary['sets']
                                                         as int,
-                                                    workoutCount:
-                                                        workoutSummary['count']
-                                                            as int,
-                                                    onTap: onTap ?? () {},
-                                                  ),
-                                                );
+                                                workoutCount:
+                                                    workoutSummary['count']
+                                                        as int,
+                                                onTap: onTap ?? () {},
+                                              ),
+                                            );
 
                                             return MorphSourceScope(
                                               builder: (context, setHidden) =>
                                                   buildSummaryCard(
-                                                onTap: () {
-                                                  Navigator.of(context).push(
-                                                    CardMorphRoute(
-                                                      sourceContext: cardCtx,
-                                                      sourceBuilder: (_) =>
-                                                          buildSummaryCard(),
-                                                      onSourceVisibilityChanged:
-                                                          setHidden,
-                                                      builder: (context) =>
-                                                          const WorkoutHistoryScreen(),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
+                                                    onTap: () {
+                                                      Navigator.of(
+                                                        context,
+                                                      ).push(
+                                                        CardMorphRoute(
+                                                          sourceContext:
+                                                              cardCtx,
+                                                          sourceBuilder: (_) =>
+                                                              buildSummaryCard(),
+                                                          onSourceVisibilityChanged:
+                                                              setHidden,
+                                                          builder: (context) =>
+                                                              const WorkoutHistoryScreen(),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
                                             );
                                           },
                                         ),
@@ -1260,9 +1263,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const BottomContentSpacer(),
-                ],
+                children: [const BottomContentSpacer()],
               ),
             ),
           ),
@@ -1337,8 +1338,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           : null;
 
                       final newEntry = FluidEntry(
-                        timestamp: state
-                            .selectedDateTime, // This is now initialized correctly.
+                        timestamp: state.selectedDateTime, // This is now initialized correctly.
                         quantityInMl: quantity,
                         name: name,
                         kcal: kcal,
@@ -1364,9 +1364,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         }
                       } catch (_) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(l10n.error)));
                         return;
                       }
 
@@ -1552,8 +1551,9 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
     final today = DateTime.now().dateOnly;
     final selected = widget.selectedDate.dateOnly;
     final daysFromToday = today.difference(selected).inDays;
-    final rightmostDate =
-        !selected.isAfter(today) && daysFromToday <= 3 ? today : selected;
+    final rightmostDate = !selected.isAfter(today) && daysFromToday <= 3
+        ? today
+        : selected;
     final rightmostIndex = rightmostDate.difference(_firstDate).inDays;
     final targetOffset =
         (rightmostIndex - _rightmostVisibleOffset) * _currentItemExtent;
@@ -1601,10 +1601,12 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
               builder: (context, constraints) {
                 final requestedWidth = _fourDayStripWidth + _scrollPreviewWidth;
                 final fitsPreview = constraints.maxWidth >= requestedWidth;
-                final stripWidth =
-                    fitsPreview ? requestedWidth : constraints.maxWidth;
-                final itemExtent =
-                    fitsPreview ? _dayItemExtent : stripWidth / 4.5;
+                final stripWidth = fitsPreview
+                    ? requestedWidth
+                    : constraints.maxWidth;
+                final itemExtent = fitsPreview
+                    ? _dayItemExtent
+                    : stripWidth / 4.5;
                 _currentItemExtent = itemExtent;
                 _rightmostVisibleOffset = 2;
 
@@ -1673,8 +1675,9 @@ class _DiaryCalendarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final background =
-        isDark ? DesignConstants.summaryCardDarkMode : Colors.white;
+    final background = isDark
+        ? DesignConstants.summaryCardDarkMode
+        : Colors.white;
 
     return Tooltip(
       message: tooltip,
@@ -1722,18 +1725,16 @@ class _DiaryDayButton extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final weekday = DateFormat.E(locale).format(date).toUpperCase();
     final dateLabel = DateFormat.yMMMMEEEEd(locale).format(date);
-    final foreground =
-        isSelected ? colorScheme.onPrimary : colorScheme.onSurface;
+    final foreground = isSelected
+        ? colorScheme.onPrimary
+        : colorScheme.onSurface;
 
     return Semantics(
       button: true,
       selected: isSelected,
       label: dateLabel,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 2,
-          vertical: 4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
         child: Material(
           color: isSelected ? colorScheme.primary : Colors.transparent,
           shape: RoundedRectangleBorder(
@@ -1784,7 +1785,7 @@ class _MealCard extends StatefulWidget {
   final Future<void> Function(MacroEntry) onEditMacroEntry;
   final Future<void> Function(String) onDeleteMacroEntry;
   final Future<void> Function(List<TrackedFoodItem>, AppLocalizations)
-      onSaveAsTemplate;
+  onSaveAsTemplate;
 
   const _MealCard({
     super.key,
@@ -1925,8 +1926,9 @@ class _MealCardState extends State<_MealCard> {
                     carbs: mealMacros.carbs,
                     fat: mealMacros.fat,
                     caffeine: mealMacros.caffeine,
-                    useBadges:
-                        context.read<ThemeService>().useColorfulMacroBadges,
+                    useBadges: context
+                        .read<ThemeService>()
+                        .useColorfulMacroBadges,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -1942,8 +1944,8 @@ class _MealCardState extends State<_MealCard> {
                     builder: (context) {
                       final mealEntriesById = context
                           .select<DiaryViewModel, Map<String, MealEntry>>(
-                        (vm) => vm.mealEntriesById,
-                      );
+                            (vm) => vm.mealEntriesById,
+                          );
 
                       // Group items with a valid mealEntryId
                       final groupedByMealEntry =
@@ -1984,43 +1986,49 @@ class _MealCardState extends State<_MealCard> {
                       int kcalOfGroup(List<TrackedFoodItem> group) =>
                           group.fold(0, (sum, item) => sum + kcalOf(item));
                       int kcalOfMacroGroup(List<MacroEntry> group) =>
-                          group.fold(0,
-                              (sum, item) => sum + item.totalCalories.round());
+                          group.fold(
+                            0,
+                            (sum, item) => sum + item.totalCalories.round(),
+                          );
                       int kcalOfMeal(String id) =>
                           kcalOfGroup(groupedByMealEntry[id] ?? const []) +
                           kcalOfMacroGroup(
-                              groupedMacrosByMealEntry[id] ?? const []);
+                            groupedMacrosByMealEntry[id] ?? const [],
+                          );
 
                       for (final group in groupedByMealEntry.values) {
                         group.sort((a, b) => kcalOf(b).compareTo(kcalOf(a)));
                       }
-                      standaloneItems
-                          .sort((a, b) => kcalOf(b).compareTo(kcalOf(a)));
+                      standaloneItems.sort(
+                        (a, b) => kcalOf(b).compareTo(kcalOf(a)),
+                      );
                       standaloneMacros.sort(
-                          (a, b) => b.totalCalories.compareTo(a.totalCalories));
+                        (a, b) => b.totalCalories.compareTo(a.totalCalories),
+                      );
 
-                      final orderedMealIds = {
-                        ...groupedByMealEntry.keys,
-                        ...groupedMacrosByMealEntry.keys,
-                      }.toList()
-                        ..sort(
-                            (a, b) => kcalOfMeal(b).compareTo(kcalOfMeal(a)));
+                      final orderedMealIds =
+                          {
+                            ...groupedByMealEntry.keys,
+                            ...groupedMacrosByMealEntry.keys,
+                          }.toList()..sort(
+                            (a, b) => kcalOfMeal(b).compareTo(kcalOfMeal(a)),
+                          );
 
                       bool entryHasPhoto(MealEntry? entry) {
                         if (entry == null) return false;
                         for (final path in [
                           entry.photoThumbPath,
-                          entry.photoPath
+                          entry.photoPath,
                         ]) {
-                          final file =
-                              MealPhotoStore.instance.resolveSync(path);
+                          final file = MealPhotoStore.instance.resolveSync(
+                            path,
+                          );
                           if (file != null && file.existsSync()) return true;
                         }
                         return false;
                       }
 
-                      final sectionItems =
-                          <({bool hasPhoto, int kcal, Widget widget})>[
+                      final sectionItems = <({bool hasPhoto, int kcal, Widget widget})>[
                         for (final entryId in orderedMealIds)
                           (
                             hasPhoto: entryHasPhoto(mealEntriesById[entryId]),
@@ -2030,56 +2038,53 @@ class _MealCardState extends State<_MealCard> {
                                 Widget buildMealCard({
                                   VoidCallback? onTapDetail,
                                   bool collapsed = false,
-                                }) =>
-                                    MealEntryCard(
-                                      key: ValueKey(entryId),
-                                      collapsed: collapsed,
-                                      mealEntry: mealEntriesById[entryId]!,
-                                      items: groupedByMealEntry[entryId] ??
-                                          const [],
-                                      macroEntries:
-                                          groupedMacrosByMealEntry[entryId] ??
-                                              const [],
-                                      onTapDetail: onTapDetail,
-                                      onConfirmDeleteMeal: () async {
-                                        final meal = mealEntriesById[entryId]!;
-                                        final childItems =
-                                            groupedByMealEntry[entryId] ??
-                                                const <TrackedFoodItem>[];
-                                        final childMacros =
-                                            groupedMacrosByMealEntry[entryId] ??
-                                                const <MacroEntry>[];
-                                        final mealKcal = kcalOfMeal(entryId);
-                                        return await DeleteMealEntryBottomSheet
-                                            .show(
-                                          context,
-                                          mealTitle: meal.title ?? 'Mahlzeit',
-                                          itemCount: childItems.length +
-                                              childMacros.length,
-                                          totalKcal: mealKcal,
-                                        );
-                                      },
-                                      onDeleteMeal: (choice) {
-                                        final meal = mealEntriesById[entryId];
-                                        if (meal == null) return;
-                                        final viewModel =
-                                            context.read<DiaryViewModel>();
-                                        viewModel.deleteMealEntry(
-                                          meal.id,
-                                          deleteFoodLogs: choice ==
-                                              DeleteMealChoice.deleteAll,
-                                        );
-                                      },
-                                      onEditItem: widget.onEditFood,
-                                      onDeleteItem: widget.onDeleteFood,
-                                      onEditMacroEntry: widget.onEditMacroEntry,
-                                      onDeleteMacroEntry:
-                                          widget.onDeleteMacroEntry,
+                                }) => MealEntryCard(
+                                  key: ValueKey(entryId),
+                                  collapsed: collapsed,
+                                  mealEntry: mealEntriesById[entryId]!,
+                                  items:
+                                      groupedByMealEntry[entryId] ?? const [],
+                                  macroEntries:
+                                      groupedMacrosByMealEntry[entryId] ??
+                                      const [],
+                                  onTapDetail: onTapDetail,
+                                  onConfirmDeleteMeal: () async {
+                                    final meal = mealEntriesById[entryId]!;
+                                    final childItems =
+                                        groupedByMealEntry[entryId] ??
+                                        const <TrackedFoodItem>[];
+                                    final childMacros =
+                                        groupedMacrosByMealEntry[entryId] ??
+                                        const <MacroEntry>[];
+                                    final mealKcal = kcalOfMeal(entryId);
+                                    return await DeleteMealEntryBottomSheet.show(
+                                      context,
+                                      mealTitle: meal.title ?? 'Mahlzeit',
+                                      itemCount:
+                                          childItems.length +
+                                          childMacros.length,
+                                      totalKcal: mealKcal,
                                     );
+                                  },
+                                  onDeleteMeal: (choice) {
+                                    final meal = mealEntriesById[entryId];
+                                    if (meal == null) return;
+                                    final viewModel = context
+                                        .read<DiaryViewModel>();
+                                    viewModel.deleteMealEntry(
+                                      meal.id,
+                                      deleteFoodLogs:
+                                          choice == DeleteMealChoice.deleteAll,
+                                    );
+                                  },
+                                  onEditItem: widget.onEditFood,
+                                  onDeleteItem: widget.onDeleteFood,
+                                  onEditMacroEntry: widget.onEditMacroEntry,
+                                  onDeleteMacroEntry: widget.onDeleteMacroEntry,
+                                );
 
                                 return MorphSourceScope(
-                                  builder: (context, setHidden) =>
-                                      buildMealCard(
+                                  builder: (context, setHidden) => buildMealCard(
                                     // The flying copy is a fresh card and
                                     // therefore collapsed. Folding the
                                     // original away for the flight keeps the
@@ -2094,9 +2099,10 @@ class _MealCardState extends State<_MealCard> {
                                           onSourceVisibilityChanged: (hidden) {
                                             setHidden(hidden);
                                             if (mounted) {
-                                              setState(() =>
-                                                  _morphingMealEntryId =
-                                                      hidden ? entryId : null);
+                                              setState(
+                                                () => _morphingMealEntryId =
+                                                    hidden ? entryId : null,
+                                              );
                                             }
                                           },
                                           builder: (_) => MealEntryScreen(
@@ -2104,11 +2110,10 @@ class _MealCardState extends State<_MealCard> {
                                                 mealEntriesById[entryId]!,
                                             initialItems:
                                                 groupedByMealEntry[entryId] ??
-                                                    const [],
+                                                const [],
                                             initialMacroEntries:
-                                                groupedMacrosByMealEntry[
-                                                        entryId] ??
-                                                    const [],
+                                                groupedMacrosByMealEntry[entryId] ??
+                                                const [],
                                           ),
                                         ),
                                       );
@@ -2291,7 +2296,8 @@ class _FluidsCardState extends State<_FluidsCard> {
                               (entry.sugarPer100ml! / 100) * entry.quantityInMl;
                         }
                         if (entry.caffeinePer100ml != null) {
-                          totalCaffeine += (entry.caffeinePer100ml! / 100) *
+                          totalCaffeine +=
+                              (entry.caffeinePer100ml! / 100) *
                               entry.quantityInMl;
                         }
                       }
@@ -2300,8 +2306,9 @@ class _FluidsCardState extends State<_FluidsCard> {
                         sugar: totalSugar,
                         caffeine: totalCaffeine,
                         waterMl: totalMl,
-                        useBadges:
-                            ctx.read<ThemeService>().useColorfulMacroBadges,
+                        useBadges: ctx
+                            .read<ThemeService>()
+                            .useColorfulMacroBadges,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,

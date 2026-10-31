@@ -64,46 +64,48 @@ class _InputSource implements WeeklyGoalReviewInputSource {
 }
 
 void main() {
-  test('settings, deduplication and permission-free fallback are respected',
-      () async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    final repository = GoalRepositoryImpl(database: database);
-    await repository.createGoal(
-      baselineValueKg: 80,
-      baselineDate: DateTime(2026, 1, 1),
-      preset: GoalPreset.loseWeight,
-      title: 'Test',
-      startDate: DateTime(2026, 1, 1),
-      targetDate: DateTime(2026, 3, 1),
-      desiredWeeklyRateKg: -0.5,
-    );
-    final preferences = _Preferences();
-    final scheduler = _Scheduler()..deliverySucceeds = false;
-    final orchestrator = GoalNotificationOrchestrator(
-      goalRepository: repository,
-      reviewOrchestrator: WeeklyGoalReviewOrchestrator(
+  test(
+    'settings, deduplication and permission-free fallback are respected',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final repository = GoalRepositoryImpl(database: database);
+      await repository.createGoal(
+        baselineValueKg: 80,
+        baselineDate: DateTime(2026, 1, 1),
+        preset: GoalPreset.loseWeight,
+        title: 'Test',
+        startDate: DateTime(2026, 1, 1),
+        targetDate: DateTime(2026, 3, 1),
+        desiredWeeklyRateKg: -0.5,
+      );
+      final preferences = _Preferences();
+      final scheduler = _Scheduler()..deliverySucceeds = false;
+      final orchestrator = GoalNotificationOrchestrator(
         goalRepository: repository,
-        inputSource: _InputSource(),
-      ),
-      scheduler: scheduler,
-      preferences: preferences,
-    );
+        reviewOrchestrator: WeeklyGoalReviewOrchestrator(
+          goalRepository: repository,
+          inputSource: _InputSource(),
+        ),
+        scheduler: scheduler,
+        preferences: preferences,
+      );
 
-    final first = await orchestrator.synchronize(now: DateTime(2026, 1, 8));
-    await orchestrator.synchronize(now: DateTime(2026, 1, 9));
+      final first = await orchestrator.synchronize(now: DateTime(2026, 1, 8));
+      await orchestrator.synchronize(now: DateTime(2026, 1, 9));
 
-    expect(first.review, isNotNull);
-    expect(scheduler.reviewCalls, 1);
-    expect(scheduler.targetCalls, 2);
-    expect(preferences.notified, contains(first.review!.id));
+      expect(first.review, isNotNull);
+      expect(scheduler.reviewCalls, 1);
+      expect(scheduler.targetCalls, 2);
+      expect(preferences.notified, contains(first.review!.id));
 
-    preferences.target = false;
-    preferences.weekly = false;
-    await orchestrator.synchronize(now: DateTime(2026, 1, 9));
-    expect(scheduler.reviewCalls, 1);
-    expect(scheduler.targetCancellations, 1);
-  });
+      preferences.target = false;
+      preferences.weekly = false;
+      await orchestrator.synchronize(now: DateTime(2026, 1, 9));
+      expect(scheduler.reviewCalls, 1);
+      expect(scheduler.targetCancellations, 1);
+    },
+  );
 
   test('retirement closes reviews and cancels goal notifications', () async {
     final database = AppDatabase(NativeDatabase.memory());

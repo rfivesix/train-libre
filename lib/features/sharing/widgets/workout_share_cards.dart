@@ -81,16 +81,19 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxVolume =
-        muscles.isEmpty ? 0.0 : muscles.map((m) => m.volume).reduce(math.max);
+    final maxVolume = muscles.isEmpty
+        ? 0.0
+        : muscles.map((m) => m.volume).reduce(math.max);
     final showRadar = muscles.length >= 3 && maxVolume > 0;
     final visibleMuscles = muscles.take(showRadar ? 3 : 4);
     final workload = <String, double>{};
     for (final m in muscles) {
       workload[m.name] = m.volume;
     }
-    final highlights =
-        MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
+    final highlights = MuscleColorHelper.mapVolumeToPrimaryColors(
+      context,
+      workload,
+    );
 
     return _ShareScaffold(
       labels: labels,
@@ -116,22 +119,30 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: BodyHighlighter(
-                      gender:
-                          context.read<ProfileService>().gender.toBodyGender(),
+                      gender: context
+                          .read<ProfileService>()
+                          .gender
+                          .toBodyGender(),
                       side: BodySide.front,
-                      highlightedParts:
-                          BodySlugMapper.forSide(highlights, BodySide.front),
+                      highlightedParts: BodySlugMapper.forSide(
+                        highlights,
+                        BodySide.front,
+                      ),
                       outlineWidth: 2.0,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingXXL),
                   Expanded(
                     child: BodyHighlighter(
-                      gender:
-                          context.read<ProfileService>().gender.toBodyGender(),
+                      gender: context
+                          .read<ProfileService>()
+                          .gender
+                          .toBodyGender(),
                       side: BodySide.back,
-                      highlightedParts:
-                          BodySlugMapper.forSide(highlights, BodySide.back),
+                      highlightedParts: BodySlugMapper.forSide(
+                        highlights,
+                        BodySide.back,
+                      ),
                       outlineWidth: 2.0,
                     ),
                   ),

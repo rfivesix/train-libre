@@ -83,8 +83,9 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
     );
 
     final Color doneTextColor = isDark ? Colors.white : Colors.black;
-    final Color doneIconColor =
-        isDark ? const Color(0xFF69F0AE) : const Color(0xFF2E7D32);
+    final Color doneIconColor = isDark
+        ? const Color(0xFF69F0AE)
+        : const Color(0xFF2E7D32);
 
     final restSeconds = widget.remainingRestSeconds;
     final minutes = restSeconds ~/ 60;
@@ -134,9 +135,12 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
                                   useOwnLayer: true,
                                   height: DesignConstants.workoutOverlayHeight,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0, vertical: 12.0),
+                                    horizontal: 20.0,
+                                    vertical: 12.0,
+                                  ),
                                   shape: LiquidRoundedSuperellipse(
-                                      borderRadius: r),
+                                    borderRadius: r,
+                                  ),
                                   quality: DesignConstants.defaultGlassQuality,
                                   settings: defaultGlass,
                                   child: Row(
@@ -153,19 +157,23 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
                                             tapTargetSize: MaterialTapTargetSize
                                                 .shrinkWrap,
                                             backgroundColor: isDark
-                                                ? Colors.white
-                                                    .withValues(alpha: 0.08)
-                                                : Colors.black
-                                                    .withValues(alpha: 0.06),
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.08,
+                                                  )
+                                                : Colors.black.withValues(
+                                                    alpha: 0.06,
+                                                  ),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                               side: BorderSide(
                                                 color: isDark
-                                                    ? Colors.white
-                                                        .withValues(alpha: 0.1)
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.1,
+                                                      )
                                                     : Colors.black.withValues(
-                                                        alpha: 0.05),
+                                                        alpha: 0.05,
+                                                      ),
                                               ),
                                             ),
                                             padding: EdgeInsets.zero,
@@ -195,7 +203,7 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
                                             fontWeight: FontWeight.bold,
                                             color: theme.colorScheme.onSurface,
                                             fontFeatures: const [
-                                              FontFeature.tabularFigures()
+                                              FontFeature.tabularFigures(),
                                             ],
                                           ),
                                         ),
@@ -211,19 +219,23 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
                                             tapTargetSize: MaterialTapTargetSize
                                                 .shrinkWrap,
                                             backgroundColor: isDark
-                                                ? Colors.white
-                                                    .withValues(alpha: 0.08)
-                                                : Colors.black
-                                                    .withValues(alpha: 0.06),
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.08,
+                                                  )
+                                                : Colors.black.withValues(
+                                                    alpha: 0.06,
+                                                  ),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                               side: BorderSide(
                                                 color: isDark
-                                                    ? Colors.white
-                                                        .withValues(alpha: 0.1)
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.1,
+                                                      )
                                                     : Colors.black.withValues(
-                                                        alpha: 0.05),
+                                                        alpha: 0.05,
+                                                      ),
                                               ),
                                             ),
                                             padding: EdgeInsets.zero,
@@ -276,9 +288,12 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
                                   useOwnLayer: true,
                                   height: DesignConstants.workoutOverlayHeight,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0, vertical: 12.0),
+                                    horizontal: 20.0,
+                                    vertical: 12.0,
+                                  ),
                                   shape: LiquidRoundedSuperellipse(
-                                      borderRadius: r),
+                                    borderRadius: r,
+                                  ),
                                   quality: DesignConstants.defaultGlassQuality,
                                   settings: doneGlass,
                                   child: Row(
@@ -288,8 +303,10 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(LucideIcons.circle_check,
-                                              color: doneIconColor),
+                                          Icon(
+                                            LucideIcons.circle_check,
+                                            color: doneIconColor,
+                                          ),
                                           const SizedBox(width: 8),
                                           Text(
                                             l10n.restOverLabel,
@@ -310,23 +327,28 @@ class _LiveWorkoutRestBarState extends State<LiveWorkoutRestBar>
                                                 .shrinkWrap,
                                             foregroundColor: doneTextColor,
                                             backgroundColor: isDark
-                                                ? Colors.white
-                                                    .withValues(alpha: 0.15)
-                                                : Colors.black
-                                                    .withValues(alpha: 0.08),
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.15,
+                                                  )
+                                                : Colors.black.withValues(
+                                                    alpha: 0.08,
+                                                  ),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                               side: BorderSide(
                                                 color: isDark
-                                                    ? Colors.white
-                                                        .withValues(alpha: 0.20)
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.20,
+                                                      )
                                                     : Colors.black.withValues(
-                                                        alpha: 0.08),
+                                                        alpha: 0.08,
+                                                      ),
                                               ),
                                             ),
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 16),
+                                              horizontal: 16,
+                                            ),
                                           ),
                                           onPressed: widget.onCancelRest,
                                           child: Text(

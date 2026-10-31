@@ -64,41 +64,43 @@ void main() {
     expect(dataSource.requests, isEmpty);
   });
 
-  test('queries padded window and filters final samples to selected window',
-      () async {
-    final start = DateTime.utc(2026, 4, 20);
-    final end = DateTime.utc(2026, 4, 21);
-    final dataSource = _FakeHeartRateDataSource(
-      samples: [
-        HealthHeartRateSampleDto(
-          sampledAtUtc: start.subtract(const Duration(minutes: 1)),
-          bpm: 60,
-        ),
-        HealthHeartRateSampleDto(
-          sampledAtUtc: start.add(const Duration(hours: 1)),
-          bpm: 70,
-        ),
-      ],
-    );
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    final repository = HealthPulseAnalysisRepository(
-      dataSource: dataSource,
-      trackingService: const _FakePulseSettings(true),
-      database: database,
-    );
+  test(
+    'queries padded window and filters final samples to selected window',
+    () async {
+      final start = DateTime.utc(2026, 4, 20);
+      final end = DateTime.utc(2026, 4, 21);
+      final dataSource = _FakeHeartRateDataSource(
+        samples: [
+          HealthHeartRateSampleDto(
+            sampledAtUtc: start.subtract(const Duration(minutes: 1)),
+            bpm: 60,
+          ),
+          HealthHeartRateSampleDto(
+            sampledAtUtc: start.add(const Duration(hours: 1)),
+            bpm: 70,
+          ),
+        ],
+      );
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final repository = HealthPulseAnalysisRepository(
+        dataSource: dataSource,
+        trackingService: const _FakePulseSettings(true),
+        database: database,
+      );
 
-    final summary = await repository.getAnalysis(
-      window: PulseAnalysisWindow(startUtc: start, endUtc: end),
-    );
+      final summary = await repository.getAnalysis(
+        window: PulseAnalysisWindow(startUtc: start, endUtc: end),
+      );
 
-    expect(dataSource.requests.single, (
-      start.subtract(const Duration(hours: 24)),
-      end.add(const Duration(hours: 24))
-    ));
-    expect(summary.sampleCount, 1);
-    expect(summary.averageBpm, 70);
-  });
+      expect(dataSource.requests.single, (
+        start.subtract(const Duration(hours: 24)),
+        end.add(const Duration(hours: 24)),
+      ));
+      expect(summary.sampleCount, 1);
+      expect(summary.averageBpm, 70);
+    },
+  );
 
   test('maps permission error to permission no-data state', () async {
     final database = AppDatabase(NativeDatabase.memory());
@@ -121,70 +123,75 @@ void main() {
   });
 
   test(
-      'uses aggregate cache on second hub open without reprocessing raw samples',
-      () async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    final start = DateTime.utc(2026, 4, 1);
-    final samples = _syntheticSamples(start, 160000);
-    final dataSource = _FakeHeartRateDataSource(samples: samples);
-    final repository = HealthPulseAnalysisRepository(
-      dataSource: dataSource,
-      trackingService: const _FakePulseSettings(true),
-      database: database,
-      queryPadding: Duration.zero,
-    );
-    final window = PulseAnalysisWindow(
-      startUtc: start,
-      endUtc: start.add(const Duration(days: 120)),
-    );
+    'uses aggregate cache on second hub open without reprocessing raw samples',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final start = DateTime.utc(2026, 4, 1);
+      final samples = _syntheticSamples(start, 160000);
+      final dataSource = _FakeHeartRateDataSource(samples: samples);
+      final repository = HealthPulseAnalysisRepository(
+        dataSource: dataSource,
+        trackingService: const _FakePulseSettings(true),
+        database: database,
+        queryPadding: Duration.zero,
+      );
+      final window = PulseAnalysisWindow(
+        startUtc: start,
+        endUtc: start.add(const Duration(days: 120)),
+      );
 
-    final first = await repository.getAnalysis(window: window);
-    final second = await repository.getAnalysis(window: window);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+      final first = await repository.getAnalysis(window: window);
+      final second = await repository.getAnalysis(window: window);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(first.sampleCount, 160000);
-    expect(second.sampleCount, 160000);
-    expect(dataSource.requests.length, lessThanOrEqualTo(2));
-    if (dataSource.requests.length == 2) {
-      expect(dataSource.requests.last.$1.isAfter(start), isTrue);
-    }
-  });
+      expect(first.sampleCount, 160000);
+      expect(second.sampleCount, 160000);
+      expect(dataSource.requests.length, lessThanOrEqualTo(2));
+      if (dataSource.requests.length == 2) {
+        expect(dataSource.requests.last.$1.isAfter(start), isTrue);
+      }
+    },
+  );
 
-  test('larger older window triggers leading backfill before summary',
-      () async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    final start = DateTime.utc(2026, 4, 1);
-    final samples = _syntheticSamples(
-      start,
-      30 * 24,
-      step: const Duration(hours: 1),
-    );
-    final dataSource = _FakeHeartRateDataSource(samples: samples);
-    final repository = HealthPulseAnalysisRepository(
-      dataSource: dataSource,
-      trackingService: const _FakePulseSettings(true),
-      database: database,
-      queryPadding: Duration.zero,
-    );
-    final recentWindow = PulseAnalysisWindow(
-      startUtc: start.add(const Duration(days: 23)),
-      endUtc: start.add(const Duration(days: 30)),
-    );
-    final fullWindow = PulseAnalysisWindow(
-      startUtc: start,
-      endUtc: start.add(const Duration(days: 30)),
-    );
+  test(
+    'larger older window triggers leading backfill before summary',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final start = DateTime.utc(2026, 4, 1);
+      final samples = _syntheticSamples(
+        start,
+        30 * 24,
+        step: const Duration(hours: 1),
+      );
+      final dataSource = _FakeHeartRateDataSource(samples: samples);
+      final repository = HealthPulseAnalysisRepository(
+        dataSource: dataSource,
+        trackingService: const _FakePulseSettings(true),
+        database: database,
+        queryPadding: Duration.zero,
+      );
+      final recentWindow = PulseAnalysisWindow(
+        startUtc: start.add(const Duration(days: 23)),
+        endUtc: start.add(const Duration(days: 30)),
+      );
+      final fullWindow = PulseAnalysisWindow(
+        startUtc: start,
+        endUtc: start.add(const Duration(days: 30)),
+      );
 
-    await repository.getAnalysis(window: recentWindow);
-    final summary = await repository.getAnalysis(window: fullWindow);
+      await repository.getAnalysis(window: recentWindow);
+      final summary = await repository.getAnalysis(window: fullWindow);
 
-    expect(dataSource.requests.length, 2);
-    expect(
-        dataSource.requests.last, (fullWindow.startUtc, recentWindow.startUtc));
-    expect(summary.sampleCount, 30 * 24);
-  });
+      expect(dataSource.requests.length, 2);
+      expect(dataSource.requests.last, (
+        fullWindow.startUtc,
+        recentWindow.startUtc,
+      ));
+      expect(summary.sampleCount, 30 * 24);
+    },
+  );
 
   test('single cached bucket does not cover a much larger window', () async {
     final database = AppDatabase(NativeDatabase.memory());
@@ -192,9 +199,7 @@ void main() {
     final start = DateTime.utc(2026, 4, 1);
     final sampleAt = start.add(const Duration(days: 10));
     final dataSource = _FakeHeartRateDataSource(
-      samples: [
-        HealthHeartRateSampleDto(sampledAtUtc: sampleAt, bpm: 70),
-      ],
+      samples: [HealthHeartRateSampleDto(sampledAtUtc: sampleAt, bpm: 70)],
     );
     final repository = HealthPulseAnalysisRepository(
       dataSource: dataSource,
@@ -222,40 +227,44 @@ void main() {
     expect(summary.sampleCount, 1);
   });
 
-  test('trailing new data is refreshed incrementally after cached range',
-      () async {
-    final database = AppDatabase(NativeDatabase.memory());
-    addTearDown(database.close);
-    final start = DateTime.utc(2026, 4, 1);
-    final samples = _syntheticSamples(
-      start,
-      48,
-      step: const Duration(hours: 1),
-    );
-    final dataSource = _FakeHeartRateDataSource(samples: samples);
-    final repository = HealthPulseAnalysisRepository(
-      dataSource: dataSource,
-      trackingService: const _FakePulseSettings(true),
-      database: database,
-      queryPadding: Duration.zero,
-    );
-    final window = PulseAnalysisWindow(
-      startUtc: start,
-      endUtc: start.add(const Duration(days: 1)),
-    );
-    final expandedWindow = PulseAnalysisWindow(
-      startUtc: start,
-      endUtc: start.add(const Duration(days: 2)),
-    );
+  test(
+    'trailing new data is refreshed incrementally after cached range',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final start = DateTime.utc(2026, 4, 1);
+      final samples = _syntheticSamples(
+        start,
+        48,
+        step: const Duration(hours: 1),
+      );
+      final dataSource = _FakeHeartRateDataSource(samples: samples);
+      final repository = HealthPulseAnalysisRepository(
+        dataSource: dataSource,
+        trackingService: const _FakePulseSettings(true),
+        database: database,
+        queryPadding: Duration.zero,
+      );
+      final window = PulseAnalysisWindow(
+        startUtc: start,
+        endUtc: start.add(const Duration(days: 1)),
+      );
+      final expandedWindow = PulseAnalysisWindow(
+        startUtc: start,
+        endUtc: start.add(const Duration(days: 2)),
+      );
 
-    await repository.getAnalysis(window: window);
-    final cachedSummary = await repository.getAnalysis(window: expandedWindow);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+      await repository.getAnalysis(window: window);
+      final cachedSummary = await repository.getAnalysis(
+        window: expandedWindow,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(dataSource.requests.length, 2);
-    expect(cachedSummary.sampleCount, 24);
-    expect(dataSource.requests.last.$1, start.add(const Duration(days: 1)));
-  });
+      expect(dataSource.requests.length, 2);
+      expect(cachedSummary.sampleCount, 24);
+      expect(dataSource.requests.last.$1, start.add(const Duration(days: 1)));
+    },
+  );
 
   test('weighted aggregate average and min/max preserve raw values', () async {
     final database = AppDatabase(NativeDatabase.memory());
@@ -382,8 +391,11 @@ void main() {
     final firstChartDay = summary.chartSamples.first.sampledAtUtc.toLocal();
     final windowStartDay = window.startUtc.toLocal();
     expect(
-      DateTime(firstChartDay.year, firstChartDay.month, firstChartDay.day)
-          .isBefore(
+      DateTime(
+        firstChartDay.year,
+        firstChartDay.month,
+        firstChartDay.day,
+      ).isBefore(
         DateTime(windowStartDay.year, windowStartDay.month, windowStartDay.day),
       ),
       isFalse,

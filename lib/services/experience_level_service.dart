@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' as drift;
+
 import '../data/database_helper.dart';
 import '../data/drift_database.dart' as db;
 
@@ -52,13 +53,16 @@ class ExperienceLevelService extends ChangeNotifier {
     final dbInst = DatabaseHelper.driftDb;
     if (dbInst != null) {
       try {
-        final settingsRows = await (dbInst.select(dbInst.appSettings)
-              ..orderBy([
-                (t) => drift.OrderingTerm(
-                    expression: t.localId, mode: drift.OrderingMode.desc)
-              ])
-              ..limit(1))
-            .get();
+        final settingsRows =
+            await (dbInst.select(dbInst.appSettings)
+                  ..orderBy([
+                    (t) => drift.OrderingTerm(
+                      expression: t.localId,
+                      mode: drift.OrderingMode.desc,
+                    ),
+                  ])
+                  ..limit(1))
+                .get();
 
         if (settingsRows.isNotEmpty) {
           final settingsRow = settingsRows.first;
@@ -66,11 +70,13 @@ class ExperienceLevelService extends ChangeNotifier {
           if (legacyPrefVal != null &&
               settingsRow.experienceLevel == 'pro' &&
               legacyPrefVal != 'pro') {
-            await (dbInst.update(dbInst.appSettings)
-                  ..where((t) => t.id.equals(settingsRow.id)))
-                .write(db.AppSettingsCompanion(
-              experienceLevel: drift.Value(legacyPrefVal),
-            ));
+            await (dbInst.update(
+              dbInst.appSettings,
+            )..where((t) => t.id.equals(settingsRow.id))).write(
+              db.AppSettingsCompanion(
+                experienceLevel: drift.Value(legacyPrefVal),
+              ),
+            );
             _updateLevel(_parse(legacyPrefVal));
             return;
           }
@@ -106,20 +112,23 @@ class ExperienceLevelService extends ChangeNotifier {
     final dbInst = DatabaseHelper.driftDb;
     if (dbInst != null) {
       try {
-        final settingsRows = await (dbInst.select(dbInst.appSettings)
-              ..orderBy([
-                (t) => drift.OrderingTerm(
-                    expression: t.localId, mode: drift.OrderingMode.desc)
-              ])
-              ..limit(1))
-            .get();
+        final settingsRows =
+            await (dbInst.select(dbInst.appSettings)
+                  ..orderBy([
+                    (t) => drift.OrderingTerm(
+                      expression: t.localId,
+                      mode: drift.OrderingMode.desc,
+                    ),
+                  ])
+                  ..limit(1))
+                .get();
 
         if (settingsRows.isNotEmpty) {
-          await (dbInst.update(dbInst.appSettings)
-                ..where((t) => t.id.equals(settingsRows.first.id)))
-              .write(db.AppSettingsCompanion(
-            experienceLevel: drift.Value(value.name),
-          ));
+          await (dbInst.update(
+            dbInst.appSettings,
+          )..where((t) => t.id.equals(settingsRows.first.id))).write(
+            db.AppSettingsCompanion(experienceLevel: drift.Value(value.name)),
+          );
         }
       } catch (_) {}
     }

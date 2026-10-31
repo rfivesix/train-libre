@@ -48,9 +48,8 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
   }
 
   void _navigateToLegal() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const LegalScreen()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const LegalScreen()));
   }
 
   Future<void> _acceptAndProceed() async {
@@ -106,9 +105,7 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
             ),
           ),
           Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.5),
-            ),
+            child: Container(color: Colors.black.withValues(alpha: 0.5)),
           ),
           // Consent Card
           Center(
@@ -127,8 +124,9 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
                     const SizedBox(height: DesignConstants.spacingL),
                     Text(
                       l10n.welcome_back_updated_legal_title,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
@@ -143,7 +141,8 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
                       child: TextButton(
                         onPressed: _navigateToLegal,
                         child: Text(
-                            '${l10n.legal_notice} & ${l10n.privacy_policy}'),
+                          '${l10n.legal_notice} & ${l10n.privacy_policy}',
+                        ),
                       ),
                     ),
                     const Divider(),
@@ -153,7 +152,8 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
                       onChanged: (val) =>
                           setState(() => _healthDataAccepted = val),
                       text: l10n.i_agree_to_updated_privacy_policy(
-                          kCurrentLegalVersion),
+                        kCurrentLegalVersion,
+                      ),
                       theme: theme,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
@@ -234,7 +234,9 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.only(
-                  top: 2.0, right: DesignConstants.spacingM),
+                top: 2.0,
+                right: DesignConstants.spacingM,
+              ),
               child: Icon(
                 value ? LucideIcons.circle_check : LucideIcons.circle,
                 color: value
@@ -243,12 +245,7 @@ class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
                 size: 22,
               ),
             ),
-            Expanded(
-              child: Text(
-                text,
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
+            Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
           ],
         ),
       ),

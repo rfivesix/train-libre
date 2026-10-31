@@ -69,8 +69,9 @@ void main() {
     );
   });
 
-  testWidgets('below pro nobody keeps the column, placeholder included',
-      (tester) async {
+  testWidgets('below pro nobody keeps the column, placeholder included', (
+    tester,
+  ) async {
     for (final trackingType in ['weight_reps', 'time', 'distance_time']) {
       expect(
         await _column(

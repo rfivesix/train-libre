@@ -39,27 +39,31 @@ class CloudOverlayPermissionCard extends StatelessWidget {
     final isDe = locale.toLowerCase().startsWith('de');
     final isDarkSurface = surfaceColor.computeLuminance() < 0.5;
     final cardTextColor = contrastColor;
-    final actionColor =
-        isDarkSurface ? Colors.amber.shade300 : Colors.amber.shade700;
+    final actionColor = isDarkSurface
+        ? Colors.amber.shade300
+        : Colors.amber.shade700;
     final glassTheme = theme.copyWith(
       brightness: isDarkSurface ? Brightness.dark : Brightness.light,
     );
     const radius = 18.0;
-    final localizedCategories = pendingAccess?.categories
+    final localizedCategories =
+        pendingAccess?.categories
             .map((c) => AssistantDataCategory.localizeName(c, locale))
             .join(', ') ??
         '';
     final rawScopeLabel =
         pendingAccess?.scope['label']?.toString() ?? 'current';
-    final localizedScopeLabel =
-        localizeAssistantScopeLabel(rawScopeLabel, locale);
+    final localizedScopeLabel = localizeAssistantScopeLabel(
+      rawScopeLabel,
+      locale,
+    );
     final scopeStart = pendingAccess?.scope['start']?.toString();
     final scopeEnd = pendingAccess?.scope['end']?.toString();
     final periodLine = isDe
         ? 'Zeitraum: $localizedScopeLabel'
-            '${scopeStart == null ? '' : ' — $scopeStart bis ${scopeEnd ?? scopeStart}'}'
+              '${scopeStart == null ? '' : ' — $scopeStart bis ${scopeEnd ?? scopeStart}'}'
         : 'Period: $localizedScopeLabel'
-            '${scopeStart == null ? '' : ' — $scopeStart to ${scopeEnd ?? scopeStart}'}';
+              '${scopeStart == null ? '' : ' — $scopeStart to ${scopeEnd ?? scopeStart}'}';
     final card = Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: DecoratedBox(
@@ -114,8 +118,8 @@ class CloudOverlayPermissionCard extends StatelessWidget {
                 Text(
                   useLiveAi
                       ? (isDe
-                          ? 'Diese Anfrage kann Daten der genannten Kategorien und des Zeitraums verwenden. Der Anbieter kann durch einen Wechsel oder Ausweichanbieter vom zuvor angezeigten Anbieter abweichen.'
-                          : 'This request may use data from these categories and period. A provider change or fallback can result in a different recipient.')
+                            ? 'Diese Anfrage kann Daten der genannten Kategorien und des Zeitraums verwenden. Der Anbieter kann durch einen Wechsel oder Ausweichanbieter vom zuvor angezeigten Anbieter abweichen.'
+                            : 'This request may use data from these categories and period. A provider change or fallback can result in a different recipient.')
                       : l10n.aiOverlayDemoPurpose,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: cardTextColor.withValues(alpha: 0.72),
@@ -131,8 +135,9 @@ class CloudOverlayPermissionCard extends StatelessWidget {
                       TextButton(
                         onPressed: () => onResolvePermission(false),
                         style: TextButton.styleFrom(
-                          foregroundColor:
-                              cardTextColor.withValues(alpha: 0.72),
+                          foregroundColor: cardTextColor.withValues(
+                            alpha: 0.72,
+                          ),
                         ),
                         child: Text(l10n.aiOverlayDemoDeny),
                       ),
@@ -150,15 +155,15 @@ class CloudOverlayPermissionCard extends StatelessWidget {
                   Text(
                     useLiveAi
                         ? (permissionApproved == true
-                            ? (isDe
-                                ? 'Datenzugriff einmalig freigegeben.'
-                                : 'Data access approved once.')
-                            : (isDe
-                                ? 'Datenzugriff abgelehnt.'
-                                : 'Data access declined.'))
+                              ? (isDe
+                                    ? 'Datenzugriff einmalig freigegeben.'
+                                    : 'Data access approved once.')
+                              : (isDe
+                                    ? 'Datenzugriff abgelehnt.'
+                                    : 'Data access declined.'))
                         : (permissionApproved == true
-                            ? l10n.aiOverlayDemoApprovedFeedback
-                            : l10n.aiOverlayDemoDeniedFeedback),
+                              ? l10n.aiOverlayDemoApprovedFeedback
+                              : l10n.aiOverlayDemoDeniedFeedback),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: cardTextColor.withValues(alpha: 0.72),
                     ),
@@ -185,10 +190,7 @@ class CloudOverlayPermissionCard extends StatelessWidget {
           opacity: isVisible ? 1 : 0,
           child: IgnorePointer(
             ignoring: !isVisible,
-            child: ExcludeSemantics(
-              excluding: !isVisible,
-              child: card,
-            ),
+            child: ExcludeSemantics(excluding: !isVisible, child: card),
           ),
         ),
       ),

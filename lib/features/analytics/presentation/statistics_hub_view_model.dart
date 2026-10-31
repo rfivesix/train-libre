@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
 import '../../../widgets/common/platform_adaptive_pickers.dart';
 
 import '../../workout/data/sources/workout_local_data_source.dart';
@@ -57,18 +59,11 @@ class SectionLoadState<T> {
   }
 
   SectionLoadState<T> loading(int generation) {
-    return copyWith(
-      isLoading: true,
-      generation: generation,
-      clearError: true,
-    );
+    return copyWith(isLoading: true, generation: generation, clearError: true);
   }
 
   SectionLoadState<T> success(T data, int generation) {
-    return SectionLoadState<T>(
-      data: data,
-      generation: generation,
-    );
+    return SectionLoadState<T>(data: data, generation: generation);
   }
 
   SectionLoadState<T> failure(
@@ -191,12 +186,14 @@ class StatisticsHubViewModel extends ChangeNotifier {
     TimeframeBlock selectedBlockType,
     DateTime anchorDate,
     bool isRolling,
-  )? _fetchHubAnalyticsOverride;
+  )?
+  _fetchHubAnalyticsOverride;
   final Future<SleepSyncResult?> Function({
     int lookbackDays,
     Duration minInterval,
     bool force,
-  })? _importSleepIfDueOverride;
+  })?
+  _importSleepIfDueOverride;
   final Future<bool> Function()? _isSleepTrackingEnabledOverride;
   final Future<int> Function()? _targetStepsLoaderOverride;
   final Future<String> Function()? _stepsProviderNameLoaderOverride;
@@ -264,9 +261,12 @@ class StatisticsHubViewModel extends ChangeNotifier {
         _anchorDate = now;
       } else {
         final previousAnchor = _activeBlockType.shift(now, -1);
-        final previousBounds =
-            _activeBlockType.getBounds(previousAnchor, DateTime(2020));
-        final isPreviousToOngoing = !_isRolling &&
+        final previousBounds = _activeBlockType.getBounds(
+          previousAnchor,
+          DateTime(2020),
+        );
+        final isPreviousToOngoing =
+            !_isRolling &&
             myBounds.start.isAtSameMomentAs(previousBounds.start);
 
         if (isPreviousToOngoing && _activeBlockType != TimeframeBlock.day) {
@@ -446,35 +446,37 @@ class StatisticsHubViewModel extends ChangeNotifier {
       TimeframeBlock selectedBlockType,
       DateTime anchorDate,
       bool isRolling,
-    )? fetchHubAnalytics,
+    )?
+    fetchHubAnalytics,
     Future<SleepSyncResult?> Function({
       int lookbackDays,
       Duration minInterval,
       bool force,
-    })? importSleepIfDue,
+    })?
+    importSleepIfDue,
     Future<bool> Function()? isSleepTrackingEnabled,
     Future<int> Function()? targetStepsLoader,
     Future<String> Function()? stepsProviderNameLoader,
     TimeframeBlock initialBlockType = TimeframeBlock.week,
     DateTime? initialAnchorDate,
     bool initialIsRolling = true,
-  })  : _hubDataAdapter = hubDataAdapter ??
-            StatisticsHubDataAdapter(
-              workoutDatabaseHelper: WorkoutLocalDataSource.instance,
-            ),
-        _stepsRepository =
-            stepsRepository ?? HealthStepsAggregationRepository(),
-        _sleepSummaryRepository =
-            sleepSummaryRepository ?? SleepHubSummaryRepository(),
-        _pulseRepository = pulseRepository ?? HealthPulseAnalysisRepository(),
-        _stepsSyncService = stepsSyncService ?? StepsSyncService(),
-        _sleepSyncService = sleepSyncService ?? SleepSyncService(),
-        _diaryDataSource = diaryDataSource ?? DiaryLocalDataSource.instance,
-        _fetchHubAnalyticsOverride = fetchHubAnalytics,
-        _importSleepIfDueOverride = importSleepIfDue,
-        _isSleepTrackingEnabledOverride = isSleepTrackingEnabled,
-        _targetStepsLoaderOverride = targetStepsLoader,
-        _stepsProviderNameLoaderOverride = stepsProviderNameLoader {
+  }) : _hubDataAdapter =
+           hubDataAdapter ??
+           StatisticsHubDataAdapter(
+             workoutDatabaseHelper: WorkoutLocalDataSource.instance,
+           ),
+       _stepsRepository = stepsRepository ?? HealthStepsAggregationRepository(),
+       _sleepSummaryRepository =
+           sleepSummaryRepository ?? SleepHubSummaryRepository(),
+       _pulseRepository = pulseRepository ?? HealthPulseAnalysisRepository(),
+       _stepsSyncService = stepsSyncService ?? StepsSyncService(),
+       _sleepSyncService = sleepSyncService ?? SleepSyncService(),
+       _diaryDataSource = diaryDataSource ?? DiaryLocalDataSource.instance,
+       _fetchHubAnalyticsOverride = fetchHubAnalytics,
+       _importSleepIfDueOverride = importSleepIfDue,
+       _isSleepTrackingEnabledOverride = isSleepTrackingEnabled,
+       _targetStepsLoaderOverride = targetStepsLoader,
+       _stepsProviderNameLoaderOverride = stepsProviderNameLoader {
     _activeBlockType = initialBlockType;
     _anchorDate = initialAnchorDate ?? DateTime.now();
     _isRolling = initialIsRolling;
@@ -742,7 +744,8 @@ class StatisticsHubViewModel extends ChangeNotifier {
       ]);
       if (!_isCurrentStepsLoad(generation)) return;
 
-      final enabled = StepsSyncService.trackingEnabledListenable.value ??
+      final enabled =
+          StepsSyncService.trackingEnabledListenable.value ??
           (results[1] as bool);
       _stepsTrackingEnabled = enabled;
       _stepsState = _stepsState.success(
@@ -778,15 +781,14 @@ class StatisticsHubViewModel extends ChangeNotifier {
     final stopwatch = Stopwatch()..start();
     var rangeLabel = '';
     try {
-      final trackingEnabled = await (_isSleepTrackingEnabledOverride?.call() ??
-          _sleepSyncService.isTrackingEnabled());
+      final trackingEnabled =
+          await (_isSleepTrackingEnabledOverride?.call() ??
+              _sleepSyncService.isTrackingEnabled());
       if (!_isCurrentSleepLoad(generation)) return;
 
       if (!trackingEnabled) {
         _sleepTrackingEnabled = false;
-        _sleepState = SectionLoadState<SleepHubSummary>(
-          generation: generation,
-        );
+        _sleepState = SectionLoadState<SleepHubSummary>(generation: generation);
         notifyListeners();
         return;
       }
@@ -872,9 +874,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadLegacyAggregateSections(
-    int generation,
-  ) async {
+  Future<void> _loadLegacyAggregateSections(int generation) async {
     final stopwatch = Stopwatch()..start();
     try {
       final tuple = await _fetchHubAnalytics(
@@ -885,8 +885,10 @@ class StatisticsHubViewModel extends ChangeNotifier {
       if (!_isCurrentRecoveryLoad(generation)) return;
       final hub = tuple.$1;
       final bodyNutrition = tuple.$2;
-      _recoveryState =
-          _recoveryState.success(hub.recoveryAnalytics, generation);
+      _recoveryState = _recoveryState.success(
+        hub.recoveryAnalytics,
+        generation,
+      );
       _consistencyState = _consistencyState.success(
         ConsistencySectionData(
           workoutsPerWeek: hub.workoutsPerWeek,
@@ -909,8 +911,10 @@ class StatisticsHubViewModel extends ChangeNotifier {
         ),
         generation,
       );
-      _bodyNutritionState =
-          _bodyNutritionState.success(bodyNutrition, generation);
+      _bodyNutritionState = _bodyNutritionState.success(
+        bodyNutrition,
+        generation,
+      );
       notifyListeners();
     } catch (error, stackTrace) {
       _logSectionFailure(
@@ -920,14 +924,26 @@ class StatisticsHubViewModel extends ChangeNotifier {
       );
       if (!_isCurrentRecoveryLoad(generation)) return;
       _recoveryState = _recoveryState.failure(error, stackTrace, generation);
-      _consistencyState =
-          _consistencyState.failure(error, stackTrace, generation);
-      _performanceState =
-          _performanceState.failure(error, stackTrace, generation);
-      _volumeMusclesState =
-          _volumeMusclesState.failure(error, stackTrace, generation);
-      _bodyNutritionState =
-          _bodyNutritionState.failure(error, stackTrace, generation);
+      _consistencyState = _consistencyState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
+      _performanceState = _performanceState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
+      _volumeMusclesState = _volumeMusclesState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
+      _bodyNutritionState = _bodyNutritionState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
       notifyListeners();
     } finally {
       stopwatch.stop();
@@ -940,9 +956,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadRecoverySection(
-    int generation,
-  ) async {
+  Future<void> _loadRecoverySection(int generation) async {
     final stopwatch = Stopwatch()..start();
     try {
       final data = await _hubDataAdapter.fetchRecovery(
@@ -951,10 +965,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
         isRolling: _isRolling,
       );
       if (!_isCurrentRecoveryLoad(generation)) return;
-      _recoveryState = _recoveryState.success(
-        data,
-        generation,
-      );
+      _recoveryState = _recoveryState.success(data, generation);
       notifyListeners();
     } catch (error, stackTrace) {
       _logSectionFailure(StatisticsHubSectionId.recovery, error, stackTrace);
@@ -972,9 +983,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadConsistencySection(
-    int generation,
-  ) async {
+  Future<void> _loadConsistencySection(int generation) async {
     final stopwatch = Stopwatch()..start();
     try {
       final data = await _hubDataAdapter.fetchConsistency(
@@ -995,8 +1004,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
     } catch (error, stackTrace) {
       _logSectionFailure(StatisticsHubSectionId.consistency, error, stackTrace);
       if (!_isCurrentConsistencyLoad(generation)) return;
-      _consistencyState =
-          _consistencyState.failure(error, stackTrace, generation);
+      _consistencyState = _consistencyState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
       notifyListeners();
     } finally {
       stopwatch.stop();
@@ -1009,9 +1021,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadPerformanceRecordsSection(
-    int generation,
-  ) async {
+  Future<void> _loadPerformanceRecordsSection(int generation) async {
     final stopwatch = Stopwatch()..start();
     try {
       final data = await _hubDataAdapter.fetchPerformanceRecords(
@@ -1035,8 +1045,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
         stackTrace,
       );
       if (!_isCurrentPerformanceLoad(generation)) return;
-      _performanceState =
-          _performanceState.failure(error, stackTrace, generation);
+      _performanceState = _performanceState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
       notifyListeners();
     } finally {
       stopwatch.stop();
@@ -1049,9 +1062,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadVolumeMusclesSection(
-    int generation,
-  ) async {
+  Future<void> _loadVolumeMusclesSection(int generation) async {
     final stopwatch = Stopwatch()..start();
     try {
       final data = await _hubDataAdapter.fetchVolumeMuscles(
@@ -1075,8 +1086,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
         stackTrace,
       );
       if (!_isCurrentVolumeMusclesLoad(generation)) return;
-      _volumeMusclesState =
-          _volumeMusclesState.failure(error, stackTrace, generation);
+      _volumeMusclesState = _volumeMusclesState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
       notifyListeners();
     } finally {
       stopwatch.stop();
@@ -1089,12 +1103,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadBodyNutritionSection(
-    int generation,
-  ) async {
+  Future<void> _loadBodyNutritionSection(int generation) async {
     final stopwatch = Stopwatch()..start();
-    final rangeLabel =
-        _activeBlockType == TimeframeBlock.maxBlock ? 'All' : 'block';
+    final rangeLabel = _activeBlockType == TimeframeBlock.maxBlock
+        ? 'All'
+        : 'block';
     try {
       final data = await _hubDataAdapter.fetchBodyNutrition(
         selectedBlockType: _activeBlockType,
@@ -1111,8 +1124,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
         stackTrace,
       );
       if (!_isCurrentBodyNutritionLoad(generation)) return;
-      _bodyNutritionState =
-          _bodyNutritionState.failure(error, stackTrace, generation);
+      _bodyNutritionState = _bodyNutritionState.failure(
+        error,
+        stackTrace,
+        generation,
+      );
       notifyListeners();
     } finally {
       stopwatch.stop();
@@ -1149,10 +1165,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
   }
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)>
-      _fetchHubAnalytics(
-          {required TimeframeBlock selectedBlockType,
-          required DateTime anchorDate,
-          bool isRolling = false}) {
+  _fetchHubAnalytics({
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
+    bool isRolling = false,
+  }) {
     final override = _fetchHubAnalyticsOverride;
     if (override != null) {
       return override(selectedBlockType, anchorDate, isRolling);

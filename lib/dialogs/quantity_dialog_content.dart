@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
+
 import '../generated/app_localizations.dart';
 import '../features/diary/domain/models/food_item.dart';
 import '../util/design_constants.dart';
@@ -63,16 +64,19 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
   void initState() {
     super.initState();
     _quantityController = TextEditingController(
-      text: widget.initialQuantity?.toString() ??
+      text:
+          widget.initialQuantity?.toString() ??
           widget.item.productQuantity?.round().toString() ??
           '100',
     );
     _sugarController = TextEditingController(
-      text: widget.initialSugar?.toStringAsFixed(1).replaceAll('.0', '') ??
+      text:
+          widget.initialSugar?.toStringAsFixed(1).replaceAll('.0', '') ??
           widget.item.sugar?.toStringAsFixed(1).replaceAll('.0', '') ??
           '',
     );
-    final defaultCaffeine = widget.item.effectiveCaffeinePer100ml ??
+    final defaultCaffeine =
+        widget.item.effectiveCaffeinePer100ml ??
         widget.item.effectiveCaffeinePer100g ??
         CaffeineCatalogResolver.lookupCaffeine(
           widget.item.barcode,
@@ -80,21 +84,23 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
         );
     final String caffeineText;
     if (widget.initialCaffeine != null && widget.initialCaffeine! > 0) {
-      caffeineText =
-          widget.initialCaffeine!.toStringAsFixed(1).replaceAll('.0', '');
+      caffeineText = widget.initialCaffeine!
+          .toStringAsFixed(1)
+          .replaceAll('.0', '');
     } else if (defaultCaffeine != null && defaultCaffeine > 0) {
-      caffeineText =
-          defaultCaffeine.toStringAsFixed(1).replaceAll('.0', '');
+      caffeineText = defaultCaffeine.toStringAsFixed(1).replaceAll('.0', '');
     } else if (widget.initialCaffeine != null) {
-      caffeineText =
-          widget.initialCaffeine!.toStringAsFixed(1).replaceAll('.0', '');
+      caffeineText = widget.initialCaffeine!
+          .toStringAsFixed(1)
+          .replaceAll('.0', '');
     } else {
       caffeineText = '';
     }
     _caffeineController = TextEditingController(text: caffeineText);
     _selectedDateTime = widget.initialTimestamp ?? DateTime.now();
     _selectedMealType = widget.initialMealType ?? "mealtypeSnack";
-    _isLiquid = widget.initialIsLiquid ??
+    _isLiquid =
+        widget.initialIsLiquid ??
         (widget.item.isFluidOrLiquid ||
             (defaultCaffeine != null &&
                 defaultCaffeine > 0 &&
@@ -180,8 +186,9 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
           controller: _quantityController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            labelText:
-                _isLiquid ? l10n.amount_in_milliliters : l10n.amount_in_grams,
+            labelText: _isLiquid
+                ? l10n.amount_in_milliliters
+                : l10n.amount_in_grams,
             suffixText: unit,
           ),
           autofocus: true,

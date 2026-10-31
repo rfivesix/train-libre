@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter/services.dart';
@@ -19,14 +20,16 @@ class AppReviewService {
   // users receive the improved, workout-timed opportunity once as well.
   static const String _hasRequestedReviewKey =
       'has_requested_review_after_workout_summary';
-  static const MethodChannel _reviewChannel =
-      MethodChannel('trainlibre.app/review');
+  static const MethodChannel _reviewChannel = MethodChannel(
+    'trainlibre.app/review',
+  );
 
   /// Shows the rating menu exactly once, after the user closes their first
   /// completed-workout summary. The platform owns whether its native review
   /// sheet is actually displayed.
   Future<void> requestAfterFirstWorkoutSummaryClose(
-      BuildContext context) async {
+    BuildContext context,
+  ) async {
     try {
       if (!Platform.isIOS) return;
 
@@ -52,7 +55,8 @@ class AppReviewService {
   }
 
   Future<_ReviewPromptResponse?> _showRatingPromptMenu(
-      BuildContext context) async {
+    BuildContext context,
+  ) async {
     final l10n = AppLocalizations.of(context);
     if (l10n == null) return null;
 

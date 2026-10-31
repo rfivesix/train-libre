@@ -78,11 +78,7 @@ class AiSimulatorCameraDemo extends StatelessWidget {
             gradient: RadialGradient(
               center: Alignment(0, -0.12),
               radius: 1.15,
-              colors: [
-                Color(0xFF78543B),
-                Color(0xFF38291F),
-                Color(0xFF171411),
-              ],
+              colors: [Color(0xFF78543B), Color(0xFF38291F), Color(0xFF171411)],
               stops: [0, 0.58, 1],
             ),
           ),

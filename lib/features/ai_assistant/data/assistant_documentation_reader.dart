@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 /// Only task-relevant pages enter the model context.
 class AssistantDocumentationReader {
   AssistantDocumentationReader({AssetBundle? bundle})
-      : _bundle = bundle ?? rootBundle;
+    : _bundle = bundle ?? rootBundle;
 
   final AssetBundle _bundle;
 
@@ -36,8 +36,8 @@ class AssistantDocumentationReader {
       ]);
     }
     if (RegExp(
-            r'\b(recipe|recipes|rezept|rezepte|meal|mahlzeit|food|essen|lebensmittel|makro|kalorien|protein|nährwert|eintrag|eintragen|log|track)\b')
-        .hasMatch(text)) {
+      r'\b(recipe|recipes|rezept|rezepte|meal|mahlzeit|food|essen|lebensmittel|makro|kalorien|protein|nährwert|eintrag|eintragen|log|track)\b',
+    ).hasMatch(text)) {
       paths.addAll(const [
         'documentation/user_guide/ai_chat_food_logging.md',
         'documentation/user_guide/saved_meals.md',

@@ -53,18 +53,22 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
         .map((c) => AssistantDataCategory.localizeName(c, locale))
         .join(', ');
     final rawScopeLabel = access.scope['label']?.toString() ?? 'current';
-    final localizedScopeLabel =
-        localizeAssistantScopeLabel(rawScopeLabel, locale);
+    final localizedScopeLabel = localizeAssistantScopeLabel(
+      rawScopeLabel,
+      locale,
+    );
     final start = access.scope['start']?.toString();
     final end = access.scope['end']?.toString();
     final scopeText = start == null
         ? localizedScopeLabel
         : isDe
-            ? '$localizedScopeLabel ($start bis ${end ?? start})'
-            : '$localizedScopeLabel ($start to ${end ?? start})';
+        ? '$localizedScopeLabel ($start bis ${end ?? start})'
+        : '$localizedScopeLabel ($start to ${end ?? start})';
     final statusText = localizeAccessStatus(access.status, isDe: isDe);
-    final modelDisplay =
-        formatModelDisplayName(access.providerId, access.modelId);
+    final modelDisplay = formatModelDisplayName(
+      access.providerId,
+      access.modelId,
+    );
     final isDark = theme.brightness == Brightness.dark;
 
     final rows = <Widget>[
@@ -72,8 +76,8 @@ class CloudOverlayAccessAuditModal extends StatelessWidget {
         icon: access.status == 'approved' || access.status == 'shared'
             ? LucideIcons.shield_check
             : (access.status == 'denied'
-                ? LucideIcons.shield_x
-                : LucideIcons.shield_alert),
+                  ? LucideIcons.shield_x
+                  : LucideIcons.shield_alert),
         title: isDe ? 'Status: $statusText' : 'Status: $statusText',
         subtitle: isDe ? 'Datenfreigabestatus' : 'Data access status',
       ),
@@ -181,8 +185,4 @@ Widget _accessInfoRow({
   required String title,
   required String subtitle,
 }) =>
-    AppInfoRow(
-      title: title,
-      subtitle: subtitle,
-      leading: Icon(icon, size: 23),
-    );
+    AppInfoRow(title: title, subtitle: subtitle, leading: Icon(icon, size: 23));

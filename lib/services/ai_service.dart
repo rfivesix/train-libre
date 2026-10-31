@@ -41,9 +41,9 @@ class AiService {
     FlutterSecureStorage? secureStorage,
     DynamicModelIdsLoader? dynamicModelIdsLoader,
     AiHttpGet? httpGet,
-  })  : _secureStorage = secureStorage ?? deviceOnlySecureStorage,
-        _dynamicModelIdsLoader = dynamicModelIdsLoader,
-        _httpGet = httpGet ?? http.get;
+  }) : _secureStorage = secureStorage ?? deviceOnlySecureStorage,
+       _dynamicModelIdsLoader = dynamicModelIdsLoader,
+       _httpGet = httpGet ?? http.get;
   static final AiService instance = AiService._();
 
   @visibleForTesting
@@ -84,9 +84,9 @@ class AiService {
 
   static const FlutterSecureStorage deviceOnlySecureStorage =
       FlutterSecureStorage(
-    iOptions: deviceOnlyIosOptions,
-    mOptions: deviceOnlyMacOsOptions,
-  );
+        iOptions: deviceOnlyIosOptions,
+        mOptions: deviceOnlyMacOsOptions,
+      );
 
   /// The options items were stored with before [deviceOnlySecureStorage]; kept
   /// so [migrateSecureStorageToDeviceOnly] can find and move them.
@@ -151,11 +151,7 @@ class AiService {
         'gpt-4.1',
         'gpt-4o',
       ],
-      emergencyFallbackModels: [
-        'gpt-5.4',
-        'gpt-5.4-mini',
-        'gpt-4.1',
-      ],
+      emergencyFallbackModels: ['gpt-5.4', 'gpt-5.4-mini', 'gpt-4.1'],
       supportsVision: true,
       supportsDynamicModelLoading: true,
     ),
@@ -250,16 +246,8 @@ class AiService {
       displayName: 'Ollama',
       keyHint: 'Not required',
       defaultModel: 'llama3',
-      rankingHints: [
-        'llama3',
-        'llava',
-        'mistral',
-        'phi3',
-      ],
-      emergencyFallbackModels: [
-        'llama3',
-        'llava',
-      ],
+      rankingHints: ['llama3', 'llava', 'mistral', 'phi3'],
+      emergencyFallbackModels: ['llama3', 'llava'],
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
@@ -269,9 +257,7 @@ class AiService {
       keyHint: 'API Key (if required)',
       defaultModel: 'custom-model',
       rankingHints: [],
-      emergencyFallbackModels: [
-        'custom-model',
-      ],
+      emergencyFallbackModels: ['custom-model'],
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
@@ -280,12 +266,8 @@ class AiService {
       displayName: 'Apple Intelligence',
       keyHint: 'System Model (On-Device)',
       defaultModel: 'apple-foundation-system',
-      rankingHints: [
-        'apple-foundation-system',
-      ],
-      emergencyFallbackModels: [
-        'apple-foundation-system',
-      ],
+      rankingHints: ['apple-foundation-system'],
+      emergencyFallbackModels: ['apple-foundation-system'],
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
@@ -342,14 +324,14 @@ class AiService {
 
   /// Every key this service owns, used by the device-only migration.
   static List<String> get _allStorageKeys => [
-        for (final provider in AiProvider.values) apiKeyStorageKeyFor(provider),
-        for (final provider in AiProvider.values)
-          selectedModelStorageKeyFor(provider),
-        _providerKey,
-        _customBaseUrlKey,
-        _customModelKey,
-        _timeoutKey,
-      ];
+    for (final provider in AiProvider.values) apiKeyStorageKeyFor(provider),
+    for (final provider in AiProvider.values)
+      selectedModelStorageKeyFor(provider),
+    _providerKey,
+    _customBaseUrlKey,
+    _customModelKey,
+    _timeoutKey,
+  ];
 
   /// Moves keychain items written before [deviceOnlyAppleOptions] existed onto
   /// the device-only accessibility class, so they stop being included in iOS
@@ -396,15 +378,16 @@ class AiService {
     await _secureStorage.delete(key: apiKeyStorageKeyFor(provider));
   }
 
-  List<AiProviderMetadata> getSupportedProviders() =>
-      _providerRegistry.values.where((p) {
+  List<AiProviderMetadata> getSupportedProviders() => _providerRegistry.values
+      .where((p) {
         if (p.provider == AiProvider.appleFoundation &&
             !kIsWeb &&
             !Platform.isIOS) {
           return false;
         }
         return true;
-      }).toList(growable: false);
+      })
+      .toList(growable: false);
 
   AiProviderMetadata getProviderMetadata(AiProvider provider) =>
       _providerRegistry[provider]!;
@@ -436,8 +419,8 @@ class AiService {
 
   Future<AiProvider> _resolveDefaultProvider() async {
     if (!kIsWeb && Platform.isIOS) {
-      final appleAvailable =
-          await AppleFoundationService.instance.isAvailable();
+      final appleAvailable = await AppleFoundationService.instance
+          .isAvailable();
       if (appleAvailable) {
         return AiProvider.appleFoundation;
       }
@@ -559,13 +542,7 @@ class AiService {
     final fallback = _safeEmergencyFallback(provider);
     return AiModelListResult(
       options: fallback
-          .map(
-            (m) => AiModelOption(
-              id: m,
-              label: m,
-              isFallback: true,
-            ),
-          )
+          .map((m) => AiModelOption(id: m, label: m, isFallback: true))
           .toList(growable: false),
       isFallback: true,
       error: error,
@@ -714,9 +691,7 @@ class AiService {
     try {
       final provider = await getSelectedProvider();
       if (provider == AiProvider.appleFoundation) {
-        final prompt = _AiPrompts.buildSystemPrompt(
-          languageCode: languageCode,
-        );
+        final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
         await AppleFoundationService.instance.prewarm(systemPrompt: prompt);
       }
     } catch (_) {}
@@ -756,7 +731,8 @@ class AiService {
     final userContent = textHint != null && textHint.trim().isNotEmpty
         ? '$textHint. Return the identified ingredients as a JSON object.'
         : 'Analyze this meal and identify all food components. Return ONLY a valid JSON object matching the requested format.';
-    final attachDepthMap = depthMap != null &&
+    final attachDepthMap =
+        depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;
 
@@ -820,7 +796,8 @@ class AiService {
     String? depthMapLegend,
     AiUsageCollector? usageCollector,
   }) async {
-    final attachDepthMap = depthMap != null &&
+    final attachDepthMap =
+        depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;
     final prompt = _buildDirectNutritionPrompt(
@@ -838,7 +815,8 @@ class AiService {
       usageCollector: usageCollector,
     );
     return _attachDirectEstimateFoods(
-        await _parseMealCandidateFromContent(raw));
+      await _parseMealCandidateFromContent(raw),
+    );
   }
 
   Future<AiMealCandidate> analyzeDirectNutritionText(
@@ -853,7 +831,8 @@ class AiService {
       usageCollector: usageCollector,
     );
     return _attachDirectEstimateFoods(
-        await _parseMealCandidateFromContent(raw));
+      await _parseMealCandidateFromContent(raw),
+    );
   }
 
   Future<AiMealCandidate> retryDirectNutrition({
@@ -864,7 +843,8 @@ class AiService {
     AiUsageCollector? usageCollector,
   }) async {
     final raw = await _callSelectedProviderRaw(
-      userContent: '''Previous meal estimate:
+      userContent:
+          '''Previous meal estimate:
 ${jsonEncode({'items': previousItems.map((item) => item.toJson()).toList()})}
 
 User correction: $feedback
@@ -875,7 +855,8 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
       usageCollector: usageCollector,
     );
     return _attachDirectEstimateFoods(
-        await _parseMealCandidateFromContent(raw));
+      await _parseMealCandidateFromContent(raw),
+    );
   }
 
   AiMealCandidate _attachDirectEstimateFoods(AiMealCandidate candidate) {
@@ -886,13 +867,15 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
       final nutrition = item.nutritionPer100g;
       if (item.grams <= 0 || item.grams > 3000 || nutrition == null) {
         throw const AiParseException(
-            'The direct nutrition estimate is incomplete.');
+          'The direct nutrition estimate is incomplete.',
+        );
       }
       double core(String key) {
         final value = nutrition[key];
         if (value == null || !value.isFinite || value < 0 || value > 110) {
           throw const AiParseException(
-              'The direct nutrition estimate contains invalid values.');
+            'The direct nutrition estimate contains invalid values.',
+          );
         }
         return value;
       }
@@ -914,23 +897,15 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
         final maxValue = key == 'caffeine' ? 2000.0 : 110.0;
         if (!value.isFinite || value < 0 || value > maxValue) {
           throw const AiParseException(
-              'The direct nutrition estimate contains invalid values.');
+            'The direct nutrition estimate contains invalid values.',
+          );
         }
         return value;
       }
 
       final syntheticFood = FoodItem(
-        barcode: 'ai-estimate-$index-${Object.hash(
-          item.name,
-          protein,
-          carbs,
-          fat,
-          nutrition['sugar'],
-          nutrition['fiber'],
-          nutrition['salt'],
-          nutrition['caffeine'],
-          item.isFluid,
-        )}',
+        barcode:
+            'ai-estimate-$index-${Object.hash(item.name, protein, carbs, fat, nutrition['sugar'], nutrition['fiber'], nutrition['salt'], nutrition['caffeine'], item.isFluid)}',
         name: item.name,
         nameDe: item.name,
         calories: calculation.calories.round(),
@@ -970,11 +945,8 @@ Return only JSON, with a top-level `dishType` and `items` array:
 {"dishType":"Meal title","items":[{"name":"ingredient","estimatedGrams":120,"servedGrams":120,"isFluid":false,"confidence":0.8,"nutritionPer100g":{"protein":10.2,"carbs":15.5,"fat":6.1,"sugar":2.0,"fiber":1.3,"salt":0.4,"caffeine":0}}]}''';
   }
 
-  String _depthPhotoContext(DepthScaleFacts? facts, int? index) => facts
-                  ?.isValid ==
-              true &&
-          index != null &&
-          index >= 0
+  String _depthPhotoContext(DepthScaleFacts? facts, int? index) =>
+      facts?.isValid == true && index != null && index >= 0
       ? '\nThe LiDAR scene scale corresponds to meal photo ${index + 1} (counting meal photos in order).'
       : '';
 
@@ -1069,7 +1041,8 @@ Return only JSON, with a top-level `dishType` and `items` array:
     final previousJson = jsonEncode(
       previousResults.map((e) => e.toJson()).toList(),
     );
-    final userContent = '''
+    final userContent =
+        '''
 Previous analysis result:
 $previousJson
 
@@ -1127,26 +1100,25 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     final actionable = validation.allIssues
         .where((issue) => issue.severity != AiValidationSeverity.info)
         .toList(growable: false);
-    final scoped = actionable.isNotEmpty &&
+    final scoped =
+        actionable.isNotEmpty &&
         actionable.every((issue) => issue.itemIndex != null);
     final affectedIndices = scoped
         ? (actionable.map((issue) => issue.itemIndex!).toSet().toList()..sort())
         : List<int>.generate(candidate.items.length, (index) => index);
-    final semanticOnly = actionable.isNotEmpty &&
+    final semanticOnly =
+        actionable.isNotEmpty &&
         scoped &&
-        actionable.every((issue) =>
-            issue.code == 'ambiguous_nutrition_match' ||
-            issue.code == 'ambiguous_db_match');
-    final userContent = '''
+        actionable.every(
+          (issue) =>
+              issue.code == 'ambiguous_nutrition_match' ||
+              issue.code == 'ambiguous_db_match',
+        );
+    final userContent =
+        '''
 Requested meal items (itemIndex is zero-based and must be returned unchanged):
 ${jsonEncode([
-          for (final index in affectedIndices)
-            {
-              ...candidate.items[index].toJson(),
-              'estimatedGrams': candidate.items[index].grams,
-              'itemIndex': index,
-              'catalogLocked': !validation.items[index].needsCatalogRepair,
-            },
+          for (final index in affectedIndices) {...candidate.items[index].toJson(), 'estimatedGrams': candidate.items[index].grams, 'itemIndex': index, 'catalogLocked': !validation.items[index].needsCatalogRepair},
         ])}
 
 Deterministic validation feedback (totals include unchanged items):
@@ -1206,9 +1178,10 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       final selections = requestedId != null && requestedId.isNotEmpty
           ? supplied.where((food) => food.barcode == requestedId).toList()
           : supplied
-              .where(
-                  (food) => food.getLocalizedName(null) == response.name.trim())
-              .toList();
+                .where(
+                  (food) => food.getLocalizedName(null) == response.name.trim(),
+                )
+                .toList();
       if (requestedId != null &&
           requestedId.isNotEmpty &&
           selections.length != 1) {
@@ -1252,7 +1225,8 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
     try {
       final providerEnum = await getSelectedProvider();
       String? apiKey;
-      final isOfflineProvider = providerEnum == AiProvider.ollama ||
+      final isOfflineProvider =
+          providerEnum == AiProvider.ollama ||
           providerEnum == AiProvider.custom ||
           providerEnum == AiProvider.appleFoundation;
       if (!isOfflineProvider) {
@@ -1272,19 +1246,23 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       // prepared these already, so this is a cache hit by the time it runs.
       final imageDataList = images == null
           ? <String>[]
-          : await Future.wait(images.map((img) async =>
-              (await MealImageProcessor.instance.prepareForAnalysis(img))
-                  .base64));
+          : await Future.wait(
+              images.map(
+                (img) async =>
+                    (await MealImageProcessor.instance.prepareForAnalysis(img))
+                        .base64,
+              ),
+            );
 
       final _AiRawResponse rawResult;
       switch (providerEnum) {
         case AiProvider.appleFoundation:
-          final response =
-              await AppleFoundationService.instance.generateMealJson(
-            prompt: userContent,
-            systemPrompt: systemPrompt,
-            imagesBase64: imageDataList,
-          );
+          final response = await AppleFoundationService.instance
+              .generateMealJson(
+                prompt: userContent,
+                systemPrompt: systemPrompt,
+                imagesBase64: imageDataList,
+              );
           rawResult = _AiRawResponse(response, null);
           break;
         case AiProvider.openai:
@@ -1383,22 +1361,25 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
       if (kDebugMode) {
         debugPrint(
-            '[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
+          '[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}',
+        );
       }
       return rawResult.text;
     } catch (e) {
       usageCollector?.finishRequest(null, requestId: usageRequestId);
       if (!modelRefreshAttempted &&
           e is AiNetworkException &&
-          RegExp(r'(model not found|model does not exist|unknown model|invalid model|model is not supported)',
-                  caseSensitive: false)
-              .hasMatch(e.message)) {
+          RegExp(
+            r'(model not found|model does not exist|unknown model|invalid model|model is not supported)',
+            caseSensitive: false,
+          ).hasMatch(e.message)) {
         final provider = await getSelectedProvider();
         if (provider != AiProvider.ollama && provider != AiProvider.custom) {
           final rejected = await getSelectedModel(provider);
           final options = await loadModelOptions(provider);
-          final alternatives =
-              options.options.where((option) => option.id != rejected);
+          final alternatives = options.options.where(
+            (option) => option.id != rejected,
+          );
           if (alternatives.isNotEmpty) {
             await setSelectedModel(provider, alternatives.first.id);
             return _callSelectedProviderRaw(

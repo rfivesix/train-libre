@@ -41,10 +41,7 @@ Exercise _exercise({required String name, required String category}) =>
       secondaryMuscles: const [],
     );
 
-Exercise _timedExercise({
-  required String name,
-  String trackingType = 'time',
-}) =>
+Exercise _timedExercise({required String name, String trackingType = 'time'}) =>
     Exercise(
       id: 2,
       texts: {
@@ -70,19 +67,18 @@ SetLog _log({
   double? distanceKm,
   int? durationSeconds,
   int? rpe,
-}) =>
-    SetLog(
-      workoutLogId: 1,
-      exerciseName: exerciseName,
-      setType: setType,
-      isCompleted: completed,
-      weightKg: weightKg,
-      reps: reps,
-      rir: rir,
-      distanceKm: distanceKm,
-      durationSeconds: durationSeconds,
-      rpe: rpe,
-    );
+}) => SetLog(
+  workoutLogId: 1,
+  exerciseName: exerciseName,
+  setType: setType,
+  isCompleted: completed,
+  weightKg: weightKg,
+  reps: reps,
+  rir: rir,
+  distanceKm: distanceKm,
+  durationSeconds: durationSeconds,
+  rpe: rpe,
+);
 
 WorkoutLiveActivityContent _build({
   required List<RoutineExercise> exercises,
@@ -93,19 +89,18 @@ WorkoutLiveActivityContent _build({
   DateTime? setTimerStartedAt,
   int setTimerElapsedSeconds = 0,
   UnitService? unitService,
-}) =>
-    buildWorkoutLiveActivityContent(
-      exercises: exercises,
-      setLogs: setLogs,
-      unitService: unitService ?? UnitService(),
-      strings: _strings,
-      localeName: 'de',
-      restEndsAt: restEndsAt,
-      restStartedAt: restStartedAt,
-      setTimerTemplateId: setTimerTemplateId,
-      setTimerStartedAt: setTimerStartedAt,
-      setTimerElapsedSeconds: setTimerElapsedSeconds,
-    );
+}) => buildWorkoutLiveActivityContent(
+  exercises: exercises,
+  setLogs: setLogs,
+  unitService: unitService ?? UnitService(),
+  strings: _strings,
+  localeName: 'de',
+  restEndsAt: restEndsAt,
+  restStartedAt: restStartedAt,
+  setTimerTemplateId: setTimerTemplateId,
+  setTimerStartedAt: setTimerStartedAt,
+  setTimerElapsedSeconds: setTimerElapsedSeconds,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -251,9 +246,7 @@ void main() {
 
       final content = _build(
         exercises: [timedExercise],
-        setLogs: {
-          801: _log(exerciseName: 'Plank', durationSeconds: 75),
-        },
+        setLogs: {801: _log(exerciseName: 'Plank', durationSeconds: 75)},
       );
 
       expect(content.metricPrimary, '1:15');
@@ -263,57 +256,61 @@ void main() {
       expect(content.canCompleteSet, isTrue);
     });
 
-    test('includes following sets so the Live Activity can advance in place',
-        () {
-      final timedExercise = RoutineExercise(
-        id: 80,
-        exercise: _timedExercise(name: 'Plank'),
-        setTemplates: [
-          SetTemplate(id: 801, setType: 'normal'),
-          SetTemplate(id: 802, setType: 'normal'),
-        ],
-      );
-      final content = _build(
-        exercises: [timedExercise],
-        setLogs: {
-          801: _log(exerciseName: 'Plank'),
-          802: _log(exerciseName: 'Plank'),
-        },
-      );
+    test(
+      'includes following sets so the Live Activity can advance in place',
+      () {
+        final timedExercise = RoutineExercise(
+          id: 80,
+          exercise: _timedExercise(name: 'Plank'),
+          setTemplates: [
+            SetTemplate(id: 801, setType: 'normal'),
+            SetTemplate(id: 802, setType: 'normal'),
+          ],
+        );
+        final content = _build(
+          exercises: [timedExercise],
+          setLogs: {
+            801: _log(exerciseName: 'Plank'),
+            802: _log(exerciseName: 'Plank'),
+          },
+        );
 
-      expect(content.setTimerTemplateId, 801);
-      expect(content.upcomingSets, hasLength(1));
-      expect(content.upcomingSets.single.setTimerTemplateId, 802);
-      expect(content.upcomingSets.single.setPosition, 'Satz 2 von 2');
-    });
+        expect(content.setTimerTemplateId, 801);
+        expect(content.upcomingSets, hasLength(1));
+        expect(content.upcomingSets.single.setTimerTemplateId, 802);
+        expect(content.upcomingSets.single.setPosition, 'Satz 2 von 2');
+      },
+    );
 
-    test('time plus weight keeps both metrics and never falls back to reps',
-        () {
-      final weightedHold = RoutineExercise(
-        id: 81,
-        exercise: _timedExercise(
-          name: 'Weighted Hold',
-          trackingType: 'time_weight',
-        ),
-        setTemplates: [SetTemplate(id: 811, setType: 'normal')],
-      );
-
-      final content = _build(
-        exercises: [weightedHold],
-        setLogs: {
-          811: _log(
-            exerciseName: 'Weighted Hold',
-            weightKg: 20,
-            durationSeconds: 45,
+    test(
+      'time plus weight keeps both metrics and never falls back to reps',
+      () {
+        final weightedHold = RoutineExercise(
+          id: 81,
+          exercise: _timedExercise(
+            name: 'Weighted Hold',
+            trackingType: 'time_weight',
           ),
-        },
-      );
+          setTemplates: [SetTemplate(id: 811, setType: 'normal')],
+        );
 
-      expect(content.metricPrimary, '20 kg');
-      expect(content.metricSecondary, '0:45');
-      expect(content.metricSeparator, '·');
-      expect(content.canCompleteSet, isTrue);
-    });
+        final content = _build(
+          exercises: [weightedHold],
+          setLogs: {
+            811: _log(
+              exerciseName: 'Weighted Hold',
+              weightKg: 20,
+              durationSeconds: 45,
+            ),
+          },
+        );
+
+        expect(content.metricPrimary, '20 kg');
+        expect(content.metricSecondary, '0:45');
+        expect(content.metricSeparator, '·');
+        expect(content.canCompleteSet, isTrue);
+      },
+    );
   });
 
   group('S2 — resting', () {

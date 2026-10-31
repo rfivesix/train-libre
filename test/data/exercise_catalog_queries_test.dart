@@ -77,7 +77,9 @@ void main() {
     });
 
     test('user exercises with no status are unaffected', () async {
-      await db.into(db.exercises).insert(
+      await db
+          .into(db.exercises)
+          .insert(
             ExercisesCompanion.insert(
               id: const Value('my-own-lift'),
               isCustom: const Value(true),
@@ -85,7 +87,9 @@ void main() {
               categoryName: const Value('Legs'),
             ),
           );
-      await db.into(db.exerciseTranslations).insert(
+      await db
+          .into(db.exerciseTranslations)
+          .insert(
             ExerciseTranslationsCompanion.insert(
               exerciseId: 'my-own-lift',
               languageCode: 'de',
@@ -101,15 +105,21 @@ void main() {
     test('by id', () async {
       // A workout logged before the merge has to keep opening.
       final byUuid = await source.getExerciseByUuid('188');
-      expect(byUuid, isNotNull,
-          reason: 'a deprecated exercise must stay resolvable by id');
+      expect(
+        byUuid,
+        isNotNull,
+        reason: 'a deprecated exercise must stay resolvable by id',
+      );
     });
 
     test('by name, preferring the survivor over the retired twin', () async {
       final resolved = await source.getExerciseByName('Leg Extension');
       expect(resolved, isNotNull);
-      expect(resolved!.uuid, '369',
-          reason: 'both 369 and 851 carry this name; the active one wins');
+      expect(
+        resolved!.uuid,
+        '369',
+        reason: 'both 369 and 851 carry this name; the active one wins',
+      );
     });
   });
 

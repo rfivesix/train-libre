@@ -49,10 +49,10 @@ class CloudLiveAssistantRunner {
     required bool Function() isStillActive,
     required void Function(String text) onAppendText,
     required Future<bool> Function(AssistantAccessRecord access)
-        onAdditionalAccess,
+    onAdditionalAccess,
     required void Function(AssistantProgressStatus status) onProgressStatus,
     required void Function(String messageId, AssistantChangeProposal proposal)
-        onProposalAvailable,
+    onProposalAvailable,
     required void Function(Object error) onError,
     required VoidCallback onDone,
   }) {
@@ -73,47 +73,52 @@ class CloudLiveAssistantRunner {
       if (terminalCallbackPending) return;
       terminalCallbackPending = true;
       if (loadingCloud.isVisible || cloudHide != null) {
-        unawaited(hideCloud().whenComplete(() {
-          if (isStillActive()) callback();
-        }));
+        unawaited(
+          hideCloud().whenComplete(() {
+            if (isStillActive()) callback();
+          }),
+        );
       } else {
         callback();
       }
     }
 
     _liveResponseSubscription = service
-        .approveAndAnswer(accessId, question,
-            locale: locale,
-            onAdditionalAccess: onAdditionalAccess,
-            onProgressStatus: onProgressStatus,
-            onProposalAvailable: onProposalAvailable)
+        .approveAndAnswer(
+          accessId,
+          question,
+          locale: locale,
+          onAdditionalAccess: onAdditionalAccess,
+          onProgressStatus: onProgressStatus,
+          onProposalAvailable: onProposalAvailable,
+        )
         .listen(
-      (chunk) {
-        if (!isStillActive()) return;
-        if (loadingCloud.isVisible && chunk.isNotEmpty) {
-          // Start revealing the answer as soon as the model emits it. The
-          // loading orb can reverse out while the streamed text appears.
-          unawaited(hideCloud());
-        }
-        onAppendText(chunk);
-      },
-      onError: (Object error) {
-        if (!isStillActive()) return;
-        streamError = error;
-        finishAfterCloudHide(() => onError(streamError!));
-      },
-      onDone: () {
-        if (!isStillActive()) return;
-        streamDone = true;
-        finishAfterCloudHide(() {
-          if (streamError != null) {
-            onError(streamError!);
-          } else if (streamDone) {
-            onDone();
-          }
-        });
-      },
-    );
+          (chunk) {
+            if (!isStillActive()) return;
+            if (loadingCloud.isVisible && chunk.isNotEmpty) {
+              // Start revealing the answer as soon as the model emits it. The
+              // loading orb can reverse out while the streamed text appears.
+              unawaited(hideCloud());
+            }
+            onAppendText(chunk);
+          },
+          onError: (Object error) {
+            if (!isStillActive()) return;
+            streamError = error;
+            finishAfterCloudHide(() => onError(streamError!));
+          },
+          onDone: () {
+            if (!isStillActive()) return;
+            streamDone = true;
+            finishAfterCloudHide(() {
+              if (streamError != null) {
+                onError(streamError!);
+              } else if (streamDone) {
+                onDone();
+              }
+            });
+          },
+        );
   }
 
   Future<AssistantMessage?> denyAccess({
@@ -149,8 +154,9 @@ class CloudLiveAssistantRunner {
     final subscription = _liveResponseSubscription;
     _liveResponseSubscription = null;
     if (subscription != null) {
-      _activeGenerationCancellation =
-          subscription.cancel().catchError((Object _) {});
+      _activeGenerationCancellation = subscription.cancel().catchError(
+        (Object _) {},
+      );
     }
   }
 

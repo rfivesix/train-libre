@@ -188,8 +188,9 @@ HomeWidgetDeepLink? parseHomeWidgetDeepLink(String location) {
       metricId: (metric != null && metric.isNotEmpty) ? metric : null,
       // An unknown period is dropped rather than rejected: the metric is still
       // worth honouring, and the screen falls back to its own default.
-      periodKey:
-          HomeWidgetMeasurementPeriod.all.contains(period) ? period : null,
+      periodKey: HomeWidgetMeasurementPeriod.all.contains(period)
+          ? period
+          : null,
     );
   }
 

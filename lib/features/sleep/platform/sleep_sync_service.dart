@@ -69,14 +69,14 @@ class SleepSyncService implements SleepSettingsService {
     AppDatabase? database,
     DatabaseHelper? databaseHelper,
     bool ownsDatabase = false,
-  })  : _databaseFuture = database != null
-            ? Future.value(database)
-            : (databaseHelper ?? DatabaseHelper.instance).database,
-        _ownsDatabase = ownsDatabase && database != null,
-        _iosPermissionsService = null,
-        _androidPermissionsService = null,
-        _iosDataSource = null,
-        _androidDataSource = null;
+  }) : _databaseFuture = database != null
+           ? Future.value(database)
+           : (databaseHelper ?? DatabaseHelper.instance).database,
+       _ownsDatabase = ownsDatabase && database != null,
+       _iosPermissionsService = null,
+       _androidPermissionsService = null,
+       _iosDataSource = null,
+       _androidDataSource = null;
 
   SleepSyncService.withOverrides({
     required SleepPermissionsService iosPermissionsService,
@@ -86,14 +86,14 @@ class SleepSyncService implements SleepSettingsService {
     AppDatabase? database,
     DatabaseHelper? databaseHelper,
     bool ownsDatabase = false,
-  })  : _databaseFuture = database != null
-            ? Future.value(database)
-            : (databaseHelper ?? DatabaseHelper.instance).database,
-        _ownsDatabase = ownsDatabase && database != null,
-        _iosPermissionsService = iosPermissionsService,
-        _androidPermissionsService = androidPermissionsService,
-        _iosDataSource = iosDataSource,
-        _androidDataSource = androidDataSource;
+  }) : _databaseFuture = database != null
+           ? Future.value(database)
+           : (databaseHelper ?? DatabaseHelper.instance).database,
+       _ownsDatabase = ownsDatabase && database != null,
+       _iosPermissionsService = iosPermissionsService,
+       _androidPermissionsService = androidPermissionsService,
+       _iosDataSource = iosDataSource,
+       _androidDataSource = androidDataSource;
 
   final Future<AppDatabase> _databaseFuture;
   final bool _ownsDatabase;
@@ -194,12 +194,14 @@ class SleepSyncService implements SleepSettingsService {
             fromUtc: fromUtc,
             toUtc: nowUtc,
             token: token,
-            onProgress: onProgress)
+            onProgress: onProgress,
+          )
         : await _importWithHealthConnect(
             fromUtc: fromUtc,
             toUtc: nowUtc,
             token: token,
-            onProgress: onProgress);
+            onProgress: onProgress,
+          );
 
     if (result.success) {
       lastImportAtListenable.value = DateTime.now().toUtc();
@@ -254,13 +256,15 @@ class SleepSyncService implements SleepSettingsService {
     CancellationToken? token,
     void Function(int index, int total)? onProgress,
   }) async {
-    final permissionService = _androidPermissionsService ??
+    final permissionService =
+        _androidPermissionsService ??
         const HealthConnectSleepPermissionsService(
           HealthConnectSleepMethodChannelBridge(),
         );
     final adapter = HealthConnectSleepAdapter(
       permissionsService: permissionService,
-      dataSource: _androidDataSource ??
+      dataSource:
+          _androidDataSource ??
           const HealthConnectSleepMethodChannelDataSource(),
     );
     token?.throwIfCancelled();
@@ -274,8 +278,11 @@ class SleepSyncService implements SleepSettingsService {
       );
     }
     token?.throwIfCancelled();
-    final run = await _runPipelineImport(import.batch!,
-        token: token, onProgress: onProgress);
+    final run = await _runPipelineImport(
+      import.batch!,
+      token: token,
+      onProgress: onProgress,
+    );
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,
@@ -289,7 +296,8 @@ class SleepSyncService implements SleepSettingsService {
     CancellationToken? token,
     void Function(int index, int total)? onProgress,
   }) async {
-    final permissionService = _iosPermissionsService ??
+    final permissionService =
+        _iosPermissionsService ??
         const HealthKitSleepPermissionsService(
           HealthKitSleepMethodChannelBridge(),
         );
@@ -309,8 +317,11 @@ class SleepSyncService implements SleepSettingsService {
       );
     }
     token?.throwIfCancelled();
-    final run = await _runPipelineImport(import.batch!,
-        token: token, onProgress: onProgress);
+    final run = await _runPipelineImport(
+      import.batch!,
+      token: token,
+      onProgress: onProgress,
+    );
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,

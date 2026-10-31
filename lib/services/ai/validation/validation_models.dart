@@ -140,8 +140,8 @@ class AiMealCandidateItem {
           : nutritionPer100g as Map<String, double?>?,
       packagedProductEvidence:
           identical(packagedProductEvidence, _unchangedSelection)
-              ? this.packagedProductEvidence
-              : packagedProductEvidence as String?,
+          ? this.packagedProductEvidence
+          : packagedProductEvidence as String?,
       allowOffFallback: allowOffFallback ?? this.allowOffFallback,
       selectedFood: identical(selectedFood, _unchangedSelection)
           ? this.selectedFood
@@ -180,12 +180,7 @@ class AiNutritionTotals {
     required this.fat,
   });
 
-  static const zero = AiNutritionTotals(
-    kcal: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-  );
+  static const zero = AiNutritionTotals(kcal: 0, protein: 0, carbs: 0, fat: 0);
 
   factory AiNutritionTotals.fromFood(FoodItem food, int grams) {
     final factor = grams / 100.0;
@@ -244,12 +239,7 @@ class AiMacroTargetContext {
   }
 
   Map<String, int> toMap() {
-    return {
-      'kcal': kcal,
-      'protein': protein,
-      'carbs': carbs,
-      'fat': fat,
-    };
+    return {'kcal': kcal, 'protein': protein, 'carbs': carbs, 'fat': fat};
   }
 
   bool get isEffectivelyEmpty =>
@@ -353,12 +343,14 @@ class AiValidatedMealItem {
       match.quality == AiMatchQuality.weak ||
       match.quality == AiMatchQuality.partial ||
       match.isAmbiguous ||
-      issues.any((issue) => const {
-            'state_mismatch',
-            'zero_nutrition_match',
-            'implausible_food_density',
-            'macro_energy_mismatch',
-          }.contains(issue.code));
+      issues.any(
+        (issue) => const {
+          'state_mismatch',
+          'zero_nutrition_match',
+          'implausible_food_density',
+          'macro_energy_mismatch',
+        }.contains(issue.code),
+      );
 
   /// Exactly the foods offered to the repair model for this item.
   List<FoodItem> get repairFoods => needsCatalogRepair
@@ -401,10 +393,7 @@ class AiValidationResult {
   });
 
   List<AiValidationIssue> get allIssues {
-    return [
-      ...issues,
-      for (final item in items) ...item.issues,
-    ];
+    return [...issues, for (final item in items) ...item.issues];
   }
 
   List<AiValidationIssue> get errors => allIssues
@@ -421,9 +410,8 @@ class AiValidationResult {
   /// A local search found materially different nutrition candidates without a
   /// verified candidate id. This is safe to save only after a semantic repair
   /// selects one of the real database products.
-  bool get needsSemanticSelection => allIssues.any(
-        (issue) => issue.code == 'ambiguous_nutrition_match',
-      );
+  bool get needsSemanticSelection =>
+      allIssues.any((issue) => issue.code == 'ambiguous_nutrition_match');
 
   AiValidationResult copyWithRepairMetadata({
     required int repairPassesUsed,
@@ -501,7 +489,8 @@ class AiValidationResult {
         ..writeln('')
         ..writeln('CANDIDATES for itemIndex $i ("${item.candidate.name}"):')
         ..writeln(
-            'Choose the EXACT name from one of these real database entries:');
+          'Choose the EXACT name from one of these real database entries:',
+        );
       for (final candidate in candidates) {
         buffer.writeln(candidate.toPromptLine());
       }
@@ -558,10 +547,7 @@ class AiDiarySavePlan {
         matched.add(item);
       }
     }
-    return AiDiarySavePlan(
-      matchedItems: matched,
-      unmatchedItems: unmatched,
-    );
+    return AiDiarySavePlan(matchedItems: matched, unmatchedItems: unmatched);
   }
 
   bool get canSaveAny => matchedItems.isNotEmpty;
@@ -572,18 +558,12 @@ class _NormalizedCandidate {
   final AiMealCandidate candidate;
   final List<AiValidationIssue> issues;
 
-  const _NormalizedCandidate({
-    required this.candidate,
-    required this.issues,
-  });
+  const _NormalizedCandidate({required this.candidate, required this.issues});
 }
 
 class _ScoredFood {
   final FoodItem food;
   final double score;
 
-  const _ScoredFood({
-    required this.food,
-    required this.score,
-  });
+  const _ScoredFood({required this.food, required this.score});
 }

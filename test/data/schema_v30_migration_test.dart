@@ -28,20 +28,22 @@ void main() {
     }
   });
 
-  test(
-      'Migration from v29 to the current schema adds columns, backfills data and is idempotent',
-      () async {
+  test('Migration from v29 to the current schema adds columns, backfills data and is idempotent', () async {
     // 1. Initialize DB at v30 temporarily and insert baseline data
     final initDb = AppDatabase(NativeDatabase(dbFile));
 
-    final profile = await initDb.into(initDb.profiles).insertReturning(
+    final profile = await initDb
+        .into(initDb.profiles)
+        .insertReturning(
           ProfilesCompanion.insert(
             id: const drift.Value('profile-v29'),
             visibility: const drift.Value('private'),
           ),
         );
 
-    await initDb.into(initDb.appSettings).insert(
+    await initDb
+        .into(initDb.appSettings)
+        .insert(
           AppSettingsCompanion.insert(
             userId: profile.id,
             themeMode: const drift.Value('dark'),
@@ -49,32 +51,39 @@ void main() {
           ),
         );
 
-    final exercise = await initDb.into(initDb.exercises).insertReturning(
+    final exercise = await initDb
+        .into(initDb.exercises)
+        .insertReturning(
           ExercisesCompanion.insert(
             id: const drift.Value('ex-bench-v29'),
             categoryName: const drift.Value('Chest'),
           ),
         );
 
-    final routine = await initDb.into(initDb.routines).insertReturning(
+    final routine = await initDb
+        .into(initDb.routines)
+        .insertReturning(
           RoutinesCompanion.insert(
             id: const drift.Value('routine-v29'),
             name: 'Push Day',
           ),
         );
 
-    final routineEx =
-        await initDb.into(initDb.routineExercises).insertReturning(
-              RoutineExercisesCompanion.insert(
-                id: const drift.Value('re-bench-v29'),
-                routineId: routine.id,
-                exerciseId: exercise.id,
-                orderIndex: 0,
-              ),
-            );
+    final routineEx = await initDb
+        .into(initDb.routineExercises)
+        .insertReturning(
+          RoutineExercisesCompanion.insert(
+            id: const drift.Value('re-bench-v29'),
+            routineId: routine.id,
+            exerciseId: exercise.id,
+            orderIndex: 0,
+          ),
+        );
 
     // Insert 5 templates with various target_reps formats
-    await initDb.into(initDb.routineSetTemplates).insert(
+    await initDb
+        .into(initDb.routineSetTemplates)
+        .insert(
           RoutineSetTemplatesCompanion.insert(
             id: const drift.Value('tmpl-1'),
             routineExerciseId: routineEx.id,
@@ -84,7 +93,9 @@ void main() {
           ),
         );
 
-    await initDb.into(initDb.routineSetTemplates).insert(
+    await initDb
+        .into(initDb.routineSetTemplates)
+        .insert(
           RoutineSetTemplatesCompanion.insert(
             id: const drift.Value('tmpl-2'),
             routineExerciseId: routineEx.id,
@@ -94,7 +105,9 @@ void main() {
           ),
         );
 
-    await initDb.into(initDb.routineSetTemplates).insert(
+    await initDb
+        .into(initDb.routineSetTemplates)
+        .insert(
           RoutineSetTemplatesCompanion.insert(
             id: const drift.Value('tmpl-3'),
             routineExerciseId: routineEx.id,
@@ -104,7 +117,9 @@ void main() {
           ),
         );
 
-    await initDb.into(initDb.routineSetTemplates).insert(
+    await initDb
+        .into(initDb.routineSetTemplates)
+        .insert(
           RoutineSetTemplatesCompanion.insert(
             id: const drift.Value('tmpl-4'),
             routineExerciseId: routineEx.id,
@@ -113,7 +128,9 @@ void main() {
           ),
         );
 
-    await initDb.into(initDb.routineSetTemplates).insert(
+    await initDb
+        .into(initDb.routineSetTemplates)
+        .insert(
           RoutineSetTemplatesCompanion.insert(
             id: const drift.Value('tmpl-5'),
             routineExerciseId: routineEx.id,
@@ -122,7 +139,9 @@ void main() {
           ),
         );
 
-    final wlog = await initDb.into(initDb.workoutLogs).insertReturning(
+    final wlog = await initDb
+        .into(initDb.workoutLogs)
+        .insertReturning(
           WorkoutLogsCompanion.insert(
             id: const drift.Value('wlog-v29'),
             startTime: DateTime(2026, 1, 1, 10, 0),
@@ -131,7 +150,9 @@ void main() {
         );
 
     // Insert 2 set logs
-    await initDb.into(initDb.setLogs).insert(
+    await initDb
+        .into(initDb.setLogs)
+        .insert(
           SetLogsCompanion.insert(
             id: const drift.Value('set-1'),
             workoutLogId: wlog.id,
@@ -143,7 +164,9 @@ void main() {
           ),
         );
 
-    await initDb.into(initDb.setLogs).insert(
+    await initDb
+        .into(initDb.setLogs)
+        .insert(
           SetLogsCompanion.insert(
             id: const drift.Value('set-2'),
             workoutLogId: wlog.id,
@@ -158,43 +181,60 @@ void main() {
     // 2. Drop the v30 and v31 columns to revert the schema to Version 29.
     // AppSettings (3 columns)
     await initDb.customStatement(
-        'ALTER TABLE app_settings DROP COLUMN training_autonomy_level;');
+      'ALTER TABLE app_settings DROP COLUMN training_autonomy_level;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE app_settings DROP COLUMN nutrition_autonomy_level;');
+      'ALTER TABLE app_settings DROP COLUMN nutrition_autonomy_level;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE app_settings DROP COLUMN experience_level;');
+      'ALTER TABLE app_settings DROP COLUMN experience_level;',
+    );
 
     // RoutineSetTemplates (2 columns)
     await initDb.customStatement(
-        'ALTER TABLE routine_set_templates DROP COLUMN target_rep_min;');
+      'ALTER TABLE routine_set_templates DROP COLUMN target_rep_min;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE routine_set_templates DROP COLUMN target_rep_max;');
+      'ALTER TABLE routine_set_templates DROP COLUMN target_rep_max;',
+    );
 
     // SetLogs (10 columns)
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN prescription_origin;');
+      'ALTER TABLE set_logs DROP COLUMN prescription_origin;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN prescribed_rep_min;');
+      'ALTER TABLE set_logs DROP COLUMN prescribed_rep_min;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN prescribed_rep_max;');
-    await initDb
-        .customStatement('ALTER TABLE set_logs DROP COLUMN prescribed_weight;');
-    await initDb
-        .customStatement('ALTER TABLE set_logs DROP COLUMN prescribed_rir;');
+      'ALTER TABLE set_logs DROP COLUMN prescribed_rep_max;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN prescription_overridden;');
+      'ALTER TABLE set_logs DROP COLUMN prescribed_weight;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN values_auto_filled;');
+      'ALTER TABLE set_logs DROP COLUMN prescribed_rir;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN substituted_for_exercise_id;');
+      'ALTER TABLE set_logs DROP COLUMN prescription_overridden;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN progression_reason;');
+      'ALTER TABLE set_logs DROP COLUMN values_auto_filled;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE set_logs DROP COLUMN progression_algorithm_version;');
-    await initDb
-        .customStatement('ALTER TABLE set_logs DROP COLUMN progression_data;');
+      'ALTER TABLE set_logs DROP COLUMN substituted_for_exercise_id;',
+    );
     await initDb.customStatement(
-        'ALTER TABLE routine_exercises DROP COLUMN progression_data;');
+      'ALTER TABLE set_logs DROP COLUMN progression_reason;',
+    );
+    await initDb.customStatement(
+      'ALTER TABLE set_logs DROP COLUMN progression_algorithm_version;',
+    );
+    await initDb.customStatement(
+      'ALTER TABLE set_logs DROP COLUMN progression_data;',
+    );
+    await initDb.customStatement(
+      'ALTER TABLE routine_exercises DROP COLUMN progression_data;',
+    );
 
     // Set schema user_version to 29
     await initDb.customStatement('PRAGMA user_version = 29;');
@@ -213,8 +253,10 @@ void main() {
     expect(v29SetLogCols, isNot(contains('prescription_origin')));
     expect(v29SetLogCols, isNot(contains('prescribed_rep_min')));
     expect(v29SetLogCols, isNot(contains('progression_data')));
-    final v29RoutineExerciseCols =
-        await _columnsOf(initDb, 'routine_exercises');
+    final v29RoutineExerciseCols = await _columnsOf(
+      initDb,
+      'routine_exercises',
+    );
     expect(v29RoutineExerciseCols, isNot(contains('progression_data')));
 
     await initDb.close();
@@ -244,10 +286,7 @@ void main() {
     final migratedTemplateCols = await _columnsOf(db, 'routine_set_templates');
     expect(
       migratedTemplateCols,
-      containsAll([
-        'target_rep_min',
-        'target_rep_max',
-      ]),
+      containsAll(['target_rep_min', 'target_rep_max']),
     );
 
     final migratedSetLogCols = await _columnsOf(db, 'set_logs');
@@ -268,15 +307,17 @@ void main() {
     );
 
     expect(migratedSetLogCols, contains('progression_data'));
-    final migratedRoutineExerciseCols =
-        await _columnsOf(db, 'routine_exercises');
+    final migratedRoutineExerciseCols = await _columnsOf(
+      db,
+      'routine_exercises',
+    );
     expect(migratedRoutineExerciseCols, contains('progression_data'));
 
     // 5. Verify pre-existing data and backfilled values
     // AppSettings: defaults 'off', 'suggest', 'pro', preserving themeMode 'dark'
-    final settings = await (db.select(db.appSettings)
-          ..where((t) => t.userId.equals('profile-v29')))
-        .getSingle();
+    final settings = await (db.select(
+      db.appSettings,
+    )..where((t) => t.userId.equals('profile-v29'))).getSingle();
     expect(settings.trainingAutonomyLevel, equals('off'));
     expect(settings.nutritionAutonomyLevel, equals('suggest'));
     expect(settings.experienceLevel, equals('pro'));
@@ -284,9 +325,9 @@ void main() {
     expect(settings.unitSystem, equals('metric'));
 
     // RoutineSetTemplates: target_rep_min/max backfills
-    final templates = await (db.select(db.routineSetTemplates)
-          ..orderBy([(t) => drift.OrderingTerm.asc(t.id)]))
-        .get();
+    final templates = await (db.select(
+      db.routineSetTemplates,
+    )..orderBy([(t) => drift.OrderingTerm.asc(t.id)])).get();
     final t1 = templates.firstWhere((t) => t.id == 'tmpl-1');
     expect(t1.targetReps, equals('8-12'));
     expect(t1.targetRepMin, equals(8));
@@ -316,9 +357,9 @@ void main() {
     expect(t5.targetRepMax, isNull);
 
     // SetLogs: every pre-existing row has prescription_origin = 'none'
-    final setLogs = await (db.select(db.setLogs)
-          ..orderBy([(t) => drift.OrderingTerm.asc(t.id)]))
-        .get();
+    final setLogs = await (db.select(
+      db.setLogs,
+    )..orderBy([(t) => drift.OrderingTerm.asc(t.id)])).get();
     expect(setLogs.length, equals(2));
     for (final set in setLogs) {
       expect(set.prescriptionOrigin, equals('none'));
@@ -338,15 +379,12 @@ void main() {
 
     // 6. Test Idempotency: Running onUpgrade(29 -> 30) again must not fail
     final migrator = db.createMigrator();
-    await expectLater(
-      db.migration.onUpgrade(migrator, 29, 30),
-      completes,
-    );
+    await expectLater(db.migration.onUpgrade(migrator, 29, 30), completes);
 
     // Verify data remains consistent after second upgrade run
-    final settingsAfter = await (db.select(db.appSettings)
-          ..where((t) => t.userId.equals('profile-v29')))
-        .getSingle();
+    final settingsAfter = await (db.select(
+      db.appSettings,
+    )..where((t) => t.userId.equals('profile-v29'))).getSingle();
     expect(settingsAfter.trainingAutonomyLevel, equals('off'));
     expect(settingsAfter.nutritionAutonomyLevel, equals('suggest'));
     expect(settingsAfter.experienceLevel, equals('pro'));

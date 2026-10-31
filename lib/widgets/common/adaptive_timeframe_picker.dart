@@ -41,8 +41,9 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
 
   // Generate selectable calendar blocks inside the caller's real data range.
   final List<DateTime> options = [];
-  DateTime current =
-      activeBlock.getBounds(earliestAvailableDay, earliestAvailableDay).start;
+  DateTime current = activeBlock
+      .getBounds(earliestAvailableDay, earliestAvailableDay)
+      .start;
 
   while (current.isBefore(latest) ||
       current.isAtSameMomentAs(latest) ||
@@ -165,7 +166,8 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: DesignConstants.spacingL),
+                  vertical: DesignConstants.spacingL,
+                ),
                 child: Center(
                   child: Text(
                     AppLocalizations.of(ctx)?.selectDateTitle ?? 'Select Date',
@@ -188,8 +190,9 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                     ),
                   ),
                   child: CupertinoPicker(
-                    scrollController:
-                        FixedExtentScrollController(initialItem: initialIndex),
+                    scrollController: FixedExtentScrollController(
+                      initialItem: initialIndex,
+                    ),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
                       selectedIndex = index;
@@ -222,10 +225,13 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                         onPressed: () {
                           final selectedDate = options[selectedIndex];
                           final isRolling = selectedDate.year == 9999;
-                          final anchor =
-                              isRolling ? DateTime.now() : selectedDate;
-                          Navigator.pop(ctx,
-                              TimeframeSelection(anchor, isRolling: isRolling));
+                          final anchor = isRolling
+                              ? DateTime.now()
+                              : selectedDate;
+                          Navigator.pop(
+                            ctx,
+                            TimeframeSelection(anchor, isRolling: isRolling),
+                          );
                         },
                         label: l10n.snackbarButtonOK,
                         tooltip: l10n.snackbarButtonOK,

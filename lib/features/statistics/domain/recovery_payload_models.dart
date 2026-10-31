@@ -80,10 +80,10 @@ class RecoveryMusclePayload {
       readyUpperHours: (data['readyUpperHours'] as num?)?.toInt() ?? 72,
       readinessScore: (data['readinessScore'] as num?)?.toDouble(),
       lastSessionLoad: (data['lastSessionLoad'] as num?)?.toDouble(),
-      lastSessionDirectLoad:
-          (data['lastSessionDirectLoad'] as num?)?.toDouble(),
-      lastSessionIndirectLoad:
-          (data['lastSessionIndirectLoad'] as num?)?.toDouble(),
+      lastSessionDirectLoad: (data['lastSessionDirectLoad'] as num?)
+          ?.toDouble(),
+      lastSessionIndirectLoad: (data['lastSessionIndirectLoad'] as num?)
+          ?.toDouble(),
       residualLoad: (data['residualLoad'] as num?)?.toDouble(),
       eligibleSetCount: (data['eligibleSetCount'] as num?)?.toInt() ?? 0,
       setsWithRir: (data['setsWithRir'] as num?)?.toInt() ?? 0,

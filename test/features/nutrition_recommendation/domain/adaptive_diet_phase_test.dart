@@ -43,13 +43,14 @@ void main() {
 
     test('phase switches only after 7 consecutive days', () {
       final start = DateTime(2026, 4, 1);
-      final state = AdaptiveDietPhaseTrackingState.bootstrap(
-        phase: AdaptiveDietPhase.cut,
-        asOfDay: start,
-      ).reconcile(
-        observedPhase: AdaptiveDietPhase.bulk,
-        asOfDay: DateTime(2026, 4, 2),
-      );
+      final state =
+          AdaptiveDietPhaseTrackingState.bootstrap(
+            phase: AdaptiveDietPhase.cut,
+            asOfDay: start,
+          ).reconcile(
+            observedPhase: AdaptiveDietPhase.bulk,
+            asOfDay: DateTime(2026, 4, 2),
+          );
 
       final day6 = state.reconcile(
         observedPhase: AdaptiveDietPhase.bulk,
@@ -71,13 +72,14 @@ void main() {
     });
 
     test('reverting before confirmation cancels pending phase reset', () {
-      final state = AdaptiveDietPhaseTrackingState.bootstrap(
-        phase: AdaptiveDietPhase.cut,
-        asOfDay: DateTime(2026, 4, 1),
-      ).reconcile(
-        observedPhase: AdaptiveDietPhase.bulk,
-        asOfDay: DateTime(2026, 4, 2),
-      );
+      final state =
+          AdaptiveDietPhaseTrackingState.bootstrap(
+            phase: AdaptiveDietPhase.cut,
+            asOfDay: DateTime(2026, 4, 1),
+          ).reconcile(
+            observedPhase: AdaptiveDietPhase.bulk,
+            asOfDay: DateTime(2026, 4, 2),
+          );
 
       final reverted = state.reconcile(
         observedPhase: AdaptiveDietPhase.cut,

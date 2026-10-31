@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
@@ -32,12 +33,16 @@ import 'widgets/catalog_category_tile.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_navigation_result.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
@@ -196,8 +201,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         .whereType<String>()
         .toSet()
         .toList();
-    final products =
-        await ProductLocalDataSource.instance.getProductsByBarcodes(barcodes);
+    final products = await ProductLocalDataSource.instance
+        .getProductsByBarcodes(barcodes);
     return {for (final product in products) product.barcode: product};
   }
 
@@ -267,8 +272,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   bool _hasSearchableFoods = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await ProductLocalDataSource.instance.hasSearchableProducts();
+    final initialized = await ProductLocalDataSource.instance
+        .hasSearchableProducts();
     if (mounted) {
       setState(() {
         _hasSearchableFoods = initialized;
@@ -279,8 +284,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.addFoodSearch));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.addFoodSearch,
+      ),
+    );
     _tabController = TabController(
       length: 4,
       vsync: this,
@@ -300,8 +308,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       await _checkDbStatus();
       if (!mounted) return;
       if (!_hasSearchableFoods) {
-        await BasisDataManager.instance
-            .promptOffDatabaseDownloadIfFirstTime(context);
+        await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+          context,
+        );
         await _checkDbStatus();
       }
       // Only after the first-run database prompt has been dealt with — opening
@@ -385,21 +394,21 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   }) {
     Navigator.of(context)
         .push(
-      CardMorphRoute(
-        sourceContext: sourceContext,
-        sourceBorderRadius: 28.0,
-        sourceBuilder: sourceBuilder,
-        onSourceVisibilityChanged: onSourceVisibilityChanged,
-        builder: (context) => const CreateFoodScreen(),
-      ),
-    )
+          CardMorphRoute(
+            sourceContext: sourceContext,
+            sourceBorderRadius: 28.0,
+            sourceBuilder: sourceBuilder,
+            onSourceVisibilityChanged: onSourceVisibilityChanged,
+            builder: (context) => const CreateFoodScreen(),
+          ),
+        )
         .then((_) {
-      _searchController.clear();
-      _runFilter('');
-      _loadFavorites();
-      _loadRecentItems();
-      _loadCustomFoods();
-    });
+          _searchController.clear();
+          _runFilter('');
+          _loadFavorites();
+          _loadRecentItems();
+          _loadCustomFoods();
+        });
   }
 
   Future<void> _loadFavorites() async {
@@ -512,9 +521,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // Use GlobalAppBar for consistent top-level navigation styling.
-      appBar: GlobalAppBar(
-        title: l10n.nutritionExplorerTitle,
-      ),
+      appBar: GlobalAppBar(title: l10n.nutritionExplorerTitle),
 
       body: Stack(
         children: [
@@ -539,8 +546,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       overlayColor: WidgetStateProperty.all(Colors.transparent),
                       labelPadding: EdgeInsets.zero,
                       labelColor: isLightMode ? Colors.black : Colors.white,
-                      unselectedLabelColor:
-                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      unselectedLabelColor: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant,
                       labelStyle: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -599,9 +607,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 child: Builder(
                   builder: (fabCtx) {
                     Widget buildFab({VoidCallback? onPressed}) => GlassFab(
-                          label: fabLabel,
-                          onPressed: onPressed ?? () {},
-                        );
+                      label: fabLabel,
+                      onPressed: onPressed ?? () {},
+                    );
 
                     return GlassFab(
                       label: fabLabel,
@@ -733,16 +741,17 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     // If a barcode was returned and the screen still exists...
     if (barcode != null && mounted) {
       // ...search for the product in the database.
-      final foodItem =
-          await ProductLocalDataSource.instance.getProductByBarcode(
-        barcode,
-      );
+      final foodItem = await ProductLocalDataSource.instance
+          .getProductByBarcode(barcode);
       if (!mounted) return;
 
       // If the product was found...
       if (foodItem != null) {
-        unawaited(TelemetryService.instance
-            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        unawaited(
+          TelemetryService.instance.trackFeatureUsed(
+            featureKey: FeatureKey.barcodeScanned,
+          ),
+        );
         // ...close AddFoodScreen and return the found item, tagged so the
         // logging screen can attribute the entry to the scanner.
         Navigator.of(context).pop(ScannedFoodItem(foodItem));
@@ -785,8 +794,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               Expanded(
                 child: AppButton.primary(
                   onPressed: () async {
-                    final MacroEntry? entry =
-                        formKey.currentState?.createEntry();
+                    final MacroEntry? entry = formKey.currentState
+                        ?.createEntry();
                     if (entry == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(l10n.macroEntryInvalidValues)),
@@ -800,9 +809,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       }
                     } catch (_) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.error)),
-                      );
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(l10n.error)));
                     }
                   },
                   label: l10n.buttonSave,
@@ -825,7 +833,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         !isSearching && MediaQuery.sizeOf(context).width >= 390;
     final searchRow = Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingL, vertical: 0),
+        horizontal: DesignConstants.spacingL,
+        vertical: 0,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -859,8 +869,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                         )
                       : null,
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.spacingM,
-                      vertical: DesignConstants.spacingM),
+                    horizontal: DesignConstants.spacingM,
+                    vertical: DesignConstants.spacingM,
+                  ),
                 ),
               ),
             ),
@@ -1030,21 +1041,24 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           if (_isLoadingCustomFoods)
                             const Padding(
                               padding: EdgeInsets.symmetric(
-                                  vertical: DesignConstants.spacingM),
+                                vertical: DesignConstants.spacingM,
+                              ),
                               child: Center(child: CircularProgressIndicator()),
                             )
                           else if (_customFoodItems.isEmpty)
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: DesignConstants.spacingM),
+                                vertical: DesignConstants.spacingM,
+                              ),
                               child: Center(child: Text(l10n.emptyCategory)),
                             )
                           else
                             ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              padding:
-                                  DesignConstants.cardPadding.copyWith(top: 0),
+                              padding: DesignConstants.cardPadding.copyWith(
+                                top: 0,
+                              ),
                               itemCount: _customFoodItems.length,
                               itemBuilder: (context, i) =>
                                   _buildFoodListItem(_customFoodItems[i]),
@@ -1066,9 +1080,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   final themeService = Provider.of<ThemeService>(context);
                   final baseFoodLang =
                       BaseFoodLanguageService.resolveLanguageCode(
-                    choice: themeService.baseFoodLanguage,
-                    context: context,
-                  );
+                        choice: themeService.baseFoodLanguage,
+                        context: context,
+                      );
                   final title = _resolveBaseCategoryTitle(cat, baseFoodLang);
 
                   return CatalogCategoryTile(
@@ -1101,26 +1115,33 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           child: (_isLoadingSearch && listItems.isEmpty)
               ? const Center(child: CircularProgressIndicator())
               : (listItems.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: DesignConstants.spacingXL),
-                        child: Text(
-                          l10n.searchNoResults,
-                          style: Theme.of(context).textTheme.titleMedium,
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: DesignConstants.spacingXL,
+                          ),
+                          child: Text(
+                            l10n.searchNoResults,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
-                      ),
-                    )
-                  : ListView.builder(
-                      scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
-                      padding: DesignConstants.cardPadding
-                          .copyWith(bottom: _bottomPadding),
-                      itemCount: listItems.length,
-                      itemBuilder: (context, index) {
-                        return listItems.buildRow(
-                            index, l10n, _buildFoodListItem);
-                      },
-                    )),
+                      )
+                    : ListView.builder(
+                        scrollCacheExtent: const ScrollCacheExtent.pixels(
+                          1500.0,
+                        ),
+                        padding: DesignConstants.cardPadding.copyWith(
+                          bottom: _bottomPadding,
+                        ),
+                        itemCount: listItems.length,
+                        itemBuilder: (context, index) {
+                          return listItems.buildRow(
+                            index,
+                            l10n,
+                            _buildFoodListItem,
+                          );
+                        },
+                      )),
         ),
       ],
     );
@@ -1181,9 +1202,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       },
       onDelete: () => _deleteMeal(meal, l10n),
       onTap: () async {
-        await Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => MealScreen(meal: meal)),
-        );
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)));
         await _loadMeals();
       },
     );
@@ -1207,9 +1227,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     _mealTotalsFutureCache.remove(mealId);
     await _loadMeals();
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.mealDeleted)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.mealDeleted)));
     }
   }
 
@@ -1234,8 +1253,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           mealName: meal['name'] as String,
           rawItems: rawItems,
           products: products,
-          recipeCookedWeightInGrams:
-              (meal['cooked_weight_in_grams'] as num?)?.toInt(),
+          recipeCookedWeightInGrams: (meal['cooked_weight_in_grams'] as num?)
+              ?.toInt(),
           recipeServingCount: (meal['serving_count'] as num?)?.toInt(),
           initialDate: widget.initialDate ?? DateTime.now(),
           initialMealType: widget.initialMealType ?? 'mealtypeBreakfast',
@@ -1247,20 +1266,21 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 timestamp: date,
                 quantityInGrams:
                     quantities[item['id']?.toString() ?? barcode] ??
-                        (item['quantity_in_grams'] as int),
+                    (item['quantity_in_grams'] as int),
                 mealType: mealType,
               );
             }).toList();
-            final foodEntryIds =
-                await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
-                    MealEntry(
-                      id: const Uuid().v4(),
-                      title: meal['name'] as String,
-                      consumedAt: date,
-                      mealType: mealType,
-                      source: 'template',
-                    ),
-                    foodEntries);
+            final foodEntryIds = await DatabaseHelper.instance
+                .insertMealEntryWithFoodEntries(
+                  MealEntry(
+                    id: const Uuid().v4(),
+                    title: meal['name'] as String,
+                    consumedAt: date,
+                    mealType: mealType,
+                    source: 'template',
+                  ),
+                  foodEntries,
+                );
             for (var i = 0; i < foodEntries.length; i++) {
               final bc = foodEntries[i].barcode;
               final qty = foodEntries[i].quantityInGrams;
@@ -1277,9 +1297,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
             if (mounted) {
               HapticFeedbackService.instance.confirmationFeedback();
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(l10n.mealAddedToDiarySuccess)),
               );
             }
@@ -1310,7 +1328,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       ),
     );
 
-    final caffeineId = caffeine.id ??
+    final caffeineId =
+        caffeine.id ??
         (await DatabaseHelper.instance.insertSupplement(caffeine));
 
     await DatabaseHelper.instance.insertSupplementLog(

@@ -26,9 +26,9 @@ class AssistantSqlQueryResult {
       rows.expand((row) => row.keys).toSet().toList()..sort();
 
   Map<String, Object?> get sharedPayload => {
-        'rows': rows,
-        'truncated': truncated,
-      };
+    'rows': rows,
+    'truncated': truncated,
+  };
 
   Map<String, Object?> get auditManifest {
     final encoded = jsonEncode(sharedPayload);
@@ -79,7 +79,8 @@ class AssistantSqlSandbox {
   bool _closed = false;
 
   static Future<AssistantSqlSandbox> create(
-      List<AssistantActionResult> results) async {
+    List<AssistantActionResult> results,
+  ) async {
     final successful = results
         .where((result) => result.status == AssistantActionStatus.success)
         .toList();
@@ -104,8 +105,8 @@ class AssistantSqlSandbox {
           final key = (id != null && id.isNotEmpty)
               ? 'id:$id'
               : (localId != null && localId.isNotEmpty)
-                  ? 'local_id:$localId'
-                  : jsonEncode(row, toEncodable: _jsonEncodable);
+              ? 'local_id:$localId'
+              : jsonEncode(row, toEncodable: _jsonEncodable);
           known.add(key);
         }
         for (final row in entry.value) {
@@ -114,8 +115,8 @@ class AssistantSqlSandbox {
           final key = (id != null && id.isNotEmpty)
               ? 'id:$id'
               : (localId != null && localId.isNotEmpty)
-                  ? 'local_id:$localId'
-                  : jsonEncode(row, toEncodable: _jsonEncodable);
+              ? 'local_id:$localId'
+              : jsonEncode(row, toEncodable: _jsonEncodable);
           if (known.add(key)) rows.add(row);
         }
       }
@@ -133,22 +134,27 @@ class AssistantSqlSandbox {
           'columns': tableColumns[entry.key] ?? const <String, String>{},
         },
     ];
-    final snapshotRows =
-        tableRows.values.fold<int>(0, (sum, rows) => sum + rows.length);
+    final snapshotRows = tableRows.values.fold<int>(
+      0,
+      (sum, rows) => sum + rows.length,
+    );
     final snapshotBytes = tableRows.values.fold<int>(
-        0,
-        (sum, rows) =>
-            sum +
-            utf8.encode(jsonEncode(rows, toEncodable: _jsonEncodable)).length);
+      0,
+      (sum, rows) =>
+          sum +
+          utf8.encode(jsonEncode(rows, toEncodable: _jsonEncodable)).length,
+    );
     if (snapshotRows > maxSnapshotRows || snapshotBytes > maxSnapshotBytes) {
       throw const AssistantSqlQueryException(
-          'The approved data set is too large to prepare safely. Please choose a shorter date range.');
+        'The approved data set is too large to prepare safely. Please choose a shorter date range.',
+      );
     }
 
     final sandbox = AssistantSqlSandbox._(ReceivePort());
     sandbox._ready = Completer<Map<String, Object?>>();
-    sandbox._responseSubscription =
-        sandbox._responses.listen(sandbox._onMessage);
+    sandbox._responseSubscription = sandbox._responses.listen(
+      sandbox._onMessage,
+    );
     try {
       sandbox._isolate = await Isolate.spawn<Map<String, Object?>>(
         _assistantSqlSandboxWorker,
@@ -157,8 +163,9 @@ class AssistantSqlSandbox {
         onExit: sandbox._responses.sendPort,
         errorsAreFatal: true,
       );
-      final ready =
-          await sandbox._ready.future.timeout(const Duration(seconds: 10));
+      final ready = await sandbox._ready.future.timeout(
+        const Duration(seconds: 10),
+      );
       if (ready['error'] is String) {
         throw AssistantSqlQueryException(ready['error'] as String);
       }
@@ -173,13 +180,16 @@ class AssistantSqlSandbox {
 
   Future<AssistantSqlQueryResult> query(String sql) async {
     if (_closed || _commands == null) {
-      throw const AssistantSqlQueryException('The data snapshot has expired.',
-          terminal: true);
+      throw const AssistantSqlQueryException(
+        'The data snapshot has expired.',
+        terminal: true,
+      );
     }
     final trimmed = sql.trim();
     if (trimmed.isEmpty || trimmed.length > maxSqlCharacters) {
       throw const AssistantSqlQueryException(
-          'The SQL query is empty or too long.');
+        'The SQL query is empty or too long.',
+      );
     }
     final id = ++_nextId;
     final completer = Completer<Map<String, Object?>>();
@@ -191,8 +201,9 @@ class AssistantSqlSandbox {
     } on TimeoutException {
       await close();
       throw const AssistantSqlQueryException(
-          'The SQL query exceeded the time limit and the temporary snapshot was discarded.',
-          terminal: true);
+        'The SQL query exceeded the time limit and the temporary snapshot was discarded.',
+        terminal: true,
+      );
     } finally {
       _pending.remove(id);
     }
@@ -275,7 +286,8 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
           .map((row) => Map<String, dynamic>.from(row as Map))
           .toList();
       final declaredColumns = Map<String, String>.from(
-          map['columns'] as Map? ?? const <String, String>{});
+        map['columns'] as Map? ?? const <String, String>{},
+      );
       if (records.isEmpty && declaredColumns.isEmpty) continue;
       await _createRecordsTable(
         database,
@@ -288,7 +300,8 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
     }
     if (tableNames.isEmpty) {
       throw const AssistantSqlQueryException(
-          'No records were available in the approved scope.');
+        'No records were available in the approved scope.',
+      );
     }
     database.execute('PRAGMA query_only = ON');
     final schema = [
@@ -346,8 +359,11 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
           'fields ending in Minutes or _minutes are minutes; fields ending in Seconds or _seconds are seconds; '
           'caffeine_mg is milligrams. Measurement values use their accompanying unit column.',
     ].join('\n');
-    replyTo
-        .send({'type': 'ready', 'port': commands.sendPort, 'schema': schema});
+    replyTo.send({
+      'type': 'ready',
+      'port': commands.sendPort,
+      'schema': schema,
+    });
   } catch (_) {
     database.close();
     commands.close();
@@ -375,7 +391,8 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
           ? sql.substring(0, sql.length - 1).trimRight()
           : sql;
       final result = database.select(
-          'SELECT * FROM ($executable) AS assistant_query_result LIMIT ${AssistantSqlSandbox.maxQueryRows + 1}');
+        'SELECT * FROM ($executable) AS assistant_query_result LIMIT ${AssistantSqlSandbox.maxQueryRows + 1}',
+      );
       var rows = result
           .take(AssistantSqlSandbox.maxQueryRows)
           .map((row) => Map<String, Object?>.from(row))
@@ -390,7 +407,8 @@ void _assistantSqlSandboxWorker(Map<String, Object?> init) async {
       }
       if (initialRowCount > 0 && rows.isEmpty && truncated) {
         throw const AssistantSqlQueryException(
-            'The query returned a value that is too large. Select fewer or shorter columns.');
+          'The query returned a value that is too large. Select fewer or shorter columns.',
+        );
       }
       replyTo.send({
         'type': 'query_result',
@@ -417,25 +435,29 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
   final parsed = SqlEngine().parse(ParserEntrypoint.multiple, source);
   if (parsed.errors.isNotEmpty) {
     throw const AssistantSqlQueryException(
-        'Only one read-only SELECT query is allowed.');
+      'Only one read-only SELECT query is allowed.',
+    );
   }
   if (parsed.rootNode.statements.length != 1) {
     throw const AssistantSqlQueryException(
-        'Only one SQL statement is allowed.');
+      'Only one SQL statement is allowed.',
+    );
   }
   if (parsed.rootNode.statements.single is! BaseSelectStatement) {
     throw const AssistantSqlQueryException(
-        'Only a read-only SELECT query is allowed.');
+      'Only a read-only SELECT query is allowed.',
+    );
   }
   final statement = parsed.rootNode.statements.single as BaseSelectStatement;
   if (statement.selfAndDescendants.length > 1000) {
     throw const AssistantSqlQueryException('The SQL query is too complex.');
   }
-  if (statement.selfAndDescendants
-      .whereType<WithClause>()
-      .any((clause) => clause.recursive)) {
+  if (statement.selfAndDescendants.whereType<WithClause>().any(
+    (clause) => clause.recursive,
+  )) {
     throw const AssistantSqlQueryException(
-        'Recursive SQL queries are not allowed.');
+      'Recursive SQL queries are not allowed.',
+    );
   }
   final cteNames = statement.selfAndDescendants
       .whereType<WithClause>()
@@ -444,7 +466,8 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
       .toSet();
   if (cteNames.any(allowedTables.contains)) {
     throw const AssistantSqlQueryException(
-        'A query cannot shadow an approved data table.');
+      'A query cannot shadow an approved data table.',
+    );
   }
   const allowedFunctions = {
     'abs',
@@ -482,7 +505,8 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
         invocation.schemaName != null ||
         !allowedFunctions.contains(invocation.name.toLowerCase())) {
       throw const AssistantSqlQueryException(
-          'The query uses a SQL function that is not allowed.');
+        'The query uses a SQL function that is not allowed.',
+      );
     }
   }
   for (final join in statement.selfAndDescendants.whereType<Join>()) {
@@ -490,7 +514,8 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
         join.operator.operator == JoinOperatorKind.comma ||
         join.constraint == null) {
       throw const AssistantSqlQueryException(
-          'Queries must use an explicit condition for each table join.');
+        'Queries must use an explicit condition for each table join.',
+      );
     }
   }
   final referenced = <String>{};
@@ -501,7 +526,8 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
     if (reference.schemaName != null ||
         (!allowedTables.contains(name) && !cteNames.contains(name))) {
       throw const AssistantSqlQueryException(
-          'The query references a table outside the approved data snapshot.');
+        'The query references a table outside the approved data snapshot.',
+      );
     }
     if (allowedTables.contains(name) && !referenced.add(name)) {
       repeatedTables.add(name);
@@ -509,11 +535,13 @@ Set<String> _validateReadOnlySelect(String sql, Set<String> allowedTables) {
   }
   if (referenced.length > 10 || repeatedTables.isNotEmpty) {
     throw const AssistantSqlQueryException(
-        'A query can use at most ten approved tables and cannot self-join a table.');
+      'A query can use at most ten approved tables and cannot self-join a table.',
+    );
   }
   if (referenced.isEmpty) {
     throw const AssistantSqlQueryException(
-        'A query must read at least one approved data table.');
+      'A query must read at least one approved data table.',
+    );
   }
   return referenced;
 }
@@ -538,8 +566,11 @@ Future<void> _createRecordsTable(
       if (value is List && value.isNotEmpty && value.first is Map) {
         childLists
             .putIfAbsent(entry.key, () => <Map<String, dynamic>>[])
-            .addAll(value.whereType<Map>().map((row) =>
-                Map<String, dynamic>.from(row.cast<String, dynamic>())));
+            .addAll(
+              value.whereType<Map>().map(
+                (row) => Map<String, dynamic>.from(row.cast<String, dynamic>()),
+              ),
+            );
       } else {
         fields.putIfAbsent(entry.key, () => _sqliteType(value));
       }
@@ -568,7 +599,8 @@ Future<void> _createRecordsTable(
     database.execute(insertSql, values);
   }
   schemas.add(
-      'Table $table(${fields.entries.map((entry) => '${entry.key} ${entry.value}').join(', ')}).');
+    'Table $table(${fields.entries.map((entry) => '${entry.key} ${entry.value}').join(', ')}).',
+  );
   for (final entry in childLists.entries) {
     final childTable = '${table}_${_safeIdentifier(entry.key)}';
     final parents = <String, List<Map<String, dynamic>>>{};
@@ -579,7 +611,8 @@ Future<void> _createRecordsTable(
         parents[ref] = children
             .whereType<Map>()
             .map(
-                (row) => Map<String, dynamic>.from(row.cast<String, dynamic>()))
+              (row) => Map<String, dynamic>.from(row.cast<String, dynamic>()),
+            )
             .toList();
       }
     }
@@ -589,17 +622,22 @@ Future<void> _createRecordsTable(
     ];
     if (flattened.isNotEmpty) {
       await _createRecordsTable(
-          database, childTable, flattened, tableNames, schemas);
+        database,
+        childTable,
+        flattened,
+        tableNames,
+        schemas,
+      );
     }
   }
 }
 
 String _safeSqlType(String value) => switch (value.toUpperCase()) {
-      'INTEGER' => 'INTEGER',
-      'REAL' => 'REAL',
-      'BLOB' => 'BLOB',
-      _ => 'TEXT',
-    };
+  'INTEGER' => 'INTEGER',
+  'REAL' => 'REAL',
+  'BLOB' => 'BLOB',
+  _ => 'TEXT',
+};
 
 Object? _jsonEncodable(Object? object) {
   if (object is DateTime) return object.toIso8601String();
@@ -619,8 +657,8 @@ Object? _sqliteValue(Object? value) {
 String _sqliteType(Object? value) => value is bool || value is int
     ? 'INTEGER'
     : value is num
-        ? 'REAL'
-        : 'TEXT';
+    ? 'REAL'
+    : 'TEXT';
 
 String _safeIdentifier(String value) {
   final normalized = value.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');

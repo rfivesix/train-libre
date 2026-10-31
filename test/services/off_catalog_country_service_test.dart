@@ -32,10 +32,7 @@ void main() {
         prefs: prefs,
       );
 
-      expect(
-        prefs.getString(OffCatalogCountryService.preferenceKey),
-        'us',
-      );
+      expect(prefs.getString(OffCatalogCountryService.preferenceKey), 'us');
 
       final activeCountry = await OffCatalogCountryService.readActiveCountry(
         prefs: prefs,
@@ -88,27 +85,31 @@ void main() {
       expect(activeCountry, OffCatalogCountry.de);
     });
 
-    test('missing bundled OFF fallback is handled safely for non-DE countries',
-        () async {
-      final isAvailable =
-          await OffCatalogCountryService.bundledAssetAvailableForCountry(
-        OffCatalogCountry.us,
-        bundle: _AlwaysFailAssetBundle(),
-      );
+    test(
+      'missing bundled OFF fallback is handled safely for non-DE countries',
+      () async {
+        final isAvailable =
+            await OffCatalogCountryService.bundledAssetAvailableForCountry(
+              OffCatalogCountry.us,
+              bundle: _AlwaysFailAssetBundle(),
+            );
 
-      expect(isAvailable, isFalse);
-    });
+        expect(isAvailable, isFalse);
+      },
+    );
 
-    test('bundled OFF fallback detection returns true when asset loads',
-        () async {
-      final isAvailable =
-          await OffCatalogCountryService.bundledAssetAvailableForCountry(
-        OffCatalogCountry.de,
-        bundle: _AlwaysOkAssetBundle(),
-      );
+    test(
+      'bundled OFF fallback detection returns true when asset loads',
+      () async {
+        final isAvailable =
+            await OffCatalogCountryService.bundledAssetAvailableForCountry(
+              OffCatalogCountry.de,
+              bundle: _AlwaysOkAssetBundle(),
+            );
 
-      expect(isAvailable, isTrue);
-    });
+        expect(isAvailable, isTrue);
+      },
+    );
   });
 
   group('AppDataSources OFF country mapping', () {
@@ -135,9 +136,18 @@ void main() {
 
     test('includes NL, ES, and AU release channels and manifest paths', () {
       final cases = {
-        OffCatalogCountry.nl: ('off-foods-nl-stable', 'off_catalog_manifest_nl.json'),
-        OffCatalogCountry.es: ('off-foods-es-stable', 'off_catalog_manifest_es.json'),
-        OffCatalogCountry.au: ('off-foods-au-stable', 'off_catalog_manifest_au.json'),
+        OffCatalogCountry.nl: (
+          'off-foods-nl-stable',
+          'off_catalog_manifest_nl.json',
+        ),
+        OffCatalogCountry.es: (
+          'off-foods-es-stable',
+          'off_catalog_manifest_es.json',
+        ),
+        OffCatalogCountry.au: (
+          'off-foods-au-stable',
+          'off_catalog_manifest_au.json',
+        ),
       };
       for (final entry in cases.entries) {
         final config = AppDataSources.offCatalogForCountry(entry.key);
@@ -149,8 +159,14 @@ void main() {
     });
 
     test('new regions are supported and resolve stored country codes', () {
-      expect(AppDataSources.supportedOffCatalogCountries,
-          containsAll([OffCatalogCountry.nl, OffCatalogCountry.es, OffCatalogCountry.au]));
+      expect(
+        AppDataSources.supportedOffCatalogCountries,
+        containsAll([
+          OffCatalogCountry.nl,
+          OffCatalogCountry.es,
+          OffCatalogCountry.au,
+        ]),
+      );
       expect(OffCatalogCountryCodec.parseOrDefault('nl'), OffCatalogCountry.nl);
       expect(OffCatalogCountryCodec.parseOrDefault('es'), OffCatalogCountry.es);
       expect(OffCatalogCountryCodec.parseOrDefault('au'), OffCatalogCountry.au);

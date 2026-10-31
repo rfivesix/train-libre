@@ -97,33 +97,36 @@ void main() {
   });
 
   testWidgets(
-      'settings screen contains app tour restart tile and triggers restart', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(900, 2200));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    'settings screen contains app tour restart tile and triggers restart',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 2200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
-    final sleepService = _FakeSleepSettingsService(controller: controller);
+      final controller = SleepPermissionController(
+        const _StubPermissionService(),
+      );
+      final sleepService = _FakeSleepSettingsService(controller: controller);
 
-    await tester.pumpWidget(
-      _wrap(
-        SettingsScreen(
-          sleepSyncService: sleepService,
-          sleepPermissionController: controller,
+      await tester.pumpWidget(
+        _wrap(
+          SettingsScreen(
+            sleepSyncService: sleepService,
+            sleepPermissionController: controller,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    final restartTile = find.byKey(const Key('settings_restart_app_tour_tile'));
-    expect(restartTile, findsOneWidget);
+      final restartTile = find.byKey(
+        const Key('settings_restart_app_tour_tile'),
+      );
+      expect(restartTile, findsOneWidget);
 
-    await tester.tap(restartTile);
-    await tester.pump();
+      await tester.tap(restartTile);
+      await tester.pump();
 
-    final entry = await AppTourService.instance.consumePendingEntryPoint();
-    expect(entry, equals(AppTourEntryPoint.settingsRestart));
-  });
+      final entry = await AppTourService.instance.consumePendingEntryPoint();
+      expect(entry, equals(AppTourEntryPoint.settingsRestart));
+    },
+  );
 }

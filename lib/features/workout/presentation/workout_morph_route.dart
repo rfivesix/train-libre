@@ -65,14 +65,15 @@ class WorkoutMorphRoute<T> extends PageRouteBuilder<T> {
     bool animateEntrance = true,
     super.settings,
   }) : super(
-          // iOS already animates opening the app from a Live Activity.
-          // The destination must accept input as soon as that handoff ends.
-          transitionDuration:
-              animateEntrance ? _kExpandDuration * _timeScale : Duration.zero,
-          reverseTransitionDuration: _kCollapseDuration * _timeScale,
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              builder(context),
-        );
+         // iOS already animates opening the app from a Live Activity.
+         // The destination must accept input as soon as that handoff ends.
+         transitionDuration: animateEntrance
+             ? _kExpandDuration * _timeScale
+             : Duration.zero,
+         reverseTransitionDuration: _kCollapseDuration * _timeScale,
+         pageBuilder: (context, animation, secondaryAnimation) =>
+             builder(context),
+       );
 
   /// Builds the widget the morph starts from — the running workout bar itself.
   ///
@@ -212,8 +213,9 @@ class _WorkoutMorphTransition extends StatelessWidget {
     // Devices with a home indicator have rounded displays. Ending the morph on
     // square corners there makes the last frames snap into a rectangle, which
     // is the single most obvious tell that this is not a system transition.
-    final double screenRadius =
-        MediaQuery.viewPaddingOf(context).bottom > 0 ? 44.0 : 0.0;
+    final double screenRadius = MediaQuery.viewPaddingOf(context).bottom > 0
+        ? 44.0
+        : 0.0;
 
     return AnimatedBuilder(
       animation: animation,

@@ -5,10 +5,7 @@ import 'package:train_libre/core/performance/jank_recorder.dart';
 import 'package:train_libre/core/performance/startup_trace.dart';
 import 'package:train_libre/features/feedback_report/data/performance_diagnostics_provider.dart';
 
-FrameTiming _frame({
-  required int buildMs,
-  required int rasterMs,
-}) {
+FrameTiming _frame({required int buildMs, required int rasterMs}) {
   const int vsyncStart = 0;
   final int buildFinish = buildMs * 1000;
   final int rasterFinish = buildFinish + rasterMs * 1000;
@@ -99,8 +96,11 @@ void main() {
       recorder.setScreen('ShareSheetScreen');
       recorder.handleTimings([_frame(buildMs: 30, rasterMs: 10)]);
 
-      final order =
-          recorder.snapshot().screens.map((stats) => stats.screen).toList();
+      final order = recorder
+          .snapshot()
+          .screens
+          .map((stats) => stats.screen)
+          .toList();
       expect(order, ['NutritionTab', 'DiaryTab', 'ShareSheetScreen']);
     });
 
@@ -180,15 +180,14 @@ void main() {
       expect(lines, contains('frame_budget_ms: 16.7'));
       expect(lines.any((line) => line.startsWith('total_frames: 2')), isTrue);
       expect(
-        lines.any((line) =>
-            line.startsWith('screen[AiMealCaptureScreen]:') &&
-            line.contains('cause=raster')),
+        lines.any(
+          (line) =>
+              line.startsWith('screen[AiMealCaptureScreen]:') &&
+              line.contains('cause=raster'),
+        ),
         isTrue,
       );
-      expect(
-        lines.any((line) => line.startsWith('stall[1]: 2400ms')),
-        isTrue,
-      );
+      expect(lines.any((line) => line.startsWith('stall[1]: 2400ms')), isTrue);
     });
 
     test('says so plainly when nothing was recorded', () async {
@@ -222,8 +221,9 @@ void main() {
       ).buildLines(now: DateTime.now());
 
       expect(lines, contains('startup_cold_median_ms: 2000'));
-      final coldLine =
-          lines.firstWhere((line) => line.startsWith('startup[cold]:'));
+      final coldLine = lines.firstWhere(
+        (line) => line.startsWith('startup[cold]:'),
+      );
       expect(coldLine, contains('to_first_frame=2000ms'));
       expect(coldLine, contains('glass_init=600ms'));
       // The remainder is framework startup and shader warmup, and saying so is
@@ -251,9 +251,11 @@ void main() {
       expect(lines, contains('startup_cold_median_ms: 900'));
       expect(lines, contains('startup_resume_median_ms: 1300'));
       expect(
-        lines.any((line) =>
-            line.startsWith('startup[resume]:') &&
-            line.contains('to_first_frame=1300ms')),
+        lines.any(
+          (line) =>
+              line.startsWith('startup[resume]:') &&
+              line.contains('to_first_frame=1300ms'),
+        ),
         isTrue,
       );
     });

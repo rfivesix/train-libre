@@ -60,12 +60,14 @@ void main() {
       await db.close();
     });
 
-    test('BackupManager delegates CSV exports with identical method signatures',
-        () {
-      final manager = BackupManager.instance;
-      expect(manager.exportNutritionAsCsv, isA<Future<bool> Function()>());
-      expect(manager.exportWorkoutsAsCsv, isA<Future<bool> Function()>());
-      expect(manager.exportMeasurementsAsCsv, isA<Future<bool> Function()>());
-    });
+    test(
+      'BackupManager delegates CSV exports with identical method signatures',
+      () {
+        final manager = BackupManager.instance;
+        expect(manager.exportNutritionAsCsv, isA<Future<bool> Function()>());
+        expect(manager.exportWorkoutsAsCsv, isA<Future<bool> Function()>());
+        expect(manager.exportMeasurementsAsCsv, isA<Future<bool> Function()>());
+      },
+    );
   });
 }

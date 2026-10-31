@@ -106,25 +106,28 @@ extension RulesLogic on AiMealValidationEngine {
     // radically different nutrition bases (for example dry vs. cooked rice).
     // Only flag ambiguous nutrition when there are genuinely competing ambiguous
     // matches with a material calorie spread.
-    final hasVerifiedCandidate = item.selectedFood != null &&
+    final hasVerifiedCandidate =
+        item.selectedFood != null &&
         item.selectedFood!.barcode == match.bestMatch?.barcode;
     if (!hasVerifiedCandidate &&
         match.bestMatch != null &&
         match.competingAlternatives.isNotEmpty &&
-        _hasMaterialNutritionSpread(
-            [match.bestMatch!, ...match.competingAlternatives])) {
+        _hasMaterialNutritionSpread([
+          match.bestMatch!,
+          ...match.competingAlternatives,
+        ])) {
       issues.add(
         AiValidationIssue(
           severity: AiValidationSeverity.warning,
           code: 'ambiguous_nutrition_match',
-          message:
-              'Plausible database matches have materially different calories per 100g.',
+          message: 'Plausible database matches have materially different calories per 100g.',
           itemIndex: index,
         ),
       );
     }
 
-    final usesRawEquivalentForPreparedPortion = item.servedGrams != null &&
+    final usesRawEquivalentForPreparedPortion =
+        item.servedGrams != null &&
         item.servedGrams != item.grams &&
         _isPreparedState(item.stateHint);
     bool stateMismatch = usesRawEquivalentForPreparedPortion
@@ -134,11 +137,13 @@ extension RulesLogic on AiMealValidationEngine {
         !stateMismatch &&
         item.stateHint != null) {
       final hint = item.stateHint!.toLowerCase();
-      final dbName =
-          AiMealValidationEngine._normalizeText(match.bestMatch!.name);
+      final dbName = AiMealValidationEngine._normalizeText(
+        match.bestMatch!.name,
+      );
 
       bool isRawHint = hint == 'raw' || hint == 'roh';
-      bool isCookedHint = hint == 'cooked' ||
+      bool isCookedHint =
+          hint == 'cooked' ||
           hint == 'boiled' ||
           hint == 'gekocht' ||
           hint == 'fried' ||
@@ -147,7 +152,8 @@ extension RulesLogic on AiMealValidationEngine {
           hint == 'gebacken';
 
       bool isRawDb = dbName.contains('raw') || dbName.contains('roh');
-      bool isCookedDb = dbName.contains('cooked') ||
+      bool isCookedDb =
+          dbName.contains('cooked') ||
           dbName.contains('boiled') ||
           dbName.contains('gekocht') ||
           dbName.contains('fried') ||
@@ -168,7 +174,8 @@ extension RulesLogic on AiMealValidationEngine {
       if (item.stateHint != null) {
         final hint = item.stateHint!.toLowerCase();
         bool isRawHint = hint == 'raw' || hint == 'roh';
-        bool isCookedHint = hint == 'cooked' ||
+        bool isCookedHint =
+            hint == 'cooked' ||
             hint == 'boiled' ||
             hint == 'gekocht' ||
             hint == 'fried' ||
@@ -180,7 +187,8 @@ extension RulesLogic on AiMealValidationEngine {
         for (final alt in match.alternatives) {
           final altName = AiMealValidationEngine._normalizeText(alt.name);
           bool isRawAlt = altName.contains('raw') || altName.contains('roh');
-          bool isCookedAlt = altName.contains('cooked') ||
+          bool isCookedAlt =
+              altName.contains('cooked') ||
               altName.contains('boiled') ||
               altName.contains('gekocht') ||
               altName.contains('fried') ||
@@ -206,7 +214,8 @@ extension RulesLogic on AiMealValidationEngine {
         } else {
           final dbName = AiMealValidationEngine._normalizeText(food.name);
           bool isRawDb = dbName.contains('raw') || dbName.contains('roh');
-          bool isCookedDb = dbName.contains('cooked') ||
+          bool isCookedDb =
+              dbName.contains('cooked') ||
               dbName.contains('boiled') ||
               dbName.contains('gekocht') ||
               dbName.contains('fried') ||
@@ -223,7 +232,8 @@ extension RulesLogic on AiMealValidationEngine {
         final ai = AiMealValidationEngine._normalizeText(item.name);
         final db = AiMealValidationEngine._normalizeText(food.name);
         bool isRawAi = ai.contains('raw') || ai.contains('roh');
-        bool isCookedAi = ai.contains('cooked') ||
+        bool isCookedAi =
+            ai.contains('cooked') ||
             ai.contains('boiled') ||
             ai.contains('gekocht') ||
             ai.contains('fried') ||
@@ -232,7 +242,8 @@ extension RulesLogic on AiMealValidationEngine {
             ai.contains('gebacken');
 
         bool isRawDb = db.contains('raw') || db.contains('roh');
-        bool isCookedDb = db.contains('cooked') ||
+        bool isCookedDb =
+            db.contains('cooked') ||
             db.contains('boiled') ||
             db.contains('gekocht') ||
             db.contains('fried') ||

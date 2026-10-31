@@ -39,12 +39,12 @@ class MealCaptureMeta {
       extraPhotoPaths.isEmpty;
 
   Map<String, dynamic> toMap() => {
-        if (depthFacts != null) 'depth': depthFacts!.toMap(),
-        if (provider != null) 'provider': provider,
-        if (model != null) 'model': model,
-        if (nutritionEngine != null) 'nutrition_engine': nutritionEngine,
-        if (extraPhotoPaths.isNotEmpty) 'extra_photos': extraPhotoPaths,
-      };
+    if (depthFacts != null) 'depth': depthFacts!.toMap(),
+    if (provider != null) 'provider': provider,
+    if (model != null) 'model': model,
+    if (nutritionEngine != null) 'nutrition_engine': nutritionEngine,
+    if (extraPhotoPaths.isNotEmpty) 'extra_photos': extraPhotoPaths,
+  };
 
   String toJson() => jsonEncode(toMap());
 

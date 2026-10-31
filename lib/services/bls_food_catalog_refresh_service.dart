@@ -95,8 +95,9 @@ class BlsFoodCatalogManifest {
       expectedFoodCount: number('expected_food_count'),
       foodNutrientFactCount: number('food_nutrient_fact_count'),
       expectedAliasCount: schema >= 2 ? number('food_alias_count') : null,
-      expectedFoodTranslationCount:
-          schema >= 3 ? number('food_translation_count') : null,
+      expectedFoodTranslationCount: schema >= 3
+          ? number('food_translation_count')
+          : null,
     );
   }
 }
@@ -114,13 +115,16 @@ class BlsFoodCatalogUpdateCandidate {
 }
 
 typedef BlsCatalogProgress = void Function(
-    String task, String detail, double progress);
+  String task,
+  String detail,
+  double progress,
+);
 
 /// Downloads, verifies and atomically installs the complete BLS catalog.
 /// Nutrient facts and their provenance remain in this read-only sidecar DB.
 class BlsFoodCatalogRefreshService {
   BlsFoodCatalogRefreshService._({http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   static final BlsFoodCatalogRefreshService instance =
       BlsFoodCatalogRefreshService._();
@@ -145,8 +149,9 @@ class BlsFoodCatalogRefreshService {
     if (remote == null || installed == null) {
       return remoteVersion.compareTo(installedVersion) > 0;
     }
-    final length =
-        remote.length > installed.length ? remote.length : installed.length;
+    final length = remote.length > installed.length
+        ? remote.length
+        : installed.length;
     for (var index = 0; index < length; index++) {
       final left = index < remote.length ? remote[index] : 0;
       final right = index < installed.length ? installed[index] : 0;
@@ -182,10 +187,9 @@ class BlsFoodCatalogRefreshService {
     try {
       final db = await sqflite.openDatabase(path, readOnly: true);
       try {
-        final fact = await db.rawQuery(
-          'SELECT 1 FROM food_nutrients LIMIT 1',
-        );
-        final foods = sqflite.Sqflite.firstIntValue(
+        final fact = await db.rawQuery('SELECT 1 FROM food_nutrients LIMIT 1');
+        final foods =
+            sqflite.Sqflite.firstIntValue(
               await db.rawQuery('SELECT COUNT(*) FROM products'),
             ) ??
             0;
@@ -201,12 +205,13 @@ class BlsFoodCatalogRefreshService {
 
   Future<BlsFoodCatalogManifest> fetchManifestDirect() async {
     final uri = Uri.parse(_baseUri).resolve(_manifestFile);
-    final response = await _client.get(uri, headers: const {
-      'Accept': 'application/json'
-    }).timeout(const Duration(seconds: 6));
+    final response = await _client
+        .get(uri, headers: const {'Accept': 'application/json'})
+        .timeout(const Duration(seconds: 6));
     if (response.statusCode != 200) {
       throw HttpException(
-          'BLS manifest request returned ${response.statusCode}.');
+        'BLS manifest request returned ${response.statusCode}.',
+      );
     }
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     return BlsFoodCatalogManifest.parse(json, Uri.parse(_baseUri));
@@ -224,14 +229,18 @@ class BlsFoodCatalogRefreshService {
       final installed = await isInstalled();
       if (installed &&
           checked != null &&
-          DateTime.now()
-                  .difference(DateTime.fromMillisecondsSinceEpoch(checked)) <
+          DateTime.now().difference(
+                DateTime.fromMillisecondsSinceEpoch(checked),
+              ) <
               _minimumCheckInterval) {
         return null;
       }
     }
     onProgress?.call(
-        'BLS-Manifest wird geladen...', 'Prüfe Lebensmittelkatalog', 0.01);
+      'BLS-Manifest wird geladen...',
+      'Prüfe Lebensmittelkatalog',
+      0.01,
+    );
     try {
       final manifest = await fetchManifestDirect();
       await prefs.setString(_remoteVersionKey, manifest.version);
@@ -253,11 +262,13 @@ class BlsFoodCatalogRefreshService {
       try {
         onProgress?.call('BLS-Katalog wird heruntergeladen...', '0 MB', 0.03);
         final request = http.Request('GET', manifest.dbUri);
-        final response =
-            await _client.send(request).timeout(const Duration(minutes: 4));
+        final response = await _client
+            .send(request)
+            .timeout(const Duration(minutes: 4));
         if (response.statusCode != 200) {
           throw HttpException(
-              'BLS catalog download returned ${response.statusCode}.');
+            'BLS catalog download returned ${response.statusCode}.',
+          );
         }
         final output = compressed.openWrite();
         final digestSink = _DigestSink();
@@ -265,8 +276,9 @@ class BlsFoodCatalogRefreshService {
         var downloadedBytes = 0;
         var lastProgressMb = -1;
         try {
-          await for (final chunk
-              in response.stream.timeout(const Duration(seconds: 30))) {
+          await for (final chunk in response.stream.timeout(
+            const Duration(seconds: 30),
+          )) {
             downloadedBytes += chunk.length;
             hashingSink.add(chunk);
             output.add(chunk);
@@ -289,10 +301,14 @@ class BlsFoodCatalogRefreshService {
         if (downloadedBytes != manifest.downloadSizeBytes ||
             digestSink.value.toString() != manifest.downloadSha256) {
           throw const FormatException(
-              'BLS download size or checksum mismatch.');
+            'BLS download size or checksum mismatch.',
+          );
         }
         onProgress?.call(
-            'BLS-Katalog wird entpackt...', 'Datenbank wird geprüft', 0.48);
+          'BLS-Katalog wird entpackt...',
+          'Datenbank wird geprüft',
+          0.48,
+        );
         await compressed
             .openRead()
             .transform(gzip.decoder)
@@ -300,7 +316,8 @@ class BlsFoodCatalogRefreshService {
         if (await staged.length() != manifest.dbSizeBytes ||
             await _sha256File(staged) != manifest.dbSha256) {
           throw const FormatException(
-              'BLS database size or checksum mismatch.');
+            'BLS database size or checksum mismatch.',
+          );
         }
         await _validateDatabase(staged.path, manifest);
         final siblingStage = File('$installedPath.staging');
@@ -320,7 +337,10 @@ class BlsFoodCatalogRefreshService {
           rethrow;
         }
         onProgress?.call(
-            'BLS-Katalog bereit', 'Version ${manifest.version}', 1.0);
+          'BLS-Katalog bereit',
+          'Version ${manifest.version}',
+          1.0,
+        );
         return BlsFoodCatalogUpdateCandidate(
           version: manifest.version,
           localDbPath: installedPath,
@@ -358,7 +378,9 @@ class BlsFoodCatalogRefreshService {
   }
 
   Future<void> _validateDatabase(
-      String path, BlsFoodCatalogManifest manifest) async {
+    String path,
+    BlsFoodCatalogManifest manifest,
+  ) async {
     final db = await sqflite.openDatabase(path, readOnly: true);
     try {
       final foods = sqflite.Sqflite.firstIntValue(
@@ -393,15 +415,14 @@ class BlsFoodCatalogRefreshService {
       };
       if (manifest.schemaVersion >= 2) required.add('food_aliases');
       if (manifest.schemaVersion >= 3) required.add('food_translations');
-      final aliasColumns =
-          (await db.rawQuery('PRAGMA table_info(food_aliases)'))
-              .map((row) => row['name']?.toString())
-              .toSet();
+      final aliasColumns = (await db.rawQuery(
+        'PRAGMA table_info(food_aliases)',
+      )).map((row) => row['name']?.toString()).toSet();
       final translationColumns = manifest.schemaVersion < 3
           ? <String>{}
           : (await db.rawQuery('PRAGMA table_info(food_translations)'))
-              .map((row) => row['name']?.toString())
-              .toSet();
+                .map((row) => row['name']?.toString())
+                .toSet();
       final translationsByLanguage = manifest.schemaVersion < 3
           ? <String, int>{}
           : {
@@ -415,11 +436,14 @@ class BlsFoodCatalogRefreshService {
             };
       final invalidTranslationRows = manifest.schemaVersion < 3
           ? 0
-          : sqflite.Sqflite.firstIntValue(await db.rawQuery('''
+          : sqflite.Sqflite.firstIntValue(
+                  await db.rawQuery('''
               SELECT COUNT(*) FROM food_translations
               WHERE language_code NOT IN ('es', 'nl')
                 OR TRIM(name) = '' OR TRIM(category_name) = ''
-            ''')) ?? 0;
+            '''),
+                ) ??
+                0;
       if (foods != manifest.expectedFoodCount ||
           facts != manifest.foodNutrientFactCount ||
           (manifest.expectedAliasCount != null &&
@@ -442,14 +466,13 @@ class BlsFoodCatalogRefreshService {
           (manifest.schemaVersion >= 3 &&
               (manifest.expectedFoodTranslationCount !=
                       manifest.expectedFoodCount * 2 ||
-                  translationsByLanguage['es'] !=
-                      manifest.expectedFoodCount ||
-                  translationsByLanguage['nl'] !=
-                      manifest.expectedFoodCount ||
+                  translationsByLanguage['es'] != manifest.expectedFoodCount ||
+                  translationsByLanguage['nl'] != manifest.expectedFoodCount ||
                   invalidTranslationRows != 0)) ||
           !names.containsAll(required)) {
         throw const FormatException(
-            'BLS database structure or row counts are invalid.');
+          'BLS database structure or row counts are invalid.',
+        );
       }
       final metadataRows = await db.query('metadata');
       final metadata = {
@@ -467,7 +490,8 @@ class BlsFoodCatalogRefreshService {
               (manifest.expectedFoodTranslationCount !=
                   manifest.expectedFoodCount * 2))) {
         throw const FormatException(
-            'BLS database metadata does not match its manifest.');
+          'BLS database metadata does not match its manifest.',
+        );
       }
       final foreignKeys = await db.rawQuery('PRAGMA foreign_key_check');
       if (foreignKeys.isNotEmpty) {
@@ -527,7 +551,9 @@ class BlsNutrientRepository {
   const BlsNutrientRepository();
 
   Future<List<BlsNutrientFact>> getFacts(
-      String barcode, String languageCode) async {
+    String barcode,
+    String languageCode,
+  ) async {
     return getFactsForBarcodes([barcode], languageCode);
   }
 
@@ -540,12 +566,13 @@ class BlsNutrientRepository {
         .toSet()
         .toList(growable: false);
     if (uniqueBarcodes.isEmpty) return const [];
-    final path =
-        await BlsFoodCatalogRefreshService.instance.installedDatabasePath();
+    final path = await BlsFoodCatalogRefreshService.instance
+        .installedDatabasePath();
     if (!await File(path).exists()) return const [];
     final db = await sqflite.openDatabase(path, readOnly: true);
     try {
-      final english = languageCode == 'en' ||
+      final english =
+          languageCode == 'en' ||
           languageCode == 'fr' ||
           languageCode == 'it' ||
           languageCode == 'ja' ||
@@ -555,9 +582,11 @@ class BlsNutrientRepository {
       final groupColumn = english ? 'group_en' : 'group_de';
       final facts = <BlsNutrientFact>[];
       const chunkSize = 300;
-      for (var offset = 0;
-          offset < uniqueBarcodes.length;
-          offset += chunkSize) {
+      for (
+        var offset = 0;
+        offset < uniqueBarcodes.length;
+        offset += chunkSize
+      ) {
         final chunk = uniqueBarcodes.skip(offset).take(chunkSize).toList();
         final placeholders = List.filled(chunk.length, '?').join(', ');
         final rows = await db.rawQuery('''
@@ -572,10 +601,13 @@ class BlsNutrientRepository {
         WHERE n.barcode IN ($placeholders)
         ORDER BY c.group_de, c.component_code
       ''', chunk);
-        facts.addAll(rows.map((row) => BlsNutrientFact(
+        facts.addAll(
+          rows.map(
+            (row) => BlsNutrientFact(
               barcode: row['barcode']?.toString() ?? '',
               code: row['component_code']?.toString() ?? '',
-              name: row['component_name']?.toString() ??
+              name:
+                  row['component_name']?.toString() ??
                   row['component_code']?.toString() ??
                   '',
               unit: row['unit']?.toString() ?? '',
@@ -584,7 +616,9 @@ class BlsNutrientRepository {
               valueText: row['value_text']?.toString(),
               origin: row['origin']?.toString(),
               reference: row['reference']?.toString(),
-            )));
+            ),
+          ),
+        );
       }
       return facts;
     } finally {

@@ -3,14 +3,18 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/frosted_container.dart';
 import '../../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 
 /// Single source of truth for the active Privacy Policy & Terms of Service version.
@@ -27,8 +31,11 @@ class _LegalScreenState extends State<LegalScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.legalPrivacy));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.legalPrivacy,
+      ),
+    );
   }
 
   @override
@@ -79,9 +86,7 @@ class _LegalScreenState extends State<LegalScreen> {
   }
 
   Widget _buildBackground(ThemeData theme) {
-    return Container(
-      color: theme.colorScheme.surface,
-    );
+    return Container(color: theme.colorScheme.surface);
   }
 
   Widget _buildMetadataHeader(
@@ -119,8 +124,9 @@ class _LegalScreenState extends State<LegalScreen> {
   Widget _metadataItem(String label, String value, ThemeData theme) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.16),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.16,
+        ),
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         border: Border.all(
           color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
@@ -233,8 +239,10 @@ class _LegalAccordionState extends State<_LegalAccordion>
       parent: _controller,
       curve: Curves.easeInOutCubic,
     );
-    _rotateAnimation =
-        Tween<double>(begin: 0.0, end: 0.5).animate(_expandAnimation);
+    _rotateAnimation = Tween<double>(
+      begin: 0.0,
+      end: 0.5,
+    ).animate(_expandAnimation);
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.15, 1.0, curve: Curves.easeIn),
@@ -274,8 +282,9 @@ class _LegalAccordionState extends State<_LegalAccordion>
           mainAxisSize: MainAxisSize.min,
           children: [
             InkWell(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusL,
+              ),
               onTap: _toggle,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -369,8 +378,9 @@ class _LegalTextState extends State<_LegalText> {
         for (var index = 0; index < paragraphs.length; index++)
           Padding(
             padding: EdgeInsets.only(
-              bottom:
-                  index == paragraphs.length - 1 ? 0 : DesignConstants.spacingM,
+              bottom: index == paragraphs.length - 1
+                  ? 0
+                  : DesignConstants.spacingM,
             ),
             child: _paragraphWidget(paragraphs[index].trim(), baseStyle),
           ),
@@ -444,8 +454,8 @@ class _LegalTextState extends State<_LegalText> {
       final href = value.contains('@') && !value.startsWith('http')
           ? 'mailto:$value'
           : value.startsWith('http')
-              ? value
-              : 'https://$value';
+          ? value
+          : 'https://$value';
       final recognizer = TapGestureRecognizer()
         ..onTap = () => _handleLink(href);
       _recognizers.add(recognizer);
@@ -456,8 +466,8 @@ class _LegalTextState extends State<_LegalText> {
           style: baseStyle?.copyWith(
             color: Theme.of(context).colorScheme.primary,
             decoration: TextDecoration.underline,
-            decorationColor:
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.64),
+            decorationColor: Theme.of(context).colorScheme.primary
+                .withValues(alpha: 0.64),
           ),
           recognizer: recognizer,
         ),
@@ -473,12 +483,14 @@ class _LegalTextState extends State<_LegalText> {
     }
 
     return spans
-        .map((span) => TextSpan(
-              text: span.text,
-              children: span.children,
-              style: span.style ?? baseStyle,
-              recognizer: span.recognizer,
-            ))
+        .map(
+          (span) => TextSpan(
+            text: span.text,
+            children: span.children,
+            style: span.style ?? baseStyle,
+            recognizer: span.recognizer,
+          ),
+        )
         .toList();
   }
 }
@@ -511,10 +523,7 @@ class _LegalDocument {
 }
 
 class _LegalSection {
-  const _LegalSection({
-    required this.title,
-    required this.content,
-  });
+  const _LegalSection({required this.title, required this.content});
 
   final String title;
   final String content;
@@ -605,8 +614,7 @@ Die Rechtsgrundlage hängt von der jeweiligen Funktion und dem Verarbeitungszwec
     ),
     _LegalSection(
       title: '4. Drittanbieter-Integrationen / BYOK',
-      content:
-          '''Optionale Funktionen können Daten an externe Dienste oder einen von Ihnen konfigurierten Endpunkt übertragen. Die Datenverarbeitung des jeweiligen Dienstes richtet sich nach dessen geltenden Bedingungen und Einstellungen.
+      content: '''Optionale Funktionen können Daten an externe Dienste oder einen von Ihnen konfigurierten Endpunkt übertragen. Die Datenverarbeitung des jeweiligen Dienstes richtet sich nach dessen geltenden Bedingungen und Einstellungen.
 
 A. KI: Chat, Mahlzeitenerkennung und Entwürfe
 
@@ -633,13 +641,11 @@ Um Lebensmittel-Barcodes offline scannen und Übungen nachschlagen zu können, n
     ),
     _LegalSection(
       title: '5. Gesundheitsdaten-Schnittstellen',
-      content:
-          '''Train Libre kann Apple HealthKit oder Google Health Connect nutzen, wenn Sie die Funktionen aktivieren und die Plattformberechtigungen erteilen. Sie können diese Berechtigungen in den Systemeinstellungen ändern. Importierte Daten werden in der App gespeichert und ausgewertet und können in Backups oder – nach den Freigaberegeln in Abschnitt 4 – in KI-Anfragen einfließen. Das Ändern der Plattformberechtigung löscht zuvor importierte oder exportierte Daten nicht automatisch. Die Freigabe für KI-Datenzugriffe ist unabhängig von der Health-Plattformberechtigung.''',
+      content: '''Train Libre kann Apple HealthKit oder Google Health Connect nutzen, wenn Sie die Funktionen aktivieren und die Plattformberechtigungen erteilen. Sie können diese Berechtigungen in den Systemeinstellungen ändern. Importierte Daten werden in der App gespeichert und ausgewertet und können in Backups oder – nach den Freigaberegeln in Abschnitt 4 – in KI-Anfragen einfließen. Das Ändern der Plattformberechtigung löscht zuvor importierte oder exportierte Daten nicht automatisch. Die Freigabe für KI-Datenzugriffe ist unabhängig von der Health-Plattformberechtigung.''',
     ),
     _LegalSection(
       title: '6. Datensicherheit & Backups',
-      content:
-          '''Die Sicherheit Ihres Geräts ist wichtig, um lokale Daten und Zugangsdaten zu schützen.
+      content: '''Die Sicherheit Ihres Geräts ist wichtig, um lokale Daten und Zugangsdaten zu schützen.
 
 A. Lokale Datenisolation
 
@@ -657,26 +663,36 @@ Sie können künftige Telemetrie in den Einstellungen ausschalten. Die Löschfun
     ),
     _LegalSection(
       title: '7. Betroffenenrechte',
-      content:
-          '''Je nach anwendbarem Recht können Sie Rechte auf Auskunft, Berichtigung, Löschung, Datenübertragbarkeit, Einschränkung oder Widerspruch sowie den Widerruf einer Einwilligung haben. Ein Widerruf macht bereits erfolgte Verarbeitung nicht rückgängig. Sie können sich außerdem bei einer zuständigen Aufsichtsbehörde beschweren. Wenden Sie sich mit einem Anliegen an feedback@schotte.me.
+      content: '''Je nach anwendbarem Recht können Sie Rechte auf Auskunft, Berichtigung, Löschung, Datenübertragbarkeit, Einschränkung oder Widerspruch sowie den Widerruf einer Einwilligung haben. Ein Widerruf macht bereits erfolgte Verarbeitung nicht rückgängig. Sie können sich außerdem bei einer zuständigen Aufsichtsbehörde beschweren. Wenden Sie sich mit einem Anliegen an feedback@schotte.me.
 
 Viele Datensätze können Sie in der App bearbeiten oder löschen und Daten exportieren. Das lokale Zurücksetzen entfernt viele App-Daten, Einstellungen und Anbieterschlüssel, garantiert aber nicht die Entfernung jedes Anhangs, Caches oder jeder Konfiguration. Es löscht keine Kopien in Backups, Exporten, Apple Health, Health Connect oder externen KI-Diensten. Verwalten Sie diese Kopien gesondert und wenden Sie sich gegebenenfalls an den jeweiligen Anbieter. Die Telemetrie-Löschfunktion versucht eine Anfrage, bestätigt aber keine entfernte Löschung.''',
     ),
   ],
   termsOfServiceSections: [
-    _LegalSection(title: '1. Keine medizinische Beratung', content: '''
-Train Libre stellt Fitness- und Ernährungsinformationen bereit, darunter modellbasierte Schätzungen sowie optionale KI-Antworten, Mahlzeitenschätzungen und Entwürfe. Diese können unvollständig, ungenau oder für Sie ungeeignet sein. Sie sind keine medizinische, ernährungsbezogene oder professionelle Trainingsberatung und ersetzen keine qualifizierte Fachkraft. Prüfen Sie Zutaten, Allergene, Portionsgrößen, Nährwerte und Übungsanleitungen, bevor Sie sich darauf verlassen, und entscheiden Sie eigenverantwortlich.
-'''),
     _LegalSection(
-        title: '2. Haftungsausschluss / As-Is-Gewährleistung', content: '''
+      title: '1. Keine medizinische Beratung',
+      content: '''
+Train Libre stellt Fitness- und Ernährungsinformationen bereit, darunter modellbasierte Schätzungen sowie optionale KI-Antworten, Mahlzeitenschätzungen und Entwürfe. Diese können unvollständig, ungenau oder für Sie ungeeignet sein. Sie sind keine medizinische, ernährungsbezogene oder professionelle Trainingsberatung und ersetzen keine qualifizierte Fachkraft. Prüfen Sie Zutaten, Allergene, Portionsgrößen, Nährwerte und Übungsanleitungen, bevor Sie sich darauf verlassen, und entscheiden Sie eigenverantwortlich.
+''',
+    ),
+    _LegalSection(
+      title: '2. Haftungsausschluss / As-Is-Gewährleistung',
+      content: '''
 Train Libre wird im Ist-Zustand („as is“) ohne jegliche ausdrückliche oder stillschweigende Gewährleistung zur Verfügung gestellt, einschließlich, aber nicht beschränkt auf die Gewährleistung der Marktgängigkeit, der Eignung für einen bestimmten Zweck und der Nichtverletzung von Rechten Dritter. Der Entwickler haftet nicht für Datenverluste, Geräteanomalien, unterbrochene Funktionalität oder direkte, indirekte, zufällige oder Folgeschäden, die aus der Nutzung der kompilierten ausführbaren Anwendung (Binary) oder des Quellcodes entstehen.
-'''),
-    _LegalSection(title: '3. Datenautonomie', content: '''
+''',
+    ),
+    _LegalSection(
+      title: '3. Datenautonomie',
+      content: '''
 Ihre Einträge werden hauptsächlich auf Ihrem Gerät gespeichert. Optionale KI-Dienste, Gesundheitsintegrationen, Telemetrie, Backups, Exporte und Freigaben können Informationen außerhalb der App übertragen oder Kopien erzeugen. Der KI-Chat kann Entwürfe für Mahlzeiten, Routinen, Pläne und Rezepte vorbereiten; der Vorschlagsablauf verlangt eine Bestätigung, bevor ein Entwurf übernommen wird, und die Mahlzeitenerfassung enthält einen Prüf- und Speicherschritt. Prüfen Sie Vorschläge, bevor Sie sie speichern oder anwenden. Externe Dienste haben eigene Bedingungen und Praktiken. Schützen Sie Ihr Gerät, Zugangsdaten und exportierte Kopien und prüfen Sie, ob ein Dienst für die von Ihnen freigegebenen Informationen geeignet ist.
-'''),
-    _LegalSection(title: '4. Open-Source-Regelung', content: '''
+''',
+    ),
+    _LegalSection(
+      title: '4. Open-Source-Regelung',
+      content: '''
 Der Quellcode von Train Libre wird unter der GNU General Public License v3.0 (GPL-3.0) verbreitet, wie im Repository des Projekts veröffentlicht. Diese Nutzungsbedingungen regeln ausschließlich die Nutzung der kompilierten ausführbaren Anwendung (Binary) und schränken keine Rechte ein, die Ihnen durch die GPL-3.0 gewährt werden, einschließlich des Rechts auf Zugriff, Änderung und Weiterverbreitung des Quellcodes unter denselben Lizenzbedingungen.
-'''),
+''',
+    ),
   ],
 );
 
@@ -854,17 +870,29 @@ You can edit or delete many records in the app and export data. The local reset 
     ),
   ],
   termsOfServiceSections: [
-    _LegalSection(title: '1. No Medical Advice', content: '''
+    _LegalSection(
+      title: '1. No Medical Advice',
+      content: '''
 Train Libre provides fitness and nutrition information, including model-based estimates and optional AI responses, meal estimates and drafts. These may be incomplete, inaccurate or unsuitable for you. They are not medical, nutritional or professional training advice and do not replace a qualified professional. Check ingredients, allergens, portions, nutrition values and exercise instructions before relying on them, and use your own judgment.
-'''),
-    _LegalSection(title: '2. As-Is Warranty Disclaimer', content: '''
+''',
+    ),
+    _LegalSection(
+      title: '2. As-Is Warranty Disclaimer',
+      content: '''
 Train Libre is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. The developer is not liable for any data loss, device anomalies, interrupted functionality, or any direct, indirect, incidental, or consequential damages arising from the use of the compiled binary application or the source code.
-'''),
-    _LegalSection(title: '3. Data Autonomy', content: '''
+''',
+    ),
+    _LegalSection(
+      title: '3. Data Autonomy',
+      content: '''
 Your records are primarily stored on your device. Optional AI services, health integrations, telemetry, backups, exports and sharing can transmit information or create copies outside the app. AI chat can prepare drafts of meals, routines, plans and recipes; the observed proposal flow asks for confirmation before applying a draft, and meal capture provides a review and save step. Check a suggestion before choosing to save or apply it. External services have their own terms and practices. Protect your device, credentials and exported copies, and check whether a service is appropriate for the information you choose to share.
-'''),
-    _LegalSection(title: '4. Open Source Governing', content: '''
+''',
+    ),
+    _LegalSection(
+      title: '4. Open Source Governing',
+      content: '''
 The source code for Train Libre is distributed under the GNU General Public License v3.0 (GPL-3.0) as published in the project's repository. These Terms of Service govern the use of the compiled binary application only and do not restrict, override, or limit any rights granted to you by the GPL-3.0, including the right to access, modify, and redistribute the source code under the same license terms.
-'''),
+''',
+    ),
   ],
 );

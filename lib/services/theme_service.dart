@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../theme/app_color_choice.dart';
 import 'haptic_feedback_service.dart';
 import 'base_food_language_service.dart';

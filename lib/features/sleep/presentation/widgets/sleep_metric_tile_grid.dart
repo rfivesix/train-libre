@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -75,8 +76,8 @@ class SleepMetricTileGrid extends StatelessWidget {
         value: overview.stageDataConfidence == SleepStageConfidence.low
             ? l10n.sleepMetricDepthLowConfidence
             : (overview.hasStageData
-                ? l10n.sleepMetricDepthStagesAvailable
-                : l10n.sleepMetricUnavailable),
+                  ? l10n.sleepMetricDepthStagesAvailable
+                  : l10n.sleepMetricUnavailable),
         onTap: () =>
             SleepNavigation.openDepthDetail(context, overview: overview),
       ),
@@ -85,8 +86,10 @@ class SleepMetricTileGrid extends StatelessWidget {
         value: overview.interruptionsCount == null
             ? l10n.sleepMetricUnavailable
             : '${overview.interruptionsCount}',
-        onTap: () => SleepNavigation.openInterruptionsDetail(context,
-            overview: overview),
+        onTap: () => SleepNavigation.openInterruptionsDetail(
+          context,
+          overview: overview,
+        ),
       ),
     ]);
   }

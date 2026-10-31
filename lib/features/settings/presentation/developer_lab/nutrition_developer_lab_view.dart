@@ -29,14 +29,11 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
   int _selectedSectionIndex = 0; // 0: Review, 1: Scenarios, 2: Screens & alerts
   bool _isSeedingDb = false;
 
-  final List<String> _sections = [
-    'Review',
-    'Scenarios',
-    'Screens & Alerts',
-  ];
+  final List<String> _sections = ['Review', 'Scenarios', 'Screens & Alerts'];
 
   Future<void> _injectScenarioIntoDb(
-      CanonicalNutritionScenario scenario) async {
+    CanonicalNutritionScenario scenario,
+  ) async {
     setState(() => _isSeedingDb = true);
     try {
       await NutritionTestDataSeeder.seedScenario(scenario);
@@ -44,7 +41,8 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Szenario "${scenario.title}" erfolgreich in SQLite-DB injiziert!'),
+              'Szenario "${scenario.title}" erfolgreich in SQLite-DB injiziert!',
+            ),
             action: SnackBarAction(
               label: 'Hub öffnen',
               onPressed: () {
@@ -58,9 +56,9 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Injizieren: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler beim Injizieren: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSeedingDb = false);
@@ -74,14 +72,14 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Alle DevLab-Testdaten aus SQLite gelöscht')),
+            content: Text('Alle DevLab-Testdaten aus SQLite gelöscht'),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Löschen: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Fehler beim Löschen: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSeedingDb = false);
@@ -118,10 +116,7 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
 
         // 0: Unified live preview and controls
         if (_selectedSectionIndex == 0) ...[
-          NutritionSandboxWidget(
-            state: _sandboxState,
-            showControls: true,
-          ),
+          NutritionSandboxWidget(state: _sandboxState, showControls: true),
         ],
 
         // 1: Canonical Scenarios
@@ -138,8 +133,10 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
               padding: DesignConstants.cardPadding,
               child: Row(
                 children: [
-                  Icon(LucideIcons.shield_check,
-                      color: theme.colorScheme.primary),
+                  Icon(
+                    LucideIcons.shield_check,
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: DesignConstants.spacingM),
                   const Expanded(
                     child: Text(
@@ -150,8 +147,9 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
               ),
             ),
           ),
-          ...CanonicalNutritionScenarios.all
-              .map((scenario) => _buildScenarioCard(scenario)),
+          ...CanonicalNutritionScenarios.all.map(
+            (scenario) => _buildScenarioCard(scenario),
+          ),
           const SizedBox(height: DesignConstants.spacingL),
           SummaryCard(
             child: Padding(
@@ -161,8 +159,9 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
                 children: [
                   Text(
                     'Echte Datenbank zurücksetzen',
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: DesignConstants.spacingS),
                   Text(
@@ -192,12 +191,14 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
                   leading: const Icon(LucideIcons.compass),
                   title: const Text('Nutrition Hub Screen'),
                   subtitle: const Text(
-                      'Öffnet den vollen Nutrition Hub (liest aktuelle DB)'),
+                    'Öffnet den vollen Nutrition Hub (liest aktuelle DB)',
+                  ),
                   trailing: const Icon(LucideIcons.chevron_right),
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => const NutritionHubScreen()),
+                        builder: (_) => const NutritionHubScreen(),
+                      ),
                     );
                   },
                 ),
@@ -206,7 +207,8 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
                   leading: Icon(LucideIcons.plus),
                   title: const Text('Zielerstellung (CreateGoalFlow)'),
                   subtitle: const Text(
-                      'Öffnet die Zielreise mit vier klaren Kapiteln'),
+                    'Öffnet die Zielreise mit vier klaren Kapiteln',
+                  ),
                   trailing: const Icon(LucideIcons.chevron_right),
                   onTap: () {
                     Navigator.of(context).push(
@@ -253,24 +255,29 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
                 Expanded(
                   child: Text(
                     scenario.title,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius:
-                        BorderRadius.circular(DesignConstants.borderRadiusS),
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusS,
+                    ),
                   ),
                   child: Text(
                     scenario.expectedOverallStatus,
                     style: TextStyle(
-                        fontSize: 11,
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600),
+                      fontSize: 11,
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -292,8 +299,10 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
                       setState(() => _selectedSectionIndex = 0);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content:
-                                Text('"${scenario.title}" in Sandbox geladen')),
+                          content: Text(
+                            '"${scenario.title}" in Sandbox geladen',
+                          ),
+                        ),
                       );
                     },
                   ),

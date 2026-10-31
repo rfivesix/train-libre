@@ -33,8 +33,11 @@ abstract class LiveWorkoutLiveActivityHost {
   void cancelRest();
   void adjustRestTime(int deltaSeconds);
   Future<void> completeTimedSet(int timerTemplateId, {int? elapsedSeconds});
-  void startSetTimer(int templateId,
-      {DateTime? startedAt, int elapsedSeconds = 0});
+  void startSetTimer(
+    int templateId, {
+    DateTime? startedAt,
+    int elapsedSeconds = 0,
+  });
   Future<void> stopSetTimer(int templateId, {int? elapsedSeconds});
   NextOpenSet? nextOpenSet();
   bool isDurationSet(int templateId);
@@ -64,9 +67,9 @@ class LiveWorkoutLiveActivityCoordinator {
   LiveWorkoutLiveActivityCoordinator({
     required LiveWorkoutLiveActivityHost host,
     WorkoutLiveActivityService? liveActivityService,
-  })  : _host = host,
-        _liveActivityService =
-            liveActivityService ?? WorkoutLiveActivityService.instance;
+  }) : _host = host,
+       _liveActivityService =
+           liveActivityService ?? WorkoutLiveActivityService.instance;
 
   bool get isRunning => _running;
   WorkoutLiveActivityStrings? get strings => _strings;
@@ -89,8 +92,7 @@ class LiveWorkoutLiveActivityCoordinator {
   void configureLiveActivity({
     required WorkoutLiveActivityStrings strings,
     required String localeName,
-  }) =>
-      configure(strings: strings, localeName: localeName);
+  }) => configure(strings: strings, localeName: localeName);
 
   WorkoutLiveActivityContent? _buildLiveActivityContent() {
     final strings = _strings;
@@ -180,8 +182,10 @@ class LiveWorkoutLiveActivityCoordinator {
       final ignoreSilent =
           await LiveWorkoutNotificationPreferences.ignoreSilentMode();
       if (generation != _restScheduleGeneration) return;
-      await _liveActivityService.setRestNotificationsEnabled(enabled,
-          refreshPending: false);
+      await _liveActivityService.setRestNotificationsEnabled(
+        enabled,
+        refreshPending: false,
+      );
       if (generation != _restScheduleGeneration) return;
       await _liveActivityService.scheduleRestSound(
         endsAt: endsAt,

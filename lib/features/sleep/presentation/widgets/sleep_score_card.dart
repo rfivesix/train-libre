@@ -55,8 +55,7 @@ class SleepScoreCard extends StatelessWidget {
                 technicalExplanation: l10n.infoSleepTechnicalExplanation,
                 markdownAssetPath:
                     'documentation/features/sleep_scoring_engine.md',
-                citationUrl:
-                    'https://trainlibre.com/docs/features/sleep-scoring-engine/#evidence',
+                citationUrl: 'https://trainlibre.com/docs/features/sleep-scoring-engine/#evidence',
               ),
             ],
           ),
@@ -93,10 +92,8 @@ class SleepScoreCard extends StatelessWidget {
                     ),
                     Text(
                       scoreText,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),

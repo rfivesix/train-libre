@@ -50,179 +50,58 @@ void main() {
       await database.close();
     });
 
-    test('tryRestoreSession keeps empty state when no ongoing workout exists',
-        () async {
-      expect(manager.workoutLog, isNull);
-      expect(manager.exercises, isEmpty);
-      expect(manager.setLogs, isEmpty);
-      expect(manager.isActive, isFalse);
-
-      await manager.tryRestoreSession();
-
-      expect(manager.workoutLog, isNull);
-      expect(manager.exercises, isEmpty);
-      expect(manager.setLogs, isEmpty);
-      expect(manager.isActive, isFalse);
-    });
-
     test(
-      'restoreWorkoutSession loads routine exercises when persisted sets are missing',
+      'tryRestoreSession keeps empty state when no ongoing workout exists',
       () async {
-        final exercise = await workoutDb.insertExercise(
-          const model.Exercise(
-            texts: {
-              'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
-              'en': model.ExerciseText(name: 'Bench Press', description: ''),
-            },
-            categoryName: 'Strength',
-            primaryMuscles: ['chest'],
-            secondaryMuscles: ['triceps'],
-          ),
-        );
-        final routine = await workoutDb.createRoutine('Push A');
-        final re =
-            await workoutDb.addExerciseToRoutine(routine.id!, exercise.id!);
-        await workoutDb.updatePauseTime(re!.id!, 120);
-        final log = await workoutDb.startWorkout(routineName: 'Push A');
-
-        await manager.restoreWorkoutSession(log);
-
-        expect(manager.workoutLog?.id, log.id);
-        expect(manager.exercises.length, 1);
-        expect(manager.exercises.first.exercise.canonicalName, 'Bench Press');
-        expect(manager.exercises.first.setTemplates.length, 3);
-        expect(manager.pauseTimes[manager.exercises.first.id!], 120);
+        expect(manager.workoutLog, isNull);
+        expect(manager.exercises, isEmpty);
         expect(manager.setLogs, isEmpty);
+        expect(manager.isActive, isFalse);
+
+        await manager.tryRestoreSession();
+
+        expect(manager.workoutLog, isNull);
+        expect(manager.exercises, isEmpty);
+        expect(manager.setLogs, isEmpty);
+        expect(manager.isActive, isFalse);
       },
     );
 
-    test('startWorkout creates null-initialized set logs from templates',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      final exercise = const model.Exercise(
-        id: 1,
-        texts: {
-          'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
-          'en': model.ExerciseText(name: 'Squat', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: ['quads'],
-        secondaryMuscles: [],
+    test('restoreWorkoutSession loads routine exercises when persisted sets are missing', () async {
+      final exercise = await workoutDb.insertExercise(
+        const model.Exercise(
+          texts: {
+            'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+            'en': model.ExerciseText(name: 'Bench Press', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: ['chest'],
+          secondaryMuscles: ['triceps'],
+        ),
       );
-      final routineExercise = RoutineExercise(
-        id: 100,
-        exercise: exercise,
-        pauseSeconds: 90,
-        setTemplates: [
-          SetTemplate(id: 1001, setType: 'normal', targetReps: '6-8'),
-          SetTemplate(id: 1002, setType: 'normal', targetReps: '6-8'),
-        ],
+      final routine = await workoutDb.createRoutine('Push A');
+      final re = await workoutDb.addExerciseToRoutine(
+        routine.id!,
+        exercise.id!,
       );
+      await workoutDb.updatePauseTime(re!.id!, 120);
+      final log = await workoutDb.startWorkout(routineName: 'Push A');
 
-      await manager.startWorkout(log, [routineExercise]);
-      await _waitFor(() => manager.setLogs.length == 2);
+      await manager.restoreWorkoutSession(log);
 
-      expect(manager.totalSets, 2);
-      expect(manager.totalVolume, 0);
-      expect(manager.setLogs[1001]!.weightKg, isNull);
-      expect(manager.setLogs[1001]!.reps, isNull);
-      expect(manager.setLogs[1002]!.weightKg, isNull);
-      expect(manager.setLogs[1002]!.reps, isNull);
-    });
-
-    test('timed set starts at zero, pauses, resumes, and saves total time',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Timed session');
-      const timedExercise = model.Exercise(
-        id: 2,
-        texts: {
-          'de': model.ExerciseText(name: 'Plank', description: ''),
-          'en': model.ExerciseText(name: 'Plank', description: ''),
-        },
-        categoryName: 'Strength',
-        trackingType: 'time',
-        primaryMuscles: [],
-        secondaryMuscles: [],
-      );
-      await manager.startWorkout(
-        log,
-        [
-          RoutineExercise(
-            id: 200,
-            exercise: timedExercise,
-            setTemplates: [SetTemplate(id: 2001, setType: 'normal')],
-          ),
-        ],
-      );
-      await _waitFor(() => manager.setLogs.containsKey(2001));
-      await manager.updateSet(2001, duration: 1);
-
-      manager.startSetTimer(2001);
-      expect(manager.activeSetTimerId, 2001);
-      expect(manager.setTimerElapsedSeconds(2001), 0);
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
-      await manager.stopSetTimer(2001);
-      final pausedSeconds = manager.setLogs[2001]!.durationSeconds!;
-      expect(pausedSeconds, greaterThanOrEqualTo(1));
-      expect(manager.activeSetTimerId, isNull);
-      expect(manager.setTimerElapsedSeconds(2001), pausedSeconds);
-
-      await Future<void>.delayed(const Duration(milliseconds: 1100));
-      expect(manager.setTimerElapsedSeconds(2001), pausedSeconds,
-          reason: 'a paused timer must remain still');
-
-      manager.startSetTimer(2001);
-      await Future<void>.delayed(const Duration(milliseconds: 1100));
-      expect(manager.setTimerElapsedSeconds(2001), greaterThan(pausedSeconds));
-
-      await manager.completeTimedSet(2001);
-      final saved = manager.setLogs[2001]!;
-      expect(saved.isCompleted, isTrue);
-      expect(saved.durationSeconds, greaterThanOrEqualTo(1));
-      expect(manager.activeSetTimerId, isNull);
+      expect(manager.workoutLog?.id, log.id);
+      expect(manager.exercises.length, 1);
+      expect(manager.exercises.first.exercise.canonicalName, 'Bench Press');
+      expect(manager.exercises.first.setTemplates.length, 3);
+      expect(manager.pauseTimes[manager.exercises.first.id!], 120);
+      expect(manager.setLogs, isEmpty);
     });
 
     test(
-        'timed set completed from a background action saves its tapped duration',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Timed action');
-      const timedExercise = model.Exercise(
-        id: 22,
-        texts: {
-          'de': model.ExerciseText(name: 'Plank', description: ''),
-          'en': model.ExerciseText(name: 'Plank', description: ''),
-        },
-        categoryName: 'Strength',
-        trackingType: 'time',
-        primaryMuscles: [],
-        secondaryMuscles: [],
-      );
-      await manager.startWorkout(
-        log,
-        [
-          RoutineExercise(
-            id: 220,
-            exercise: timedExercise,
-            setTemplates: [SetTemplate(id: 2201, setType: 'normal')],
-          ),
-        ],
-      );
-      await _waitFor(() => manager.setLogs.containsKey(2201));
-
-      // The native Live Activity may outlive the Flutter process. On restore,
-      // the completion command carries the duration measured at the tap.
-      await manager.completeTimedSet(2201, elapsedSeconds: 63);
-
-      expect(manager.setLogs[2201]!.isCompleted, isTrue);
-      expect(manager.setLogs[2201]!.durationSeconds, 63);
-    });
-
-    test('currentExerciseNameFor names the exercise of the next open set',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      final first = RoutineExercise(
-        id: 300,
-        exercise: const model.Exercise(
+      'startWorkout creates null-initialized set logs from templates',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        final exercise = const model.Exercise(
           id: 1,
           texts: {
             'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
@@ -231,110 +110,250 @@ void main() {
           categoryName: 'Strength',
           primaryMuscles: ['quads'],
           secondaryMuscles: [],
-        ),
-        pauseSeconds: 60,
-        setTemplates: [SetTemplate(id: 3001, setType: 'normal')],
-      );
-      final second = RoutineExercise(
-        id: 301,
-        exercise: const model.Exercise(
+        );
+        final routineExercise = RoutineExercise(
+          id: 100,
+          exercise: exercise,
+          pauseSeconds: 90,
+          setTemplates: [
+            SetTemplate(id: 1001, setType: 'normal', targetReps: '6-8'),
+            SetTemplate(id: 1002, setType: 'normal', targetReps: '6-8'),
+          ],
+        );
+
+        await manager.startWorkout(log, [routineExercise]);
+        await _waitFor(() => manager.setLogs.length == 2);
+
+        expect(manager.totalSets, 2);
+        expect(manager.totalVolume, 0);
+        expect(manager.setLogs[1001]!.weightKg, isNull);
+        expect(manager.setLogs[1001]!.reps, isNull);
+        expect(manager.setLogs[1002]!.weightKg, isNull);
+        expect(manager.setLogs[1002]!.reps, isNull);
+      },
+    );
+
+    test(
+      'timed set starts at zero, pauses, resumes, and saves total time',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Timed session');
+        const timedExercise = model.Exercise(
           id: 2,
           texts: {
-            'de': model.ExerciseText(name: 'Latzug', description: ''),
-            'en': model.ExerciseText(name: 'Lat Pulldown', description: ''),
+            'de': model.ExerciseText(name: 'Plank', description: ''),
+            'en': model.ExerciseText(name: 'Plank', description: ''),
           },
           categoryName: 'Strength',
-          primaryMuscles: ['back'],
+          trackingType: 'time',
+          primaryMuscles: [],
           secondaryMuscles: [],
-        ),
-        pauseSeconds: 60,
-        setTemplates: [SetTemplate(id: 3002, setType: 'normal')],
-      );
+        );
+        await manager.startWorkout(log, [
+          RoutineExercise(
+            id: 200,
+            exercise: timedExercise,
+            setTemplates: [SetTemplate(id: 2001, setType: 'normal')],
+          ),
+        ]);
+        await _waitFor(() => manager.setLogs.containsKey(2001));
+        await manager.updateSet(2001, duration: 1);
 
-      await manager.startWorkout(log, [first, second]);
-      await _waitFor(() => manager.setLogs.length == 2);
+        manager.startSetTimer(2001);
+        expect(manager.activeSetTimerId, 2001);
+        expect(manager.setTimerElapsedSeconds(2001), 0);
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+        await manager.stopSetTimer(2001);
+        final pausedSeconds = manager.setLogs[2001]!.durationSeconds!;
+        expect(pausedSeconds, greaterThanOrEqualTo(1));
+        expect(manager.activeSetTimerId, isNull);
+        expect(manager.setTimerElapsedSeconds(2001), pausedSeconds);
 
-      expect(manager.currentExerciseNameFor('en'), 'Squat');
-      expect(manager.currentExerciseNameFor('de'), 'Kniebeuge');
+        await Future<void>.delayed(const Duration(milliseconds: 1100));
+        expect(
+          manager.setTimerElapsedSeconds(2001),
+          pausedSeconds,
+          reason: 'a paused timer must remain still',
+        );
 
-      // First exercise done -> the bar moves on to the next open one.
-      await manager.updateSet(3001, weight: 100, reps: 5, isCompleted: true);
-      expect(manager.currentExerciseNameFor('en'), 'Lat Pulldown');
+        manager.startSetTimer(2001);
+        await Future<void>.delayed(const Duration(milliseconds: 1100));
+        expect(
+          manager.setTimerElapsedSeconds(2001),
+          greaterThan(pausedSeconds),
+        );
 
-      // Everything ticked off -> it keeps naming the last exercise worked
-      // rather than falling back to nothing.
-      await manager.updateSet(3002, weight: 60, reps: 10, isCompleted: true);
-      expect(manager.currentExerciseNameFor('en'), 'Lat Pulldown');
-    });
+        await manager.completeTimedSet(2001);
+        final saved = manager.setLogs[2001]!;
+        expect(saved.isCompleted, isTrue);
+        expect(saved.durationSeconds, greaterThanOrEqualTo(1));
+        expect(manager.activeSetTimerId, isNull);
+      },
+    );
 
-    test('currentExerciseNameFor stays null while the workout has no exercises',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      await manager.startWorkout(log, []);
+    test(
+      'timed set completed from a background action saves its tapped duration',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Timed action');
+        const timedExercise = model.Exercise(
+          id: 22,
+          texts: {
+            'de': model.ExerciseText(name: 'Plank', description: ''),
+            'en': model.ExerciseText(name: 'Plank', description: ''),
+          },
+          categoryName: 'Strength',
+          trackingType: 'time',
+          primaryMuscles: [],
+          secondaryMuscles: [],
+        );
+        await manager.startWorkout(log, [
+          RoutineExercise(
+            id: 220,
+            exercise: timedExercise,
+            setTemplates: [SetTemplate(id: 2201, setType: 'normal')],
+          ),
+        ]);
+        await _waitFor(() => manager.setLogs.containsKey(2201));
 
-      expect(manager.exercises, isEmpty);
-      expect(manager.currentExerciseNameFor('en'), isNull);
-    });
+        // The native Live Activity may outlive the Flutter process. On restore,
+        // the completion command carries the duration measured at the tap.
+        await manager.completeTimedSet(2201, elapsedSeconds: 63);
 
-    test('superset completion alternates exercises and rests after rounds',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Superset');
-      model.Exercise exercise(int id, String name) => model.Exercise(
-            id: id,
-            texts: {'en': model.ExerciseText(name: name, description: '')},
+        expect(manager.setLogs[2201]!.isCompleted, isTrue);
+        expect(manager.setLogs[2201]!.durationSeconds, 63);
+      },
+    );
+
+    test(
+      'currentExerciseNameFor names the exercise of the next open set',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        final first = RoutineExercise(
+          id: 300,
+          exercise: const model.Exercise(
+            id: 1,
+            texts: {
+              'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
+              'en': model.ExerciseText(name: 'Squat', description: ''),
+            },
             categoryName: 'Strength',
-            primaryMuscles: const [],
-            secondaryMuscles: const [],
-          );
-      await manager.startWorkout(log, [
-        RoutineExercise(
-          id: 500,
-          exercise: exercise(1, 'A'),
+            primaryMuscles: ['quads'],
+            secondaryMuscles: [],
+          ),
           pauseSeconds: 60,
-          supersetGroup: 1,
-          setTemplates: [
-            for (var id = 5001; id <= 5004; id++)
-              SetTemplate(id: id, setType: 'normal'),
-          ],
-        ),
-        RoutineExercise(
-          id: 600,
-          exercise: exercise(2, 'B'),
-          pauseSeconds: 90,
-          supersetGroup: 1,
-          setTemplates: [
-            for (var id = 6001; id <= 6003; id++)
-              SetTemplate(id: id, setType: 'normal'),
-          ],
-        ),
-      ]);
-      await _waitFor(() => manager.setLogs.length == 7);
+          setTemplates: [SetTemplate(id: 3001, setType: 'normal')],
+        );
+        final second = RoutineExercise(
+          id: 301,
+          exercise: const model.Exercise(
+            id: 2,
+            texts: {
+              'de': model.ExerciseText(name: 'Latzug', description: ''),
+              'en': model.ExerciseText(name: 'Lat Pulldown', description: ''),
+            },
+            categoryName: 'Strength',
+            primaryMuscles: ['back'],
+            secondaryMuscles: [],
+          ),
+          pauseSeconds: 60,
+          setTemplates: [SetTemplate(id: 3002, setType: 'normal')],
+        );
 
-      expect(
-          manager.setLogs.values.map((set) => set.supersetGroup).toSet(), {1});
-      await manager.updateSet(5001, isCompleted: true);
-      expect(manager.remainingRestSeconds, 0);
-      expect(manager.currentExerciseNameFor('en'), 'B');
-      expect(manager.autoAdvanceExerciseIndex, 1);
+        await manager.startWorkout(log, [first, second]);
+        await _waitFor(() => manager.setLogs.length == 2);
 
-      await manager.updateSet(6001, isCompleted: true);
-      expect(manager.remainingRestSeconds, 90);
-      expect(manager.currentExerciseNameFor('en'), 'A');
-      manager.cancelRest();
+        expect(manager.currentExerciseNameFor('en'), 'Squat');
+        expect(manager.currentExerciseNameFor('de'), 'Kniebeuge');
 
-      await manager.updateSet(5002, isCompleted: true);
-      await manager.updateSet(6002, isCompleted: true);
-      manager.cancelRest();
-      await manager.updateSet(5003, isCompleted: true);
-      await manager.updateSet(6003, isCompleted: true);
-      expect(manager.remainingRestSeconds, 90,
-          reason: 'the group has an uneven trailing round');
-      manager.cancelRest();
+        // First exercise done -> the bar moves on to the next open one.
+        await manager.updateSet(3001, weight: 100, reps: 5, isCompleted: true);
+        expect(manager.currentExerciseNameFor('en'), 'Lat Pulldown');
 
-      await manager.updateSet(5004, isCompleted: true);
-      expect(manager.remainingRestSeconds, 0,
-          reason: 'the final unmatched set behaves like a standalone last set');
-    });
+        // Everything ticked off -> it keeps naming the last exercise worked
+        // rather than falling back to nothing.
+        await manager.updateSet(3002, weight: 60, reps: 10, isCompleted: true);
+        expect(manager.currentExerciseNameFor('en'), 'Lat Pulldown');
+      },
+    );
+
+    test(
+      'currentExerciseNameFor stays null while the workout has no exercises',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        await manager.startWorkout(log, []);
+
+        expect(manager.exercises, isEmpty);
+        expect(manager.currentExerciseNameFor('en'), isNull);
+      },
+    );
+
+    test(
+      'superset completion alternates exercises and rests after rounds',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Superset');
+        model.Exercise exercise(int id, String name) => model.Exercise(
+          id: id,
+          texts: {'en': model.ExerciseText(name: name, description: '')},
+          categoryName: 'Strength',
+          primaryMuscles: const [],
+          secondaryMuscles: const [],
+        );
+        await manager.startWorkout(log, [
+          RoutineExercise(
+            id: 500,
+            exercise: exercise(1, 'A'),
+            pauseSeconds: 60,
+            supersetGroup: 1,
+            setTemplates: [
+              for (var id = 5001; id <= 5004; id++)
+                SetTemplate(id: id, setType: 'normal'),
+            ],
+          ),
+          RoutineExercise(
+            id: 600,
+            exercise: exercise(2, 'B'),
+            pauseSeconds: 90,
+            supersetGroup: 1,
+            setTemplates: [
+              for (var id = 6001; id <= 6003; id++)
+                SetTemplate(id: id, setType: 'normal'),
+            ],
+          ),
+        ]);
+        await _waitFor(() => manager.setLogs.length == 7);
+
+        expect(manager.setLogs.values.map((set) => set.supersetGroup).toSet(), {
+          1,
+        });
+        await manager.updateSet(5001, isCompleted: true);
+        expect(manager.remainingRestSeconds, 0);
+        expect(manager.currentExerciseNameFor('en'), 'B');
+        expect(manager.autoAdvanceExerciseIndex, 1);
+
+        await manager.updateSet(6001, isCompleted: true);
+        expect(manager.remainingRestSeconds, 90);
+        expect(manager.currentExerciseNameFor('en'), 'A');
+        manager.cancelRest();
+
+        await manager.updateSet(5002, isCompleted: true);
+        await manager.updateSet(6002, isCompleted: true);
+        manager.cancelRest();
+        await manager.updateSet(5003, isCompleted: true);
+        await manager.updateSet(6003, isCompleted: true);
+        expect(
+          manager.remainingRestSeconds,
+          90,
+          reason: 'the group has an uneven trailing round',
+        );
+        manager.cancelRest();
+
+        await manager.updateSet(5004, isCompleted: true);
+        expect(
+          manager.remainingRestSeconds,
+          0,
+          reason: 'the final unmatched set behaves like a standalone last set',
+        );
+      },
+    );
 
     test('last member of the final equal round starts no timer', () async {
       final log = await workoutDb.startWorkout(routineName: 'Superset');
@@ -376,92 +395,12 @@ void main() {
       expect(manager.remainingRestSeconds, 0);
     });
 
-    test('addSetToExercise creates an unperformed row and keeps ordering',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      final exercise = const model.Exercise(
-        id: 1,
-        texts: {
-          'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
-          'en': model.ExerciseText(name: 'Bench Press', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: ['chest'],
-        secondaryMuscles: [],
-      );
-      final routineExercise = RoutineExercise(
-        id: 200,
-        exercise: exercise,
-        pauseSeconds: 75,
-        setTemplates: [
-          SetTemplate(id: 2001, setType: 'normal', targetReps: '8-12'),
-        ],
-      );
-
-      await manager.startWorkout(log, [routineExercise]);
-      await _waitFor(() => manager.setLogs.length == 1);
-
-      await manager.updateSet(2001, weight: 100, reps: 8, isCompleted: false);
-      await manager.addSetToExercise(200);
-      await _waitFor(() => manager.setLogs.length == 2);
-
-      final newSet = manager.setLogs.entries
-          .firstWhere((entry) => entry.key != 2001)
-          .value;
-
-      // A new position can receive a generated provisional anchor when
-      // suggestions are enabled, but performed values are never copied into
-      // the log as facts.
-      expect(newSet.weightKg, isNull);
-      expect(newSet.reps, isNull);
-      expect(newSet.isCompleted, isFalse);
-      expect(newSet.logOrder, 1);
-      expect(manager.totalSets, 2);
-    });
-
     test(
-        'updateSet completion fallback uses template targets and updates volume',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      final exercise = const model.Exercise(
-        id: 1,
-        texts: {
-          'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
-          'en': model.ExerciseText(name: 'Bench Press', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: ['chest'],
-        secondaryMuscles: [],
-      );
-      final routineExercise = RoutineExercise(
-        id: 300,
-        exercise: exercise,
-        pauseSeconds: null,
-        setTemplates: [
-          SetTemplate(
-            id: 3001,
-            setType: 'normal',
-            targetReps: '8-12',
-            targetWeight: 80,
-          ),
-        ],
-      );
-
-      await manager.startWorkout(log, [routineExercise]);
-      await _waitFor(() => manager.setLogs.length == 1);
-      await manager.updateSet(3001, isCompleted: true);
-
-      final set = manager.setLogs[3001]!;
-      expect(set.weightKg, 80);
-      expect(set.reps, 10);
-      expect(set.isCompleted, isTrue);
-      expect(manager.totalVolume, 800);
-    });
-
-    test('restoreWorkoutSession rebuilds exercise blocks and preserves order',
-        () async {
-      await workoutDb.insertExercise(
-        const model.Exercise(
+      'addSetToExercise creates an unperformed row and keeps ordering',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        final exercise = const model.Exercise(
+          id: 1,
           texts: {
             'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
             'en': model.ExerciseText(name: 'Bench Press', description: ''),
@@ -469,280 +408,386 @@ void main() {
           categoryName: 'Strength',
           primaryMuscles: ['chest'],
           secondaryMuscles: [],
-        ),
-      );
-      await workoutDb.insertExercise(
-        const model.Exercise(
-          texts: {
-            'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
-            'en': model.ExerciseText(name: 'Squat', description: ''),
-          },
-          categoryName: 'Strength',
-          primaryMuscles: ['quads'],
-          secondaryMuscles: [],
-        ),
-      );
-      final log = await workoutDb.startWorkout(routineName: 'Mixed');
+        );
+        final routineExercise = RoutineExercise(
+          id: 200,
+          exercise: exercise,
+          pauseSeconds: 75,
+          setTemplates: [
+            SetTemplate(id: 2001, setType: 'normal', targetReps: '8-12'),
+          ],
+        );
 
-      await workoutDb.insertSetLog(
-        SetLog(
-          workoutLogId: log.id!,
-          exerciseName: 'Bench Press',
-          setType: 'normal',
-          weightKg: 100,
-          reps: 5,
-          restTimeSeconds: 90,
-          isCompleted: true,
-          logOrder: 0,
-        ),
-      );
-      await workoutDb.insertSetLog(
-        SetLog(
-          workoutLogId: log.id!,
-          exerciseName: 'Bench Press',
-          setType: 'normal',
-          weightKg: 105,
-          reps: 4,
-          restTimeSeconds: 90,
-          isCompleted: true,
-          logOrder: 1,
-        ),
-      );
-      await workoutDb.insertSetLog(
-        SetLog(
-          workoutLogId: log.id!,
-          exerciseName: 'Squat',
-          setType: 'normal',
-          weightKg: 140,
-          reps: 3,
-          restTimeSeconds: 120,
-          isCompleted: true,
-          logOrder: 2,
-        ),
-      );
+        await manager.startWorkout(log, [routineExercise]);
+        await _waitFor(() => manager.setLogs.length == 1);
 
-      await manager.restoreWorkoutSession(log);
+        await manager.updateSet(2001, weight: 100, reps: 8, isCompleted: false);
+        await manager.addSetToExercise(200);
+        await _waitFor(() => manager.setLogs.length == 2);
 
-      expect(manager.exercises.length, 2);
-      expect(manager.exercises[0].exercise.canonicalName, 'Bench Press');
-      expect(manager.exercises[1].exercise.canonicalName, 'Squat');
-      expect(manager.exercises[0].setTemplates.length, 2);
-      expect(manager.exercises[1].setTemplates.length, 1);
-      expect(
-        manager.exercises[0].setTemplates.map((t) => t.targetWeight).toList(),
-        [100, 105],
-      );
-      expect(
-        manager.exercises[0].setTemplates.map((t) => t.targetReps).toList(),
-        ['5', '4'],
-      );
-      expect(manager.totalSets, 3);
-      expect(manager.totalVolume, 1340);
-      expect(manager.pauseTimes.values.toSet(), {90, 120});
-    });
+        final newSet = manager.setLogs.entries
+            .firstWhere((entry) => entry.key != 2001)
+            .value;
 
-    test('restoreWorkoutSession resolves exercise by stored exercise_id',
-        () async {
-      await database.into(database.exercises).insert(
-            db.ExercisesCompanion(
-              id: const drift.Value('catalog-bench-1'),
-              categoryName: const drift.Value('Strength'),
-              musclesPrimary: const drift.Value('["chest"]'),
-              musclesSecondary: const drift.Value('["triceps"]'),
-              source: const drift.Value('base'),
-              isCustom: const drift.Value(false),
-            ),
-          );
-      await database.into(database.exerciseTranslations).insert(
-            db.ExerciseTranslationsCompanion.insert(
-              exerciseId: 'catalog-bench-1',
-              languageCode: 'de',
-              name: 'Bankdruecken Alt',
-              description: const drift.Value('alt'),
-            ),
-          );
-      await database.into(database.exerciseTranslations).insert(
-            db.ExerciseTranslationsCompanion.insert(
-              exerciseId: 'catalog-bench-1',
-              languageCode: 'en',
-              name: 'Bench Press Old',
-              description: const drift.Value('old'),
-            ),
-          );
-
-      final log = await workoutDb.startWorkout(routineName: 'Rename Case');
-      await workoutDb.insertSetLog(
-        SetLog(
-          workoutLogId: log.id!,
-          exerciseName: 'Bench Press Old',
-          setType: 'normal',
-          weightKg: 100,
-          reps: 5,
-          restTimeSeconds: 90,
-          isCompleted: true,
-          logOrder: 0,
-        ),
-      );
-
-      final deCompanion = db.ExerciseTranslationsCompanion.insert(
-        exerciseId: 'catalog-bench-1',
-        languageCode: 'de',
-        name: 'Bankdruecken Neu',
-        description: const drift.Value('neu'),
-      );
-      await database.into(database.exerciseTranslations).insert(
-            deCompanion,
-            onConflict: drift.DoUpdate(
-              (old) => deCompanion,
-              target: [
-                database.exerciseTranslations.exerciseId,
-                database.exerciseTranslations.languageCode
-              ],
-            ),
-          );
-
-      final enCompanion = db.ExerciseTranslationsCompanion.insert(
-        exerciseId: 'catalog-bench-1',
-        languageCode: 'en',
-        name: 'Bench Press New',
-        description: const drift.Value('new'),
-      );
-      await database.into(database.exerciseTranslations).insert(
-            enCompanion,
-            onConflict: drift.DoUpdate(
-              (old) => enCompanion,
-              target: [
-                database.exerciseTranslations.exerciseId,
-                database.exerciseTranslations.languageCode
-              ],
-            ),
-          );
-
-      await manager.restoreWorkoutSession(log);
-
-      expect(manager.exercises.length, 1);
-      expect(manager.exercises.first.exercise.canonicalName, 'Bench Press New');
-      expect(manager.setLogs.length, 1);
-      expect(manager.totalVolume, 500);
-    });
+        // A new position can receive a generated provisional anchor when
+        // suggestions are enabled, but performed values are never copied into
+        // the log as facts.
+        expect(newSet.weightKg, isNull);
+        expect(newSet.reps, isNull);
+        expect(newSet.isCompleted, isFalse);
+        expect(newSet.logOrder, 1);
+        expect(manager.totalSets, 2);
+      },
+    );
 
     test(
-      'restoreWorkoutSession keeps historical sets even when exercise row is missing',
+      'updateSet completion fallback uses template targets and updates volume',
       () async {
-        await database.into(database.exercises).insert(
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        final exercise = const model.Exercise(
+          id: 1,
+          texts: {
+            'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+            'en': model.ExerciseText(name: 'Bench Press', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: ['chest'],
+          secondaryMuscles: [],
+        );
+        final routineExercise = RoutineExercise(
+          id: 300,
+          exercise: exercise,
+          pauseSeconds: null,
+          setTemplates: [
+            SetTemplate(
+              id: 3001,
+              setType: 'normal',
+              targetReps: '8-12',
+              targetWeight: 80,
+            ),
+          ],
+        );
+
+        await manager.startWorkout(log, [routineExercise]);
+        await _waitFor(() => manager.setLogs.length == 1);
+        await manager.updateSet(3001, isCompleted: true);
+
+        final set = manager.setLogs[3001]!;
+        expect(set.weightKg, 80);
+        expect(set.reps, 10);
+        expect(set.isCompleted, isTrue);
+        expect(manager.totalVolume, 800);
+      },
+    );
+
+    test(
+      'restoreWorkoutSession rebuilds exercise blocks and preserves order',
+      () async {
+        await workoutDb.insertExercise(
+          const model.Exercise(
+            texts: {
+              'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+              'en': model.ExerciseText(name: 'Bench Press', description: ''),
+            },
+            categoryName: 'Strength',
+            primaryMuscles: ['chest'],
+            secondaryMuscles: [],
+          ),
+        );
+        await workoutDb.insertExercise(
+          const model.Exercise(
+            texts: {
+              'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
+              'en': model.ExerciseText(name: 'Squat', description: ''),
+            },
+            categoryName: 'Strength',
+            primaryMuscles: ['quads'],
+            secondaryMuscles: [],
+          ),
+        );
+        final log = await workoutDb.startWorkout(routineName: 'Mixed');
+
+        await workoutDb.insertSetLog(
+          SetLog(
+            workoutLogId: log.id!,
+            exerciseName: 'Bench Press',
+            setType: 'normal',
+            weightKg: 100,
+            reps: 5,
+            restTimeSeconds: 90,
+            isCompleted: true,
+            logOrder: 0,
+          ),
+        );
+        await workoutDb.insertSetLog(
+          SetLog(
+            workoutLogId: log.id!,
+            exerciseName: 'Bench Press',
+            setType: 'normal',
+            weightKg: 105,
+            reps: 4,
+            restTimeSeconds: 90,
+            isCompleted: true,
+            logOrder: 1,
+          ),
+        );
+        await workoutDb.insertSetLog(
+          SetLog(
+            workoutLogId: log.id!,
+            exerciseName: 'Squat',
+            setType: 'normal',
+            weightKg: 140,
+            reps: 3,
+            restTimeSeconds: 120,
+            isCompleted: true,
+            logOrder: 2,
+          ),
+        );
+
+        await manager.restoreWorkoutSession(log);
+
+        expect(manager.exercises.length, 2);
+        expect(manager.exercises[0].exercise.canonicalName, 'Bench Press');
+        expect(manager.exercises[1].exercise.canonicalName, 'Squat');
+        expect(manager.exercises[0].setTemplates.length, 2);
+        expect(manager.exercises[1].setTemplates.length, 1);
+        expect(
+          manager.exercises[0].setTemplates.map((t) => t.targetWeight).toList(),
+          [100, 105],
+        );
+        expect(
+          manager.exercises[0].setTemplates.map((t) => t.targetReps).toList(),
+          ['5', '4'],
+        );
+        expect(manager.totalSets, 3);
+        expect(manager.totalVolume, 1340);
+        expect(manager.pauseTimes.values.toSet(), {90, 120});
+      },
+    );
+
+    test(
+      'restoreWorkoutSession resolves exercise by stored exercise_id',
+      () async {
+        await database
+            .into(database.exercises)
+            .insert(
               db.ExercisesCompanion(
-                id: const drift.Value('catalog-missing-1'),
+                id: const drift.Value('catalog-bench-1'),
                 categoryName: const drift.Value('Strength'),
-                musclesPrimary: const drift.Value('["back"]'),
-                musclesSecondary: const drift.Value('[]'),
+                musclesPrimary: const drift.Value('["chest"]'),
+                musclesSecondary: const drift.Value('["triceps"]'),
                 source: const drift.Value('base'),
                 isCustom: const drift.Value(false),
               ),
             );
-        await database.into(database.exerciseTranslations).insert(
+        await database
+            .into(database.exerciseTranslations)
+            .insert(
               db.ExerciseTranslationsCompanion.insert(
-                exerciseId: 'catalog-missing-1',
+                exerciseId: 'catalog-bench-1',
                 languageCode: 'de',
-                name: 'Historische Uebung',
+                name: 'Bankdruecken Alt',
+                description: const drift.Value('alt'),
               ),
             );
-        await database.into(database.exerciseTranslations).insert(
+        await database
+            .into(database.exerciseTranslations)
+            .insert(
               db.ExerciseTranslationsCompanion.insert(
-                exerciseId: 'catalog-missing-1',
+                exerciseId: 'catalog-bench-1',
                 languageCode: 'en',
-                name: 'Historical Exercise',
+                name: 'Bench Press Old',
+                description: const drift.Value('old'),
               ),
             );
 
-        final log = await workoutDb.startWorkout(routineName: 'Missing Case');
+        final log = await workoutDb.startWorkout(routineName: 'Rename Case');
         await workoutDb.insertSetLog(
           SetLog(
             workoutLogId: log.id!,
-            exerciseName: 'Historical Exercise',
+            exerciseName: 'Bench Press Old',
             setType: 'normal',
-            weightKg: 80,
-            reps: 8,
-            restTimeSeconds: 75,
+            weightKg: 100,
+            reps: 5,
+            restTimeSeconds: 90,
             isCompleted: true,
             logOrder: 0,
           ),
         );
 
-        await database.customStatement(
-          "UPDATE set_logs SET exercise_id = NULL WHERE exercise_name_snapshot = 'Historical Exercise'",
+        final deCompanion = db.ExerciseTranslationsCompanion.insert(
+          exerciseId: 'catalog-bench-1',
+          languageCode: 'de',
+          name: 'Bankdruecken Neu',
+          description: const drift.Value('neu'),
         );
-        await (database.delete(
-          database.exercises,
-        )..where((tbl) => tbl.id.equals('catalog-missing-1')))
-            .go();
+        await database
+            .into(database.exerciseTranslations)
+            .insert(
+              deCompanion,
+              onConflict: drift.DoUpdate(
+                (old) => deCompanion,
+                target: [
+                  database.exerciseTranslations.exerciseId,
+                  database.exerciseTranslations.languageCode,
+                ],
+              ),
+            );
+
+        final enCompanion = db.ExerciseTranslationsCompanion.insert(
+          exerciseId: 'catalog-bench-1',
+          languageCode: 'en',
+          name: 'Bench Press New',
+          description: const drift.Value('new'),
+        );
+        await database
+            .into(database.exerciseTranslations)
+            .insert(
+              enCompanion,
+              onConflict: drift.DoUpdate(
+                (old) => enCompanion,
+                target: [
+                  database.exerciseTranslations.exerciseId,
+                  database.exerciseTranslations.languageCode,
+                ],
+              ),
+            );
 
         await manager.restoreWorkoutSession(log);
 
         expect(manager.exercises.length, 1);
-        expect(manager.exercises.first.exercise.canonicalName,
-            'Historical Exercise');
-        expect(manager.exercises.first.exercise.categoryName, 'Unknown');
+        expect(
+          manager.exercises.first.exercise.canonicalName,
+          'Bench Press New',
+        );
         expect(manager.setLogs.length, 1);
+        expect(manager.totalVolume, 500);
       },
     );
 
-    test('finishWorkout deletes incomplete sets and clears manager session',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      final exerciseA = const model.Exercise(
-        id: 1,
-        texts: {
-          'de': model.ExerciseText(name: 'A', description: ''),
-          'en': model.ExerciseText(name: 'Exercise A', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: ['x'],
-        secondaryMuscles: [],
-      );
-      final exerciseB = const model.Exercise(
-        id: 2,
-        texts: {
-          'de': model.ExerciseText(name: 'B', description: ''),
-          'en': model.ExerciseText(name: 'Exercise B', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: ['y'],
-        secondaryMuscles: [],
-      );
+    test('restoreWorkoutSession keeps historical sets even when exercise row is missing', () async {
+      await database
+          .into(database.exercises)
+          .insert(
+            db.ExercisesCompanion(
+              id: const drift.Value('catalog-missing-1'),
+              categoryName: const drift.Value('Strength'),
+              musclesPrimary: const drift.Value('["back"]'),
+              musclesSecondary: const drift.Value('[]'),
+              source: const drift.Value('base'),
+              isCustom: const drift.Value(false),
+            ),
+          );
+      await database
+          .into(database.exerciseTranslations)
+          .insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-missing-1',
+              languageCode: 'de',
+              name: 'Historische Uebung',
+            ),
+          );
+      await database
+          .into(database.exerciseTranslations)
+          .insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-missing-1',
+              languageCode: 'en',
+              name: 'Historical Exercise',
+            ),
+          );
 
-      await manager.startWorkout(log, [
-        RoutineExercise(
-          id: 400,
-          exercise: exerciseA,
-          pauseSeconds: null,
-          setTemplates: [SetTemplate(id: 4001, setType: 'normal')],
+      final log = await workoutDb.startWorkout(routineName: 'Missing Case');
+      await workoutDb.insertSetLog(
+        SetLog(
+          workoutLogId: log.id!,
+          exerciseName: 'Historical Exercise',
+          setType: 'normal',
+          weightKg: 80,
+          reps: 8,
+          restTimeSeconds: 75,
+          isCompleted: true,
+          logOrder: 0,
         ),
-        RoutineExercise(
-          id: 500,
-          exercise: exerciseB,
-          pauseSeconds: null,
-          setTemplates: [SetTemplate(id: 5001, setType: 'normal')],
-        ),
-      ]);
-      await _waitFor(() => manager.setLogs.length == 2);
+      );
 
-      await manager.updateSet(4001, weight: 50, reps: 10, isCompleted: true);
-      await manager.updateSet(5001, weight: 60, reps: 8, isCompleted: false);
+      await database.customStatement(
+        "UPDATE set_logs SET exercise_id = NULL WHERE exercise_name_snapshot = 'Historical Exercise'",
+      );
+      await (database.delete(
+        database.exercises,
+      )..where((tbl) => tbl.id.equals('catalog-missing-1'))).go();
 
-      await manager.finishWorkout(title: 'Done', notes: 'Great session');
+      await manager.restoreWorkoutSession(log);
 
-      expect(manager.workoutLog, isNull);
-      expect(manager.exercises, isEmpty);
-      expect(manager.setLogs, isEmpty);
-      expect(manager.isActive, isFalse);
-
-      final storedLog = await workoutDb.getWorkoutLogById(log.id!);
-
-      expect(storedLog, isNotNull);
-      expect(storedLog!.endTime, isNotNull);
-      expect(storedLog.routineName, 'Done');
-      expect(storedLog.notes, 'Great session');
+      expect(manager.exercises.length, 1);
+      expect(
+        manager.exercises.first.exercise.canonicalName,
+        'Historical Exercise',
+      );
+      expect(manager.exercises.first.exercise.categoryName, 'Unknown');
+      expect(manager.setLogs.length, 1);
     });
+
+    test(
+      'finishWorkout deletes incomplete sets and clears manager session',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        final exerciseA = const model.Exercise(
+          id: 1,
+          texts: {
+            'de': model.ExerciseText(name: 'A', description: ''),
+            'en': model.ExerciseText(name: 'Exercise A', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: ['x'],
+          secondaryMuscles: [],
+        );
+        final exerciseB = const model.Exercise(
+          id: 2,
+          texts: {
+            'de': model.ExerciseText(name: 'B', description: ''),
+            'en': model.ExerciseText(name: 'Exercise B', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: ['y'],
+          secondaryMuscles: [],
+        );
+
+        await manager.startWorkout(log, [
+          RoutineExercise(
+            id: 400,
+            exercise: exerciseA,
+            pauseSeconds: null,
+            setTemplates: [SetTemplate(id: 4001, setType: 'normal')],
+          ),
+          RoutineExercise(
+            id: 500,
+            exercise: exerciseB,
+            pauseSeconds: null,
+            setTemplates: [SetTemplate(id: 5001, setType: 'normal')],
+          ),
+        ]);
+        await _waitFor(() => manager.setLogs.length == 2);
+
+        await manager.updateSet(4001, weight: 50, reps: 10, isCompleted: true);
+        await manager.updateSet(5001, weight: 60, reps: 8, isCompleted: false);
+
+        await manager.finishWorkout(title: 'Done', notes: 'Great session');
+
+        expect(manager.workoutLog, isNull);
+        expect(manager.exercises, isEmpty);
+        expect(manager.setLogs, isEmpty);
+        expect(manager.isActive, isFalse);
+
+        final storedLog = await workoutDb.getWorkoutLogById(log.id!);
+
+        expect(storedLog, isNotNull);
+        expect(storedLog!.endTime, isNotNull);
+        expect(storedLog.routineName, 'Done');
+        expect(storedLog.notes, 'Great session');
+      },
+    );
 
     test('removeSet removes set from memory and database', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
@@ -763,7 +808,7 @@ void main() {
           pauseSeconds: null,
           setTemplates: [
             SetTemplate(id: 4001, setType: 'normal'),
-            SetTemplate(id: 4002, setType: 'normal')
+            SetTemplate(id: 4002, setType: 'normal'),
           ],
         ),
       ]);
@@ -803,64 +848,66 @@ void main() {
       expect(manager.exercises.first.setTemplates.length, 3); // Default 3 sets
     });
 
-    test('addExercise inserts after lowest exercise with completed set',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      final exA = const model.Exercise(
-        id: 1,
-        texts: {
-          'de': model.ExerciseText(name: 'ExA', description: ''),
-          'en': model.ExerciseText(name: 'Exercise A', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: [],
-        secondaryMuscles: [],
-      );
-      final exB = const model.Exercise(
-        id: 2,
-        texts: {
-          'de': model.ExerciseText(name: 'ExB', description: ''),
-          'en': model.ExerciseText(name: 'Exercise B', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: [],
-        secondaryMuscles: [],
-      );
-      final exC = const model.Exercise(
-        id: 3,
-        texts: {
-          'de': model.ExerciseText(name: 'ExC', description: ''),
-          'en': model.ExerciseText(name: 'Exercise C', description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: [],
-        secondaryMuscles: [],
-      );
+    test(
+      'addExercise inserts after lowest exercise with completed set',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        final exA = const model.Exercise(
+          id: 1,
+          texts: {
+            'de': model.ExerciseText(name: 'ExA', description: ''),
+            'en': model.ExerciseText(name: 'Exercise A', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: [],
+          secondaryMuscles: [],
+        );
+        final exB = const model.Exercise(
+          id: 2,
+          texts: {
+            'de': model.ExerciseText(name: 'ExB', description: ''),
+            'en': model.ExerciseText(name: 'Exercise B', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: [],
+          secondaryMuscles: [],
+        );
+        final exC = const model.Exercise(
+          id: 3,
+          texts: {
+            'de': model.ExerciseText(name: 'ExC', description: ''),
+            'en': model.ExerciseText(name: 'Exercise C', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: [],
+          secondaryMuscles: [],
+        );
 
-      final reA = RoutineExercise(
-        id: 10,
-        exercise: exA,
-        setTemplates: [SetTemplate(id: 101, setType: 'normal')],
-      );
-      final reB = RoutineExercise(
-        id: 20,
-        exercise: exB,
-        setTemplates: [SetTemplate(id: 201, setType: 'normal')],
-      );
+        final reA = RoutineExercise(
+          id: 10,
+          exercise: exA,
+          setTemplates: [SetTemplate(id: 101, setType: 'normal')],
+        );
+        final reB = RoutineExercise(
+          id: 20,
+          exercise: exB,
+          setTemplates: [SetTemplate(id: 201, setType: 'normal')],
+        );
 
-      await manager.startWorkout(log, [reA, reB]);
+        await manager.startWorkout(log, [reA, reB]);
 
-      // Complete set for Exercise A only
-      await manager.updateSet(101, isCompleted: true);
+        // Complete set for Exercise A only
+        await manager.updateSet(101, isCompleted: true);
 
-      await manager.addExercise(exC);
+        await manager.addExercise(exC);
 
-      // Exercise C should be inserted at index 1 (after Exercise A)
-      expect(manager.exercises.length, 3);
-      expect(manager.exercises[0].exercise.canonicalName, 'Exercise A');
-      expect(manager.exercises[1].exercise.canonicalName, 'Exercise C');
-      expect(manager.exercises[2].exercise.canonicalName, 'Exercise B');
-    });
+        // Exercise C should be inserted at index 1 (after Exercise A)
+        expect(manager.exercises.length, 3);
+        expect(manager.exercises[0].exercise.canonicalName, 'Exercise A');
+        expect(manager.exercises[1].exercise.canonicalName, 'Exercise C');
+        expect(manager.exercises[2].exercise.canonicalName, 'Exercise B');
+      },
+    );
 
     test('removeExercise removes exercise and its sets', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
@@ -879,9 +926,7 @@ void main() {
           id: 400,
           exercise: exerciseA,
           pauseSeconds: null,
-          setTemplates: [
-            SetTemplate(id: 4001, setType: 'normal'),
-          ],
+          setTemplates: [SetTemplate(id: 4001, setType: 'normal')],
         ),
       ]);
       await _waitFor(() => manager.setLogs.length == 1);
@@ -939,34 +984,36 @@ void main() {
       expect(manager.exercises.last.id, 400);
     });
 
-    test('reorderExercise moves an exercise upwards to the exact index',
-        () async {
-      final log = await workoutDb.startWorkout(routineName: 'Session');
-      model.Exercise makeExercise(int id) => model.Exercise(
-            id: id,
-            texts: {
-              'de': model.ExerciseText(name: 'E$id', description: ''),
-              'en': model.ExerciseText(name: 'Exercise $id', description: ''),
-            },
-            categoryName: 'Strength',
-            primaryMuscles: ['x'],
-            secondaryMuscles: [],
-          );
+    test(
+      'reorderExercise moves an exercise upwards to the exact index',
+      () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        model.Exercise makeExercise(int id) => model.Exercise(
+          id: id,
+          texts: {
+            'de': model.ExerciseText(name: 'E$id', description: ''),
+            'en': model.ExerciseText(name: 'Exercise $id', description: ''),
+          },
+          categoryName: 'Strength',
+          primaryMuscles: ['x'],
+          secondaryMuscles: [],
+        );
 
-      await manager.startWorkout(log, [
-        for (var i = 1; i <= 3; i++)
-          RoutineExercise(
-            id: i * 100,
-            exercise: makeExercise(i),
-            pauseSeconds: null,
-            setTemplates: [SetTemplate(id: i * 1000 + 1, setType: 'normal')],
-          ),
-      ]);
+        await manager.startWorkout(log, [
+          for (var i = 1; i <= 3; i++)
+            RoutineExercise(
+              id: i * 100,
+              exercise: makeExercise(i),
+              pauseSeconds: null,
+              setTemplates: [SetTemplate(id: i * 1000 + 1, setType: 'normal')],
+            ),
+        ]);
 
-      await manager.reorderExercise(2, 0);
+        await manager.reorderExercise(2, 0);
 
-      expect(manager.exercises.map((e) => e.id).toList(), [300, 100, 200]);
-    });
+        expect(manager.exercises.map((e) => e.id).toList(), [300, 100, 200]);
+      },
+    );
 
     test('updatePauseTime updates memory and repository', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');

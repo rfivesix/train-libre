@@ -67,9 +67,11 @@ class _BodyNutritionNormalizedTrendChartState
     );
     final spanDays = math.max(
       1,
-      DateTime.utc(range.end.year, range.end.month, range.end.day)
-              .difference(firstDay)
-              .inDays +
+      DateTime.utc(
+            range.end.year,
+            range.end.month,
+            range.end.day,
+          ).difference(firstDay).inDays +
           1,
     );
     final maxXInt = math.max(0, spanDays - 1);
@@ -81,19 +83,22 @@ class _BodyNutritionNormalizedTrendChartState
     // to the user's preference so scales, ticks and tooltips show the right
     // values (kg or lbs).
     final rawDisplayWeightSeries = weightSeries
-        .map((p) => DailyValuePoint(
-              day: p.day,
-              value: unitService.convertDisplayValue(
-                p.value,
-                UnitDimension.weight,
-              ),
-            ))
+        .map(
+          (p) => DailyValuePoint(
+            day: p.day,
+            value: unitService.convertDisplayValue(
+              p.value,
+              UnitDimension.weight,
+            ),
+          ),
+        )
         .toList(growable: false);
 
     // Always use EWMA smoothed weight trend curve (matching alpha = 0.35)
     // so fluctuations do not obscure true long-term weight correlation.
-    final displayWeightSeries =
-        WeightSmoothingUtil.calculateEwmaDailyPoints(rawDisplayWeightSeries);
+    final displayWeightSeries = WeightSmoothingUtil.calculateEwmaDailyPoints(
+      rawDisplayWeightSeries,
+    );
 
     final weightScale = _SeriesScale.fromSeries(
       displayWeightSeries,
@@ -126,16 +131,21 @@ class _BodyNutritionNormalizedTrendChartState
     assert(() {
       if (compact) {
         try {
-          final lastWeight =
-              weightSeries.isNotEmpty ? weightSeries.last.day : null;
-          final lastCal =
-              calorieSeries.isNotEmpty ? calorieSeries.last.day : null;
+          final lastWeight = weightSeries.isNotEmpty
+              ? weightSeries.last.day
+              : null;
+          final lastCal = calorieSeries.isNotEmpty
+              ? calorieSeries.last.day
+              : null;
           debugPrint(
-              '[chart-debug] compact range=${range.start}..${range.end} spanDays=$spanDays');
+            '[chart-debug] compact range=${range.start}..${range.end} spanDays=$spanDays',
+          );
           debugPrint(
-              '[chart-debug] weightSeries count=${weightSeries.length} last=$lastWeight');
+            '[chart-debug] weightSeries count=${weightSeries.length} last=$lastWeight',
+          );
           debugPrint(
-              '[chart-debug] calorieSeries count=${calorieSeries.length} last=$lastCal');
+            '[chart-debug] calorieSeries count=${calorieSeries.length} last=$lastCal',
+          );
         } catch (e, st) {
           debugPrint('[chart-debug] error reading series: $e\n$st');
         }
@@ -154,7 +164,8 @@ class _BodyNutritionNormalizedTrendChartState
     final series = [
       _ChartSeries(
         label: l10n.analyticsWeightTrendLabel(
-            context.read<UnitService>().suffixFor(UnitDimension.weight)),
+          context.read<UnitService>().suffixFor(UnitDimension.weight),
+        ),
         color: Theme.of(context).colorScheme.primary,
         scale: weightScale,
         points: weightPoints,
@@ -293,16 +304,14 @@ class _BodyNutritionNormalizedTrendChartState
                       child: Text(
                         DateFormat('dd.MM').format(day),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                            ),
+                          color: Theme.of(context).colorScheme.onSurface
+                              .withValues(alpha: 0.6),
+                        ),
                         textAlign: isStartLabel
                             ? TextAlign.left
                             : isEndLabel
-                                ? TextAlign.right
-                                : TextAlign.center,
+                            ? TextAlign.right
+                            : TextAlign.center,
                       ),
                     );
                   },
@@ -318,10 +327,13 @@ class _BodyNutritionNormalizedTrendChartState
               barWidth: compact ? 3.2 : 4.0,
               isStrokeCapRound: true,
               color: seriesConfig.color,
-              belowBarData: seriesConfig.label ==
-                      l10n.analyticsWeightTrendLabel(context
-                          .read<UnitService>()
-                          .suffixFor(UnitDimension.weight))
+              belowBarData:
+                  seriesConfig.label ==
+                      l10n.analyticsWeightTrendLabel(
+                        context.read<UnitService>().suffixFor(
+                          UnitDimension.weight,
+                        ),
+                      )
                   ? BarAreaData(
                       show: true,
                       gradient: LinearGradient(
@@ -357,17 +369,17 @@ class _BodyNutritionNormalizedTrendChartState
                   final strokeColor = Theme.of(context).scaffoldBackgroundColor;
                   return switch (seriesConfig.dotShape) {
                     _SeriesDotShape.circle => FlDotCirclePainter(
-                        radius: compact ? 3.0 : 4.5,
-                        color: seriesConfig.color,
-                        strokeWidth: 2,
-                        strokeColor: strokeColor,
-                      ),
+                      radius: compact ? 3.0 : 4.5,
+                      color: seriesConfig.color,
+                      strokeWidth: 2,
+                      strokeColor: strokeColor,
+                    ),
                     _SeriesDotShape.square => FlDotSquarePainter(
-                        size: compact ? 6.0 : 8.0,
-                        color: seriesConfig.color,
-                        strokeWidth: 2,
-                        strokeColor: strokeColor,
-                      ),
+                      size: compact ? 6.0 : 8.0,
+                      color: seriesConfig.color,
+                      strokeWidth: 2,
+                      strokeColor: strokeColor,
+                    ),
                   };
                 },
               ),
@@ -415,8 +427,12 @@ class _BodyNutritionNormalizedTrendChartState
                 Positioned(
                   top: yToTop(tick) - 8,
                   right: rightInset,
-                  child:
-                      _axisTitle(context, tick, calorieScale, alignRight: true),
+                  child: _axisTitle(
+                    context,
+                    tick,
+                    calorieScale,
+                    alignRight: true,
+                  ),
                 ),
               if (_activeTooltipSpots != null &&
                   _activeTooltipSpots!.isNotEmpty)
@@ -588,10 +604,14 @@ class _BodyNutritionNormalizedTrendChartState
     final tooltipWidth = 192.0;
     final tooltipHeight = 74.0 + (touchedSpots.length - 1) * 20.0;
     final xCenter = (firstSpot.x / maxX) * chartWidth;
-    final left = (xCenter - tooltipWidth / 2)
-        .clamp(12.0, chartWidth - tooltipWidth - 12.0);
-    final top = ((1 - point.spot.y) * plotHeight - tooltipHeight - 12.0)
-        .clamp(8.0, totalHeight - tooltipHeight - 48.0);
+    final left = (xCenter - tooltipWidth / 2).clamp(
+      12.0,
+      chartWidth - tooltipWidth - 12.0,
+    );
+    final top = ((1 - point.spot.y) * plotHeight - tooltipHeight - 12.0).clamp(
+      8.0,
+      totalHeight - tooltipHeight - 48.0,
+    );
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseStyle = Theme.of(context).textTheme.bodySmall!;
@@ -612,9 +632,7 @@ class _BodyNutritionNormalizedTrendChartState
                   : DesignConstants.summaryCardSecondaryLightMode,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
+                color: Theme.of(context).colorScheme.onSurface
                     .withValues(alpha: 0.08),
               ),
             ),
@@ -625,9 +643,7 @@ class _BodyNutritionNormalizedTrendChartState
                 Text(
                   dateText,
                   style: baseStyle.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
+                    color: Theme.of(context).colorScheme.onSurface
                         .withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                     fontSize: 11,
@@ -664,10 +680,10 @@ class _BodyNutritionNormalizedTrendChartState
     return Text(
       '${selectedSeries.label}: ${selectedSeries.scale.formatRaw(point.rawValue)}',
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: selectedSeries.color,
-            fontWeight: FontWeight.w700,
-            fontSize: 13,
-          ),
+        color: selectedSeries.color,
+        fontWeight: FontWeight.w700,
+        fontSize: 13,
+      ),
     );
   }
 }

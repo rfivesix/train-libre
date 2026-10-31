@@ -41,33 +41,34 @@ void main() {
   });
 
   testWidgets(
-      'pulse tracking setting is opt-in and requests permission on enable',
-      (tester) async {
-    final service = _FakePulseTrackingService();
+    'pulse tracking setting is opt-in and requests permission on enable',
+    (tester) async {
+      final service = _FakePulseTrackingService();
 
-    await tester.pumpWidget(
-      _wrap(PulseSettingsScreen(trackingService: service)),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _wrap(PulseSettingsScreen(trackingService: service)),
+      );
+      await tester.pumpAndSettle();
 
-    final toggle = tester.widget<PlatformAdaptiveSwitch>(
-      find.descendant(
-        of: find.byKey(const Key('pulse_tracking_toggle')),
-        matching: find.byType(PlatformAdaptiveSwitch),
-      ),
-    );
-    expect(toggle.value, isFalse);
+      final toggle = tester.widget<PlatformAdaptiveSwitch>(
+        find.descendant(
+          of: find.byKey(const Key('pulse_tracking_toggle')),
+          matching: find.byType(PlatformAdaptiveSwitch),
+        ),
+      );
+      expect(toggle.value, isFalse);
 
-    await tester.tap(find.byKey(const Key('pulse_tracking_toggle')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const Key('pulse_tracking_toggle')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
-    // Confirm pre-permission dialog
-    await tester.tap(find.byType(AppButton));
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+      // Confirm pre-permission dialog
+      await tester.tap(find.byType(AppButton));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
-    expect(service.enabled, isTrue);
-    expect(service.permissionRequests, 1);
-  });
+      expect(service.enabled, isTrue);
+      expect(service.permissionRequests, 1);
+    },
+  );
 }

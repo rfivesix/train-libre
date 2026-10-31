@@ -10,24 +10,25 @@ class BackupRestoreDiagnosticsProvider
     implements FeedbackReportDiagnosticsProvider {
   final SharedPreferencesLoader _prefsLoader;
 
-  BackupRestoreDiagnosticsProvider({
-    SharedPreferencesLoader? prefsLoader,
-  }) : _prefsLoader = prefsLoader ?? SharedPreferences.getInstance;
+  BackupRestoreDiagnosticsProvider({SharedPreferencesLoader? prefsLoader})
+    : _prefsLoader = prefsLoader ?? SharedPreferences.getInstance;
 
   @override
   Future<List<String>> buildLines({required DateTime now}) async {
     final prefs = await _prefsLoader();
 
     final lastAutoBackupMs = prefs.getInt('auto_backup_last_ms');
-    final lastAutoBackupFilePath =
-        prefs.getString('auto_backup_last_file_path');
+    final lastAutoBackupFilePath = prefs.getString(
+      'auto_backup_last_file_path',
+    );
     final lastAutoBackupError = prefs.getString('auto_backup_last_error');
     final autoBackupDir = prefs.getString('auto_backup_dir');
     final autoBackupTreeUri = prefs.getString('auto_backup_tree_uri');
     final usedFallback =
         prefs.getBool('auto_backup_last_used_fallback') ?? false;
 
-    final hasConfiguredFolder = (autoBackupDir?.trim().isNotEmpty ?? false) ||
+    final hasConfiguredFolder =
+        (autoBackupDir?.trim().isNotEmpty ?? false) ||
         (autoBackupTreeUri?.trim().isNotEmpty ?? false);
 
     final lines = <String>[
@@ -48,8 +49,8 @@ class BackupRestoreDiagnosticsProvider
     final status = hasError
         ? 'failed'
         : hasSuccessfulAutoBackup
-            ? 'success'
-            : 'unavailable';
+        ? 'success'
+        : 'unavailable';
     lines.add('last_backup_status: $status');
 
     if (hasError) {

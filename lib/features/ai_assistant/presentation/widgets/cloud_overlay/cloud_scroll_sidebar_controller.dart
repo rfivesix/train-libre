@@ -94,8 +94,8 @@ class CloudScrollSidebarController extends ChangeNotifier {
       final target = shouldFollowTail
           ? position.maxScrollExtent
           : offset
-              .clamp(position.minScrollExtent, position.maxScrollExtent)
-              .toDouble();
+                .clamp(position.minScrollExtent, position.maxScrollExtent)
+                .toDouble();
       if ((position.pixels - target).abs() > 0.5) {
         chatScrollController.jumpTo(target);
       }
@@ -213,19 +213,21 @@ class CloudScrollSidebarController extends ChangeNotifier {
           : null;
       final elapsed =
           event.timeStamp - (_sidebarPointerStartTime ?? event.timeStamp);
-      final velocity = event.timeStamp - _sidebarLastMoveTime! >
+      final velocity =
+          event.timeStamp - _sidebarLastMoveTime! >
               const Duration(milliseconds: 100)
           ? 0.0
           : estimate?.pixelsPerSecond.dx ??
-              (elapsed.inMilliseconds > 0 && elapsed.inMilliseconds <= 100
-                  ? (event.position.dx - _sidebarPointerStart!.dx) /
-                      (elapsed.inMicroseconds / Duration.microsecondsPerSecond)
-                  : 0.0);
+                (elapsed.inMilliseconds > 0 && elapsed.inMilliseconds <= 100
+                    ? (event.position.dx - _sidebarPointerStart!.dx) /
+                          (elapsed.inMicroseconds /
+                              Duration.microsecondsPerSecond)
+                    : 0.0);
       final target = event is PointerCancelEvent
           ? (_sidebarDragStartProgress >= 0.5 ? 1.0 : 0.0)
           : velocity.abs() >= 500
-              ? (velocity > 0 ? 1.0 : 0.0)
-              : (_sidebarController.value >= 0.5 ? 1.0 : 0.0);
+          ? (velocity > 0 ? 1.0 : 0.0)
+          : (_sidebarController.value >= 0.5 ? 1.0 : 0.0);
       _sidebarController.animateTo(
         target,
         duration: const Duration(milliseconds: 240),
@@ -429,8 +431,10 @@ class CloudScrollSidebarController extends ChangeNotifier {
   void handleHeaderDragUpdate(DragUpdateDetails details) {
     _headerDragDistance += details.delta.dy;
     final morph = morphAnimationGetter();
-    morph.value =
-        (_headerDragStartProgress - _headerDragDistance / 250).clamp(0.0, 1.0);
+    morph.value = (_headerDragStartProgress - _headerDragDistance / 250).clamp(
+      0.0,
+      1.0,
+    );
   }
 
   void handleHeaderDragEnd(DragEndDetails details) {

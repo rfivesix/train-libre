@@ -31,13 +31,17 @@ void main() {
     String routineId,
     List<String> exerciseIds,
   ) async {
-    await db.into(db.routines).insert(
+    await db
+        .into(db.routines)
+        .insert(
           RoutinesCompanion.insert(id: Value(routineId), name: routineId),
         );
     final ids = <String>[];
     for (var i = 0; i < exerciseIds.length; i++) {
       final uuid = '$routineId-slot-$i';
-      await db.into(db.routineExercises).insert(
+      await db
+          .into(db.routineExercises)
+          .insert(
             RoutineExercisesCompanion.insert(
               id: Value(uuid),
               routineId: routineId,
@@ -51,7 +55,9 @@ void main() {
   }
 
   Future<void> seedSetTemplate(String routineExerciseId) async {
-    await db.into(db.routineSetTemplates).insert(
+    await db
+        .into(db.routineSetTemplates)
+        .insert(
           RoutineSetTemplatesCompanion.insert(
             routineExerciseId: routineExerciseId,
             targetReps: const Value('8-12'),
@@ -61,13 +67,17 @@ void main() {
   }
 
   Future<void> seedSetLog(String exerciseId, String snapshotName) async {
-    await db.into(db.workoutLogs).insert(
+    await db
+        .into(db.workoutLogs)
+        .insert(
           WorkoutLogsCompanion.insert(
             id: Value('log-for-$exerciseId'),
             startTime: DateTime(2026, 8, 1),
           ),
         );
-    await db.into(db.setLogs).insert(
+    await db
+        .into(db.setLogs)
+        .insert(
           SetLogsCompanion.insert(
             workoutLogId: 'log-for-$exerciseId',
             exerciseId: Value(exerciseId),
@@ -79,17 +89,20 @@ void main() {
   }
 
   Future<List<String>> exerciseIdsIn(String routineId) async {
-    final rows = await db.customSelect(
-      'SELECT exercise_id FROM routine_exercises WHERE routine_id = ? '
-      'ORDER BY order_index',
-      variables: [Variable.withString(routineId)],
-    ).get();
+    final rows = await db
+        .customSelect(
+          'SELECT exercise_id FROM routine_exercises WHERE routine_id = ? '
+          'ORDER BY order_index',
+          variables: [Variable.withString(routineId)],
+        )
+        .get();
     return rows.map((r) => r.read<String>('exercise_id')).toList();
   }
 
   Future<int> countWhere(String sql) async {
-    final row =
-        await db.customSelect('SELECT COUNT(*) AS c FROM $sql').getSingle();
+    final row = await db
+        .customSelect('SELECT COUNT(*) AS c FROM $sql')
+        .getSingle();
     return row.read<int>('c');
   }
 
@@ -109,41 +122,42 @@ void main() {
   });
 
   group('preconditions', () {
-    test('the fixture really carries the alias rows these tests rely on',
-        () async {
-      final rows = await db
-          .customSelect(
-            "SELECT old_id, new_id FROM exercise_aliases "
-            "WHERE old_id IN ('512', '1793', '1800')",
-          )
-          .get();
-      final map = {
-        for (final row in rows)
-          row.read<String>('old_id'): row.read<String>('new_id'),
-      };
-      expect(map['512'], '395');
-      expect(map['1793'], '1778');
-      expect(map['1800'], '1778');
-    });
+    test(
+      'the fixture really carries the alias rows these tests rely on',
+      () async {
+        final rows = await db
+            .customSelect(
+              "SELECT old_id, new_id FROM exercise_aliases "
+              "WHERE old_id IN ('512', '1793', '1800')",
+            )
+            .get();
+        final map = {
+          for (final row in rows)
+            row.read<String>('old_id'): row.read<String>('new_id'),
+        };
+        expect(map['512'], '395');
+        expect(map['1793'], '1778');
+        expect(map['1800'], '1778');
+      },
+    );
   });
 
   group('rewriting user data', () {
-    test('routine entries and set logs move to the surviving exercise',
-        () async {
-      await seedRoutine('r1', ['512']);
-      await seedSetLog('512', 'Rowing seated, narrow grip');
+    test(
+      'routine entries and set logs move to the surviving exercise',
+      () async {
+        await seedRoutine('r1', ['512']);
+        await seedSetLog('512', 'Rowing seated, narrow grip');
 
-      final result = await const ExerciseAliasMigration().run(db);
+        final result = await const ExerciseAliasMigration().run(db);
 
-      expect(await exerciseIdsIn('r1'), ['395']);
-      expect(
-        await countWhere("set_logs WHERE exercise_id = '395'"),
-        1,
-      );
-      expect(await countWhere("set_logs WHERE exercise_id = '512'"), 0);
-      expect(result.routineExercisesRewritten, 1);
-      expect(result.setLogsRewritten, 1);
-    });
+        expect(await exerciseIdsIn('r1'), ['395']);
+        expect(await countWhere("set_logs WHERE exercise_id = '395'"), 1);
+        expect(await countWhere("set_logs WHERE exercise_id = '512'"), 0);
+        expect(result.routineExercisesRewritten, 1);
+        expect(result.setLogsRewritten, 1);
+      },
+    );
 
     test('the name snapshot is left alone', () async {
       // It records what the user picked at the time. An alias may move the
@@ -162,7 +176,9 @@ void main() {
     });
 
     test('a user override follows its base exercise', () async {
-      await db.into(db.exercises).insert(
+      await db
+          .into(db.exercises)
+          .insert(
             ExercisesCompanion.insert(
               id: const Value('my-own-row'),
               isCustom: const Value(true),
@@ -243,10 +259,12 @@ void main() {
     });
 
     test('a duplicate carrying a note is kept too', () async {
-      await db.into(db.routines).insert(
-            RoutinesCompanion.insert(id: const Value('r3'), name: 'r3'),
-          );
-      await db.into(db.routineExercises).insert(
+      await db
+          .into(db.routines)
+          .insert(RoutinesCompanion.insert(id: const Value('r3'), name: 'r3'));
+      await db
+          .into(db.routineExercises)
+          .insert(
             RoutineExercisesCompanion.insert(
               id: const Value('r3-a'),
               routineId: 'r3',
@@ -254,7 +272,9 @@ void main() {
               orderIndex: 0,
             ),
           );
-      await db.into(db.routineExercises).insert(
+      await db
+          .into(db.routineExercises)
+          .insert(
             RoutineExercisesCompanion.insert(
               id: const Value('r3-b'),
               routineId: 'r3',
@@ -269,22 +289,26 @@ void main() {
       expect(await exerciseIdsIn('r3'), ['1778', '1778']);
     });
 
-    test('the same exercise in two different routines is not touched',
-        () async {
-      await seedRoutine('r1', ['1793']);
-      await seedRoutine('r2', ['1800']);
+    test(
+      'the same exercise in two different routines is not touched',
+      () async {
+        await seedRoutine('r1', ['1793']);
+        await seedRoutine('r2', ['1800']);
 
-      final result = await const ExerciseAliasMigration().run(db);
+        final result = await const ExerciseAliasMigration().run(db);
 
-      expect(await exerciseIdsIn('r1'), ['1778']);
-      expect(await exerciseIdsIn('r2'), ['1778']);
-      expect(result.duplicateSlotsRemoved, 0);
-    });
+        expect(await exerciseIdsIn('r1'), ['1778']);
+        expect(await exerciseIdsIn('r2'), ['1778']);
+        expect(result.duplicateSlotsRemoved, 0);
+      },
+    );
   });
 
   group('safety', () {
     test('an alias whose target is missing leaves its rows alone', () async {
-      await db.into(db.exerciseAliases).insert(
+      await db
+          .into(db.exerciseAliases)
+          .insert(
             ExerciseAliasesCompanion.insert(
               oldId: '512',
               newId: 'a-target-that-does-not-exist',

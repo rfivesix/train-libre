@@ -15,8 +15,8 @@ class HealthConnectSleepAdapter {
     required SleepPermissionsService permissionsService,
     required HealthConnectDataSource dataSource,
     this.heartRateFallbackPadding = const Duration(hours: 24),
-  })  : _permissionsService = permissionsService,
-        _dataSource = dataSource;
+  }) : _permissionsService = permissionsService,
+       _dataSource = dataSource;
 
   final SleepPermissionsService _permissionsService;
   final HealthConnectDataSource _dataSource;
@@ -101,13 +101,15 @@ class HealthConnectSleepAdapter {
     final sessionsById = {
       for (final session in batch.sessions) session.recordId: session,
     };
-    final strictHeartRates = fallback.heartRateSamples.where((sample) {
-      final session = sessionsById[sample.sessionRecordId];
-      if (session == null) return false;
-      final sampledAt = sample.sampledAtUtc.toUtc();
-      return !sampledAt.isBefore(session.startAtUtc.toUtc()) &&
-          !sampledAt.isAfter(session.endAtUtc.toUtc());
-    }).toList(growable: false);
+    final strictHeartRates = fallback.heartRateSamples
+        .where((sample) {
+          final session = sessionsById[sample.sessionRecordId];
+          if (session == null) return false;
+          final sampledAt = sample.sampledAtUtc.toUtc();
+          return !sampledAt.isBefore(session.startAtUtc.toUtc()) &&
+              !sampledAt.isAfter(session.endAtUtc.toUtc());
+        })
+        .toList(growable: false);
 
     final derivedHeartRates = strictHeartRates.isNotEmpty
         ? strictHeartRates

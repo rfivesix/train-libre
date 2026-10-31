@@ -78,152 +78,154 @@ class _FakeProfileRepo implements IProfileRepository {
   Future<void> insertMeasurementSession(MeasurementSession session) async {}
   @override
   Future<List<ChartDataPoint>> getChartDataForTypeAndRange(
-          String type, DateTimeRange range) async =>
-      const [];
+    String type,
+    DateTimeRange range,
+  ) async => const [];
   @override
   Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(
-          String type, DateTimeRange range) =>
-      Stream.value(const []);
+    String type,
+    DateTimeRange range,
+  ) => Stream.value(const []);
   @override
   Future<db.Profile?> getUserProfile() async => null;
   @override
-  Future<void> saveUserProfile(
-      {required String name,
-      required DateTime? birthday,
-      required int? height,
-      required String? gender}) async {}
+  Future<void> saveUserProfile({
+    required String name,
+    required DateTime? birthday,
+    required int? height,
+    required String? gender,
+  }) async {}
   @override
   Future<db.AppSetting?> getAppSettings() async => null;
   @override
   Future<int> getCurrentTargetStepsOrDefault() async => 10000;
   @override
-  Future<void> saveUserGoals(
-      {required int calories,
-      required int protein,
-      required int carbs,
-      required int fat,
-      required int water,
-      required int steps}) async {}
+  Future<void> saveUserGoals({
+    required int calories,
+    required int protein,
+    required int carbs,
+    required int fat,
+    required int water,
+    required int steps,
+  }) async {}
 }
 
 void main() {
   testWidgets(
-      'LogSupplementMenu renders supplement items with titleMedium font style',
-      (tester) async {
-    final fakeRepo = _FakeSupplementRepo([
-      Supplement(
-        id: 1,
-        name: 'Creatine',
-        code: 'creatine',
-        defaultDose: 5.0,
-        unit: 'g',
-      ),
-      Supplement(
-        id: 2,
-        name: 'Vitamin D',
-        code: 'vitamin_d',
-        defaultDose: 50.0,
-        unit: 'mcg',
-      ),
-    ]);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('en'),
-        home: Scaffold(
-          body: LogSupplementMenu(
-            close: () {},
-            repository: fakeRepo,
-          ),
+    'LogSupplementMenu renders supplement items with titleMedium font style',
+    (tester) async {
+      final fakeRepo = _FakeSupplementRepo([
+        Supplement(
+          id: 1,
+          name: 'Creatine',
+          code: 'creatine',
+          defaultDose: 5.0,
+          unit: 'g',
         ),
-      ),
-    );
+        Supplement(
+          id: 2,
+          name: 'Vitamin D',
+          code: 'vitamin_d',
+          defaultDose: 50.0,
+          unit: 'mcg',
+        ),
+      ]);
 
-    await tester.pumpAndSettle();
-
-    final textWidget = tester.widget<Text>(find.text('Creatine'));
-    expect(textWidget.style?.fontWeight, FontWeight.w600);
-    expect(textWidget.style?.fontSize, 16.0); // titleMedium default size
-  });
-
-  testWidgets(
-      'MeasurementFormSheet uses Clip.none and top headroom padding on SingleChildScrollView',
-      (tester) async {
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider<UnitService>(
-            create: (_) => UnitService(),
-          ),
-        ],
-        child: MaterialApp(
+      await tester.pumpWidget(
+        MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('en'),
           home: Scaffold(
-            body: MeasurementFormSheet(
-              repository: _FakeProfileRepo(),
-              onSaved: () {},
-            ),
+            body: LogSupplementMenu(close: () {}, repository: fakeRepo),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    final scrollViewFinder = find.byType(SingleChildScrollView);
-    expect(scrollViewFinder, findsOneWidget);
-
-    final scrollView = tester.widget<SingleChildScrollView>(scrollViewFinder);
-    expect(scrollView.clipBehavior, Clip.none);
-    expect(
-      scrollView.padding,
-      const EdgeInsets.only(
-        top: DesignConstants.spacingS,
-        bottom: DesignConstants.spacingL,
-      ),
-    );
-  });
+      final textWidget = tester.widget<Text>(find.text('Creatine'));
+      expect(textWidget.style?.fontWeight, FontWeight.w600);
+      expect(textWidget.style?.fontSize, 16.0); // titleMedium default size
+    },
+  );
 
   testWidgets(
-      'showGlassBottomMenu contentBuilder SingleChildScrollView uses Clip.none',
-      (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('en'),
-        home: Scaffold(
-          body: Builder(
-            builder: (context) => ElevatedButton(
-              onPressed: () {
-                showGlassBottomMenu(
-                  context: context,
-                  title: 'Test Title',
-                  contentBuilder: (ctx, close) => const Text('Inner Content'),
-                );
-              },
-              child: const Text('Open'),
+    'MeasurementFormSheet uses Clip.none and top headroom padding on SingleChildScrollView',
+    (tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<UnitService>(create: (_) => UnitService()),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+            home: Scaffold(
+              body: MeasurementFormSheet(
+                repository: _FakeProfileRepo(),
+                onSaved: () {},
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.text('Open'));
-    await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    final scrollViewFinder = find.byType(SingleChildScrollView);
-    expect(scrollViewFinder, findsOneWidget);
+      final scrollViewFinder = find.byType(SingleChildScrollView);
+      expect(scrollViewFinder, findsOneWidget);
 
-    final scrollView = tester.widget<SingleChildScrollView>(scrollViewFinder);
-    expect(scrollView.clipBehavior, Clip.none);
-    expect(
-      scrollView.padding,
-      const EdgeInsets.only(top: DesignConstants.spacingXS),
-    );
-  });
+      final scrollView = tester.widget<SingleChildScrollView>(scrollViewFinder);
+      expect(scrollView.clipBehavior, Clip.none);
+      expect(
+        scrollView.padding,
+        const EdgeInsets.only(
+          top: DesignConstants.spacingS,
+          bottom: DesignConstants.spacingL,
+        ),
+      );
+    },
+  );
+
+  testWidgets(
+    'showGlassBottomMenu contentBuilder SingleChildScrollView uses Clip.none',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () {
+                  showGlassBottomMenu(
+                    context: context,
+                    title: 'Test Title',
+                    contentBuilder: (ctx, close) => const Text('Inner Content'),
+                  );
+                },
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      final scrollViewFinder = find.byType(SingleChildScrollView);
+      expect(scrollViewFinder, findsOneWidget);
+
+      final scrollView = tester.widget<SingleChildScrollView>(scrollViewFinder);
+      expect(scrollView.clipBehavior, Clip.none);
+      expect(
+        scrollView.padding,
+        const EdgeInsets.only(top: DesignConstants.spacingXS),
+      );
+    },
+  );
 }

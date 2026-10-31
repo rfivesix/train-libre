@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -39,18 +40,19 @@ class MuscleVolumeSectionCard extends StatelessWidget {
     final data = state.data;
     final muscleAnalytics = data?.muscleAnalytics ?? const {};
 
-    final muscles = (muscleAnalytics['muscles'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>()
-        .where((m) {
-      final group = m['muscleGroup'] as String?;
-      return group != 'unclassified' &&
-          !StatisticsPresentationFormatter.isOtherCategoryLabel(group);
-    }).toList()
-      ..sort(
-        (a, b) => ((b['equivalentSets'] as num?)?.toDouble() ?? 0).compareTo(
-          (a['equivalentSets'] as num?)?.toDouble() ?? 0,
-        ),
-      );
+    final muscles =
+        (muscleAnalytics['muscles'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>()
+            .where((m) {
+              final group = m['muscleGroup'] as String?;
+              return group != 'unclassified' &&
+                  !StatisticsPresentationFormatter.isOtherCategoryLabel(group);
+            })
+            .toList()
+          ..sort(
+            (a, b) => ((b['equivalentSets'] as num?)?.toDouble() ?? 0)
+                .compareTo((a['equivalentSets'] as num?)?.toDouble() ?? 0),
+          );
     final topMuscle = muscles.isNotEmpty ? muscles.first : null;
     final totalEquivalentSets = muscles.fold<double>(
       0,
@@ -60,7 +62,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
     final weeklySets = totalEquivalentSets / _fixedMuscleWeeks;
     final topMuscleSets =
         ((topMuscle?['equivalentSets'] as num?)?.toDouble() ?? 0) /
-            _fixedMuscleWeeks;
+        _fixedMuscleWeeks;
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -85,9 +87,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                 topMuscle == null
                     ? '–'
                     : '${weeklySets.toStringAsFixed(1)} ${l10n.analyticsUnitSets} / ${l10n.analyticsPerWeekAbbrev}',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
+                style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
@@ -95,9 +95,8 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                 topMuscle == null
                     ? l10n.exerciseAnalyticsNoData
                     : '${_formatMuscleLabel(l10n, topMuscle['muscleGroup'] as String?)} · ${topMuscleSets.toStringAsFixed(1)} ${l10n.analyticsUnitSets} / ${l10n.analyticsPerWeekAbbrev}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
             ],
           ),

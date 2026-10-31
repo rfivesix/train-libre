@@ -46,42 +46,42 @@ void main() {
   });
 
   testWidgets(
-      'keeps explanation state separate from the nutrition scroll offset',
-      (tester) async {
-    final bucket = PageStorageBucket();
+    'keeps explanation state separate from the nutrition scroll offset',
+    (tester) async {
+      final bucket = PageStorageBucket();
 
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: PageStorage(
-          bucket: bucket,
-          child: KeyedSubtree(
-            key: const PageStorageKey('tab_nutrition'),
-            child: Builder(
-              builder: (context) {
-                // This is the value a ListView restores for the tab's scroll
-                // position after it has been scrolled off screen.
-                PageStorage.of(context).writeState(context, 480.0);
-                return Scaffold(body: _recommendationCard());
-              },
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PageStorage(
+            bucket: bucket,
+            child: KeyedSubtree(
+              key: const PageStorageKey('tab_nutrition'),
+              child: Builder(
+                builder: (context) {
+                  // This is the value a ListView restores for the tab's scroll
+                  // position after it has been scrolled off screen.
+                  PageStorage.of(context).writeState(context, 480.0);
+                  return Scaffold(body: _recommendationCard());
+                },
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(tester.takeException(), isNull);
-    expect(
-      find.byKey(
-        const PageStorageKey('adaptive_recommendation_explanation'),
-      ),
-      findsOneWidget,
-    );
-  });
+      expect(tester.takeException(), isNull);
+      expect(
+        find.byKey(const PageStorageKey('adaptive_recommendation_explanation')),
+        findsOneWidget,
+      );
+    },
+  );
 
-  testWidgets('renders recommendation details and apply action',
-      (tester) async {
+  testWidgets('renders recommendation details and apply action', (
+    tester,
+  ) async {
     var applyTapped = false;
     var recalculateTapped = false;
 
@@ -157,16 +157,18 @@ void main() {
       find.text(l10n.adaptiveRecommendationRecalculateNowAction),
     );
     await tester.pump();
-    await tester
-        .tap(find.text(l10n.adaptiveRecommendationRecalculateNowAction));
+    await tester.tap(
+      find.text(l10n.adaptiveRecommendationRecalculateNowAction),
+    );
     await tester.pump();
 
     expect(applyTapped, isTrue);
     expect(recalculateTapped, isTrue);
   });
 
-  testWidgets('renders safety-floor warning message when reason is present',
-      (tester) async {
+  testWidgets('renders safety-floor warning message when reason is present', (
+    tester,
+  ) async {
     final recommendation = _recommendation().copyWith(
       warningState: const RecommendationWarningState(
         hasLargeAdjustmentWarning: false,
@@ -205,94 +207,98 @@ void main() {
     );
   });
 
-  testWidgets('renders unresolved-food warning message when reason is present',
-      (tester) async {
-    final recommendation = _recommendation().copyWith(
-      warningState: const RecommendationWarningState(
-        hasLargeAdjustmentWarning: false,
-        warningLevel: RecommendationWarningLevel.moderate,
-        warningReasons: ['unresolved_food_calories'],
-      ),
-    );
+  testWidgets(
+    'renders unresolved-food warning message when reason is present',
+    (tester) async {
+      final recommendation = _recommendation().copyWith(
+        warningState: const RecommendationWarningState(
+          hasLargeAdjustmentWarning: false,
+          warningLevel: RecommendationWarningLevel.moderate,
+          warningReasons: ['unresolved_food_calories'],
+        ),
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: NutritionRecommendationCard(
-            goal: BodyweightGoal.maintainWeight,
-            targetRateKgPerWeek: 0,
-            recommendation: recommendation,
-            maintenanceEstimate: _estimate(),
-            generatedAt: recommendation.generatedAt,
-            nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
-            isAdaptiveRecommendationDueNow: false,
-            isRecalculating: false,
-            isApplying: false,
-            onRecalculate: () {},
-            onApply: () {},
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: NutritionRecommendationCard(
+              goal: BodyweightGoal.maintainWeight,
+              targetRateKgPerWeek: 0,
+              recommendation: recommendation,
+              maintenanceEstimate: _estimate(),
+              generatedAt: recommendation.generatedAt,
+              nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
+              isAdaptiveRecommendationDueNow: false,
+              isRecalculating: false,
+              isApplying: false,
+              onRecalculate: () {},
+              onApply: () {},
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    final context = tester.element(find.byType(NutritionRecommendationCard));
-    final l10n = AppLocalizations.of(context)!;
-    expect(
-      find.text(l10n.adaptiveRecommendationWarningUnresolvedFood),
-      findsOneWidget,
-    );
-  });
+      final context = tester.element(find.byType(NutritionRecommendationCard));
+      final l10n = AppLocalizations.of(context)!;
+      expect(
+        find.text(l10n.adaptiveRecommendationWarningUnresolvedFood),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets(
-      'renders prior-only data-basis message when recommendation is prior-only',
-      (tester) async {
-    final recommendation = _recommendation().copyWith(
-      confidence: RecommendationConfidence.notEnoughData,
-      inputSummary: const RecommendationInputSummary(
-        windowDays: 0,
-        weightLogCount: 1,
-        intakeLoggedDays: 0,
-        smoothedWeightSlopeKgPerWeek: null,
-        avgLoggedCalories: 0,
-        qualityFlags: ['onboarding_prior_only'],
-      ),
-    );
+    'renders prior-only data-basis message when recommendation is prior-only',
+    (tester) async {
+      final recommendation = _recommendation().copyWith(
+        confidence: RecommendationConfidence.notEnoughData,
+        inputSummary: const RecommendationInputSummary(
+          windowDays: 0,
+          weightLogCount: 1,
+          intakeLoggedDays: 0,
+          smoothedWeightSlopeKgPerWeek: null,
+          avgLoggedCalories: 0,
+          qualityFlags: ['onboarding_prior_only'],
+        ),
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: NutritionRecommendationCard(
-            goal: BodyweightGoal.maintainWeight,
-            targetRateKgPerWeek: 0,
-            recommendation: recommendation,
-            maintenanceEstimate: _estimate(),
-            generatedAt: recommendation.generatedAt,
-            nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
-            isAdaptiveRecommendationDueNow: false,
-            isRecalculating: false,
-            isApplying: false,
-            onRecalculate: () {},
-            onApply: () {},
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: NutritionRecommendationCard(
+              goal: BodyweightGoal.maintainWeight,
+              targetRateKgPerWeek: 0,
+              recommendation: recommendation,
+              maintenanceEstimate: _estimate(),
+              generatedAt: recommendation.generatedAt,
+              nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
+              isAdaptiveRecommendationDueNow: false,
+              isRecalculating: false,
+              isApplying: false,
+              onRecalculate: () {},
+              onApply: () {},
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    final context = tester.element(find.byType(NutritionRecommendationCard));
-    final l10n = AppLocalizations.of(context)!;
-    await _expandExplanation(tester);
-    expect(
-      find.text(l10n.adaptiveRecommendationDataBasisHintPriorOnly),
-      findsOneWidget,
-    );
-  });
+      final context = tester.element(find.byType(NutritionRecommendationCard));
+      final l10n = AppLocalizations.of(context)!;
+      await _expandExplanation(tester);
+      expect(
+        find.text(l10n.adaptiveRecommendationDataBasisHintPriorOnly),
+        findsOneWidget,
+      );
+    },
+  );
 
-  testWidgets('renders localized empty body text for german locale',
-      (tester) async {
+  testWidgets('renders localized empty body text for german locale', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('de'),
@@ -318,16 +324,16 @@ void main() {
 
     expect(
       find.text(
-          'Tracke Gewicht und Ernährung etwa eine Woche, um die erste wöchentliche Empfehlung freizuschalten.'),
+        'Tracke Gewicht und Ernährung etwa eine Woche, um die erste wöchentliche Empfehlung freizuschalten.',
+      ),
       findsOneWidget,
     );
   });
 
-  testWidgets('renders maintenance credible interval and uncertainty hint',
-      (tester) async {
-    final estimate = _estimate().copyWith(
-      posteriorStdDevCalories: 80,
-    );
+  testWidgets('renders maintenance credible interval and uncertainty hint', (
+    tester,
+  ) async {
+    final estimate = _estimate().copyWith(posteriorStdDevCalories: 80);
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -353,18 +359,23 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
     await _expandExplanation(tester);
-    expect(find.byKey(const Key('adaptive_recommendation_range_line')),
-        findsOneWidget);
-    expect(find.byKey(const Key('adaptive_recommendation_uncertainty_hint')),
-        findsOneWidget);
+    expect(
+      find.byKey(const Key('adaptive_recommendation_range_line')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('adaptive_recommendation_uncertainty_hint')),
+      findsOneWidget,
+    );
     expect(
       find.text(l10n.adaptiveRecommendationUncertaintyHintNarrow),
       findsOneWidget,
     );
   });
 
-  testWidgets('renders stabilizing hint when estimate is still settling',
-      (tester) async {
+  testWidgets('renders stabilizing hint when estimate is still settling', (
+    tester,
+  ) async {
     final estimate = _estimate().copyWith(
       qualityFlags: const ['bayesian_estimate_still_stabilizing'],
     );
@@ -399,11 +410,14 @@ void main() {
       findsOneWidget,
     );
     expect(
-        find.text(l10n.adaptiveRecommendationStabilizingHint), findsOneWidget);
+      find.text(l10n.adaptiveRecommendationStabilizingHint),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('renders uncertainty and stabilizing copy for german locale',
-      (tester) async {
+  testWidgets('renders uncertainty and stabilizing copy for german locale', (
+    tester,
+  ) async {
     final estimate = _estimate().copyWith(
       qualityFlags: const ['bayesian_estimate_still_stabilizing'],
     );
@@ -433,10 +447,14 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
     await _expandExplanation(tester);
-    expect(find.text(l10n.adaptiveRecommendationUncertaintyHintModerate),
-        findsOneWidget);
     expect(
-        find.text(l10n.adaptiveRecommendationStabilizingHint), findsOneWidget);
+      find.text(l10n.adaptiveRecommendationUncertaintyHintModerate),
+      findsOneWidget,
+    );
+    expect(
+      find.text(l10n.adaptiveRecommendationStabilizingHint),
+      findsOneWidget,
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -451,52 +469,55 @@ void main() {
 
     for (final confidence in RecommendationConfidence.values) {
       testWidgets(
-          'confidence label for $confidence does not imply statistical certainty',
-          (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: NutritionRecommendationCard(
-                goal: BodyweightGoal.maintainWeight,
-                targetRateKgPerWeek: 0,
-                recommendation:
-                    _recommendation().copyWith(confidence: confidence),
-                maintenanceEstimate: _estimate(),
-                generatedAt: DateTime(2026, 4, 5, 9, 0),
-                nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
-                isAdaptiveRecommendationDueNow: false,
-                isRecalculating: false,
-                isApplying: false,
-                onRecalculate: () {},
-                onApply: () {},
+        'confidence label for $confidence does not imply statistical certainty',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: NutritionRecommendationCard(
+                  goal: BodyweightGoal.maintainWeight,
+                  targetRateKgPerWeek: 0,
+                  recommendation: _recommendation().copyWith(
+                    confidence: confidence,
+                  ),
+                  maintenanceEstimate: _estimate(),
+                  generatedAt: DateTime(2026, 4, 5, 9, 0),
+                  nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
+                  isAdaptiveRecommendationDueNow: false,
+                  isRecalculating: false,
+                  isApplying: false,
+                  onRecalculate: () {},
+                  onApply: () {},
+                ),
               ),
             ),
-          ),
-        );
-
-        final context =
-            tester.element(find.byType(NutritionRecommendationCard));
-        final l10n = AppLocalizations.of(context)!;
-        final label = switch (confidence) {
-          RecommendationConfidence.notEnoughData =>
-            l10n.adaptiveConfidenceNotEnoughData,
-          RecommendationConfidence.low => l10n.adaptiveConfidenceLow,
-          RecommendationConfidence.medium => l10n.adaptiveConfidenceMedium,
-          RecommendationConfidence.high => l10n.adaptiveConfidenceHigh,
-        };
-
-        for (final word in forbiddenWords) {
-          expect(
-            label.toLowerCase().contains(word),
-            isFalse,
-            reason:
-                'Confidence label for $confidence ("$label") must not contain '
-                '"$word" — the bar shows data-basis strength, not statistical $word.',
           );
-        }
-      });
+
+          final context = tester.element(
+            find.byType(NutritionRecommendationCard),
+          );
+          final l10n = AppLocalizations.of(context)!;
+          final label = switch (confidence) {
+            RecommendationConfidence.notEnoughData =>
+              l10n.adaptiveConfidenceNotEnoughData,
+            RecommendationConfidence.low => l10n.adaptiveConfidenceLow,
+            RecommendationConfidence.medium => l10n.adaptiveConfidenceMedium,
+            RecommendationConfidence.high => l10n.adaptiveConfidenceHigh,
+          };
+
+          for (final word in forbiddenWords) {
+            expect(
+              label.toLowerCase().contains(word),
+              isFalse,
+              reason:
+                  'Confidence label for $confidence ("$label") must not contain '
+                  '"$word" — the bar shows data-basis strength, not statistical $word.',
+            );
+          }
+        },
+      );
     }
   });
 
@@ -513,8 +534,9 @@ void main() {
     };
 
     for (final entry in expectedFills.entries) {
-      testWidgets('confidence bar fill for ${entry.key} is ${entry.value}',
-          (tester) async {
+      testWidgets('confidence bar fill for ${entry.key} is ${entry.value}', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -523,8 +545,9 @@ void main() {
               body: NutritionRecommendationCard(
                 goal: BodyweightGoal.maintainWeight,
                 targetRateKgPerWeek: 0,
-                recommendation:
-                    _recommendation().copyWith(confidence: entry.key),
+                recommendation: _recommendation().copyWith(
+                  confidence: entry.key,
+                ),
                 maintenanceEstimate: _estimate(),
                 generatedAt: DateTime(2026, 4, 5, 9, 0),
                 nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
@@ -554,9 +577,9 @@ void main() {
     }
   });
 
-  testWidgets(
-      'confidence bar Semantics wraps LinearProgressIndicator with label',
-      (tester) async {
+  testWidgets('confidence bar Semantics wraps LinearProgressIndicator with label', (
+    tester,
+  ) async {
     // The Semantics widget immediately wrapping the LinearProgressIndicator
     // must declare the data-quality label so TalkBack / VoiceOver can read it.
     const confidence = RecommendationConfidence.high;
@@ -598,18 +621,21 @@ void main() {
       ),
     );
     // At least one Semantics ancestor must carry expectedLabel as its label.
-    final hasMatchingLabel =
-        semanticsParents.any((s) => s.properties.label == expectedLabel);
+    final hasMatchingLabel = semanticsParents.any(
+      (s) => s.properties.label == expectedLabel,
+    );
     expect(
       hasMatchingLabel,
       isTrue,
-      reason: 'A Semantics ancestor of the confidence bar must carry '
+      reason:
+          'A Semantics ancestor of the confidence bar must carry '
           '"$expectedLabel" so screen readers can announce the data-quality tier.',
     );
   });
 
-  testWidgets('renders active trajectory correction and hides energy density',
-      (tester) async {
+  testWidgets('renders active trajectory correction and hides energy density', (
+    tester,
+  ) async {
     final recommendation = _recommendation().copyWith(
       inputSummary: RecommendationInputSummary(
         windowDays: 21,
@@ -656,8 +682,9 @@ void main() {
       findsOneWidget,
     );
     expect(
-        find.text(l10n.adaptiveRecommendationTrajectoryCorrectionExplanation),
-        findsOneWidget);
+      find.text(l10n.adaptiveRecommendationTrajectoryCorrectionExplanation),
+      findsOneWidget,
+    );
   });
 }
 
@@ -672,18 +699,18 @@ Future<void> _expandExplanation(WidgetTester tester) async {
 }
 
 Widget _recommendationCard() => NutritionRecommendationCard(
-      goal: BodyweightGoal.maintainWeight,
-      targetRateKgPerWeek: 0,
-      recommendation: _recommendation(),
-      maintenanceEstimate: _estimate(),
-      generatedAt: DateTime(2026, 4, 5),
-      nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
-      isAdaptiveRecommendationDueNow: false,
-      isRecalculating: false,
-      isApplying: false,
-      onRecalculate: () {},
-      onApply: () {},
-    );
+  goal: BodyweightGoal.maintainWeight,
+  targetRateKgPerWeek: 0,
+  recommendation: _recommendation(),
+  maintenanceEstimate: _estimate(),
+  generatedAt: DateTime(2026, 4, 5),
+  nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
+  isAdaptiveRecommendationDueNow: false,
+  isRecalculating: false,
+  isApplying: false,
+  onRecalculate: () {},
+  onApply: () {},
+);
 
 NutritionRecommendation _recommendation() {
   return NutritionRecommendation(
@@ -753,7 +780,8 @@ extension on BayesianMaintenanceEstimate {
           posteriorMaintenanceCalories ?? this.posteriorMaintenanceCalories,
       posteriorStdDevCalories:
           posteriorStdDevCalories ?? this.posteriorStdDevCalories,
-      profilePriorMaintenanceCalories: profilePriorMaintenanceCalories ??
+      profilePriorMaintenanceCalories:
+          profilePriorMaintenanceCalories ??
           this.profilePriorMaintenanceCalories,
       priorMeanUsedCalories:
           priorMeanUsedCalories ?? this.priorMeanUsedCalories,
@@ -766,7 +794,7 @@ extension on BayesianMaintenanceEstimate {
           observedWeightSlopeKgPerWeek ?? this.observedWeightSlopeKgPerWeek,
       observationImpliedMaintenanceCalories:
           observationImpliedMaintenanceCalories ??
-              this.observationImpliedMaintenanceCalories,
+          this.observationImpliedMaintenanceCalories,
       effectiveSampleSize: effectiveSampleSize ?? this.effectiveSampleSize,
       confidence: confidence ?? this.confidence,
       qualityFlags: qualityFlags ?? this.qualityFlags,

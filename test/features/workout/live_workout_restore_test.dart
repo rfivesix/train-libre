@@ -27,10 +27,10 @@ void main() {
   late LiveWorkoutViewModel manager;
 
   LiveWorkoutViewModel buildManager() => LiveWorkoutViewModel.forTesting(
-        workoutDb: WorkoutRepository(
-          localDataSource: WorkoutLocalDataSource(database),
-        ),
-      );
+    workoutDb: WorkoutRepository(
+      localDataSource: WorkoutLocalDataSource(database),
+    ),
+  );
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -54,15 +54,15 @@ void main() {
   }
 
   model.Exercise exerciseNamed(String name, int id) => model.Exercise(
-        id: id,
-        texts: {
-          'de': model.ExerciseText(name: name, description: ''),
-          'en': model.ExerciseText(name: name, description: ''),
-        },
-        categoryName: 'Strength',
-        primaryMuscles: const ['chest'],
-        secondaryMuscles: const [],
-      );
+    id: id,
+    texts: {
+      'de': model.ExerciseText(name: name, description: ''),
+      'en': model.ExerciseText(name: name, description: ''),
+    },
+    categoryName: 'Strength',
+    primaryMuscles: const ['chest'],
+    secondaryMuscles: const [],
+  );
 
   RoutineExercise routineExercise({
     required int id,
@@ -71,23 +71,22 @@ void main() {
     required int pauseSeconds,
     required List<int> templateIds,
     int? supersetGroup,
-  }) =>
-      RoutineExercise(
-        id: id,
-        exercise: exerciseNamed(name, exerciseId),
-        pauseSeconds: pauseSeconds,
-        supersetGroup: supersetGroup,
-        setTemplates: [
-          for (final templateId in templateIds)
-            SetTemplate(id: templateId, setType: 'normal', targetReps: '8'),
-        ],
-      );
+  }) => RoutineExercise(
+    id: id,
+    exercise: exerciseNamed(name, exerciseId),
+    pauseSeconds: pauseSeconds,
+    supersetGroup: supersetGroup,
+    setTemplates: [
+      for (final templateId in templateIds)
+        SetTemplate(id: templateId, setType: 'normal', targetReps: '8'),
+    ],
+  );
 
   /// Sets in the order they appear on screen, exercise by exercise.
   List<SetLog> setsOf(LiveWorkoutViewModel vm, int exerciseIndex) => [
-        for (final template in vm.exercises[exerciseIndex].setTemplates)
-          vm.setLogs[template.id]!,
-      ];
+    for (final template in vm.exercises[exerciseIndex].setTemplates)
+      vm.setLogs[template.id]!,
+  ];
 
   Future<WorkoutLog> startSession() async {
     final log = await workoutDb.startWorkout(routineName: 'Push A');
@@ -117,19 +116,23 @@ void main() {
     return log;
   }
 
-  test('a killed session comes back with its exercises in the same order',
-      () async {
-    await startSession();
+  test(
+    'a killed session comes back with its exercises in the same order',
+    () async {
+      await startSession();
 
-    final restored = await restartApp();
+      final restored = await restartApp();
 
-    expect(
-      [for (final e in restored.exercises) e.exercise.canonicalName],
-      ['Bench Press', 'Squat', 'Barbell Row'],
-    );
-    expect(
-        [for (final e in restored.exercises) e.setTemplates.length], [3, 3, 3]);
-  });
+      expect(
+        [for (final e in restored.exercises) e.exercise.canonicalName],
+        ['Bench Press', 'Squat', 'Barbell Row'],
+      );
+      expect(
+        [for (final e in restored.exercises) e.setTemplates.length],
+        [3, 3, 3],
+      );
+    },
+  );
 
   test('a killed session restores its superset snapshot exactly', () async {
     final log = await workoutDb.startWorkout(routineName: 'Superset');
@@ -212,7 +215,9 @@ void main() {
       ['Bench Press', 'Squat', 'Barbell Row'],
     );
     expect(
-        [for (final e in restored.exercises) e.setTemplates.length], [4, 3, 3]);
+      [for (final e in restored.exercises) e.setTemplates.length],
+      [4, 3, 3],
+    );
   });
 
   test('a reorder survives the kill', () async {
@@ -225,10 +230,7 @@ void main() {
       [for (final e in restored.exercises) e.exercise.canonicalName],
       ['Barbell Row', 'Bench Press', 'Squat'],
     );
-    expect(
-      [for (final e in restored.exercises) e.pauseSeconds],
-      [120, 60, 90],
-    );
+    expect([for (final e in restored.exercises) e.pauseSeconds], [120, 60, 90]);
   });
 
   test('a removed set does not come back', () async {
@@ -241,7 +243,9 @@ void main() {
     expect(restored.exercises.first.setTemplates.length, 2);
     expect(setsOf(restored, 0).first.weightKg, 100);
     expect(
-        [for (final e in restored.exercises) e.setTemplates.length], [2, 3, 3]);
+      [for (final e in restored.exercises) e.setTemplates.length],
+      [2, 3, 3],
+    );
   });
 
   test('the same exercise entered twice stays two exercises', () async {
@@ -289,7 +293,9 @@ void main() {
       ['Barbell Row', 'Bench Press', 'Squat'],
     );
     expect(
-        [for (final e in restored.exercises) e.setTemplates.length], [2, 3, 4]);
+      [for (final e in restored.exercises) e.setTemplates.length],
+      [2, 3, 4],
+    );
     expect([for (final e in restored.exercises) e.pauseSeconds], [45, 60, 90]);
 
     final benchSets = setsOf(restored, 1);
@@ -342,29 +348,38 @@ void main() {
         [for (final e in restored.exercises) e.exercise.canonicalName],
         ['Bench Press', 'Squat', 'Barbell Row'],
       );
-      expect([for (final e in restored.exercises) e.setTemplates.length],
-          [3, 3, 3]);
+      expect(
+        [for (final e in restored.exercises) e.setTemplates.length],
+        [3, 3, 3],
+      );
       expect(setsOf(restored, 1).first.weightKg, 70);
     });
 
-    test('are written down on the first restore so the next one is exact',
-        () async {
-      await startSession();
-      await makeSessionLookLegacy();
+    test(
+      'are written down on the first restore so the next one is exact',
+      () async {
+        await startSession();
+        await makeSessionLookLegacy();
 
-      await restartApp();
+        await restartApp();
 
-      final rows = await database.select(database.setLogs).get();
-      expect(
-          rows.map((r) => r.exerciseBlock).toList(), everyElement(isNotNull));
-      expect(
-        rows.map((r) => r.exerciseBlock).toSet(),
-        {0, 1, 2},
-        reason: 'the three exercises must be told apart from now on',
-      );
-      expect(rows.map((r) => r.logOrder).toSet().length, rows.length,
-          reason: 'every set needs a position of its own');
-    });
+        final rows = await database.select(database.setLogs).get();
+        expect(
+          rows.map((r) => r.exerciseBlock).toList(),
+          everyElement(isNotNull),
+        );
+        expect(rows.map((r) => r.exerciseBlock).toSet(), {
+          0,
+          1,
+          2,
+        }, reason: 'the three exercises must be told apart from now on');
+        expect(
+          rows.map((r) => r.logOrder).toSet().length,
+          rows.length,
+          reason: 'every set needs a position of its own',
+        );
+      },
+    );
   });
 
   test('reopening an ongoing workout does not duplicate its sets', () async {
@@ -403,8 +418,7 @@ void main() {
     expect(restored.exercises, isEmpty);
   });
 
-  test('set rows come back in a stable order even with equal positions',
-      () async {
+  test('set rows come back in a stable order even with equal positions', () async {
     // Guards the query itself: ordering on log_order alone left SQLite free to
     // return equal rows in any order it liked.
     await startSession();
@@ -435,8 +449,9 @@ void main() {
 
     final restored = await restartApp();
 
-    expect([for (final e in restored.exercises) e.exercise.canonicalName],
-        beforeKill);
+    expect([
+      for (final e in restored.exercises) e.exercise.canonicalName,
+    ], beforeKill);
     expect(restored.exercises.length, 4);
   });
 

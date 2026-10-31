@@ -15,24 +15,26 @@ void main() {
     bool? answer;
     var answered = false;
 
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () async {
-                answer = await showTelemetryConsentSheet(context);
-                answered = true;
-              },
-              child: const Text('open'),
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  answer = await showTelemetryConsentSheet(context);
+                  answered = true;
+                },
+                child: const Text('open'),
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
@@ -56,30 +58,36 @@ void main() {
 
     // Equal weight is the point: a decline squeezed into a smaller control, or
     // buried below the fold, would make the choice less than free.
-    expect(tester.getSize(accept).width,
-        closeTo(tester.getSize(decline).width, 1.0));
-    expect(tester.getSize(accept).height,
-        closeTo(tester.getSize(decline).height, 1.0));
+    expect(
+      tester.getSize(accept).width,
+      closeTo(tester.getSize(decline).width, 1.0),
+    );
+    expect(
+      tester.getSize(accept).height,
+      closeTo(tester.getSize(decline).height, 1.0),
+    );
   });
 
   testWidgets('returns true when the user opts in', (tester) async {
     bool? answer;
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () async =>
-                  answer = await showTelemetryConsentSheet(context),
-              child: const Text('open'),
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async =>
+                    answer = await showTelemetryConsentSheet(context),
+                child: const Text('open'),
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
@@ -91,22 +99,24 @@ void main() {
 
   testWidgets('returns false when the user declines', (tester) async {
     bool? answer;
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () async =>
-                  answer = await showTelemetryConsentSheet(context),
-              child: const Text('open'),
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () async =>
+                    answer = await showTelemetryConsentSheet(context),
+                child: const Text('open'),
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 

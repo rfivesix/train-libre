@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../data/sleep_day_repository.dart';
 import 'details/depth_detail_page.dart';
@@ -146,9 +147,8 @@ class SleepNavigation {
     bool replace = false,
   }) {
     if (replace) {
-      return Navigator.of(
-        context,
-      ).pushReplacementNamed(SleepRouteNames.day, arguments: day);
+      return Navigator.of(context)
+          .pushReplacementNamed(SleepRouteNames.day, arguments: day);
     }
     return Navigator.of(context).pushNamed(SleepRouteNames.day, arguments: day);
   }
@@ -163,13 +163,11 @@ class SleepNavigation {
     bool replace = false,
   }) {
     if (replace) {
-      return Navigator.of(
-        context,
-      ).pushReplacementNamed(SleepRouteNames.week, arguments: anchorDay);
+      return Navigator.of(context)
+          .pushReplacementNamed(SleepRouteNames.week, arguments: anchorDay);
     }
-    return Navigator.of(
-      context,
-    ).pushNamed(SleepRouteNames.week, arguments: anchorDay);
+    return Navigator.of(context)
+        .pushNamed(SleepRouteNames.week, arguments: anchorDay);
   }
 
   static Future<void> openMonth(BuildContext context, {bool replace = false}) {
@@ -182,57 +180,50 @@ class SleepNavigation {
     bool replace = false,
   }) {
     if (replace) {
-      return Navigator.of(
-        context,
-      ).pushReplacementNamed(SleepRouteNames.month, arguments: anchorDay);
+      return Navigator.of(context)
+          .pushReplacementNamed(SleepRouteNames.month, arguments: anchorDay);
     }
-    return Navigator.of(
-      context,
-    ).pushNamed(SleepRouteNames.month, arguments: anchorDay);
+    return Navigator.of(context)
+        .pushNamed(SleepRouteNames.month, arguments: anchorDay);
   }
 
   static Future<void> openDurationDetail(
     BuildContext context, {
     required SleepDayOverviewData overview,
   }) {
-    return Navigator.of(
-      context,
-    ).pushNamed(SleepRouteNames.durationDetail, arguments: overview);
+    return Navigator.of(context)
+        .pushNamed(SleepRouteNames.durationDetail, arguments: overview);
   }
 
   static Future<void> openHeartRateDetail(
     BuildContext context, {
     required SleepDayOverviewData overview,
   }) {
-    return Navigator.of(
-      context,
-    ).pushNamed(SleepRouteNames.heartRateDetail, arguments: overview);
+    return Navigator.of(context)
+        .pushNamed(SleepRouteNames.heartRateDetail, arguments: overview);
   }
 
   static Future<void> openInterruptionsDetail(
     BuildContext context, {
     required SleepDayOverviewData overview,
   }) {
-    return Navigator.of(
-      context,
-    ).pushNamed(SleepRouteNames.interruptionsDetail, arguments: overview);
+    return Navigator.of(context)
+        .pushNamed(SleepRouteNames.interruptionsDetail, arguments: overview);
   }
 
   static Future<void> openDepthDetail(
     BuildContext context, {
     required SleepDayOverviewData overview,
   }) {
-    return Navigator.of(
-      context,
-    ).pushNamed(SleepRouteNames.depthDetail, arguments: overview);
+    return Navigator.of(context)
+        .pushNamed(SleepRouteNames.depthDetail, arguments: overview);
   }
 
   static Future<void> openRegularityDetail(
     BuildContext context, {
     required SleepDayOverviewData overview,
   }) {
-    return Navigator.of(
-      context,
-    ).pushNamed(SleepRouteNames.regularityDetail, arguments: overview);
+    return Navigator.of(context)
+        .pushNamed(SleepRouteNames.regularityDetail, arguments: overview);
   }
 }

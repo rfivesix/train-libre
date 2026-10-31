@@ -15,13 +15,13 @@ import 'package:train_libre/features/workout/data/workout_repository.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test(
-      'approved read actions use the same workout and diary repositories as screens',
-      () async {
+  test('approved read actions use the same workout and diary repositories as screens', () async {
     final database = db.AppDatabase(NativeDatabase.memory());
     addTearDown(database.close);
     final day = DateTime(2026, 10, 18);
-    final workout = await database.into(database.workoutLogs).insertReturning(
+    final workout = await database
+        .into(database.workoutLogs)
+        .insertReturning(
           db.WorkoutLogsCompanion.insert(
             startTime: DateTime(2026, 10, 18, 9),
             endTime: drift.Value(DateTime(2026, 10, 18, 10)),
@@ -29,14 +29,20 @@ void main() {
             routineNameSnapshot: const drift.Value('Leg day'),
           ),
         );
-    await database.into(database.setLogs).insert(db.SetLogsCompanion.insert(
-          workoutLogId: workout.id,
-          exerciseNameSnapshot: const drift.Value('Squat'),
-          reps: const drift.Value(5),
-          weight: const drift.Value(100),
-          isCompleted: const drift.Value(true),
-        ));
-    await database.into(database.products).insert(
+    await database
+        .into(database.setLogs)
+        .insert(
+          db.SetLogsCompanion.insert(
+            workoutLogId: workout.id,
+            exerciseNameSnapshot: const drift.Value('Squat'),
+            reps: const drift.Value(5),
+            weight: const drift.Value(100),
+            isCompleted: const drift.Value(true),
+          ),
+        );
+    await database
+        .into(database.products)
+        .insert(
           const db.ProductsCompanion(
             barcode: drift.Value('banana'),
             name: drift.Value('Banana'),
@@ -47,7 +53,9 @@ void main() {
             source: drift.Value('user'),
           ),
         );
-    await database.into(database.nutritionLogs).insert(
+    await database
+        .into(database.nutritionLogs)
+        .insert(
           db.NutritionLogsCompanion.insert(
             legacyBarcode: const drift.Value('banana'),
             consumedAt: DateTime(2026, 10, 18, 12),
@@ -58,41 +66,53 @@ void main() {
     final gateway = AssistantDataGateway([
       AssistantTrainingActions(
         workouts: WorkoutRepository(
-            localDataSource: WorkoutLocalDataSource(database)),
+          localDataSource: WorkoutLocalDataSource(database),
+        ),
         database: database,
       ),
       AssistantDiaryActions(
-          NutritionRepository(localDataSource: DiaryLocalDataSource(database))),
+        NutritionRepository(localDataSource: DiaryLocalDataSource(database)),
+      ),
     ]);
     final request = AssistantDataRequest(
       categories: {
         AssistantDataCategory.workouts,
         AssistantDataCategory.diary,
-        AssistantDataCategory.nutrition
+        AssistantDataCategory.nutrition,
       },
       scope: AssistantDateScope(day, day, 'explicit date'),
     );
     final denied = await gateway.readApproved(request, approved: false);
     expect(
-        denied.every((result) => result.status == AssistantActionStatus.denied),
-        isTrue);
+      denied.every((result) => result.status == AssistantActionStatus.denied),
+      isTrue,
+    );
 
     final approved = await gateway.readApproved(request, approved: true);
     expect(
-        approved
-            .every((result) => result.status == AssistantActionStatus.success),
-        isTrue);
-    final workoutData = approved
-        .firstWhere((r) => r.category == AssistantDataCategory.workouts);
+      approved.every(
+        (result) => result.status == AssistantActionStatus.success,
+      ),
+      isTrue,
+    );
+    final workoutData = approved.firstWhere(
+      (r) => r.category == AssistantDataCategory.workouts,
+    );
     expect(workoutData.records.single['routine'], 'Leg day');
-    expect((workoutData.records.single['sets'] as List).single['exercise'],
-        'Squat');
-    final diaryData =
-        approved.firstWhere((r) => r.category == AssistantDataCategory.diary);
     expect(
-        diaryData.records.any((record) => record['name'] == 'Banana'), isTrue);
-    final nutrition = approved
-        .firstWhere((r) => r.category == AssistantDataCategory.nutrition);
+      (workoutData.records.single['sets'] as List).single['exercise'],
+      'Squat',
+    );
+    final diaryData = approved.firstWhere(
+      (r) => r.category == AssistantDataCategory.diary,
+    );
+    expect(
+      diaryData.records.any((record) => record['name'] == 'Banana'),
+      isTrue,
+    );
+    final nutrition = approved.firstWhere(
+      (r) => r.category == AssistantDataCategory.nutrition,
+    );
     expect(nutrition.records.single['caloriesKcal'], 90);
     expect((nutrition.manifest['references'] as List), contains('foodEntry:1'));
   });
@@ -102,25 +122,34 @@ void main() {
     addTearDown(database.close);
 
     final now = DateTime.now();
-    final workout = await database.into(database.workoutLogs).insertReturning(
+    final workout = await database
+        .into(database.workoutLogs)
+        .insertReturning(
           db.WorkoutLogsCompanion.insert(
             startTime: now.subtract(const Duration(days: 2)),
-            endTime: drift.Value(now.subtract(const Duration(days: 2, hours: -1))),
+            endTime: drift.Value(
+              now.subtract(const Duration(days: 2, hours: -1)),
+            ),
             status: const drift.Value('completed'),
             routineNameSnapshot: const drift.Value('Full body'),
           ),
         );
-    await database.into(database.setLogs).insert(db.SetLogsCompanion.insert(
-          workoutLogId: workout.id,
-          exerciseNameSnapshot: const drift.Value('Bench press'),
-          reps: const drift.Value(8),
-          weight: const drift.Value(80),
-          isCompleted: const drift.Value(true),
-        ));
+    await database
+        .into(database.setLogs)
+        .insert(
+          db.SetLogsCompanion.insert(
+            workoutLogId: workout.id,
+            exerciseNameSnapshot: const drift.Value('Bench press'),
+            reps: const drift.Value(8),
+            weight: const drift.Value(80),
+            isCompleted: const drift.Value(true),
+          ),
+        );
 
     final action = AssistantTrainingActions(
       workouts: WorkoutRepository(
-          localDataSource: WorkoutLocalDataSource(database)),
+        localDataSource: WorkoutLocalDataSource(database),
+      ),
       database: database,
     );
 

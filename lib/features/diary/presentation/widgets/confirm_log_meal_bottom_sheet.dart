@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/date_util.dart';
 import '../../domain/models/food_item.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/common.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../../services/theme_service.dart';
 import '../../../../services/base_food_language_service.dart';
 import '../../../../widgets/common/app_button.dart';
@@ -26,7 +32,8 @@ class ConfirmLogMealBottomSheet extends StatefulWidget {
     DateTime date,
     String mealType,
     Map<String, int> quantities,
-  ) onSave;
+  )
+  onSave;
 
   const ConfirmLogMealBottomSheet({
     super.key,
@@ -91,7 +98,8 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
       0,
       (sum, it) => sum + ((it['quantity_in_grams'] as num?)?.round() ?? 0),
     );
-    _selectedWeightBasis = widget.initialWeightBasis ??
+    _selectedWeightBasis =
+        widget.initialWeightBasis ??
         (widget.recipeCookedWeightInGrams == null ? 'raw' : 'cooked');
     _totalQtyCtrl = TextEditingController(text: '$_recipeTotalGrams')
       ..addListener(_scaleIngredientsFromTotal);
@@ -130,14 +138,19 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
         0,
         (sum, item) => sum + (item['quantity_in_grams'] as num).round(),
       );
-      final roundedTotal =
-          scaledAmounts.fold<int>(0, (sum, value) => sum + value);
-      final largestIndex = widget.rawItems.indexOf(widget.rawItems.reduce(
-        (largest, item) => (item['quantity_in_grams'] as num) >
-                (largest['quantity_in_grams'] as num)
-            ? item
-            : largest,
-      ));
+      final roundedTotal = scaledAmounts.fold<int>(
+        0,
+        (sum, value) => sum + value,
+      );
+      final largestIndex = widget.rawItems.indexOf(
+        widget.rawItems.reduce(
+          (largest, item) =>
+              (item['quantity_in_grams'] as num) >
+                  (largest['quantity_in_grams'] as num)
+              ? item
+              : largest,
+        ),
+      );
       if (originalTotal == _recipeTotalGrams) {
         scaledAmounts[largestIndex] += requested - roundedTotal;
       }
@@ -155,9 +168,8 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
         : rounded;
   }
 
-  double? _currentPortions() => double.tryParse(
-        _portionQtyCtrl.text.trim().replaceAll(',', '.'),
-      );
+  double? _currentPortions() =>
+      double.tryParse(_portionQtyCtrl.text.trim().replaceAll(',', '.'));
 
   void _adjustPortions({required bool increase}) {
     final current = _currentPortions();
@@ -190,8 +202,9 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
     setState(() => _selectedWeightBasis = basis);
     final newTotal = _recipeTotalGrams;
     if (oldTotal > 0 && newTotal > 0) {
-      _totalQtyCtrl.text =
-          (currentAmount * newTotal / oldTotal).round().toString();
+      _totalQtyCtrl.text = (currentAmount * newTotal / oldTotal)
+          .round()
+          .toString();
     }
   }
 
@@ -228,10 +241,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          widget.mealName,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(widget.mealName, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: DesignConstants.spacingM),
 
         // Date & time selection
@@ -308,8 +318,9 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                 icon: const Icon(LucideIcons.plus),
               ),
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
                 borderSide: BorderSide.none,
               ),
               isDense: true,
@@ -329,8 +340,9 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                   labelText: l10n.mealTotalAmountLabel,
                   suffixText: l10n.unit_grams,
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(DesignConstants.borderRadiusM),
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusM,
+                    ),
                     borderSide: BorderSide.none,
                   ),
                   isDense: true,
@@ -346,18 +358,22 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                   decoration: InputDecoration(
                     labelText: l10n.mealWeightBasisLabel,
                     border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusM,
+                      ),
                       borderSide: BorderSide.none,
                     ),
                     isDense: true,
                   ),
                   items: [
                     DropdownMenuItem(
-                        value: 'raw', child: Text(l10n.mealWeightBasisRaw)),
+                      value: 'raw',
+                      child: Text(l10n.mealWeightBasisRaw),
+                    ),
                     DropdownMenuItem(
-                        value: 'cooked',
-                        child: Text(l10n.mealWeightBasisCooked)),
+                      value: 'cooked',
+                      child: Text(l10n.mealWeightBasisCooked),
+                    ),
                   ],
                   onChanged: _changeWeightBasis,
                 ),
@@ -367,9 +383,12 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
         ),
         Padding(
           padding: const EdgeInsets.only(left: 12, top: 6),
-          child: Text(l10n.mealTotalAmountHint(_recipeTotalGrams),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          child: Text(
+            l10n.mealTotalAmountHint(_recipeTotalGrams),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
         const SizedBox(height: DesignConstants.spacingM),
 
@@ -378,8 +397,9 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           decoration: InputDecoration(
             labelText: l10n.mealTypeLabel,
             border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide.none,
             ),
             isDense: true,
@@ -419,12 +439,14 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                       final themeService = Provider.of<ThemeService>(context);
                       final baseFoodLang =
                           BaseFoodLanguageService.resolveLanguageCode(
-                        choice: themeService.baseFoodLanguage,
-                        context: context,
-                      );
+                            choice: themeService.baseFoodLanguage,
+                            context: context,
+                          );
                       return fi.source == FoodItemSource.base
-                          ? fi.getLocalizedName(context,
-                              languageCode: baseFoodLang)
+                          ? fi.getLocalizedName(
+                              context,
+                              languageCode: baseFoodLang,
+                            )
                           : fi.getLocalizedName(context);
                     })()
                   : bc;
@@ -451,7 +473,8 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                         suffixText: unit,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesignConstants.borderRadiusM),
+                            DesignConstants.borderRadiusM,
+                          ),
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: const EdgeInsets.symmetric(
@@ -501,8 +524,11 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                             finalQuantities[_quantityKey(it)] = qty;
                           }
 
-                          await widget.onSave(_selectedDate, _selectedMealType,
-                              finalQuantities);
+                          await widget.onSave(
+                            _selectedDate,
+                            _selectedMealType,
+                            finalQuantities,
+                          );
                           if (!mounted) return;
                           navigator.pop(true);
                         } catch (error) {

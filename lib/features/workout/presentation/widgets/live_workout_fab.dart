@@ -10,7 +10,8 @@ class LiveWorkoutFab extends StatefulWidget {
     BuildContext? sourceContext,
     WidgetBuilder? sourceBuilder,
     void Function(bool hidden)? onSourceVisibilityChanged,
-  }) onPressed;
+  })
+  onPressed;
 
   const LiveWorkoutFab({super.key, required this.onPressed});
 
@@ -24,7 +25,8 @@ class _LiveWorkoutFabState extends State<LiveWorkoutFab> {
   @override
   Widget build(BuildContext context) {
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
-        (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
+      (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone,
+    );
 
     Widget buildFabContent({VoidCallback? onPressed}) {
       final fab = GlassFab(
@@ -124,13 +126,14 @@ class LiveWorkoutFabShadowClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final Path path = Path();
-    path.addRect(Rect.fromLTRB(
-      -50.0,
-      -50.0,
-      size.width + 50.0,
-      size.height +
-          8.0, // cut off exactly at the top of the rest bar (8.0px below FAB bottom)
-    ));
+    path.addRect(
+      Rect.fromLTRB(
+        -50.0,
+        -50.0,
+        size.width + 50.0,
+        size.height + 8.0, // cut off exactly at the top of the rest bar (8.0px below FAB bottom)
+      ),
+    );
     return path;
   }
 

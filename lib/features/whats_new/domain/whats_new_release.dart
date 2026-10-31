@@ -63,8 +63,9 @@ class AppVersion implements Comparable<AppVersion> {
   factory AppVersion.parse(String raw) {
     final withoutBuild = raw.trim().split('+').first;
     final dashIndex = withoutBuild.indexOf('-');
-    final core =
-        dashIndex == -1 ? withoutBuild : withoutBuild.substring(0, dashIndex);
+    final core = dashIndex == -1
+        ? withoutBuild
+        : withoutBuild.substring(0, dashIndex);
     final suffix = dashIndex == -1 ? '' : withoutBuild.substring(dashIndex + 1);
 
     final parts = core.split('.');

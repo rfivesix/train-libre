@@ -64,20 +64,14 @@ double initialAbsoluteError(List<SyntheticWeekResult> weeks) {
   return posteriorAbsoluteErrorSeries(weeks).first;
 }
 
-double absoluteErrorAtWeek(
-  List<SyntheticWeekResult> weeks,
-  int weekIndex,
-) {
+double absoluteErrorAtWeek(List<SyntheticWeekResult> weeks, int weekIndex) {
   if (weeks.isEmpty || weekIndex < 0 || weekIndex >= weeks.length) {
     return 0;
   }
   return posteriorAbsoluteErrorSeries(weeks)[weekIndex];
 }
 
-double signedErrorAtWeek(
-  List<SyntheticWeekResult> weeks,
-  int weekIndex,
-) {
+double signedErrorAtWeek(List<SyntheticWeekResult> weeks, int weekIndex) {
   if (weeks.isEmpty || weekIndex < 0 || weekIndex >= weeks.length) {
     return 0;
   }
@@ -120,9 +114,9 @@ int? settlingWeekIndex(
   }
 
   for (var i = math.max(0, startWeek); i < errors.length; i++) {
-    final remainsInsideBand = errors.skip(i).every(
-          (value) => value <= toleranceCalories,
-        );
+    final remainsInsideBand = errors
+        .skip(i)
+        .every((value) => value <= toleranceCalories);
     if (remainsInsideBand) {
       return i;
     }
@@ -250,7 +244,9 @@ int? weeksUntilPosteriorRecoversToBand({
     if (end > weeks.length) {
       break;
     }
-    final inBand = weeks.sublist(i, end).every(
+    final inBand = weeks
+        .sublist(i, end)
+        .every(
           (week) =>
               (week.maintenanceEstimate.posteriorMaintenanceCalories -
                       baselineMedian)
@@ -323,10 +319,7 @@ RecoveryWindowSummary summarizeRecoveryWindows({
   );
 }
 
-double? tryPosteriorDebugValue(
-  WeekScenarioOutput week,
-  String key,
-) {
+double? tryPosteriorDebugValue(WeekScenarioOutput week, String key) {
   final value = week.maintenanceEstimate.debugInfo[key];
   if (value is num) {
     return value.toDouble();
@@ -354,7 +347,9 @@ double maxUndershootCalories(
   }
   final signed = posteriorSignedErrorSeries(weeks).skip(startWeek);
   return signed.fold<double>(
-      0, (maxValue, value) => math.max(maxValue, -value));
+    0,
+    (maxValue, value) => math.max(maxValue, -value),
+  );
 }
 
 int countTruthCrossings(
@@ -433,7 +428,9 @@ double averageConfidenceScore(
     return 0;
   }
 
-  final rankTotal = weeks.skip(startWeek).fold<int>(
+  final rankTotal = weeks
+      .skip(startWeek)
+      .fold<int>(
         0,
         (sum, week) =>
             sum + _confidenceRank(week.model.recommendation.confidence),

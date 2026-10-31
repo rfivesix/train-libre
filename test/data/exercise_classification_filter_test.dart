@@ -58,36 +58,46 @@ void main() {
         (column: 'laterality', values: axes.lateralities),
       ]) {
         for (final value in entry.values) {
-          final row = await db.customSelect(
-            'SELECT COUNT(*) AS c FROM exercises e '
-            "WHERE e.${entry.column} = ? "
-            "AND (e.status IS NULL OR e.status = 'active')",
-            variables: [Variable.withString(value)],
-          ).getSingle();
-          expect(row.read<int>('c'), greaterThan(0),
-              reason: '${entry.column}=$value is a chip that selects nothing');
+          final row = await db
+              .customSelect(
+                'SELECT COUNT(*) AS c FROM exercises e '
+                "WHERE e.${entry.column} = ? "
+                "AND (e.status IS NULL OR e.status = 'active')",
+                variables: [Variable.withString(value)],
+              )
+              .getSingle();
+          expect(
+            row.read<int>('c'),
+            greaterThan(0),
+            reason: '${entry.column}=$value is a chip that selects nothing',
+          );
         }
       }
     });
 
-    test('difficulty comes back in vocabulary order, not alphabetical',
-        () async {
-      // Alphabetically "advanced" sorts first, which reads as a mistake in a
-      // menu whose whole point is that it is a ladder.
-      final axes = await source.getClassificationAxes();
-      const order = ['beginner', 'intermediate', 'advanced'];
-      final ranks = axes.difficulties.map(order.indexOf).toList();
-      expect(ranks, everyElement(greaterThanOrEqualTo(0)),
-          reason: 'unexpected difficulty value: ${axes.difficulties}');
-      expect(ranks, equals(ranks.toList()..sort()));
-    });
+    test(
+      'difficulty comes back in vocabulary order, not alphabetical',
+      () async {
+        // Alphabetically "advanced" sorts first, which reads as a mistake in a
+        // menu whose whole point is that it is a ladder.
+        final axes = await source.getClassificationAxes();
+        const order = ['beginner', 'intermediate', 'advanced'];
+        final ranks = axes.difficulties.map(order.indexOf).toList();
+        expect(
+          ranks,
+          everyElement(greaterThanOrEqualTo(0)),
+          reason: 'unexpected difficulty value: ${axes.difficulties}',
+        );
+        expect(ranks, equals(ranks.toList()..sort()));
+      },
+    );
 
     test('no axis offers a value twice', () async {
       final axes = await source.getClassificationAxes();
       for (final values in [
         axes.difficulties,
         axes.mechanics,
-        axes.lateralities
+        axes.lateralities,
       ]) {
         expect(values.toSet().length, values.length);
       }
@@ -116,10 +126,12 @@ void main() {
 
     test('two values in one axis widen, values across axes narrow', () async {
       final beginner = await source.searchExercises(difficulties: ['beginner']);
-      final intermediate =
-          await source.searchExercises(difficulties: ['intermediate']);
-      final both = await source
-          .searchExercises(difficulties: ['beginner', 'intermediate']);
+      final intermediate = await source.searchExercises(
+        difficulties: ['intermediate'],
+      );
+      final both = await source.searchExercises(
+        difficulties: ['beginner', 'intermediate'],
+      );
       expect(both.length, beginner.length + intermediate.length);
 
       final beginnerCompound = await source.searchExercises(
@@ -138,11 +150,16 @@ void main() {
       // classification at all. Hiding them is the honest answer — the app
       // does not know how hard they are — but it has to be deliberate.
       final unclassified = await db
-          .customSelect('SELECT COUNT(*) AS c FROM exercises '
-              'WHERE difficulty IS NULL')
+          .customSelect(
+            'SELECT COUNT(*) AS c FROM exercises '
+            'WHERE difficulty IS NULL',
+          )
           .getSingle();
-      expect(unclassified.read<int>('c'), greaterThan(0),
-          reason: 'fixture no longer covers the unclassified case');
+      expect(
+        unclassified.read<int>('c'),
+        greaterThan(0),
+        reason: 'fixture no longer covers the unclassified case',
+      );
 
       final filtered = await source.searchExercises(
         difficulties: ['beginner', 'intermediate', 'advanced'],
@@ -170,8 +187,10 @@ void main() {
       for (final exercise in combined) {
         expect(exercise.mechanic, 'compound');
         expect(exercise.laterality, 'bilateral');
-        expect(exercise.allNames.any((n) => n.toLowerCase().contains('press')),
-            isTrue);
+        expect(
+          exercise.allNames.any((n) => n.toLowerCase().contains('press')),
+          isTrue,
+        );
       }
     });
 
@@ -211,8 +230,9 @@ void main() {
     });
 
     test('the single-exercise path carries them too', () async {
-      final fromSearch =
-          (await source.searchExercises(mechanics: ['isolation'])).first;
+      final fromSearch = (await source.searchExercises(
+        mechanics: ['isolation'],
+      )).first;
       final loaded = await source.getExerciseByUuid(fromSearch.uuid!);
       expect(loaded, isNotNull);
       expect(loaded!.mechanic, fromSearch.mechanic);

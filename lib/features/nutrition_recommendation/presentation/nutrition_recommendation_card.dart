@@ -1,4 +1,5 @@
 import '../../../services/unit_service.dart';
+
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -93,13 +94,18 @@ class NutritionRecommendationCard extends StatelessWidget {
               recentDailyIntakes: recentDailyIntakes,
               goalLabel: _goalLabel(l10n, recommendation!.goal),
               rateLabel: _rateLabel(
-                  context, l10n, recommendation!.targetRateKgPerWeek),
+                context,
+                l10n,
+                recommendation!.targetRateKgPerWeek,
+              ),
               formattedGeneratedAt: _formatDateTime(
                 context,
                 generatedAt ?? recommendation!.generatedAt,
               ),
-              formattedNextDue:
-                  _formatDate(context, nextAdaptiveRecommendationDueAt),
+              formattedNextDue: _formatDate(
+                context,
+                nextAdaptiveRecommendationDueAt,
+              ),
             ),
     );
   }
@@ -116,18 +122,25 @@ class NutritionRecommendationCard extends StatelessWidget {
   }
 
   String _rateLabel(
-      BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+    BuildContext context,
+    AppLocalizations l10n,
+    double kgPerWeek,
+  ) {
     if (kgPerWeek == 0) return '-';
     final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    final displayValue =
-        unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final displayValue = unitService.convertDisplayValue(
+      kgPerWeek.abs(),
+      UnitDimension.weight,
+    );
     final valStr = displayValue
         .toStringAsFixed(2)
         .replaceAll(RegExp(r'0*$'), '')
         .replaceAll(RegExp(r'\.$'), '');
     return l10n.adaptiveRatePerWeek(
-        '$sign$valStr', unitService.suffixFor(UnitDimension.weight));
+      '$sign$valStr',
+      unitService.suffixFor(UnitDimension.weight),
+    );
   }
 
   String _formatDate(BuildContext context, DateTime value) {
@@ -182,8 +195,7 @@ class _EmptyRecommendationContent extends StatelessWidget {
               technicalExplanation: l10n.infoTdeeTechnicalExplanation,
               markdownAssetPath:
                   'documentation/features/bayesian_tdee_estimator.md',
-              citationUrl:
-                  'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
+              citationUrl: 'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
             ),
           ],
         ),
@@ -201,8 +213,9 @@ class _EmptyRecommendationContent extends StatelessWidget {
               _DetailLine(text: nextDueLine),
               if (isAdaptiveRecommendationDueNow)
                 Padding(
-                  padding:
-                      const EdgeInsets.only(top: DesignConstants.spacingXS),
+                  padding: const EdgeInsets.only(
+                    top: DesignConstants.spacingXS,
+                  ),
                   child: _DetailLine(
                     text: l10n.adaptiveRecommendationDueNowLine,
                     key: const Key('adaptive_recommendation_due_now_line'),
@@ -404,15 +417,17 @@ class _GeneratedRecommendationContent extends StatelessWidget {
                     ),
                     key: const Key('adaptive_recommendation_uncertainty_hint'),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.78,
+                      ),
                     ),
                   ),
                 ),
                 if (RecommendationUiCopy.isStabilizing(maintenanceEstimate!))
                   Padding(
-                    padding:
-                        const EdgeInsets.only(top: DesignConstants.spacingXS),
+                    padding: const EdgeInsets.only(
+                      top: DesignConstants.spacingXS,
+                    ),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -421,8 +436,9 @@ class _GeneratedRecommendationContent extends StatelessWidget {
                           'adaptive_recommendation_stabilizing_hint',
                         ),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.78),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.78,
+                          ),
                         ),
                       ),
                     ),
@@ -501,8 +517,7 @@ class _RecommendationHeader extends StatelessWidget {
               technicalExplanation: l10n.infoTdeeTechnicalExplanation,
               markdownAssetPath:
                   'documentation/features/bayesian_tdee_estimator.md',
-              citationUrl:
-                  'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
+              citationUrl: 'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
             ),
           ],
         ),
@@ -630,8 +645,9 @@ class _MaintenanceHero extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: _confidenceProgress(confidence),
                   minHeight: 8,
-                  backgroundColor: colorScheme.onSurface
-                      .withValues(alpha: isDark ? 0.14 : 0.10),
+                  backgroundColor: colorScheme.onSurface.withValues(
+                    alpha: isDark ? 0.14 : 0.10,
+                  ),
                   valueColor: AlwaysStoppedAnimation<Color>(accent),
                 ),
               ),
@@ -739,9 +755,8 @@ class _MacroTargetGrid extends StatelessWidget {
       children: [
         Text(
           l10n.adaptiveRecommendationMacroTargetsLabel,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: DesignConstants.spacingS),
         LayoutBuilder(
@@ -755,10 +770,10 @@ class _MacroTargetGrid extends StatelessWidget {
                   subtitle: item.currentValue == null
                       ? null
                       : (item.currentValue == item.recommendedValue
-                          ? l10n.adaptiveRecommendationAlreadyActive
-                          : l10n.adaptiveRecommendationTargetChange(
-                              '${item.recommendedValue - item.currentValue! >= 0 ? "+" : ""}${item.recommendedValue - item.currentValue!}',
-                            )),
+                            ? l10n.adaptiveRecommendationAlreadyActive
+                            : l10n.adaptiveRecommendationTargetChange(
+                                '${item.recommendedValue - item.currentValue! >= 0 ? "+" : ""}${item.recommendedValue - item.currentValue!}',
+                              )),
                 ),
             ];
 
@@ -767,8 +782,9 @@ class _MacroTargetGrid extends StatelessWidget {
               final rowChildren = <Widget>[];
               for (var j = 0; j < crossAxisCount; j++) {
                 if (j > 0) {
-                  rowChildren
-                      .add(const SizedBox(width: DesignConstants.spacingS));
+                  rowChildren.add(
+                    const SizedBox(width: DesignConstants.spacingS),
+                  );
                 }
                 final itemIndex = i + j;
                 rowChildren.add(
@@ -840,9 +856,8 @@ class _RecommendationContextPanel extends StatelessWidget {
       children: [
         Text(
           l10n.adaptiveRecommendationDataQualityLabel,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: DesignConstants.spacingS),
         _DetailLine(text: calculatedAtLine),
@@ -890,8 +905,9 @@ class _RecommendationWarningPanel extends StatelessWidget {
     final backgroundColor = isHigh
         ? colorScheme.errorContainer
         : colorScheme.primary.withValues(alpha: 0.14);
-    final foregroundColor =
-        isHigh ? colorScheme.onErrorContainer : colorScheme.onSurface;
+    final foregroundColor = isHigh
+        ? colorScheme.onErrorContainer
+        : colorScheme.onSurface;
 
     return Container(
       padding: const EdgeInsets.all(DesignConstants.spacingM),
@@ -972,9 +988,7 @@ class _RecommendationActions extends StatelessWidget {
 class _SoftPanel extends StatelessWidget {
   final Widget child;
 
-  const _SoftPanel({
-    required this.child,
-  });
+  const _SoftPanel({required this.child});
 
   @override
   Widget build(BuildContext context) {

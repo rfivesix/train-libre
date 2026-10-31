@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
@@ -17,18 +18,16 @@ import '../../../core/performance/jank_recorder.dart';
 import '../../../core/performance/performance_telemetry.dart';
 import '../domain/feedback_report_builder.dart';
 import '../domain/feedback_report_models.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 
 class FeedbackReportScreen extends StatefulWidget {
   final FeedbackReportBuilder? reportBuilder;
   final FeedbackReportActions? actions;
 
-  const FeedbackReportScreen({
-    super.key,
-    this.reportBuilder,
-    this.actions,
-  });
+  const FeedbackReportScreen({super.key, this.reportBuilder, this.actions});
 
   @override
   State<FeedbackReportScreen> createState() => _FeedbackReportScreenState();
@@ -56,15 +55,19 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
   @override
   void initState() {
     super.initState();
-    _reportBuilder = widget.reportBuilder ??
+    _reportBuilder =
+        widget.reportBuilder ??
         FeedbackReportBuilder(
           adaptiveDiagnosticsProvider: AdaptiveNutritionDiagnosticsProvider(),
           backupRestoreDiagnosticsProvider: BackupRestoreDiagnosticsProvider(),
           performanceDiagnosticsProvider: PerformanceDiagnosticsProvider(),
         );
     _actions = widget.actions ?? FeedbackReportActions();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.feedbackReport));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.feedbackReport,
+      ),
+    );
   }
 
   @override
@@ -139,7 +142,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $error')),
+          content: Text('${AppLocalizations.of(context)!.error}: $error'),
+        ),
       );
       return;
     } finally {
@@ -152,7 +156,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(AppLocalizations.of(context)!.feedbackReportCopied)),
+        content: Text(AppLocalizations.of(context)!.feedbackReportCopied),
+      ),
     );
   }
 
@@ -165,14 +170,16 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
     setState(() => _isSaving = true);
     String? savedPath;
     try {
-      final file =
-          await _actions.saveReportToTemporaryFile(reportText: previewText);
+      final file = await _actions.saveReportToTemporaryFile(
+        reportText: previewText,
+      );
       savedPath = file.path;
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $error')),
+          content: Text('${AppLocalizations.of(context)!.error}: $error'),
+        ),
       );
       return;
     } finally {
@@ -211,9 +218,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.error}: $error')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${l10n.error}: $error')));
       return;
     } finally {
       if (mounted) {
@@ -253,9 +259,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.error}: $error')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${l10n.error}: $error')));
       return;
     } finally {
       if (mounted) {
@@ -267,20 +272,17 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
     if (!mounted) return;
     if (!opened) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.feedbackReportEmailOpenFailed),
-        ),
+        SnackBar(content: Text(l10n.feedbackReportEmailOpenFailed)),
       );
     }
   }
 
   List<String> get _activeIncludedSections => [
-        if (_includeAdaptiveDiagnostics) 'adaptive_nutrition',
-        if (_includeBackupRestoreDiagnostics) 'backup_restore',
-        if (_includePerformanceDiagnostics) 'performance',
-        if (_includeUserNote && _noteController.text.trim().isNotEmpty)
-          'user_note',
-      ];
+    if (_includeAdaptiveDiagnostics) 'adaptive_nutrition',
+    if (_includeBackupRestoreDiagnostics) 'backup_restore',
+    if (_includePerformanceDiagnostics) 'performance',
+    if (_includeUserNote && _noteController.text.trim().isNotEmpty) 'user_note',
+  ];
 
   /// Diagnostic keys whose values are body measurements or nutrition
   /// quantities. They are never attached to the telemetry event.
@@ -319,7 +321,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
         final key = line.substring(0, colonIndex).trim();
         final valueStr = line.substring(colonIndex + 1).trim();
 
-        final isDiagnosticKey = key.startsWith('feature_') ||
+        final isDiagnosticKey =
+            key.startsWith('feature_') ||
             key.contains('goal_') ||
             key.contains('target_') ||
             key.contains('due_') ||
@@ -366,11 +369,13 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
     // be smooth on one and drop frames on the other.
     summary['platform'] = PerformanceTelemetry.platformLabel;
 
-    unawaited(_submitReport(
-      submissionMethod: submissionMethod,
-      noteText: noteText,
-      summary: summary,
-    ));
+    unawaited(
+      _submitReport(
+        submissionMethod: submissionMethod,
+        noteText: noteText,
+        summary: summary,
+      ),
+    );
   }
 
   /// The performance section is a table rather than `key: value` lines, so
@@ -384,10 +389,12 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
   }) async {
     if (_includePerformanceDiagnostics) {
       try {
-        summary.addAll(PerformanceTelemetry.feedbackProperties(
-          snapshot: JankRecorder.instance.snapshot(),
-          deviceLabel: await DeviceLabel.load(),
-        ));
+        summary.addAll(
+          PerformanceTelemetry.feedbackProperties(
+            snapshot: JankRecorder.instance.snapshot(),
+            deviceLabel: await DeviceLabel.load(),
+          ),
+        );
       } catch (error) {
         debugPrint('[perf] attaching performance properties failed: $error');
       }
@@ -417,20 +424,15 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
 
     if (!canSubmit) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.feedbackReportDirectRequiresTelemetry),
-        ),
+        SnackBar(content: Text(l10n.feedbackReportDirectRequiresTelemetry)),
       );
       return;
     }
 
     _trackReportSubmission('posthog_direct');
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.feedbackReportDirectSent),
-      ),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.feedbackReportDirectSent)));
   }
 
   @override
@@ -441,9 +443,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
     return Scaffold(
       key: const Key('feedback_report_screen'),
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: l10n.feedbackReportScreenTitle,
-      ),
+      appBar: GlobalAppBar(title: l10n.feedbackReportScreenTitle),
       body: ListView(
         key: const Key('feedback_report_scroll_view'),
         padding: DesignConstants.cardPadding.copyWith(

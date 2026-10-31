@@ -1,5 +1,6 @@
 // lib/features/supplements/presentation/create_supplement_screen.dart
 import 'package:flutter/material.dart';
+
 import '../domain/repositories/supplement_repository.dart';
 import '../data/supplement_repository_impl.dart';
 import '../data/sources/supplement_local_data_source.dart';
@@ -16,15 +17,19 @@ class CreateSupplementScreen extends StatefulWidget {
   final Supplement? supplementToEdit;
   final SupplementRepository? repository;
 
-  const CreateSupplementScreen(
-      {super.key, this.supplementToEdit, this.repository});
+  const CreateSupplementScreen({
+    super.key,
+    this.supplementToEdit,
+    this.repository,
+  });
 
   @override
   State<CreateSupplementScreen> createState() => _CreateSupplementScreenState();
 }
 
 class _CreateSupplementScreenState extends State<CreateSupplementScreen> {
-  late final SupplementRepository _repository = widget.repository ??
+  late final SupplementRepository _repository =
+      widget.repository ??
       SupplementRepositoryImpl(
         localDataSource: SupplementLocalDataSource.instance,
       );
@@ -175,8 +180,9 @@ class _CreateSupplementScreenState extends State<CreateSupplementScreen> {
                       decoration: InputDecoration(
                         labelText: l10n.unitLabel,
                         isDense: true, // optional, macht's kompakter
-                        helperText:
-                            isBuiltinCaffeine ? l10n.caffeineUnitLocked : null,
+                        helperText: isBuiltinCaffeine
+                            ? l10n.caffeineUnitLocked
+                            : null,
                       ),
                       validator: (val) {
                         if (val == null || val.isEmpty) {

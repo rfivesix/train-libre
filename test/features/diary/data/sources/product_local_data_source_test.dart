@@ -83,74 +83,80 @@ void main() {
       category: 'fruit',
     );
 
-    test('insertProduct, updateProduct, and getProductByBarcode mappings',
-        () async {
-      // 1. Insert product
-      await dataSource.insertProduct(testUserItem);
+    test(
+      'insertProduct, updateProduct, and getProductByBarcode mappings',
+      () async {
+        // 1. Insert product
+        await dataSource.insertProduct(testUserItem);
 
-      // 2. Retrieve and assert details
-      final retrieved = await dataSource.getProductByBarcode('444444');
-      expect(retrieved, isNotNull);
-      expect(retrieved!.barcode, '444444');
-      expect(retrieved.name, 'Apfel Elstar');
-      expect(retrieved.calories, 52);
-      expect(retrieved.protein, 0.3);
-      expect(retrieved.source, FoodItemSource.user);
+        // 2. Retrieve and assert details
+        final retrieved = await dataSource.getProductByBarcode('444444');
+        expect(retrieved, isNotNull);
+        expect(retrieved!.barcode, '444444');
+        expect(retrieved.name, 'Apfel Elstar');
+        expect(retrieved.calories, 52);
+        expect(retrieved.protein, 0.3);
+        expect(retrieved.source, FoodItemSource.user);
 
-      // 3. Update product
-      final updatedItem = FoodItem(
-        barcode: '444444',
-        name: 'Apfel Elstar Bio',
-        brand: 'Bio',
-        calories: 55,
-        protein: 0.3,
-        carbs: 14,
-        fat: 0.2,
-        source: FoodItemSource.user,
-        category: 'fruit',
-      );
-      await dataSource.updateProduct(updatedItem);
+        // 3. Update product
+        final updatedItem = FoodItem(
+          barcode: '444444',
+          name: 'Apfel Elstar Bio',
+          brand: 'Bio',
+          calories: 55,
+          protein: 0.3,
+          carbs: 14,
+          fat: 0.2,
+          source: FoodItemSource.user,
+          category: 'fruit',
+        );
+        await dataSource.updateProduct(updatedItem);
 
-      // 4. Retrieve again and verify updates
-      final retrievedUpdated = await dataSource.getProductByBarcode('444444');
-      expect(retrievedUpdated, isNotNull);
-      expect(retrievedUpdated!.calories, 55);
-      expect(retrievedUpdated.name, 'Apfel Elstar Bio');
-    });
+        // 4. Retrieve again and verify updates
+        final retrievedUpdated = await dataSource.getProductByBarcode('444444');
+        expect(retrievedUpdated, isNotNull);
+        expect(retrievedUpdated!.calories, 55);
+        expect(retrievedUpdated.name, 'Apfel Elstar Bio');
+      },
+    );
 
-    test('getProductByBarcode preserves all localized base food names',
-        () async {
-      final localizedItem = FoodItem(
-        barcode: 'fr-ja-it-0001',
-        name: 'Pasta',
-        nameDe: 'Nudeln',
-        nameEn: 'Pasta',
-        nameFr: 'Pates',
-        nameIt: 'Pasta',
-        nameJa: 'パスタ',
-        brand: 'Casa',
-        calories: 120,
-        protein: 4.0,
-        carbs: 24.0,
-        fat: 1.5,
-        source: FoodItemSource.base,
-        category: 'grains',
-      );
+    test(
+      'getProductByBarcode preserves all localized base food names',
+      () async {
+        final localizedItem = FoodItem(
+          barcode: 'fr-ja-it-0001',
+          name: 'Pasta',
+          nameDe: 'Nudeln',
+          nameEn: 'Pasta',
+          nameFr: 'Pates',
+          nameIt: 'Pasta',
+          nameJa: 'パスタ',
+          brand: 'Casa',
+          calories: 120,
+          protein: 4.0,
+          carbs: 24.0,
+          fat: 1.5,
+          source: FoodItemSource.base,
+          category: 'grains',
+        );
 
-      await dataSource.insertProduct(localizedItem);
+        await dataSource.insertProduct(localizedItem);
 
-      final retrieved = await dataSource.getProductByBarcode('fr-ja-it-0001');
-      expect(retrieved, isNotNull);
-      expect(retrieved!.nameFr, 'Pates');
-      expect(retrieved.nameIt, 'Pasta');
-      expect(retrieved.nameJa, 'パスタ');
-      expect(retrieved.getLocalizedName(null, languageCode: 'fr'), 'Pates');
-      expect(retrieved.getLocalizedName(null, languageCode: 'it'), 'Pasta');
-      expect(retrieved.getLocalizedName(null, languageCode: 'ja'), 'パスタ');
-    });
+        final retrieved = await dataSource.getProductByBarcode('fr-ja-it-0001');
+        expect(retrieved, isNotNull);
+        expect(retrieved!.nameFr, 'Pates');
+        expect(retrieved.nameIt, 'Pasta');
+        expect(retrieved.nameJa, 'パスタ');
+        expect(retrieved.getLocalizedName(null, languageCode: 'fr'), 'Pates');
+        expect(retrieved.getLocalizedName(null, languageCode: 'it'), 'Pasta');
+        expect(retrieved.getLocalizedName(null, languageCode: 'ja'), 'パスタ');
+      },
+    );
 
     test('getBaseCategories returns localized category labels', () async {
-      await database.into(database.foodCategories).insert(
+      await database
+          .into(database.foodCategories)
+          .insert(
             db.FoodCategoriesCompanion(
               key: const drift.Value('dessert'),
               nameDe: const drift.Value('Nachspeise'),
@@ -202,24 +208,24 @@ void main() {
       expect(await dataSource.getFavoriteBarcodes(), ['444444']);
     });
 
-    test(
-        'searchProducts ranks exact, prefix, user/base, and off matches correctly',
-        () async {
+    test('searchProducts ranks exact, prefix, user/base, and off matches correctly', () async {
       await dataSource.insertProduct(testUserItem); // Apfel Elstar (user)
       await dataSource.insertProduct(testOffItem); // Apfelmus ungezuckert (off)
 
       // Apfel (base)
-      await dataSource.insertProduct(FoodItem(
-        barcode: '666666',
-        name: 'Apfel',
-        brand: 'Garten',
-        calories: 52,
-        protein: 0.3,
-        carbs: 14,
-        fat: 0.2,
-        source: FoodItemSource.base,
-        category: 'fruit',
-      ));
+      await dataSource.insertProduct(
+        FoodItem(
+          barcode: '666666',
+          name: 'Apfel',
+          brand: 'Garten',
+          calories: 52,
+          protein: 0.3,
+          carbs: 14,
+          fat: 0.2,
+          source: FoodItemSource.base,
+          category: 'fruit',
+        ),
+      );
 
       // Global search for 'Apfel'
       final searchResults = await dataSource.searchProducts('Apfel');
@@ -236,135 +242,160 @@ void main() {
       expect(searchResults[2].barcode, '555555');
     });
 
-    test('getBaseFoods filters by category and search keyword, sorted by usage',
-        () async {
-      await dataSource
-          .insertProduct(testBaseItem1); // Brokkoli frisch (vegetables, base)
-      await dataSource.insertProduct(
-          testUserItem); // Apfel Elstar (fruit, user - should be ignored)
-
-      // Karotte (vegetables, base)
-      await dataSource.insertProduct(FoodItem(
-        barcode: '777777',
-        name: 'Karotte',
-        brand: '',
-        calories: 41,
-        protein: 0.9,
-        carbs: 10,
-        fat: 0.2,
-        source: FoodItemSource.base,
-        category: 'vegetables',
-      ));
-
-      // 1. Retrieve vegetables category
-      final baseFoods =
-          await dataSource.getBaseFoods(categoryKey: 'vegetables');
-      expect(baseFoods.length, 2);
-      expect(baseFoods.map((f) => f.name),
-          unorderedEquals(['Brokkoli frisch', 'Karotte']));
-
-      // 2. Retrieve base categories metadata
-      await database.into(database.foodCategories).insert(
-            const db.FoodCategoriesCompanion(
-              key: drift.Value('vegetables'),
-              nameDe: drift.Value('Gemüse'),
-              nameEn: drift.Value('Vegetables'),
-              emoji: drift.Value('🥦'),
-            ),
-          );
-
-      final categories = await dataSource.getBaseCategories();
-      expect(categories.length, 1);
-      expect(categories[0]['key'], 'vegetables');
-      expect(categories[0]['name_de'], 'Gemüse');
-      expect(categories[0]['emoji'], '🥦');
-    });
-
     test(
-        'fuzzyMatchCandidatesForRepair re-ranks using raw and cooked stateHints correctly',
-        () async {
+      'getBaseFoods filters by category and search keyword, sorted by usage',
+      () async {
+        await dataSource.insertProduct(
+          testBaseItem1,
+        ); // Brokkoli frisch (vegetables, base)
+        await dataSource.insertProduct(
+          testUserItem,
+        ); // Apfel Elstar (fruit, user - should be ignored)
+
+        // Karotte (vegetables, base)
+        await dataSource.insertProduct(
+          FoodItem(
+            barcode: '777777',
+            name: 'Karotte',
+            brand: '',
+            calories: 41,
+            protein: 0.9,
+            carbs: 10,
+            fat: 0.2,
+            source: FoodItemSource.base,
+            category: 'vegetables',
+          ),
+        );
+
+        // 1. Retrieve vegetables category
+        final baseFoods = await dataSource.getBaseFoods(
+          categoryKey: 'vegetables',
+        );
+        expect(baseFoods.length, 2);
+        expect(
+          baseFoods.map((f) => f.name),
+          unorderedEquals(['Brokkoli frisch', 'Karotte']),
+        );
+
+        // 2. Retrieve base categories metadata
+        await database
+            .into(database.foodCategories)
+            .insert(
+              const db.FoodCategoriesCompanion(
+                key: drift.Value('vegetables'),
+                nameDe: drift.Value('Gemüse'),
+                nameEn: drift.Value('Vegetables'),
+                emoji: drift.Value('🥦'),
+              ),
+            );
+
+        final categories = await dataSource.getBaseCategories();
+        expect(categories.length, 1);
+        expect(categories[0]['key'], 'vegetables');
+        expect(categories[0]['name_de'], 'Gemüse');
+        expect(categories[0]['emoji'], '🥦');
+      },
+    );
+
+    test('fuzzyMatchCandidatesForRepair re-ranks using raw and cooked stateHints correctly', () async {
       await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch
-      await dataSource
-          .insertProduct(testBaseItem2); // Brokkoli gekocht (cooked)
+      await dataSource.insertProduct(
+        testBaseItem2,
+      ); // Brokkoli gekocht (cooked)
       await dataSource.insertProduct(testBaseItem3); // Brokkoli roh (raw)
 
       // 1. Without hint (should rank by text/exact/source priority)
-      final normalCandidates =
-          await dataSource.fuzzyMatchCandidatesForRepair('Brokkoli');
+      final normalCandidates = await dataSource.fuzzyMatchCandidatesForRepair(
+        'Brokkoli',
+      );
       expect(normalCandidates.isNotEmpty, isTrue);
 
       // 2. With 'cooked' hint (should boost 'Brokkoli gekocht')
-      final cookedCandidates = await dataSource
-          .fuzzyMatchCandidatesForRepair('Brokkoli', stateHint: 'cooked');
+      final cookedCandidates = await dataSource.fuzzyMatchCandidatesForRepair(
+        'Brokkoli',
+        stateHint: 'cooked',
+      );
       expect(cookedCandidates.length, 3);
       expect(cookedCandidates[0].name, 'Brokkoli gekocht'); // Top rank boosted
       // 'Brokkoli roh' has 'raw' keyword, so it should be penalized to the bottom (last)
       expect(cookedCandidates[2].name, 'Brokkoli roh');
 
       // 3. With 'raw' hint (should boost 'Brokkoli roh')
-      final rawCandidates = await dataSource
-          .fuzzyMatchCandidatesForRepair('Brokkoli', stateHint: 'raw');
+      final rawCandidates = await dataSource.fuzzyMatchCandidatesForRepair(
+        'Brokkoli',
+        stateHint: 'raw',
+      );
       expect(rawCandidates.length, 3);
       expect(rawCandidates[0].name, 'Brokkoli roh'); // Top rank boosted
       // 'Brokkoli gekocht' has 'cooked' keyword, so it should be penalized to the bottom (last)
       expect(rawCandidates[2].name, 'Brokkoli gekocht');
     });
 
-    test('fuzzyMatchForAi delegates to matching logics and re-ranking',
-        () async {
-      await dataSource.insertProduct(testBaseItem1);
+    test(
+      'fuzzyMatchForAi delegates to matching logics and re-ranking',
+      () async {
+        await dataSource.insertProduct(testBaseItem1);
 
-      final candidates = await dataSource.fuzzyMatchForAi('Brokkoli');
-      expect(candidates.length, isNotNull);
-      if (candidates.isNotEmpty) {
-        expect(candidates[0].name, contains('Brokkoli'));
-      }
-    });
-
-    test('getRecentProducts orders products descending by usage history',
-        () async {
-      await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch
-      await dataSource.insertProduct(testUserItem); // Apfel Elstar
-
-      // Insert recent consumption logs
-      final now = DateTime.now();
-      await database.into(database.nutritionLogs).insert(
-            db.NutritionLogsCompanion(
-              id: const drift.Value('log1'),
-              legacyBarcode: const drift.Value('111111'),
-              consumedAt:
-                  drift.Value(now.subtract(const Duration(minutes: 30))),
-              amount: const drift.Value(150.0),
-              mealType: const drift.Value('Breakfast'),
-            ),
-          );
-
-      await database.into(database.nutritionLogs).insert(
-            db.NutritionLogsCompanion(
-              id: const drift.Value('log2'),
-              legacyBarcode: const drift.Value('444444'),
-              consumedAt: drift.Value(
-                  now.subtract(const Duration(minutes: 5))), // more recent!
-              amount: const drift.Value(200.0),
-              mealType: const drift.Value('Lunch'),
-            ),
-          );
-
-      final recent = await dataSource.getRecentProducts();
-      expect(recent.length, 2);
-      // Apfel Elstar is consumed at -5min, so it must rank FIRST
-      expect(recent[0].barcode, '444444');
-      // Brokkoli frisch is consumed at -30min, so it must rank SECOND
-      expect(recent[1].barcode, '111111');
-    });
+        final candidates = await dataSource.fuzzyMatchForAi('Brokkoli');
+        expect(candidates.length, isNotNull);
+        if (candidates.isNotEmpty) {
+          expect(candidates[0].name, contains('Brokkoli'));
+        }
+      },
+    );
 
     test(
-        'searchProducts implements multi-token word order invariance and recency rescoring',
-        () async {
-      await dataSource
-          .insertProduct(testUserItem); // Apfel Elstar (user, barcode '444444')
+      'getRecentProducts orders products descending by usage history',
+      () async {
+        await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch
+        await dataSource.insertProduct(testUserItem); // Apfel Elstar
+
+        // Insert recent consumption logs
+        final now = DateTime.now();
+        await database
+            .into(database.nutritionLogs)
+            .insert(
+              db.NutritionLogsCompanion(
+                id: const drift.Value('log1'),
+                legacyBarcode: const drift.Value('111111'),
+                consumedAt: drift.Value(
+                  now.subtract(const Duration(minutes: 30)),
+                ),
+                amount: const drift.Value(150.0),
+                mealType: const drift.Value('Breakfast'),
+              ),
+            );
+
+        await database
+            .into(database.nutritionLogs)
+            .insert(
+              db.NutritionLogsCompanion(
+                id: const drift.Value('log2'),
+                legacyBarcode: const drift.Value('444444'),
+                consumedAt: drift.Value(
+                  now.subtract(const Duration(minutes: 5)),
+                ), // more recent!
+                amount: const drift.Value(200.0),
+                mealType: const drift.Value('Lunch'),
+              ),
+            );
+
+        final recent = await dataSource.getRecentProducts();
+        expect(recent.length, 2);
+        // Apfel Elstar is consumed at -5min, so it must rank FIRST
+        expect(recent[0].barcode, '444444');
+        // Brokkoli frisch is consumed at -30min, so it must rank SECOND
+        expect(recent[1].barcode, '111111');
+      },
+    );
+
+    test('searchProducts implements multi-token word order invariance and recency rescoring', () async {
       await dataSource.insertProduct(
-          testOffItem); // Apfelmus ungezuckert (off, barcode '555555')
+        testUserItem,
+      ); // Apfel Elstar (user, barcode '444444')
+      await dataSource.insertProduct(
+        testOffItem,
+      ); // Apfelmus ungezuckert (off, barcode '555555')
 
       // 1. Test word-order invariance: "Elstar Apfel" should match "Apfel Elstar"
       final invariantResults = await dataSource.searchProducts('Elstar Apfel');
@@ -380,13 +411,16 @@ void main() {
       expect(searchBeforeLog[1].barcode, '555555'); // Apfelmus ungezuckert
 
       // Now, log "Apfelmus ungezuckert" (off) within the past 30 days.
-      await database.into(database.nutritionLogs).insert(
+      await database
+          .into(database.nutritionLogs)
+          .insert(
             db.NutritionLogsCompanion(
               id: const drift.Value('log_mus'),
               productId: const drift.Value(null),
               legacyBarcode: const drift.Value('555555'),
-              consumedAt:
-                  drift.Value(DateTime.now().subtract(const Duration(days: 5))),
+              consumedAt: drift.Value(
+                DateTime.now().subtract(const Duration(days: 5)),
+              ),
               amount: const drift.Value(100.0),
             ),
           );
@@ -397,72 +431,85 @@ void main() {
       final scanSession = dataSource.createAiSearchSession();
       final cached = await scanSession.search('Apfel');
       expect(cached.map((item) => item.barcode), ['444444']);
-      expect((await scanSession.search('apfel')).map((item) => item.barcode),
-          cached.map((item) => item.barcode));
+      expect(
+        (await scanSession.search('apfel')).map((item) => item.barcode),
+        cached.map((item) => item.barcode),
+      );
     });
 
     test(
-        'searchProducts uses explicit plural aliases instead of arbitrary stems',
-        () async {
-      await dataSource.insertProduct(FoodItem(
-        barcode: '888888',
-        name: 'Eiercreme',
-        brand: '',
-        calories: 200,
-        protein: 5.0,
-        carbs: 10.0,
-        fat: 15.0,
-        source: FoodItemSource.base,
-      ));
-      await dataSource.insertProduct(FoodItem(
-        barcode: '999999',
-        name: 'Ei',
-        brand: '',
-        calories: 70,
-        protein: 6.0,
-        carbs: 0.5,
-        fat: 5.0,
-        source: FoodItemSource.base,
-      ));
-      await dataSource.insertProduct(FoodItem(
-        barcode: '101010',
-        name: 'Hühnerei',
-        brand: '',
-        calories: 75,
-        protein: 6.5,
-        carbs: 0.6,
-        fat: 5.2,
-        source: FoodItemSource.base,
-      ));
+      'searchProducts uses explicit plural aliases instead of arbitrary stems',
+      () async {
+        await dataSource.insertProduct(
+          FoodItem(
+            barcode: '888888',
+            name: 'Eiercreme',
+            brand: '',
+            calories: 200,
+            protein: 5.0,
+            carbs: 10.0,
+            fat: 15.0,
+            source: FoodItemSource.base,
+          ),
+        );
+        await dataSource.insertProduct(
+          FoodItem(
+            barcode: '999999',
+            name: 'Ei',
+            brand: '',
+            calories: 70,
+            protein: 6.0,
+            carbs: 0.5,
+            fat: 5.0,
+            source: FoodItemSource.base,
+          ),
+        );
+        await dataSource.insertProduct(
+          FoodItem(
+            barcode: '101010',
+            name: 'Hühnerei',
+            brand: '',
+            calories: 75,
+            protein: 6.5,
+            carbs: 0.6,
+            fat: 5.2,
+            source: FoodItemSource.base,
+          ),
+        );
 
-      await database.customStatement("INSERT INTO bls_food_alias_index "
+        await database.customStatement(
+          "INSERT INTO bls_food_alias_index "
           "(barcode, language_code, alias, normalized_alias, kind, method, match_scope, review_status) "
-          "VALUES ('999999', 'de', 'Eier', 'eier', 'synonym', 'curated', 'identity', 'approved')");
-      final eierResults = await dataSource.searchProducts('Eier');
-      expect(eierResults.map((item) => item.barcode), ['999999', '888888']);
-      // No arbitrary interior-substring match: Hühnerei needs its own alias.
-      final eiResults = await dataSource.searchProducts('Ei');
-      expect(eiResults.map((item) => item.barcode), ['999999']);
-    });
+          "VALUES ('999999', 'de', 'Eier', 'eier', 'synonym', 'curated', 'identity', 'approved')",
+        );
+        final eierResults = await dataSource.searchProducts('Eier');
+        expect(eierResults.map((item) => item.barcode), ['999999', '888888']);
+        // No arbitrary interior-substring match: Hühnerei needs its own alias.
+        final eiResults = await dataSource.searchProducts('Ei');
+        expect(eiResults.map((item) => item.barcode), ['999999']);
+      },
+    );
 
-    test(
-        'searchProducts supports searching by brand name before or after product name',
-        () async {
+    test('searchProducts supports searching by brand name before or after product name', () async {
       await dataSource.insertProduct(
-          testBaseItem1); // Brokkoli frisch (brand: Gartenfrisch)
+        testBaseItem1,
+      ); // Brokkoli frisch (brand: Gartenfrisch)
       await dataSource.insertProduct(testUserItem); // Apfel Elstar (brand: Bio)
       await dataSource.insertProduct(
-          testOffItem); // Apfelmus ungezuckert (brand: Kaufland Bio)
+        testOffItem,
+      ); // Apfelmus ungezuckert (brand: Kaufland Bio)
 
       // 1. Search brand before product name: "Gartenfrisch Brokkoli"
-      final brandBefore =
-          await dataSource.searchProducts('Gartenfrisch Brokkoli');
+      final brandBefore = await dataSource.searchProducts(
+        'Gartenfrisch Brokkoli',
+      );
       expect(brandBefore.isNotEmpty, isTrue);
       expect(brandBefore[0].barcode, '111111'); // Brokkoli frisch
 
       // 2. Search brand after product name: "Apfelmus Kaufland Bio"
-      final brandAfter =
-          await dataSource.searchProducts('Apfelmus Kaufland Bio');
+      final brandAfter = await dataSource.searchProducts(
+        'Apfelmus Kaufland Bio',
+      );
       expect(brandAfter.isNotEmpty, isTrue);
       expect(brandAfter[0].barcode, '555555'); // Apfelmus ungezuckert
 
@@ -472,34 +519,36 @@ void main() {
       expect(brandOnly[0].barcode, '555555');
     });
 
-    test(
-        'manual search prefers matching BLS base foods while AI keeps base preparation candidates',
-        () async {
+    test('manual search prefers matching BLS base foods while AI keeps base preparation candidates', () async {
       // 1. OFF product with exact name "Reis" (raw, dry rice)
-      await dataSource.insertProduct(FoodItem(
-        barcode: 'off_rice_123',
-        name: 'Reis',
-        brand: 'Ja!',
-        calories: 350,
-        protein: 7.0,
-        carbs: 78.0,
-        fat: 1.0,
-        source: FoodItemSource.off,
-        category: 'grains',
-      ));
+      await dataSource.insertProduct(
+        FoodItem(
+          barcode: 'off_rice_123',
+          name: 'Reis',
+          brand: 'Ja!',
+          calories: 350,
+          protein: 7.0,
+          carbs: 78.0,
+          fat: 1.0,
+          source: FoodItemSource.off,
+          category: 'grains',
+        ),
+      );
 
       // 2. Base food with parenthetical description "Reis (weiß, gekocht)"
-      await dataSource.insertProduct(FoodItem(
-        barcode: 'base_food_rice_white_cooked',
-        name: 'Reis (weiß, gekocht)',
-        brand: '',
-        calories: 130,
-        protein: 2.7,
-        carbs: 28.2,
-        fat: 0.3,
-        source: FoodItemSource.base,
-        category: 'grains',
-      ));
+      await dataSource.insertProduct(
+        FoodItem(
+          barcode: 'base_food_rice_white_cooked',
+          name: 'Reis (weiß, gekocht)',
+          brand: '',
+          calories: 130,
+          protein: 2.7,
+          carbs: 28.2,
+          fat: 0.3,
+          source: FoodItemSource.base,
+          category: 'grains',
+        ),
+      );
 
       // Search for 'Reis'
       final searchResults = await dataSource.searchProducts('Reis');

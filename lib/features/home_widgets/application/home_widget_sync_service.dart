@@ -71,16 +71,17 @@ class HomeWidgetSyncService {
     RecoveryAnalyticsFetcher? fetchRecoveryAnalytics,
     WorkoutHeatmapPublisher heatmapPublisher = const WorkoutHeatmapPublisher(),
     HomeWidgetChannel channel = const HomeWidgetChannel(),
-  })  : _diaryRepo = diaryRepo,
-        _supplementRepo = supplementRepo,
-        _profileRepo = profileRepo,
-        _workoutRepo = workoutRepo,
-        _stepsRepo = stepsRepo ?? HealthStepsAggregationRepository(),
-        _fetchRecoveryAnalytics = fetchRecoveryAnalytics ??
-            (() => WorkoutLocalDataSource.instance.getRecoveryAnalytics()),
-        _heatmapPublisher = heatmapPublisher,
-        _unitService = unitService,
-        _channel = channel;
+  }) : _diaryRepo = diaryRepo,
+       _supplementRepo = supplementRepo,
+       _profileRepo = profileRepo,
+       _workoutRepo = workoutRepo,
+       _stepsRepo = stepsRepo ?? HealthStepsAggregationRepository(),
+       _fetchRecoveryAnalytics =
+           fetchRecoveryAnalytics ??
+           (() => WorkoutLocalDataSource.instance.getRecoveryAnalytics()),
+       _heatmapPublisher = heatmapPublisher,
+       _unitService = unitService,
+       _channel = channel;
 
   Timer? _debounce;
   bool _isRunning = false;
@@ -189,11 +190,13 @@ class HomeWidgetSyncService {
         // feed `summary` is loaded above; supplements are included because they
         // populate `summary.caffeine`.
         workoutLogs: const [],
-        supplementsForDate:
-            await _supplementRepo.watchSupplementsForDate(day).first,
+        supplementsForDate: await _supplementRepo
+            .watchSupplementsForDate(day)
+            .first,
         allSupplements: await _supplementRepo.getAllSupplements(),
-        todaysSupplementLogs:
-            await _supplementRepo.watchSupplementLogsForDate(day).first,
+        todaysSupplementLogs: await _supplementRepo
+            .watchSupplementLogsForDate(day)
+            .first,
       );
 
       final statistics = await _resolveStatistics(

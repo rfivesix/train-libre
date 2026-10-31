@@ -33,9 +33,9 @@ class BodyNutritionAnalyticsDataAdapter {
     required ProductLocalDataSource productDatabaseHelper,
     StatisticsRangePolicyService rangePolicy =
         StatisticsRangePolicyService.instance,
-  })  : _databaseHelper = databaseHelper,
-        _productDatabaseHelper = productDatabaseHelper,
-        _rangePolicy = rangePolicy;
+  }) : _databaseHelper = databaseHelper,
+       _productDatabaseHelper = productDatabaseHelper,
+       _rangePolicy = rangePolicy;
 
   static DateTime normalizeDay(DateTime date) =>
       DateTime(date.year, date.month, date.day);
@@ -174,15 +174,16 @@ class BodyNutritionAnalyticsDataAdapter {
 
     if (archiveIdsSet.isNotEmpty) {
       final archiveIds = archiveIdsSet.toList();
-      final archivedProducts =
-          await _productDatabaseHelper.getProductsByArchiveIds(archiveIds);
+      final archivedProducts = await _productDatabaseHelper
+          .getProductsByArchiveIds(archiveIds);
       archiveProductsMap.addAll(archivedProducts);
     }
 
     if (barcodesSet.isNotEmpty) {
       final barcodes = barcodesSet.toList();
-      final legacyProducts =
-          await _productDatabaseHelper.getProductsByBarcodes(barcodes);
+      final legacyProducts = await _productDatabaseHelper.getProductsByBarcodes(
+        barcodes,
+      );
       for (final p in legacyProducts) {
         legacyProductsMap[p.barcode] = p;
       }
@@ -219,7 +220,8 @@ class BodyNutritionAnalyticsDataAdapter {
         final foodItem = food.archiveLocalId != null
             ? archiveProductsMap[food.archiveLocalId!]
             : legacyProductsMap[food.barcode];
-        final isFluidFood = foodItem != null &&
+        final isFluidFood =
+            foodItem != null &&
             (foodItem.isFluid || (foodItem.isLiquid ?? false));
         if (!isFluidFood) return false;
 
@@ -227,8 +229,10 @@ class BodyNutritionAnalyticsDataAdapter {
         if (entry.linkedFoodEntryId == food.id) return true;
 
         // Defensive match: same day/time and similar quantity
-        final timeDiff =
-            entry.timestamp.difference(food.timestamp).inSeconds.abs();
+        final timeDiff = entry.timestamp
+            .difference(food.timestamp)
+            .inSeconds
+            .abs();
         if (timeDiff < 2 && entry.quantityInMl == food.quantityInGrams) {
           return true;
         }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
@@ -30,16 +31,17 @@ class HeartRateDetailPage extends StatelessWidget {
 
     final avg = overview.sleepHrAvg;
     final hasAverage = avg != null;
-    final chartPoints = overview.heartRateSamples
-        .where((sample) => sample.bpm.isFinite)
-        .map(
-          (sample) => ChartDataPoint(
-            date: sample.sampledAtUtc.toLocal(),
-            value: sample.bpm,
-          ),
-        )
-        .toList(growable: false)
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final chartPoints =
+        overview.heartRateSamples
+            .where((sample) => sample.bpm.isFinite)
+            .map(
+              (sample) => ChartDataPoint(
+                date: sample.sampledAtUtc.toLocal(),
+                value: sample.bpm,
+              ),
+            )
+            .toList(growable: false)
+          ..sort((a, b) => a.date.compareTo(b.date));
     final hasSamples = chartPoints.isNotEmpty;
     final established = overview.hasHeartRateBaseline;
     final baseline = overview.baselineSleepHr;
@@ -48,26 +50,26 @@ class HeartRateDetailPage extends StatelessWidget {
     final statusLabel = !hasSamples
         ? l10n.sleepHeartRateStatusNoSampleSeries
         : !established
-            ? l10n.sleepHeartRateStatusBaselineNotEstablished
-            : (delta == null
-                ? l10n.sleepHeartRateStatusComparisonUnavailable
-                : (delta <= 0
+        ? l10n.sleepHeartRateStatusBaselineNotEstablished
+        : (delta == null
+              ? l10n.sleepHeartRateStatusComparisonUnavailable
+              : (delta <= 0
                     ? l10n.sleepHeartRateStatusBelowBaseline
                     : l10n.sleepHeartRateStatusAboveBaseline));
 
     final baselineText = !hasSamples
         ? l10n.sleepHeartRateNoSamplesText
         : !established
-            ? l10n.sleepHeartRateBaselineNotEstablishedText
-            : (delta == null
-                ? l10n.sleepHeartRateComparisonUnavailableText
-                : l10n.sleepHeartRateDeltaText(
-                    delta.isNegative
-                        ? l10n.sleepHeartRateDirectionBelow
-                        : l10n.sleepHeartRateDirectionAbove,
-                    delta.abs().toStringAsFixed(1),
-                    l10n.sleepBpmUnit,
-                  ));
+        ? l10n.sleepHeartRateBaselineNotEstablishedText
+        : (delta == null
+              ? l10n.sleepHeartRateComparisonUnavailableText
+              : l10n.sleepHeartRateDeltaText(
+                  delta.isNegative
+                      ? l10n.sleepHeartRateDirectionBelow
+                      : l10n.sleepHeartRateDirectionAbove,
+                  delta.abs().toStringAsFixed(1),
+                  l10n.sleepBpmUnit,
+                ));
 
     final locale = Localizations.localeOf(context).toString();
     final timeFormatter = DateFormat.Hm(locale);
@@ -82,54 +84,53 @@ class HeartRateDetailPage extends StatelessWidget {
       statusColor: !hasSamples
           ? Theme.of(context).colorScheme.onSurfaceVariant
           : established
-              ? (delta != null && delta <= 0 ? Colors.green : Colors.orange)
-              : Theme.of(context).colorScheme.onSurfaceVariant,
+          ? (delta != null && delta <= 0 ? Colors.green : Colors.orange)
+          : Theme.of(context).colorScheme.onSurfaceVariant,
       children: [
         if (hasAverage) ...[
-          Builder(builder: (context) {
-            final min = 35.0;
-            final max = 90.0;
-            final base = established && baseline != null ? baseline : avg;
-            return SleepBenchmarkBar(
-              min: min,
-              max: max,
-              value: avg,
-              minLabel: '${min.toInt()} ${l10n.sleepBpmUnit}',
-              maxLabel: '${max.toInt()} ${l10n.sleepBpmUnit}',
-              segments: [
-                BenchmarkSegment(
-                  limit: base - HeartRateThresholds.warningDeviation,
-                  color: Colors.red,
-                  label: '',
-                ),
-                BenchmarkSegment(
-                  limit: base - HeartRateThresholds.optimalDeviation,
-                  color: Colors.orange,
-                  label: (base - HeartRateThresholds.optimalDeviation)
-                      .round()
-                      .toString(),
-                ),
-                BenchmarkSegment(
-                  limit: base + HeartRateThresholds.optimalDeviation,
-                  color: Colors.green,
-                  label: (base + HeartRateThresholds.optimalDeviation)
-                      .round()
-                      .toString(),
-                ),
-                BenchmarkSegment(
-                  limit: base + HeartRateThresholds.warningDeviation,
-                  color: Colors.orange,
-                  label: (base + HeartRateThresholds.warningDeviation)
-                      .round()
-                      .toString(),
-                ),
-                BenchmarkSegment(
-                  limit: max,
-                  color: Colors.red,
-                ),
-              ],
-            );
-          }),
+          Builder(
+            builder: (context) {
+              final min = 35.0;
+              final max = 90.0;
+              final base = established && baseline != null ? baseline : avg;
+              return SleepBenchmarkBar(
+                min: min,
+                max: max,
+                value: avg,
+                minLabel: '${min.toInt()} ${l10n.sleepBpmUnit}',
+                maxLabel: '${max.toInt()} ${l10n.sleepBpmUnit}',
+                segments: [
+                  BenchmarkSegment(
+                    limit: base - HeartRateThresholds.warningDeviation,
+                    color: Colors.red,
+                    label: '',
+                  ),
+                  BenchmarkSegment(
+                    limit: base - HeartRateThresholds.optimalDeviation,
+                    color: Colors.orange,
+                    label: (base - HeartRateThresholds.optimalDeviation)
+                        .round()
+                        .toString(),
+                  ),
+                  BenchmarkSegment(
+                    limit: base + HeartRateThresholds.optimalDeviation,
+                    color: Colors.green,
+                    label: (base + HeartRateThresholds.optimalDeviation)
+                        .round()
+                        .toString(),
+                  ),
+                  BenchmarkSegment(
+                    limit: base + HeartRateThresholds.warningDeviation,
+                    color: Colors.orange,
+                    label: (base + HeartRateThresholds.warningDeviation)
+                        .round()
+                        .toString(),
+                  ),
+                  BenchmarkSegment(limit: max, color: Colors.red),
+                ],
+              );
+            },
+          ),
           const SizedBox(height: DesignConstants.spacingM),
         ],
         if (hasSamples)

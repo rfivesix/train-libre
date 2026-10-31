@@ -95,36 +95,39 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  testWidgets('settings shows feedback entry and opens feedback report screen',
-      (tester) async {
-    await tester.binding.setSurfaceSize(const Size(900, 2200));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets(
+    'settings shows feedback entry and opens feedback report screen',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 2200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
-    final sleepService = _FakeSleepSettingsService(controller: controller);
+      final controller = SleepPermissionController(
+        const _StubPermissionService(),
+      );
+      final sleepService = _FakeSleepSettingsService(controller: controller);
 
-    await tester.pumpWidget(
-      _wrap(
-        SettingsScreen(
-          sleepSyncService: sleepService,
-          sleepPermissionController: controller,
+      await tester.pumpWidget(
+        _wrap(
+          SettingsScreen(
+            sleepSyncService: sleepService,
+            sleepPermissionController: controller,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    final feedbackTile = find.text('Send feedback');
-    await tester.scrollUntilVisible(
-      feedbackTile,
-      300,
-      scrollable: find.byType(Scrollable),
-    );
+      final feedbackTile = find.text('Send feedback');
+      await tester.scrollUntilVisible(
+        feedbackTile,
+        300,
+        scrollable: find.byType(Scrollable),
+      );
 
-    expect(feedbackTile, findsOneWidget);
-    await tester.tap(feedbackTile);
-    await tester.pumpAndSettle();
+      expect(feedbackTile, findsOneWidget);
+      await tester.tap(feedbackTile);
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('feedback_report_screen')), findsOneWidget);
-  });
+      expect(find.byKey(const Key('feedback_report_screen')), findsOneWidget);
+    },
+  );
 }

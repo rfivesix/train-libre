@@ -105,11 +105,7 @@ void main() {
   testWidgets('confirm calls the reset service', (tester) async {
     final resetter = _FakeResetter();
     var completed = false;
-    await pumpScreen(
-      tester,
-      resetter,
-      onResetComplete: () => completed = true,
-    );
+    await pumpScreen(tester, resetter, onResetComplete: () => completed = true);
 
     await tester.tap(find.byKey(const Key('delete_all_local_app_data_button')));
     await tester.pumpAndSettle();
@@ -137,7 +133,9 @@ void main() {
 
     expect(find.textContaining('Apple Health'), findsOneWidget);
     expect(find.textContaining('Health Connect'), findsOneWidget);
-    expect(find.textContaining('does not delete data already exported'),
-        findsOneWidget);
+    expect(
+      find.textContaining('does not delete data already exported'),
+      findsOneWidget,
+    );
   });
 }

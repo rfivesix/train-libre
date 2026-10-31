@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -6,13 +7,11 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/app_section_header.dart';
 import '../../../../widgets/common/glass_progress_bar.dart';
 import '../../domain/scoring/sleep_scoring_engine.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SleepScoreBreakdownCard extends StatelessWidget {
-  const SleepScoreBreakdownCard({
-    super.key,
-    required this.scoringResult,
-  });
+  const SleepScoreBreakdownCard({super.key, required this.scoringResult});
 
   final SleepScoringResult scoringResult;
 
@@ -107,10 +106,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            LucideIcons.triangle_alert,
-            color: colorScheme.onErrorContainer,
-          ),
+          Icon(LucideIcons.triangle_alert, color: colorScheme.onErrorContainer),
           const SizedBox(width: DesignConstants.spacingM),
           Expanded(
             child: Text(

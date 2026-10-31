@@ -12,20 +12,14 @@ enum PulseNoDataReason {
 }
 
 class PulseSamplePoint {
-  const PulseSamplePoint({
-    required this.sampledAtUtc,
-    required this.bpm,
-  });
+  const PulseSamplePoint({required this.sampledAtUtc, required this.bpm});
 
   final DateTime sampledAtUtc;
   final double bpm;
 }
 
 class PulseAnalysisWindow {
-  const PulseAnalysisWindow({
-    required this.startUtc,
-    required this.endUtc,
-  });
+  const PulseAnalysisWindow({required this.startUtc, required this.endUtc});
 
   final DateTime startUtc;
   final DateTime endUtc;

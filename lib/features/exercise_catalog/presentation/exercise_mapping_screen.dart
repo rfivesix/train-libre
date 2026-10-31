@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/exercise.dart';
@@ -10,7 +11,9 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/glass_pill_button.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 
 /// A screen for mapping unknown exercise names to known database [Exercise] objects.
@@ -19,8 +22,11 @@ class ExerciseMappingScreen extends StatefulWidget {
   final List<String> unknownNames;
   final IExerciseCatalogRepository? repository;
 
-  const ExerciseMappingScreen(
-      {super.key, required this.unknownNames, this.repository});
+  const ExerciseMappingScreen({
+    super.key,
+    required this.unknownNames,
+    this.repository,
+  });
 
   @override
   State<ExerciseMappingScreen> createState() => _ExerciseMappingScreenState();
@@ -33,8 +39,9 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
   final Map<String, List<Exercise>> _suggestions = {};
   // This is a one-off import flow: reopening it should always start at the
   // first exercise instead of restoring a previous list offset.
-  final ScrollController _scrollController =
-      ScrollController(keepScrollOffset: false);
+  final ScrollController _scrollController = ScrollController(
+    keepScrollOffset: false,
+  );
   bool _applying = false;
 
   @override
@@ -50,8 +57,8 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
   }
 
   /// Read once: this runs in a loop over every unknown name.
-  late final String _languageCode =
-      Localizations.localeOf(context).languageCode;
+  late final String _languageCode = Localizations.localeOf(context)
+      .languageCode;
 
   Future<void> _loadSuggestions() async {
     for (var offset = 0; offset < widget.unknownNames.length; offset += 8) {
@@ -84,10 +91,12 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
     final results = await Future.wait(
       queries
           .where((query) => query.isNotEmpty)
-          .map((query) => _repository.searchExercises(
-                query: query,
-                languageCode: _languageCode,
-              )),
+          .map(
+            (query) => _repository.searchExercises(
+              query: query,
+              languageCode: _languageCode,
+            ),
+          ),
     );
     for (final result in results) {
       for (final exercise in result) {
@@ -98,10 +107,18 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
 
     final normalizedSource = _normalize(name);
     final matches = candidates.values.toList()
-      ..sort((a, b) => _similarity(
-              normalizedSource, _normalize(a.localizedNameFor(_languageCode)))
-          .compareTo(_similarity(normalizedSource,
-              _normalize(b.localizedNameFor(_languageCode)))));
+      ..sort(
+        (a, b) =>
+            _similarity(
+              normalizedSource,
+              _normalize(a.localizedNameFor(_languageCode)),
+            ).compareTo(
+              _similarity(
+                normalizedSource,
+                _normalize(b.localizedNameFor(_languageCode)),
+              ),
+            ),
+      );
     if (matches.isNotEmpty && mounted) {
       setState(() {
         _suggestions[name] = matches.take(4).toList();
@@ -131,13 +148,16 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
         distance[j] = (source.codeUnitAt(i - 1) == candidate.codeUnitAt(j - 1))
             ? previousDiagonal
             : 1 +
-                [distance[j], distance[j - 1], previousDiagonal].reduce(
-                  (a, b) => a < b ? a : b,
-                );
+                  [
+                    distance[j],
+                    distance[j - 1],
+                    previousDiagonal,
+                  ].reduce((a, b) => a < b ? a : b);
         previousDiagonal = old;
       }
     }
-    final characterScore = distance[candidate.length] /
+    final characterScore =
+        distance[candidate.length] /
         (source.length > candidate.length ? source.length : candidate.length);
     return tokenScore < characterScore ? tokenScore : characterScore;
   }
@@ -146,7 +166,9 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
     final Exercise? picked = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ExerciseCatalogScreen(
-            isSelectionMode: true, repository: _repository),
+          isSelectionMode: true,
+          repository: _repository,
+        ),
       ),
     );
     if (picked != null && mounted) {
@@ -162,8 +184,9 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
     setState(() => _applying = true);
     final mapping = <String, String>{
       for (final e in _selection.entries)
-        e.key: e.value
-            .localizedNameFor(Localizations.localeOf(context).languageCode),
+        e.key: e.value.localizedNameFor(
+          Localizations.localeOf(context).languageCode,
+        ),
     };
     await _repository.applyExerciseNameMapping(mapping);
     if (mounted) {
@@ -184,9 +207,7 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.mapExercisesTitle),
       body: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          scrollbars: false,
-        ),
+        behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
         child: CupertinoScrollbar(
           controller: _scrollController,
           thumbVisibility: true,
@@ -282,8 +303,9 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                                 Text(
                                   s.getLocalizedName(context),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        isSelected ? colorScheme.primary : null,
+                                    color: isSelected
+                                        ? colorScheme.primary
+                                        : null,
                                     fontWeight: isSelected
                                         ? FontWeight.bold
                                         : FontWeight.normal,

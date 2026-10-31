@@ -24,14 +24,14 @@ void main() {
 
   group('ExerciseCatalogRefreshService schema contract', () {
     Map<String, dynamic> manifestJson(Map<String, dynamic> extra) => {
-          'source_id': 'wger_catalog',
-          'channel': 'stable',
-          'version': '202609032119',
-          'db_url': 'https://example.com/root/train_libre_training.db',
-          'db_sha256':
-              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          ...extra,
-        };
+      'source_id': 'wger_catalog',
+      'channel': 'stable',
+      'version': '202609032119',
+      'db_url': 'https://example.com/root/train_libre_training.db',
+      'db_sha256':
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      ...extra,
+    };
 
     test('accepts a manifest without any schema fields as version 1', () {
       final manifest = ExerciseCatalogRefreshService.parseManifest(
@@ -48,10 +48,7 @@ void main() {
       // This is the real v2 release: the artefact is schema 2, but it keeps
       // the v1 compatibility columns filled and therefore stays readable.
       final manifest = ExerciseCatalogRefreshService.parseManifest(
-        manifestJson(const {
-          'schema_version': 2,
-          'min_app_schema_version': 1,
-        }),
+        manifestJson(const {'schema_version': 2, 'min_app_schema_version': 1}),
         config,
       );
 
@@ -62,10 +59,7 @@ void main() {
 
     test('rejects a release whose floor is above what this build supports', () {
       final manifest = ExerciseCatalogRefreshService.parseManifest(
-        manifestJson(const {
-          'schema_version': 3,
-          'min_app_schema_version': 2,
-        }),
+        manifestJson(const {'schema_version': 3, 'min_app_schema_version': 2}),
         config,
       );
 
@@ -116,10 +110,7 @@ void main() {
       );
 
       final manifest = ExerciseCatalogRefreshService.parseManifest(
-        manifestJson(const {
-          'schema_version': 2,
-          'min_app_schema_version': 2,
-        }),
+        manifestJson(const {'schema_version': 2, 'min_app_schema_version': 2}),
         upgraded,
       );
 
@@ -204,8 +195,7 @@ void main() {
       expect(manifest.channel, 'stable');
     });
 
-    test('supports release-style manifest with asset_base_url and *_file keys',
-        () {
+    test('supports release-style manifest with asset_base_url and *_file keys', () {
       final manifest = ExerciseCatalogRefreshService.parseManifest({
         'source_id': 'wger_catalog',
         'channel': 'stable',
@@ -230,8 +220,7 @@ void main() {
       expect(
         manifest.minimumExerciseRows,
         isNull,
-        reason:
-            'expected_exercise_count is informational and must not act as hard validation floor',
+        reason: 'expected_exercise_count is informational and must not act as hard validation floor',
       );
     });
 
@@ -287,19 +276,22 @@ void main() {
       );
     });
 
-    test('resolves legacy DB fallback URL after Train Libre download failure',
-        () {
-      final legacyUri = ExerciseCatalogRefreshService.legacyFallbackDbUri(
-        failedUri:
-            Uri.parse('https://example.com/root/db/train_libre_training.db'),
-        config: config,
-      );
+    test(
+      'resolves legacy DB fallback URL after Train Libre download failure',
+      () {
+        final legacyUri = ExerciseCatalogRefreshService.legacyFallbackDbUri(
+          failedUri: Uri.parse(
+            'https://example.com/root/db/train_libre_training.db',
+          ),
+          config: config,
+        );
 
-      expect(
-        legacyUri.toString(),
-        'https://example.com/root/db/hypertrack_training.db',
-      );
-    });
+        expect(
+          legacyUri.toString(),
+          'https://example.com/root/db/hypertrack_training.db',
+        );
+      },
+    );
 
     test('rejects manifest with unexpected source_id', () {
       final manifest = ExerciseCatalogRefreshService.parseManifest({

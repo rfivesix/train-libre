@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 
 class WaterSlide extends StatelessWidget {
   final TextEditingController waterController;
 
-  const WaterSlide({
-    super.key,
-    required this.waterController,
-  });
+  const WaterSlide({super.key, required this.waterController});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +26,8 @@ class WaterSlide extends StatelessWidget {
           Text(
             '${l10n.onboardingGoalWater} ($suffix)',
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
           TextField(
@@ -47,7 +45,8 @@ class WaterSlide extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               contentPadding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingXL),
+                vertical: DesignConstants.spacingXL,
+              ),
             ),
           ),
         ],

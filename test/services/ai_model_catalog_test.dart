@@ -20,8 +20,7 @@ class _InMemorySecureStorage extends FlutterSecureStorage {
     WebOptions? webOptions,
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async =>
-      _values[key];
+  }) async => _values[key];
 
   @override
   Future<void> write({
@@ -96,17 +95,14 @@ Future<List<String>> _openAiIds(List<String> ids) async {
 
 void main() {
   group('OpenAI model filter', () {
-    test('keeps the o-series, which the gpt- prefix filter used to drop',
-        () async {
-      final ids = await _openAiIds([
-        'gpt-5.4',
-        'o3',
-        'o4-mini',
-        'o3-pro',
-      ]);
+    test(
+      'keeps the o-series, which the gpt- prefix filter used to drop',
+      () async {
+        final ids = await _openAiIds(['gpt-5.4', 'o3', 'o4-mini', 'o3-pro']);
 
-      expect(ids, containsAll(['o3', 'o4-mini', 'o3-pro']));
-    });
+        expect(ids, containsAll(['o3', 'o4-mini', 'o3-pro']));
+      },
+    );
 
     test('keeps model names that follow no known scheme', () async {
       // The point of the rewrite: an id nobody predicted must still show up.
@@ -140,10 +136,7 @@ void main() {
     });
 
     test('collapses dated snapshots for every family, not just gpt-', () async {
-      final ids = await _openAiIds([
-        'gpt-5.4-2026-03-01',
-        'o3-2025-04-16',
-      ]);
+      final ids = await _openAiIds(['gpt-5.4-2026-03-01', 'o3-2025-04-16']);
 
       expect(ids..sort(), ['gpt-5.4', 'o3']);
     });
@@ -178,11 +171,7 @@ void main() {
     });
 
     test('deprecated and legacy ids sink to the bottom', () async {
-      final ids = await _openAiIds([
-        'gpt-6-legacy',
-        'gpt-4o',
-        'gpt-6',
-      ]);
+      final ids = await _openAiIds(['gpt-6-legacy', 'gpt-4o', 'gpt-6']);
 
       expect(ids.last, 'gpt-6-legacy');
     });
@@ -211,8 +200,10 @@ void main() {
       Future<http.Response> Function(Uri uri) respond, {
       int? timeoutSeconds,
     }) async {
-      final service =
-          await _openAiServiceWith(respond, timeoutSeconds: timeoutSeconds);
+      final service = await _openAiServiceWith(
+        respond,
+        timeoutSeconds: timeoutSeconds,
+      );
       return service.loadModelOptions(AiProvider.openai);
     }
 
@@ -291,8 +282,9 @@ void main() {
     });
 
     test('an unreadable body is reported as a response error', () async {
-      final result =
-          await resultFor((_) async => http.Response('<html>nope</html>', 200));
+      final result = await resultFor(
+        (_) async => http.Response('<html>nope</html>', 200),
+      );
 
       expect(result.isFallback, isTrue);
       expect(result.error?.kind, AiModelListErrorKind.response);
@@ -307,34 +299,38 @@ void main() {
       expect(result.error?.kind, AiModelListErrorKind.response);
     });
 
-    test('a missing key is named as such rather than looking like an error',
-        () async {
-      final service = AiService.forTesting(
-        secureStorage: _InMemorySecureStorage(),
-        httpGet: (uri, {headers}) async =>
-            fail('no request may be made without a key'),
-      );
+    test(
+      'a missing key is named as such rather than looking like an error',
+      () async {
+        final service = AiService.forTesting(
+          secureStorage: _InMemorySecureStorage(),
+          httpGet: (uri, {headers}) async =>
+              fail('no request may be made without a key'),
+        );
 
-      final result = await service.loadModelOptions(AiProvider.openai);
+        final result = await service.loadModelOptions(AiProvider.openai);
 
-      expect(result.isFallback, isTrue);
-      expect(result.error?.kind, AiModelListErrorKind.missingKey);
-      expect(result.error?.isBenign, isTrue);
-    });
-
-    test('providers without a listing endpoint are marked unsupported',
-        () async {
-      final service = AiService.forTesting(
-        secureStorage: _InMemorySecureStorage(),
-        httpGet: (uri, {headers}) async => fail('no request expected'),
-      );
-
-      for (final provider in [AiProvider.ollama, AiProvider.custom]) {
-        final result = await service.loadModelOptions(provider);
-        expect(result.error?.kind, AiModelListErrorKind.unsupported);
+        expect(result.isFallback, isTrue);
+        expect(result.error?.kind, AiModelListErrorKind.missingKey);
         expect(result.error?.isBenign, isTrue);
-      }
-    });
+      },
+    );
+
+    test(
+      'providers without a listing endpoint are marked unsupported',
+      () async {
+        final service = AiService.forTesting(
+          secureStorage: _InMemorySecureStorage(),
+          httpGet: (uri, {headers}) async => fail('no request expected'),
+        );
+
+        for (final provider in [AiProvider.ollama, AiProvider.custom]) {
+          final result = await service.loadModelOptions(provider);
+          expect(result.error?.kind, AiModelListErrorKind.unsupported);
+          expect(result.error?.isBenign, isTrue);
+        }
+      },
+    );
 
     test('a successful load reports no error at all', () async {
       final result = await resultFor((_) async => _modelsResponse(['gpt-6']));
@@ -397,40 +393,42 @@ void main() {
       expect(ids, isNot(contains('gemini-2.5-pro')));
     });
 
-    test('anthropic drops only models explicitly reported as text-only',
-        () async {
-      final ids = await idsFor(
-        AiProvider.anthropic,
-        http.Response(
-          jsonEncode({
-            'data': [
-              {
-                'id': 'claude-opus-5-0',
-                // No capabilities block at all — must not be dropped, or a
-                // payload change would empty the whole picker.
-              },
-              {
-                'id': 'claude-sonnet-4-6',
-                'capabilities': {
-                  'image_input': {'supported': true},
+    test(
+      'anthropic drops only models explicitly reported as text-only',
+      () async {
+        final ids = await idsFor(
+          AiProvider.anthropic,
+          http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 'claude-opus-5-0',
+                  // No capabilities block at all — must not be dropped, or a
+                  // payload change would empty the whole picker.
                 },
-              },
-              {
-                'id': 'claude-text-only-1',
-                'capabilities': {
-                  'image_input': {'supported': false},
+                {
+                  'id': 'claude-sonnet-4-6',
+                  'capabilities': {
+                    'image_input': {'supported': true},
+                  },
                 },
-              },
-            ],
-          }),
-          200,
-        ),
-      );
+                {
+                  'id': 'claude-text-only-1',
+                  'capabilities': {
+                    'image_input': {'supported': false},
+                  },
+                },
+              ],
+            }),
+            200,
+          ),
+        );
 
-      expect(ids, containsAll(['claude-opus-5-0', 'claude-sonnet-4-6']));
-      expect(ids, isNot(contains('claude-text-only-1')));
-      expect(ids.first, 'claude-opus-5-0');
-    });
+        expect(ids, containsAll(['claude-opus-5-0', 'claude-sonnet-4-6']));
+        expect(ids, isNot(contains('claude-text-only-1')));
+        expect(ids.first, 'claude-opus-5-0');
+      },
+    );
 
     test('mistral keeps models outside the old prefix allow-list', () async {
       final ids = await idsFor(
@@ -473,24 +471,36 @@ void main() {
     });
 
     test(
-        'OpenAI temperature rules omit temperature for reasoning & luna models',
-        () {
-      final service = AiService.instance;
-      // Reasoning / fixed-temperature families
-      expect(service.openAiSupportsCustomTemperature('o1'), isFalse);
-      expect(service.openAiSupportsCustomTemperature('o3-mini'), isFalse);
-      expect(service.openAiSupportsCustomTemperature('o4-preview'), isFalse);
-      expect(service.openAiSupportsCustomTemperature('gpt-5.6-luna'), isFalse);
-      expect(service.openAiSupportsCustomTemperature('gpt-5.6-terra'), isFalse);
-      expect(service.openAiSupportsCustomTemperature('gpt-5.6-sol'), isFalse);
-      expect(service.openAiSupportsCustomTemperature('custom-reasoning-model'),
-          isFalse);
+      'OpenAI temperature rules omit temperature for reasoning & luna models',
+      () {
+        final service = AiService.instance;
+        // Reasoning / fixed-temperature families
+        expect(service.openAiSupportsCustomTemperature('o1'), isFalse);
+        expect(service.openAiSupportsCustomTemperature('o3-mini'), isFalse);
+        expect(service.openAiSupportsCustomTemperature('o4-preview'), isFalse);
+        expect(
+          service.openAiSupportsCustomTemperature('gpt-5.6-luna'),
+          isFalse,
+        );
+        expect(
+          service.openAiSupportsCustomTemperature('gpt-5.6-terra'),
+          isFalse,
+        );
+        expect(service.openAiSupportsCustomTemperature('gpt-5.6-sol'), isFalse);
+        expect(
+          service.openAiSupportsCustomTemperature('custom-reasoning-model'),
+          isFalse,
+        );
 
-      // Standard models that accept custom temperature
-      expect(service.openAiSupportsCustomTemperature('gpt-5.4-mini'), isTrue);
-      expect(service.openAiSupportsCustomTemperature('gpt-4o'), isTrue);
-      expect(service.openAiSupportsCustomTemperature('gpt-4o-mini'), isTrue);
-      expect(service.openAiSupportsCustomTemperature('gpt-3.5-turbo'), isTrue);
-    });
+        // Standard models that accept custom temperature
+        expect(service.openAiSupportsCustomTemperature('gpt-5.4-mini'), isTrue);
+        expect(service.openAiSupportsCustomTemperature('gpt-4o'), isTrue);
+        expect(service.openAiSupportsCustomTemperature('gpt-4o-mini'), isTrue);
+        expect(
+          service.openAiSupportsCustomTemperature('gpt-3.5-turbo'),
+          isTrue,
+        );
+      },
+    );
   });
 }

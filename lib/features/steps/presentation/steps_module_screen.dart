@@ -59,10 +59,10 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
   ];
 
   List<String> _timeRanges(AppLocalizations l10n) => [
-        l10n.stepsModuleDay,
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-      ];
+    l10n.stepsModuleDay,
+    l10n.filter7DaysShort,
+    l10n.filter1MonthShort,
+  ];
 
   StepsScope get _scope {
     switch (_activeBlock) {
@@ -89,8 +89,11 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.stepsOverview));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.stepsOverview,
+      ),
+    );
     _repository = widget.repository ?? HealthStepsAggregationRepository();
 
     switch (widget.initialScope) {
@@ -121,7 +124,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
     setState(() => _isLoading = true);
     try {
       final anchor = _anchorDate;
-      final targetStepsFuture = widget.targetStepsLoader?.call() ??
+      final targetStepsFuture =
+          widget.targetStepsLoader?.call() ??
           DatabaseHelper.instance.getCurrentTargetStepsOrDefault();
       final providerNameFuture =
           widget.stepsProviderNameLoader?.call() ?? _loadProviderName();
@@ -132,22 +136,23 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
 
       switch (_scope) {
         case StepsScope.day:
-          _dayStepsSubscription =
-              _repository.watchDayAggregation(anchor).listen(
-            (data) {
-              if (!mounted) return;
-              setState(() {
-                _dayData = data;
-                _isLoading = false;
-              });
-            },
-            onError: (e) {
-              debugPrint('StepsModuleScreen: failed to watch day data: $e');
-              if (mounted) {
-                setState(() => _isLoading = false);
-              }
-            },
-          );
+          _dayStepsSubscription = _repository
+              .watchDayAggregation(anchor)
+              .listen(
+                (data) {
+                  if (!mounted) return;
+                  setState(() {
+                    _dayData = data;
+                    _isLoading = false;
+                  });
+                },
+                onError: (e) {
+                  debugPrint('StepsModuleScreen: failed to watch day data: $e');
+                  if (mounted) {
+                    setState(() => _isLoading = false);
+                  }
+                },
+              );
           break;
         case StepsScope.week:
           _weekData = await _repository.getWeekAggregation(anchor);
@@ -210,7 +215,10 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
         _loadScopeData();
       },
       displayDate: TimeframeLabelFormatter.format(
-          _activeBlock, _anchorDate, AppLocalizations.of(context)!),
+        _activeBlock,
+        _anchorDate,
+        AppLocalizations.of(context)!,
+      ),
       onTapDateDisplay: () async {
         final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
           context: context,
@@ -237,7 +245,9 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-          title: AppLocalizations.of(context)!.steps, bottom: timeframeFilter),
+        title: AppLocalizations.of(context)!.steps,
+        bottom: timeframeFilter,
+      ),
       body: Padding(
         padding: DesignConstants.screenPadding.copyWith(
           top: DesignConstants.screenPadding.top + topPadding,
@@ -282,13 +292,9 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                           ),
                           child: Text(
                             _lastUpdatedLabel(context, _lastUpdatedAtUtc!),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.outline,
+                                  color: Theme.of(context).colorScheme.outline,
                                 ),
                           ),
                         ),
@@ -306,15 +312,15 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
 
   Widget _buildScopeSummaryCard(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = Localizations.localeOf(
-      context,
-    ).languageCode.toLowerCase();
+    final localeCode = Localizations.localeOf(context).languageCode
+        .toLowerCase();
     final title = l10n.steps;
     final todayLabel = l10n.today;
     final totalLabel = l10n.stepsModuleTotalSteps;
     final providerName = _providerDisplayName(_stepsProviderRaw, l10n);
-    final safeGoal =
-        _targetSteps > 0 ? _targetSteps : StepsSyncService.defaultStepsGoal;
+    final safeGoal = _targetSteps > 0
+        ? _targetSteps
+        : StepsSyncService.defaultStepsGoal;
 
     switch (_scope) {
       case StepsScope.day:
@@ -409,23 +415,23 @@ class _TrendCanvas extends StatelessWidget {
       duration: const Duration(milliseconds: 250),
       child: switch (scope) {
         StepsScope.day => StepsDayChart(
-            key: const ValueKey('day-canvas'),
-            date: dayData?.date,
-            buckets: dayData?.hourlyBuckets ?? const [],
-            dailyGoal: dailyGoal,
-          ),
+          key: const ValueKey('day-canvas'),
+          date: dayData?.date,
+          buckets: dayData?.hourlyBuckets ?? const [],
+          dailyGoal: dailyGoal,
+        ),
         StepsScope.week => StepsWeekChart(
-            key: const ValueKey('week-canvas'),
-            weekStart: weekData?.weekStart,
-            buckets: weekData?.dailyTotals ?? const [],
-            dailyGoal: dailyGoal,
-          ),
+          key: const ValueKey('week-canvas'),
+          weekStart: weekData?.weekStart,
+          buckets: weekData?.dailyTotals ?? const [],
+          dailyGoal: dailyGoal,
+        ),
         StepsScope.month => StepsMonthChart(
-            key: const ValueKey('month-canvas'),
-            monthStart: monthData?.monthStart,
-            buckets: monthData?.dailyTotals ?? const [],
-            dailyGoal: dailyGoal,
-          ),
+          key: const ValueKey('month-canvas'),
+          monthStart: monthData?.monthStart,
+          buckets: monthData?.dailyTotals ?? const [],
+          dailyGoal: dailyGoal,
+        ),
       },
     );
   }

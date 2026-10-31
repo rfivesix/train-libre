@@ -56,72 +56,78 @@ void main() {
   });
 
   group('CanonicalNutritionScenarios', () {
-    test('all 8 canonical scenarios match their expected evaluation states',
-        () {
-      final state = NutritionSandboxState();
+    test(
+      'all 8 canonical scenarios match their expected evaluation states',
+      () {
+        final state = NutritionSandboxState();
 
-      for (final scenario in CanonicalNutritionScenarios.all) {
-        scenario.applyToSandbox(state);
+        for (final scenario in CanonicalNutritionScenarios.all) {
+          scenario.applyToSandbox(state);
+          final assessment = state.evaluateAssessment();
+
+          expect(
+            assessment.overallStatus,
+            scenario.expectedOverallStatus,
+            reason: 'Scenario "${scenario.title}" overallStatus mismatch',
+          );
+
+          expect(
+            assessment.recentMomentumStatus,
+            scenario.expectedMomentum,
+            reason: 'Scenario "${scenario.title}" momentum mismatch',
+          );
+
+          expect(
+            assessment.nutritionAction,
+            scenario.expectedAction,
+            reason: 'Scenario "${scenario.title}" nutritionAction mismatch',
+          );
+        }
+      },
+    );
+
+    test(
+      'Scenario 2 (Plateau) triggers adjust_targets and falling_further_behind',
+      () {
+        final state = NutritionSandboxState();
+        final plateauScenario = CanonicalNutritionScenarios.all.firstWhere(
+          (s) => s.id == 'behind_plateau',
+        );
+        plateauScenario.applyToSandbox(state);
+
         final assessment = state.evaluateAssessment();
+        expect(assessment.overallStatus, 'behind');
+        expect(assessment.recentMomentumStatus, 'falling_further_behind');
+        expect(assessment.nutritionAction, 'adjust_targets');
 
-        expect(
-          assessment.overallStatus,
-          scenario.expectedOverallStatus,
-          reason: 'Scenario "${scenario.title}" overallStatus mismatch',
-        );
-
-        expect(
-          assessment.recentMomentumStatus,
-          scenario.expectedMomentum,
-          reason: 'Scenario "${scenario.title}" momentum mismatch',
-        );
-
-        expect(
-          assessment.nutritionAction,
-          scenario.expectedAction,
-          reason: 'Scenario "${scenario.title}" nutritionAction mismatch',
-        );
-      }
-    });
+        final review = state.buildSyntheticReviewRecord();
+        expect(review.recommendedCalories, state.recommendedCalories);
+      },
+    );
 
     test(
-        'Scenario 2 (Plateau) triggers adjust_targets and falling_further_behind',
-        () {
+      'Scenario 3 (Intake gap) keeps targets because intake explains gap',
+      () {
+        final state = NutritionSandboxState();
+        final intakeScenario = CanonicalNutritionScenarios.all.firstWhere(
+          (s) => s.id == 'behind_intake_gap',
+        );
+        intakeScenario.applyToSandbox(state);
+
+        final assessment = state.evaluateAssessment();
+        expect(assessment.overallStatus, 'behind');
+        expect(assessment.nutritionAction, 'keep_targets_intake_differs');
+
+        final review = state.buildSyntheticReviewRecord();
+        expect(review.recommendedCalories, isNull);
+      },
+    );
+
+    test('Scenario 6 (Insufficient data) fails sufficiency gate to calibrating state', () {
       final state = NutritionSandboxState();
-      final plateauScenario = CanonicalNutritionScenarios.all
-          .firstWhere((s) => s.id == 'behind_plateau');
-      plateauScenario.applyToSandbox(state);
-
-      final assessment = state.evaluateAssessment();
-      expect(assessment.overallStatus, 'behind');
-      expect(assessment.recentMomentumStatus, 'falling_further_behind');
-      expect(assessment.nutritionAction, 'adjust_targets');
-
-      final review = state.buildSyntheticReviewRecord();
-      expect(review.recommendedCalories, state.recommendedCalories);
-    });
-
-    test('Scenario 3 (Intake gap) keeps targets because intake explains gap',
-        () {
-      final state = NutritionSandboxState();
-      final intakeScenario = CanonicalNutritionScenarios.all
-          .firstWhere((s) => s.id == 'behind_intake_gap');
-      intakeScenario.applyToSandbox(state);
-
-      final assessment = state.evaluateAssessment();
-      expect(assessment.overallStatus, 'behind');
-      expect(assessment.nutritionAction, 'keep_targets_intake_differs');
-
-      final review = state.buildSyntheticReviewRecord();
-      expect(review.recommendedCalories, isNull);
-    });
-
-    test(
-        'Scenario 6 (Insufficient data) fails sufficiency gate to calibrating state',
-        () {
-      final state = NutritionSandboxState();
-      final calibratingScenario = CanonicalNutritionScenarios.all
-          .firstWhere((s) => s.id == 'insufficient_data');
+      final calibratingScenario = CanonicalNutritionScenarios.all.firstWhere(
+        (s) => s.id == 'insufficient_data',
+      );
       calibratingScenario.applyToSandbox(state);
 
       final assessment = state.evaluateAssessment();
@@ -132,8 +138,9 @@ void main() {
 
     test('Scenario 8 (Target reached) detects goal met', () {
       final state = NutritionSandboxState();
-      final reachedScenario = CanonicalNutritionScenarios.all
-          .firstWhere((s) => s.id == 'target_reached');
+      final reachedScenario = CanonicalNutritionScenarios.all.firstWhere(
+        (s) => s.id == 'target_reached',
+      );
       reachedScenario.applyToSandbox(state);
 
       final assessment = state.evaluateAssessment();

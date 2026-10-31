@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../services/base_food_language_service.dart';
@@ -38,16 +39,17 @@ class FoodEntryTile extends StatelessWidget {
       onTap: () {
         Navigator.of(context)
             .push(
-          MaterialPageRoute(
-            builder: (context) => FoodDetailScreen(trackedItem: trackedItem),
-          ),
-        )
+              MaterialPageRoute(
+                builder: (context) =>
+                    FoodDetailScreen(trackedItem: trackedItem),
+              ),
+            )
             .then((_) {
-          if (!context.mounted) return;
-          context
-              .read<DiaryViewModel>()
-              .loadDataForDate(context.read<DiaryViewModel>().selectedDate);
-        });
+              if (!context.mounted) return;
+              context.read<DiaryViewModel>().loadDataForDate(
+                context.read<DiaryViewModel>().selectedDate,
+              );
+            });
       },
       child: DiaryFoodRow(
         name: trackedItem.item.source == FoodItemSource.base

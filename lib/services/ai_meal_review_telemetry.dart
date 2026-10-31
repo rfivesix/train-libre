@@ -1,7 +1,9 @@
 import 'telemetry/telemetry_service.dart';
 
 typedef AiReviewEventSender = Future<void> Function(
-    String event, Map<String, dynamic> properties);
+  String event,
+  Map<String, dynamic> properties,
+);
 
 /// Owns the single terminal review event, independent of transient save errors.
 class AiMealReviewTelemetry {
@@ -12,12 +14,11 @@ class AiMealReviewTelemetry {
   int correctionRounds = 0;
   bool _finished = false;
 
-  AiMealReviewTelemetry({
-    required this.requestId,
-    AiReviewEventSender? send,
-  }) : _send = send ??
-            ((event, properties) =>
-                TelemetryService.instance.track(event, properties: properties));
+  AiMealReviewTelemetry({required this.requestId, AiReviewEventSender? send})
+    : _send =
+          send ??
+          ((event, properties) =>
+              TelemetryService.instance.track(event, properties: properties));
 
   void markManualEdit() => manualEdited = true;
   void markCorrectionSubmitted() => correctionRounds++;
@@ -29,10 +30,10 @@ class AiMealReviewTelemetry {
     final outcome = !saved
         ? 'discarded'
         : correctionRounds > 0
-            ? 'saved_after_ai_correction'
-            : manualEdited
-                ? 'saved_after_manual_edit'
-                : 'saved_unchanged';
+        ? 'saved_after_ai_correction'
+        : manualEdited
+        ? 'saved_after_manual_edit'
+        : 'saved_unchanged';
     return _send('ai_meal_review_finished', {
       'request_id': requestId!,
       'outcome': outcome,

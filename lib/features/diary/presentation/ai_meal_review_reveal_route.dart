@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/ai_meal_review_reveal_route.dart
 
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// Slow-motion debugging switch:
@@ -30,10 +31,11 @@ class AiMealReviewRevealRoute<T> extends PageRoute<T> {
     super.settings,
     Duration? duration,
     this.onEnterComplete,
-  }) : _duration = duration ??
-            Duration(
-              milliseconds: (500 * kAiMealReviewRevealDebugSlowdown).round(),
-            );
+  }) : _duration =
+           duration ??
+           Duration(
+             milliseconds: (500 * kAiMealReviewRevealDebugSlowdown).round(),
+           );
 
   void _listenForEntryCompletion(Animation<double> routeAnimation) {
     if (onEnterComplete == null) return;
@@ -112,10 +114,7 @@ class AiMealReviewRevealRoute<T> extends PageRoute<T> {
     // When popping / saving / dismissing: clean standard soft fade out!
     if (animation.status == AnimationStatus.reverse) {
       return FadeTransition(
-        opacity: CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        ),
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
         child: child,
       );
     }
@@ -170,8 +169,9 @@ class _CloudVaporRevealTransition extends StatelessWidget {
         final double pageSlideY = (1.0 - t) * 10.0;
 
         // Global vapor opacity (dissipates to 0)
-        final double vaporOpacity =
-            (1.0 - math.pow(raw, 0.75)).clamp(0.0, 1.0).toDouble();
+        final double vaporOpacity = (1.0 - math.pow(raw, 0.75))
+            .clamp(0.0, 1.0)
+            .toDouble();
 
         return Stack(
           fit: StackFit.expand,
@@ -199,8 +199,9 @@ class _CloudVaporRevealTransition extends StatelessWidget {
                       opacity: vaporOpacity,
                       coreRadius: resolvedCoreRadius,
                       primaryColor: theme.colorScheme.primary,
-                      baseColor:
-                          isDark ? Colors.white : const Color(0xFF09090B),
+                      baseColor: isDark
+                          ? Colors.white
+                          : const Color(0xFF09090B),
                       isDark: isDark,
                     ),
                   ),
@@ -237,14 +238,17 @@ class AiCloudVaporDisperse extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final t = Curves.easeOutCubic.transform(progress.clamp(0.0, 1.0));
-    final opacity =
-        (1.0 - math.pow(progress.clamp(0.0, 1.0), 0.75)).clamp(0.0, 1.0);
+    final opacity = (1.0 - math.pow(progress.clamp(0.0, 1.0), 0.75)).clamp(
+      0.0,
+      1.0,
+    );
 
     return IgnorePointer(
       child: LayoutBuilder(
         builder: (context, constraints) => CustomPaint(
           painter: _OrganicVaporDispersePainter(
-            center: center ??
+            center:
+                center ??
                 Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
             t: t,
             opacity: opacity.toDouble(),
@@ -288,77 +292,89 @@ class _OrganicVaporDispersePainter extends CustomPainter {
   // 12 deterministic organic puff trajectories with unique angles, speeds and dynamics
   static final List<_VaporPuffSpec> _specs = [
     const _VaporPuffSpec(
-        angle: 0.05,
-        speed: 1.15,
-        baseRadiusFraction: 0.85,
-        growthPeak: 1.45,
-        accentBlend: 0.20),
+      angle: 0.05,
+      speed: 1.15,
+      baseRadiusFraction: 0.85,
+      growthPeak: 1.45,
+      accentBlend: 0.20,
+    ),
     const _VaporPuffSpec(
-        angle: 0.58,
-        speed: 0.90,
-        baseRadiusFraction: 0.70,
-        growthPeak: 1.30,
-        accentBlend: 0.45),
+      angle: 0.58,
+      speed: 0.90,
+      baseRadiusFraction: 0.70,
+      growthPeak: 1.30,
+      accentBlend: 0.45,
+    ),
     const _VaporPuffSpec(
-        angle: 1.12,
-        speed: 1.30,
-        baseRadiusFraction: 0.95,
-        growthPeak: 1.50,
-        accentBlend: 0.15),
+      angle: 1.12,
+      speed: 1.30,
+      baseRadiusFraction: 0.95,
+      growthPeak: 1.50,
+      accentBlend: 0.15,
+    ),
     const _VaporPuffSpec(
-        angle: 1.65,
-        speed: 0.85,
-        baseRadiusFraction: 0.75,
-        growthPeak: 1.35,
-        accentBlend: 0.35),
+      angle: 1.65,
+      speed: 0.85,
+      baseRadiusFraction: 0.75,
+      growthPeak: 1.35,
+      accentBlend: 0.35,
+    ),
     const _VaporPuffSpec(
-        angle: 2.18,
-        speed: 1.20,
-        baseRadiusFraction: 0.90,
-        growthPeak: 1.40,
-        accentBlend: 0.25),
+      angle: 2.18,
+      speed: 1.20,
+      baseRadiusFraction: 0.90,
+      growthPeak: 1.40,
+      accentBlend: 0.25,
+    ),
     const _VaporPuffSpec(
-        angle: 2.72,
-        speed: 1.05,
-        baseRadiusFraction: 0.80,
-        growthPeak: 1.38,
-        accentBlend: 0.40),
+      angle: 2.72,
+      speed: 1.05,
+      baseRadiusFraction: 0.80,
+      growthPeak: 1.38,
+      accentBlend: 0.40,
+    ),
     const _VaporPuffSpec(
-        angle: 3.25,
-        speed: 1.25,
-        baseRadiusFraction: 0.88,
-        growthPeak: 1.48,
-        accentBlend: 0.18),
+      angle: 3.25,
+      speed: 1.25,
+      baseRadiusFraction: 0.88,
+      growthPeak: 1.48,
+      accentBlend: 0.18,
+    ),
     const _VaporPuffSpec(
-        angle: 3.78,
-        speed: 0.95,
-        baseRadiusFraction: 0.72,
-        growthPeak: 1.32,
-        accentBlend: 0.50),
+      angle: 3.78,
+      speed: 0.95,
+      baseRadiusFraction: 0.72,
+      growthPeak: 1.32,
+      accentBlend: 0.50,
+    ),
     const _VaporPuffSpec(
-        angle: 4.31,
-        speed: 1.35,
-        baseRadiusFraction: 0.92,
-        growthPeak: 1.55,
-        accentBlend: 0.12),
+      angle: 4.31,
+      speed: 1.35,
+      baseRadiusFraction: 0.92,
+      growthPeak: 1.55,
+      accentBlend: 0.12,
+    ),
     const _VaporPuffSpec(
-        angle: 4.84,
-        speed: 0.88,
-        baseRadiusFraction: 0.78,
-        growthPeak: 1.36,
-        accentBlend: 0.38),
+      angle: 4.84,
+      speed: 0.88,
+      baseRadiusFraction: 0.78,
+      growthPeak: 1.36,
+      accentBlend: 0.38,
+    ),
     const _VaporPuffSpec(
-        angle: 5.37,
-        speed: 1.18,
-        baseRadiusFraction: 0.86,
-        growthPeak: 1.42,
-        accentBlend: 0.22),
+      angle: 5.37,
+      speed: 1.18,
+      baseRadiusFraction: 0.86,
+      growthPeak: 1.42,
+      accentBlend: 0.22,
+    ),
     const _VaporPuffSpec(
-        angle: 5.90,
-        speed: 1.02,
-        baseRadiusFraction: 0.82,
-        growthPeak: 1.39,
-        accentBlend: 0.30),
+      angle: 5.90,
+      speed: 1.02,
+      baseRadiusFraction: 0.82,
+      growthPeak: 1.39,
+      accentBlend: 0.30,
+    ),
   ];
 
   const _OrganicVaporDispersePainter({
@@ -378,8 +394,9 @@ class _OrganicVaporDispersePainter extends CustomPainter {
     final maxDistance = size.width * 0.50;
 
     // Blur starts strictly at 0.0 (crisp, hard, solid edge on first frame) and softens rapidly
-    final double blurSigma =
-        t <= 0.001 ? 0.0 : (26.0 * math.pow(t, 0.45)).clamp(0.0, 36.0);
+    final double blurSigma = t <= 0.001
+        ? 0.0
+        : (26.0 * math.pow(t, 0.45)).clamp(0.0, 36.0);
 
     // 12 dispersing organic vapor puffs that start at center as a solid circle and scatter outward
     for (final spec in _specs) {
@@ -393,11 +410,13 @@ class _OrganicVaporDispersePainter extends CustomPainter {
       final double sizeFactor;
       if (t < 0.35) {
         final localT = t / 0.35;
-        sizeFactor = 1.0 +
+        sizeFactor =
+            1.0 +
             (spec.growthPeak - 1.0) * Curves.easeOutQuad.transform(localT);
       } else {
         final localT = (t - 0.35) / 0.65;
-        sizeFactor = spec.growthPeak *
+        sizeFactor =
+            spec.growthPeak *
             (1.0 - 0.80 * Curves.easeInQuad.transform(localT));
       }
 
@@ -406,8 +425,9 @@ class _OrganicVaporDispersePainter extends CustomPainter {
       final puffAlpha = (opacity * (1.0 - 0.55 * t)).clamp(0.0, 1.0);
 
       final puffPaint = Paint()
-        ..color =
-            puffColor.withValues(alpha: puffAlpha * (isDark ? 0.90 : 0.85));
+        ..color = puffColor.withValues(
+          alpha: puffAlpha * (isDark ? 0.90 : 0.85),
+        );
 
       if (blurSigma > 0.5) {
         puffPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, blurSigma);

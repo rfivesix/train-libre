@@ -10,8 +10,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   Future<void> insertExercise(
-      db.AppDatabase database, String id, String name) async {
-    await database.into(database.exercises).insert(
+    db.AppDatabase database,
+    String id,
+    String name,
+  ) async {
+    await database
+        .into(database.exercises)
+        .insert(
           db.ExercisesCompanion.insert(
             id: Value(id),
             isCustom: const Value(true),
@@ -19,7 +24,9 @@ void main() {
             categoryName: const Value('Strength'),
           ),
         );
-    await database.into(database.exerciseTranslations).insert(
+    await database
+        .into(database.exerciseTranslations)
+        .insert(
           db.ExerciseTranslationsCompanion.insert(
             exerciseId: id,
             languageCode: 'en',
@@ -72,39 +79,42 @@ void main() {
     expect(loaded!.exercises.single.supersetGroup, isNull);
   });
 
-  test('migration 28 to 29 retains rows and initializes groups to null',
-      () async {
-    final dir = await Directory.systemTemp.createTemp('superset_migration');
-    final file = File('${dir.path}/app.sqlite');
-    addTearDown(() => dir.delete(recursive: true));
+  test(
+    'migration 28 to 29 retains rows and initializes groups to null',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('superset_migration');
+      final file = File('${dir.path}/app.sqlite');
+      addTearDown(() => dir.delete(recursive: true));
 
-    var database = db.AppDatabase(NativeDatabase(file));
-    final source = WorkoutLocalDataSource.forTesting(database);
-    await insertExercise(database, 'exercise-a', 'Exercise A');
-    final routine = await source.createRoutine('Legacy');
-    await source.addExerciseToRoutine(routine.id!, 1);
-    await database.customStatement(
-      'ALTER TABLE routine_exercises DROP COLUMN superset_group;',
-    );
-    await database.customStatement(
-      'ALTER TABLE set_logs DROP COLUMN superset_group;',
-    );
-    await database.customStatement('PRAGMA user_version = 28;');
-    await database.close();
+      var database = db.AppDatabase(NativeDatabase(file));
+      final source = WorkoutLocalDataSource.forTesting(database);
+      await insertExercise(database, 'exercise-a', 'Exercise A');
+      final routine = await source.createRoutine('Legacy');
+      await source.addExerciseToRoutine(routine.id!, 1);
+      await database.customStatement(
+        'ALTER TABLE routine_exercises DROP COLUMN superset_group;',
+      );
+      await database.customStatement(
+        'ALTER TABLE set_logs DROP COLUMN superset_group;',
+      );
+      await database.customStatement('PRAGMA user_version = 28;');
+      await database.close();
 
-    database = db.AppDatabase(NativeDatabase(file));
-    addTearDown(database.close);
-    final migratedSource = WorkoutLocalDataSource.forTesting(database);
-    final loaded = await migratedSource.getRoutineById(routine.id!);
+      database = db.AppDatabase(NativeDatabase(file));
+      addTearDown(database.close);
+      final migratedSource = WorkoutLocalDataSource.forTesting(database);
+      final loaded = await migratedSource.getRoutineById(routine.id!);
 
-    expect(database.schemaVersion, greaterThanOrEqualTo(29));
-    expect(loaded, isNotNull);
-    expect(loaded!.exercises.single.supersetGroup, isNull);
-    final setColumns =
-        await database.customSelect('PRAGMA table_info(set_logs);').get();
-    expect(
-      setColumns.map((row) => row.read<String>('name')),
-      contains('superset_group'),
-    );
-  });
+      expect(database.schemaVersion, greaterThanOrEqualTo(29));
+      expect(loaded, isNotNull);
+      expect(loaded!.exercises.single.supersetGroup, isNull);
+      final setColumns = await database
+          .customSelect('PRAGMA table_info(set_logs);')
+          .get();
+      expect(
+        setColumns.map((row) => row.read<String>('name')),
+        contains('superset_group'),
+      );
+    },
+  );
 }

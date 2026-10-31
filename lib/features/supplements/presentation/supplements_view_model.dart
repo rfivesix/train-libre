@@ -1,6 +1,8 @@
 // lib/features/supplements/presentation/supplements_view_model.dart
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../domain/repositories/supplement_repository.dart';
 import '../data/supplement_repository_impl.dart';
 import '../domain/models/supplement.dart';
@@ -41,10 +43,11 @@ class SupplementsViewModel extends ChangeNotifier {
   bool _hasReceivedAll = false;
 
   SupplementsViewModel({SupplementRepository? repository})
-      : _repository = repository ??
-            SupplementRepositoryImpl(
-              localDataSource: SupplementLocalDataSource.instance,
-            ) {
+    : _repository =
+          repository ??
+          SupplementRepositoryImpl(
+            localDataSource: SupplementLocalDataSource.instance,
+          ) {
     _listenToStreams();
   }
 
@@ -71,32 +74,35 @@ class SupplementsViewModel extends ChangeNotifier {
 
     final date = _selectedDate;
 
-    _supplementsForDateSubscription =
-        _repository.watchSupplementsForDate(date).listen(
-      (data) {
-        _supplementsForDateList = data;
-        _hasReceivedSupplements = true;
-        _updateCalculatedState();
-      },
-      onError: (e) {
-        _isLoading = false;
-        debugPrint("Error watching supplements for date: $e");
-        notifyListeners();
-      },
-    );
+    _supplementsForDateSubscription = _repository
+        .watchSupplementsForDate(date)
+        .listen(
+          (data) {
+            _supplementsForDateList = data;
+            _hasReceivedSupplements = true;
+            _updateCalculatedState();
+          },
+          onError: (e) {
+            _isLoading = false;
+            debugPrint("Error watching supplements for date: $e");
+            notifyListeners();
+          },
+        );
 
-    _logsSubscription = _repository.watchSupplementLogsForDate(date).listen(
-      (data) {
-        _logsList = data;
-        _hasReceivedLogs = true;
-        _updateCalculatedState();
-      },
-      onError: (e) {
-        _isLoading = false;
-        debugPrint("Error watching supplement logs: $e");
-        notifyListeners();
-      },
-    );
+    _logsSubscription = _repository
+        .watchSupplementLogsForDate(date)
+        .listen(
+          (data) {
+            _logsList = data;
+            _hasReceivedLogs = true;
+            _updateCalculatedState();
+          },
+          onError: (e) {
+            _isLoading = false;
+            debugPrint("Error watching supplement logs: $e");
+            notifyListeners();
+          },
+        );
 
     _allSupplementsSubscription = _repository.watchAllSupplements().listen(
       (data) {
@@ -196,7 +202,10 @@ class SupplementsViewModel extends ChangeNotifier {
   }
 
   Future<void> logSupplementDose(
-      Supplement supplement, double dose, DateTime timestamp) async {
+    Supplement supplement,
+    double dose,
+    DateTime timestamp,
+  ) async {
     final log = SupplementLog(
       supplementId: supplement.id!,
       dose: dose,

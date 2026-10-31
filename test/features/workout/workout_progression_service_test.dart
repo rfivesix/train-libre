@@ -100,89 +100,95 @@ void main() {
   }
 
   group('WorkoutProgressionService', () {
-    test('history remains the first-set source when a routine has a seed load',
-        () async {
-      fakeRepo.historySets = [
-        createTestSetLog(
-          id: 1,
-          workoutLogId: 10,
-          weightKg: 80.0,
-          reps: 12,
-          performedAt: now.subtract(const Duration(days: 2)),
-        ),
-      ];
+    test(
+      'history remains the first-set source when a routine has a seed load',
+      () async {
+        fakeRepo.historySets = [
+          createTestSetLog(
+            id: 1,
+            workoutLogId: 10,
+            weightKg: 80.0,
+            reps: 12,
+            performedAt: now.subtract(const Duration(days: 2)),
+          ),
+        ];
 
-      final exercise = createTestExercise();
-      final templateWithExplicitWeight = createTestTemplate(targetWeight: 85.0);
+        final exercise = createTestExercise();
+        final templateWithExplicitWeight = createTestTemplate(
+          targetWeight: 85.0,
+        );
 
-      final result = await service.getProgressionSuggestion(
-        exercise: exercise,
-        template: templateWithExplicitWeight,
-        now: now,
-      );
+        final result = await service.getProgressionSuggestion(
+          exercise: exercise,
+          template: templateWithExplicitWeight,
+          now: now,
+        );
 
-      expect(result?.targetWeight, 82.5);
-      expect(result?.targetReps, 8);
-    });
+        expect(result?.targetWeight, 82.5);
+        expect(result?.targetReps, 8);
+      },
+    );
 
-    test('metric-specific tracking types never enter load-rep progression',
-        () async {
-      fakeRepo.historySets = [
-        createTestSetLog(
-          id: 1,
-          workoutLogId: 10,
-          weightKg: 80,
-          reps: 12,
-          performedAt: now.subtract(const Duration(days: 2)),
-        ),
-      ];
-      final template = createTestTemplate();
+    test(
+      'metric-specific tracking types never enter load-rep progression',
+      () async {
+        fakeRepo.historySets = [
+          createTestSetLog(
+            id: 1,
+            workoutLogId: 10,
+            weightKg: 80,
+            reps: 12,
+            performedAt: now.subtract(const Duration(days: 2)),
+          ),
+        ];
+        final template = createTestTemplate();
 
-      for (final trackingType in [
-        'time',
-        'time_weight',
-        'distance_time',
-        'distance_only',
-      ]) {
-        final exercise = createTestExercise(trackingType: trackingType);
+        for (final trackingType in [
+          'time',
+          'time_weight',
+          'distance_time',
+          'distance_only',
+        ]) {
+          final exercise = createTestExercise(trackingType: trackingType);
+          expect(
+            await service.getProgressionSuggestion(
+              exercise: exercise,
+              template: template,
+              now: now,
+            ),
+            isNull,
+            reason: trackingType,
+          );
+          expect(
+            await service.getProgressionSuggestions(
+              exercise: exercise,
+              workingTemplates: [template],
+              now: now,
+            ),
+            isEmpty,
+            reason: trackingType,
+          );
+        }
+
+        final variable = createTestExercise(loadMode: 'variable');
         expect(
           await service.getProgressionSuggestion(
-            exercise: exercise,
+            exercise: variable,
             template: template,
             now: now,
           ),
           isNull,
-          reason: trackingType,
         );
         expect(
           await service.getProgressionSuggestions(
-            exercise: exercise,
+            exercise: variable,
             workingTemplates: [template],
             now: now,
           ),
           isEmpty,
-          reason: trackingType,
         );
-      }
-
-      final variable = createTestExercise(loadMode: 'variable');
-      expect(
-        await service.getProgressionSuggestion(
-          exercise: variable,
-          template: template,
-          now: now,
-        ),
-        isNull,
-      );
-      expect(
-        await service.getProgressionSuggestions(
-          exercise: variable,
-          workingTemplates: [template],
-          now: now,
-        ),
-        isEmpty,
-      );
-    });
+      },
+    );
 
     test('Translates SetLogs and raises load when topped out', () async {
       final date = now.subtract(const Duration(days: 2));
@@ -219,9 +225,7 @@ void main() {
       expect(result.reason, equals(ProgressionReason.rangeToppedOut));
     });
 
-    test(
-        'Two workouts on the same calendar day are treated as two distinct sessions via sessionId',
-        () async {
+    test('Two workouts on the same calendar day are treated as two distinct sessions via sessionId', () async {
       // Both workouts happened on the same calendar day (e.g. morning and afternoon)
       final sameDayMorning = DateTime(2026, 9, 5, 9, 0);
       final sameDayAfternoon = DateTime(2026, 9, 5, 16, 0);
@@ -289,98 +293,106 @@ void main() {
       expect(result.targetWeight, equals(22.0)); // 20.0 + 2.0 kg
     });
 
-    test('recalculates a later set from today while preserving its back-off',
-        () async {
-      final date = now.subtract(const Duration(days: 2));
-      fakeRepo.historySets = [
-        createTestSetLog(
-          id: 1,
-          workoutLogId: 10,
-          weightKg: 35,
-          reps: 8,
-          performedAt: date,
-        ).copyWith(logOrder: 1),
-        createTestSetLog(
-          id: 2,
-          workoutLogId: 10,
-          weightKg: 30,
-          reps: 12,
-          performedAt: date,
-        ).copyWith(logOrder: 2),
-      ];
-      final templates = [
-        createTestTemplate(),
-        createTestTemplate().copyWith(id: 2),
-      ];
-      final currentSets = [
-        createTestSetLog(
-          id: 11,
-          workoutLogId: 99,
-          weightKg: 40,
-          reps: 8,
-          performedAt: now,
-        ),
-        createTestSetLog(
-          id: 12,
-          workoutLogId: 99,
-          weightKg: null,
-          reps: null,
-          performedAt: now,
-          isCompleted: false,
-        ),
-      ];
+    test(
+      'recalculates a later set from today while preserving its back-off',
+      () async {
+        final date = now.subtract(const Duration(days: 2));
+        fakeRepo.historySets = [
+          createTestSetLog(
+            id: 1,
+            workoutLogId: 10,
+            weightKg: 35,
+            reps: 8,
+            performedAt: date,
+          ).copyWith(logOrder: 1),
+          createTestSetLog(
+            id: 2,
+            workoutLogId: 10,
+            weightKg: 30,
+            reps: 12,
+            performedAt: date,
+          ).copyWith(logOrder: 2),
+        ];
+        final templates = [
+          createTestTemplate(),
+          createTestTemplate().copyWith(id: 2),
+        ];
+        final currentSets = [
+          createTestSetLog(
+            id: 11,
+            workoutLogId: 99,
+            weightKg: 40,
+            reps: 8,
+            performedAt: now,
+          ),
+          createTestSetLog(
+            id: 12,
+            workoutLogId: 99,
+            weightKg: null,
+            reps: null,
+            performedAt: now,
+            isCompleted: false,
+          ),
+        ];
 
-      final result = await service.getInWorkoutSuggestion(
-        exercise: createTestExercise(),
-        workingTemplates: templates,
-        currentWorkingSets: currentSets,
-        targetTemplateId: 2,
-        currentWorkoutLogId: 99,
-      );
+        final result = await service.getInWorkoutSuggestion(
+          exercise: createTestExercise(),
+          workingTemplates: templates,
+          currentWorkingSets: currentSets,
+          targetTemplateId: 2,
+          currentWorkoutLogId: 99,
+        );
 
-      expect(result?.targetWeight, equals(37.5));
-      expect(result?.targetReps, equals(8));
-      expect(result?.reason,
-          equals(ProgressionReason.inWorkoutProjectedBelowRange));
-    });
+        expect(result?.targetWeight, equals(37.5));
+        expect(result?.targetReps, equals(8));
+        expect(
+          result?.reason,
+          equals(ProgressionReason.inWorkoutProjectedBelowRange),
+        );
+      },
+    );
 
-    test('uses today\'s preceding working set when a position has no history',
-        () async {
-      fakeRepo.historySets = [];
-      final templates = [
-        createTestTemplate(),
-        createTestTemplate().copyWith(id: 2),
-      ];
-      final currentSets = [
-        createTestSetLog(
-          id: 11,
-          workoutLogId: 99,
-          weightKg: 40,
-          reps: 9,
-          performedAt: now,
-        ),
-        createTestSetLog(
-          id: 12,
-          workoutLogId: 99,
-          weightKg: null,
-          reps: null,
-          performedAt: now,
-          isCompleted: false,
-        ),
-      ];
+    test(
+      'uses today\'s preceding working set when a position has no history',
+      () async {
+        fakeRepo.historySets = [];
+        final templates = [
+          createTestTemplate(),
+          createTestTemplate().copyWith(id: 2),
+        ];
+        final currentSets = [
+          createTestSetLog(
+            id: 11,
+            workoutLogId: 99,
+            weightKg: 40,
+            reps: 9,
+            performedAt: now,
+          ),
+          createTestSetLog(
+            id: 12,
+            workoutLogId: 99,
+            weightKg: null,
+            reps: null,
+            performedAt: now,
+            isCompleted: false,
+          ),
+        ];
 
-      final result = await service.getInWorkoutSuggestion(
-        exercise: createTestExercise(),
-        workingTemplates: templates,
-        currentWorkingSets: currentSets,
-        targetTemplateId: 2,
-        currentWorkoutLogId: 99,
-      );
+        final result = await service.getInWorkoutSuggestion(
+          exercise: createTestExercise(),
+          workingTemplates: templates,
+          currentWorkingSets: currentSets,
+          targetTemplateId: 2,
+          currentWorkoutLogId: 99,
+        );
 
-      expect(result?.targetWeight, equals(37.5));
-      expect(result?.targetReps, equals(8));
-      expect(result?.reason,
-          equals(ProgressionReason.inWorkoutProjectedBelowRange));
-    });
+        expect(result?.targetWeight, equals(37.5));
+        expect(result?.targetReps, equals(8));
+        expect(
+          result?.reason,
+          equals(ProgressionReason.inWorkoutProjectedBelowRange),
+        );
+      },
+    );
   });
 }

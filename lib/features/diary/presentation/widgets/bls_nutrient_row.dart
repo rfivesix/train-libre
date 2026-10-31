@@ -12,11 +12,7 @@ class BlsNutrientRow extends StatelessWidget {
   final BlsNutrientFact fact;
   final double? displayValue;
 
-  const BlsNutrientRow({
-    super.key,
-    required this.fact,
-    this.displayValue,
-  });
+  const BlsNutrientRow({super.key, required this.fact, this.displayValue});
 
   @override
   Widget build(BuildContext context) {
@@ -135,17 +131,15 @@ class _NutrientMetadataRow extends StatelessWidget {
           text: TextSpan(text: label, style: labelStyle),
           textDirection: Directionality.of(context),
           maxLines: 1,
-        )..layout(maxWidth: constraints.maxWidth))
-            .width;
+        )..layout(maxWidth: constraints.maxWidth)).width;
         final valueWidth = (TextPainter(
           text: TextSpan(text: value, style: valueStyle),
           textDirection: Directionality.of(context),
           maxLines: 1,
-        )..layout(maxWidth: constraints.maxWidth))
-            .width;
+        )..layout(maxWidth: constraints.maxWidth)).width;
         final fitsInOneLine =
             labelWidth + valueWidth + DesignConstants.spacingM <=
-                constraints.maxWidth;
+            constraints.maxWidth;
 
         if (fitsInOneLine) {
           return Row(

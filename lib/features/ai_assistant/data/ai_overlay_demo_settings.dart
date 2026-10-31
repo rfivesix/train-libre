@@ -23,15 +23,14 @@ class AiOverlayDemoConfiguration {
     bool? showResizeHandles,
     bool? openDirectlyFullscreen,
     bool? useLiveAi,
-  }) =>
-      AiOverlayDemoConfiguration(
-        enabled: enabled ?? this.enabled,
-        liveliness: liveliness ?? this.liveliness,
-        showResizeHandles: showResizeHandles ?? this.showResizeHandles,
-        openDirectlyFullscreen:
-            openDirectlyFullscreen ?? this.openDirectlyFullscreen,
-        useLiveAi: useLiveAi ?? this.useLiveAi,
-      );
+  }) => AiOverlayDemoConfiguration(
+    enabled: enabled ?? this.enabled,
+    liveliness: liveliness ?? this.liveliness,
+    showResizeHandles: showResizeHandles ?? this.showResizeHandles,
+    openDirectlyFullscreen:
+        openDirectlyFullscreen ?? this.openDirectlyFullscreen,
+    useLiveAi: useLiveAi ?? this.useLiveAi,
+  );
 }
 
 /// Floating assistant preference and local developer preview controls.
@@ -47,8 +46,8 @@ class AiOverlayDemoSettings {
 
   static final ValueNotifier<AiOverlayDemoConfiguration> configuration =
       ValueNotifier<AiOverlayDemoConfiguration>(
-    const AiOverlayDemoConfiguration(),
-  );
+        const AiOverlayDemoConfiguration(),
+      );
 
   static void initialize(SharedPreferences preferences) {
     configuration.value = AiOverlayDemoConfiguration(

@@ -41,8 +41,9 @@ RegularityMetrics calculateRegularityMetrics(
 ) {
   final sorted = List<RegularityNightInput>.from(nights)
     ..sort((a, b) => a.nightDate.compareTo(b.nightDate));
-  final window =
-      sorted.length <= 7 ? sorted : sorted.sublist(sorted.length - 7);
+  final window = sorted.length <= 7
+      ? sorted
+      : sorted.sublist(sorted.length - 7);
   final validCount = window.length;
   if (validCount < 3) {
     return RegularityMetrics(

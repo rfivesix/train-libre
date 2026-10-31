@@ -148,9 +148,9 @@ class _PerformanceDiagnosticsScreenState
     await StartupTrace.instance.reset();
     if (!mounted) return;
     setState(() => _snapshot = _recorder.snapshot());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.performanceLogResetDoneSnack)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.performanceLogResetDoneSnack)));
   }
 
   @override
@@ -184,7 +184,8 @@ class _PerformanceDiagnosticsScreenState
                   const SizedBox(height: DesignConstants.spacingM),
                   _MetricRow(
                     label: l10n.performanceLogDisplayLabel,
-                    value: '${snapshot.refreshRateHz.toStringAsFixed(0)} Hz · '
+                    value:
+                        '${snapshot.refreshRateHz.toStringAsFixed(0)} Hz · '
                         'Budget ${snapshot.frameBudgetMs.toStringAsFixed(1)} ms',
                   ),
                   _MetricRow(
@@ -193,7 +194,8 @@ class _PerformanceDiagnosticsScreenState
                   ),
                   _MetricRow(
                     label: l10n.performanceLogJankLabel,
-                    value: '${snapshot.totalJankFrames} '
+                    value:
+                        '${snapshot.totalJankFrames} '
                         '(${(snapshot.totalJankRatio * 100).toStringAsFixed(1)}%)',
                   ),
                   _MetricRow(
@@ -361,8 +363,9 @@ class _MetricRow extends StatelessWidget {
           Text(label, style: theme.textTheme.bodySmall),
           Text(
             value,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -469,10 +472,7 @@ class _StartupRunTile extends StatelessWidget {
       children: [
         for (final phase in phases)
           _MetricRow(label: phase.name, value: '${phase.durationMs} ms'),
-        _MetricRow(
-          label: unattributedLabel,
-          value: '${run.unattributedMs} ms',
-        ),
+        _MetricRow(label: unattributedLabel, value: '${run.unattributedMs} ms'),
       ],
     );
   }

@@ -1,4 +1,5 @@
 import '../../../../widgets/common/platform_adaptive_dropdown.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -17,11 +18,7 @@ void showExplanationRichSetTypeSheet({
   Widget buildSymbol(String char, Color color) {
     return Text(
       char,
-      style: TextStyle(
-        color: color,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
+      style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
 

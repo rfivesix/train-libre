@@ -176,31 +176,33 @@ void main() {
       expect(withoutNoteText, isNot(contains('User note')));
     });
 
-    test('report generation still succeeds when diagnostics are unavailable',
-        () async {
-      final builder = FeedbackReportBuilder(
-        adaptiveDiagnosticsProvider: _ThrowingDiagnosticsProvider(),
-        backupRestoreDiagnosticsProvider: const _FakeDiagnosticsProvider([]),
-        packageInfoLoader: _mockPackageInfo,
-        nowProvider: () => DateTime.utc(2026, 4, 13, 8),
-      );
+    test(
+      'report generation still succeeds when diagnostics are unavailable',
+      () async {
+        final builder = FeedbackReportBuilder(
+          adaptiveDiagnosticsProvider: _ThrowingDiagnosticsProvider(),
+          backupRestoreDiagnosticsProvider: const _FakeDiagnosticsProvider([]),
+          packageInfoLoader: _mockPackageInfo,
+          nowProvider: () => DateTime.utc(2026, 4, 13, 8),
+        );
 
-      final report = await builder.build(
-        options: const FeedbackReportOptions(
-          includeAdaptiveNutritionDiagnostics: true,
-          includeBackupRestoreDiagnostics: false,
-          includeUserNote: false,
-        ),
-        copy: _copy(),
-        userNote: '',
-      );
-      final text = FeedbackReportSerializer.toPlainText(
-        report: report,
-        copy: _copy(),
-      );
+        final report = await builder.build(
+          options: const FeedbackReportOptions(
+            includeAdaptiveNutritionDiagnostics: true,
+            includeBackupRestoreDiagnostics: false,
+            includeUserNote: false,
+          ),
+          copy: _copy(),
+          userNote: '',
+        );
+        final text = FeedbackReportSerializer.toPlainText(
+          report: report,
+          copy: _copy(),
+        );
 
-      expect(text, contains('Adaptive nutrition diagnostics'));
-      expect(text, contains('status: unavailable'));
-    });
+        expect(text, contains('Adaptive nutrition diagnostics'));
+        expect(text, contains('status: unavailable'));
+      },
+    );
   });
 }

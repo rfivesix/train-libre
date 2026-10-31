@@ -104,33 +104,35 @@ void main() {
       );
     });
 
-    test('uses the 30-day window when history permission is unavailable',
-        () async {
-      final platform = _FakeWeightPlatform(
-        status: const HealthConnectWeightImportStatus(
-          available: true,
-          historyAvailable: false,
-          readGranted: true,
-          historyGranted: false,
-        ),
-        records: const [],
-      );
-      final service = HealthConnectWeightImportService(
-        platform: platform,
-        databaseHelper: databaseHelper,
-        isAndroid: true,
-      );
+    test(
+      'uses the 30-day window when history permission is unavailable',
+      () async {
+        final platform = _FakeWeightPlatform(
+          status: const HealthConnectWeightImportStatus(
+            available: true,
+            historyAvailable: false,
+            readGranted: true,
+            historyGranted: false,
+          ),
+          records: const [],
+        );
+        final service = HealthConnectWeightImportService(
+          platform: platform,
+          databaseHelper: databaseHelper,
+          isAndroid: true,
+        );
 
-      final result = await service.importNow();
+        final result = await service.importNow();
 
-      expect(result?.limitedHistory, isTrue);
-      expect(platform.lastFrom, isNotNull);
-      expect(platform.lastTo, isNotNull);
-      expect(
-        platform.lastTo!.difference(platform.lastFrom!).inDays,
-        inInclusiveRange(29, 30),
-      );
-    });
+        expect(result?.limitedHistory, isTrue);
+        expect(platform.lastFrom, isNotNull);
+        expect(platform.lastTo, isNotNull);
+        expect(
+          platform.lastTo!.difference(platform.lastFrom!).inDays,
+          inInclusiveRange(29, 30),
+        );
+      },
+    );
 
     test('stores body-fat imports as body-fat measurements', () async {
       final platform = _FakeWeightPlatform(

@@ -14,19 +14,22 @@ import 'models/export_models.dart';
 /// has no background-worker dependency: the user chose foreground lifecycle
 /// synchronization only.
 class HealthExportCoordinator {
-  HealthExportCoordinator(
-      {required AppDatabase database,
-      HealthExportService? service,
-      Duration debounceDuration = const Duration(seconds: 2),
-      List<HealthExportPlatform>? platforms})
-      : _database = database,
-        _debounceDuration = debounceDuration,
-        _platforms = platforms ?? _platformsForCurrentOs(),
-        _service = service ??
-            HealthExportService(adapters: [
-              AppleHealthExportAdapter(),
-              HealthConnectExportAdapter(),
-            ]);
+  HealthExportCoordinator({
+    required AppDatabase database,
+    HealthExportService? service,
+    Duration debounceDuration = const Duration(seconds: 2),
+    List<HealthExportPlatform>? platforms,
+  }) : _database = database,
+       _debounceDuration = debounceDuration,
+       _platforms = platforms ?? _platformsForCurrentOs(),
+       _service =
+           service ??
+           HealthExportService(
+             adapters: [
+               AppleHealthExportAdapter(),
+               HealthConnectExportAdapter(),
+             ],
+           );
 
   final AppDatabase _database;
   final HealthExportService _service;

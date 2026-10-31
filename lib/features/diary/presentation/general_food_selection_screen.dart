@@ -4,8 +4,10 @@ import 'widgets/food_search_sections.dart';
 import 'dart:async';
 
 import '../../../widgets/common/seamless_loading_overlay.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_item.dart';
@@ -14,7 +16,9 @@ import 'scanner_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../services/telemetry/telemetry_service.dart';
@@ -48,8 +52,8 @@ class _GeneralFoodSelectionScreenState
   bool _hasSearchableFoods = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await ProductLocalDataSource.instance.hasSearchableProducts();
+    final initialized = await ProductLocalDataSource.instance
+        .hasSearchableProducts();
     if (mounted) {
       setState(() {
         _hasSearchableFoods = initialized;
@@ -109,15 +113,16 @@ class _GeneralFoodSelectionScreenState
     );
 
     if (barcode != null && mounted) {
-      final foodItem =
-          await ProductLocalDataSource.instance.getProductByBarcode(
-        barcode,
-      );
+      final foodItem = await ProductLocalDataSource.instance
+          .getProductByBarcode(barcode);
       if (!mounted) return;
 
       if (foodItem != null) {
-        unawaited(TelemetryService.instance
-            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        unawaited(
+          TelemetryService.instance.trackFeatureUsed(
+            featureKey: FeatureKey.barcodeScanned,
+          ),
+        );
         Navigator.of(context).pop(foodItem);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -325,43 +330,153 @@ class _GeneralFoodSelectionScreenState
                       builder: (context, value, child) {
                         return value.text.trim().isEmpty
                             ? (_baseCategories.isEmpty
-                                ? const Center(
-                                    child: CircularProgressIndicator())
-                                : ListView.builder(
-                                    scrollCacheExtent:
-                                        const ScrollCacheExtent.pixels(1500.0),
-                                    itemCount: _baseCategories.length + 1,
-                                    itemBuilder: (context, idx) {
-                                      if (idx == 0) {
+                                  ? const Center(
+                                      child: CircularProgressIndicator(),
+                                    )
+                                  : ListView.builder(
+                                      scrollCacheExtent:
+                                          const ScrollCacheExtent.pixels(
+                                            1500.0,
+                                          ),
+                                      itemCount: _baseCategories.length + 1,
+                                      itemBuilder: (context, idx) {
+                                        if (idx == 0) {
+                                          return Theme(
+                                            data: Theme.of(context).copyWith(
+                                              dividerColor: Colors.transparent,
+                                            ),
+                                            child: ExpansionTile(
+                                              leading: const Text(
+                                                '🍳',
+                                                style: TextStyle(fontSize: 20),
+                                              ),
+                                              title: Text(
+                                                l10n.customFoodsTitle,
+                                              ),
+                                              initiallyExpanded: false,
+                                              children: [
+                                                if (_isLoadingCustomFoods)
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          vertical:
+                                                              DesignConstants
+                                                                  .spacingM,
+                                                        ),
+                                                    child: Center(
+                                                      child:
+                                                          CircularProgressIndicator(),
+                                                    ),
+                                                  )
+                                                else if (_customFoodItems
+                                                    .isEmpty)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical:
+                                                              DesignConstants
+                                                                  .spacingM,
+                                                        ),
+                                                    child: Center(
+                                                      child: Text(
+                                                        l10n.emptyCategory,
+                                                      ),
+                                                    ),
+                                                  )
+                                                else
+                                                  ListView.builder(
+                                                    shrinkWrap: true,
+                                                    physics:
+                                                        const NeverScrollableScrollPhysics(),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          bottom: 16.0,
+                                                        ),
+                                                    itemCount:
+                                                        _customFoodItems.length,
+                                                    itemBuilder: (context, i) =>
+                                                        _buildFoodListItem(
+                                                          _customFoodItems[i],
+                                                          l10n,
+                                                        ),
+                                                  ),
+                                              ],
+                                            ),
+                                          );
+                                        }
+
+                                        final cat = _baseCategories[idx - 1];
+                                        final key = cat['key'] as String;
+                                        final emoji = (cat['emoji'] as String?)
+                                            ?.trim();
+                                        final locale = Localizations.localeOf(
+                                          context,
+                                        ).languageCode;
+                                        final de = (cat['name_de'] as String?)
+                                            ?.trim();
+                                        final en = (cat['name_en'] as String?)
+                                            ?.trim();
+                                        final title = locale == 'de'
+                                            ? (de?.isNotEmpty == true
+                                                  ? de!
+                                                  : (en?.isNotEmpty == true
+                                                        ? en!
+                                                        : key))
+                                            : (en?.isNotEmpty == true
+                                                  ? en!
+                                                  : (de?.isNotEmpty == true
+                                                        ? de!
+                                                        : key));
+
+                                        final loading = _loadingCats.contains(
+                                          key,
+                                        );
+                                        final items = _catItems[key];
+
                                         return Theme(
                                           data: Theme.of(context).copyWith(
-                                              dividerColor: Colors.transparent),
+                                            dividerColor: Colors.transparent,
+                                          ),
                                           child: ExpansionTile(
-                                            leading: const Text(
-                                              '🍳',
-                                              style: TextStyle(fontSize: 20),
+                                            leading: Text(
+                                              emoji?.isNotEmpty == true
+                                                  ? emoji!
+                                                  : '🗂️',
+                                              style: const TextStyle(
+                                                fontSize: 20,
+                                              ),
                                             ),
-                                            title: Text(l10n.customFoodsTitle),
-                                            initiallyExpanded: false,
+                                            title: Text(title),
+                                            onExpansionChanged: (expanded) {
+                                              if (expanded)
+                                                _loadCategoryItems(key);
+                                            },
                                             children: [
-                                              if (_isLoadingCustomFoods)
+                                              if (loading)
                                                 const Padding(
                                                   padding: EdgeInsets.symmetric(
-                                                      vertical: DesignConstants
-                                                          .spacingM),
+                                                    vertical: DesignConstants
+                                                        .spacingM,
+                                                  ),
                                                   child: Center(
-                                                      child:
-                                                          CircularProgressIndicator()),
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  ),
                                                 )
-                                              else if (_customFoodItems.isEmpty)
+                                              else if (items == null ||
+                                                  items.isEmpty)
                                                 Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      vertical: DesignConstants
-                                                          .spacingM),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical:
+                                                            DesignConstants
+                                                                .spacingM,
+                                                      ),
                                                   child: Center(
-                                                      child: Text(
-                                                          l10n.emptyCategory)),
+                                                    child: Text(
+                                                      l10n.emptyCategory,
+                                                    ),
+                                                  ),
                                                 )
                                               else
                                                 ListView.builder(
@@ -370,106 +485,20 @@ class _GeneralFoodSelectionScreenState
                                                       const NeverScrollableScrollPhysics(),
                                                   padding:
                                                       const EdgeInsets.only(
-                                                          bottom: 16.0),
-                                                  itemCount:
-                                                      _customFoodItems.length,
-                                                  itemBuilder: (context, i) =>
+                                                        bottom: 16.0,
+                                                      ),
+                                                  itemCount: items.length,
+                                                  itemBuilder: (_, i) =>
                                                       _buildFoodListItem(
-                                                          _customFoodItems[i],
-                                                          l10n),
+                                                        items[i],
+                                                        l10n,
+                                                      ),
                                                 ),
                                             ],
                                           ),
                                         );
-                                      }
-
-                                      final cat = _baseCategories[idx - 1];
-                                      final key = cat['key'] as String;
-                                      final emoji =
-                                          (cat['emoji'] as String?)?.trim();
-                                      final locale = Localizations.localeOf(
-                                        context,
-                                      ).languageCode;
-                                      final de =
-                                          (cat['name_de'] as String?)?.trim();
-                                      final en =
-                                          (cat['name_en'] as String?)?.trim();
-                                      final title = locale == 'de'
-                                          ? (de?.isNotEmpty == true
-                                              ? de!
-                                              : (en?.isNotEmpty == true
-                                                  ? en!
-                                                  : key))
-                                          : (en?.isNotEmpty == true
-                                              ? en!
-                                              : (de?.isNotEmpty == true
-                                                  ? de!
-                                                  : key));
-
-                                      final loading =
-                                          _loadingCats.contains(key);
-                                      final items = _catItems[key];
-
-                                      return Theme(
-                                        data: Theme.of(
-                                          context,
-                                        ).copyWith(
-                                            dividerColor: Colors.transparent),
-                                        child: ExpansionTile(
-                                          leading: Text(
-                                            emoji?.isNotEmpty == true
-                                                ? emoji!
-                                                : '🗂️',
-                                            style:
-                                                const TextStyle(fontSize: 20),
-                                          ),
-                                          title: Text(title),
-                                          onExpansionChanged: (expanded) {
-                                            if (expanded)
-                                              _loadCategoryItems(key);
-                                          },
-                                          children: [
-                                            if (loading)
-                                              const Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                  vertical:
-                                                      DesignConstants.spacingM,
-                                                ),
-                                                child: Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                ),
-                                              )
-                                            else if (items == null ||
-                                                items.isEmpty)
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical:
-                                                      DesignConstants.spacingM,
-                                                ),
-                                                child: Center(
-                                                  child:
-                                                      Text(l10n.emptyCategory),
-                                                ),
-                                              )
-                                            else
-                                              ListView.builder(
-                                                shrinkWrap: true,
-                                                physics:
-                                                    const NeverScrollableScrollPhysics(),
-                                                padding: const EdgeInsets.only(
-                                                    bottom: 16.0),
-                                                itemCount: items.length,
-                                                itemBuilder: (_, i) =>
-                                                    _buildFoodListItem(
-                                                        items[i], l10n),
-                                              ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ))
+                                      },
+                                    ))
                             : SeamlessLoadingOverlay(
                                 isLoading: _isLoading,
                                 isEmpty: _results.isEmpty,
@@ -484,15 +513,21 @@ class _GeneralFoodSelectionScreenState
                                   return ListView.builder(
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
-                                    padding:
-                                        const EdgeInsets.only(bottom: 56.0),
+                                    padding: const EdgeInsets.only(
+                                      bottom: 56.0,
+                                    ),
                                     itemCount: sections.length,
                                     itemBuilder: (context, index) {
-                                      return sections.buildRow(index, l10n,
-                                          (item) => _buildFoodListItem(item, l10n));
+                                      return sections.buildRow(
+                                        index,
+                                        l10n,
+                                        (item) =>
+                                            _buildFoodListItem(item, l10n),
+                                      );
                                     },
                                   );
-                                }());
+                                }(),
+                              );
                       },
                     ),
                   ),

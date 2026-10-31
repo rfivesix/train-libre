@@ -28,8 +28,9 @@ void main() {
     expect(AiGlobalCloudVisibility.isVisible, isTrue);
   });
 
-  testWidgets('visibility changes from widget lifecycle notify after build',
-      (tester) async {
+  testWidgets('visibility changes from widget lifecycle notify after build', (
+    tester,
+  ) async {
     final baseline = AiGlobalCloudVisibility.suppressionCount.value;
     await tester.pumpWidget(
       const MaterialApp(home: _AcquireVisibilityLeaseOnMount()),
@@ -44,8 +45,9 @@ void main() {
     expect(AiGlobalCloudVisibility.suppressionCount.value, baseline);
   });
 
-  testWidgets('reveal route releases transferred startup visibility lease',
-      (tester) async {
+  testWidgets('reveal route releases transferred startup visibility lease', (
+    tester,
+  ) async {
     final startupLease = AiGlobalCloudVisibility.suppress();
     var entryCompleted = false;
     await tester.pumpWidget(
@@ -78,45 +80,48 @@ void main() {
     expect(AiGlobalCloudVisibility.isVisible, isTrue);
   });
 
-  testWidgets('adaptive date picker releases cloud suppression when dismissed',
-      (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('en'),
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: TextButton(
-                onPressed: () async {
-                  await showAdaptiveDatePicker(
-                    context: context,
-                    initialDate: DateTime(2026, 10, 25),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                  );
-                },
-                child: const Text('Open date picker'),
+  testWidgets(
+    'adaptive date picker releases cloud suppression when dismissed',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: TextButton(
+                  onPressed: () async {
+                    await showAdaptiveDatePicker(
+                      context: context,
+                      initialDate: DateTime(2026, 10, 25),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                  },
+                  child: const Text('Open date picker'),
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(AiGlobalCloudVisibility.isVisible, isTrue);
-    await tester.tap(find.text('Open date picker'));
-    await tester.pumpAndSettle();
-    expect(AiGlobalCloudVisibility.isVisible, isFalse);
+      expect(AiGlobalCloudVisibility.isVisible, isTrue);
+      await tester.tap(find.text('Open date picker'));
+      await tester.pumpAndSettle();
+      expect(AiGlobalCloudVisibility.isVisible, isFalse);
 
-    await tester.tapAt(const Offset(8, 120));
-    await tester.pumpAndSettle();
-    expect(AiGlobalCloudVisibility.isVisible, isTrue);
-  });
+      await tester.tapAt(const Offset(8, 120));
+      await tester.pumpAndSettle();
+      expect(AiGlobalCloudVisibility.isVisible, isTrue);
+    },
+  );
 
-  testWidgets('cloud slides off and returns on its docked side without reset',
-      (tester) async {
+  testWidgets('cloud slides off and returns on its docked side without reset', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -153,8 +158,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 650));
     await tester.pump(const Duration(milliseconds: 420));
-    final cloudState =
-        tester.state<DraggableAiCloudState>(find.byKey(cloudKey));
+    final cloudState = tester.state<DraggableAiCloudState>(
+      find.byKey(cloudKey),
+    );
 
     // Move the cloud to the opposite edge, then confirm hiding follows the
     // current docking side instead of a fixed default direction.
@@ -192,8 +198,10 @@ void main() {
         .renderObject<RenderBox>(find.byType(AiNeuralCloudOrbWidget).first)
         .localToGlobal(Offset.zero);
     expect(orbPosition.dx, closeTo(dockedPosition, 1));
-    expect(tester.state<DraggableAiCloudState>(find.byKey(cloudKey)),
-        same(cloudState));
+    expect(
+      tester.state<DraggableAiCloudState>(find.byKey(cloudKey)),
+      same(cloudState),
+    );
 
     // The assistant's expanded state remains open across another temporary
     // hide and reveal.
@@ -211,12 +219,15 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(TextField).hitTestable(), findsOneWidget);
-    expect(tester.state<DraggableAiCloudState>(find.byKey(cloudKey)),
-        same(cloudState));
+    expect(
+      tester.state<DraggableAiCloudState>(find.byKey(cloudKey)),
+      same(cloudState),
+    );
   });
 
-  testWidgets('quick chat only captures taps on the visible cloud',
-      (tester) async {
+  testWidgets('quick chat only captures taps on the visible cloud', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(() {
@@ -230,27 +241,36 @@ void main() {
     var backgroundTaps = 0;
     var cloudTaps = 0;
     AiGlobalCloudPresentation.onQuickChatTap = () => cloudTaps++;
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: Stack(children: [
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => backgroundTaps++,
-            ),
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => backgroundTaps++,
+                ),
+              ),
+              const DraggableAiCloud(
+                semanticLabel: 'AI cloud',
+                semanticHint: '',
+                liveliness: 0.3,
+              ),
+            ],
           ),
-          const DraggableAiCloud(
-              semanticLabel: 'AI cloud', semanticHint: '', liveliness: 0.3),
-        ]),
+        ),
       ),
-    ));
+    );
     await tester.pump(const Duration(milliseconds: 1100));
     await tester.pump(const Duration(milliseconds: 500));
 
-    AiGlobalCloudPresentation.quickChatActionCenter.value =
-        const Offset(320, 400);
+    AiGlobalCloudPresentation.quickChatActionCenter.value = const Offset(
+      320,
+      400,
+    );
     AiGlobalCloudPresentation.isAddMenuOpen.value = true;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));

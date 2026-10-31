@@ -62,8 +62,10 @@ class ExerciseLogMask {
   });
 
   /// The shape everything used before `tracking_type` existed.
-  static const ExerciseLogMask weightAndReps =
-      ExerciseLogMask(primary: LogField.weight, secondary: LogField.reps);
+  static const ExerciseLogMask weightAndReps = ExerciseLogMask(
+    primary: LogField.weight,
+    secondary: LogField.reps,
+  );
 
   static const ExerciseLogMask distanceAndDuration = ExerciseLogMask(
     primary: LogField.distance,
@@ -137,15 +139,16 @@ class ExerciseLogMask {
   ExerciseLogMask withSnapshotMode(String? mode) {
     if (mode == null || secondary != LogField.reps) return this;
     return ExerciseLogMask(
-        primary: mode == 'assisted'
-            ? LogField.assistance
-            : (mode == 'bodyweight' || mode == 'weightedBodyweight')
-                ? LogField.addedWeight
-                : primary,
-        secondary: secondary,
-        trackingType: trackingType,
-        loadMode: mode,
-        mechanic: mechanic);
+      primary: mode == 'assisted'
+          ? LogField.assistance
+          : (mode == 'bodyweight' || mode == 'weightedBodyweight')
+          ? LogField.addedWeight
+          : primary,
+      secondary: secondary,
+      trackingType: trackingType,
+      loadMode: mode,
+      mechanic: mechanic,
+    );
   }
 
   /// What a logged number was actually worth, in kilograms.
@@ -171,14 +174,13 @@ class ExerciseLogMask {
     required double? loggedWeightKg,
     required int? reps,
     required double? bodyweightKg,
-  }) =>
-      estimatedOneRepMaxKg(
-        trackingType: trackingType,
-        loadMode: loadMode,
-        loggedWeightKg: loggedWeightKg,
-        reps: reps,
-        bodyweightKg: bodyweightKg,
-      );
+  }) => estimatedOneRepMaxKg(
+    trackingType: trackingType,
+    loadMode: loadMode,
+    loggedWeightKg: loggedWeightKg,
+    reps: reps,
+    bodyweightKg: bodyweightKg,
+  );
 
   bool get showsPrimary => primary != LogField.none;
   bool get showsSecondary => secondary != LogField.none;

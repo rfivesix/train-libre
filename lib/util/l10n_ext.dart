@@ -1,5 +1,6 @@
 // lib/util/l10n_ext.dart
 import 'package:flutter/widgets.dart';
+
 import '../generated/app_localizations.dart';
 
 // Extension on BuildContext for concise localization access.

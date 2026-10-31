@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum TimeframeBlock {
-  day,
-  week,
-  month,
-  threeMonths,
-  sixMonths,
-  year,
-  maxBlock,
-}
+enum TimeframeBlock { day, week, month, threeMonths, sixMonths, year, maxBlock }
 
 extension TimeframeBlockExtension on TimeframeBlock {
   DateTimeRange getBounds(DateTime anchor, DateTime earliest) {
@@ -116,10 +108,7 @@ extension TimeframeBlockExtension on TimeframeBlock {
   DateTimeRange getRollingBounds() {
     final now = DateTime.now();
     if (this == TimeframeBlock.maxBlock) {
-      return DateTimeRange(
-        start: DateTime(2020),
-        end: now,
-      );
+      return DateTimeRange(start: DateTime(2020), end: now);
     }
     if (this == TimeframeBlock.day) {
       return getBounds(now, DateTime(2020));

@@ -73,8 +73,10 @@ class DoubleProgressionEngine {
     final lastSessionDate = sessionLatestDates[lastSessionSets]!;
 
     // Rule 9: Determine baseline working load from the last session.
-    final weights =
-        lastSessionSets.map((s) => s.weight).whereType<double>().toList();
+    final weights = lastSessionSets
+        .map((s) => s.weight)
+        .whereType<double>()
+        .toList();
 
     if (weights.isEmpty) {
       return const ProgressionSuggestion(
@@ -166,10 +168,10 @@ class DoubleProgressionEngine {
     DateTime? now,
   }) {
     ProgressionSuggestion absent(String reason) => ProgressionSuggestion(
-          outcome: ProgressionOutcome.noSuggestion,
-          reason: reason,
-          algorithmVersion: algorithmVersion,
-        );
+      outcome: ProgressionOutcome.noSuggestion,
+      reason: reason,
+      algorithmVersion: algorithmVersion,
+    );
 
     if (positions.isEmpty) return const [];
     if (history.isEmpty) {
@@ -218,7 +220,9 @@ class DoubleProgressionEngine {
     if ((now ?? DateTime.now()).difference(lastSessionDate) >
         const Duration(days: 21)) {
       return List.filled(
-          positions.length, absent(ProgressionReason.breakExceededThreeWeeks));
+        positions.length,
+        absent(ProgressionReason.breakExceededThreeWeeks),
+      );
     }
 
     // A raise is deliberately a whole-exercise decision. We only have enough
@@ -269,15 +273,17 @@ class DoubleProgressionEngine {
       final reason = range == null
           ? ProgressionReason.noRepRange
           : previous.valuesAutoFilled
-              ? ProgressionReason.autoFilledSets
-              : (previous.reps ?? 0) < range.min
-                  ? ProgressionReason.repsBelowRangeMin
-                  : ProgressionReason.repsInRangeNotToppedOut;
+          ? ProgressionReason.autoFilledSets
+          : (previous.reps ?? 0) < range.min
+          ? ProgressionReason.repsBelowRangeMin
+          : ProgressionReason.repsInRangeNotToppedOut;
       return ProgressionSuggestion(
         outcome: ProgressionOutcome.hold,
         targetWeight: previous.weight,
-        targetReps:
-            nextSuggestedReps(previousReps: previous.reps, range: range),
+        targetReps: nextSuggestedReps(
+          previousReps: previous.reps,
+          range: range,
+        ),
         reason: reason,
         algorithmVersion: algorithmVersion,
       );
@@ -292,14 +298,13 @@ ProgressionSuggestion nextPrescription({
   required LoadIncrement increment,
   required LoadMode loadMode,
   DateTime? now,
-}) =>
-    DoubleProgressionEngine.nextPrescription(
-      history: history,
-      range: range,
-      increment: increment,
-      loadMode: loadMode,
-      now: now,
-    );
+}) => DoubleProgressionEngine.nextPrescription(
+  history: history,
+  range: range,
+  increment: increment,
+  loadMode: loadMode,
+  now: now,
+);
 
 /// Position-aware progression used by the live-workout flow.
 List<ProgressionSuggestion> nextPrescriptions({
@@ -308,11 +313,10 @@ List<ProgressionSuggestion> nextPrescriptions({
   required LoadIncrement increment,
   required LoadMode loadMode,
   DateTime? now,
-}) =>
-    DoubleProgressionEngine.nextPrescriptions(
-      history: history,
-      positions: positions,
-      increment: increment,
-      loadMode: loadMode,
-      now: now,
-    );
+}) => DoubleProgressionEngine.nextPrescriptions(
+  history: history,
+  positions: positions,
+  increment: increment,
+  loadMode: loadMode,
+  now: now,
+);

@@ -1,10 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Entry trigger describing how the app tour should start.
-enum AppTourEntryPoint {
-  postOnboardingOffer,
-  settingsRestart,
-}
+enum AppTourEntryPoint { postOnboardingOffer, settingsRestart }
 
 /// Persisted progress metadata for the lightweight app tour.
 class AppTourProgress {

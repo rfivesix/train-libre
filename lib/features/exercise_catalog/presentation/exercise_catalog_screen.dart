@@ -1,9 +1,11 @@
 // lib/features/exercise_catalog/presentation/exercise_catalog_screen.dart
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/exercise.dart';
@@ -15,7 +17,9 @@ import 'create_exercise_screen.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/morph_source.dart';
 import '../../../widgets/common/glass_fab.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -80,8 +84,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   bool _isWgerDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final initialized = await BasisDataManager.instance
+        .isExerciseCatalogInitialized();
     if (mounted) {
       setState(() {
         _isWgerDbInitialized = initialized;
@@ -259,86 +263,82 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _foundExercises.isEmpty
-                        ? Center(
-                            child: Text(
-                              _onlyPerformed
-                                  ? l10n.noTrainedExercisesFound
-                                  : l10n.noExercisesFound,
-                              style: textTheme.titleMedium,
-                            ),
-                          )
-                        : ListView.builder(
-                            scrollCacheExtent: const ScrollCacheExtent.pixels(
-                              1500.0,
-                            ),
-                            padding: DesignConstants.cardPadding,
-                            itemCount: _foundExercises.length,
-                            itemBuilder: (context, index) {
-                              final exercise = _foundExercises[index];
-                              return MorphSourceScope(
-                                builder: (context, setHidden) => Builder(
-                                  builder: (cardCtx) {
-                                    // Handed to the morph route as the copy that flies with
-                                    // the container, so the card dissolves into the detail
-                                    // screen instead of the screen simply growing.
-                                    late final Widget card;
-                                    card = SummaryCard(
-                                      child: ListTile(
-                                        contentPadding: EdgeInsets.zero,
-                                        title: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                exercise
-                                                    .getLocalizedName(context),
-                                                style: textTheme.titleMedium
-                                                    ?.copyWith(
+                    ? Center(
+                        child: Text(
+                          _onlyPerformed
+                              ? l10n.noTrainedExercisesFound
+                              : l10n.noExercisesFound,
+                          style: textTheme.titleMedium,
+                        ),
+                      )
+                    : ListView.builder(
+                        scrollCacheExtent: const ScrollCacheExtent.pixels(
+                          1500.0,
+                        ),
+                        padding: DesignConstants.cardPadding,
+                        itemCount: _foundExercises.length,
+                        itemBuilder: (context, index) {
+                          final exercise = _foundExercises[index];
+                          return MorphSourceScope(
+                            builder: (context, setHidden) => Builder(
+                              builder: (cardCtx) {
+                                // Handed to the morph route as the copy that flies with
+                                // the container, so the card dissolves into the detail
+                                // screen instead of the screen simply growing.
+                                late final Widget card;
+                                card = SummaryCard(
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            exercise.getLocalizedName(context),
+                                            style: textTheme.titleMedium
+                                                ?.copyWith(
                                                   fontWeight: FontWeight.w700,
                                                 ),
-                                              ),
-                                            ),
-                                            if (exercise.source == 'user') ...[
-                                              const SizedBox(
-                                                width: DesignConstants.spacingS,
-                                              ),
-                                              _buildSourceBadge(
-                                                context,
-                                                exercise.source,
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                        subtitle: Text(
-                                          _buildSubtitleText(
-                                            context,
-                                            exercise,
-                                            l10n,
                                           ),
-                                          style: textTheme.bodyMedium,
                                         ),
-                                        trailing: widget.isSelectionMode
-                                            ? IconButton(
-                                                tooltip: l10n.add_button,
-                                                icon: Icon(
-                                                  LucideIcons.circle_plus,
-                                                  color: colorScheme.primary,
-                                                ),
-                                                onPressed: () => Navigator.of(
-                                                  context,
-                                                ).pop(exercise),
-                                              )
-                                            : const Icon(
-                                                LucideIcons.chevron_right),
-                                        onTap: () {
-                                          if (widget.onExerciseSelected !=
-                                              null) {
-                                            widget
-                                                .onExerciseSelected!(exercise);
-                                          } else if (widget.isSelectionMode) {
-                                            Navigator.of(context).pop(exercise);
-                                          } else {
-                                            Navigator.of(context)
-                                                .push(
+                                        if (exercise.source == 'user') ...[
+                                          const SizedBox(
+                                            width: DesignConstants.spacingS,
+                                          ),
+                                          _buildSourceBadge(
+                                            context,
+                                            exercise.source,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    subtitle: Text(
+                                      _buildSubtitleText(
+                                        context,
+                                        exercise,
+                                        l10n,
+                                      ),
+                                      style: textTheme.bodyMedium,
+                                    ),
+                                    trailing: widget.isSelectionMode
+                                        ? IconButton(
+                                            tooltip: l10n.add_button,
+                                            icon: Icon(
+                                              LucideIcons.circle_plus,
+                                              color: colorScheme.primary,
+                                            ),
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(exercise),
+                                          )
+                                        : const Icon(LucideIcons.chevron_right),
+                                    onTap: () {
+                                      if (widget.onExerciseSelected != null) {
+                                        widget.onExerciseSelected!(exercise);
+                                      } else if (widget.isSelectionMode) {
+                                        Navigator.of(context).pop(exercise);
+                                      } else {
+                                        Navigator.of(context)
+                                            .push(
                                               CardMorphRoute(
                                                 sourceContext: cardCtx,
                                                 sourceBuilder: (_) => card,
@@ -346,28 +346,28 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                     setHidden,
                                                 builder: (context) =>
                                                     ExerciseDetailScreen(
-                                                  exercise: exercise,
-                                                  repository: _repository,
-                                                ),
+                                                      exercise: exercise,
+                                                      repository: _repository,
+                                                    ),
                                               ),
                                             )
-                                                .then((result) {
+                                            .then((result) {
                                               if (result == 'deleted') {
                                                 _runFilter(
                                                   _searchController.text,
                                                 );
                                               }
                                             });
-                                          }
-                                        },
-                                      ),
-                                    );
-                                    return card;
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                                      }
+                                    },
+                                  ),
+                                );
+                                return card;
+                              },
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -397,33 +397,34 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                 child: Builder(
                   builder: (fabCtx) {
                     Widget buildFab({VoidCallback? onPressed}) => GlassFab(
-                          label: l10n.create_exercise_screen_title,
-                          onPressed: onPressed ?? () {},
-                        );
+                      label: l10n.create_exercise_screen_title,
+                      onPressed: onPressed ?? () {},
+                    );
 
                     return GlassFab(
                       label: l10n.create_exercise_screen_title,
                       onPressed: () {
                         Navigator.of(context)
                             .push(
-                          CardMorphRoute(
-                            sourceContext: fabCtx,
-                            sourceBorderRadius: 28.0,
-                            sourceBuilder: (_) => buildFab(),
-                            onSourceVisibilityChanged: (hidden) {
-                              if (mounted) {
-                                setState(() => _isFabHidden = hidden);
-                              }
-                            },
-                            builder: (context) =>
-                                CreateExerciseScreen(repository: _repository),
-                          ),
-                        )
+                              CardMorphRoute(
+                                sourceContext: fabCtx,
+                                sourceBorderRadius: 28.0,
+                                sourceBuilder: (_) => buildFab(),
+                                onSourceVisibilityChanged: (hidden) {
+                                  if (mounted) {
+                                    setState(() => _isFabHidden = hidden);
+                                  }
+                                },
+                                builder: (context) => CreateExerciseScreen(
+                                  repository: _repository,
+                                ),
+                              ),
+                            )
                             .then((wasCreated) {
-                          if (wasCreated == true) {
-                            _runFilter(_searchController.text);
-                          }
-                        });
+                              if (wasCreated == true) {
+                                _runFilter(_searchController.text);
+                              }
+                            });
                       },
                     );
                   },
@@ -437,7 +438,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   Widget _buildFilterButton(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final activeCount = _selectedCategories.length +
+    final activeCount =
+        _selectedCategories.length +
         _selectedEquipment.length +
         _selectedUsageTags.length +
         _selectedDifficulties.length +
@@ -449,12 +451,13 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final fillColor = hasFilter
         ? colorScheme.primary
         : (theme.inputDecorationTheme.fillColor ??
-            (theme.brightness == Brightness.dark
-                ? const Color(0xFF2C2C2E)
-                : const Color(0xFFF3F3F3)));
+              (theme.brightness == Brightness.dark
+                  ? const Color(0xFF2C2C2E)
+                  : const Color(0xFFF3F3F3)));
 
-    final iconColor =
-        hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
+    final iconColor = hasFilter
+        ? colorScheme.onPrimary
+        : colorScheme.onSurfaceVariant;
 
     return Tooltip(
       message: l10n.catalogFilterTitle,

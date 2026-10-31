@@ -49,13 +49,13 @@ class _ReloadingScreenState extends State<_ReloadingScreen> {
                 // Deliberately closes over the card's own context, the way the
                 // hub screens' card builders do.
                 Widget copy() => SizedBox(
-                      width: 100,
-                      height: 60,
-                      child: ColoredBox(
-                        color: Theme.of(cardCtx).colorScheme.surface,
-                        child: const Text('card'),
-                      ),
-                    );
+                  width: 100,
+                  height: 60,
+                  child: ColoredBox(
+                    color: Theme.of(cardCtx).colorScheme.surface,
+                    child: const Text('card'),
+                  ),
+                );
 
                 return GestureDetector(
                   onTap: () {
@@ -83,8 +83,9 @@ class _ReloadingScreenState extends State<_ReloadingScreen> {
 }
 
 void main() {
-  testWidgets('keeps flying the source copy after the screen below reloads',
-      (tester) async {
+  testWidgets('keeps flying the source copy after the screen below reloads', (
+    tester,
+  ) async {
     await tester.pumpWidget(const MaterialApp(home: _ReloadingScreen()));
     await tester.pumpAndSettle();
     expect(find.text('card'), findsOneWidget);

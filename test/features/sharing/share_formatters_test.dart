@@ -30,8 +30,10 @@ void main() {
 
   group('WorkoutShareFormatter', () {
     test('formats weighted workout with normal per-set lines and volume', () {
-      final formatter =
-          WorkoutShareFormatter(english, unitService: UnitService());
+      final formatter = WorkoutShareFormatter(
+        english,
+        unitService: UnitService(),
+      );
       final text = formatter.format(
         _workout([
           _set('Bench Press', weightKg: 80, reps: 8),
@@ -51,8 +53,10 @@ void main() {
     });
 
     test('formats warm-up and failure sets as suffixes', () {
-      final formatter =
-          WorkoutShareFormatter(german, unitService: UnitService());
+      final formatter = WorkoutShareFormatter(
+        german,
+        unitService: UnitService(),
+      );
       final text = formatter.format(
         _workout([
           _set('Leg Curl', setType: 'warmup', weightKg: 45, reps: 13),
@@ -67,8 +71,10 @@ void main() {
     });
 
     test('formats dropsets as suffixes', () {
-      final formatter =
-          WorkoutShareFormatter(english, unitService: UnitService());
+      final formatter = WorkoutShareFormatter(
+        english,
+        unitService: UnitService(),
+      );
       final text = formatter.format(
         _workout([_set('Curl', setType: 'dropset', weightKg: 20, reps: 12)]),
       );
@@ -77,20 +83,26 @@ void main() {
     });
 
     test('prefixes grouped workout blocks with superset member labels', () {
-      final formatter =
-          WorkoutShareFormatter(english, unitService: UnitService());
-      final text = formatter.format(_workout([
-        _set('Bench Press', block: 0, supersetGroup: 7, order: 0),
-        _set('Row', block: 1, supersetGroup: 7, order: 1),
-      ]));
+      final formatter = WorkoutShareFormatter(
+        english,
+        unitService: UnitService(),
+      );
+      final text = formatter.format(
+        _workout([
+          _set('Bench Press', block: 0, supersetGroup: 7, order: 0),
+          _set('Row', block: 1, supersetGroup: 7, order: 1),
+        ]),
+      );
 
       expect(text, contains('A1 · Bench Press'));
       expect(text, contains('A2 · Row'));
     });
 
     test('handles bodyweight/no-weight sets as reps only', () {
-      final formatter =
-          WorkoutShareFormatter(german, unitService: UnitService());
+      final formatter = WorkoutShareFormatter(
+        german,
+        unitService: UnitService(),
+      );
       final text = formatter.format(_workout([_set('Push-up', reps: 20)]));
 
       expect(text, contains('Set 1: 20 Wdh'));
@@ -98,8 +110,10 @@ void main() {
     });
 
     test('handles cardio distance and duration cleanly', () {
-      final formatter =
-          WorkoutShareFormatter(german, unitService: UnitService());
+      final formatter = WorkoutShareFormatter(
+        german,
+        unitService: UnitService(),
+      );
       final text = formatter.format(
         _workout([
           _set(
@@ -115,8 +129,10 @@ void main() {
     });
 
     test('truncates long image exercise list outside UI', () {
-      final formatter =
-          WorkoutShareFormatter(english, unitService: UnitService());
+      final formatter = WorkoutShareFormatter(
+        english,
+        unitService: UnitService(),
+      );
       final workout = _workout(
         List.generate(
           8,
@@ -129,22 +145,18 @@ void main() {
     });
 
     test('builds muscle volume summaries from exercise muscles', () {
-      final formatter =
-          WorkoutShareFormatter(english, unitService: UnitService());
+      final formatter = WorkoutShareFormatter(
+        english,
+        unitService: UnitService(),
+      );
       final workout = _workout([
         _set('Row', weightKg: 80, reps: 10),
         _set('Curl', weightKg: 20, reps: 10, order: 2),
       ]);
-      final muscles = formatter.muscleVolumeSummaries(
-        workout,
-        {
-          'Row': _exercise(
-            'Row',
-            primaryMuscles: const ['Lats', 'Upper Back'],
-          ),
-          'Curl': _exercise('Curl', primaryMuscles: const ['Biceps']),
-        },
-      );
+      final muscles = formatter.muscleVolumeSummaries(workout, {
+        'Row': _exercise('Row', primaryMuscles: const ['Lats', 'Upper Back']),
+        'Curl': _exercise('Curl', primaryMuscles: const ['Biceps']),
+      });
 
       expect(muscles.map((m) => m.name), containsAll(['Lats', 'Upper Back']));
       expect(muscles.first.formattedVolume, '800 kg');
@@ -197,10 +209,7 @@ void main() {
 
       expect(text, contains('- 2 Aufwärmsätze x 15–20 Wdh'));
       expect(text, contains('- 1 Arbeitssatz x 8–12 Wdh'));
-      expect(
-        text,
-        contains('- 3 Sätze bis zum Muskelversagen x 10–15 Wdh'),
-      );
+      expect(text, contains('- 3 Sätze bis zum Muskelversagen x 10–15 Wdh'));
       expect(text, contains('Geteilt mit Train Libre'));
       expect(text, contains('https://github.com/rfivesix/train-libre'));
     });
@@ -221,13 +230,15 @@ void main() {
 
     test('prefixes grouped routine exercises with member labels', () {
       final formatter = RoutineShareFormatter(english);
-      final text = formatter.format(Routine(
-        name: 'Upper',
-        exercises: [
-          _routineExercise('Bench Press', [], supersetGroup: 2),
-          _routineExercise('Row', [], supersetGroup: 2),
-        ],
-      ));
+      final text = formatter.format(
+        Routine(
+          name: 'Upper',
+          exercises: [
+            _routineExercise('Bench Press', [], supersetGroup: 2),
+            _routineExercise('Row', [], supersetGroup: 2),
+          ],
+        ),
+      );
 
       expect(text, contains('A1 · Bench Press'));
       expect(text, contains('A2 · Row'));
@@ -386,10 +397,7 @@ RoutineExercise _routineExercise(
   );
 }
 
-Exercise _exercise(
-  String name, {
-  List<String> primaryMuscles = const [],
-}) {
+Exercise _exercise(String name, {List<String> primaryMuscles = const []}) {
   return Exercise(
     texts: {
       'de': ExerciseText(name: name, description: ''),

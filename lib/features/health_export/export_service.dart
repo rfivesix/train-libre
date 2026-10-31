@@ -3,8 +3,11 @@ import 'data/health_export_data_source.dart';
 import 'data/health_export_identity_store.dart';
 import 'data/health_export_status_store.dart';
 import 'models/export_models.dart';
+
 import 'dart:async';
+
 import 'package:flutter/services.dart';
+
 import '../../services/telemetry/telemetry_service.dart';
 
 class HealthExportResult {
@@ -34,10 +37,10 @@ class HealthExportService {
     HealthExportDataSource? dataSource,
     HealthExportStatusStore? statusStore,
     HealthExportIdentityStore? identityStore,
-  })  : _adapters = {for (final adapter in adapters) adapter.platform: adapter},
-        _dataSource = dataSource ?? HealthExportDataSource(),
-        _statusStore = statusStore ?? HealthExportStatusStore(),
-        _identityStore = identityStore ?? HealthExportIdentityStore();
+  }) : _adapters = {for (final adapter in adapters) adapter.platform: adapter},
+       _dataSource = dataSource ?? HealthExportDataSource(),
+       _statusStore = statusStore ?? HealthExportStatusStore(),
+       _identityStore = identityStore ?? HealthExportIdentityStore();
 
   final Map<HealthExportPlatform, HealthExportAdapter> _adapters;
   final HealthExportDataSource _dataSource;
@@ -167,8 +170,8 @@ class HealthExportService {
     final checkpoints = _domainIncrementalCheckpoints(platformStatus);
     final healthConnectWorkoutBackfillPending =
         platform == HealthExportPlatform.healthConnect &&
-            await _statusStore.getHealthConnectWorkoutPayloadVersion() <
-                HealthExportStatusStore.healthConnectWorkoutPayloadVersion;
+        await _statusStore.getHealthConnectWorkoutPayloadVersion() <
+            HealthExportStatusStore.healthConnectWorkoutPayloadVersion;
     // Advance successful checkpoints only to the instant before the payload
     // snapshot. Mutations arriving while native writes are in flight then stay
     // eligible for the coordinator's queued rerun instead of being skipped.
@@ -212,7 +215,8 @@ class HealthExportService {
     );
     final workoutsPayload = await _dataSource.loadWorkouts(
       options: HealthExportLoadOptions(
-        lookbackDays: healthConnectWorkoutBackfillPending ||
+        lookbackDays:
+            healthConnectWorkoutBackfillPending ||
                 checkpoints[HealthExportDomain.workouts] == null
             ? null
             : lookbackDays,
@@ -247,8 +251,8 @@ class HealthExportService {
         );
         final writeable = platform == HealthExportPlatform.healthConnect
             ? pending
-                .where((record) => record.type != ExportMeasurementType.bmi)
-                .toList(growable: false)
+                  .where((record) => record.type != ExportMeasurementType.bmi)
+                  .toList(growable: false)
             : pending;
         // Android Health Connect currently does not support BMI in this writer path.
         for (final batch in _chunkRecords(writeable)) {
@@ -459,18 +463,20 @@ class HealthExportService {
     final message = success
         ? null
         : domainOutcomes.entries
-            .where((entry) => !entry.value.success)
-            .map(
-              (entry) =>
-                  '${entry.key.name} failed${entry.value.error == null ? '' : ': ${entry.value.error}'}',
-            )
-            .join(' | ');
+              .where((entry) => !entry.value.success)
+              .map(
+                (entry) =>
+                    '${entry.key.name} failed${entry.value.error == null ? '' : ': ${entry.value.error}'}',
+              )
+              .join(' | ');
     if (success) {
-      unawaited(TelemetryService.instance.trackFeatureUsed(
-        featureKey: platform == HealthExportPlatform.appleHealth
-            ? FeatureKey.appleHealthExported
-            : FeatureKey.healthConnectExported,
-      ));
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: platform == HealthExportPlatform.appleHealth
+              ? FeatureKey.appleHealthExported
+              : FeatureKey.healthConnectExported,
+        ),
+      );
     }
     return HealthExportResult(
       platform: platform,

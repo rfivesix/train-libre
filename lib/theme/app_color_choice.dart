@@ -18,10 +18,7 @@ Color constrainCustomAppColor(Color color) {
   return hsv
       .withValue(
         hsv.value
-            .clamp(
-              customAppColorMinBrightness,
-              customAppColorMaxBrightness,
-            )
+            .clamp(customAppColorMinBrightness, customAppColorMaxBrightness)
             .toDouble(),
       )
       .toColor();
@@ -89,7 +86,9 @@ extension AppColorChoiceColors on AppColorChoice {
   }
 
   static Color _seededPrimary(Color seed, Brightness brightness) {
-    return ColorScheme.fromSeed(seedColor: seed, brightness: brightness)
-        .primary;
+    return ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: brightness,
+    ).primary;
   }
 }

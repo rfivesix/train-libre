@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/health/workout_heart_rate_models.dart';
 import '../../../analytics/domain/models/chart_data_point.dart';
@@ -45,9 +47,7 @@ class WorkoutHeartRateSection extends StatelessWidget {
             children: [
               Text(
                 l10n.workoutHeartRateSectionTitle,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
+                style: Theme.of(context).textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
@@ -98,9 +98,8 @@ class WorkoutHeartRateSection extends StatelessWidget {
               summary.quality == WorkoutHeartRateDataQuality.insufficient
                   ? l10n.workoutHeartRateLimitedChartHint
                   : _heartRateNoDataMessage(l10n, summary.noDataReason),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
           ),
         const SizedBox(height: DesignConstants.spacingS),
@@ -110,9 +109,8 @@ class WorkoutHeartRateSection extends StatelessWidget {
           ),
           child: Text(
             '${l10n.workoutHeartRateSampleCount(summary.sampleCount)} • ${_heartRateQualityLabel(l10n, summary.quality)}',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: Theme.of(context).colorScheme.outline),
           ),
         ),
       ],

@@ -47,7 +47,10 @@ class CloudOverlayLayout {
   });
 
   Offset handlePosition(
-      Offset corner, Offset direction, MediaQueryData mediaQuery) {
+    Offset corner,
+    Offset direction,
+    MediaQueryData mediaQuery,
+  ) {
     const handleOutset = 44.0;
     return Offset(
       (corner.dx + direction.dx * handleOutset)
@@ -124,23 +127,18 @@ class CloudDockingController extends ChangeNotifier {
     _initialDockStartTimer = null;
   }
 
-  void scheduleInitialDockIfNeeded({
-    required bool isExpanded,
-  }) {
+  void scheduleInitialDockIfNeeded({required bool isExpanded}) {
     if (_initialDockScheduled) return;
     _initialDockScheduled = true;
-    _initialDockStartTimer = Timer(
-      const Duration(milliseconds: 650),
-      () {
-        _initialDockStartTimer = null;
-        if (!_isDisposed &&
-            !isExpanded &&
-            !_isDragging &&
-            _horizontalPosition == null) {
-          _initialDockController.forward();
-        }
-      },
-    );
+    _initialDockStartTimer = Timer(const Duration(milliseconds: 650), () {
+      _initialDockStartTimer = null;
+      if (!_isDisposed &&
+          !isExpanded &&
+          !_isDragging &&
+          _horizontalPosition == null) {
+        _initialDockController.forward();
+      }
+    });
   }
 
   void handleDragStart({
@@ -166,25 +164,25 @@ class CloudDockingController extends ChangeNotifier {
     if (horizontalTravelDistance <= 0 && verticalTravelDistance <= 0) return;
 
     if (horizontalTravelDistance > 0) {
-      _horizontalPosition = ((_horizontalPosition ?? 0.0) +
-              details.delta.dx / horizontalTravelDistance)
-          .clamp(0.0, 1.0)
-          .toDouble();
+      _horizontalPosition =
+          ((_horizontalPosition ?? 0.0) +
+                  details.delta.dx / horizontalTravelDistance)
+              .clamp(0.0, 1.0)
+              .toDouble();
     }
     if (verticalTravelDistance > 0) {
-      _verticalPosition = ((_verticalPosition ?? 0.0) -
-              details.delta.dy / verticalTravelDistance)
-          .clamp(0.0, 1.0)
-          .toDouble();
+      _verticalPosition =
+          ((_verticalPosition ?? 0.0) -
+                  details.delta.dy / verticalTravelDistance)
+              .clamp(0.0, 1.0)
+              .toDouble();
     }
-    _rotationRadians = (_rotationRadians +
-            (details.delta.dx + details.delta.dy * 0.35) * 0.0024)
-        .clamp(-0.16, 0.16)
-        .toDouble();
-    final movement = math.max(
-      details.delta.dx.abs(),
-      details.delta.dy.abs(),
-    );
+    _rotationRadians =
+        (_rotationRadians +
+                (details.delta.dx + details.delta.dy * 0.35) * 0.0024)
+            .clamp(-0.16, 0.16)
+            .toDouble();
+    final movement = math.max(details.delta.dx.abs(), details.delta.dy.abs());
     _scale = 1.035 + math.min(movement / 1000, 0.025).toDouble();
     notifyListeners();
   }
@@ -225,8 +223,9 @@ class CloudDockingController extends ChangeNotifier {
 
     switch (corner) {
       case SafeSpaceCorner.topLeft:
-        _safeLeft =
-            (_safeLeft + dx).clamp(edgeInset, _safeRight - minWidth).toDouble();
+        _safeLeft = (_safeLeft + dx)
+            .clamp(edgeInset, _safeRight - minWidth)
+            .toDouble();
         _safeTop = (_safeTop + dy)
             .clamp(edgeInset, _safeBottom - minHeight)
             .toDouble();
@@ -238,8 +237,9 @@ class CloudDockingController extends ChangeNotifier {
             .clamp(edgeInset, _safeBottom - minHeight)
             .toDouble();
       case SafeSpaceCorner.bottomLeft:
-        _safeLeft =
-            (_safeLeft + dx).clamp(edgeInset, _safeRight - minWidth).toDouble();
+        _safeLeft = (_safeLeft + dx)
+            .clamp(edgeInset, _safeRight - minWidth)
+            .toDouble();
         _safeBottom = (_safeBottom + dy)
             .clamp(_safeTop + minHeight, 1 - edgeInset)
             .toDouble();
@@ -293,7 +293,8 @@ class CloudDockingController extends ChangeNotifier {
     final dockProgress = Curves.easeOutCubic.transform(
       _initialDockController.value,
     );
-    final requestedPosition = _horizontalPosition ??
+    final requestedPosition =
+        _horizontalPosition ??
         (defaultPosition + (0.0 - defaultPosition) * dockProgress);
     final requestedLeft = minLeft + requestedPosition * travelDistance;
 
@@ -302,12 +303,12 @@ class CloudDockingController extends ChangeNotifier {
     final isDockedRight = requestedLeft >= maxLeft - 8;
     final left =
         hasAttentionState && !attentionPeekDismissed && width > cloudSize
-            ? isDockedLeft
-                ? -attentionPeekInset
-                : isDockedRight
-                    ? width - cloudSize + attentionPeekInset
-                    : requestedLeft
-            : requestedLeft;
+        ? isDockedLeft
+              ? -attentionPeekInset
+              : isDockedRight
+              ? width - cloudSize + attentionPeekInset
+              : requestedLeft
+        : requestedLeft;
 
     final position = travelDistance == 0
         ? 0.0
@@ -319,10 +320,12 @@ class CloudDockingController extends ChangeNotifier {
         mediaQuery.padding.top + kToolbarHeight + DesignConstants.spacingS;
     final bottomInset = mediaQuery.padding.bottom + DesignConstants.spacingL;
 
-    final minTop =
-        math.min(topBoundary - topVisualInset, viewportHeight).toDouble();
-    final maxTop =
-        math.max(minTop, viewportHeight - bottomInset - cloudSize).toDouble();
+    final minTop = math
+        .min(topBoundary - topVisualInset, viewportHeight)
+        .toDouble();
+    final maxTop = math
+        .max(minTop, viewportHeight - bottomInset - cloudSize)
+        .toDouble();
     final verticalTravelDistance = math.max(0.0, maxTop - minTop).toDouble();
     final verticalPos = (_verticalPosition ?? 0.0).clamp(0.0, 1.0).toDouble();
     final top = maxTop - verticalPos * verticalTravelDistance;
@@ -341,8 +344,11 @@ class CloudDockingController extends ChangeNotifier {
       panelRect.top + panelRect.height * _safeBottom,
     );
     final fullscreenRect = Rect.fromLTRB(0, 0, width, viewportHeight);
-    final activeSafeRect =
-        Rect.lerp(safeRect, fullscreenRect, fullscreenProgress)!;
+    final activeSafeRect = Rect.lerp(
+      safeRect,
+      fullscreenRect,
+      fullscreenProgress,
+    )!;
     final cloudCenter = Offset(left + cloudSize / 2, top + cloudSize / 2);
 
     return CloudOverlayLayout(

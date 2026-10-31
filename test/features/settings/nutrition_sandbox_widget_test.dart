@@ -8,8 +8,9 @@ import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/unit_service.dart';
 
 void main() {
-  testWidgets('screen preview follows sandbox changes and stays read-only',
-      (tester) async {
+  testWidgets('screen preview follows sandbox changes and stays read-only', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -41,8 +42,9 @@ void main() {
     await tester.tap(find.text('Review-Screen öffnen'));
     await tester.pumpAndSettle();
 
-    final plateau = CanonicalNutritionScenarios.all
-        .firstWhere((scenario) => scenario.id == 'behind_plateau');
+    final plateau = CanonicalNutritionScenarios.all.firstWhere(
+      (scenario) => scenario.id == 'behind_plateau',
+    );
     plateau.applyToSandbox(sandbox);
     await tester.pumpAndSettle();
 
@@ -55,19 +57,25 @@ void main() {
     await tester.tap(find.text('Apply targets'));
     await tester.pumpAndSettle();
     expect(
-        find.text('Sandbox preview: no changes were saved.'), findsOneWidget);
+      find.text('Sandbox preview: no changes were saved.'),
+      findsOneWidget,
+    );
     expect(sandbox.currentCalories, 2100);
 
     await tester.tap(find.text('Adjust weekly rate'));
     await tester.pumpAndSettle();
     expect(
-        find.text('Sandbox preview: no changes were saved.'), findsOneWidget);
+      find.text('Sandbox preview: no changes were saved.'),
+      findsOneWidget,
+    );
     expect(sandbox.currentCalories, 2100);
 
     await tester.tap(find.text('Change target date'));
     await tester.pumpAndSettle();
     expect(
-        find.text('Sandbox preview: no changes were saved.'), findsOneWidget);
+      find.text('Sandbox preview: no changes were saved.'),
+      findsOneWidget,
+    );
     expect(sandbox.currentCalories, 2100);
   });
 }

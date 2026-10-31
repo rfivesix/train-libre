@@ -12,13 +12,13 @@ import 'package:train_libre/services/unit_service.dart';
 /// nowhere: a plank had a column headed "Reps" over a duration picker and a
 /// history reading "0kg × 0".
 Exercise _exercise({String? trackingType, String? loadMode}) => Exercise(
-      texts: const {'en': ExerciseText(name: 'Test')},
-      categoryName: 'Abs',
-      primaryMuscles: const [],
-      secondaryMuscles: const [],
-      trackingType: trackingType,
-      loadMode: loadMode,
-    );
+  texts: const {'en': ExerciseText(name: 'Test')},
+  categoryName: 'Abs',
+  primaryMuscles: const [],
+  secondaryMuscles: const [],
+  trackingType: trackingType,
+  loadMode: loadMode,
+);
 
 SetLog _set({double? weightKg, int? reps, int? durationSeconds, double? km}) =>
     SetLog(
@@ -53,20 +53,22 @@ void main() {
   String? primary(String? trackingType, {String? loadMode}) =>
       LogMaskLabels.primaryHeader(
         ExerciseLogMask.forExercise(
-            _exercise(trackingType: trackingType, loadMode: loadMode)),
+          _exercise(trackingType: trackingType, loadMode: loadMode),
+        ),
         l10n,
         unitService,
       );
 
   String? secondary(String? trackingType) => LogMaskLabels.secondaryHeader(
-        ExerciseLogMask.forExercise(_exercise(trackingType: trackingType)),
-        l10n,
-      );
+    ExerciseLogMask.forExercise(_exercise(trackingType: trackingType)),
+    l10n,
+  );
 
   String last(String? trackingType, SetLog? setLog, {String? loadMode}) =>
       LogMaskLabels.lastPerformance(
         ExerciseLogMask.forExercise(
-            _exercise(trackingType: trackingType, loadMode: loadMode)),
+          _exercise(trackingType: trackingType, loadMode: loadMode),
+        ),
         setLog,
         l10n,
         unitService,
@@ -127,22 +129,29 @@ void main() {
       expect(last('bodyweight_reps', _set(reps: 10)), '10 ${l10n.repsLabel}');
     });
 
-    test('a timed set is a duration, with no kg and no multiplication sign',
-        () {
-      final text = last('time', _set(durationSeconds: 120));
-      expect(text, '02:00');
-      expect(text, isNot(contains('kg')));
-      expect(text, isNot(contains('×')));
-    });
+    test(
+      'a timed set is a duration, with no kg and no multiplication sign',
+      () {
+        final text = last('time', _set(durationSeconds: 120));
+        expect(text, '02:00');
+        expect(text, isNot(contains('kg')));
+        expect(text, isNot(contains('×')));
+      },
+    );
 
     test('a run reads as distance and duration, joined by a dot', () {
-      final text =
-          last('distance_time', _set(km: 5, durationSeconds: 28 * 60 + 14));
+      final text = last(
+        'distance_time',
+        _set(km: 5, durationSeconds: 28 * 60 + 14),
+      );
       expect(text, contains('5.0'));
       expect(text, contains('28:14'));
       expect(text, contains('·'));
-      expect(text, isNot(contains('×')),
-          reason: 'distance and time do not multiply');
+      expect(
+        text,
+        isNot(contains('×')),
+        reason: 'distance and time do not multiply',
+      );
     });
 
     test('an assisted set shows the assistance as a subtraction', () {

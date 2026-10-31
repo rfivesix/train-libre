@@ -62,14 +62,14 @@ void main() {
       return MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: child,
-        ),
+        home: Scaffold(body: child),
       );
     }
 
-    NutritionRecommendation createRecommendation(
-        {required int calories, required String dueWeekKey}) {
+    NutritionRecommendation createRecommendation({
+      required int calories,
+      required String dueWeekKey,
+    }) {
       return NutritionRecommendation(
         recommendedCalories: calories,
         recommendedProteinGrams: 180,
@@ -117,10 +117,12 @@ void main() {
 
     testWidgets('does not render if no recommendation exists', (tester) async {
       await tester.pumpWidget(
-        buildTestableWidget(RecommendationBanner(
-          currentCalories: 2400,
-          recommendationService: recommendationService,
-        )),
+        buildTestableWidget(
+          RecommendationBanner(
+            currentCalories: 2400,
+            recommendationService: recommendationService,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.byType(RecommendationBanner), findsOneWidget);
@@ -141,17 +143,21 @@ void main() {
       );
 
       await tester.pumpWidget(
-        buildTestableWidget(RecommendationBanner(
-          currentCalories: 2400,
-          recommendationService: recommendationService,
-        )),
+        buildTestableWidget(
+          RecommendationBanner(
+            currentCalories: 2400,
+            recommendationService: recommendationService,
+          ),
+        ),
       );
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
       expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
-      expect(find.textContaining('New targets available (+200 kcal).'),
-          findsOneWidget);
+      expect(
+        find.textContaining('New targets available (+200 kcal).'),
+        findsOneWidget,
+      );
       expect(find.text('Apply'), findsOneWidget);
     });
 
@@ -169,22 +175,27 @@ void main() {
       );
 
       await tester.pumpWidget(
-        buildTestableWidget(RecommendationBanner(
-          currentCalories: 2400,
-          recommendationService: recommendationService,
-        )),
+        buildTestableWidget(
+          RecommendationBanner(
+            currentCalories: 2400,
+            recommendationService: recommendationService,
+          ),
+        ),
       );
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
       expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
-      expect(find.textContaining('New targets available (-120 kcal).'),
-          findsOneWidget);
+      expect(
+        find.textContaining('New targets available (-120 kcal).'),
+        findsOneWidget,
+      );
       expect(find.text('Apply'), findsOneWidget);
     });
 
-    testWidgets('Apply button updates database targets and collapses banner',
-        (tester) async {
+    testWidgets('Apply button updates database targets and collapses banner', (
+      tester,
+    ) async {
       final rec = createRecommendation(calories: 2600, dueWeekKey: '2026-W22');
       final est = createEstimate(dueWeekKey: '2026-W22');
 
@@ -198,10 +209,12 @@ void main() {
       );
 
       await tester.pumpWidget(
-        buildTestableWidget(RecommendationBanner(
-          currentCalories: 2400,
-          recommendationService: recommendationService,
-        )),
+        buildTestableWidget(
+          RecommendationBanner(
+            currentCalories: 2400,
+            recommendationService: recommendationService,
+          ),
+        ),
       );
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
@@ -227,10 +240,13 @@ void main() {
       expect(activeGoals?.targetFat, 75);
     });
 
-    testWidgets('dismissal is version-locked to recommendation dueWeekKey',
-        (tester) async {
-      final rec22 =
-          createRecommendation(calories: 2600, dueWeekKey: '2026-W22');
+    testWidgets('dismissal is version-locked to recommendation dueWeekKey', (
+      tester,
+    ) async {
+      final rec22 = createRecommendation(
+        calories: 2600,
+        dueWeekKey: '2026-W22',
+      );
       final est22 = createEstimate(dueWeekKey: '2026-W22');
 
       await repository.saveLatestRecommendationSnapshot(
@@ -243,11 +259,13 @@ void main() {
       );
 
       await tester.pumpWidget(
-        buildTestableWidget(RecommendationBanner(
-          key: const ValueKey('2026-W22'),
-          currentCalories: 2400,
-          recommendationService: recommendationService,
-        )),
+        buildTestableWidget(
+          RecommendationBanner(
+            key: const ValueKey('2026-W22'),
+            currentCalories: 2400,
+            recommendationService: recommendationService,
+          ),
+        ),
       );
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
@@ -265,8 +283,10 @@ void main() {
       expect(prefs.getBool('dismissed_tdee_banner_2026-W22'), isTrue);
 
       // Save a new recommendation for W23
-      final rec23 =
-          createRecommendation(calories: 2700, dueWeekKey: '2026-W23');
+      final rec23 = createRecommendation(
+        calories: 2700,
+        dueWeekKey: '2026-W23',
+      );
       final est23 = createEstimate(dueWeekKey: '2026-W23');
 
       await repository.saveLatestRecommendationSnapshot(
@@ -280,18 +300,22 @@ void main() {
 
       // Rebuild banner. Since W23 is a new key, it MUST show up again!
       await tester.pumpWidget(
-        buildTestableWidget(RecommendationBanner(
-          key: const ValueKey('2026-W23'),
-          currentCalories: 2400,
-          recommendationService: recommendationService,
-        )),
+        buildTestableWidget(
+          RecommendationBanner(
+            key: const ValueKey('2026-W23'),
+            currentCalories: 2400,
+            recommendationService: recommendationService,
+          ),
+        ),
       );
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
       expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
-      expect(find.textContaining('New targets available (+300 kcal).'),
-          findsOneWidget);
+      expect(
+        find.textContaining('New targets available (+300 kcal).'),
+        findsOneWidget,
+      );
     });
   });
 }

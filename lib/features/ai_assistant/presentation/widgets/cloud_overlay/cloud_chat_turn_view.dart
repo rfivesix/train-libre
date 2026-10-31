@@ -73,10 +73,12 @@ class CloudChatTurnView extends StatelessWidget {
     final isCompactPrompt = turn.prompt.trim().runes.length <= 2;
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
-    final userBubbleColor =
-        isDark ? Color.lerp(Colors.black, primary, 0.42)! : primary;
-    final userBubbleTextColor =
-        isDark ? Colors.white : theme.colorScheme.onPrimary;
+    final userBubbleColor = isDark
+        ? Color.lerp(Colors.black, primary, 0.42)!
+        : primary;
+    final userBubbleTextColor = isDark
+        ? Colors.white
+        : theme.colorScheme.onPrimary;
     final imageFiles = turn.attachments.isNotEmpty
         ? turn.attachments.map((attachment) => attachment.displayFile).toList()
         : turn.pendingImageFiles;
@@ -259,8 +261,8 @@ class CloudChatTurnView extends StatelessWidget {
     };
     final action = proposal.operation.name == 'create'
         ? proposal.payload.type == 'meal_entry'
-            ? (isDe ? 'Eintragen' : 'Log')
-            : (isDe ? 'Neu erstellen' : 'Create new')
+              ? (isDe ? 'Eintragen' : 'Log')
+              : (isDe ? 'Neu erstellen' : 'Create new')
         : (isDe ? 'Ändern' : 'Update');
     final data = proposal.payload.data;
     final rows = switch (proposal.payload.type) {
@@ -295,8 +297,9 @@ class CloudChatTurnView extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color:
-              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.55,
+          ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
@@ -378,8 +381,11 @@ class CloudChatTurnView extends StatelessWidget {
                     style: theme.textTheme.labelLarge?.copyWith(color: color),
                   ),
                   if (turn.proposalStatus == 'proposal_applied' &&
-                      const {'routine', 'recipe', 'meal_entry'}
-                          .contains(proposal.payload.type)) ...[
+                      const {
+                        'routine',
+                        'recipe',
+                        'meal_entry',
+                      }.contains(proposal.payload.type)) ...[
                     const SizedBox(width: 12),
                     TextButton.icon(
                       onPressed: () => _openSavedItem(context, proposal),
@@ -489,7 +495,8 @@ class CloudChatTurnView extends StatelessWidget {
       }
       if (data['cookedWeightInGrams'] != null) {
         values.add(
-            '${isDe ? 'Fertiggewicht' : 'Cooked weight'}: ${data['cookedWeightInGrams']} g');
+          '${isDe ? 'Fertiggewicht' : 'Cooked weight'}: ${data['cookedWeightInGrams']} g',
+        );
       }
     }
     if (type == 'plan') {
@@ -513,10 +520,12 @@ class CloudChatTurnView extends StatelessWidget {
       if (consumedAt is String) {
         final date = DateTime.tryParse(consumedAt)?.toLocal();
         if (date != null) {
-          values.add(DateFormat(
-            isDe ? 'dd.MM.yyyy · HH:mm' : 'MMM d · HH:mm',
-            Localizations.localeOf(context).toString(),
-          ).format(date));
+          values.add(
+            DateFormat(
+              isDe ? 'dd.MM.yyyy · HH:mm' : 'MMM d · HH:mm',
+              Localizations.localeOf(context).toString(),
+            ).format(date),
+          );
         }
       }
     }
@@ -541,9 +550,11 @@ class CloudChatTurnView extends StatelessWidget {
     };
     if (rows is! List || rows.isEmpty) {
       return [
-        Text(Localizations.localeOf(context).languageCode == 'de'
-            ? 'Keine Details verfügbar.'
-            : 'No details available.')
+        Text(
+          Localizations.localeOf(context).languageCode == 'de'
+              ? 'Keine Details verfügbar.'
+              : 'No details available.',
+        ),
       ];
     }
     return [
@@ -579,9 +590,14 @@ class CloudChatTurnView extends StatelessWidget {
   }
 
   String _proposalRowTitle(
-      BuildContext context, String type, Map row, int index) {
+    BuildContext context,
+    String type,
+    Map row,
+    int index,
+  ) {
     final isDe = Localizations.localeOf(context).languageCode == 'de';
-    final localizedName = row['displayName'] is String &&
+    final localizedName =
+        row['displayName'] is String &&
             (row['displayName'] as String).trim().isNotEmpty
         ? row['displayName'] as String
         : row['name'] ?? (isDe ? 'Übung' : 'Exercise');
@@ -607,7 +623,8 @@ class CloudChatTurnView extends StatelessWidget {
       final prescription = sets
           .map((raw) {
             if (raw is! Map) return '';
-            final reps = raw['reps'] ??
+            final reps =
+                raw['reps'] ??
                 (raw['repMin'] != null
                     ? '${raw['repMin']}-${raw['repMax']}'
                     : null);
@@ -626,9 +643,10 @@ class CloudChatTurnView extends StatelessWidget {
         if (row['notes'] is String && (row['notes'] as String).isNotEmpty)
           '${isDe ? 'Notiz' : 'Note'}: ${row['notes']}',
       ];
-      return [prescription, ...extras]
-          .where((item) => item.isNotEmpty)
-          .join('\n');
+      return [
+        prescription,
+        ...extras,
+      ].where((item) => item.isNotEmpty).join('\n');
     }
     if (type == 'plan') {
       final day = row['d'];
@@ -642,24 +660,26 @@ class CloudChatTurnView extends StatelessWidget {
                 final sets = exercise['sets'];
                 final prescription = sets is List
                     ? sets
-                        .whereType<Map>()
-                        .map((set) {
-                          final reps = set['reps'] ??
-                              (set['repMin'] != null
-                                  ? '${set['repMin']}-${set['repMax']}'
-                                  : null);
-                          return [
-                            reps?.toString(),
-                            if (set['weight'] != null) '${set['weight']} kg',
-                            if (set['rir'] != null) 'RIR ${set['rir']}',
-                          ].whereType<String>().join(' · ');
-                        })
-                        .where((item) => item.isNotEmpty)
-                        .join(' / ')
+                          .whereType<Map>()
+                          .map((set) {
+                            final reps =
+                                set['reps'] ??
+                                (set['repMin'] != null
+                                    ? '${set['repMin']}-${set['repMax']}'
+                                    : null);
+                            return [
+                              reps?.toString(),
+                              if (set['weight'] != null) '${set['weight']} kg',
+                              if (set['rir'] != null) 'RIR ${set['rir']}',
+                            ].whereType<String>().join(' · ');
+                          })
+                          .where((item) => item.isNotEmpty)
+                          .join(' / ')
                     : '';
-                return [name, prescription]
-                    .where((item) => item.isNotEmpty)
-                    .join(': ');
+                return [
+                  name,
+                  prescription,
+                ].where((item) => item.isNotEmpty).join(': ');
               })
               .where((name) => name.isNotEmpty)
               .join('\n');
@@ -706,8 +726,9 @@ class CloudChatTurnView extends StatelessWidget {
   Widget _buildActionBar(ThemeData theme, BuildContext context) {
     final subtleColor = contrastColor.withValues(alpha: 0.52);
     final modelLabel = turn.modelName;
-    final durationLabel =
-        turn.duration != null ? formatGenerationDuration(turn.duration!) : null;
+    final durationLabel = turn.duration != null
+        ? formatGenerationDuration(turn.duration!)
+        : null;
 
     final metaText = [
       if (modelLabel != null && modelLabel.isNotEmpty) modelLabel,
@@ -726,8 +747,8 @@ class CloudChatTurnView extends StatelessWidget {
             onLongPress: onCopyFullChat,
             foregroundColor: isCopied
                 ? (theme.brightness == Brightness.dark
-                    ? Colors.greenAccent
-                    : Colors.green.shade700)
+                      ? Colors.greenAccent
+                      : Colors.green.shade700)
                 : subtleColor,
           ),
           const SizedBox(width: 4),
@@ -804,13 +825,7 @@ class CloudChatTurnView extends StatelessWidget {
           child: SizedBox(
             width: 28,
             height: 28,
-            child: Center(
-              child: Icon(
-                icon,
-                size: 15,
-                color: foregroundColor,
-              ),
-            ),
+            child: Center(child: Icon(icon, size: 15, color: foregroundColor)),
           ),
         ),
       ),
@@ -850,10 +865,8 @@ class _AssistantProgressLabelState extends State<_AssistantProgressLabel>
       AssistantProgressStatus.processingData =>
         strings.aiAssistantProcessingData,
     };
-    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: widget.color.withValues(alpha: 0.78),
-          fontSize: 14,
-        );
+    final style = Theme.of(context).textTheme.bodyMedium
+        ?.copyWith(color: widget.color.withValues(alpha: 0.78), fontSize: 14);
     if (MediaQuery.disableAnimationsOf(context)) {
       return Text(label, style: style);
     }

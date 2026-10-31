@@ -13,9 +13,9 @@ class SleepDayViewModel extends ChangeNotifier {
     required SleepDayDataRepository repository,
     SleepImportService? syncService,
     DateTime? selectedDay,
-  })  : _repository = repository,
-        _syncService = syncService ?? SleepSyncService(),
-        _period = SleepPeriodSelection(anchorDate: selectedDay);
+  }) : _repository = repository,
+       _syncService = syncService ?? SleepSyncService(),
+       _period = SleepPeriodSelection(anchorDate: selectedDay);
 
   final SleepDayDataRepository _repository;
   final SleepImportService _syncService;
@@ -54,20 +54,21 @@ class SleepDayViewModel extends ChangeNotifier {
     }
 
     _overviewSubscription?.cancel();
-    _overviewSubscription =
-        _repository.watchOverview(_period.anchorDate).listen(
-      (data) {
-        _overview = data;
-        _isLoading = false;
-        notifyListeners();
-      },
-      onError: (Object error) {
-        _errorMessage = 'Unable to load sleep day.';
-        _overview = null;
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+    _overviewSubscription = _repository
+        .watchOverview(_period.anchorDate)
+        .listen(
+          (data) {
+            _overview = data;
+            _isLoading = false;
+            notifyListeners();
+          },
+          onError: (Object error) {
+            _errorMessage = 'Unable to load sleep day.';
+            _overview = null;
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
 
     try {
       await _syncService.importRecentIfDue();
@@ -177,9 +178,8 @@ class SleepPeriodSelection {
         final end = periodEnd;
         return '${DateFormat.MMMd(localeCode).format(start)} - ${DateFormat.MMMd(localeCode).format(end)}';
       case SleepPeriodScope.month:
-        return DateFormat.yMMMM(
-          localeCode,
-        ).format(DateTime(_anchorDate.year, _anchorDate.month, 1));
+        return DateFormat.yMMMM(localeCode)
+            .format(DateTime(_anchorDate.year, _anchorDate.month, 1));
     }
   }
 

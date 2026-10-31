@@ -34,8 +34,13 @@ class _CandidateCheck {
   final Object? error;
   final StackTrace? stackTrace;
 
-  const _CandidateCheck(this.source, this.candidate, this.validation,
-      this.error, this.stackTrace);
+  const _CandidateCheck(
+    this.source,
+    this.candidate,
+    this.validation,
+    this.error,
+    this.stackTrace,
+  );
 
   bool get accepted =>
       validation != null &&
@@ -64,15 +69,18 @@ class AiMealScanRunner {
     void Function()? onValidating,
     void Function(AiMealCandidate candidate)? onCandidateReady,
     void Function(AiValidationResult validation, int elapsedMilliseconds)?
-        onValidationReady,
-    void Function(AiMealScanLogStage stage, int elapsedMilliseconds,
-            {int? durationMilliseconds,
-            AiMealScanLogResult? result,
-            int? round,
-            AiMealScanLogCandidate? candidate,
-            int? validationScore,
-            List<AiMealScanLogIssueCategory>? issueCategories})?
-        onProgress,
+    onValidationReady,
+    void Function(
+      AiMealScanLogStage stage,
+      int elapsedMilliseconds, {
+      int? durationMilliseconds,
+      AiMealScanLogResult? result,
+      int? round,
+      AiMealScanLogCandidate? candidate,
+      int? validationScore,
+      List<AiMealScanLogIssueCategory>? issueCategories,
+    })?
+    onProgress,
   }) async {
     final runWatch = Stopwatch()..start();
     void ensureActive() {
@@ -91,11 +99,12 @@ class AiMealScanRunner {
       try {
         ensureActive();
         onProgress?.call(
-            primaryCall
-                ? AiMealScanLogStage.primaryStarted
-                : AiMealScanLogStage.hedgeStarted,
-            runWatch.elapsedMilliseconds,
-            candidate: source);
+          primaryCall
+              ? AiMealScanLogStage.primaryStarted
+              : AiMealScanLogStage.hedgeStarted,
+          runWatch.elapsedMilliseconds,
+          candidate: source,
+        );
         final candidate = await analyze();
         if (primaryCall) {
           primaryResponseReceived = true;
@@ -104,9 +113,11 @@ class AiMealScanRunner {
         providerMilliseconds += providerWatch.elapsedMilliseconds;
         providerWatch.stop();
         onProgress?.call(
-            AiMealScanLogStage.providerFinished, runWatch.elapsedMilliseconds,
-            durationMilliseconds: providerWatch.elapsedMilliseconds,
-            candidate: source);
+          AiMealScanLogStage.providerFinished,
+          runWatch.elapsedMilliseconds,
+          durationMilliseconds: providerWatch.elapsedMilliseconds,
+          candidate: source,
+        );
         onValidating?.call();
         validationWatch = Stopwatch()..start();
         final validation = await validationEngine.validateMealCandidate(
@@ -117,14 +128,16 @@ class AiMealScanRunner {
         validationMilliseconds += validationWatch.elapsedMilliseconds;
         validationWatch.stop();
         onProgress?.call(
-            AiMealScanLogStage.validationFinished, runWatch.elapsedMilliseconds,
-            durationMilliseconds: validationWatch.elapsedMilliseconds,
-            result: validation.passed && !validation.needsSemanticSelection
-                ? AiMealScanLogResult.accepted
-                : AiMealScanLogResult.needsRepair,
-            candidate: source,
-            validationScore: validation.score,
-            issueCategories: _issueCategories(validation));
+          AiMealScanLogStage.validationFinished,
+          runWatch.elapsedMilliseconds,
+          durationMilliseconds: validationWatch.elapsedMilliseconds,
+          result: validation.passed && !validation.needsSemanticSelection
+              ? AiMealScanLogResult.accepted
+              : AiMealScanLogResult.needsRepair,
+          candidate: source,
+          validationScore: validation.score,
+          issueCategories: _issueCategories(validation),
+        );
         return _CandidateCheck(source, candidate, validation, null, null);
       } catch (error, stackTrace) {
         if (providerWatch.isRunning) {
@@ -188,68 +201,78 @@ class AiMealScanRunner {
     }
 
     onProgress?.call(
-        AiMealScanLogStage.candidateSelected, runWatch.elapsedMilliseconds,
-        candidate: selected.source,
-        validationScore: selected.validation!.score,
-        issueCategories: _issueCategories(selected.validation!));
+      AiMealScanLogStage.candidateSelected,
+      runWatch.elapsedMilliseconds,
+      candidate: selected.source,
+      validationScore: selected.validation!.score,
+      issueCategories: _issueCategories(selected.validation!),
+    );
 
     ensureActive();
     final repairWatch = Stopwatch()..start();
-    final outcome = await AiRepairOrchestrator(
-      validationEngine: validationEngine,
-    ).run(
-      initialCandidate: selected.candidate!,
-      initialValidation: selected.validation,
-      mode: AiValidationMode.capture,
-      repairer: (candidate, validation, attempt) {
-        ensureActive();
-        onProgress?.call(
-            AiMealScanLogStage.repairStarted, runWatch.elapsedMilliseconds,
-            round: attempt);
-        final repairCallWatch = Stopwatch()..start();
-        return repairer(candidate, validation, attempt).then((repaired) {
-          onProgress?.call(
-              AiMealScanLogStage.repairFinished, runWatch.elapsedMilliseconds,
-              durationMilliseconds: repairCallWatch.elapsedMilliseconds,
-              round: attempt);
-          return repaired;
-        });
-      },
-      onFallbackValidation: (validation, durationMilliseconds) {
-        onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
-        onProgress?.call(
-            AiMealScanLogStage.validationFinished, runWatch.elapsedMilliseconds,
-            durationMilliseconds: durationMilliseconds,
-            result: validation.passed && !validation.needsSemanticSelection
-                ? AiMealScanLogResult.accepted
-                : AiMealScanLogResult.needsRepair,
-            candidate: selected.source,
-            validationScore: validation.score,
-            issueCategories: _issueCategories(validation));
-      },
-      onRepairValidation: (round, validation, durationMilliseconds) {
-        onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
-        onProgress?.call(
-            AiMealScanLogStage.validationFinished, runWatch.elapsedMilliseconds,
-            durationMilliseconds: durationMilliseconds,
-            result: validation.passed && !validation.needsSemanticSelection
-                ? AiMealScanLogResult.accepted
-                : AiMealScanLogResult.needsRepair,
-            round: round,
-            candidate: selected.source,
-            validationScore: validation.score,
-            issueCategories: _issueCategories(validation));
-      },
-    );
+    final outcome =
+        await AiRepairOrchestrator(validationEngine: validationEngine).run(
+          initialCandidate: selected.candidate!,
+          initialValidation: selected.validation,
+          mode: AiValidationMode.capture,
+          repairer: (candidate, validation, attempt) {
+            ensureActive();
+            onProgress?.call(
+              AiMealScanLogStage.repairStarted,
+              runWatch.elapsedMilliseconds,
+              round: attempt,
+            );
+            final repairCallWatch = Stopwatch()..start();
+            return repairer(candidate, validation, attempt).then((repaired) {
+              onProgress?.call(
+                AiMealScanLogStage.repairFinished,
+                runWatch.elapsedMilliseconds,
+                durationMilliseconds: repairCallWatch.elapsedMilliseconds,
+                round: attempt,
+              );
+              return repaired;
+            });
+          },
+          onFallbackValidation: (validation, durationMilliseconds) {
+            onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
+            onProgress?.call(
+              AiMealScanLogStage.validationFinished,
+              runWatch.elapsedMilliseconds,
+              durationMilliseconds: durationMilliseconds,
+              result: validation.passed && !validation.needsSemanticSelection
+                  ? AiMealScanLogResult.accepted
+                  : AiMealScanLogResult.needsRepair,
+              candidate: selected.source,
+              validationScore: validation.score,
+              issueCategories: _issueCategories(validation),
+            );
+          },
+          onRepairValidation: (round, validation, durationMilliseconds) {
+            onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
+            onProgress?.call(
+              AiMealScanLogStage.validationFinished,
+              runWatch.elapsedMilliseconds,
+              durationMilliseconds: durationMilliseconds,
+              result: validation.passed && !validation.needsSemanticSelection
+                  ? AiMealScanLogResult.accepted
+                  : AiMealScanLogResult.needsRepair,
+              round: round,
+              candidate: selected.source,
+              validationScore: validation.score,
+              issueCategories: _issueCategories(validation),
+            );
+          },
+        );
     repairWatch.stop();
     final primaryResult = primary.then((result) => result.validation);
     return AiScanRunResult(
       outcome: outcome,
       hedgeStarted: hedge != null,
-      primaryFirstPassAccepted: primaryResult.then((validation) =>
-          validation == null
-              ? null
-              : validation.passed && !validation.needsSemanticSelection),
+      primaryFirstPassAccepted: primaryResult.then(
+        (validation) => validation == null
+            ? null
+            : validation.passed && !validation.needsSemanticSelection,
+      ),
       primaryIssueCategories: primaryResult.then((validation) {
         if (validation == null) return const <String>[];
         final categories = <String>{};
@@ -267,27 +290,24 @@ class AiMealScanRunner {
         }
         return categories.toList(growable: false);
       }),
-      validationRunsTotalCount: Future.wait([
-        primary,
-        if (hedge != null) hedge,
-      ]).then((checks) =>
-          checks.where((check) => check.validation != null).length +
-          outcome.validationRunsCount -
-          1),
-      providerSeconds: Future.wait([
-        primary,
-        if (hedge != null) hedge,
-      ]).then((_) => (providerMilliseconds / 1000).round()),
-      validationSeconds: Future.wait([
-        primary,
-        if (hedge != null) hedge,
-      ]).then((_) => (validationMilliseconds / 1000).round()),
+      validationRunsTotalCount: Future.wait([primary, if (hedge != null) hedge])
+          .then(
+            (checks) =>
+                checks.where((check) => check.validation != null).length +
+                outcome.validationRunsCount -
+                1,
+          ),
+      providerSeconds: Future.wait([primary, if (hedge != null) hedge])
+          .then((_) => (providerMilliseconds / 1000).round()),
+      validationSeconds: Future.wait([primary, if (hedge != null) hedge])
+          .then((_) => (validationMilliseconds / 1000).round()),
       repairSeconds: (repairWatch.elapsedMilliseconds / 1000).round(),
     );
   }
 
   static List<AiMealScanLogIssueCategory> _issueCategories(
-      AiValidationResult validation) {
+    AiValidationResult validation,
+  ) {
     final categories = <AiMealScanLogIssueCategory>{};
     for (final issue in validation.allIssues) {
       if (issue.severity == AiValidationSeverity.info) continue;
@@ -299,14 +319,12 @@ class AiMealScanRunner {
         'weak_db_match' ||
         'ambiguous_db_match' ||
         'partial_unmatched_items' ||
-        'zero_nutrition_match' =>
-          AiMealScanLogIssueCategory.catalogMatch,
+        'zero_nutrition_match' => AiMealScanLogIssueCategory.catalogMatch,
         'invalid_quantity' ||
         'tiny_quantity' ||
         'large_quantity' ||
         'extreme_quantity' ||
-        'implausible_portion_density' =>
-          AiMealScanLogIssueCategory.quantity,
+        'implausible_portion_density' => AiMealScanLogIssueCategory.quantity,
         'state_mismatch' => AiMealScanLogIssueCategory.preparationState,
         'low_ai_confidence' => AiMealScanLogIssueCategory.confidence,
         'anchor_kcal_deviation' ||
@@ -319,8 +337,7 @@ class AiMealScanRunner {
         'macro_total_high' ||
         'implausible_food_density' ||
         'implausible_item_nutrition' ||
-        'zero_total_kcal' =>
-          AiMealScanLogIssueCategory.nutritionAnchor,
+        'zero_total_kcal' => AiMealScanLogIssueCategory.nutritionAnchor,
         _ => AiMealScanLogIssueCategory.otherValidation,
       });
     }

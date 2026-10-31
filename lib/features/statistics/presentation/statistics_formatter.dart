@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../domain/recovery_domain_service.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';

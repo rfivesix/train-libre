@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../../statistics/presentation/statistics_formatter.dart';
@@ -11,12 +12,16 @@ import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/app_segmented_control.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 enum _RecordOverview { recent, repRange }
@@ -44,12 +49,12 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   ];
 
   List<String> _timeRanges(AppLocalizations l10n) => [
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter1YearShort,
-        l10n.filterMax,
-      ];
+    l10n.filter7DaysShort,
+    l10n.filter1MonthShort,
+    l10n.filter3MonthsShort,
+    l10n.filter1YearShort,
+    l10n.filterMax,
+  ];
 
   List<Map<String, dynamic>> _recentPrs = [];
   List<Map<String, dynamic>> _notableImprovements = [];
@@ -59,8 +64,11 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.prDashboard));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.prDashboard,
+      ),
+    );
     _loadData();
   }
 
@@ -68,26 +76,24 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     setState(() => _isLoading = true);
 
     final recent = WorkoutLocalDataSource.instance.getRecentGlobalPRs(limit: 8);
-    final repRange =
-        WorkoutLocalDataSource.instance.getAllTimePRsByRepBracket();
+    final repRange = WorkoutLocalDataSource.instance
+        .getAllTimePRsByRepBracket();
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
-    final daysBack =
-        DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+    final daysBack = DateTime.now()
+        .difference(bounds.start)
+        .inDays
+        .clamp(1, 3650);
 
-    final improvements =
-        WorkoutLocalDataSource.instance.getNotablePrImprovements(
-      daysWindow: daysBack,
-      limit: 100,
-      sortByRecentDate: true,
-    );
+    final improvements = WorkoutLocalDataSource.instance
+        .getNotablePrImprovements(
+          daysWindow: daysBack,
+          limit: 100,
+          sortByRecentDate: true,
+        );
 
-    final results = await Future.wait([
-      recent,
-      repRange,
-      improvements,
-    ]);
+    final results = await Future.wait([recent, repRange, improvements]);
 
     if (!mounted) return;
     setState(() {
@@ -102,10 +108,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     final weight = (row['weight'] as num).toDouble();
     final reps = (row['reps'] as num).toInt();
     final unitService = Provider.of<UnitService>(context);
-    final displayWeight =
-        unitService.convertDisplayValue(weight, UnitDimension.weight);
-    final weightText =
-        StatisticsPresentationFormatter.formatWeight(displayWeight);
+    final displayWeight = unitService.convertDisplayValue(
+      weight,
+      UnitDimension.weight,
+    );
+    final weightText = StatisticsPresentationFormatter.formatWeight(
+      displayWeight,
+    );
     return '$weightText ${context.read<UnitService>().suffixFor(UnitDimension.weight)} x $reps';
   }
 
@@ -132,11 +141,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
     final hasNoData = _recentPrs.isEmpty && _notableImprovements.isEmpty;
-    final displayNotable =
-        hasNoData ? getMockNotableImprovements() : _notableImprovements;
+    final displayNotable = hasNoData
+        ? getMockNotableImprovements()
+        : _notableImprovements;
     final displayRecent = hasNoData ? getMockRecentPrs() : _recentPrs;
-    final displayByRepRange =
-        hasNoData ? getMockPrsByRepRange() : _prsByRepRange;
+    final displayByRepRange = hasNoData
+        ? getMockPrsByRepRange()
+        : _prsByRepRange;
 
     Widget bodyContent = _buildBodyContent(
       displayNotable,
@@ -185,19 +196,27 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                     : () {
                         setState(() {
                           final currentBounds = _activeBlock.getBounds(
-                              DateTime.now(), DateTime(2020));
+                            DateTime.now(),
+                            DateTime(2020),
+                          );
                           final myBounds = _activeBlock.getBounds(
-                              _anchorDate, DateTime(2020));
-                          final isOngoing = !_isRolling &&
-                              myBounds.start
-                                  .isAtSameMomentAs(currentBounds.start);
+                            _anchorDate,
+                            DateTime(2020),
+                          );
+                          final isOngoing =
+                              !_isRolling &&
+                              myBounds.start.isAtSameMomentAs(
+                                currentBounds.start,
+                              );
 
                           if (isOngoing) {
                             _isRolling = true;
                           } else if (_isRolling) {
                             _isRolling = false;
-                            _anchorDate =
-                                _activeBlock.shift(DateTime.now(), -1);
+                            _anchorDate = _activeBlock.shift(
+                              DateTime.now(),
+                              -1,
+                            );
                           } else {
                             _anchorDate = _activeBlock.shift(_anchorDate, -1);
                           }
@@ -212,15 +231,23 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                             _isRolling = false;
                             _anchorDate = DateTime.now();
                           } else {
-                            final previousAnchor =
-                                _activeBlock.shift(DateTime.now(), -1);
+                            final previousAnchor = _activeBlock.shift(
+                              DateTime.now(),
+                              -1,
+                            );
                             final previousBounds = _activeBlock.getBounds(
-                                previousAnchor, DateTime(2020));
+                              previousAnchor,
+                              DateTime(2020),
+                            );
                             final myBounds = _activeBlock.getBounds(
-                                _anchorDate, DateTime(2020));
-                            final isPreviousToOngoing = !_isRolling &&
-                                myBounds.start
-                                    .isAtSameMomentAs(previousBounds.start);
+                              _anchorDate,
+                              DateTime(2020),
+                            );
+                            final isPreviousToOngoing =
+                                !_isRolling &&
+                                myBounds.start.isAtSameMomentAs(
+                                  previousBounds.start,
+                                );
 
                             if (isPreviousToOngoing) {
                               _isRolling = true;
@@ -234,16 +261,19 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 displayDate: _isRolling
                     ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
                     : TimeframeLabelFormatter.format(
-                        _activeBlock, _anchorDate, l10n),
+                        _activeBlock,
+                        _anchorDate,
+                        l10n,
+                      ),
                 onTapDateDisplay: () async {
-                  final selected =
-                      await adaptive_pickers.showAdaptiveTimeframePicker(
-                    context: context,
-                    activeBlock: _activeBlock,
-                    initialAnchor: _anchorDate,
-                    earliestAvailableDay: DateTime(2020),
-                    initialIsRolling: _isRolling,
-                  );
+                  final selected = await adaptive_pickers
+                      .showAdaptiveTimeframePicker(
+                        context: context,
+                        activeBlock: _activeBlock,
+                        initialAnchor: _anchorDate,
+                        earliestAvailableDay: DateTime(2020),
+                        initialIsRolling: _isRolling,
+                      );
                   if (selected != null) {
                     setState(() {
                       _anchorDate = selected.anchorDate;
@@ -255,13 +285,15 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 nextEnabled: _activeBlock == TimeframeBlock.maxBlock
                     ? false
                     : (_isRolling
-                        ? true
-                        : !_activeBlock
-                            .getBounds(_anchorDate, DateTime(2020))
-                            .start
-                            .isAtSameMomentAs(_activeBlock
-                                .getBounds(DateTime.now(), DateTime(2020))
-                                .start)),
+                          ? true
+                          : !_activeBlock
+                                .getBounds(_anchorDate, DateTime(2020))
+                                .start
+                                .isAtSameMomentAs(
+                                  _activeBlock
+                                      .getBounds(DateTime.now(), DateTime(2020))
+                                      .start,
+                                )),
                 showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
               ),
               const SizedBox(height: DesignConstants.spacingS),
@@ -310,9 +342,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
       subtitle: achievedAt == null ? null : Text(_formatRecordDate(achievedAt)),
       trailing: Text(
         _perfLabel(record),
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -374,9 +405,9 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
         : notableImprovements.reduce(
             (strongest, candidate) =>
                 (candidate['improvementPct'] as num).toDouble() >
-                        (strongest['improvementPct'] as num).toDouble()
-                    ? candidate
-                    : strongest,
+                    (strongest['improvementPct'] as num).toDouble()
+                ? candidate
+                : strongest,
           );
     final unit = context.read<UnitService>().suffixFor(UnitDimension.weight);
 
@@ -407,15 +438,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   child: Text(l10n.analyticsNoPrTrendInWindow),
                 )
               : Column(
-                  children: notableImprovements.asMap().entries.map((
-                    entry,
-                  ) {
+                  children: notableImprovements.asMap().entries.map((entry) {
                     final row = entry.value;
-                    final previous =
-                        (row['previousBestE1rm'] as num).toDouble();
+                    final previous = (row['previousBestE1rm'] as num)
+                        .toDouble();
                     final recent = (row['recentBestE1rm'] as num).toDouble();
-                    final improvement =
-                        (row['improvementPct'] as num).toDouble();
+                    final improvement = (row['improvementPct'] as num)
+                        .toDouble();
                     final achievedAt = row['achievedAt'] as DateTime?;
 
                     return ListTile(
@@ -435,9 +464,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                         children: [
                           Text(
                             '+${improvement.toStringAsFixed(1)}%',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
+                            style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
                                   color: Colors.green,
                                   fontWeight: FontWeight.bold,

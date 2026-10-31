@@ -2,8 +2,10 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import '../data/depth_scale_calculator.dart';
 import '../domain/models/depth_scale_facts.dart';
 
@@ -42,8 +44,10 @@ class DepthScanCapability {
     required this.cameraAvailable,
   });
 
-  static const none =
-      DepthScanCapability(depthSupported: false, cameraAvailable: false);
+  static const none = DepthScanCapability(
+    depthSupported: false,
+    cameraAvailable: false,
+  );
 }
 
 /// Interface for native depth scan capability and capture.
@@ -60,10 +64,12 @@ abstract class IDepthScanService {
 
 /// Production implementation communicating with native iOS AVFoundation LiDAR session.
 class DepthScanChannel implements IDepthScanService {
-  static const MethodChannel _channel =
-      MethodChannel('com.trainlibre.app/depth_scan');
-  static const EventChannel _barcodeChannel =
-      EventChannel('com.trainlibre.app/depth_scan/barcodes');
+  static const MethodChannel _channel = MethodChannel(
+    'com.trainlibre.app/depth_scan',
+  );
+  static const EventChannel _barcodeChannel = EventChannel(
+    'com.trainlibre.app/depth_scan/barcodes',
+  );
 
   /// Platform view id of the live preview. Registered natively alongside the
   /// method channel, so it is only available where [capability] reports a
@@ -230,8 +236,10 @@ class DepthScanChannel implements IDepthScanService {
         if (rawBytes != null && rawBytes.lengthInBytes >= 4) {
           final floatCount = rawBytes.lengthInBytes ~/ 4;
           if (rawBytes.offsetInBytes % 4 == 0) {
-            depthBuffer = rawBytes.buffer
-                .asFloat32List(rawBytes.offsetInBytes, floatCount);
+            depthBuffer = rawBytes.buffer.asFloat32List(
+              rawBytes.offsetInBytes,
+              floatCount,
+            );
           } else {
             // A misaligned view would throw; copying is cheap enough at this
             // size (a 256x192 map is under 200 KB) and always works.

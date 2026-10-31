@@ -18,17 +18,19 @@ class AdaptiveNutritionDiagnosticsProvider
     AdaptiveNutritionRecommendationService? recommendationService,
     RecommendationRepository? repository,
     DatabaseHelper? databaseHelper,
-  })  : _recommendationService =
-            recommendationService ?? AdaptiveNutritionRecommendationService(),
-        _repository = repository ?? RecommendationRepository(),
-        _databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  }) : _recommendationService =
+           recommendationService ?? AdaptiveNutritionRecommendationService(),
+       _repository = repository ?? RecommendationRepository(),
+       _databaseHelper = databaseHelper ?? DatabaseHelper.instance;
 
   @override
   Future<List<String>> buildLines({required DateTime now}) async {
     final lines = <String>[];
 
-    final recommendationState =
-        await _recommendationService.loadState(now: now, refreshIfDue: false);
+    final recommendationState = await _recommendationService.loadState(
+      now: now,
+      refreshIfDue: false,
+    );
     final snapshot = await _repository.getLatestRecommendationSnapshot();
     final estimatorState = await _repository.getLatestEstimatorState();
     final phaseState = await _repository.getDietPhaseTrackingState();
@@ -36,8 +38,8 @@ class AdaptiveNutritionDiagnosticsProvider
     final latestWeight = await _loadLatestWeight(now);
     final priorActivityLevel = await _repository.getPriorActivityLevel();
     final extraCardioHours = await _repository.getExtraCardioHoursOption();
-    final lastDueNotificationWeekKey =
-        await _repository.getLastDueNotificationWeekKey();
+    final lastDueNotificationWeekKey = await _repository
+        .getLastDueNotificationWeekKey();
 
     lines.add('feature_available: yes');
     lines.add('goal_direction: ${recommendationState.goal.name}');
@@ -66,7 +68,8 @@ class AdaptiveNutritionDiagnosticsProvider
 
     if (latestWeight != null) {
       lines.add(
-          'latest_logged_weight_kg: ${latestWeight.$1.toStringAsFixed(2)}');
+        'latest_logged_weight_kg: ${latestWeight.$1.toStringAsFixed(2)}',
+      );
       lines.add('latest_logged_weight_at: ${_iso(latestWeight.$2)}');
     } else {
       lines.add('latest_logged_weight_kg: unavailable');
@@ -78,11 +81,13 @@ class AdaptiveNutritionDiagnosticsProvider
 
     lines.add('latest_recommendation_available: ${_yesNo(generated != null)}');
     lines.add(
-        'latest_recommendation_generated_at: ${_isoOrUnavailable(recommendationState.latestGeneratedAt)}');
+      'latest_recommendation_generated_at: ${_isoOrUnavailable(recommendationState.latestGeneratedAt)}',
+    );
 
     if (generated != null) {
       lines.add(
-          'recommendation_due_week_key: ${_valueOrUnavailable(generated.dueWeekKey)}');
+        'recommendation_due_week_key: ${_valueOrUnavailable(generated.dueWeekKey)}',
+      );
       lines.add('recommended_calories_kcal: ${generated.recommendedCalories}');
       lines.add('recommended_protein_g: ${generated.recommendedProteinGrams}');
       lines.add('recommended_carbs_g: ${generated.recommendedCarbsGrams}');
@@ -97,9 +102,11 @@ class AdaptiveNutritionDiagnosticsProvider
       );
       lines.add('input_window_days: ${generated.inputSummary.windowDays}');
       lines.add(
-          'input_weight_log_count: ${generated.inputSummary.weightLogCount}');
+        'input_weight_log_count: ${generated.inputSummary.weightLogCount}',
+      );
       lines.add(
-          'input_intake_logged_days: ${generated.inputSummary.intakeLoggedDays}');
+        'input_intake_logged_days: ${generated.inputSummary.intakeLoggedDays}',
+      );
       lines.add(
         'input_avg_logged_calories_kcal: ${generated.inputSummary.avgLoggedCalories.toStringAsFixed(1)}',
       );
@@ -124,7 +131,8 @@ class AdaptiveNutritionDiagnosticsProvider
 
     if (applied != null) {
       lines.add(
-          'latest_applied_due_week_key: ${_valueOrUnavailable(applied.dueWeekKey)}');
+        'latest_applied_due_week_key: ${_valueOrUnavailable(applied.dueWeekKey)}',
+      );
       lines.add('latest_applied_generated_at: ${_iso(applied.generatedAt)}');
       lines.add('latest_applied_calories_kcal: ${applied.recommendedCalories}');
       lines.add('latest_applied_protein_g: ${applied.recommendedProteinGrams}');
@@ -146,9 +154,7 @@ class AdaptiveNutritionDiagnosticsProvider
       lines.add(
         'posterior_range_kcal: ${maintenance.credibleIntervalLowerCalories()}..${maintenance.credibleIntervalUpperCalories()}',
       );
-      lines.add(
-        'prior_source: ${maintenance.priorSource.name}',
-      );
+      lines.add('prior_source: ${maintenance.priorSource.name}');
       lines.add(
         'effective_sample_size: ${maintenance.effectiveSampleSize.toStringAsFixed(2)}',
       );
@@ -168,8 +174,9 @@ class AdaptiveNutritionDiagnosticsProvider
     }
 
     if (estimatorState != null) {
-      lines
-          .add('estimator_last_due_week_key: ${estimatorState.lastDueWeekKey}');
+      lines.add(
+        'estimator_last_due_week_key: ${estimatorState.lastDueWeekKey}',
+      );
       lines.add(
         'estimator_posterior_mean_kcal: ${estimatorState.posteriorMeanCalories.toStringAsFixed(1)}',
       );
@@ -180,7 +187,8 @@ class AdaptiveNutritionDiagnosticsProvider
         'estimator_last_prior_source: ${estimatorState.lastPriorSource?.name ?? 'unavailable'}',
       );
       lines.add(
-          'estimator_has_replay_prior: ${_yesNo(estimatorState.hasReplayPrior)}');
+        'estimator_has_replay_prior: ${_yesNo(estimatorState.hasReplayPrior)}',
+      );
       lines.add(
         'estimator_last_observation_used: ${_yesNo(estimatorState.lastObservationUsed)}',
       );
@@ -277,9 +285,7 @@ class AdaptiveNutritionDiagnosticsProvider
 
     final fallbackWeek = ((phaseState.confirmedPhaseAgeDays(now) - 1) ~/ 7) + 1;
     final debugWeekIndex = maintenance?.debugInfo['confirmedPhaseWeekIndex'];
-    lines.add(
-      'phase_current_ramp_week: ${debugWeekIndex ?? fallbackWeek}',
-    );
+    lines.add('phase_current_ramp_week: ${debugWeekIndex ?? fallbackWeek}');
 
     if (phaseState.pendingPhase != null) {
       lines.add('phase_pending_state: ${phaseState.pendingPhase!.name}');
@@ -303,10 +309,7 @@ class AdaptiveNutritionDiagnosticsProvider
     return values.join(', ');
   }
 
-  String _doubleOrUnavailable(
-    double? value, {
-    int fractionDigits = 1,
-  }) {
+  String _doubleOrUnavailable(double? value, {int fractionDigits = 1}) {
     if (value == null) {
       return 'unavailable';
     }

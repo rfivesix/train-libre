@@ -1,5 +1,6 @@
 import '../../statistics/domain/statistics_data_quality_policy.dart';
 import '../../statistics/domain/timeframe_block.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
@@ -11,13 +12,18 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 
 import '../../../widgets/common/common.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
+
 import 'package:skeletonizer/skeletonizer.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 class BodyNutritionCorrelationScreen extends StatefulWidget {
@@ -61,8 +67,11 @@ class _BodyNutritionCorrelationScreenState
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.bodyNutritionCorrelation));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.bodyNutritionCorrelation,
+      ),
+    );
     _activeBlock = _validBlocks.contains(widget.initialBlock)
         ? widget.initialBlock
         : TimeframeBlock.month;
@@ -95,13 +104,13 @@ class _BodyNutritionCorrelationScreenState
   }
 
   List<String> _ranges(AppLocalizations l10n) => [
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter6MonthsShort,
-        l10n.filter1YearShort,
-        l10n.filterMax,
-      ];
+    l10n.filter7DaysShort,
+    l10n.filter1MonthShort,
+    l10n.filter3MonthsShort,
+    l10n.filter6MonthsShort,
+    l10n.filter1YearShort,
+    l10n.filterMax,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +118,8 @@ class _BodyNutritionCorrelationScreenState
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
 
     final hasNoData = _analytics == null;
-    final displayAnalytics = _analytics ??
+    final displayAnalytics =
+        _analytics ??
         getMockCorrelationResult(
           _isRolling
               ? _activeBlock.getRollingBounds()
@@ -142,11 +152,16 @@ class _BodyNutritionCorrelationScreenState
           ? null
           : () {
               setState(() {
-                final currentBounds =
-                    _activeBlock.getBounds(DateTime.now(), DateTime(2020));
-                final myBounds =
-                    _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                final isOngoing = !_isRolling &&
+                final currentBounds = _activeBlock.getBounds(
+                  DateTime.now(),
+                  DateTime(2020),
+                );
+                final myBounds = _activeBlock.getBounds(
+                  _anchorDate,
+                  DateTime(2020),
+                );
+                final isOngoing =
+                    !_isRolling &&
                     myBounds.start.isAtSameMomentAs(currentBounds.start);
 
                 if (isOngoing) {
@@ -169,11 +184,16 @@ class _BodyNutritionCorrelationScreenState
                   _anchorDate = DateTime.now();
                 } else {
                   final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
-                  final previousBounds =
-                      _activeBlock.getBounds(previousAnchor, DateTime(2020));
-                  final myBounds =
-                      _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                  final isPreviousToOngoing = !_isRolling &&
+                  final previousBounds = _activeBlock.getBounds(
+                    previousAnchor,
+                    DateTime(2020),
+                  );
+                  final myBounds = _activeBlock.getBounds(
+                    _anchorDate,
+                    DateTime(2020),
+                  );
+                  final isPreviousToOngoing =
+                      !_isRolling &&
                       myBounds.start.isAtSameMomentAs(previousBounds.start);
 
                   if (isPreviousToOngoing) {
@@ -207,20 +227,24 @@ class _BodyNutritionCorrelationScreenState
       nextEnabled: _activeBlock == TimeframeBlock.maxBlock
           ? false
           : (_isRolling
-              ? true
-              : !_activeBlock
-                  .getBounds(_anchorDate, DateTime(2020))
-                  .start
-                  .isAtSameMomentAs(_activeBlock
-                      .getBounds(DateTime.now(), DateTime(2020))
-                      .start)),
+                ? true
+                : !_activeBlock
+                      .getBounds(_anchorDate, DateTime(2020))
+                      .start
+                      .isAtSameMomentAs(
+                        _activeBlock
+                            .getBounds(DateTime.now(), DateTime(2020))
+                            .start,
+                      )),
       showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
     );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-          title: l10n.bodyNutritionCorrelationTitle, bottom: timeframeFilter),
+        title: l10n.bodyNutritionCorrelationTitle,
+        bottom: timeframeFilter,
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -270,43 +294,53 @@ class _BodyNutritionCorrelationScreenState
 
     final confidenceLabel =
         StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-            l10n, data.confidence);
+          l10n,
+          data.confidence,
+        );
 
     final relationship =
         StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-      l10n,
-      data.relationship,
-    );
+          l10n,
+          data.relationship,
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppSectionHeader(
-          title: l10n.sectionBodyNutrition,
-        ),
+        AppSectionHeader(title: l10n.sectionBodyNutrition),
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
             final gridItems = [
               ValueSummaryCard(
-                  label: l10n.metricsCurrentWeight, value: currentWeight),
+                label: l10n.metricsCurrentWeight,
+                value: currentWeight,
+              ),
               ValueSummaryCard(
-                  label: l10n.metricsWeightChange, value: weightChange),
+                label: l10n.metricsWeightChange,
+                value: weightChange,
+              ),
               ValueSummaryCard(
-                  label: l10n.metricsAvgCalories, value: avgCalories),
+                label: l10n.metricsAvgCalories,
+                value: avgCalories,
+              ),
               ValueSummaryCard(
-                label: l10n.analyticsWeightTrendLabel(context
-                    .read<UnitService>()
-                    .suffixFor(UnitDimension.weight)),
-                value: StatisticsPresentationFormatter
-                    .bodyNutritionTrendDirectionLabel(
-                        l10n, data.weightTrend.direction),
+                label: l10n.analyticsWeightTrendLabel(
+                  context.read<UnitService>().suffixFor(UnitDimension.weight),
+                ),
+                value:
+                    StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
+                      l10n,
+                      data.weightTrend.direction,
+                    ),
               ),
               ValueSummaryCard(
                 label: l10n.analyticsCaloriesTrendLabel,
-                value: StatisticsPresentationFormatter
-                    .bodyNutritionTrendDirectionLabel(
-                        l10n, data.calorieTrend.direction),
+                value:
+                    StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
+                      l10n,
+                      data.calorieTrend.direction,
+                    ),
               ),
             ];
 
@@ -315,8 +349,9 @@ class _BodyNutritionCorrelationScreenState
               final rowChildren = <Widget>[];
               for (var j = 0; j < crossAxisCount; j++) {
                 if (j > 0) {
-                  rowChildren
-                      .add(const SizedBox(width: DesignConstants.spacingS));
+                  rowChildren.add(
+                    const SizedBox(width: DesignConstants.spacingS),
+                  );
                 }
                 final itemIndex = i + j;
                 rowChildren.add(
@@ -365,10 +400,10 @@ class _BodyNutritionCorrelationScreenState
       children: [
         Text(
           l10n.analyticsBodyNutritionNormalizedHint(
-              context.read<UnitService>().suffixFor(UnitDimension.weight)),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+            context.read<UnitService>().suffixFor(UnitDimension.weight),
+          ),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.outline),
         ),
         const SizedBox(height: DesignConstants.spacingS),
         Wrap(
@@ -378,7 +413,8 @@ class _BodyNutritionCorrelationScreenState
             _legendDot(
               color: Theme.of(context).colorScheme.primary,
               label: l10n.analyticsWeightTrendLabel(
-                  context.read<UnitService>().suffixFor(UnitDimension.weight)),
+                context.read<UnitService>().suffixFor(UnitDimension.weight),
+              ),
               shape: BoxShape.circle,
             ),
             _legendDot(
@@ -420,15 +456,13 @@ class _BodyNutritionCorrelationScreenState
           decoration: BoxDecoration(
             color: color,
             shape: shape,
-            borderRadius:
-                shape == BoxShape.rectangle ? BorderRadius.circular(2) : null,
+            borderRadius: shape == BoxShape.rectangle
+                ? BorderRadius.circular(2)
+                : null,
           ),
         ),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.labelSmall),
       ],
     );
   }
@@ -439,14 +473,14 @@ class _BodyNutritionCorrelationScreenState
   ) {
     final relationship =
         StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-      l10n,
-      data.relationship,
-    );
+          l10n,
+          data.relationship,
+        );
     final confidence =
         StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-      l10n,
-      data.confidence,
-    );
+          l10n,
+          data.confidence,
+        );
     final hint = _confidenceHint(l10n, data.confidence);
     final disclaimer = l10n.analyticsCorrelationDisclaimer;
 
@@ -559,7 +593,9 @@ class _BodyNutritionCorrelationScreenState
   }
 
   Widget _buildBodyContent(
-      AppLocalizations l10n, BodyNutritionAnalyticsResult analytics) {
+    AppLocalizations l10n,
+    BodyNutritionAnalyticsResult analytics,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.screenPaddingHorizontal,
@@ -569,14 +605,10 @@ class _BodyNutritionCorrelationScreenState
         children: [
           _buildSummaryCard(l10n, analytics),
           const SizedBox(height: DesignConstants.spacingM),
-          AppSectionHeader(
-            title: l10n.analyticsBodyNutritionTrendContext,
-          ),
+          AppSectionHeader(title: l10n.analyticsBodyNutritionTrendContext),
           _buildTrendComparisonCard(l10n, analytics),
           const SizedBox(height: DesignConstants.spacingM),
-          AppSectionHeader(
-            title: l10n.analyticsInterpretationTitle,
-          ),
+          AppSectionHeader(title: l10n.analyticsInterpretationTitle),
           _buildInterpretationCard(l10n, analytics),
         ],
       ),

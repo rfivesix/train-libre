@@ -5,23 +5,25 @@ import 'package:train_libre/util/design_constants.dart';
 
 void main() {
   group('AppColorChoice', () {
-    test('keeps the Train Libre light and dark brand colors as the default',
-        () {
-      expect(
-        AppColorChoice.trainLibre.primary(
-          brightness: Brightness.light,
-          customColor: Colors.blue,
-        ),
-        DesignConstants.brandAccentColorLightMode,
-      );
-      expect(
-        AppColorChoice.trainLibre.primary(
-          brightness: Brightness.dark,
-          customColor: Colors.blue,
-        ),
-        DesignConstants.brandAccentColor,
-      );
-    });
+    test(
+      'keeps the Train Libre light and dark brand colors as the default',
+      () {
+        expect(
+          AppColorChoice.trainLibre.primary(
+            brightness: Brightness.light,
+            customColor: Colors.blue,
+          ),
+          DesignConstants.brandAccentColorLightMode,
+        );
+        expect(
+          AppColorChoice.trainLibre.primary(
+            brightness: Brightness.dark,
+            customColor: Colors.blue,
+          ),
+          DesignConstants.brandAccentColor,
+        );
+      },
+    );
 
     test('uses contrasting black and white monochrome colors', () {
       final lightPrimary = AppColorChoice.monochrome.primary(

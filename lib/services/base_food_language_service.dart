@@ -44,9 +44,7 @@ class BaseFoodLanguageService {
   static const String _preferenceKey = 'base_food_display_language';
 
   /// Read the persisted choice. Returns [BaseFoodLanguage.auto] if unset.
-  static Future<BaseFoodLanguage> readChoice({
-    SharedPreferences? prefs,
-  }) async {
+  static Future<BaseFoodLanguage> readChoice({SharedPreferences? prefs}) async {
     final resolved = prefs ?? await SharedPreferences.getInstance();
     return _parse(resolved.getString(_preferenceKey));
   }

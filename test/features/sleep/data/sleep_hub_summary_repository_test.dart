@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/data/drift_database.dart';
@@ -87,9 +88,7 @@ void main() {
       await db.close();
     });
 
-    test(
-        'fetchSummary returns empty summary with hasData == false when database is empty',
-        () async {
+    test('fetchSummary returns empty summary with hasData == false when database is empty', () async {
       final summary = await repository.fetchSummary(
         endDate: DateTime.utc(2026, 3, 10),
         daysBack: 7,
@@ -104,32 +103,34 @@ void main() {
       expect(summary.nightsCount, 0);
     });
 
-    test('fetchSummary returns empty summary when daysBack is 0 or negative',
-        () async {
-      // Seed some data first to ensure it's ignored when daysBack <= 0
-      await pipeline.runImport(
-        batch: _batchForNight(
-          index: 0,
-          startHour: 22,
-          startMinute: 0,
-          durationHours: 8,
-          bpm: 50.0,
-          awakeMinutes: 5,
-        ),
-      );
+    test(
+      'fetchSummary returns empty summary when daysBack is 0 or negative',
+      () async {
+        // Seed some data first to ensure it's ignored when daysBack <= 0
+        await pipeline.runImport(
+          batch: _batchForNight(
+            index: 0,
+            startHour: 22,
+            startMinute: 0,
+            durationHours: 8,
+            bpm: 50.0,
+            awakeMinutes: 5,
+          ),
+        );
 
-      final summaryZero = await repository.fetchSummary(
-        endDate: DateTime.utc(2026, 3, 2),
-        daysBack: 0,
-      );
-      expect(summaryZero.hasData, isFalse);
+        final summaryZero = await repository.fetchSummary(
+          endDate: DateTime.utc(2026, 3, 2),
+          daysBack: 0,
+        );
+        expect(summaryZero.hasData, isFalse);
 
-      final summaryNeg = await repository.fetchSummary(
-        endDate: DateTime.utc(2026, 3, 2),
-        daysBack: -5,
-      );
-      expect(summaryNeg.hasData, isFalse);
-    });
+        final summaryNeg = await repository.fetchSummary(
+          endDate: DateTime.utc(2026, 3, 2),
+          daysBack: -5,
+        );
+        expect(summaryNeg.hasData, isFalse);
+      },
+    );
 
     test('fetchSummary handles single night summary correctly', () async {
       await pipeline.runImport(
@@ -165,62 +166,62 @@ void main() {
       expect(summary.averageWakeDuration, const Duration(minutes: 10));
     });
 
-    test('fetchSummary handles multiple nights simple averages correctly',
-        () async {
-      // Import 3 nights on separate days
-      await pipeline.runImport(
-        batch: _batchForNight(
-          index: 0,
-          startHour: 22,
-          startMinute: 0,
-          durationHours: 8, // 480 mins total, 470 mins sleep
-          bpm: 50.0,
-          awakeMinutes: 10,
-        ),
-      );
-      await pipeline.runImport(
-        batch: _batchForNight(
-          index: 1,
-          startHour: 23,
-          startMinute: 0,
-          durationHours: 6, // 360 mins total, 340 mins sleep
-          bpm: 60.0,
-          awakeMinutes: 20,
-        ),
-      );
-      await pipeline.runImport(
-        batch: _batchForNight(
-          index: 2,
-          startHour: 21,
-          startMinute: 0,
-          durationHours: 7, // 420 mins total, 405 mins sleep
-          bpm: 55.0,
-          awakeMinutes: 15,
-        ),
-      );
-
-      final summary = await repository.fetchSummary(
-        endDate: DateTime.utc(2026, 3, 4),
-        daysBack: 4,
-      );
-
-      expect(summary.hasData, isTrue);
-      expect(summary.nightsCount, 3);
-      expect(summary.averageScore, isNotNull);
-
-      // Average duration: (470 + 340 + 405) / 3 = 405 minutes (6 hours, 45 minutes)
-      expect(summary.averageDuration, const Duration(hours: 6, minutes: 45));
-
-      // Interruptions average: (1 + 1 + 1) / 3 = 1.0
-      expect(summary.averageInterruptions, 1.0);
-
-      // Wake duration average: (10 + 20 + 15) / 3 = 15 minutes
-      expect(summary.averageWakeDuration, const Duration(minutes: 15));
-    });
-
     test(
-        'fetchSummary resolves bedtime circular mean around midnight crossings correctly',
-        () async {
+      'fetchSummary handles multiple nights simple averages correctly',
+      () async {
+        // Import 3 nights on separate days
+        await pipeline.runImport(
+          batch: _batchForNight(
+            index: 0,
+            startHour: 22,
+            startMinute: 0,
+            durationHours: 8, // 480 mins total, 470 mins sleep
+            bpm: 50.0,
+            awakeMinutes: 10,
+          ),
+        );
+        await pipeline.runImport(
+          batch: _batchForNight(
+            index: 1,
+            startHour: 23,
+            startMinute: 0,
+            durationHours: 6, // 360 mins total, 340 mins sleep
+            bpm: 60.0,
+            awakeMinutes: 20,
+          ),
+        );
+        await pipeline.runImport(
+          batch: _batchForNight(
+            index: 2,
+            startHour: 21,
+            startMinute: 0,
+            durationHours: 7, // 420 mins total, 405 mins sleep
+            bpm: 55.0,
+            awakeMinutes: 15,
+          ),
+        );
+
+        final summary = await repository.fetchSummary(
+          endDate: DateTime.utc(2026, 3, 4),
+          daysBack: 4,
+        );
+
+        expect(summary.hasData, isTrue);
+        expect(summary.nightsCount, 3);
+        expect(summary.averageScore, isNotNull);
+
+        // Average duration: (470 + 340 + 405) / 3 = 405 minutes (6 hours, 45 minutes)
+        expect(summary.averageDuration, const Duration(hours: 6, minutes: 45));
+
+        // Interruptions average: (1 + 1 + 1) / 3 = 1.0
+        expect(summary.averageInterruptions, 1.0);
+
+        // Wake duration average: (10 + 20 + 15) / 3 = 15 minutes
+        expect(summary.averageWakeDuration, const Duration(minutes: 15));
+      },
+    );
+
+    test('fetchSummary resolves bedtime circular mean around midnight crossings correctly', () async {
       // Let's seed two nights with bedtimes crossing midnight on separate days (e.g. index 0 and 2)
       final start1 = DateTime.utc(2026, 3, 1, 23, 30);
       final start2 = DateTime.utc(2026, 3, 3, 0, 30);
@@ -274,9 +275,7 @@ void main() {
       expect(summary.averageBedtimeMinutes, expectedCircularMean);
     });
 
-    test(
-        'fetchSummary computes fallback for interruptions and wake when persisted fields are null',
-        () async {
+    test('fetchSummary computes fallback for interruptions and wake when persisted fields are null', () async {
       await pipeline.runImport(
         batch: _batchForNight(
           index: 0,

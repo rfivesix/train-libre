@@ -1,5 +1,6 @@
 // lib/util/mapping_prefs.dart
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Utility for managing exercise name mappings between external apps and Train Libre.

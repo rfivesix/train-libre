@@ -84,7 +84,8 @@ double? effectiveSetLoadKg({
     return load > 0 ? load : null;
   }
 
-  final movesOwnBody = trackingType == 'bodyweight_reps' ||
+  final movesOwnBody =
+      trackingType == 'bodyweight_reps' ||
       loadMode == 'bodyweight' ||
       loadMode == 'weightedBodyweight';
   if (movesOwnBody) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -116,7 +117,8 @@ class BackupArchive {
           continue;
         }
         var name = p.basename(thumb.path);
-        final folder = thumb.path.contains('/workouts/') ||
+        final folder =
+            thumb.path.contains('/workouts/') ||
                 thumb.path.contains('\\workouts\\')
             ? workoutThumbsFolder
             : mealThumbsFolder;
@@ -213,8 +215,10 @@ class BackupArchive {
     final payloadBytes = cipher == null
         ? payloadFile.content
         : await cipher.decrypt(payloadFile.content);
-    final payload = await compute(jsonDecode, utf8.decode(payloadBytes))
-        as Map<String, dynamic>;
+    final payload = await compute(
+      jsonDecode,
+      utf8.decode(payloadBytes),
+    ) as Map<String, dynamic>;
 
     return BackupArchiveContents._(archive, input, payload, cipher);
   }
@@ -271,8 +275,9 @@ class BackupArchiveContents {
 
       try {
         final cipher = _cipher;
-        final bytes =
-            cipher == null ? file.content : await cipher.decrypt(file.content);
+        final bytes = cipher == null
+            ? file.content
+            : await cipher.decrypt(file.content);
         final directory = directoryFor(name);
         if (!await directory.exists()) {
           await directory.create(recursive: true);

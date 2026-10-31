@@ -27,32 +27,33 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
 }
 
 class _ActiveLiveWorkoutViewModel extends LiveWorkoutViewModel {
-  _ActiveLiveWorkoutViewModel({required super.repository, required super.unitService});
+  _ActiveLiveWorkoutViewModel({
+    required super.repository,
+    required super.unitService,
+  });
   @override
   bool get isActive => true;
 }
 
 void main() {
   testWidgets(
-      'BottomContentSpacer does not crash when LiveWorkoutViewModel is not present',
-      (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: BottomContentSpacer(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+    'BottomContentSpacer does not crash when LiveWorkoutViewModel is not present',
+    (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: BottomContentSpacer())),
+      );
+      await tester.pumpAndSettle();
 
-    expect(tester.takeException(), isNull);
-    expect(find.byType(BottomContentSpacer), findsOneWidget);
-    final size = tester.getSize(find.byType(BottomContentSpacer));
-    expect(size.height, equals(kOverlayBaseHeight));
-  });
+      expect(tester.takeException(), isNull);
+      expect(find.byType(BottomContentSpacer), findsOneWidget);
+      final size = tester.getSize(find.byType(BottomContentSpacer));
+      expect(size.height, equals(kOverlayBaseHeight));
+    },
+  );
 
-  testWidgets('BottomContentSpacer adds running extra when workout is active',
-      (tester) async {
+  testWidgets('BottomContentSpacer adds running extra when workout is active', (
+    tester,
+  ) async {
     final vm = _ActiveLiveWorkoutViewModel(
       repository: _FakeWorkoutRepository(),
       unitService: UnitService(),
@@ -61,11 +62,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider<LiveWorkoutViewModel>.value(
         value: vm,
-        child: const MaterialApp(
-          home: Scaffold(
-            body: BottomContentSpacer(),
-          ),
-        ),
+        child: const MaterialApp(home: Scaffold(body: BottomContentSpacer())),
       ),
     );
     await tester.pumpAndSettle();

@@ -44,9 +44,11 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<String?> getExerciseUuidByLocalId(int localId) async => null;
   @override
-  Future<Map<String, double>> getExerciseBests(String exerciseName,
-          {String? altName, String? exerciseUuid}) async =>
-      {};
+  Future<Map<String, double>> getExerciseBests(
+    String exerciseName, {
+    String? altName,
+    String? exerciseUuid,
+  }) async => {};
   @override
   Future<void> updateSetLogs(List<SetLog> logs) async {}
   @override
@@ -57,7 +59,9 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) async {}
   @override
   Future<void> updateRoutineExerciseNotes(
-      int routineExerciseId, String? notes) async {}
+    int routineExerciseId,
+    String? notes,
+  ) async {}
   @override
   Future<void> saveWorkoutExerciseNote({
     required int workoutLogId,
@@ -71,12 +75,12 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
   Future<List<SetLog>> getLastSetsForExercise({
     required String? exerciseId,
     required String exerciseNameSnapshot,
-  }) async =>
-      [];
+  }) async => [];
   @override
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
-          DateTime start, DateTime end) async =>
-      [];
+    DateTime start,
+    DateTime end,
+  ) async => [];
   @override
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() => const Stream.empty();
   @override
@@ -90,8 +94,9 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
   Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]) async {}
   @override
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
-          DateTime start, DateTime end) =>
-      Stream.value([]);
+    DateTime start,
+    DateTime end,
+  ) => Stream.value([]);
   @override
   Future<Routine?> getRoutineByUuid(String uuid) async => null;
   @override
@@ -103,8 +108,7 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
   Future<Routine> createRoutineFromWorkout({
     required int workoutLogId,
     required String name,
-  }) async =>
-      Routine(id: 1, name: name);
+  }) async => Routine(id: 1, name: name);
   @override
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {}
 }
@@ -195,9 +199,7 @@ void main() {
     await database.close();
   });
 
-  Widget createTestWidget({
-    required Widget child,
-  }) {
+  Widget createTestWidget({required Widget child}) {
     final unitService = UnitService();
     return MultiProvider(
       providers: [
@@ -219,292 +221,301 @@ void main() {
   }
 
   testWidgets(
-      'WeeklyGoalReviewScreen triggers recalculateAndApply when user keeps current goals',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 4000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    'WeeklyGoalReviewScreen triggers recalculateAndApply when user keeps current goals',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final mockService =
-        _MockRecommendationService(resultToReturn: dummyRecommendation);
+      final mockService = _MockRecommendationService(
+        resultToReturn: dummyRecommendation,
+      );
 
-    await tester.pumpWidget(
-      createTestWidget(
-        child: WeeklyGoalReviewScreen(
-          goal: testGoal,
-          review: testReview,
-          repository: repository,
-          recommendationService: mockService,
+      await tester.pumpWidget(
+        createTestWidget(
+          child: WeeklyGoalReviewScreen(
+            goal: testGoal,
+            review: testReview,
+            repository: repository,
+            recommendationService: mockService,
+          ),
         ),
-      ),
-    );
+      );
 
-    for (int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    final keepCurrentButton = find.text('Ziel beibehalten');
-    expect(keepCurrentButton, findsOneWidget);
+      final keepCurrentButton = find.text('Ziel beibehalten');
+      expect(keepCurrentButton, findsOneWidget);
 
-    await tester.tap(keepCurrentButton);
-    await tester.pumpAndSettle();
-    expect(
-      find.text('Ziel beibehalten und Tagesziele aktualisieren?'),
-      findsOneWidget,
-    );
-    await tester.tap(
-      find.text('Ziel beibehalten und Tagesziele aktualisieren').last,
-    );
-    for (int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      await tester.tap(keepCurrentButton);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Ziel beibehalten und Tagesziele aktualisieren?'),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.text('Ziel beibehalten und Tagesziele aktualisieren').last,
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    expect(mockService.recalculateAndApplyCalls, 1);
-  });
+      expect(mockService.recalculateAndApplyCalls, 1);
+    },
+  );
 
   testWidgets(
-      'WeeklyGoalReviewScreen triggers recalculateAndApply when user applies recommendation',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 4000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    'WeeklyGoalReviewScreen triggers recalculateAndApply when user applies recommendation',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final mockService =
-        _MockRecommendationService(resultToReturn: dummyRecommendation);
+      final mockService = _MockRecommendationService(
+        resultToReturn: dummyRecommendation,
+      );
 
-    await tester.pumpWidget(
-      createTestWidget(
-        child: WeeklyGoalReviewScreen(
-          goal: testGoal,
-          review: testReview,
-          repository: repository,
-          recommendationService: mockService,
+      await tester.pumpWidget(
+        createTestWidget(
+          child: WeeklyGoalReviewScreen(
+            goal: testGoal,
+            review: testReview,
+            repository: repository,
+            recommendationService: mockService,
+          ),
         ),
-      ),
-    );
+      );
 
-    for (int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    // Find the "Empfohlene Tageswerte übernehmen" button
-    final applyButton = find.text('Tagesziele übernehmen');
-    expect(applyButton, findsOneWidget);
+      // Find the "Empfohlene Tageswerte übernehmen" button
+      final applyButton = find.text('Tagesziele übernehmen');
+      expect(applyButton, findsOneWidget);
 
-    await tester.tap(applyButton);
-    for (int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      await tester.tap(applyButton);
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    expect(mockService.recalculateAndApplyCalls, 1);
-  });
+      expect(mockService.recalculateAndApplyCalls, 1);
+    },
+  );
 
   testWidgets(
-      'insufficient data defers the review without applying nutrition targets',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 4000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    'insufficient data defers the review without applying nutrition targets',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final insufficientReview = GoalReviewRecord(
-      id: 'review-insufficient',
-      goalId: testGoal.id,
-      windowStart: DateTime(2026, 1, 1),
-      windowEnd: DateTime(2026, 1, 7),
-      status: 'pending',
-      trajectoryStatus: 'behind',
-      algorithmVersion: 'test',
-      assessment: const GoalReviewAssessment(
-        overallStatus: 'behind',
-        recentMomentumStatus: 'unclear',
-        weightObservationCount: 1,
-        nutritionLoggedDays: 2,
-        dataQuality: 'insufficient',
-        nutritionAction: 'insufficient_data',
-      ),
-      createdAt: DateTime(2026, 1, 8),
-    );
-    await repository.saveReview(insufficientReview);
-    final mockService = _MockRecommendationService();
-
-    await tester.pumpWidget(
-      createTestWidget(
-        child: WeeklyGoalReviewScreen(
-          goal: testGoal,
-          review: insufficientReview,
-          repository: repository,
-          recommendationService: mockService,
+      final insufficientReview = GoalReviewRecord(
+        id: 'review-insufficient',
+        goalId: testGoal.id,
+        windowStart: DateTime(2026, 1, 1),
+        windowEnd: DateTime(2026, 1, 7),
+        status: 'pending',
+        trajectoryStatus: 'behind',
+        algorithmVersion: 'test',
+        assessment: const GoalReviewAssessment(
+          overallStatus: 'behind',
+          recentMomentumStatus: 'unclear',
+          weightObservationCount: 1,
+          nutritionLoggedDays: 2,
+          dataQuality: 'insufficient',
+          nutritionAction: 'insufficient_data',
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+        createdAt: DateTime(2026, 1, 8),
+      );
+      await repository.saveReview(insufficientReview);
+      final mockService = _MockRecommendationService();
 
-    expect(find.text('Weiter protokollieren'), findsOneWidget);
-    expect(find.text('Empfohlene Tageswerte übernehmen'), findsNothing);
-    await tester.tap(find.text('Weiter protokollieren'));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        createTestWidget(
+          child: WeeklyGoalReviewScreen(
+            goal: testGoal,
+            review: insufficientReview,
+            repository: repository,
+            recommendationService: mockService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(mockService.recalculateAndApplyCalls, 0);
-    expect(
-      (await repository.getReviewById(insufficientReview.id))?.status,
-      'deferred',
-    );
-  });
+      expect(find.text('Weiter protokollieren'), findsOneWidget);
+      expect(find.text('Empfohlene Tageswerte übernehmen'), findsNothing);
+      await tester.tap(find.text('Weiter protokollieren'));
+      await tester.pumpAndSettle();
+
+      expect(mockService.recalculateAndApplyCalls, 0);
+      expect(
+        (await repository.getReviewById(insufficientReview.id))?.status,
+        'deferred',
+      );
+    },
+  );
 
   testWidgets(
-      'WeeklyGoalReviewScreen auto-adjusts weekly rate when required rate is safe',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 4000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    'WeeklyGoalReviewScreen auto-adjusts weekly rate when required rate is safe',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    // Goal with target 75kg, current 78kg, target date 2026-06-01, current rate -0.5
-    // Required rate -0.65 kg/wk is safe (-1.5 to +0.75).
-    final behindReview = GoalReviewRecord(
-      id: 'review-behind-safe',
-      goalId: testGoal.id,
-      windowStart: DateTime(2026, 1, 1),
-      windowEnd: DateTime(2026, 1, 7),
-      status: 'pending',
-      trajectoryStatus: 'behind',
-      recommendedCalories: 2050,
-      recommendedProtein: 160,
-      recommendedCarbs: 200,
-      recommendedFat: 65,
-      algorithmVersion: 'test',
-      assessment: const GoalReviewAssessment(
-        overallStatus: 'behind',
-        recentMomentumStatus: 'slower',
-        currentSmoothedValue: 78.0,
-        plannedRateKgPerWeek: -0.5,
-        requiredRemainingRateKgPerWeek: -0.65,
-        weightObservationCount: 4,
-        nutritionLoggedDays: 6,
-        dataQuality: 'sufficient',
-        nutritionAction: 'adjust_targets',
-      ),
-      createdAt: DateTime(2026, 1, 8),
-    );
-    await repository.saveReview(behindReview);
-
-    final mockService =
-        _MockRecommendationService(resultToReturn: dummyRecommendation);
-
-    await tester.pumpWidget(
-      createTestWidget(
-        child: WeeklyGoalReviewScreen(
-          goal: testGoal,
-          review: behindReview,
-          repository: repository,
-          recommendationService: mockService,
+      // Goal with target 75kg, current 78kg, target date 2026-06-01, current rate -0.5
+      // Required rate -0.65 kg/wk is safe (-1.5 to +0.75).
+      final behindReview = GoalReviewRecord(
+        id: 'review-behind-safe',
+        goalId: testGoal.id,
+        windowStart: DateTime(2026, 1, 1),
+        windowEnd: DateTime(2026, 1, 7),
+        status: 'pending',
+        trajectoryStatus: 'behind',
+        recommendedCalories: 2050,
+        recommendedProtein: 160,
+        recommendedCarbs: 200,
+        recommendedFat: 65,
+        algorithmVersion: 'test',
+        assessment: const GoalReviewAssessment(
+          overallStatus: 'behind',
+          recentMomentumStatus: 'slower',
+          currentSmoothedValue: 78.0,
+          plannedRateKgPerWeek: -0.5,
+          requiredRemainingRateKgPerWeek: -0.65,
+          weightObservationCount: 4,
+          nutritionLoggedDays: 6,
+          dataQuality: 'sufficient',
+          nutritionAction: 'adjust_targets',
         ),
-      ),
-    );
-    for (int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+        createdAt: DateTime(2026, 1, 8),
+      );
+      await repository.saveReview(behindReview);
 
-    final applyButton = find.text('Tagesziele übernehmen');
-    expect(applyButton, findsOneWidget);
+      final mockService = _MockRecommendationService(
+        resultToReturn: dummyRecommendation,
+      );
 
-    await tester.tap(applyButton);
-    for (int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      await tester.pumpWidget(
+        createTestWidget(
+          child: WeeklyGoalReviewScreen(
+            goal: testGoal,
+            review: behindReview,
+            repository: repository,
+            recommendationService: mockService,
+          ),
+        ),
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    expect(mockService.recalculateAndApplyCalls, 1);
-    final updatedGoal = await repository.getGoalById(testGoal.id);
-    expect(updatedGoal?.desiredWeeklyRateKg, -0.65);
-    expect(updatedGoal?.targetDate, testGoal.targetDate);
-    expect(
-      (await repository.getReviewById(behindReview.id))?.status,
-      'applied',
-    );
-  });
+      final applyButton = find.text('Tagesziele übernehmen');
+      expect(applyButton, findsOneWidget);
+
+      await tester.tap(applyButton);
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(mockService.recalculateAndApplyCalls, 1);
+      final updatedGoal = await repository.getGoalById(testGoal.id);
+      expect(updatedGoal?.desiredWeeklyRateKg, -0.65);
+      expect(updatedGoal?.targetDate, testGoal.targetDate);
+      expect(
+        (await repository.getReviewById(behindReview.id))?.status,
+        'applied',
+      );
+    },
+  );
 
   testWidgets(
-      'WeeklyGoalReviewScreen shows confirmation and extends target date when required rate is unsafe',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 4000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    'WeeklyGoalReviewScreen shows confirmation and extends target date when required rate is unsafe',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    // Required rate -2.5 kg/wk is unsafe!
-    final unsafeReview = GoalReviewRecord(
-      id: 'review-behind-unsafe',
-      goalId: testGoal.id,
-      windowStart: DateTime(2026, 1, 1),
-      windowEnd: DateTime(2026, 1, 7),
-      status: 'pending',
-      trajectoryStatus: 'behind',
-      recommendedCalories: 1900,
-      recommendedProtein: 160,
-      recommendedCarbs: 180,
-      recommendedFat: 60,
-      algorithmVersion: 'test',
-      assessment: const GoalReviewAssessment(
-        overallStatus: 'behind',
-        recentMomentumStatus: 'slower',
-        currentSmoothedValue: 79.0,
-        plannedRateKgPerWeek: -0.5,
-        requiredRemainingRateKgPerWeek: -2.5,
-        weightObservationCount: 4,
-        nutritionLoggedDays: 6,
-        dataQuality: 'sufficient',
-        nutritionAction: 'adjust_targets',
-      ),
-      createdAt: DateTime(2026, 1, 8),
-    );
-    await repository.saveReview(unsafeReview);
-
-    final mockService =
-        _MockRecommendationService(resultToReturn: dummyRecommendation);
-
-    await tester.pumpWidget(
-      createTestWidget(
-        child: WeeklyGoalReviewScreen(
-          goal: testGoal,
-          review: unsafeReview,
-          repository: repository,
-          recommendationService: mockService,
+      // Required rate -2.5 kg/wk is unsafe!
+      final unsafeReview = GoalReviewRecord(
+        id: 'review-behind-unsafe',
+        goalId: testGoal.id,
+        windowStart: DateTime(2026, 1, 1),
+        windowEnd: DateTime(2026, 1, 7),
+        status: 'pending',
+        trajectoryStatus: 'behind',
+        recommendedCalories: 1900,
+        recommendedProtein: 160,
+        recommendedCarbs: 180,
+        recommendedFat: 60,
+        algorithmVersion: 'test',
+        assessment: const GoalReviewAssessment(
+          overallStatus: 'behind',
+          recentMomentumStatus: 'slower',
+          currentSmoothedValue: 79.0,
+          plannedRateKgPerWeek: -0.5,
+          requiredRemainingRateKgPerWeek: -2.5,
+          weightObservationCount: 4,
+          nutritionLoggedDays: 6,
+          dataQuality: 'sufficient',
+          nutritionAction: 'adjust_targets',
         ),
-      ),
-    );
-    for (int i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+        createdAt: DateTime(2026, 1, 8),
+      );
+      await repository.saveReview(unsafeReview);
 
-    final applyButton = find.text('Tagesziele übernehmen');
-    expect(applyButton, findsOneWidget);
+      final mockService = _MockRecommendationService(
+        resultToReturn: dummyRecommendation,
+      );
 
-    await tester.tap(applyButton);
-    for (int i = 0; i < 10; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      await tester.pumpWidget(
+        createTestWidget(
+          child: WeeklyGoalReviewScreen(
+            goal: testGoal,
+            review: unsafeReview,
+            repository: repository,
+            recommendationService: mockService,
+          ),
+        ),
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    // Confirmation sheet should be shown with title "Zieldatum angepasst"
-    expect(find.text('Zieldatum angepasst'), findsOneWidget);
+      final applyButton = find.text('Tagesziele übernehmen');
+      expect(applyButton, findsOneWidget);
 
-    // Confirm the action
-    await tester.tap(find.text('Tagesziele übernehmen').last);
-    for (int i = 0; i < 10; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      await tester.tap(applyButton);
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    expect(mockService.recalculateAndApplyCalls, 1);
-    final updatedGoal = await repository.getGoalById(testGoal.id);
-    // Rate is capped to safe rate (-0.5)
-    expect(updatedGoal?.desiredWeeklyRateKg, -0.5);
-    // Target date was extended beyond testGoal.targetDate
-    expect(updatedGoal?.targetDate, isNotNull);
-    expect(
-      (await repository.getReviewById(unsafeReview.id))?.status,
-      'applied',
-    );
-  });
+      // Confirmation sheet should be shown with title "Zieldatum angepasst"
+      expect(find.text('Zieldatum angepasst'), findsOneWidget);
+
+      // Confirm the action
+      await tester.tap(find.text('Tagesziele übernehmen').last);
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(mockService.recalculateAndApplyCalls, 1);
+      final updatedGoal = await repository.getGoalById(testGoal.id);
+      // Rate is capped to safe rate (-0.5)
+      expect(updatedGoal?.desiredWeeklyRateKg, -0.5);
+      // Target date was extended beyond testGoal.targetDate
+      expect(updatedGoal?.targetDate, isNotNull);
+      expect(
+        (await repository.getReviewById(unsafeReview.id))?.status,
+        'applied',
+      );
+    },
+  );
 }

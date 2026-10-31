@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -41,12 +42,14 @@ class InterruptionsDetailPage extends StatelessWidget {
           ? l10n.sleepInterruptionsStatusNoneDetected
           : l10n.sleepInterruptionsStatusDetected,
       subtitle: l10n.sleepInterruptionsSubtitle,
-      statusColor:
-          overview.interruptionsCount! <= 1 ? Colors.green : Colors.orange,
+      statusColor: overview.interruptionsCount! <= 1
+          ? Colors.green
+          : Colors.orange,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal),
+            horizontal: DesignConstants.cardPaddingInternal,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

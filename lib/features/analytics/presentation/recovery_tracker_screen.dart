@@ -22,7 +22,9 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 class RecoveryTrackerScreen extends StatefulWidget {
@@ -59,8 +61,11 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.recoveryTracker));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.recoveryTracker,
+      ),
+    );
     _loadRecovery();
   }
 
@@ -200,8 +205,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
             BoxShadow(
               blurRadius: 9,
               offset: const Offset(0, 3),
-              color: theme.colorScheme.shadow
-                  .withValues(alpha: isDark ? 0.2 : 0.08),
+              color: theme.colorScheme.shadow.withValues(
+                alpha: isDark ? 0.2 : 0.08,
+              ),
             ),
           ],
         ),
@@ -278,8 +284,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   }
 
   Future<void> _scrollToMuscle(String muscleGroup) async {
-    final index =
-        _recovery.muscles.indexWhere((m) => m.muscleGroup == muscleGroup);
+    final index = _recovery.muscles.indexWhere(
+      (m) => m.muscleGroup == muscleGroup,
+    );
     if (index < 0) return;
     final muscle = _recovery.muscles[index];
 
@@ -304,19 +311,21 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     // measured against a layout that is still growing.
     if (didExpand) {
       await Future<void>.delayed(
-          _expandDuration + const Duration(milliseconds: 32));
+        _expandDuration + const Duration(milliseconds: 32),
+      );
     } else {
       await WidgetsBinding.instance.endOfFrame;
     }
     if (!mounted || !_scrollController.hasClients) return;
 
-    final renderObject =
-        _muscleKeys[muscleGroup]?.currentContext?.findRenderObject();
+    final renderObject = _muscleKeys[muscleGroup]?.currentContext
+        ?.findRenderObject();
     if (renderObject == null || !renderObject.attached) return;
 
     // The body extends behind the app bar, so the first visually usable pixel
     // sits below status bar + toolbar.
-    final topInset = MediaQuery.of(context).padding.top +
+    final topInset =
+        MediaQuery.of(context).padding.top +
         kToolbarHeight +
         DesignConstants.spacingM;
 
@@ -324,8 +333,10 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     final revealOffset = viewport.getOffsetToReveal(renderObject, 0.0).offset;
 
     final position = _scrollController.position;
-    final target = (revealOffset - topInset)
-        .clamp(position.minScrollExtent, position.maxScrollExtent);
+    final target = (revealOffset - topInset).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
 
     await _scrollController.animateTo(
       target,
@@ -374,8 +385,10 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     RecoveryMusclePayload muscle,
   ) {
     final rawName = muscle.muscleGroup;
-    final muscleName =
-        StatisticsPresentationFormatter.muscleGroupLabel(l10n, rawName);
+    final muscleName = StatisticsPresentationFormatter.muscleGroupLabel(
+      l10n,
+      rawName,
+    );
     final state = muscle.state;
     final stateColor = _stateColor(context, state);
     final readinessScore = _readinessScore(muscle);
@@ -385,10 +398,14 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     final lastSessionLoad = muscle.lastSessionLoad ?? muscle.lastEquivalentSets;
     final lastSessionHours = muscle.hoursSinceLastSignificantLoad.round();
     final remainingHours = switch (state) {
-      RecoveryDomainService.stateRecovering =>
-        _hoursUntil(muscle, muscle.recoveringUpperHours),
-      RecoveryDomainService.stateReady =>
-        _hoursUntil(muscle, muscle.readyUpperHours),
+      RecoveryDomainService.stateRecovering => _hoursUntil(
+        muscle,
+        muscle.recoveringUpperHours,
+      ),
+      RecoveryDomainService.stateReady => _hoursUntil(
+        muscle,
+        muscle.readyUpperHours,
+      ),
       _ => null,
     };
 
@@ -396,12 +413,12 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       key: key,
       onTap: hasDetails
           ? () => setState(() {
-                if (isExpanded) {
-                  _expandedMuscles.remove(rawName);
-                } else {
-                  _expandedMuscles.add(rawName);
-                }
-              })
+              if (isExpanded) {
+                _expandedMuscles.remove(rawName);
+              } else {
+                _expandedMuscles.add(rawName);
+              }
+            })
           : null,
       borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
       child: Padding(
@@ -414,17 +431,16 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                 Expanded(
                   child: Text(
                     muscleName,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Text(
                   readinessScore.toStringAsFixed(0),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: stateColor,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    color: stateColor,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 if (hasDetails) ...[
                   const SizedBox(width: DesignConstants.spacingS),
@@ -461,9 +477,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   Text(
                     l10n.recoveryCompactHours(remainingHours),
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ],
@@ -509,7 +525,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                               _buildRecoveryDetailRow(
                                 context,
                                 title: l10n.recoveryDetailForecast,
-                                value: state ==
+                                value:
+                                    state ==
                                         RecoveryDomainService.stateRecovering
                                     ? '${l10n.recoveryReadyInHours(_hoursUntil(muscle, muscle.recoveringUpperHours))}\n${l10n.recoveryFreshInHours(_hoursUntil(muscle, muscle.readyUpperHours))}'
                                     : l10n.recoveryFreshInHours(
@@ -676,13 +693,15 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
           children: [
             InkWell(
               onTap: () => onToggle(!isExpanded),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               child: Container(
                 constraints: const BoxConstraints(minHeight: 56.0),
                 padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingL,
-                    vertical: DesignConstants.spacingM),
+                  horizontal: DesignConstants.spacingL,
+                  vertical: DesignConstants.spacingM,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -692,12 +711,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                         Expanded(
                           child: Text(
                             title,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
                         Container(
@@ -713,9 +728,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                           child: Text(
                             '${muscles.length}',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
+                            style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
                                   color: color,
                                   fontWeight: FontWeight.w800,
@@ -726,10 +739,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                         AnimatedRotation(
                           turns: isExpanded ? 0.5 : 0.0,
                           duration: const Duration(milliseconds: 200),
-                          child: const Icon(
-                            LucideIcons.chevron_down,
-                            size: 20,
-                          ),
+                          child: const Icon(LucideIcons.chevron_down, size: 20),
                         ),
                       ],
                     ),
@@ -743,10 +753,14 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                         children: muscles.map((m) {
                           final label =
                               StatisticsPresentationFormatter.muscleGroupLabel(
-                                  l10n, m.muscleGroup);
+                                l10n,
+                                m.muscleGroup,
+                              );
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: color.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(6),
@@ -757,9 +771,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                             ),
                             child: Text(
                               label,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: color,
                                     fontSize: 10,
@@ -791,9 +803,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                           if (index > 0)
                             Divider(
                               height: 32,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
+                              color: Theme.of(context).colorScheme.onSurface
                                   .withValues(alpha: 0.08),
                             ),
                           _buildMuscleCard(context, l10n, muscle),
@@ -863,8 +873,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
             technicalExplanation: l10n.infoRecoveryTechnicalExplanation,
             markdownAssetPath:
                 'documentation/features/muscle_recovery_model.md',
-            citationUrl:
-                'https://trainlibre.com/docs/features/muscle-recovery-model/#evidence',
+            citationUrl: 'https://trainlibre.com/docs/features/muscle-recovery-model/#evidence',
             iconColor: Theme.of(context).colorScheme.onSurface,
           ),
         ],
@@ -885,17 +894,16 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
               AppSectionHeader(
                 title: l10n.metricsMuscleReadiness,
                 padding: const EdgeInsets.only(
-                    left: DesignConstants.spacingXS, bottom: 6),
+                  left: DesignConstants.spacingXS,
+                  bottom: 6,
+                ),
               ),
               Text(
                 _overallLabel(l10n, _recovery.overallState),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _overallStateColor(
-                        context,
-                        _recovery.overallState,
-                      ),
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: _overallStateColor(context, _recovery.overallState),
+                ),
               ),
               if (hasData && tracked > 0) ...[
                 const SizedBox(height: DesignConstants.spacingL),
@@ -971,15 +979,16 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
               const SizedBox(height: DesignConstants.spacingS),
               Text(
                 l10n.recoveryHeuristicDisclaimer,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
               const SizedBox(height: DesignConstants.spacingM),
               AppSectionHeader(
                 title: l10n.analyticsRecentDistributionHeatmap,
                 padding: const EdgeInsets.only(
-                    left: DesignConstants.spacingXS, bottom: 6),
+                  left: DesignConstants.spacingXS,
+                  bottom: 6,
+                ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -993,10 +1002,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                     )
                   else
                     RepaintBoundary(
-                      child: _buildBodyView(
-                        context,
-                        visibleMuscles,
-                      ),
+                      child: _buildBodyView(context, visibleMuscles),
                     ),
                 ],
               ),
@@ -1004,7 +1010,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
               AppSectionHeader(
                 title: l10n.recoveryByMuscleTitle,
                 padding: const EdgeInsets.only(
-                    left: DesignConstants.spacingXS, bottom: 6),
+                  left: DesignConstants.spacingXS,
+                  bottom: 6,
+                ),
               ),
               const SizedBox(height: DesignConstants.spacingS),
               if (!hasData)
@@ -1019,7 +1027,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   title: l10n.recoveryStateRecovering,
                   muscles: recoveringMuscles,
                   color: _stateColor(
-                      context, RecoveryDomainService.stateRecovering),
+                    context,
+                    RecoveryDomainService.stateRecovering,
+                  ),
                   isExpanded: _isRecoveringExpanded,
                   onToggle: (val) =>
                       setState(() => _isRecoveringExpanded = val),
@@ -1042,7 +1052,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   isExpanded: _isFreshExpanded,
                   onToggle: (val) => setState(() => _isFreshExpanded = val),
                 ),
-              ]
+              ],
             ],
           ),
         ),
@@ -1123,10 +1133,7 @@ class _ExpandRevealState extends State<_ExpandReveal>
           child: Align(
             alignment: Alignment.topCenter,
             heightFactor: heightFactor,
-            child: Opacity(
-              opacity: _fade.value.clamp(0.0, 1.0),
-              child: child,
-            ),
+            child: Opacity(opacity: _fade.value.clamp(0.0, 1.0), child: child),
           ),
         );
       },

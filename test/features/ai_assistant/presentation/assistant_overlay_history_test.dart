@@ -33,18 +33,19 @@ class _Model implements AssistantModelClient {
       const AssistantModelIdentity('test', 'test-model', null);
 
   @override
-  Future<String> interpret(
-          {required String prompt,
-          required AssistantModelIdentity identity}) async =>
-      prompt.contains('Current user message: "Hi there"')
-          ? '{"kind":"chat","answer":"Hello!"}'
-          : '{"kind":"data","categories":["workouts"],"dateExpression":"2026-10-18"}';
+  Future<String> interpret({
+    required String prompt,
+    required AssistantModelIdentity identity,
+  }) async => prompt.contains('Current user message: "Hi there"')
+      ? '{"kind":"chat","answer":"Hello!"}'
+      : '{"kind":"data","categories":["workouts"],"dateExpression":"2026-10-18"}';
 
   @override
-  Stream<String> answer(
-      {required String prompt,
-      required AssistantModelIdentity identity,
-      required Future<void> Function() onDispatch}) async* {
+  Stream<String> answer({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required Future<void> Function() onDispatch,
+  }) async* {
     throw StateError('Denied access must not invoke the model for an answer');
   }
 }
@@ -52,22 +53,24 @@ class _Model implements AssistantModelClient {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('overlay saves a denied request and reopens its conversation',
-      (tester) async {
-    final tempDir =
-        Directory.systemTemp.createTempSync('assistant_overlay_history_test');
+  testWidgets('overlay saves a denied request and reopens its conversation', (
+    tester,
+  ) async {
+    final tempDir = Directory.systemTemp.createTempSync(
+      'assistant_overlay_history_test',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (call) async => tempDir.path,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async => tempDir.path,
+        );
     AppMediaStore.instance.resetForTesting();
     addTearDown(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        null,
-      );
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            null,
+          );
       AppMediaStore.instance.resetForTesting();
       try {
         tempDir.deleteSync(recursive: true);
@@ -78,7 +81,9 @@ void main() {
     final database = AppDatabase(NativeDatabase.memory());
     DatabaseHelper.setDriftDb(database);
     addTearDown(DatabaseHelper.closeAndResetDriftDb);
-    await database.into(database.workoutLogs).insert(
+    await database
+        .into(database.workoutLogs)
+        .insert(
           WorkoutLogsCompanion.insert(
             startTime: DateTime(2026, 10, 18, 9),
             endTime: drift.Value(DateTime(2026, 10, 18, 10)),
@@ -88,35 +93,44 @@ void main() {
         );
 
     Widget app(Key key) => MultiProvider(
-          providers: [
-            Provider<IWorkoutRepository>.value(
-                value: WorkoutRepository(
-                    localDataSource: WorkoutLocalDataSource(database))),
-            Provider<IDiaryRepository>.value(
-                value: NutritionRepository(
-                    localDataSource: DiaryLocalDataSource(database))),
-            Provider<IProfileRepository>.value(
-                value: ProfileRepository(
-                    localDataSource: ProfileLocalDataSource(database))),
-            Provider<IGoalRepository>.value(
-                value: GoalRepositoryImpl(database: database)),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: const Locale('en'),
-            home: Scaffold(
-                body: SizedBox.expand(
-                    child: DraggableAiCloud(
+      providers: [
+        Provider<IWorkoutRepository>.value(
+          value: WorkoutRepository(
+            localDataSource: WorkoutLocalDataSource(database),
+          ),
+        ),
+        Provider<IDiaryRepository>.value(
+          value: NutritionRepository(
+            localDataSource: DiaryLocalDataSource(database),
+          ),
+        ),
+        Provider<IProfileRepository>.value(
+          value: ProfileRepository(
+            localDataSource: ProfileLocalDataSource(database),
+          ),
+        ),
+        Provider<IGoalRepository>.value(
+          value: GoalRepositoryImpl(database: database),
+        ),
+      ],
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Scaffold(
+          body: SizedBox.expand(
+            child: DraggableAiCloud(
               key: key,
               semanticLabel: 'AI cloud',
               semanticHint: 'Open',
               liveliness: 0.1,
               useLiveAi: true,
               modelClient: _Model(),
-            ))),
+            ),
           ),
-        );
+        ),
+      ),
+    );
 
     await tester.pumpWidget(app(const ValueKey('first')));
     await tester.tap(find.bySemanticsLabel('AI cloud').first);
@@ -141,18 +155,20 @@ void main() {
     expect(find.text('Data access request').hitTestable(), findsOneWidget);
     expect(find.textContaining('workouts'), findsWidgets);
     tester
-        .widget<TextButton>(find.ancestor(
-          of: find.text('Decline'),
-          matching: find.byType(TextButton),
-        ))
+        .widget<TextButton>(
+          find.ancestor(
+            of: find.text('Decline'),
+            matching: find.byType(TextButton),
+          ),
+        )
         .onPressed!();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
     final history = AssistantHistoryRepository(database);
     final conversation = (await history.conversations()).single;
-    final access =
-        (await history.accessForConversation(conversation.id)).single;
+    final access = (await history.accessForConversation(conversation.id))
+        .single;
     expect(access.status, 'denied');
     expect(access.sharedAt, isNull);
 
@@ -188,7 +204,7 @@ void main() {
             .toUtc()
             .subtract(const Duration(minutes: 31))
             .toIso8601String(),
-        conversation.id
+        conversation.id,
       ],
     );
     await tester.pumpWidget(app(const ValueKey('after-inactivity')));

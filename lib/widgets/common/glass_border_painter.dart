@@ -37,10 +37,7 @@ class GlassBorderPainter extends CustomPainter {
     paint.shader = LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: [
-        color,
-        color.withValues(alpha: 0.0),
-      ],
+      colors: [color, color.withValues(alpha: 0.0)],
       stops: const [0.0, 1.0],
     ).createShader(rect);
 

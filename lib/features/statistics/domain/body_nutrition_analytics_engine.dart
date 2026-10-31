@@ -30,7 +30,8 @@ class BodyNutritionAnalyticsEngine {
     final todayUtc = DateTime.utc(today.year, today.month, today.day);
 
     for (final day in allDays) {
-      final isToday = day.year == todayUtc.year &&
+      final isToday =
+          day.year == todayUtc.year &&
           day.month == todayUtc.month &&
           day.day == todayUtc.day;
 
@@ -73,13 +74,16 @@ class BodyNutritionAnalyticsEngine {
 
     final smoothedWeight = allDays
         .where((day) => smoothedWeightByDay[day] != null)
-        .map((day) =>
-            DailyValuePoint(day: day, value: smoothedWeightByDay[day]!))
+        .map(
+          (day) => DailyValuePoint(day: day, value: smoothedWeightByDay[day]!),
+        )
         .toList(growable: false);
     final smoothedCalories = allDays
         .where((day) => smoothedCaloriesByDay[day] != null)
-        .map((day) =>
-            DailyValuePoint(day: day, value: smoothedCaloriesByDay[day]!))
+        .map(
+          (day) =>
+              DailyValuePoint(day: day, value: smoothedCaloriesByDay[day]!),
+        )
         .toList(growable: false);
 
     final weightTrend = _computeTrendSnapshot(
@@ -87,8 +91,9 @@ class BodyNutritionAnalyticsEngine {
       unit: _TrendUnit.weightKg,
     );
     final calorieTrend = _computeTrendSnapshot(
-      series:
-          smoothedCalories.isNotEmpty ? smoothedCalories : loggedCaloriesSeries,
+      series: smoothedCalories.isNotEmpty
+          ? smoothedCalories
+          : loggedCaloriesSeries,
       unit: _TrendUnit.caloriesKcal,
     );
 
@@ -140,7 +145,7 @@ class BodyNutritionAnalyticsEngine {
     final avgDailyCalories = loggedCalorieDays <= 0
         ? 0.0
         : loggedCaloriesSeries.fold<double>(0.0, (sum, p) => sum + p.value) /
-            loggedCalorieDays;
+              loggedCalorieDays;
 
     final insightType = _legacyInsightType(
       relationship: relationship,
@@ -201,13 +206,16 @@ class BodyNutritionAnalyticsEngine {
           .toList(growable: false);
     }
     return points
-        .map((p) =>
-            DailyValuePoint(day: p.day, value: (p.value - minValue) / span))
+        .map(
+          (p) =>
+              DailyValuePoint(day: p.day, value: (p.value - minValue) / span),
+        )
         .toList(growable: false);
   }
 
   static Map<DateTime, double> _latestWeightPerDay(
-      List<ChartDataPoint> points) {
+    List<ChartDataPoint> points,
+  ) {
     final sorted = points.toList()..sort((a, b) => a.date.compareTo(b.date));
     final map = <DateTime, double>{};
     for (final point in sorted) {
@@ -235,7 +243,7 @@ class BodyNutritionAnalyticsEngine {
     if (observedByDay.isEmpty) return const {};
     final observedDays = observedByDay.keys.toList()..sort();
     final result = <DateTime, double>{
-      for (final day in observedDays) day: observedByDay[day]!
+      for (final day in observedDays) day: observedByDay[day]!,
     };
     const maxInterpolationGapDays = 14;
 
@@ -312,8 +320,10 @@ class BodyNutritionAnalyticsEngine {
 
     final firstDay = normalizeDay(series.first.day);
     final xs = series
-        .map((point) =>
-            normalizeDay(point.day).difference(firstDay).inDays.toDouble())
+        .map(
+          (point) =>
+              normalizeDay(point.day).difference(firstDay).inDays.toDouble(),
+        )
         .toList(growable: false);
     final ys = series.map((point) => point.value).toList(growable: false);
 
@@ -424,7 +434,8 @@ class BodyNutritionAnalyticsEngine {
     required BodyNutritionTrendSnapshot weightTrend,
     required BodyNutritionTrendSnapshot calorieTrend,
   }) {
-    final hardInsufficient = quality.spanDays < 14 ||
+    final hardInsufficient =
+        quality.spanDays < 14 ||
         quality.weightDays < 4 ||
         quality.calorieDays < 7 ||
         quality.overlapDays < 5;
@@ -612,8 +623,9 @@ class BodyNutritionAnalyticsEngine {
   }) {
     final _ = weightChangeKg; // kept for backward compatibility
     final usedWeight = smoothedWeight.isNotEmpty ? smoothedWeight : weightDaily;
-    final usedCalories =
-        smoothedCalories.isNotEmpty ? smoothedCalories : caloriesDaily;
+    final usedCalories = smoothedCalories.isNotEmpty
+        ? smoothedCalories
+        : caloriesDaily;
     final weightTrend = _computeTrendSnapshot(
       series: usedWeight,
       unit: _TrendUnit.weightKg,

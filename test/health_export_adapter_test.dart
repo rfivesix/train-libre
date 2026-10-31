@@ -22,18 +22,18 @@ void main() {
       connectCalls.clear();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(appleChannel, (call) async {
-        appleCalls.add(call);
-        if (call.method == 'getAvailability') return true;
-        if (call.method == 'requestPermissions') return true;
-        return true;
-      });
+            appleCalls.add(call);
+            if (call.method == 'getAvailability') return true;
+            if (call.method == 'requestPermissions') return true;
+            return true;
+          });
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(connectChannel, (call) async {
-        connectCalls.add(call);
-        if (call.method == 'getAvailability') return 'available';
-        if (call.method == 'requestPermissions') return true;
-        return true;
-      });
+            connectCalls.add(call);
+            if (call.method == 'getAvailability') return 'available';
+            if (call.method == 'requestPermissions') return true;
+            return true;
+          });
     });
 
     tearDown(() {
@@ -218,20 +218,28 @@ void main() {
           ),
         ]);
 
-        final measurementsBatch = connectCalls
-            .firstWhere(
-              (call) => call.method == 'writeMeasurementsBatch',
-            )
-            .arguments as Map;
-        final nutritionBatch = connectCalls
-            .firstWhere((call) => call.method == 'writeNutritionBatch')
-            .arguments as Map;
-        final hydrationBatch = connectCalls
-            .firstWhere((call) => call.method == 'writeHydrationBatch')
-            .arguments as Map;
-        final workoutsBatch = connectCalls
-            .firstWhere((call) => call.method == 'writeWorkoutsBatch')
-            .arguments as Map;
+        final measurementsBatch =
+            connectCalls
+                    .firstWhere(
+                      (call) => call.method == 'writeMeasurementsBatch',
+                    )
+                    .arguments
+                as Map;
+        final nutritionBatch =
+            connectCalls
+                    .firstWhere((call) => call.method == 'writeNutritionBatch')
+                    .arguments
+                as Map;
+        final hydrationBatch =
+            connectCalls
+                    .firstWhere((call) => call.method == 'writeHydrationBatch')
+                    .arguments
+                as Map;
+        final workoutsBatch =
+            connectCalls
+                    .firstWhere((call) => call.method == 'writeWorkoutsBatch')
+                    .arguments
+                as Map;
 
         expect((measurementsBatch['records'] as List).length, 2);
         expect((nutritionBatch['records'] as List).length, 1);

@@ -20,14 +20,11 @@ enum MediaDomain {
   assistantChats;
 
   /// Folder of this domain, relative to the application support directory.
-  String get folder => p.join(
-        AppMediaStore.mediaRoot,
-        switch (this) {
-          MediaDomain.meals => 'meals',
-          MediaDomain.workouts => 'workouts',
-          MediaDomain.assistantChats => 'assistant_chats',
-        },
-      );
+  String get folder => p.join(AppMediaStore.mediaRoot, switch (this) {
+    MediaDomain.meals => 'meals',
+    MediaDomain.workouts => 'workouts',
+    MediaDomain.assistantChats => 'assistant_chats',
+  });
 }
 
 /// Where a stored image and its preview ended up, relative to the application
@@ -249,16 +246,19 @@ class AppMediaStore {
   static Future<Set<String>> referencedMealPaths(AppDatabase db) async {
     final referenced = <String>{};
     final rows = await db
-        .customSelect('SELECT photo_path, photo_thumb_path, capture_meta '
-            'FROM meal_entries')
+        .customSelect(
+          'SELECT photo_path, photo_thumb_path, capture_meta '
+          'FROM meal_entries',
+        )
         .get();
     for (final row in rows) {
       final photo = row.data['photo_path'];
       final thumb = row.data['photo_thumb_path'];
       if (photo is String && photo.isNotEmpty) referenced.add(photo);
       if (thumb is String && thumb.isNotEmpty) referenced.add(thumb);
-      final meta =
-          MealCaptureMeta.tryParse(row.data['capture_meta'] as String?);
+      final meta = MealCaptureMeta.tryParse(
+        row.data['capture_meta'] as String?,
+      );
       if (meta != null) referenced.addAll(meta.extraPhotoPaths);
     }
     return referenced;
@@ -269,8 +269,10 @@ class AppMediaStore {
     final paths = <String>[];
     final seen = <String>{};
     final rows = await db
-        .customSelect('SELECT photo_path, photo_thumb_path, capture_meta '
-            'FROM meal_entries')
+        .customSelect(
+          'SELECT photo_path, photo_thumb_path, capture_meta '
+          'FROM meal_entries',
+        )
         .get();
     for (final row in rows) {
       final candidates = <String?>[
@@ -278,10 +280,10 @@ class AppMediaStore {
         // A row written before previews existed may still have one on disk
         // under the name `save` would have given it.
         thumbPathFor(row.data['photo_path'] as String?),
-        for (final extra in MealCaptureMeta.tryParse(
-              row.data['capture_meta'] as String?,
-            )?.extraPhotoPaths ??
-            const <String>[])
+        for (final extra
+            in MealCaptureMeta.tryParse(row.data['capture_meta'] as String?)
+                    ?.extraPhotoPaths ??
+                const <String>[])
           thumbPathFor(extra),
       ];
       for (final candidate in candidates) {
@@ -331,8 +333,10 @@ class AppMediaStore {
   static Future<Set<String>> referencedWorkoutPaths(AppDatabase db) async {
     final referenced = <String>{};
     final rows = await db
-        .customSelect('SELECT photo_path, photo_thumb_path, photo_extra_paths '
-            'FROM workout_logs')
+        .customSelect(
+          'SELECT photo_path, photo_thumb_path, photo_extra_paths '
+          'FROM workout_logs',
+        )
         .get();
     for (final row in rows) {
       final photo = row.data['photo_path'];
@@ -359,8 +363,10 @@ class AppMediaStore {
     final paths = <String>[];
     final seen = <String>{};
     final rows = await db
-        .customSelect('SELECT photo_path, photo_thumb_path, photo_extra_paths '
-            'FROM workout_logs')
+        .customSelect(
+          'SELECT photo_path, photo_thumb_path, photo_extra_paths '
+          'FROM workout_logs',
+        )
         .get();
     for (final row in rows) {
       final candidates = <String?>[
@@ -412,7 +418,8 @@ class AppMediaStore {
       }
     } catch (e) {
       debugPrint(
-          '[AppMediaStore] reading workout preview locations failed: $e');
+        '[AppMediaStore] reading workout preview locations failed: $e',
+      );
     }
     return MediaThumbPlacement(
       basePath: base,
@@ -477,7 +484,8 @@ class AppMediaStore {
 
   /// Where restored assistant chat previews have to land.
   Future<MediaThumbPlacement> assistantChatThumbPlacement(
-      AppDatabase db) async {
+    AppDatabase db,
+  ) async {
     final base = await ensureInitialized();
     final directories = <String, String>{};
     try {
@@ -486,7 +494,8 @@ class AppMediaStore {
       }
     } catch (e) {
       debugPrint(
-          '[AppMediaStore] reading assistant preview locations failed: $e');
+        '[AppMediaStore] reading assistant preview locations failed: $e',
+      );
     }
     return MediaThumbPlacement(
       basePath: base,
@@ -514,8 +523,8 @@ class MediaThumbPlacement {
   final String defaultDirectory;
 
   Directory directoryFor(String fileName) => Directory(
-        p.join(basePath, directoriesByName[fileName] ?? defaultDirectory),
-      );
+    p.join(basePath, directoriesByName[fileName] ?? defaultDirectory),
+  );
 }
 
 typedef MealThumbPlacement = MediaThumbPlacement;

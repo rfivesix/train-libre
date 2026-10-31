@@ -182,8 +182,8 @@ class HealthStepsAggregationRepository implements StepsAggregationRepository {
   HealthStepsAggregationRepository({
     DatabaseHelper? dbHelper,
     StepsSyncService? stepsSyncService,
-  })  : dbHelper = dbHelper ?? DatabaseHelper.instance,
-        stepsSyncService = stepsSyncService ?? StepsSyncService();
+  }) : dbHelper = dbHelper ?? DatabaseHelper.instance,
+       stepsSyncService = stepsSyncService ?? StepsSyncService();
 
   final DatabaseHelper dbHelper;
   final StepsSyncService stepsSyncService;
@@ -195,9 +195,12 @@ class HealthStepsAggregationRepository implements StepsAggregationRepository {
     final db = await dbHelper.database;
     const stepsTable = 'health_step_segments';
 
-    yield* db.tableUpdates().where((updates) {
-      return updates.any((update) => update.table == stepsTable);
-    }).asyncMap((_) => getDayAggregation(date));
+    yield* db
+        .tableUpdates()
+        .where((updates) {
+          return updates.any((update) => update.table == stepsTable);
+        })
+        .asyncMap((_) => getDayAggregation(date));
   }
 
   @override

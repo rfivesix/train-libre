@@ -118,7 +118,8 @@ class CloudHistoryManager {
                 );
               }
               turns.last.proposalStatus = message.status;
-              turns.last.response = decoded['summary'] as String? ??
+              turns.last.response =
+                  decoded['summary'] as String? ??
                   turns.last.changeProposal!.summary;
             } else {
               turns.last.response = message.content;
@@ -129,8 +130,10 @@ class CloudHistoryManager {
         } else {
           turns.last.response = message.content;
         }
-        turns.last.modelName =
-            formatModelDisplayName(message.providerId, message.modelId);
+        turns.last.modelName = formatModelDisplayName(
+          message.providerId,
+          message.modelId,
+        );
         turns.last.assistantMessageId = message.id;
       }
     }
@@ -146,9 +149,11 @@ class CloudHistoryManager {
       pendingQuestion: restoredPending == null
           ? null
           : turns
-              .where((turn) => turn.userMessageId == restoredPending.messageId)
-              .map((turn) => turn.prompt)
-              .firstOrNull,
+                .where(
+                  (turn) => turn.userMessageId == restoredPending.messageId,
+                )
+                .map((turn) => turn.prompt)
+                .firstOrNull,
       selectedSidebarIndex: selectedIndex,
     );
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
@@ -15,23 +16,23 @@ class SoundService {
 
   @visibleForTesting
   static AudioContext timerAudioContext(bool ignoreSilentMode) => AudioContext(
-        android: AudioContextAndroid(
-          stayAwake: false,
-          contentType: AndroidContentType.sonification,
-          usageType: ignoreSilentMode
-              ? AndroidUsageType.alarm
-              : AndroidUsageType.notification,
-          audioFocus: AndroidAudioFocus.none,
-        ),
-        iOS: AudioContextIOS(
-          category: ignoreSilentMode
-              ? AVAudioSessionCategory.playback
-              : AVAudioSessionCategory.ambient,
-          options: ignoreSilentMode
-              ? const {AVAudioSessionOptions.mixWithOthers}
-              : const {},
-        ),
-      );
+    android: AudioContextAndroid(
+      stayAwake: false,
+      contentType: AndroidContentType.sonification,
+      usageType: ignoreSilentMode
+          ? AndroidUsageType.alarm
+          : AndroidUsageType.notification,
+      audioFocus: AndroidAudioFocus.none,
+    ),
+    iOS: AudioContextIOS(
+      category: ignoreSilentMode
+          ? AVAudioSessionCategory.playback
+          : AVAudioSessionCategory.ambient,
+      options: ignoreSilentMode
+          ? const {AVAudioSessionOptions.mixWithOthers}
+          : const {},
+    ),
+  );
 
   Future<void> _ensureInitialized() async {
     final ignoreSilentMode =

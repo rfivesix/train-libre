@@ -65,8 +65,9 @@ class CloudOverlayComposer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final composerGlassSettings =
-        DesignConstants.liquidGlassSettings(cloudSurfaceDark);
+    final composerGlassSettings = DesignConstants.liquidGlassSettings(
+      cloudSurfaceDark,
+    );
     final glassTheme = theme.copyWith(
       brightness: cloudSurfaceDark ? Brightness.dark : Brightness.light,
     );
@@ -81,33 +82,32 @@ class CloudOverlayComposer extends StatelessWidget {
       builder: (context, _) {
         final inputValue = chatInputController.value;
         final hasText = inputValue.text.trim().isNotEmpty;
-        final inputIsScrolled = chatInputScrollController.hasClients &&
+        final inputIsScrolled =
+            chatInputScrollController.hasClients &&
             chatInputScrollController.offset > 0.5;
         final recording = voiceController.isActive;
         final expandedInput =
             hasText || chatFocusNode.hasFocus || imageAttachments.isNotEmpty;
 
         Widget voiceButton({bool filled = false}) => HeaderGlassButton(
-              icon: recording ? LucideIcons.x : LucideIcons.mic,
-              tooltip: recording
-                  ? AppLocalizations.of(context)!.cancel
-                  : AppLocalizations.of(context)!.voiceTapToRecord,
-              isDarkSurface: !surfaceIsLight,
-              foregroundColor: filled ? sendButtonForeground : contrastColor,
-              backgroundColor: filled ? sendButtonBackground : controlFillColor,
-              showBorder: recording || filled,
-              useStaticGlass: isGlassTransitioning,
-              onPressed: recording
-                  ? voiceController.cancel
-                  : () {
-                      if (filled) {
-                        unawaited(
-                          HapticFeedbackService.instance.lightImpact(),
-                        );
-                      }
-                      unawaited(voiceController.start(context));
-                    },
-            );
+          icon: recording ? LucideIcons.x : LucideIcons.mic,
+          tooltip: recording
+              ? AppLocalizations.of(context)!.cancel
+              : AppLocalizations.of(context)!.voiceTapToRecord,
+          isDarkSurface: !surfaceIsLight,
+          foregroundColor: filled ? sendButtonForeground : contrastColor,
+          backgroundColor: filled ? sendButtonBackground : controlFillColor,
+          showBorder: recording || filled,
+          useStaticGlass: isGlassTransitioning,
+          onPressed: recording
+              ? voiceController.cancel
+              : () {
+                  if (filled) {
+                    unawaited(HapticFeedbackService.instance.lightImpact());
+                  }
+                  unawaited(voiceController.start(context));
+                },
+        );
 
         Widget sendButton() {
           final hasDraft =
@@ -143,63 +143,61 @@ class CloudOverlayComposer extends StatelessWidget {
         }
 
         Widget messageField({required bool compact}) => Scrollbar(
-              key: const ValueKey('ai-composer-scrollbar'),
-              controller: chatInputScrollController,
-              thumbVisibility: !compact,
-              thickness: 2,
-              radius: const Radius.circular(2),
-              child: TextSelectionTheme(
-                data: TextSelectionThemeData(
-                  cursorColor: selectionBlue,
-                  selectionColor: selectionBlue.withValues(alpha: 0.32),
-                  selectionHandleColor: selectionBlue,
+          key: const ValueKey('ai-composer-scrollbar'),
+          controller: chatInputScrollController,
+          thumbVisibility: !compact,
+          thickness: 2,
+          radius: const Radius.circular(2),
+          child: TextSelectionTheme(
+            data: TextSelectionThemeData(
+              cursorColor: selectionBlue,
+              selectionColor: selectionBlue.withValues(alpha: 0.32),
+              selectionHandleColor: selectionBlue,
+            ),
+            child: TextField(
+              key: const ValueKey('ai-composer-text-field'),
+              controller: chatInputController,
+              scrollController: chatInputScrollController,
+              focusNode: chatFocusNode,
+              keyboardType: TextInputType.text,
+              onTapOutside: (_) => chatFocusNode.unfocus(),
+              onTap: () {
+                if (!voiceController.isActive) {
+                  chatFocusNode.requestFocus();
+                  unawaited(requestKeyboardAfterLayout());
+                }
+              },
+              textAlign: TextAlign.start,
+              textAlignVertical: compact
+                  ? TextAlignVertical.center
+                  : TextAlignVertical.top,
+              minLines: 1,
+              maxLines: compact ? 1 : 6,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => onSendPrompt(),
+              style: theme.textTheme.bodyMedium?.copyWith(color: contrastColor),
+              cursorColor: selectionBlue,
+              decoration: InputDecoration(
+                hintText: askModelHint,
+                hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                  color: contrastColor.withValues(alpha: 0.52),
                 ),
-                child: TextField(
-                  key: const ValueKey('ai-composer-text-field'),
-                  controller: chatInputController,
-                  scrollController: chatInputScrollController,
-                  focusNode: chatFocusNode,
-                  keyboardType: TextInputType.text,
-                  onTapOutside: (_) => chatFocusNode.unfocus(),
-                  onTap: () {
-                    if (!voiceController.isActive) {
-                      chatFocusNode.requestFocus();
-                      unawaited(requestKeyboardAfterLayout());
-                    }
-                  },
-                  textAlign: TextAlign.start,
-                  textAlignVertical: compact
-                      ? TextAlignVertical.center
-                      : TextAlignVertical.top,
-                  minLines: 1,
-                  maxLines: compact ? 1 : 6,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => onSendPrompt(),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: contrastColor,
-                  ),
-                  cursorColor: selectionBlue,
-                  decoration: InputDecoration(
-                    hintText: askModelHint,
-                    hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                      color: contrastColor.withValues(alpha: 0.52),
-                    ),
-                    filled: false,
-                    fillColor: Colors.transparent,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.only(
-                      top: compact ? 0 : (inputIsScrolled ? 0 : 8),
-                    ),
-                  ),
+                filled: false,
+                fillColor: Colors.transparent,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.only(
+                  top: compact ? 0 : (inputIsScrolled ? 0 : 8),
                 ),
               ),
-            );
+            ),
+          ),
+        );
 
         Widget addImagesButton() {
           final l10n = AppLocalizations.of(context)!;
@@ -232,8 +230,8 @@ class CloudOverlayComposer extends StatelessWidget {
               ),
             ],
             onSelected: (value) {
-              final renderObject =
-                  addImagesButtonKey?.currentContext?.findRenderObject();
+              final renderObject = addImagesButtonKey?.currentContext
+                  ?.findRenderObject();
               final box = renderObject is RenderBox ? renderObject : null;
               final sourceRect = box != null && box.hasSize
                   ? box.localToGlobal(Offset.zero) & box.size
@@ -248,51 +246,50 @@ class CloudOverlayComposer extends StatelessWidget {
           File image,
           int index,
           double size,
-        ) =>
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: SizedBox.square(
-                    dimension: size,
-                    child: image.existsSync()
-                        ? Image.file(
-                            image,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const ColoredBox(
-                              color: Colors.black12,
-                              child: Icon(Icons.broken_image_outlined),
-                            ),
-                          )
-                        : const ColoredBox(
-                            color: Colors.black12,
-                            child: Icon(Icons.image_outlined),
-                          ),
-                  ),
+        ) => Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: SizedBox.square(
+                dimension: size,
+                child: image.existsSync()
+                    ? Image.file(
+                        image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const ColoredBox(
+                          color: Colors.black12,
+                          child: Icon(Icons.broken_image_outlined),
+                        ),
+                      )
+                    : const ColoredBox(
+                        color: Colors.black12,
+                        child: Icon(Icons.image_outlined),
+                      ),
+              ),
+            ),
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Semantics(
+                button: true,
+                label: AppLocalizations.of(context)!.aiChatRemoveImage,
+                child: HeaderGlassButton(
+                  key: ValueKey('remove-chat-image-$index'),
+                  icon: Icons.close,
+                  iconSize: 12,
+                  dimension: 26,
+                  tooltip: AppLocalizations.of(context)!.aiChatRemoveImage,
+                  isDarkSurface: !surfaceIsLight,
+                  foregroundColor: contrastColor,
+                  backgroundColor: controlFillColor,
+                  useStaticGlass: isGlassTransitioning,
+                  onPressed: () => onRemoveImage?.call(image),
                 ),
-                Positioned(
-                  right: -4,
-                  top: -4,
-                  child: Semantics(
-                    button: true,
-                    label: AppLocalizations.of(context)!.aiChatRemoveImage,
-                    child: HeaderGlassButton(
-                      key: ValueKey('remove-chat-image-$index'),
-                      icon: Icons.close,
-                      iconSize: 12,
-                      dimension: 26,
-                      tooltip: AppLocalizations.of(context)!.aiChatRemoveImage,
-                      isDarkSurface: !surfaceIsLight,
-                      foregroundColor: contrastColor,
-                      backgroundColor: controlFillColor,
-                      useStaticGlass: isGlassTransitioning,
-                      onPressed: () => onRemoveImage?.call(image),
-                    ),
-                  ),
-                ),
-              ],
-            );
+              ),
+            ),
+          ],
+        );
 
         Widget attachmentPreview() {
           const thumbnailSize = 80.0;
@@ -397,8 +394,9 @@ class CloudOverlayComposer extends StatelessWidget {
                                 ],
                                 Expanded(
                                   child: ConstrainedBox(
-                                    constraints:
-                                        const BoxConstraints(maxHeight: 156),
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 156,
+                                    ),
                                     child: messageField(
                                       compact: !expandedInput,
                                     ),
@@ -468,9 +466,7 @@ class CloudOverlayComposer extends StatelessWidget {
                     quality: DesignConstants.defaultGlassQuality,
                     useOwnLayer: true,
                     allowElevation: false,
-                    shape: const LiquidRoundedSuperellipse(
-                      borderRadius: 28,
-                    ),
+                    shape: const LiquidRoundedSuperellipse(borderRadius: 28),
                     child: GlassGlow(
                       glowColor: contrastColor.withValues(
                         alpha: 0.12 * visibility,

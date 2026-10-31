@@ -22,26 +22,16 @@ void main() {
       );
     });
 
-    test(
-        'defaults initial diary date to today when no date is provided at or after 03:00',
-        () {
+    test('defaults initial diary date to today when no date is provided at or after 03:00', () {
       final today = DateTime(2026, 5, 4, 9);
 
-      expect(
-        resolveDiaryInitialDate(now: today),
-        DateTime(2026, 5, 4),
-      );
+      expect(resolveDiaryInitialDate(now: today), DateTime(2026, 5, 4));
     });
 
-    test(
-        'defaults initial diary date to yesterday when no date is provided before 03:00',
-        () {
+    test('defaults initial diary date to yesterday when no date is provided before 03:00', () {
       final earlyMorning = DateTime(2026, 5, 4, 2, 45);
 
-      expect(
-        resolveDiaryInitialDate(now: earlyMorning),
-        DateTime(2026, 5, 3),
-      );
+      expect(resolveDiaryInitialDate(now: earlyMorning), DateTime(2026, 5, 3));
     });
 
     test('ignores stale diary loads after quick day switches', () {
@@ -61,23 +51,25 @@ void main() {
       );
     });
 
-    test('coalesces identical in-flight diary loads without queuing by default',
-        () {
-      final coordinator = DiaryLoadCoordinator();
-      final day = DateTime(2026, 5, 4, 9);
+    test(
+      'coalesces identical in-flight diary loads without queuing by default',
+      () {
+        final coordinator = DiaryLoadCoordinator();
+        final day = DateTime(2026, 5, 4, 9);
 
-      coordinator.markInFlight(day);
+        coordinator.markInFlight(day);
 
-      expect(
-        coordinator.coalesceIfInFlight(
-          DateTime(2026, 5, 4, 21),
-          forceStepsRefresh: false,
-          queueIfInFlight: false,
-        ),
-        isTrue,
-      );
-      expect(coordinator.hasPendingReload, isFalse);
-    });
+        expect(
+          coordinator.coalesceIfInFlight(
+            DateTime(2026, 5, 4, 21),
+            forceStepsRefresh: false,
+            queueIfInFlight: false,
+          ),
+          isTrue,
+        );
+        expect(coordinator.hasPendingReload, isFalse);
+      },
+    );
 
     test('queues one same-day reload after water mutation during refresh', () {
       final coordinator = DiaryLoadCoordinator();

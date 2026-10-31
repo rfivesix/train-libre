@@ -54,8 +54,10 @@ void main() {
 
   Future<List<String>> distinct(String column) async {
     final rows = await db
-        .customSelect('SELECT DISTINCT $column AS v FROM exercises '
-            'WHERE $column IS NOT NULL AND $column != \'\' ORDER BY v')
+        .customSelect(
+          'SELECT DISTINCT $column AS v FROM exercises '
+          'WHERE $column IS NOT NULL AND $column != \'\' ORDER BY v',
+        )
         .get();
     return rows
         .map((r) => r.read<String>('v'))
@@ -70,10 +72,12 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('de'),
-        home: Builder(builder: (context) {
-          captured = context;
-          return const SizedBox.shrink();
-        }),
+        home: Builder(
+          builder: (context) {
+            captured = context;
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
     return captured;
@@ -93,33 +97,37 @@ void main() {
 
     final axes =
         <String, ({List<String> values, String? Function(String) label})>{
-      'mechanic': (
-        values: await distinct('mechanic'),
-        label: (v) => ExerciseClassificationLabels.mechanic(context, v),
-      ),
-      'laterality': (
-        values: await distinct('laterality'),
-        label: (v) => ExerciseClassificationLabels.laterality(context, v),
-      ),
-      'difficulty': (
-        values: await distinct('difficulty'),
-        label: (v) => ExerciseClassificationLabels.difficulty(context, v),
-      ),
-      'force_vector': (
-        values: await distinct('force_vector'),
-        label: (v) => ExerciseClassificationLabels.forceVector(context, v),
-      ),
-      'movement_pattern': (
-        values: await distinct('movement_pattern'),
-        label: (v) => ExerciseClassificationLabels.movementPattern(context, v),
-      ),
-    };
+          'mechanic': (
+            values: await distinct('mechanic'),
+            label: (v) => ExerciseClassificationLabels.mechanic(context, v),
+          ),
+          'laterality': (
+            values: await distinct('laterality'),
+            label: (v) => ExerciseClassificationLabels.laterality(context, v),
+          ),
+          'difficulty': (
+            values: await distinct('difficulty'),
+            label: (v) => ExerciseClassificationLabels.difficulty(context, v),
+          ),
+          'force_vector': (
+            values: await distinct('force_vector'),
+            label: (v) => ExerciseClassificationLabels.forceVector(context, v),
+          ),
+          'movement_pattern': (
+            values: await distinct('movement_pattern'),
+            label: (v) =>
+                ExerciseClassificationLabels.movementPattern(context, v),
+          ),
+        };
 
     for (final entry in axes.entries) {
       expect(entry.value.values, isNotEmpty, reason: '${entry.key} is empty');
       for (final value in entry.value.values) {
-        expect(entry.value.label(value), isNotNull,
-            reason: '${entry.key} "$value" has no label');
+        expect(
+          entry.value.label(value),
+          isNotNull,
+          reason: '${entry.key} "$value" has no label',
+        );
       }
     }
   });
@@ -133,8 +141,11 @@ void main() {
 
     expect(tags, isNotEmpty);
     for (final tag in tags) {
-      expect(ExerciseClassificationLabels.usageTag(context, tag), isNotNull,
-          reason: 'usage tag "$tag" has no label');
+      expect(
+        ExerciseClassificationLabels.usageTag(context, tag),
+        isNotNull,
+        reason: 'usage tag "$tag" has no label',
+      );
     }
   });
 }

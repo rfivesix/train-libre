@@ -56,13 +56,11 @@ class AdaptiveRecommendationSnapshot {
     };
   }
 
-  factory AdaptiveRecommendationSnapshot.fromJson(
-    Map<String, dynamic> json,
-  ) {
-    final recommendationRaw =
-        (json['recommendation'] as Map?)?.cast<String, dynamic>();
-    final maintenanceEstimateRaw =
-        (json['maintenanceEstimate'] as Map?)?.cast<String, dynamic>();
+  factory AdaptiveRecommendationSnapshot.fromJson(Map<String, dynamic> json) {
+    final recommendationRaw = (json['recommendation'] as Map?)
+        ?.cast<String, dynamic>();
+    final maintenanceEstimateRaw = (json['maintenanceEstimate'] as Map?)
+        ?.cast<String, dynamic>();
 
     if (recommendationRaw == null || maintenanceEstimateRaw == null) {
       throw const FormatException(
@@ -71,8 +69,9 @@ class AdaptiveRecommendationSnapshot {
     }
 
     final recommendation = NutritionRecommendation.fromJson(recommendationRaw);
-    final maintenanceEstimate =
-        BayesianMaintenanceEstimate.fromJson(maintenanceEstimateRaw);
+    final maintenanceEstimate = BayesianMaintenanceEstimate.fromJson(
+      maintenanceEstimateRaw,
+    );
 
     final explicitDueWeekKey = (json['dueWeekKey'] as String?)?.trim();
     final derivedDueWeekKey =
@@ -81,8 +80,8 @@ class AdaptiveRecommendationSnapshot {
         ? explicitDueWeekKey!
         : (derivedDueWeekKey?.trim() ?? '');
 
-    final explicitAlgorithmVersion =
-        (json['algorithmVersion'] as String?)?.trim();
+    final explicitAlgorithmVersion = (json['algorithmVersion'] as String?)
+        ?.trim();
     final algorithmVersion = (explicitAlgorithmVersion?.isNotEmpty ?? false)
         ? explicitAlgorithmVersion!
         : recommendation.algorithmVersion;

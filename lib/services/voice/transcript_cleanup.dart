@@ -75,9 +75,10 @@ class TranscriptCleanup {
 
       // Compare without punctuation so "ähm," is recognised too, but keep the
       // original token when it survives.
-      final bare = token
-          .toLowerCase()
-          .replaceAll(RegExp(r'''^[^\wäöüß]+|[^\wäöüß]+$'''), '');
+      final bare = token.toLowerCase().replaceAll(
+        RegExp(r'''^[^\wäöüß]+|[^\wäöüß]+$'''),
+        '',
+      );
       if (bare.isEmpty) continue;
       if (fillers.contains(bare)) continue;
 
@@ -89,9 +90,10 @@ class TranscriptCleanup {
 
       // "das das Brot" — dictation repeats a word when the speaker restarts.
       if (kept.isNotEmpty) {
-        final previous = kept.last
-            .toLowerCase()
-            .replaceAll(RegExp(r'''^[^\wäöüß]+|[^\wäöüß]+$'''), '');
+        final previous = kept.last.toLowerCase().replaceAll(
+          RegExp(r'''^[^\wäöüß]+|[^\wäöüß]+$'''),
+          '',
+        );
         if (previous == bare) continue;
       }
 

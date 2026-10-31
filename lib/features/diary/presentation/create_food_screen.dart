@@ -1,6 +1,7 @@
 // lib/screens/create_food_screen.dart (Final & De-Materialisiert)
 
 import 'package:flutter/material.dart';
+
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_item.dart';
@@ -8,8 +9,11 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen providing a form to create a new custom [FoodItem] or edit an existing one.
@@ -44,8 +48,11 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.createFood));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.createFood,
+      ),
+    );
     if (_isEditing) {
       final item = widget.foodItemToEdit!;
       _nameController.text = item.name;
@@ -92,7 +99,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   Future<void> _saveFoodItem() async {
     if (_formKey.currentState?.validate() ?? false) {
       final l10n = AppLocalizations.of(context)!;
-      final isLiquidOrFluid = widget.foodItemToEdit?.isLiquid == true ||
+      final isLiquidOrFluid =
+          widget.foodItemToEdit?.isLiquid == true ||
           widget.foodItemToEdit?.isFluid == true;
       final caffeineVal = double.tryParse(_caffeineController.text);
 
@@ -123,8 +131,11 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
         await ProductLocalDataSource.instance.updateProduct(foodData);
       } else {
         await ProductLocalDataSource.instance.insertProduct(foodData);
-        unawaited(TelemetryService.instance
-            .trackFeatureUsed(featureKey: FeatureKey.customFoodCreated));
+        unawaited(
+          TelemetryService.instance.trackFeatureUsed(
+            featureKey: FeatureKey.customFoodCreated,
+          ),
+        );
       }
 
       if (mounted) {
@@ -261,10 +272,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
       child: TextFormField(
         controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          suffixIcon: suffixIcon,
-        ),
+        decoration: InputDecoration(labelText: label, suffixIcon: suffixIcon),
         // FIX: Keyboard type is now controlled.
         keyboardType: isNumeric
             ? const TextInputType.numberWithOptions(decimal: true)

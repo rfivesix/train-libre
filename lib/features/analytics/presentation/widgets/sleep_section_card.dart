@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
@@ -42,20 +44,22 @@ class SleepSectionCard extends StatelessWidget {
     final summary = state.data;
     final score = summary?.averageScore;
     final scoreText = score == null ? '--' : score.round().toString();
-    final scoreValue =
-        score == null ? 0.0 : (score.clamp(0.0, 100.0) / 100.0).toDouble();
+    final scoreValue = score == null
+        ? 0.0
+        : (score.clamp(0.0, 100.0) / 100.0).toDouble();
     final durationText = _formatSleepDuration(l10n, summary?.averageDuration);
     final bedtimeText = _formatBedtime(summary?.averageBedtimeMinutes);
     final interruptionsCount = summary?.averageInterruptions?.round();
-    final interruptionsValue =
-        interruptionsCount == null ? '--' : interruptionsCount.toString();
+    final interruptionsValue = interruptionsCount == null
+        ? '--'
+        : interruptionsCount.toString();
     final interruptionsSubtitle =
         (interruptionsCount == null || summary?.averageWakeDuration == null)
-            ? l10n.sleepHubAverageLabel
-            : l10n.sleepHubInterruptionsSummary(
-                interruptionsCount,
-                _formatSleepDuration(l10n, summary!.averageWakeDuration),
-              );
+        ? l10n.sleepHubAverageLabel
+        : l10n.sleepHubInterruptionsSummary(
+            interruptionsCount,
+            _formatSleepDuration(l10n, summary!.averageWakeDuration),
+          );
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -97,9 +101,7 @@ class SleepSectionCard extends StatelessWidget {
                         const SizedBox(height: DesignConstants.spacingXS),
                         Text(
                           l10n.sleepMeanScoreLabel(scoreText),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.outline,
                               ),
@@ -175,9 +177,8 @@ class SleepSectionCard extends StatelessWidget {
           ),
           Text(
             scoreText,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),

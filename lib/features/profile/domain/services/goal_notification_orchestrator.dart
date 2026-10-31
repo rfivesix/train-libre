@@ -50,19 +50,18 @@ class LocalGoalNotificationScheduler implements GoalNotificationScheduler {
   final LocalNotificationService _service;
 
   LocalGoalNotificationScheduler({LocalNotificationService? service})
-      : _service = service ?? LocalNotificationService.instance;
+    : _service = service ?? LocalNotificationService.instance;
 
   @override
   Future<bool> showWeeklyReview({
     required Goal goal,
     required GoalReviewRecord review,
-  }) =>
-      _service.showWeeklyGoalReviewNotification(
-        goalId: goal.id,
-        reviewId: review.id,
-        goalTitle: goal.title,
-        recommendedCalories: review.recommendedCalories,
-      );
+  }) => _service.showWeeklyGoalReviewNotification(
+    goalId: goal.id,
+    reviewId: review.id,
+    goalTitle: goal.title,
+    recommendedCalories: review.recommendedCalories,
+  );
 
   @override
   Future<bool> scheduleTargetDate({required Goal goal}) =>
@@ -88,12 +87,13 @@ class GoalNotificationOrchestrator {
     WeeklyGoalReviewOrchestrator? reviewOrchestrator,
     GoalNotificationScheduler? scheduler,
     GoalNotificationPreferences? preferences,
-  })  : _goalRepository = goalRepository,
-        _reviewOrchestrator = reviewOrchestrator ??
-            WeeklyGoalReviewOrchestrator(goalRepository: goalRepository),
-        _scheduler = scheduler ?? LocalGoalNotificationScheduler(),
-        _preferences =
-            preferences ?? SharedPreferencesGoalNotificationPreferences();
+  }) : _goalRepository = goalRepository,
+       _reviewOrchestrator =
+           reviewOrchestrator ??
+           WeeklyGoalReviewOrchestrator(goalRepository: goalRepository),
+       _scheduler = scheduler ?? LocalGoalNotificationScheduler(),
+       _preferences =
+           preferences ?? SharedPreferencesGoalNotificationPreferences();
 
   /// Safe to call at startup, on refresh and from background execution.
   Future<WeeklyGoalReviewGenerationResult> synchronize({DateTime? now}) async {
@@ -106,11 +106,13 @@ class GoalNotificationOrchestrator {
     if (goal == null) return result;
 
     if (await _preferences.weeklyReviewEnabled()) {
-      await LocalNotificationService.instance
-          .scheduleUpcomingWeeklyGoalReviews(goal: goal);
+      await LocalNotificationService.instance.scheduleUpcomingWeeklyGoalReviews(
+        goal: goal,
+      );
     } else {
-      await LocalNotificationService.instance
-          .cancelWeeklyReviewNotifications(goalId: goal.id);
+      await LocalNotificationService.instance.cancelWeeklyReviewNotifications(
+        goalId: goal.id,
+      );
     }
 
     if (await _preferences.targetDateEnabled()) {
@@ -124,10 +126,7 @@ class GoalNotificationOrchestrator {
         review.status == 'pending' &&
         !await _preferences.wasReviewNotified(review.id)) {
       if (await _preferences.weeklyReviewEnabled()) {
-        await _scheduler.showWeeklyReview(
-          goal: goal,
-          review: review,
-        );
+        await _scheduler.showWeeklyReview(goal: goal, review: review);
       }
       // Disabled settings and denied permissions both consume the due event,
       // so switching notifications on later only affects future reviews.

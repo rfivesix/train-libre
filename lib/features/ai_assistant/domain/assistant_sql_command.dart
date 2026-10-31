@@ -123,8 +123,11 @@ class AssistantSqlAnswerCommand extends AssistantSqlCommand {
 }
 
 class AssistantSqlDataRequestCommand extends AssistantSqlCommand {
-  const AssistantSqlDataRequestCommand(this.categories,
-      {this.dateExpression, this.scope});
+  const AssistantSqlDataRequestCommand(
+    this.categories, {
+    this.dateExpression,
+    this.scope,
+  });
   final List<String> categories;
   final String? dateExpression;
   final Map<String, dynamic>? scope;

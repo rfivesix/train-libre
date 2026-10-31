@@ -10,17 +10,17 @@ import 'package:train_libre/features/workout/presentation/widgets/log_mask_label
 /// logsDuration` below. A plank satisfies one and not the other, so its
 /// heading and its inputs were laid out to different proportions.
 SetRowFlex flexFor(String trackingType) => SetRowFlex.forMask(
-      ExerciseLogMask.forExercise(
-        Exercise(
-          texts: const {'en': ExerciseText(name: 'Test')},
-          categoryName: 'Test',
-          primaryMuscles: const [],
-          secondaryMuscles: const [],
-          trackingType: trackingType,
-          loadMode: 'bodyweight',
-        ),
-      ),
-    );
+  ExerciseLogMask.forExercise(
+    Exercise(
+      texts: const {'en': ExerciseText(name: 'Test')},
+      categoryName: 'Test',
+      primaryMuscles: const [],
+      secondaryMuscles: const [],
+      trackingType: trackingType,
+      loadMode: 'bodyweight',
+    ),
+  ),
+);
 
 int total(SetRowFlex f) =>
     f.index + f.lastTime + f.primary + f.secondary + f.intensity;

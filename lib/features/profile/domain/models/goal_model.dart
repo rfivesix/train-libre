@@ -59,10 +59,10 @@ enum GoalTrackingMode {
   targetWeight;
 
   static GoalTrackingMode fromString(String? value) => switch (value) {
-        'open' => GoalTrackingMode.open,
-        'targetWeight' => GoalTrackingMode.targetWeight,
-        _ => GoalTrackingMode.weeklyRate,
-      };
+    'open' => GoalTrackingMode.open,
+    'targetWeight' => GoalTrackingMode.targetWeight,
+    _ => GoalTrackingMode.weeklyRate,
+  };
 }
 
 class Goal {
@@ -219,8 +219,9 @@ class Goal {
       reason: map['reason'] as String?,
       status: GoalStatus.fromString(map['status'] as String),
       startDate: DateTime.parse(map['start_date'] as String),
-      trackingMode:
-          GoalTrackingMode.fromString(map['tracking_mode'] as String?),
+      trackingMode: GoalTrackingMode.fromString(
+        map['tracking_mode'] as String?,
+      ),
       baselineMeasurementId: map['baseline_measurement_id'] as String?,
       baselineValueKg: (map['baseline_value_kg'] as num?)?.toDouble(),
       baselineDate: map['baseline_date'] == null
@@ -304,9 +305,9 @@ class GoalReviewRecord {
   final DateTime windowStart;
   final DateTime windowEnd;
   final String
-      status; // 'pending', 'applied', 'deferred', 'dismissed', 'goal_changed'
+  status; // 'pending', 'applied', 'deferred', 'dismissed', 'goal_changed'
   final String?
-      trajectoryStatus; // 'on_track', 'slower', 'faster', 'calibrating'
+  trajectoryStatus; // 'on_track', 'slower', 'faster', 'calibrating'
   final double? observedRateKgPerWeek;
   final String? confidenceLevel; // 'high', 'moderate', 'low', 'uncalibrated'
   final double? tdeeEstimate;
@@ -359,8 +360,9 @@ class GoalReviewRecord {
       'decision': decision,
       'algorithm_version': algorithmVersion,
       'explanation': explanation,
-      'assessment_json':
-          assessment == null ? null : jsonEncode(assessment!.toMap()),
+      'assessment_json': assessment == null
+          ? null
+          : jsonEncode(assessment!.toMap()),
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -373,8 +375,8 @@ class GoalReviewRecord {
       windowEnd: DateTime.parse(map['window_end'] as String),
       status: (map['status'] as String?) ?? 'pending',
       trajectoryStatus: map['trajectory_status'] as String?,
-      observedRateKgPerWeek:
-          (map['observed_rate_kg_per_week'] as num?)?.toDouble(),
+      observedRateKgPerWeek: (map['observed_rate_kg_per_week'] as num?)
+          ?.toDouble(),
       confidenceLevel: map['confidence_level'] as String?,
       tdeeEstimate: (map['tdee_estimate'] as num?)?.toDouble(),
       recommendedCalories: map['recommended_calories'] as int?,
@@ -384,8 +386,9 @@ class GoalReviewRecord {
       decision: map['decision'] as String?,
       algorithmVersion: map['algorithm_version'] as String,
       explanation: map['explanation'] as String?,
-      assessment:
-          GoalReviewAssessment.tryParse(map['assessment_json'] as String?),
+      assessment: GoalReviewAssessment.tryParse(
+        map['assessment_json'] as String?,
+      ),
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
@@ -431,51 +434,49 @@ class GoalReviewAssessment {
   });
 
   Map<String, dynamic> toMap() => {
-        'overallStatus': overallStatus,
-        'recentMomentumStatus': recentMomentumStatus,
-        'baselineValue': baselineValue,
-        'expectedValue': expectedValue,
-        'currentSmoothedValue': currentSmoothedValue,
-        'trajectoryGap': trajectoryGap,
-        'plannedRateKgPerWeek': plannedRateKgPerWeek,
-        'recentRateKgPerWeek': recentRateKgPerWeek,
-        'overallRateKgPerWeek': overallRateKgPerWeek,
-        'requiredRemainingRateKgPerWeek': requiredRemainingRateKgPerWeek,
-        'projectedTargetDate': projectedTargetDate?.toIso8601String(),
-        'weightObservationCount': weightObservationCount,
-        'nutritionLoggedDays': nutritionLoggedDays,
-        'currentCalories': currentCalories,
-        'averageLoggedCalories': averageLoggedCalories,
-        'dataQuality': dataQuality,
-        'nutritionAction': nutritionAction,
-      };
+    'overallStatus': overallStatus,
+    'recentMomentumStatus': recentMomentumStatus,
+    'baselineValue': baselineValue,
+    'expectedValue': expectedValue,
+    'currentSmoothedValue': currentSmoothedValue,
+    'trajectoryGap': trajectoryGap,
+    'plannedRateKgPerWeek': plannedRateKgPerWeek,
+    'recentRateKgPerWeek': recentRateKgPerWeek,
+    'overallRateKgPerWeek': overallRateKgPerWeek,
+    'requiredRemainingRateKgPerWeek': requiredRemainingRateKgPerWeek,
+    'projectedTargetDate': projectedTargetDate?.toIso8601String(),
+    'weightObservationCount': weightObservationCount,
+    'nutritionLoggedDays': nutritionLoggedDays,
+    'currentCalories': currentCalories,
+    'averageLoggedCalories': averageLoggedCalories,
+    'dataQuality': dataQuality,
+    'nutritionAction': nutritionAction,
+  };
 
-  factory GoalReviewAssessment.fromMap(Map<String, dynamic> map) =>
-      GoalReviewAssessment(
-        overallStatus: map['overallStatus'] as String? ?? 'calibrating',
-        recentMomentumStatus:
-            map['recentMomentumStatus'] as String? ?? 'unclear',
-        baselineValue: (map['baselineValue'] as num?)?.toDouble(),
-        expectedValue: (map['expectedValue'] as num?)?.toDouble(),
-        currentSmoothedValue: (map['currentSmoothedValue'] as num?)?.toDouble(),
-        trajectoryGap: (map['trajectoryGap'] as num?)?.toDouble(),
-        plannedRateKgPerWeek: (map['plannedRateKgPerWeek'] as num?)?.toDouble(),
-        recentRateKgPerWeek: (map['recentRateKgPerWeek'] as num?)?.toDouble(),
-        overallRateKgPerWeek: (map['overallRateKgPerWeek'] as num?)?.toDouble(),
-        requiredRemainingRateKgPerWeek:
-            (map['requiredRemainingRateKgPerWeek'] as num?)?.toDouble(),
-        projectedTargetDate: map['projectedTargetDate'] == null
-            ? null
-            : DateTime.tryParse(map['projectedTargetDate'] as String),
-        weightObservationCount: map['weightObservationCount'] as int? ?? 0,
-        nutritionLoggedDays: map['nutritionLoggedDays'] as int? ?? 0,
-        currentCalories: map['currentCalories'] as int?,
-        averageLoggedCalories:
-            (map['averageLoggedCalories'] as num?)?.toDouble(),
-        dataQuality: map['dataQuality'] as String? ?? 'insufficient',
-        nutritionAction:
-            map['nutritionAction'] as String? ?? 'insufficient_data',
-      );
+  factory GoalReviewAssessment.fromMap(
+    Map<String, dynamic> map,
+  ) => GoalReviewAssessment(
+    overallStatus: map['overallStatus'] as String? ?? 'calibrating',
+    recentMomentumStatus: map['recentMomentumStatus'] as String? ?? 'unclear',
+    baselineValue: (map['baselineValue'] as num?)?.toDouble(),
+    expectedValue: (map['expectedValue'] as num?)?.toDouble(),
+    currentSmoothedValue: (map['currentSmoothedValue'] as num?)?.toDouble(),
+    trajectoryGap: (map['trajectoryGap'] as num?)?.toDouble(),
+    plannedRateKgPerWeek: (map['plannedRateKgPerWeek'] as num?)?.toDouble(),
+    recentRateKgPerWeek: (map['recentRateKgPerWeek'] as num?)?.toDouble(),
+    overallRateKgPerWeek: (map['overallRateKgPerWeek'] as num?)?.toDouble(),
+    requiredRemainingRateKgPerWeek:
+        (map['requiredRemainingRateKgPerWeek'] as num?)?.toDouble(),
+    projectedTargetDate: map['projectedTargetDate'] == null
+        ? null
+        : DateTime.tryParse(map['projectedTargetDate'] as String),
+    weightObservationCount: map['weightObservationCount'] as int? ?? 0,
+    nutritionLoggedDays: map['nutritionLoggedDays'] as int? ?? 0,
+    currentCalories: map['currentCalories'] as int?,
+    averageLoggedCalories: (map['averageLoggedCalories'] as num?)?.toDouble(),
+    dataQuality: map['dataQuality'] as String? ?? 'insufficient',
+    nutritionAction: map['nutritionAction'] as String? ?? 'insufficient_data',
+  );
 
   static GoalReviewAssessment? tryParse(String? raw) {
     if (raw == null || raw.isEmpty) return null;

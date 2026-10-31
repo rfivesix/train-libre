@@ -35,23 +35,21 @@ Future<bool?> showTelemetryConsentSheet(BuildContext context) {
       final theme = Theme.of(ctx);
 
       Widget point(IconData icon, String text) => Padding(
-            padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 2.0,
-                    right: DesignConstants.spacingM,
-                  ),
-                  child: Icon(icon, size: 20, color: theme.colorScheme.primary),
-                ),
-                Expanded(
-                  child: Text(text, style: theme.textTheme.bodyMedium),
-                ),
-              ],
+        padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 2.0,
+                right: DesignConstants.spacingM,
+              ),
+              child: Icon(icon, size: 20, color: theme.colorScheme.primary),
             ),
-          );
+            Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
+          ],
+        ),
+      );
 
       return Column(
         mainAxisSize: MainAxisSize.min,

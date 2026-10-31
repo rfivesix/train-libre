@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/app_link_row.dart';
 

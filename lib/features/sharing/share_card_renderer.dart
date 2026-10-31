@@ -1,11 +1,15 @@
 import 'package:provider/provider.dart';
+
 import '../../services/unit_service.dart';
+
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+
 import '../../util/design_constants.dart';
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path/path.dart' as p;
@@ -17,7 +21,9 @@ import 'routine_share_formatter.dart';
 import 'share_labels.dart';
 import 'share_set_type.dart';
 import 'workout_share_formatter.dart';
+
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
+
 import '../../services/profile_service.dart';
 import '../exercise_catalog/domain/models/exercise.dart';
 import '../exercise_catalog/domain/body_slug_mapper.dart';
@@ -47,35 +53,39 @@ class ShareCardRenderer {
     List<MuscleVolumeSummary> muscleSummaries = const <MuscleVolumeSummary>[],
     Map<String, Exercise> exerciseDetails = const {},
   }) {
-    final formatter = WorkoutShareFormatter(labels,
-        locale: locale,
-        exerciseDetails: exerciseDetails,
-        unitService: context.read<UnitService>());
+    final formatter = WorkoutShareFormatter(
+      labels,
+      locale: locale,
+      exerciseDetails: exerciseDetails,
+      unitService: context.read<UnitService>(),
+    );
     final stats = formatter.stats(workout);
     final child = switch (layout) {
       WorkoutShareCardLayout.summary => _WorkoutSummaryCard(
-          stats: stats,
-          labels: labels,
-        ),
+        stats: stats,
+        labels: labels,
+      ),
       WorkoutShareCardLayout.exercises => _WorkoutExerciseListCard(
-          stats: stats,
-          rows: formatter.imageExerciseSummaries(
-            workout,
-            visibleExerciseLimit: visibleExerciseLimit,
-          ),
-          remainingCount:
-              formatter.remainingExerciseCount(workout, visibleExerciseLimit),
-          labels: labels,
+        stats: stats,
+        rows: formatter.imageExerciseSummaries(
+          workout,
+          visibleExerciseLimit: visibleExerciseLimit,
         ),
+        remainingCount: formatter.remainingExerciseCount(
+          workout,
+          visibleExerciseLimit,
+        ),
+        labels: labels,
+      ),
       WorkoutShareCardLayout.muscleFocus => _WorkoutMuscleFocusCard(
-          stats: stats,
-          muscles: muscleSummaries,
-          labels: labels,
-        ),
+        stats: stats,
+        muscles: muscleSummaries,
+        labels: labels,
+      ),
       WorkoutShareCardLayout.minimal => _WorkoutMinimalCard(
-          stats: stats,
-          labels: labels,
-        ),
+        stats: stats,
+        labels: labels,
+      ),
     };
     return _renderToTemporaryFile(
       context: context,
@@ -94,15 +104,15 @@ class ShareCardRenderer {
     final formatter = RoutineShareFormatter(labels, locale: locale);
     final child = switch (layout) {
       RoutineShareCardLayout.summary => _RoutineSummaryCard(
-          routine: routine,
-          formatter: formatter,
-          labels: labels,
-        ),
+        routine: routine,
+        formatter: formatter,
+        labels: labels,
+      ),
       RoutineShareCardLayout.exercises => _RoutineExerciseListCard(
-          routine: routine,
-          formatter: formatter,
-          labels: labels,
-        ),
+        routine: routine,
+        formatter: formatter,
+        labels: labels,
+      ),
     };
     return _renderToTemporaryFile(
       context: context,
@@ -127,10 +137,8 @@ class ShareCardRenderer {
         child: RepaintBoundary(
           key: boundaryKey,
           child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              size: cardSize,
-              textScaler: TextScaler.noScaling,
-            ),
+            data: MediaQuery.of(context)
+                .copyWith(size: cardSize, textScaler: TextScaler.noScaling),
             child: Theme(
               data: Theme.of(context),
               child: Directionality(
@@ -147,8 +155,9 @@ class ShareCardRenderer {
     try {
       await WidgetsBinding.instance.endOfFrame;
       await Future<void>.delayed(const Duration(milliseconds: 20));
-      final boundary = boundaryKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) {
         throw StateError('Share card render boundary was not available.');
       }

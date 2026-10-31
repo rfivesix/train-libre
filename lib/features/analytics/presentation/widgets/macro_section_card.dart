@@ -1,6 +1,7 @@
 // lib/features/analytics/presentation/widgets/macro_section_card.dart
 
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -98,13 +99,15 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
         if (day.hasData) tracked++;
       }
       final divisor = tracked > 0 ? tracked : chunk.length;
-      result.add(DailyMacroIntake(
-        date: chunk.first.date,
-        calories: (cals / divisor).round(),
-        proteinGrams: p / divisor,
-        carbsGrams: c / divisor,
-        fatGrams: f / divisor,
-      ));
+      result.add(
+        DailyMacroIntake(
+          date: chunk.first.date,
+          calories: (cals / divisor).round(),
+          proteinGrams: p / divisor,
+          carbsGrams: c / divisor,
+          fatGrams: f / divisor,
+        ),
+      );
     }
     return result;
   }
@@ -130,7 +133,8 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
       margin: EdgeInsets.zero,
       padding: EdgeInsets.zero,
       child: InkWell(
-        onTap: widget.onTap ??
+        onTap:
+            widget.onTap ??
             () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -151,7 +155,8 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
               AnalyticsCardBase.buildHeaderWithChevron(
                 context,
                 label: l10n.foodDetailMacronutrientsGroup,
-                chipText: widget.rangeLabel ??
+                chipText:
+                    widget.rangeLabel ??
                     (widget.activeBlockType == TimeframeBlock.week
                         ? l10n.statisticsLast7Days
                         : widget.activeBlockType.name),
@@ -179,10 +184,12 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                               return Expanded(
                                 child: Container(
                                   height: 4,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 2),
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.08),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 2,
+                                  ),
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.08,
+                                  ),
                                 ),
                               );
                             }
@@ -191,8 +198,9 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                               return Expanded(
                                 child: Container(
                                   height: 4,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 2),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: theme.colorScheme.onSurface
                                         .withValues(alpha: 0.08),
@@ -202,8 +210,10 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                               );
                             }
 
-                            final ratio =
-                                (item.calories / maxKcal).clamp(0.1, 1.0);
+                            final ratio = (item.calories / maxKcal).clamp(
+                              0.1,
+                              1.0,
+                            );
                             final carbsKcal = max(0.0, item.carbsGrams * 4);
                             final proteinKcal = max(0.0, item.proteinGrams * 4);
                             final fatKcal = max(0.0, item.fatGrams * 9);
@@ -211,18 +221,23 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                                 carbsKcal + proteinKcal + fatKcal;
 
                             final cFlex = totalMacroKcal > 0
-                                ? max(1,
-                                    (carbsKcal / totalMacroKcal * 100).round())
+                                ? max(
+                                    1,
+                                    (carbsKcal / totalMacroKcal * 100).round(),
+                                  )
                                 : 33;
                             final fFlex = totalMacroKcal > 0
                                 ? max(
-                                    1, (fatKcal / totalMacroKcal * 100).round())
+                                    1,
+                                    (fatKcal / totalMacroKcal * 100).round(),
+                                  )
                                 : 33;
                             final pFlex = totalMacroKcal > 0
                                 ? max(
                                     1,
                                     (proteinKcal / totalMacroKcal * 100)
-                                        .round())
+                                        .round(),
+                                  )
                                 : 34;
 
                             return Expanded(
@@ -241,8 +256,9 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                                       child: SizedBox(
                                         height: barHeight,
                                         child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                           child: Column(
                                             verticalDirection:
                                                 VerticalDirection.up,
@@ -250,17 +266,20 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                                               Expanded(
                                                 flex: cFlex,
                                                 child: Container(
-                                                    color: carbsColor),
+                                                  color: carbsColor,
+                                                ),
                                               ),
                                               Expanded(
                                                 flex: fFlex,
-                                                child:
-                                                    Container(color: fatColor),
+                                                child: Container(
+                                                  color: fatColor,
+                                                ),
                                               ),
                                               Expanded(
                                                 flex: pFlex,
                                                 child: Container(
-                                                    color: proteinColor),
+                                                  color: proteinColor,
+                                                ),
                                               ),
                                             ],
                                           ),

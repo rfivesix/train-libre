@@ -49,11 +49,8 @@ class MacroEntryTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => MacroEntryDetailScreen(
-          entry: entry,
-          onEdit: onEdit,
-          l10n: l10n,
-        ),
+        builder: (_) =>
+            MacroEntryDetailScreen(entry: entry, onEdit: onEdit, l10n: l10n),
       ),
     );
   }
@@ -166,19 +163,21 @@ class _MacroEntryDetailsState extends State<_MacroEntryDetails> {
     Widget metricGrid(List<_MacroMetric> metrics) {
       if (metrics.isEmpty) return const SizedBox.shrink();
       final cards = metrics
-          .map((metric) => ValueSummaryCard(
-                label: metric.label,
-                value:
-                    '${metric.decimals == 0 ? metric.value.round() : _format(metric.value)} ${metric.unit}',
-                valueColor: isDark ? Colors.white : const Color(0xFF1C1C1E),
-                labelColor: isDark
-                    ? Colors.white.withValues(alpha: 0.9)
-                    : const Color(0xFF1C1C1E).withValues(alpha: 0.85),
-                backgroundColor: metric.color,
-                backgroundOverlayGradient: overlay,
-                textShadows: shadows,
-                showShadow: true,
-              ))
+          .map(
+            (metric) => ValueSummaryCard(
+              label: metric.label,
+              value:
+                  '${metric.decimals == 0 ? metric.value.round() : _format(metric.value)} ${metric.unit}',
+              valueColor: isDark ? Colors.white : const Color(0xFF1C1C1E),
+              labelColor: isDark
+                  ? Colors.white.withValues(alpha: 0.9)
+                  : const Color(0xFF1C1C1E).withValues(alpha: 0.85),
+              backgroundColor: metric.color,
+              backgroundOverlayGradient: overlay,
+              textShadows: shadows,
+              showShadow: true,
+            ),
+          )
           .toList(growable: false);
       final rows = <Widget>[];
       for (var i = 0; i < cards.length; i += 2) {
@@ -204,32 +203,60 @@ class _MacroEntryDetailsState extends State<_MacroEntryDetails> {
     }
 
     final coreMetrics = [
-      _MacroMetric(l10n.calories, core(entry.calories), 'kcal',
-          colors?.calories ?? Colors.orange,
-          decimals: 0),
-      _MacroMetric(l10n.protein, core(entry.protein), 'g',
-          colors?.protein ?? Colors.red),
       _MacroMetric(
-          l10n.carbs, core(entry.carbs), 'g', colors?.carbs ?? Colors.green),
+        l10n.calories,
+        core(entry.calories),
+        'kcal',
+        colors?.calories ?? Colors.orange,
+        decimals: 0,
+      ),
       _MacroMetric(
-          l10n.fat, core(entry.fat), 'g', colors?.fat ?? Colors.purple),
+        l10n.protein,
+        core(entry.protein),
+        'g',
+        colors?.protein ?? Colors.red,
+      ),
+      _MacroMetric(
+        l10n.carbs,
+        core(entry.carbs),
+        'g',
+        colors?.carbs ?? Colors.green,
+      ),
+      _MacroMetric(
+        l10n.fat,
+        core(entry.fat),
+        'g',
+        colors?.fat ?? Colors.purple,
+      ),
     ];
     final extraMetrics = <_MacroMetric>[
       if (entry.sugar != null)
-        _MacroMetric(l10n.macroEntrySugar, extra(entry.sugar)!, 'g',
-            colors?.sugar ?? Colors.pink),
+        _MacroMetric(
+          l10n.macroEntrySugar,
+          extra(entry.sugar)!,
+          'g',
+          colors?.sugar ?? Colors.pink,
+        ),
       if (entry.fiber != null)
-        _MacroMetric(l10n.macroEntryFiber, extra(entry.fiber)!, 'g',
-            colors?.fiber ?? Colors.brown),
+        _MacroMetric(
+          l10n.macroEntryFiber,
+          extra(entry.fiber)!,
+          'g',
+          colors?.fiber ?? Colors.brown,
+        ),
       if (entry.salt != null)
-        _MacroMetric(l10n.macroEntrySalt, extra(entry.salt)!, 'g',
-            colors?.salt ?? Colors.blueGrey),
+        _MacroMetric(
+          l10n.macroEntrySalt,
+          extra(entry.salt)!,
+          'g',
+          colors?.salt ?? Colors.blueGrey,
+        ),
     ];
     final portionTitle = !hasPortion
         ? l10n.macroEntryDetailTitle
         : entry.isFluid || unit == 'ml'
-            ? '${l10n.macroEntryDetailTitle} (${_format(entry.amount!)} $unit)'
-            : l10n.nutritionPerPortion(entry.amount!.round());
+        ? '${l10n.macroEntryDetailTitle} (${_format(entry.amount!)} $unit)'
+        : l10n.nutritionPerPortion(entry.amount!.round());
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -239,8 +266,10 @@ class _MacroEntryDetailsState extends State<_MacroEntryDetails> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Text(portionTitle,
-                  style: Theme.of(context).textTheme.titleLarge),
+              child: Text(
+                portionTitle,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
             if (hasPortion) ...[
               const SizedBox(width: DesignConstants.spacingM),

@@ -15,17 +15,16 @@ void main() {
     RepRange target = range,
     double? bodyweightKg,
     LoadIncrement loadIncrement = increment,
-  }) =>
-      SimpleProgressionEngine.laterSet(
-        previousLoggedLoadKg: previousLoad,
-        previousReps: previousReps,
-        previousRir: rir,
-        testLoggedLoadKg: testLoad ?? previousLoad,
-        target: target,
-        increment: loadIncrement,
-        mode: mode,
-        bodyweightKg: bodyweightKg,
-      );
+  }) => SimpleProgressionEngine.laterSet(
+    previousLoggedLoadKg: previousLoad,
+    previousReps: previousReps,
+    previousRir: rir,
+    testLoggedLoadKg: testLoad ?? previousLoad,
+    target: target,
+    increment: loadIncrement,
+    mode: mode,
+    bodyweightKg: bodyweightKg,
+  );
 
   test('keeps straight-set load and lets repetitions absorb fatigue', () {
     final suggestion = next(previousLoad: 100, previousReps: 11);
@@ -74,11 +73,7 @@ void main() {
   });
 
   test('rounds a proportional template test load before projection', () {
-    final suggestion = next(
-      previousLoad: 120,
-      previousReps: 7,
-      testLoad: 96,
-    );
+    final suggestion = next(previousLoad: 120, previousReps: 7, testLoad: 96);
 
     // 96 kg is not available with 2.5 kg plates; 95 kg is used in the
     // projection and therefore remains the visible prescription.
@@ -99,11 +94,7 @@ void main() {
   });
 
   test('uses an RIR-aware Markov step from the preceding real set', () {
-    final suggestion = next(
-      previousLoad: 60,
-      previousReps: 10,
-      rir: 2,
-    );
+    final suggestion = next(previousLoad: 60, previousReps: 10, rir: 2);
 
     expect(suggestion.targetWeight, 60);
     expect(suggestion.targetReps, 11);

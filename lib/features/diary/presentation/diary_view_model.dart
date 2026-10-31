@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
 import '../domain/repositories/diary_repository.dart';
 import '../../supplements/domain/repositories/supplement_repository.dart';
 import '../../workout/domain/repositories/workout_repository.dart';
@@ -132,8 +134,9 @@ class DiaryViewModel extends ChangeNotifier {
   Map<String, List<TrackedFoodItem>> entriesByMeal = {};
   Map<String, List<MacroEntry>> macroEntriesByMeal = {};
   List<MealEntry> mealEntries = [];
-  Map<String, MealEntry> get mealEntriesById =>
-      {for (final m in mealEntries) m.id: m};
+  Map<String, MealEntry> get mealEntriesById => {
+    for (final m in mealEntries) m.id: m,
+  };
   List<FluidEntry> fluidEntries = [];
   List<TrackedSupplement> trackedSupplements = [];
   Map<String, dynamic>? workoutSummary;
@@ -181,22 +184,23 @@ class DiaryViewModel extends ChangeNotifier {
     required IWorkoutRepository workoutRepo,
     DateTime? initialDate,
     bool deferInitialHealthSync = false,
-  })  : _nutritionRepo = nutritionRepo,
-        _supplementRepo = supplementRepo,
-        _workoutRepo = workoutRepo,
-        _skipNextAutomaticHealthSync = deferInitialHealthSync,
-        selectedDateNotifier = ValueNotifier(
-          resolveDiaryInitialDate(initialDate: initialDate),
-        ) {
+  }) : _nutritionRepo = nutritionRepo,
+       _supplementRepo = supplementRepo,
+       _workoutRepo = workoutRepo,
+       _skipNextAutomaticHealthSync = deferInitialHealthSync,
+       selectedDateNotifier = ValueNotifier(
+         resolveDiaryInitialDate(initialDate: initialDate),
+       ) {
     healthSyncCoordinator.addListener(notifyListeners);
-    _extraNutrientSubscription =
-        _prefsRepo.watchOverviewExtraNutrient().listen((nutrient) {
-      if (overviewExtraNutrient != nutrient) {
-        overviewExtraNutrient = nutrient;
-        showSugarInOverview = nutrient == 'sugar';
-        _updateCalculatedState();
-      }
-    });
+    _extraNutrientSubscription = _prefsRepo.watchOverviewExtraNutrient().listen(
+      (nutrient) {
+        if (overviewExtraNutrient != nutrient) {
+          overviewExtraNutrient = nutrient;
+          showSugarInOverview = nutrient == 'sugar';
+          _updateCalculatedState();
+        }
+      },
+    );
     setSelectedDate(selectedDate);
   }
 
@@ -247,44 +251,47 @@ class DiaryViewModel extends ChangeNotifier {
       },
     );
 
-    _macroEntriesSubscription =
-        _nutritionRepo.watchMacroEntriesForDate(diaryDate).listen((entries) {
-      _activeMacroEntries = entries;
-      _updateCalculatedState();
-    });
+    _macroEntriesSubscription = _nutritionRepo
+        .watchMacroEntriesForDate(diaryDate)
+        .listen((entries) {
+          _activeMacroEntries = entries;
+          _updateCalculatedState();
+        });
 
-    _mealEntriesSubscription =
-        _nutritionRepo.watchMealEntriesForDate(diaryDate).listen(
-      (meals) {
-        _activeMealEntries = meals;
-        _updateCalculatedState();
-      },
-    );
+    _mealEntriesSubscription = _nutritionRepo
+        .watchMealEntriesForDate(diaryDate)
+        .listen((meals) {
+          _activeMealEntries = meals;
+          _updateCalculatedState();
+        });
 
-    _fluidsSubscription =
-        _nutritionRepo.watchFluidEntriesForDate(diaryDate).listen((fluids) {
-      _activeFluids = fluids;
-      _updateCalculatedState();
-    });
+    _fluidsSubscription = _nutritionRepo
+        .watchFluidEntriesForDate(diaryDate)
+        .listen((fluids) {
+          _activeFluids = fluids;
+          _updateCalculatedState();
+        });
 
-    _supplementsSubscription =
-        _supplementRepo.watchSupplementsForDate(diaryDate).listen((supps) {
-      _activeSupplements = supps;
-      _updateCalculatedState();
-    });
+    _supplementsSubscription = _supplementRepo
+        .watchSupplementsForDate(diaryDate)
+        .listen((supps) {
+          _activeSupplements = supps;
+          _updateCalculatedState();
+        });
 
-    _supplementLogsSubscription =
-        _supplementRepo.watchSupplementLogsForDate(diaryDate).listen((logs) {
-      _activeSupplementLogs = logs;
-      _updateCalculatedState();
-    });
+    _supplementLogsSubscription = _supplementRepo
+        .watchSupplementLogsForDate(diaryDate)
+        .listen((logs) {
+          _activeSupplementLogs = logs;
+          _updateCalculatedState();
+        });
 
     _workoutsSubscription = _workoutRepo
         .watchWorkoutLogsForDateRange(diaryDate, diaryDate)
         .listen((workouts) {
-      _activeWorkouts = workouts;
-      _updateCalculatedState();
-    });
+          _activeWorkouts = workouts;
+          _updateCalculatedState();
+        });
 
     // Delegate all health data loading and background sync
     if (_skipNextAutomaticHealthSync) {
@@ -406,8 +413,8 @@ class DiaryViewModel extends ChangeNotifier {
           _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
 
       hasEverLoggedData = await _nutritionRepo.hasAnyDiaryEntries();
-      hasWeightMeasurementForSelectedDate =
-          await _nutritionRepo.hasWeightMeasurementForDate(selectedDate);
+      hasWeightMeasurementForSelectedDate = await _nutritionRepo
+          .hasWeightMeasurementForDate(selectedDate);
 
       isLoading = false;
       notifyListeners();
@@ -438,8 +445,10 @@ class DiaryViewModel extends ChangeNotifier {
     await _nutritionRepo.insertMacroEntry(entry);
   }
 
-  Future<void> deleteMealEntry(String id,
-      {required bool deleteFoodLogs}) async {
+  Future<void> deleteMealEntry(
+    String id, {
+    required bool deleteFoodLogs,
+  }) async {
     await _nutritionRepo.deleteMealEntry(id, deleteFoodLogs: deleteFoodLogs);
   }
 
@@ -471,8 +480,10 @@ class DiaryViewModel extends ChangeNotifier {
     FoodEntry entry, {
     String telemetrySource = FoodLogSource.manualSearch,
   }) async {
-    return await _nutritionRepo.insertFoodEntry(entry,
-        telemetrySource: telemetrySource);
+    return await _nutritionRepo.insertFoodEntry(
+      entry,
+      telemetrySource: telemetrySource,
+    );
   }
 
   Future<void> logCaffeineDose(

@@ -110,69 +110,66 @@ void main() {
     },
   );
 
-  test(
-    'pipeline gracefully excludes architecture from completeness when stages are missing',
-    () async {
-      final db = AppDatabase(
-        NativeDatabase.memory(
-          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+  test('pipeline gracefully excludes architecture from completeness when stages are missing', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+      ),
+    );
+    final service = SleepPipelineService(database: db);
+
+    final batch = SleepRawIngestionBatch(
+      sessions: [
+        SleepIngestionSession(
+          recordId: 'withings-session-1',
+          startAtUtc: DateTime.utc(2026, 3, 1, 22),
+          endAtUtc: DateTime.utc(2026, 3, 2, 6),
+          platformSessionType: 'sleep',
+          sourcePlatform: 'health_connect',
+          sourceAppId: 'com.withings.mobile',
         ),
-      );
-      final service = SleepPipelineService(database: db);
+      ],
+      stageSegments: [
+        SleepIngestionStageSegment(
+          recordId: 'withings-seg-1',
+          sessionRecordId: 'withings-session-1',
+          startAtUtc: DateTime.utc(2026, 3, 1, 22),
+          endAtUtc: DateTime.utc(2026, 3, 2, 5, 10),
+          platformStage: 'light',
+          sourcePlatform: 'health_connect',
+          sourceAppId: 'com.withings.mobile',
+        ),
+        SleepIngestionStageSegment(
+          recordId: 'withings-seg-2',
+          sessionRecordId: 'withings-session-1',
+          startAtUtc: DateTime.utc(2026, 3, 2, 5, 10),
+          endAtUtc: DateTime.utc(2026, 3, 2, 6),
+          platformStage: 'deep',
+          sourcePlatform: 'health_connect',
+          sourceAppId: 'com.withings.mobile',
+        ),
+      ],
+      heartRateSamples: const [],
+    );
 
-      final batch = SleepRawIngestionBatch(
-        sessions: [
-          SleepIngestionSession(
-            recordId: 'withings-session-1',
-            startAtUtc: DateTime.utc(2026, 3, 1, 22),
-            endAtUtc: DateTime.utc(2026, 3, 2, 6),
-            platformSessionType: 'sleep',
-            sourcePlatform: 'health_connect',
-            sourceAppId: 'com.withings.mobile',
-          ),
-        ],
-        stageSegments: [
-          SleepIngestionStageSegment(
-            recordId: 'withings-seg-1',
-            sessionRecordId: 'withings-session-1',
-            startAtUtc: DateTime.utc(2026, 3, 1, 22),
-            endAtUtc: DateTime.utc(2026, 3, 2, 5, 10),
-            platformStage: 'light',
-            sourcePlatform: 'health_connect',
-            sourceAppId: 'com.withings.mobile',
-          ),
-          SleepIngestionStageSegment(
-            recordId: 'withings-seg-2',
-            sessionRecordId: 'withings-session-1',
-            startAtUtc: DateTime.utc(2026, 3, 2, 5, 10),
-            endAtUtc: DateTime.utc(2026, 3, 2, 6),
-            platformStage: 'deep',
-            sourcePlatform: 'health_connect',
-            sourceAppId: 'com.withings.mobile',
-          ),
-        ],
-        heartRateSamples: const [],
-      );
+    await service.runImport(batch: batch);
 
-      await service.runImport(batch: batch);
-
-      final analysis = await db.customSelect('''
+    final analysis = await db.customSelect('''
       SELECT score, score_completeness
       FROM sleep_nightly_analyses
       WHERE session_id = 'withings-session-1'
       LIMIT 1
       ''').getSingle();
 
-      final score = analysis.readNullable<double>('score');
-      expect(score, isNotNull);
-      expect(
-        analysis.readNullable<double>('score_completeness'),
-        closeTo(0.65, 0.0001),
-      );
+    final score = analysis.readNullable<double>('score');
+    expect(score, isNotNull);
+    expect(
+      analysis.readNullable<double>('score_completeness'),
+      closeTo(0.65, 0.0001),
+    );
 
-      await db.close();
-    },
-  );
+    await db.close();
+  });
 
   test(
     'forced recompute deletes raw imports for sessions in target window',
@@ -317,83 +314,80 @@ void main() {
     },
   );
 
-  test(
-    'pipeline keeps the longest session for identical starts from the same source',
-    () async {
-      final db = AppDatabase(
-        NativeDatabase.memory(
-          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+  test('pipeline keeps the longest session for identical starts from the same source', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+      ),
+    );
+    final service = SleepPipelineService(database: db);
+
+    final start = DateTime.utc(2026, 3, 1, 23);
+    final shortEnd = DateTime.utc(2026, 3, 2, 1);
+    final longEnd = DateTime.utc(2026, 3, 2, 5, 30);
+    final batch = SleepRawIngestionBatch(
+      sessions: [
+        SleepIngestionSession(
+          recordId: 'session-short',
+          startAtUtc: start,
+          endAtUtc: shortEnd,
+          platformSessionType: 'sleep',
+          sourcePlatform: 'health_connect',
+          sourceAppId: 'com.withings.mobile',
         ),
-      );
-      final service = SleepPipelineService(database: db);
+        SleepIngestionSession(
+          recordId: 'session-long',
+          startAtUtc: start,
+          endAtUtc: longEnd,
+          platformSessionType: 'sleep',
+          sourcePlatform: 'health_connect',
+          sourceAppId: 'com.withings.mobile',
+        ),
+      ],
+      stageSegments: [
+        SleepIngestionStageSegment(
+          recordId: 'seg-short',
+          sessionRecordId: 'session-short',
+          startAtUtc: start,
+          endAtUtc: shortEnd,
+          platformStage: 'light',
+          sourcePlatform: 'health_connect',
+          sourceAppId: 'com.withings.mobile',
+        ),
+        SleepIngestionStageSegment(
+          recordId: 'seg-long',
+          sessionRecordId: 'session-long',
+          startAtUtc: start,
+          endAtUtc: longEnd,
+          platformStage: 'light',
+          sourcePlatform: 'health_connect',
+          sourceAppId: 'com.withings.mobile',
+        ),
+      ],
+      heartRateSamples: const [],
+    );
 
-      final start = DateTime.utc(2026, 3, 1, 23);
-      final shortEnd = DateTime.utc(2026, 3, 2, 1);
-      final longEnd = DateTime.utc(2026, 3, 2, 5, 30);
-      final batch = SleepRawIngestionBatch(
-        sessions: [
-          SleepIngestionSession(
-            recordId: 'session-short',
-            startAtUtc: start,
-            endAtUtc: shortEnd,
-            platformSessionType: 'sleep',
-            sourcePlatform: 'health_connect',
-            sourceAppId: 'com.withings.mobile',
-          ),
-          SleepIngestionSession(
-            recordId: 'session-long',
-            startAtUtc: start,
-            endAtUtc: longEnd,
-            platformSessionType: 'sleep',
-            sourcePlatform: 'health_connect',
-            sourceAppId: 'com.withings.mobile',
-          ),
-        ],
-        stageSegments: [
-          SleepIngestionStageSegment(
-            recordId: 'seg-short',
-            sessionRecordId: 'session-short',
-            startAtUtc: start,
-            endAtUtc: shortEnd,
-            platformStage: 'light',
-            sourcePlatform: 'health_connect',
-            sourceAppId: 'com.withings.mobile',
-          ),
-          SleepIngestionStageSegment(
-            recordId: 'seg-long',
-            sessionRecordId: 'session-long',
-            startAtUtc: start,
-            endAtUtc: longEnd,
-            platformStage: 'light',
-            sourcePlatform: 'health_connect',
-            sourceAppId: 'com.withings.mobile',
-          ),
-        ],
-        heartRateSamples: const [],
-      );
+    await service.runImport(batch: batch);
 
-      await service.runImport(batch: batch);
+    final sessions = await db
+        .customSelect(
+          'SELECT id, ended_at FROM sleep_canonical_sessions ORDER BY id',
+        )
+        .get();
+    expect(sessions.length, 1);
+    expect(sessions.first.read<String>('id'), 'session-long');
+    expect(
+      sessions.first.read<int>('ended_at'),
+      longEnd.millisecondsSinceEpoch,
+    );
 
-      final sessions = await db
-          .customSelect(
-            'SELECT id, ended_at FROM sleep_canonical_sessions ORDER BY id',
-          )
-          .get();
-      expect(sessions.length, 1);
-      expect(sessions.first.read<String>('id'), 'session-long');
-      expect(
-        sessions.first.read<int>('ended_at'),
-        longEnd.millisecondsSinceEpoch,
-      );
+    final segments = await db
+        .customSelect('SELECT COUNT(*) c FROM sleep_canonical_stage_segments')
+        .getSingle();
+    expect(segments.read<int>('c'), 1);
 
-      final segments = await db
-          .customSelect('SELECT COUNT(*) c FROM sleep_canonical_stage_segments')
-          .getSingle();
-      expect(segments.read<int>('c'), 1);
-
-      await db.close();
-    },
-  );
+    await db.close();
+  });
 
   test(
     'pipeline preserves non-overlapping daytime naps from different records',
@@ -447,190 +441,188 @@ void main() {
     },
   );
 
-  test(
-    'pipeline handles multi-session sleep: classifies core vs. nap, sets nap score to null, aggregates volume metrics linearly, and dedupes overlaps by duration',
-    () async {
-      final db = AppDatabase(
-        NativeDatabase.memory(
-          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+  test('pipeline handles multi-session sleep: classifies core vs. nap, sets nap score to null, aggregates volume metrics linearly, and dedupes overlaps by duration', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+      ),
+    );
+    final service = SleepPipelineService(database: db);
+
+    final batch = SleepRawIngestionBatch(
+      sessions: [
+        SleepIngestionSession(
+          recordId: 'core-session',
+          startAtUtc: DateTime.utc(2026, 3, 1, 21),
+          endAtUtc: DateTime.utc(2026, 3, 2, 5),
+          platformSessionType: 'sleep',
+          sourcePlatform: 'healthkit',
         ),
-      );
-      final service = SleepPipelineService(database: db);
-
-      final batch = SleepRawIngestionBatch(
-        sessions: [
-          SleepIngestionSession(
-            recordId: 'core-session',
-            startAtUtc: DateTime.utc(2026, 3, 1, 21),
-            endAtUtc: DateTime.utc(2026, 3, 2, 5),
-            platformSessionType: 'sleep',
-            sourcePlatform: 'healthkit',
-          ),
-          SleepIngestionSession(
-            recordId: 'nap-session',
-            startAtUtc: DateTime.utc(2026, 3, 2, 13),
-            endAtUtc: DateTime.utc(2026, 3, 2, 13, 45),
-            platformSessionType: 'sleep',
-            sourcePlatform: 'healthkit',
-          ),
-        ],
-        stageSegments: [
-          SleepIngestionStageSegment(
-            recordId: 'core-seg-1',
-            sessionRecordId: 'core-session',
-            startAtUtc: DateTime.utc(2026, 3, 1, 21),
-            endAtUtc: DateTime.utc(2026, 3, 2, 1),
-            platformStage: 'deep',
-            sourcePlatform: 'healthkit',
-          ),
-          SleepIngestionStageSegment(
-            recordId: 'core-seg-2',
-            sessionRecordId: 'core-session',
-            startAtUtc: DateTime.utc(2026, 3, 2, 1),
-            endAtUtc: DateTime.utc(2026, 3, 2, 5),
-            platformStage: 'core',
-            sourcePlatform: 'healthkit',
-          ),
-          SleepIngestionStageSegment(
-            recordId: 'nap-seg-1',
-            sessionRecordId: 'nap-session',
-            startAtUtc: DateTime.utc(2026, 3, 2, 13),
-            endAtUtc: DateTime.utc(2026, 3, 2, 13, 45),
-            platformStage: 'core',
-            sourcePlatform: 'healthkit',
-          ),
-        ],
-        heartRateSamples: const [],
-      );
-
-      final result = await service.runImport(batch: batch);
-      expect(result.importedSessions, 2);
-      expect(result.analyzedNights, 2);
-
-      final dbSessions = await db
-          .customSelect(
-              'SELECT id, session_type FROM sleep_canonical_sessions ORDER BY id')
-          .get();
-      expect(dbSessions.length, 2);
-      expect(dbSessions[0].read<String>('id'), 'core-session');
-      expect(dbSessions[0].read<String>('session_type'), 'mainSleep');
-      expect(dbSessions[1].read<String>('id'), 'nap-session');
-      expect(dbSessions[1].read<String>('session_type'), 'nap');
-
-      final dbAnalyses = await db
-          .customSelect(
-              'SELECT id, session_id, score, total_sleep_minutes FROM sleep_nightly_analyses ORDER BY session_id')
-          .get();
-      expect(dbAnalyses.length, 2);
-
-      final coreAnalysis = dbAnalyses
-          .firstWhere((a) => a.read<String>('session_id') == 'core-session');
-      expect(coreAnalysis.readNullable<double>('score'), isNotNull);
-      expect(coreAnalysis.readNullable<int>('total_sleep_minutes'), 525);
-
-      final napAnalysis = dbAnalyses
-          .firstWhere((a) => a.read<String>('session_id') == 'nap-session');
-      expect(napAnalysis.readNullable<double>('score'), isNull);
-
-      final shorterOverlappingNap = SleepRawIngestionBatch(
-        sessions: [
-          SleepIngestionSession(
-            recordId: 'shorter-nap-session',
-            startAtUtc: DateTime.utc(2026, 3, 2, 13, 10),
-            endAtUtc: DateTime.utc(2026, 3, 2, 13, 40),
-            platformSessionType: 'sleep',
-            sourcePlatform: 'healthkit',
-          ),
-        ],
-        stageSegments: const [],
-        heartRateSamples: const [],
-      );
-
-      final resultShort = await service.runImport(batch: shorterOverlappingNap);
-      expect(resultShort.importedSessions, 0);
-
-      final longerOverlappingNap = SleepRawIngestionBatch(
-        sessions: [
-          SleepIngestionSession(
-            recordId: 'longer-nap-session',
-            startAtUtc: DateTime.utc(2026, 3, 2, 12, 30),
-            endAtUtc: DateTime.utc(2026, 3, 2, 14, 0),
-            platformSessionType: 'sleep',
-            sourcePlatform: 'healthkit',
-          ),
-        ],
-        stageSegments: const [],
-        heartRateSamples: const [],
-      );
-
-      final resultLong = await service.runImport(batch: longerOverlappingNap);
-      expect(resultLong.importedSessions, 1);
-
-      final finalSessions = await db
-          .customSelect('SELECT id FROM sleep_canonical_sessions ORDER BY id')
-          .get();
-      expect(finalSessions.length, 2);
-      final finalIds = finalSessions.map((s) => s.read<String>('id')).toList();
-      expect(finalIds.contains('core-session'), isTrue);
-      expect(finalIds.contains('longer-nap-session'), isTrue);
-      expect(finalIds.contains('nap-session'), isFalse);
-
-      await db.close();
-    },
-  );
-
-  test(
-    'pipeline allows non-enveloping overlaps to coexist (e.g. nap starting before main sleep ends)',
-    () async {
-      final db = AppDatabase(
-        NativeDatabase.memory(
-          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+        SleepIngestionSession(
+          recordId: 'nap-session',
+          startAtUtc: DateTime.utc(2026, 3, 2, 13),
+          endAtUtc: DateTime.utc(2026, 3, 2, 13, 45),
+          platformSessionType: 'sleep',
+          sourcePlatform: 'healthkit',
         ),
-      );
-      final service = SleepPipelineService(database: db);
+      ],
+      stageSegments: [
+        SleepIngestionStageSegment(
+          recordId: 'core-seg-1',
+          sessionRecordId: 'core-session',
+          startAtUtc: DateTime.utc(2026, 3, 1, 21),
+          endAtUtc: DateTime.utc(2026, 3, 2, 1),
+          platformStage: 'deep',
+          sourcePlatform: 'healthkit',
+        ),
+        SleepIngestionStageSegment(
+          recordId: 'core-seg-2',
+          sessionRecordId: 'core-session',
+          startAtUtc: DateTime.utc(2026, 3, 2, 1),
+          endAtUtc: DateTime.utc(2026, 3, 2, 5),
+          platformStage: 'core',
+          sourcePlatform: 'healthkit',
+        ),
+        SleepIngestionStageSegment(
+          recordId: 'nap-seg-1',
+          sessionRecordId: 'nap-session',
+          startAtUtc: DateTime.utc(2026, 3, 2, 13),
+          endAtUtc: DateTime.utc(2026, 3, 2, 13, 45),
+          platformStage: 'core',
+          sourcePlatform: 'healthkit',
+        ),
+      ],
+      heartRateSamples: const [],
+    );
 
-      // 1. Main Sleep: 22:00 to 06:00 (8 hours)
-      final mainSleep = SleepRawIngestionBatch(
-        sessions: [
-          SleepIngestionSession(
-            recordId: 'main-sleep',
-            startAtUtc: DateTime.utc(2026, 3, 1, 22),
-            endAtUtc: DateTime.utc(2026, 3, 2, 6),
-            platformSessionType: 'sleep',
-            sourcePlatform: 'healthkit',
-          ),
-        ],
-        stageSegments: const [],
-        heartRateSamples: const [],
-      );
+    final result = await service.runImport(batch: batch);
+    expect(result.importedSessions, 2);
+    expect(result.analyzedNights, 2);
 
-      // 2. Overlapping Nap: 05:30 to 07:00 (1.5 hours) - overlaps but not enveloped
-      final overlappingNap = SleepRawIngestionBatch(
-        sessions: [
-          SleepIngestionSession(
-            recordId: 'overlapping-nap',
-            startAtUtc: DateTime.utc(2026, 3, 2, 5, 30),
-            endAtUtc: DateTime.utc(2026, 3, 2, 7),
-            platformSessionType: 'sleep',
-            sourcePlatform: 'healthkit',
-          ),
-        ],
-        stageSegments: const [],
-        heartRateSamples: const [],
-      );
+    final dbSessions = await db
+        .customSelect(
+          'SELECT id, session_type FROM sleep_canonical_sessions ORDER BY id',
+        )
+        .get();
+    expect(dbSessions.length, 2);
+    expect(dbSessions[0].read<String>('id'), 'core-session');
+    expect(dbSessions[0].read<String>('session_type'), 'mainSleep');
+    expect(dbSessions[1].read<String>('id'), 'nap-session');
+    expect(dbSessions[1].read<String>('session_type'), 'nap');
 
-      await service.runImport(batch: mainSleep);
-      final secondResult = await service.runImport(batch: overlappingNap);
+    final dbAnalyses = await db
+        .customSelect(
+          'SELECT id, session_id, score, total_sleep_minutes FROM sleep_nightly_analyses ORDER BY session_id',
+        )
+        .get();
+    expect(dbAnalyses.length, 2);
 
-      // In the new logic, both should be imported because neither envelopes the other
-      expect(secondResult.importedSessions, 1);
+    final coreAnalysis = dbAnalyses.firstWhere(
+      (a) => a.read<String>('session_id') == 'core-session',
+    );
+    expect(coreAnalysis.readNullable<double>('score'), isNotNull);
+    expect(coreAnalysis.readNullable<int>('total_sleep_minutes'), 525);
 
-      final sessions = await db
-          .customSelect('SELECT COUNT(*) c FROM sleep_canonical_sessions')
-          .getSingle();
-      expect(sessions.read<int>('c'), 2);
+    final napAnalysis = dbAnalyses.firstWhere(
+      (a) => a.read<String>('session_id') == 'nap-session',
+    );
+    expect(napAnalysis.readNullable<double>('score'), isNull);
 
-      await db.close();
-    },
-  );
+    final shorterOverlappingNap = SleepRawIngestionBatch(
+      sessions: [
+        SleepIngestionSession(
+          recordId: 'shorter-nap-session',
+          startAtUtc: DateTime.utc(2026, 3, 2, 13, 10),
+          endAtUtc: DateTime.utc(2026, 3, 2, 13, 40),
+          platformSessionType: 'sleep',
+          sourcePlatform: 'healthkit',
+        ),
+      ],
+      stageSegments: const [],
+      heartRateSamples: const [],
+    );
+
+    final resultShort = await service.runImport(batch: shorterOverlappingNap);
+    expect(resultShort.importedSessions, 0);
+
+    final longerOverlappingNap = SleepRawIngestionBatch(
+      sessions: [
+        SleepIngestionSession(
+          recordId: 'longer-nap-session',
+          startAtUtc: DateTime.utc(2026, 3, 2, 12, 30),
+          endAtUtc: DateTime.utc(2026, 3, 2, 14, 0),
+          platformSessionType: 'sleep',
+          sourcePlatform: 'healthkit',
+        ),
+      ],
+      stageSegments: const [],
+      heartRateSamples: const [],
+    );
+
+    final resultLong = await service.runImport(batch: longerOverlappingNap);
+    expect(resultLong.importedSessions, 1);
+
+    final finalSessions = await db
+        .customSelect('SELECT id FROM sleep_canonical_sessions ORDER BY id')
+        .get();
+    expect(finalSessions.length, 2);
+    final finalIds = finalSessions.map((s) => s.read<String>('id')).toList();
+    expect(finalIds.contains('core-session'), isTrue);
+    expect(finalIds.contains('longer-nap-session'), isTrue);
+    expect(finalIds.contains('nap-session'), isFalse);
+
+    await db.close();
+  });
+
+  test('pipeline allows non-enveloping overlaps to coexist (e.g. nap starting before main sleep ends)', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+      ),
+    );
+    final service = SleepPipelineService(database: db);
+
+    // 1. Main Sleep: 22:00 to 06:00 (8 hours)
+    final mainSleep = SleepRawIngestionBatch(
+      sessions: [
+        SleepIngestionSession(
+          recordId: 'main-sleep',
+          startAtUtc: DateTime.utc(2026, 3, 1, 22),
+          endAtUtc: DateTime.utc(2026, 3, 2, 6),
+          platformSessionType: 'sleep',
+          sourcePlatform: 'healthkit',
+        ),
+      ],
+      stageSegments: const [],
+      heartRateSamples: const [],
+    );
+
+    // 2. Overlapping Nap: 05:30 to 07:00 (1.5 hours) - overlaps but not enveloped
+    final overlappingNap = SleepRawIngestionBatch(
+      sessions: [
+        SleepIngestionSession(
+          recordId: 'overlapping-nap',
+          startAtUtc: DateTime.utc(2026, 3, 2, 5, 30),
+          endAtUtc: DateTime.utc(2026, 3, 2, 7),
+          platformSessionType: 'sleep',
+          sourcePlatform: 'healthkit',
+        ),
+      ],
+      stageSegments: const [],
+      heartRateSamples: const [],
+    );
+
+    await service.runImport(batch: mainSleep);
+    final secondResult = await service.runImport(batch: overlappingNap);
+
+    // In the new logic, both should be imported because neither envelopes the other
+    expect(secondResult.importedSessions, 1);
+
+    final sessions = await db
+        .customSelect('SELECT COUNT(*) c FROM sleep_canonical_sessions')
+        .getSingle();
+    expect(sessions.read<int>('c'), 2);
+
+    await db.close();
+  });
 }

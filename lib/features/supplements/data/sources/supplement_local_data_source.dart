@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:drift/drift.dart' as drift;
+
 import '../../../../services/telemetry/telemetry_service.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../../data/database_helper.dart';
@@ -16,7 +18,8 @@ class SupplementLocalDataSource {
   Future<List<Supplement>> getAllSupplements() async {
     final rows = await dbInstance.select(dbInstance.supplements).get();
     return rows
-        .map((row) => Supplement(
+        .map(
+          (row) => Supplement(
             id: row.localId,
             name: row.name,
             defaultDose: row.dose,
@@ -26,14 +29,17 @@ class SupplementLocalDataSource {
             notes: row.notes,
             isBuiltin: row.isBuiltin,
             isTracked: row.isTracked,
-            code: row.code))
+            code: row.code,
+          ),
+        )
         .toList();
   }
 
   Stream<List<Supplement>> watchAllSupplements() {
     return dbInstance.select(dbInstance.supplements).watch().map((rows) {
       return rows
-          .map((row) => Supplement(
+          .map(
+            (row) => Supplement(
               id: row.localId,
               name: row.name,
               defaultDose: row.dose,
@@ -43,14 +49,18 @@ class SupplementLocalDataSource {
               notes: row.notes,
               isBuiltin: row.isBuiltin,
               isTracked: row.isTracked,
-              code: row.code))
+              code: row.code,
+            ),
+          )
           .toList();
     });
   }
 
   Future<int> insertSupplement(Supplement s) async {
-    return await dbInstance.into(dbInstance.supplements).insert(
-        db.SupplementsCompanion.insert(
+    return await dbInstance
+        .into(dbInstance.supplements)
+        .insert(
+          db.SupplementsCompanion.insert(
             name: s.name,
             dose: s.defaultDose,
             unit: s.unit,
@@ -61,30 +71,35 @@ class SupplementLocalDataSource {
             isTracked: drift.Value(s.isTracked),
             code: drift.Value(s.code),
             createdAt: drift.Value(DateTime.now()),
-            updatedAt: drift.Value(DateTime.now())));
+            updatedAt: drift.Value(DateTime.now()),
+          ),
+        );
   }
 
   Future<void> updateSupplement(Supplement s) async {
     if (s.id == null) return;
-    await (dbInstance.update(dbInstance.supplements)
-          ..where((tbl) => tbl.localId.equals(s.id!)))
-        .write(db.SupplementsCompanion(
-            name: drift.Value(s.name),
-            dose: drift.Value(s.defaultDose),
-            unit: drift.Value(s.unit),
-            dailyGoal: drift.Value(s.dailyGoal),
-            dailyLimit: drift.Value(s.dailyLimit),
-            notes: drift.Value(s.notes),
-            isBuiltin: drift.Value(s.isBuiltin),
-            isTracked: drift.Value(s.isTracked),
-            code: drift.Value(s.code),
-            updatedAt: drift.Value(DateTime.now())));
+    await (dbInstance.update(
+      dbInstance.supplements,
+    )..where((tbl) => tbl.localId.equals(s.id!))).write(
+      db.SupplementsCompanion(
+        name: drift.Value(s.name),
+        dose: drift.Value(s.defaultDose),
+        unit: drift.Value(s.unit),
+        dailyGoal: drift.Value(s.dailyGoal),
+        dailyLimit: drift.Value(s.dailyLimit),
+        notes: drift.Value(s.notes),
+        isBuiltin: drift.Value(s.isBuiltin),
+        isTracked: drift.Value(s.isTracked),
+        code: drift.Value(s.code),
+        updatedAt: drift.Value(DateTime.now()),
+      ),
+    );
   }
 
   Future<void> deleteSupplement(int id) async {
-    await (dbInstance.delete(dbInstance.supplements)
-          ..where((tbl) => tbl.localId.equals(id)))
-        .go();
+    await (dbInstance.delete(
+      dbInstance.supplements,
+    )..where((tbl) => tbl.localId.equals(id))).go();
   }
 
   Future<List<SupplementLog>> getSupplementLogsForDate(DateTime date) async {
@@ -93,21 +108,23 @@ class SupplementLocalDataSource {
     final query = dbInstance.select(dbInstance.supplementLogs).join([
       drift.innerJoin(
         dbInstance.supplements,
-        dbInstance.supplements.id
-            .equalsExp(dbInstance.supplementLogs.supplementId),
+        dbInstance.supplements.id.equalsExp(
+          dbInstance.supplementLogs.supplementId,
+        ),
       ),
       drift.leftOuterJoin(
         dbInstance.nutritionLogs,
-        dbInstance.nutritionLogs.id
-            .equalsExp(dbInstance.supplementLogs.sourceNutritionLogId),
+        dbInstance.nutritionLogs.id.equalsExp(
+          dbInstance.supplementLogs.sourceNutritionLogId,
+        ),
       ),
       drift.leftOuterJoin(
         dbInstance.fluidLogs,
-        dbInstance.fluidLogs.linkedNutritionLogId
-            .equalsExp(dbInstance.supplementLogs.sourceNutritionLogId),
+        dbInstance.fluidLogs.linkedNutritionLogId.equalsExp(
+          dbInstance.supplementLogs.sourceNutritionLogId,
+        ),
       ),
-    ])
-      ..where(dbInstance.supplementLogs.takenAt.isBetweenValues(start, end));
+    ])..where(dbInstance.supplementLogs.takenAt.isBetweenValues(start, end));
 
     final rows = await query.get();
     return rows.map((row) {
@@ -133,21 +150,23 @@ class SupplementLocalDataSource {
     final query = dbInstance.select(dbInstance.supplementLogs).join([
       drift.innerJoin(
         dbInstance.supplements,
-        dbInstance.supplements.id
-            .equalsExp(dbInstance.supplementLogs.supplementId),
+        dbInstance.supplements.id.equalsExp(
+          dbInstance.supplementLogs.supplementId,
+        ),
       ),
       drift.leftOuterJoin(
         dbInstance.nutritionLogs,
-        dbInstance.nutritionLogs.id
-            .equalsExp(dbInstance.supplementLogs.sourceNutritionLogId),
+        dbInstance.nutritionLogs.id.equalsExp(
+          dbInstance.supplementLogs.sourceNutritionLogId,
+        ),
       ),
       drift.leftOuterJoin(
         dbInstance.fluidLogs,
-        dbInstance.fluidLogs.linkedNutritionLogId
-            .equalsExp(dbInstance.supplementLogs.sourceNutritionLogId),
+        dbInstance.fluidLogs.linkedNutritionLogId.equalsExp(
+          dbInstance.supplementLogs.sourceNutritionLogId,
+        ),
       ),
-    ])
-      ..where(dbInstance.supplementLogs.takenAt.isBetweenValues(start, end));
+    ])..where(dbInstance.supplementLogs.takenAt.isBetweenValues(start, end));
 
     return query.watch().map((rows) {
       return rows.map((row) {
@@ -174,8 +193,9 @@ class SupplementLocalDataSource {
     final query = dbInstance.select(dbInstance.supplements).join([
       drift.leftOuterJoin(
         dbInstance.supplementSettingsHistory,
-        dbInstance.supplementSettingsHistory.supplementId
-            .equalsExp(dbInstance.supplements.id),
+        dbInstance.supplementSettingsHistory.supplementId.equalsExp(
+          dbInstance.supplements.id,
+        ),
       ),
     ]);
 
@@ -192,16 +212,17 @@ class SupplementLocalDataSource {
       if (h == null) {
         if (!latestMap.containsKey(s.id)) {
           latestMap[s.id] = Supplement(
-              id: s.localId,
-              name: s.name,
-              defaultDose: s.dose,
-              unit: s.unit,
-              dailyGoal: s.dailyGoal,
-              dailyLimit: s.dailyLimit,
-              notes: s.notes,
-              isBuiltin: s.isBuiltin,
-              isTracked: s.isTracked,
-              code: s.code);
+            id: s.localId,
+            name: s.name,
+            defaultDose: s.dose,
+            unit: s.unit,
+            dailyGoal: s.dailyGoal,
+            dailyLimit: s.dailyLimit,
+            notes: s.notes,
+            isBuiltin: s.isBuiltin,
+            isTracked: s.isTracked,
+            code: s.code,
+          );
         }
       } else if (h.createdAt.isBefore(end) ||
           h.createdAt.isAtSameMomentAs(end)) {
@@ -223,16 +244,17 @@ class SupplementLocalDataSource {
       } else {
         if (!latestMap.containsKey(s.id)) {
           latestMap[s.id] = Supplement(
-              id: s.localId,
-              name: s.name,
-              defaultDose: s.dose,
-              unit: s.unit,
-              dailyGoal: s.dailyGoal,
-              dailyLimit: s.dailyLimit,
-              notes: s.notes,
-              isBuiltin: s.isBuiltin,
-              isTracked: s.isTracked,
-              code: s.code);
+            id: s.localId,
+            name: s.name,
+            defaultDose: s.dose,
+            unit: s.unit,
+            dailyGoal: s.dailyGoal,
+            dailyLimit: s.dailyLimit,
+            notes: s.notes,
+            isBuiltin: s.isBuiltin,
+            isTracked: s.isTracked,
+            code: s.code,
+          );
         }
       }
     }
@@ -245,8 +267,9 @@ class SupplementLocalDataSource {
     final query = dbInstance.select(dbInstance.supplements).join([
       drift.leftOuterJoin(
         dbInstance.supplementSettingsHistory,
-        dbInstance.supplementSettingsHistory.supplementId
-            .equalsExp(dbInstance.supplements.id),
+        dbInstance.supplementSettingsHistory.supplementId.equalsExp(
+          dbInstance.supplements.id,
+        ),
       ),
     ]);
 
@@ -263,16 +286,17 @@ class SupplementLocalDataSource {
         if (h == null) {
           if (!latestMap.containsKey(s.id)) {
             latestMap[s.id] = Supplement(
-                id: s.localId,
-                name: s.name,
-                defaultDose: s.dose,
-                unit: s.unit,
-                dailyGoal: s.dailyGoal,
-                dailyLimit: s.dailyLimit,
-                notes: s.notes,
-                isBuiltin: s.isBuiltin,
-                isTracked: s.isTracked,
-                code: s.code);
+              id: s.localId,
+              name: s.name,
+              defaultDose: s.dose,
+              unit: s.unit,
+              dailyGoal: s.dailyGoal,
+              dailyLimit: s.dailyLimit,
+              notes: s.notes,
+              isBuiltin: s.isBuiltin,
+              isTracked: s.isTracked,
+              code: s.code,
+            );
           }
         } else if (h.createdAt.isBefore(end) ||
             h.createdAt.isAtSameMomentAs(end)) {
@@ -294,16 +318,17 @@ class SupplementLocalDataSource {
         } else {
           if (!latestMap.containsKey(s.id)) {
             latestMap[s.id] = Supplement(
-                id: s.localId,
-                name: s.name,
-                defaultDose: s.dose,
-                unit: s.unit,
-                dailyGoal: s.dailyGoal,
-                dailyLimit: s.dailyLimit,
-                notes: s.notes,
-                isBuiltin: s.isBuiltin,
-                isTracked: s.isTracked,
-                code: s.code);
+              id: s.localId,
+              name: s.name,
+              defaultDose: s.dose,
+              unit: s.unit,
+              dailyGoal: s.dailyGoal,
+              dailyLimit: s.dailyLimit,
+              notes: s.notes,
+              isBuiltin: s.isBuiltin,
+              isTracked: s.isTracked,
+              code: s.code,
+            );
           }
         }
       }
@@ -311,91 +336,104 @@ class SupplementLocalDataSource {
     });
   }
 
-  Future<void> logSupplement(
-      {required int supplementId,
-      required double dose,
-      DateTime? takenAt,
-      String? sourceNutritionLogId}) async {
-    final s = await (dbInstance.select(dbInstance.supplements)
-          ..where((tbl) => tbl.localId.equals(supplementId)))
-        .getSingleOrNull();
+  Future<void> logSupplement({
+    required int supplementId,
+    required double dose,
+    DateTime? takenAt,
+    String? sourceNutritionLogId,
+  }) async {
+    final s = await (dbInstance.select(
+      dbInstance.supplements,
+    )..where((tbl) => tbl.localId.equals(supplementId))).getSingleOrNull();
     if (s != null) {
-      await dbInstance.into(dbInstance.supplementLogs).insert(
-          db.SupplementLogsCompanion.insert(
+      await dbInstance
+          .into(dbInstance.supplementLogs)
+          .insert(
+            db.SupplementLogsCompanion.insert(
               supplementId: s.id,
               amount: dose,
               takenAt: takenAt ?? DateTime.now(),
-              sourceNutritionLogId: drift.Value(sourceNutritionLogId)));
+              sourceNutritionLogId: drift.Value(sourceNutritionLogId),
+            ),
+          );
     }
   }
 
   Future<void> insertSupplementLog(SupplementLog log) async {
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.supplementLogged));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.supplementLogged,
+      ),
+    );
     String? sourceNutritionLogUuid;
     if (log.sourceFoodEntryId != null) {
-      final nutritionRow = await (dbInstance.select(dbInstance.nutritionLogs)
-            ..where((tbl) => tbl.localId.equals(log.sourceFoodEntryId!)))
-          .getSingleOrNull();
+      final nutritionRow =
+          await (dbInstance.select(dbInstance.nutritionLogs)
+                ..where((tbl) => tbl.localId.equals(log.sourceFoodEntryId!)))
+              .getSingleOrNull();
       if (nutritionRow != null) {
         sourceNutritionLogUuid = nutritionRow.id;
       }
     } else if (log.sourceFluidEntryId != null) {
-      final fluidRow = await (dbInstance.select(dbInstance.fluidLogs)
-            ..where((tbl) => tbl.localId.equals(log.sourceFluidEntryId!)))
-          .getSingleOrNull();
+      final fluidRow =
+          await (dbInstance.select(dbInstance.fluidLogs)
+                ..where((tbl) => tbl.localId.equals(log.sourceFluidEntryId!)))
+              .getSingleOrNull();
       if (fluidRow != null && fluidRow.linkedNutritionLogId != null) {
         sourceNutritionLogUuid = fluidRow.linkedNutritionLogId;
       }
     }
 
     await logSupplement(
-        supplementId: log.supplementId,
-        dose: log.dose,
-        takenAt: log.timestamp,
-        sourceNutritionLogId: sourceNutritionLogUuid);
+      supplementId: log.supplementId,
+      dose: log.dose,
+      takenAt: log.timestamp,
+      sourceNutritionLogId: sourceNutritionLogUuid,
+    );
   }
 
   Future<void> deleteCaffeineLogByFoodEntryId(int foodEntryId) async {
-    final log = await (dbInstance.select(dbInstance.nutritionLogs)
-          ..where((tbl) => tbl.localId.equals(foodEntryId)))
-        .getSingleOrNull();
+    final log = await (dbInstance.select(
+      dbInstance.nutritionLogs,
+    )..where((tbl) => tbl.localId.equals(foodEntryId))).getSingleOrNull();
     if (log != null) {
-      await (dbInstance.delete(dbInstance.supplementLogs)
-            ..where((tbl) => tbl.sourceNutritionLogId.equals(log.id)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.supplementLogs,
+      )..where((tbl) => tbl.sourceNutritionLogId.equals(log.id))).go();
     }
   }
 
   Future<void> deleteCaffeineLogByFluidEntryId(int fluidEntryId) async {
-    final fluidLog = await (dbInstance.select(dbInstance.fluidLogs)
-          ..where((tbl) => tbl.localId.equals(fluidEntryId)))
-        .getSingleOrNull();
+    final fluidLog = await (dbInstance.select(
+      dbInstance.fluidLogs,
+    )..where((tbl) => tbl.localId.equals(fluidEntryId))).getSingleOrNull();
     if (fluidLog != null) {
       if (fluidLog.linkedNutritionLogId != null) {
-        await (dbInstance.delete(dbInstance.supplementLogs)
-              ..where((tbl) => tbl.sourceNutritionLogId
-                  .equals(fluidLog.linkedNutritionLogId!)))
+        await (dbInstance.delete(dbInstance.supplementLogs)..where(
+              (tbl) => tbl.sourceNutritionLogId.equals(
+                fluidLog.linkedNutritionLogId!,
+              ),
+            ))
             .go();
       } else {
-        await (dbInstance.delete(dbInstance.supplementLogs)
-              ..where((tbl) => tbl.takenAt.equals(fluidLog.consumedAt)))
-            .go();
+        await (dbInstance.delete(
+          dbInstance.supplementLogs,
+        )..where((tbl) => tbl.takenAt.equals(fluidLog.consumedAt))).go();
       }
     }
   }
 
   Future<void> updateSupplementLog(db.SupplementLogsCompanion entry) async {
     final id = entry.localId.value;
-    await (dbInstance.update(dbInstance.supplementLogs)
-          ..where((tbl) => tbl.localId.equals(id)))
-        .write(entry);
+    await (dbInstance.update(
+      dbInstance.supplementLogs,
+    )..where((tbl) => tbl.localId.equals(id))).write(entry);
   }
 
   Future<void> deleteSupplementLog(int logId) async {
-    await (dbInstance.delete(dbInstance.supplementLogs)
-          ..where((tbl) => tbl.localId.equals(logId)))
-        .go();
+    await (dbInstance.delete(
+      dbInstance.supplementLogs,
+    )..where((tbl) => tbl.localId.equals(logId))).go();
   }
 
   /// Makes sure the built-in supplements exist and carry their canonical code.
@@ -428,16 +466,20 @@ class SupplementLocalDataSource {
       }
 
       if (legacy != null) {
-        await (dbInstance.update(dbInstance.supplements)
-              ..where((tbl) => tbl.localId.equals(legacy!.localId)))
-            .write(db.SupplementsCompanion(
-          code: drift.Value(code),
-          updatedAt: drift.Value(now),
-        ));
+        await (dbInstance.update(
+          dbInstance.supplements,
+        )..where((tbl) => tbl.localId.equals(legacy!.localId))).write(
+          db.SupplementsCompanion(
+            code: drift.Value(code),
+            updatedAt: drift.Value(now),
+          ),
+        );
         return;
       }
 
-      await dbInstance.into(dbInstance.supplements).insert(
+      await dbInstance
+          .into(dbInstance.supplements)
+          .insert(
             db.SupplementsCompanion.insert(
               name: name,
               dose: dose,
@@ -471,9 +513,10 @@ class SupplementLocalDataSource {
     final query = dbInstance.select(dbInstance.supplementLogs).join([
       drift.innerJoin(
         dbInstance.supplements,
-        dbInstance.supplements.id
-            .equalsExp(dbInstance.supplementLogs.supplementId),
-      )
+        dbInstance.supplements.id.equalsExp(
+          dbInstance.supplementLogs.supplementId,
+        ),
+      ),
     ]);
     final rows = await query.get();
     return rows.map((row) {

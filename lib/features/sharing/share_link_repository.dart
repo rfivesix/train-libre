@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
 
@@ -75,8 +76,9 @@ class ShareLinkRepository {
     if (payload.type != 'routine') {
       throw const FormatException('Expected a routine');
     }
-    return DatabaseHelper.instance.dbInstance
-        .transaction(() => _importRoutine(payload));
+    return DatabaseHelper.instance.dbInstance.transaction(
+      () => _importRoutine(payload),
+    );
   }
 
   /// Appends an immutable plan revision while preserving the plan identity.
@@ -108,47 +110,50 @@ class ShareLinkRepository {
     }
     final database = DatabaseHelper.instance.dbInstance;
     await database.transaction(() async {
-      final target = await (database.select(database.routines)
-            ..where((row) => row.localId.equals(routineId)))
-          .getSingleOrNull();
+      final target = await (database.select(
+        database.routines,
+      )..where((row) => row.localId.equals(routineId))).getSingleOrNull();
       if (target == null) throw StateError('Routine no longer exists');
 
       // Stage through the normal, validated importer so exercise matching,
       // set templates and metadata follow exactly the existing import rules.
       final staged = await _importRoutine(payload);
-      final stagedRow = await (database.select(database.routines)
-            ..where((row) => row.localId.equals(staged.id!)))
-          .getSingle();
-      final incomingRows = await (database.select(database.routineExercises)
-            ..where((row) => row.routineId.equals(stagedRow.id))
-            ..orderBy([(row) => drift.OrderingTerm.asc(row.orderIndex)]))
-          .get();
+      final stagedRow = await (database.select(
+        database.routines,
+      )..where((row) => row.localId.equals(staged.id!))).getSingle();
+      final incomingRows =
+          await (database.select(database.routineExercises)
+                ..where((row) => row.routineId.equals(stagedRow.id))
+                ..orderBy([(row) => drift.OrderingTerm.asc(row.orderIndex)]))
+              .get();
 
-      await (database.delete(database.routineExercises)
-            ..where((row) => row.routineId.equals(target.id)))
-          .go();
+      await (database.delete(
+        database.routineExercises,
+      )..where((row) => row.routineId.equals(target.id))).go();
       for (var index = 0; index < incomingRows.length; index++) {
         final row = incomingRows[index];
-        await (database.update(database.routineExercises)
-              ..where((item) => item.localId.equals(row.localId)))
-            .write(db.RoutineExercisesCompanion(
-          routineId: drift.Value(target.id),
-          orderIndex: drift.Value(index),
-        ));
+        await (database.update(
+          database.routineExercises,
+        )..where((item) => item.localId.equals(row.localId))).write(
+          db.RoutineExercisesCompanion(
+            routineId: drift.Value(target.id),
+            orderIndex: drift.Value(index),
+          ),
+        );
       }
       await (database.update(database.routines)
             ..where((row) => row.id.equals(target.id)))
           .write(db.RoutinesCompanion(name: drift.Value(payload.name.trim())));
-      await (database.delete(database.routines)
-            ..where((row) => row.id.equals(stagedRow.id)))
-          .go();
+      await (database.delete(
+        database.routines,
+      )..where((row) => row.id.equals(stagedRow.id))).go();
     });
   }
 
   /// Resolves routines embedded in a plan to local exercise IDs and builds
   /// detached snapshots suitable for a plan editor draft.
   Future<({TrainingPlanKind kind, List<TrainingPlanDay> days})>
-      decodePlanForEditor(ShareLinkPayload payload) async {
+  decodePlanForEditor(ShareLinkPayload payload) async {
     payload = ShareLinkPayload.fromJson(payload.toJson());
     if (payload.type != 'plan') {
       throw const FormatException('Expected a training plan');
@@ -170,10 +175,7 @@ class ShareLinkRepository {
           return {
             'exercise': entry.exercise.toMap(),
             'setTemplates': entry.setTemplates
-                .map((set) => {
-                      ...set.toMap(),
-                      'id': null,
-                    })
+                .map((set) => {...set.toMap(), 'id': null})
                 .toList(),
             'pause_seconds': entry.pauseSeconds,
             'superset_group': entry.supersetGroup,
@@ -181,14 +183,11 @@ class ShareLinkRepository {
             'progression_data': entry.progressionData,
           };
         }).toList();
-        final routine = {
-          'name': staged.name,
-          'exercises': snapshotExercises,
-        };
+        final routine = {'name': staged.name, 'exercises': snapshotExercises};
         days.add(TrainingPlanDay(routineSnapshot: routine));
-        await (database.delete(database.routines)
-              ..where((row) => row.localId.equals(staged.id!)))
-            .go();
+        await (database.delete(
+          database.routines,
+        )..where((row) => row.localId.equals(staged.id!))).go();
       }
       return (kind: kind, days: days);
     });
@@ -214,20 +213,23 @@ class ShareLinkRepository {
     for (final row in parsed) {
       final uuid = row['uuid'] as String?;
       final name = row['name'] as String;
-      Exercise? exercise =
-          uuid == null ? null : await source.getExerciseByUuid(uuid);
+      Exercise? exercise = uuid == null
+          ? null
+          : await source.getExerciseByUuid(uuid);
       exercise ??= await source.getExerciseByName(name);
-      exercise ??= await source.insertExercise(Exercise.single(
-        languageCode: 'en',
-        name: name,
-        categoryName: row['category'] as String? ?? 'Strength',
-        primaryMuscles: (row['muscles'] as List?)?.cast<String>() ?? const [],
-        secondaryMuscles:
-            (row['secondaryMuscles'] as List?)?.cast<String>() ?? const [],
-        trackingType: row['tracking'] as String?,
-        loadMode: row['loadMode'] as String?,
-        primaryEquipment: row['equipment'] as String?,
-      ));
+      exercise ??= await source.insertExercise(
+        Exercise.single(
+          languageCode: 'en',
+          name: name,
+          categoryName: row['category'] as String? ?? 'Strength',
+          primaryMuscles: (row['muscles'] as List?)?.cast<String>() ?? const [],
+          secondaryMuscles:
+              (row['secondaryMuscles'] as List?)?.cast<String>() ?? const [],
+          trackingType: row['tracking'] as String?,
+          loadMode: row['loadMode'] as String?,
+          primaryEquipment: row['equipment'] as String?,
+        ),
+      );
       if (exercise.id == null) throw StateError('Exercise import failed');
       final entry = await source.addExerciseToRoutine(
         routine.id!,
@@ -251,17 +253,25 @@ class ShareLinkRepository {
       await source.replaceSetTemplatesForExercise(entry.id!, templates);
       await source.updatePauseTime(entry.id!, (row['pause'] as num?)?.toInt());
       await source.updateSupersetGroup(
-          entry.id!, (row['superset'] as num?)?.toInt());
+        entry.id!,
+        (row['superset'] as num?)?.toInt(),
+      );
       await source.updateRoutineExerciseNotes(
-          entry.id!, row['notes'] as String?);
+        entry.id!,
+        row['notes'] as String?,
+      );
       await source.updateProgressionData(
-          entry.id!, row['progression'] as String?);
+        entry.id!,
+        row['progression'] as String?,
+      );
     }
     return (await source.getRoutineById(routine.id!))!;
   }
 
-  Future<void> _importPlan(ShareLinkPayload payload,
-      {bool activate = false}) async {
+  Future<void> _importPlan(
+    ShareLinkPayload payload, {
+    bool activate = false,
+  }) async {
     final kind = TrainingPlanKind.values.byName(payload.data['kind'] as String);
     final rows = payload.data['days'] as List;
     if (rows.isEmpty ||
@@ -277,8 +287,9 @@ class ShareLinkRepository {
         days.add(const TrainingPlanDay());
         continue;
       }
-      final nested =
-          ShareLinkPayload.fromJson(Map<String, dynamic>.from(raw as Map));
+      final nested = ShareLinkPayload.fromJson(
+        Map<String, dynamic>.from(raw as Map),
+      );
       if (nested.type != 'routine') {
         throw const FormatException('Invalid plan day');
       }
@@ -343,27 +354,31 @@ class ShareLinkRepository {
         importedBarcodes[barcode] = barcode;
         continue;
       }
-      final targetBarcode =
-          existing == null ? barcode : 'shared:${const Uuid().v4()}';
-      await products.insertProduct(FoodItem(
-        barcode: targetBarcode,
-        name: item['name'] as String,
-        calories: calories,
-        protein: protein,
-        carbs: carbs,
-        fat: fat,
-        isLiquid: item['unit'] == 'ml',
-        isFluid: item['unit'] == 'ml',
-      ));
+      final targetBarcode = existing == null
+          ? barcode
+          : 'shared:${const Uuid().v4()}';
+      await products.insertProduct(
+        FoodItem(
+          barcode: targetBarcode,
+          name: item['name'] as String,
+          calories: calories,
+          protein: protein,
+          carbs: carbs,
+          fat: fat,
+          isLiquid: item['unit'] == 'ml',
+          isFluid: item['unit'] == 'ml',
+        ),
+      );
       importedBarcodes[barcode] = targetBarcode;
     }
-    final mealId = existingMealId ??
+    final mealId =
+        existingMealId ??
         await DatabaseHelper.instance.insertMeal(
           name: payload.name,
           notes: payload.data['notes'] as String?,
           servingCount: (payload.data['portions'] as num?)?.toInt(),
-          cookedWeightInGrams:
-              (payload.data['cookedWeightInGrams'] as num?)?.toInt(),
+          cookedWeightInGrams: (payload.data['cookedWeightInGrams'] as num?)
+              ?.toInt(),
         );
     if (existingMealId != null) {
       await DatabaseHelper.instance.updateMeal(
@@ -371,8 +386,8 @@ class ShareLinkRepository {
         name: payload.name.trim(),
         notes: payload.data['notes'] as String?,
         servingCount: (payload.data['portions'] as num?)?.toInt(),
-        cookedWeightInGrams:
-            (payload.data['cookedWeightInGrams'] as num?)?.toInt(),
+        cookedWeightInGrams: (payload.data['cookedWeightInGrams'] as num?)
+            ?.toInt(),
       );
       await DatabaseHelper.instance.clearMealItems(mealId);
     }
@@ -389,9 +404,12 @@ class ShareLinkRepository {
     final database = DatabaseHelper.instance.dbInstance;
     final data = payload.data;
     final startedAt = DateTime.parse(data['start'] as String);
-    final endedAt =
-        data['end'] == null ? null : DateTime.parse(data['end'] as String);
-    final row = await database.into(database.workoutLogs).insertReturning(
+    final endedAt = data['end'] == null
+        ? null
+        : DateTime.parse(data['end'] as String);
+    final row = await database
+        .into(database.workoutLogs)
+        .insertReturning(
           db.WorkoutLogsCompanion(
             routineNameSnapshot: drift.Value(payload.name),
             startTime: drift.Value(startedAt),
@@ -407,7 +425,7 @@ class ShareLinkRepository {
       final name = set['exercise_name'] as String;
       final exercise =
           (uuid == null ? null : await source.getExerciseByUuid(uuid)) ??
-              await source.getExerciseByName(name);
+          await source.getExerciseByName(name);
       set.remove('id');
       set.remove('workoutLogId');
       set.remove('exerciseId');

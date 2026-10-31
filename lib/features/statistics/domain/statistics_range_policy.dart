@@ -62,8 +62,8 @@ class StatisticsRangePolicyService {
   static const StatisticsRangePolicyService instance =
       StatisticsRangePolicyService._();
 
-  static const Map<StatisticsMetricId, StatisticsMetricRangeMetadata> metadata =
-      {
+  static const Map<StatisticsMetricId, StatisticsMetricRangeMetadata>
+  metadata = {
     StatisticsMetricId.bodyNutritionTrend: StatisticsMetricRangeMetadata(
       metricId: StatisticsMetricId.bodyNutritionTrend,
       semantics: StatisticsRangeSemantics.dynamicAll,

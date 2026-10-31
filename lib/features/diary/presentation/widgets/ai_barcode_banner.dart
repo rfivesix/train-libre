@@ -30,7 +30,8 @@ class AiBarcodeBanner extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
-    final label = detectedProduct?.name ??
+    final label =
+        detectedProduct?.name ??
         (detectedBarcode != null
             ? l10n.aiCaptureBarcodeFallback(detectedBarcode!)
             : '');
@@ -78,8 +79,9 @@ class AiBarcodeBanner extends StatelessWidget {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
-                          color:
-                              isDark ? Colors.white : const Color(0xFF12120F),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF12120F),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -89,8 +91,10 @@ class AiBarcodeBanner extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: primaryAccent,
                     borderRadius: BorderRadius.circular(12),
@@ -101,8 +105,9 @@ class AiBarcodeBanner extends StatelessWidget {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.2,
-                            color:
-                                isDark ? const Color(0xFF12120F) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF12120F)
+                                : Colors.white,
                           ),
                         )
                       : Text(
@@ -111,8 +116,9 @@ class AiBarcodeBanner extends StatelessWidget {
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w800,
                             fontSize: 14,
-                            color:
-                                isDark ? const Color(0xFF12120F) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF12120F)
+                                : Colors.white,
                           ),
                         ),
                 ),
@@ -200,8 +206,10 @@ class AiDemoBarcodeBanner extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: primaryAccent,
                   borderRadius: BorderRadius.circular(12),

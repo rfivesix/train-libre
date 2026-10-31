@@ -48,7 +48,8 @@ class PlanOverviewCard extends StatelessWidget {
     BuildContext sourceContext,
     WidgetBuilder sourceBuilder,
     MorphSourceVisibilityCallback setHidden,
-  )? onRoutineTap;
+  )?
+  onRoutineTap;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +80,8 @@ class PlanScheduleOverviewGrid extends StatelessWidget {
     BuildContext sourceContext,
     WidgetBuilder sourceBuilder,
     MorphSourceVisibilityCallback setHidden,
-  )? onRoutineTap;
+  )?
+  onRoutineTap;
 
   @override
   Widget build(BuildContext context) {
@@ -94,18 +96,18 @@ class PlanScheduleOverviewGrid extends StatelessWidget {
               final label = _labelFor(index, locale, text);
               final active = plan.active && activeSlotIndex == index;
               Widget buildTile() => _PlanScheduleOverviewTile(
-                    label: label,
-                    day: day,
-                    isActive: active,
-                    onTap: !day.isRest && onRoutineTap != null
-                        ? () => onRoutineTap!(
-                              day,
-                              tileContext,
-                              (_) => buildTile(),
-                              setHidden,
-                            )
-                        : null,
-                  );
+                label: label,
+                day: day,
+                isActive: active,
+                onTap: !day.isRest && onRoutineTap != null
+                    ? () => onRoutineTap!(
+                        day,
+                        tileContext,
+                        (_) => buildTile(),
+                        setHidden,
+                      )
+                    : null,
+              );
               return buildTile();
             },
           ),
@@ -176,7 +178,8 @@ class _PlanScheduleOverviewTile extends StatelessWidget {
     final accent = theme.colorScheme.primary;
 
     return Semantics(
-      label: '$label, ${day.routineName ?? text.get('rest')}'
+      label:
+          '$label, ${day.routineName ?? text.get('rest')}'
           '${isActive ? ', ${text.get('nextUp')}' : ''}',
       child: ValueSummaryCard(
         label: label,
@@ -186,8 +189,8 @@ class _PlanScheduleOverviewTile extends StatelessWidget {
         valueColor: isActive
             ? accent
             : (day.isRest
-                ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
-                : null),
+                  ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
+                  : null),
         backgroundColor: isActive ? accent.withValues(alpha: 0.14) : null,
       ),
     );
@@ -209,29 +212,29 @@ class PlanStatusIndicator extends StatelessWidget {
     final theme = Theme.of(context);
     final (icon, color) = switch (status) {
       PlannedDayStatus.completed => (
-          LucideIcons.circle_check,
-          theme.colorScheme.primary
-        ),
+        LucideIcons.circle_check,
+        theme.colorScheme.primary,
+      ),
       PlannedDayStatus.partial => (
-          LucideIcons.circle_dot,
-          theme.colorScheme.tertiary
-        ),
+        LucideIcons.circle_dot,
+        theme.colorScheme.tertiary,
+      ),
       PlannedDayStatus.skipped => (
-          LucideIcons.skip_forward,
-          theme.colorScheme.onSurfaceVariant
-        ),
+        LucideIcons.skip_forward,
+        theme.colorScheme.onSurfaceVariant,
+      ),
       PlannedDayStatus.rest => (
-          LucideIcons.minus,
-          theme.colorScheme.onSurfaceVariant
-        ),
+        LucideIcons.minus,
+        theme.colorScheme.onSurfaceVariant,
+      ),
       PlannedDayStatus.ongoing => (
-          LucideIcons.timer,
-          theme.colorScheme.primary
-        ),
+        LucideIcons.timer,
+        theme.colorScheme.primary,
+      ),
       PlannedDayStatus.planned => (
-          LucideIcons.circle,
-          theme.colorScheme.onSurfaceVariant
-        ),
+        LucideIcons.circle,
+        theme.colorScheme.onSurfaceVariant,
+      ),
     };
     final label = ManualPlanText(context).get(status.name);
     if (compact) {
@@ -264,10 +267,7 @@ class PlanStatusIndicator extends StatelessWidget {
 /// The plan's date entry point intentionally mirrors the Diary's calendar
 /// control, while opening the plan-specific week picker.
 class PlanCalendarPickerButton extends StatelessWidget {
-  const PlanCalendarPickerButton({
-    super.key,
-    required this.onPressed,
-  });
+  const PlanCalendarPickerButton({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 
@@ -336,7 +336,8 @@ class PlanWeekStrip extends StatelessWidget {
                 date: date,
                 day: days[_day(date)],
                 weekday: DateFormat.E(locale).format(date),
-                selected: selectedDate != null &&
+                selected:
+                    selectedDate != null &&
                     DateUtils.isSameDay(date, selectedDate),
                 today: DateUtils.isSameDay(date, DateTime.now()),
                 next: nextDate != null && DateUtils.isSameDay(date, nextDate),
@@ -382,12 +383,13 @@ class _PlanDayCell extends StatelessWidget {
     final foreground = selected
         ? colorScheme.onPrimary
         : disabled
-            ? theme.disabledColor
-            : colorScheme.onSurface;
+        ? theme.disabledColor
+        : colorScheme.onSurface;
     return Semantics(
       button: onTap != null,
       selected: selected,
-      label: '${DateFormat.EEEE(locale).format(date)}, '
+      label:
+          '${DateFormat.EEEE(locale).format(date)}, '
           '${DateFormat.yMMMd(locale).format(date)}'
           '${day == null ? '' : ', ${ManualPlanText(context).get(day!.status.name)}'}',
       child: Padding(
@@ -406,10 +408,12 @@ class _PlanDayCell extends StatelessWidget {
                     height: 48,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color:
-                          selected ? colorScheme.primary : Colors.transparent,
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM),
+                      color: selected
+                          ? colorScheme.primary
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusM,
+                      ),
                       border: today && !selected
                           ? Border.all(color: colorScheme.primary, width: 1.5)
                           : null,
@@ -437,11 +441,7 @@ class _PlanDayCell extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 3),
-                  _PlanDayMarker(
-                    day: day,
-                    selected: selected,
-                    next: next,
-                  ),
+                  _PlanDayMarker(day: day, selected: selected, next: next),
                 ],
               ),
             ),
@@ -475,9 +475,10 @@ class _PlanDayMarker extends StatelessWidget {
             PlannedDayStatus.ongoing => colors.primary,
             PlannedDayStatus.skipped => colors.onSurfaceVariant,
             PlannedDayStatus.rest => colors.onSurfaceVariant,
-            PlannedDayStatus.planned => next
-                ? colors.primary
-                : colors.onSurfaceVariant.withValues(alpha: 0.45),
+            PlannedDayStatus.planned =>
+              next
+                  ? colors.primary
+                  : colors.onSurfaceVariant.withValues(alpha: 0.45),
           };
     if (day!.status == PlannedDayStatus.rest) {
       return Container(
@@ -683,9 +684,11 @@ class WorkoutPlanHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final statusLabel =
-        status == null ? null : ManualPlanText(context).get(status!.name);
-    final semanticStatus = statusLabel == null ||
+    final statusLabel = status == null
+        ? null
+        : ManualPlanText(context).get(status!.name);
+    final semanticStatus =
+        statusLabel == null ||
             subtitle.toLowerCase().contains(statusLabel.toLowerCase())
         ? ''
         : ', $statusLabel';
@@ -700,8 +703,9 @@ class WorkoutPlanHeroCard extends StatelessWidget {
             label: '$eyebrow, $title, $subtitle$semanticStatus',
             excludeSemantics: true,
             child: InkWell(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusL,
+              ),
               onTap: onTap,
               child: Padding(
                 padding: EdgeInsets.all(
@@ -738,13 +742,14 @@ class WorkoutPlanHeroCard extends StatelessWidget {
                       title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: (compact
-                              ? theme.textTheme.titleMedium
-                              : theme.textTheme.headlineSmall)
-                          ?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: compact ? null : -0.35,
-                      ),
+                      style:
+                          (compact
+                                  ? theme.textTheme.titleMedium
+                                  : theme.textTheme.headlineSmall)
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: compact ? null : -0.35,
+                              ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -752,8 +757,9 @@ class WorkoutPlanHeroCard extends StatelessWidget {
                       maxLines: compact ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.66),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.66,
+                        ),
                         height: 1.3,
                       ),
                     ),
@@ -779,10 +785,7 @@ class WorkoutPlanHeroCard extends StatelessWidget {
                         size: AppButtonSize.small,
                       ),
                     )
-                  : AppButton.primary(
-                      label: actionLabel!,
-                      onPressed: onAction,
-                    ),
+                  : AppButton.primary(label: actionLabel!, onPressed: onAction),
             ),
         ],
       ),

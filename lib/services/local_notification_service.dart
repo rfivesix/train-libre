@@ -1,10 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../generated/app_localizations.dart';
+
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
 import '../features/profile/data/goal_repository_impl.dart';
 import '../features/profile/domain/models/goal_model.dart';
 import 'notification_navigation.dart';
@@ -66,9 +70,7 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
       );
       final launchDetails = await _plugin.getNotificationAppLaunchDetails();
       if (launchDetails?.didNotificationLaunchApp == true) {
-        _recordNotificationTap(
-          launchDetails?.notificationResponse?.payload,
-        );
+        _recordNotificationTap(launchDetails?.notificationResponse?.payload);
       }
       await _requestPermissions();
       tz.initializeTimeZones();
@@ -91,20 +93,26 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
   }
 
   Future<bool> requestNotificationPermissions() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     final androidGranted = await android?.requestNotificationsPermission();
 
-    final ios = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     final iosGranted = await ios?.requestPermissions(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    final macOs = _plugin.resolvePlatformSpecificImplementation<
-        MacOSFlutterLocalNotificationsPlugin>();
+    final macOs = _plugin
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >();
     final macOsGranted = await macOs?.requestPermissions(
       alert: true,
       badge: true,
@@ -115,19 +123,25 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
   }
 
   Future<bool?> areNotificationsEnabled() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (android != null) {
       return await android.areNotificationsEnabled();
     }
-    final ios = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (ios != null) {
       final permissions = await ios.checkPermissions();
       return permissions?.isEnabled;
     }
-    final macOs = _plugin.resolvePlatformSpecificImplementation<
-        MacOSFlutterLocalNotificationsPlugin>();
+    final macOs = _plugin
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >();
     if (macOs != null) {
       final permissions = await macOs.checkPermissions();
       return permissions?.isEnabled;
@@ -137,14 +151,18 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
 
   /// Android 12+ may require special access for timely background alarms.
   Future<bool?> canScheduleExactRestAlarms() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return android?.canScheduleExactNotifications();
   }
 
   Future<bool?> requestExactRestAlarmsPermission() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return android?.requestExactAlarmsPermission();
   }
 
@@ -238,9 +256,8 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
     final prefs = await SharedPreferences.getInstance();
     final hapticsEnabled = prefs.getBool('haptics_enabled') ?? true;
 
-    final when = tz.TZDateTime.now(
-      tz.local,
-    ).add(Duration(seconds: secondsFromNow.clamp(0, 24 * 60 * 60)));
+    final when = tz.TZDateTime.now(tz.local)
+        .add(Duration(seconds: secondsFromNow.clamp(0, 24 * 60 * 60)));
 
     try {
       await _plugin.zonedSchedule(
@@ -280,8 +297,7 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
             android: AndroidNotificationDetails(
               'rest_timer_foreground_silent_v1',
               'Rest Timer (Foreground)',
-              channelDescription:
-                  'Alerts when the rest timer finishes while in the foreground.',
+              channelDescription: 'Alerts when the rest timer finishes while in the foreground.',
               importance: Importance.max,
               priority: Priority.high,
               playSound: false,
@@ -380,7 +396,8 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
       return true;
     } catch (e, st) {
       debugPrint(
-          'LocalNotificationService: showAdaptiveRecommendationDueNotification failed: $e\n$st');
+        'LocalNotificationService: showAdaptiveRecommendationDueNotification failed: $e\n$st',
+      );
       return false;
     }
   }
@@ -480,7 +497,8 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
       return true;
     } catch (e, st) {
       debugPrint(
-          'LocalNotificationService: showWeeklyGoalReviewNotification failed: $e\n$st');
+        'LocalNotificationService: showWeeklyGoalReviewNotification failed: $e\n$st',
+      );
       return false;
     }
   }
@@ -638,8 +656,10 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
         : l10n.goalTargetDateApproachingBody(goalTitle);
 
     try {
-      final id =
-          notificationIdForGoalTargetDate(goalId, isDueToday: isDueToday);
+      final id = notificationIdForGoalTargetDate(
+        goalId,
+        isDueToday: isDueToday,
+      );
       final details = _goalTargetDateNotificationDetails();
       final payload = AppNotificationPayload(
         type: AppNotificationType.goalTargetDate,
@@ -681,14 +701,13 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
       return true;
     } catch (e, st) {
       debugPrint(
-          'LocalNotificationService: showGoalTargetDateReminderNotification failed: $e\n$st');
+        'LocalNotificationService: showGoalTargetDateReminderNotification failed: $e\n$st',
+      );
       return false;
     }
   }
 
-  Future<bool> scheduleGoalTargetDateNotifications({
-    required Goal goal,
-  }) async {
+  Future<bool> scheduleGoalTargetDateNotifications({required Goal goal}) async {
     final targetDate = goal.targetDate;
     if (!goal.isActive || targetDate == null) {
       await cancelGoalTargetDateNotifications(goalId: goal.id);
@@ -708,8 +727,11 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
       type: AppNotificationType.goalTargetDate,
       goalId: goal.id,
     ).encode();
-    final targetDay =
-        DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final targetDay = DateTime(
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+    );
     final reminders = <({DateTime when, bool dueToday})>[
       (when: targetDay.subtract(const Duration(days: 7)), dueToday: false),
       (when: targetDay, dueToday: true),
@@ -966,9 +988,7 @@ class LocalNotificationService implements WorkoutPlanNotificationScheduler {
 
   static int notificationIdForWorkoutPlan(String planId, DateTime date) =>
       400000000 +
-      (_stableHash(
-            '${planId}_${date.year}_${date.month}_${date.day}',
-          ) %
+      (_stableHash('${planId}_${date.year}_${date.month}_${date.day}') %
           100000000);
 
   static int _stableHash(String value) {

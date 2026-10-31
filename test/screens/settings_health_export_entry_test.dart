@@ -102,8 +102,9 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(900, 2200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final controller =
-        SleepPermissionController(const _StubPermissionService());
+    final controller = SleepPermissionController(
+      const _StubPermissionService(),
+    );
     final sleepService = _FakeSleepSettingsService(controller: controller);
 
     await tester.pumpWidget(

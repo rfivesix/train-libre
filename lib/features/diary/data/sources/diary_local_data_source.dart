@@ -1,10 +1,16 @@
 // lib/features/diary/data/sources/diary_local_data_source.dart
 import 'dart:async';
+
 import '../meal_photo_store.dart';
+
 import 'package:uuid/uuid.dart';
-import '../../../../data/drift_database.dart' as drift_db
+
+import '../../../../data/drift_database.dart'
+    as drift_db
     hide Supplement, SupplementLog, WorkoutLog;
+
 import 'package:drift/drift.dart' as drift;
+
 import '../../../../data/database_helper.dart';
 import '../../../../util/date_util.dart';
 import '../../domain/models/food_entry.dart';
@@ -29,7 +35,7 @@ class DiaryLocalDataSource {
     this._db, {
     SupplementLocalDataSource? supplementDbHelper,
   }) : _supplementDbHelper =
-            supplementDbHelper ?? SupplementLocalDataSource(_db);
+           supplementDbHelper ?? SupplementLocalDataSource(_db);
 
   Stream<drift_db.DailyGoalsHistoryData?> watchGoalsForDate(DateTime date) {
     final historyStream = _db.select(_db.dailyGoalsHistory).watch();
@@ -101,24 +107,24 @@ class DiaryLocalDataSource {
   }
 
   MacroEntry _toMacroEntry(drift_db.MacroEntry row) => MacroEntry(
-        id: row.id,
-        mealEntryId: row.mealEntryId,
-        timestamp: row.consumedAt,
-        mealType: row.mealType,
-        name: row.name,
-        amount: row.amount,
-        amountUnit: row.amountUnit,
-        isFluid: row.isFluid,
-        calories: row.calories,
-        protein: row.protein,
-        carbs: row.carbs,
-        fat: row.fat,
-        sugar: row.sugar,
-        fiber: row.fiber,
-        salt: row.salt,
-        caffeine: row.caffeine,
-        calculatedNutrient: row.calculatedNutrient,
-      );
+    id: row.id,
+    mealEntryId: row.mealEntryId,
+    timestamp: row.consumedAt,
+    mealType: row.mealType,
+    name: row.name,
+    amount: row.amount,
+    amountUnit: row.amountUnit,
+    isFluid: row.isFluid,
+    calories: row.calories,
+    protein: row.protein,
+    carbs: row.carbs,
+    fat: row.fat,
+    sugar: row.sugar,
+    fiber: row.fiber,
+    salt: row.salt,
+    caffeine: row.caffeine,
+    calculatedNutrient: row.calculatedNutrient,
+  );
 
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date) {
     final start = DateTime(date.year, date.month, date.day);
@@ -129,8 +135,7 @@ class DiaryLocalDataSource {
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])
-      ..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
+    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
 
     return query.watch().map((rows) {
       return rows.map((row) {
@@ -159,28 +164,29 @@ class DiaryLocalDataSource {
       ..where((t) => t.createdAt.isSmallerOrEqualValue(endOfDay))
       ..orderBy([
         (t) => drift.OrderingTerm(
-              expression: t.createdAt,
-              mode: drift.OrderingMode.desc,
-            ),
+          expression: t.createdAt,
+          mode: drift.OrderingMode.desc,
+        ),
         (t) => drift.OrderingTerm(
-              expression: t.localId,
-              mode: drift.OrderingMode.desc,
-            ),
+          expression: t.localId,
+          mode: drift.OrderingMode.desc,
+        ),
       ])
       ..limit(1);
 
     final historyGoal = await query.getSingleOrNull();
     if (historyGoal != null) return historyGoal;
 
-    final oldestHistory = await (_db.select(_db.dailyGoalsHistory)
-          ..orderBy([
-            (t) => drift.OrderingTerm(
+    final oldestHistory =
+        await (_db.select(_db.dailyGoalsHistory)
+              ..orderBy([
+                (t) => drift.OrderingTerm(
                   expression: t.createdAt,
                   mode: drift.OrderingMode.asc,
                 ),
-          ])
-          ..limit(1))
-        .getSingleOrNull();
+              ])
+              ..limit(1))
+            .getSingleOrNull();
 
     if (oldestHistory != null) return oldestHistory;
 
@@ -229,9 +235,9 @@ class DiaryLocalDataSource {
   Future<List<MacroEntry>> getMacroEntriesForDate(DateTime date) async {
     final start = DateTime(date.year, date.month, date.day);
     final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
-    final rows = await (_db.select(_db.macroEntries)
-          ..where((row) => row.consumedAt.isBetweenValues(start, end)))
-        .get();
+    final rows = await (_db.select(
+      _db.macroEntries,
+    )..where((row) => row.consumedAt.isBetweenValues(start, end))).get();
     return rows.map(_toMacroEntry).toList();
   }
 
@@ -239,17 +245,18 @@ class DiaryLocalDataSource {
     DateTime start,
     DateTime end,
   ) async {
-    final rows = await (_db.select(_db.macroEntries)
-          ..where((row) => row.consumedAt.isBetweenValues(start, end)))
-        .get();
+    final rows = await (_db.select(
+      _db.macroEntries,
+    )..where((row) => row.consumedAt.isBetweenValues(start, end))).get();
     return rows.map(_toMacroEntry).toList();
   }
 
   Future<DateTime?> getEarliestMacroEntryDate() async {
-    final row = await (_db.select(_db.macroEntries)
-          ..orderBy([(entry) => drift.OrderingTerm.asc(entry.consumedAt)])
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.macroEntries)
+              ..orderBy([(entry) => drift.OrderingTerm.asc(entry.consumedAt)])
+              ..limit(1))
+            .getSingleOrNull();
     return row?.consumedAt;
   }
 
@@ -262,8 +269,7 @@ class DiaryLocalDataSource {
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])
-      ..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
+    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
 
     final rows = await query.get();
     return rows.map((row) {
@@ -304,8 +310,9 @@ class DiaryLocalDataSource {
         null) {
       return true;
     }
-    if (await (_db.select(_db.healthStepSegments)..limit(1))
-            .getSingleOrNull() !=
+    if (await (_db.select(
+          _db.healthStepSegments,
+        )..limit(1)).getSingleOrNull() !=
         null) {
       return true;
     }
@@ -327,7 +334,8 @@ class DiaryLocalDataSource {
     try {
       final weightRes = await _db
           .customSelect(
-              "SELECT COUNT(*) as count FROM measurements WHERE chart_type = 'weight'")
+            "SELECT COUNT(*) as count FROM measurements WHERE chart_type = 'weight'",
+          )
           .getSingleOrNull();
       if (weightRes != null && weightRes.read<int>('count') > 1) return true;
     } catch (_) {}
@@ -339,13 +347,15 @@ class DiaryLocalDataSource {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
     try {
-      final res = await _db.customSelect(
-        "SELECT 1 FROM measurements WHERE chart_type = 'weight' AND timestamp >= ? AND timestamp <= ? LIMIT 1",
-        variables: [
-          drift.Variable.withDateTime(startOfDay),
-          drift.Variable.withDateTime(endOfDay)
-        ],
-      ).getSingleOrNull();
+      final res = await _db
+          .customSelect(
+            "SELECT 1 FROM measurements WHERE chart_type = 'weight' AND timestamp >= ? AND timestamp <= ? LIMIT 1",
+            variables: [
+              drift.Variable.withDateTime(startOfDay),
+              drift.Variable.withDateTime(endOfDay),
+            ],
+          )
+          .getSingleOrNull();
       return res != null;
     } catch (_) {
       return false;
@@ -354,23 +364,24 @@ class DiaryLocalDataSource {
 
   Future<void> updateFluidEntry(FluidEntry entry) async {
     if (entry.id == null) return;
-    final old = await (_db.select(_db.fluidLogs)
-          ..where((t) => t.localId.equals(entry.id!)))
-        .getSingleOrNull();
+    final old = await (_db.select(
+      _db.fluidLogs,
+    )..where((t) => t.localId.equals(entry.id!))).getSingleOrNull();
 
     String? linkedUuid;
     if (entry.linkedFoodEntryId != null) {
-      final log = await (_db.select(_db.nutritionLogs)
-            ..where((t) => t.localId.equals(entry.linkedFoodEntryId!)))
-          .getSingleOrNull();
+      final log =
+          await (_db.select(_db.nutritionLogs)
+                ..where((t) => t.localId.equals(entry.linkedFoodEntryId!)))
+              .getSingleOrNull();
       if (log != null) {
         linkedUuid = log.id;
       }
     }
 
-    await (_db.update(_db.fluidLogs)
-          ..where((tbl) => tbl.localId.equals(entry.id!)))
-        .write(
+    await (_db.update(
+      _db.fluidLogs,
+    )..where((tbl) => tbl.localId.equals(entry.id!))).write(
       drift_db.FluidLogsCompanion(
         name: drift.Value(entry.name),
         amountMl: drift.Value(entry.quantityInMl),
@@ -385,27 +396,29 @@ class DiaryLocalDataSource {
     );
 
     if (old != null && old.consumedAt != entry.timestamp) {
-      await (_db.delete(_db.supplementLogs)
-            ..where((t) => t.takenAt.equals(old.consumedAt)))
-          .go();
+      await (_db.delete(
+        _db.supplementLogs,
+      )..where((t) => t.takenAt.equals(old.consumedAt))).go();
     }
   }
 
   Future<void> updateFoodEntry(FoodEntry entry) async {
     if (entry.id == null) return;
 
-    final product = await (_db.select(_db.products)
-          ..where((tbl) => tbl.barcode.equals(entry.barcode))
-          ..limit(1))
-        .getSingleOrNull();
+    final product =
+        await (_db.select(_db.products)
+              ..where((tbl) => tbl.barcode.equals(entry.barcode))
+              ..limit(1))
+            .getSingleOrNull();
 
     int? archiveId = entry.archiveLocalId;
 
     if (archiveId == null && product != null) {
-      final override = await (_db.select(_db.userFoodOverrides)
-            ..where((tbl) => tbl.barcode.equals(entry.barcode))
-            ..limit(1))
-          .getSingleOrNull();
+      final override =
+          await (_db.select(_db.userFoodOverrides)
+                ..where((tbl) => tbl.barcode.equals(entry.barcode))
+                ..limit(1))
+              .getSingleOrNull();
 
       final pName = override?.name ?? product.name;
       final pBrand = override?.brand ?? product.brand;
@@ -449,15 +462,18 @@ class DiaryLocalDataSource {
         hadUserOverride: override != null,
       );
 
-      final existingArchive = await (_db.select(_db.offProductsArchive)
-            ..where((tbl) => tbl.contentHash.equals(hash))
-            ..limit(1))
-          .getSingleOrNull();
+      final existingArchive =
+          await (_db.select(_db.offProductsArchive)
+                ..where((tbl) => tbl.contentHash.equals(hash))
+                ..limit(1))
+              .getSingleOrNull();
 
       if (existingArchive != null) {
         archiveId = existingArchive.localId;
       } else {
-        archiveId = await _db.into(_db.offProductsArchive).insert(
+        archiveId = await _db
+            .into(_db.offProductsArchive)
+            .insert(
               drift_db.OffProductsArchiveCompanion.insert(
                 id: drift.Value(const Uuid().v4()),
                 barcode: product.barcode,
@@ -485,9 +501,9 @@ class DiaryLocalDataSource {
       }
     }
 
-    await (_db.update(_db.nutritionLogs)
-          ..where((tbl) => tbl.localId.equals(entry.id!)))
-        .write(
+    await (_db.update(
+      _db.nutritionLogs,
+    )..where((tbl) => tbl.localId.equals(entry.id!))).write(
       drift_db.NutritionLogsCompanion(
         legacyBarcode: drift.Value(entry.barcode),
         consumedAt: drift.Value(entry.timestamp),
@@ -501,7 +517,9 @@ class DiaryLocalDataSource {
 
   Future<void> insertMacroEntry(MacroEntry entry) async {
     await _db.transaction(() async {
-      await _db.into(_db.macroEntries).insert(
+      await _db
+          .into(_db.macroEntries)
+          .insert(
             drift_db.MacroEntriesCompanion.insert(
               id: drift.Value(entry.id),
               mealEntryId: drift.Value(entry.mealEntryId),
@@ -534,9 +552,9 @@ class DiaryLocalDataSource {
            WHERE local_macro_entry_id = ? AND sync_state = 'active' ''',
         [entry.id],
       );
-      await (_db.update(_db.macroEntries)
-            ..where((row) => row.id.equals(entry.id)))
-          .write(
+      await (_db.update(
+        _db.macroEntries,
+      )..where((row) => row.id.equals(entry.id))).write(
         drift_db.MacroEntriesCompanion(
           consumedAt: drift.Value(entry.timestamp),
           mealEntryId: drift.Value(entry.mealEntryId),
@@ -562,21 +580,23 @@ class DiaryLocalDataSource {
   }
 
   Future<void> _syncMacroFluid(MacroEntry entry) async {
-    final existing = await (_db.select(_db.fluidLogs)
-          ..where((row) => row.linkedMacroEntryId.equals(entry.id)))
-        .getSingleOrNull();
+    final existing =
+        await (_db.select(_db.fluidLogs)
+              ..where((row) => row.linkedMacroEntryId.equals(entry.id)))
+            .getSingleOrNull();
     if (!entry.isFluid || entry.amount == null || entry.amountUnit != 'ml') {
       if (existing != null) {
-        await (_db.delete(_db.fluidLogs)
-              ..where((row) => row.localId.equals(existing.localId)))
-            .go();
+        await (_db.delete(
+          _db.fluidLogs,
+        )..where((row) => row.localId.equals(existing.localId))).go();
       }
       return;
     }
 
     final companion = drift_db.FluidLogsCompanion(
       name: drift.Value(
-          entry.name?.trim().isNotEmpty == true ? entry.name!.trim() : 'Drink'),
+        entry.name?.trim().isNotEmpty == true ? entry.name!.trim() : 'Drink',
+      ),
       amountMl: drift.Value(entry.amount!.round()),
       consumedAt: drift.Value(entry.timestamp),
       kcal: drift.Value(entry.totalCalories.round()),
@@ -586,7 +606,9 @@ class DiaryLocalDataSource {
       linkedMacroEntryId: drift.Value(entry.id),
     );
     if (existing == null) {
-      await _db.into(_db.fluidLogs).insert(
+      await _db
+          .into(_db.fluidLogs)
+          .insert(
             drift_db.FluidLogsCompanion.insert(
               id: drift.Value(const Uuid().v4()),
               name: entry.name?.trim().isNotEmpty == true
@@ -602,9 +624,9 @@ class DiaryLocalDataSource {
             ),
           );
     } else {
-      await (_db.update(_db.fluidLogs)
-            ..where((row) => row.localId.equals(existing.localId)))
-          .write(companion);
+      await (_db.update(
+        _db.fluidLogs,
+      )..where((row) => row.localId.equals(existing.localId))).write(companion);
     }
   }
 
@@ -616,8 +638,9 @@ class DiaryLocalDataSource {
            WHERE local_macro_entry_id = ?''',
         [id],
       );
-      await (_db.delete(_db.macroEntries)..where((row) => row.id.equals(id)))
-          .go();
+      await (_db.delete(
+        _db.macroEntries,
+      )..where((row) => row.id.equals(id))).go();
     });
   }
 
@@ -629,14 +652,16 @@ class DiaryLocalDataSource {
   Future<int> insertFluidEntry(FluidEntry entry) async {
     String? linkedUuid;
     if (entry.linkedFoodEntryId != null) {
-      final log = await (_db.select(_db.nutritionLogs)
-            ..where((t) => t.localId.equals(entry.linkedFoodEntryId!)))
-          .getSingleOrNull();
+      final log =
+          await (_db.select(_db.nutritionLogs)
+                ..where((t) => t.localId.equals(entry.linkedFoodEntryId!)))
+              .getSingleOrNull();
       if (log != null) {
         linkedUuid = log.id;
-        final existingFluid = await (_db.select(_db.fluidLogs)
-              ..where((t) => t.linkedNutritionLogId.equals(log.id)))
-            .getSingleOrNull();
+        final existingFluid =
+            await (_db.select(_db.fluidLogs)
+                  ..where((t) => t.linkedNutritionLogId.equals(log.id)))
+                .getSingleOrNull();
         if (existingFluid != null) {
           await updateFluidEntry(entry.copyWith(id: existingFluid.localId));
           return existingFluid.localId;
@@ -644,7 +669,9 @@ class DiaryLocalDataSource {
       }
     }
 
-    return await _db.into(_db.fluidLogs).insert(
+    return await _db
+        .into(_db.fluidLogs)
+        .insert(
           drift_db.FluidLogsCompanion.insert(
             name: entry.name,
             amountMl: entry.quantityInMl,
@@ -669,21 +696,25 @@ class DiaryLocalDataSource {
     FoodEntry entry, {
     String telemetrySource = FoodLogSource.manualSearch,
   }) async {
-    unawaited(TelemetryService.instance.incrementFoodLogCount(
-      source: FoodLogSource.sanitize(telemetrySource),
-    ));
-    final product = await (_db.select(_db.products)
-          ..where((tbl) => tbl.barcode.equals(entry.barcode))
-          ..limit(1))
-        .getSingleOrNull();
+    unawaited(
+      TelemetryService.instance.incrementFoodLogCount(
+        source: FoodLogSource.sanitize(telemetrySource),
+      ),
+    );
+    final product =
+        await (_db.select(_db.products)
+              ..where((tbl) => tbl.barcode.equals(entry.barcode))
+              ..limit(1))
+            .getSingleOrNull();
 
     int? archiveId = entry.archiveLocalId;
 
     if (archiveId == null && product != null) {
-      final override = await (_db.select(_db.userFoodOverrides)
-            ..where((tbl) => tbl.barcode.equals(entry.barcode))
-            ..limit(1))
-          .getSingleOrNull();
+      final override =
+          await (_db.select(_db.userFoodOverrides)
+                ..where((tbl) => tbl.barcode.equals(entry.barcode))
+                ..limit(1))
+              .getSingleOrNull();
 
       final pName = override?.name ?? product.name;
       final pBrand = override?.brand ?? product.brand;
@@ -727,15 +758,18 @@ class DiaryLocalDataSource {
         hadUserOverride: override != null,
       );
 
-      final existingArchive = await (_db.select(_db.offProductsArchive)
-            ..where((tbl) => tbl.contentHash.equals(hash))
-            ..limit(1))
-          .getSingleOrNull();
+      final existingArchive =
+          await (_db.select(_db.offProductsArchive)
+                ..where((tbl) => tbl.contentHash.equals(hash))
+                ..limit(1))
+              .getSingleOrNull();
 
       if (existingArchive != null) {
         archiveId = existingArchive.localId;
       } else {
-        archiveId = await _db.into(_db.offProductsArchive).insert(
+        archiveId = await _db
+            .into(_db.offProductsArchive)
+            .insert(
               drift_db.OffProductsArchiveCompanion.insert(
                 id: drift.Value(const Uuid().v4()),
                 barcode: product.barcode,
@@ -775,45 +809,46 @@ class DiaryLocalDataSource {
   }
 
   Future<void> deleteFluidEntry(int id) async {
-    final fluidLog = await (_db.select(_db.fluidLogs)
-          ..where((t) => t.localId.equals(id)))
-        .getSingleOrNull();
+    final fluidLog = await (_db.select(
+      _db.fluidLogs,
+    )..where((t) => t.localId.equals(id))).getSingleOrNull();
     if (fluidLog == null) return;
 
     if (fluidLog.linkedNutritionLogId != null) {
-      await (_db.delete(_db.nutritionLogs)
-            ..where((t) => t.id.equals(fluidLog.linkedNutritionLogId!)))
-          .go();
+      await (_db.delete(
+        _db.nutritionLogs,
+      )..where((t) => t.id.equals(fluidLog.linkedNutritionLogId!))).go();
     }
-    await (_db.delete(_db.supplementLogs)
-          ..where((t) => t.takenAt.equals(fluidLog.consumedAt)))
-        .go();
-    await (_db.delete(_db.fluidLogs)..where((tbl) => tbl.localId.equals(id)))
-        .go();
+    await (_db.delete(
+      _db.supplementLogs,
+    )..where((t) => t.takenAt.equals(fluidLog.consumedAt))).go();
+    await (_db.delete(
+      _db.fluidLogs,
+    )..where((tbl) => tbl.localId.equals(id))).go();
   }
 
   Future<void> deleteFoodEntry(int id) async {
-    final log = await (_db.select(_db.nutritionLogs)
-          ..where((t) => t.localId.equals(id)))
-        .getSingleOrNull();
+    final log = await (_db.select(
+      _db.nutritionLogs,
+    )..where((t) => t.localId.equals(id))).getSingleOrNull();
     if (log != null) {
-      await (_db.delete(_db.fluidLogs)
-            ..where((t) => t.linkedNutritionLogId.equals(log.id)))
-          .go();
-      await (_db.delete(_db.supplementLogs)
-            ..where((t) => t.sourceNutritionLogId.equals(log.id)))
-          .go();
+      await (_db.delete(
+        _db.fluidLogs,
+      )..where((t) => t.linkedNutritionLogId.equals(log.id))).go();
+      await (_db.delete(
+        _db.supplementLogs,
+      )..where((t) => t.sourceNutritionLogId.equals(log.id))).go();
     }
 
-    await (_db.delete(_db.nutritionLogs)
-          ..where((tbl) => tbl.localId.equals(id)))
-        .go();
+    await (_db.delete(
+      _db.nutritionLogs,
+    )..where((tbl) => tbl.localId.equals(id))).go();
   }
 
   Future<FoodEntry?> getFoodEntryByLinkedFoodId(int linkedFoodId) async {
-    final row = await (_db.select(_db.nutritionLogs)
-          ..where((tbl) => tbl.localId.equals(linkedFoodId)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.nutritionLogs,
+    )..where((tbl) => tbl.localId.equals(linkedFoodId))).getSingleOrNull();
     if (row == null) return null;
     return FoodEntry(
       id: row.localId,
@@ -827,13 +862,13 @@ class DiaryLocalDataSource {
   }
 
   Future<void> deleteFluidEntryByLinkedFoodId(int id) async {
-    final log = await (_db.select(_db.nutritionLogs)
-          ..where((t) => t.localId.equals(id)))
-        .getSingleOrNull();
+    final log = await (_db.select(
+      _db.nutritionLogs,
+    )..where((t) => t.localId.equals(id))).getSingleOrNull();
     if (log != null) {
-      await (_db.delete(_db.fluidLogs)
-            ..where((t) => t.linkedNutritionLogId.equals(log.id)))
-          .go();
+      await (_db.delete(
+        _db.fluidLogs,
+      )..where((t) => t.linkedNutritionLogId.equals(log.id))).go();
     }
   }
 
@@ -905,29 +940,33 @@ class DiaryLocalDataSource {
     for (final log in logs) {
       String barcode =
           (log.legacyBarcode != null && log.legacyBarcode!.isNotEmpty)
-              ? log.legacyBarcode!
-              : 'UNKNOWN';
+          ? log.legacyBarcode!
+          : 'UNKNOWN';
 
       if (barcode == 'UNKNOWN' && log.productId != null) {
-        final productRow = await _db.customSelect(
-          'SELECT barcode FROM products WHERE id = ?',
-          variables: [drift.Variable.withString(log.productId!)],
-        ).getSingleOrNull();
+        final productRow = await _db
+            .customSelect(
+              'SELECT barcode FROM products WHERE id = ?',
+              variables: [drift.Variable.withString(log.productId!)],
+            )
+            .getSingleOrNull();
         if (productRow != null) {
           barcode = productRow.read<String>('barcode');
         }
       }
 
-      result.add(FoodEntry(
-        id: log.localId,
-        barcode: barcode,
-        timestamp: log.consumedAt,
-        quantityInGrams: log.amount.toInt(),
-        mealType: log.mealType,
-        updatedAt: log.updatedAt,
-        archiveLocalId: log.archiveLocalId,
-        mealEntryId: log.mealEntryId,
-      ));
+      result.add(
+        FoodEntry(
+          id: log.localId,
+          barcode: barcode,
+          timestamp: log.consumedAt,
+          quantityInGrams: log.amount.toInt(),
+          mealType: log.mealType,
+          updatedAt: log.updatedAt,
+          archiveLocalId: log.archiveLocalId,
+          mealEntryId: log.mealEntryId,
+        ),
+      );
     }
     return result;
   }
@@ -938,8 +977,9 @@ class DiaryLocalDataSource {
     DateTime? updatedSince,
   }) async {
     final startOfDay = start.dateOnly.add(const Duration(hours: 4));
-    final endOfDay =
-        end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
+    final endOfDay = end.dateOnly.add(
+      const Duration(hours: 27, minutes: 59, seconds: 59),
+    );
 
     final query = _db.select(_db.nutritionLogs)
       ..where((tbl) => tbl.consumedAt.isBetweenValues(startOfDay, endOfDay));
@@ -970,16 +1010,16 @@ class DiaryLocalDataSource {
     DateTime? updatedSince,
   }) async {
     final startOfDay = start.dateOnly.add(const Duration(hours: 4));
-    final endOfDay =
-        end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
+    final endOfDay = end.dateOnly.add(
+      const Duration(hours: 27, minutes: 59, seconds: 59),
+    );
 
     final query = _db.select(_db.fluidLogs).join([
       drift.leftOuterJoin(
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])
-      ..where(_db.fluidLogs.consumedAt.isBetweenValues(startOfDay, endOfDay));
+    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(startOfDay, endOfDay));
 
     if (updatedSince != null) {
       query.where(_db.fluidLogs.updatedAt.isBiggerOrEqualValue(updatedSince));
@@ -1005,21 +1045,22 @@ class DiaryLocalDataSource {
   }
 
   Future<domain.Supplement?> getSupplementById(int id) async {
-    final row = await (_db.select(_db.supplements)
-          ..where((t) => t.localId.equals(id)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.supplements,
+    )..where((t) => t.localId.equals(id))).getSingleOrNull();
     if (row == null) return null;
     return domain.Supplement(
-        id: row.localId,
-        name: row.name,
-        defaultDose: row.dose,
-        unit: row.unit,
-        dailyGoal: row.dailyGoal,
-        dailyLimit: row.dailyLimit,
-        notes: row.notes,
-        isBuiltin: row.isBuiltin,
-        isTracked: row.isTracked,
-        code: row.code);
+      id: row.localId,
+      name: row.name,
+      defaultDose: row.dose,
+      unit: row.unit,
+      dailyGoal: row.dailyGoal,
+      dailyLimit: row.dailyLimit,
+      notes: row.notes,
+      isBuiltin: row.isBuiltin,
+      isTracked: row.isTracked,
+      code: row.code,
+    );
   }
 
   Future<List<domain.Supplement>> getSupplementsForDate(DateTime date) =>
@@ -1029,15 +1070,14 @@ class DiaryLocalDataSource {
     DateTime start,
     DateTime end,
   ) async {
-    final productsByBarcode = _db.products.createAlias(
-      'products_by_barcode',
-    );
+    final productsByBarcode = _db.products.createAlias('products_by_barcode');
 
     final query = _db.select(_db.nutritionLogs).join([
       drift.leftOuterJoin(
         _db.offProductsArchive,
-        _db.offProductsArchive.localId
-            .equalsExp(_db.nutritionLogs.archiveLocalId),
+        _db.offProductsArchive.localId.equalsExp(
+          _db.nutritionLogs.archiveLocalId,
+        ),
       ),
       drift.leftOuterJoin(
         _db.products,
@@ -1045,12 +1085,9 @@ class DiaryLocalDataSource {
       ),
       drift.leftOuterJoin(
         productsByBarcode,
-        productsByBarcode.barcode.equalsExp(
-          _db.nutritionLogs.legacyBarcode,
-        ),
+        productsByBarcode.barcode.equalsExp(_db.nutritionLogs.legacyBarcode),
       ),
-    ])
-      ..where(_db.nutritionLogs.consumedAt.isBetweenValues(start, end));
+    ])..where(_db.nutritionLogs.consumedAt.isBetweenValues(start, end));
 
     final rows = await query.get();
 
@@ -1064,7 +1101,10 @@ class DiaryLocalDataSource {
       final productByBarcode = row.readTableOrNull(productsByBarcode);
 
       final day = DateTime(
-          log.consumedAt.year, log.consumedAt.month, log.consumedAt.day);
+        log.consumedAt.year,
+        log.consumedAt.month,
+        log.consumedAt.day,
+      );
 
       if (archivedProduct != null) {
         final ratio = log.amount / 100.0;
@@ -1082,12 +1122,15 @@ class DiaryLocalDataSource {
       }
     }
 
-    final macroRows = await (_db.select(_db.macroEntries)
-          ..where((entry) => entry.consumedAt.isBetweenValues(start, end)))
-        .get();
+    final macroRows = await (_db.select(
+      _db.macroEntries,
+    )..where((entry) => entry.consumedAt.isBetweenValues(start, end))).get();
     for (final entry in macroRows) {
       final day = DateTime(
-          entry.consumedAt.year, entry.consumedAt.month, entry.consumedAt.day);
+        entry.consumedAt.year,
+        entry.consumedAt.month,
+        entry.consumedAt.day,
+      );
       final kcal = entry.amount == null
           ? entry.calories
           : entry.calories * entry.amount! / 100;
@@ -1134,9 +1177,9 @@ class DiaryLocalDataSource {
   }
 
   Future<MealEntry?> getMealEntryById(String id) async {
-    final row = await (_db.select(_db.mealEntries)
-          ..where((tbl) => tbl.id.equals(id)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.mealEntries,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
     if (row == null) return null;
     return MealEntry(
       id: row.id,
@@ -1186,10 +1229,12 @@ class DiaryLocalDataSource {
       final mealEntryId = await insertMealEntry(mealEntry);
       final ids = <int>[];
       for (final entry in entries) {
-        ids.add(await insertFoodEntry(
-          entry.copyWith(mealEntryId: mealEntryId),
-          telemetrySource: telemetrySource,
-        ));
+        ids.add(
+          await insertFoodEntry(
+            entry.copyWith(mealEntryId: mealEntryId),
+            telemetrySource: telemetrySource,
+          ),
+        );
       }
       return ids;
     });
@@ -1209,7 +1254,9 @@ class DiaryLocalDataSource {
       final mealEntryId = await insertMealEntry(mealEntry);
       for (final entry in entries) {
         final linked = entry.copyWith(mealEntryId: mealEntryId);
-        await _db.into(_db.macroEntries).insert(
+        await _db
+            .into(_db.macroEntries)
+            .insert(
               drift_db.MacroEntriesCompanion.insert(
                 id: drift.Value(linked.id),
                 mealEntryId: drift.Value(mealEntryId),
@@ -1248,8 +1295,9 @@ class DiaryLocalDataSource {
       captureMeta: drift.Value(entry.captureMeta),
       updatedAt: drift.Value(DateTime.now()),
     );
-    await (_db.update(_db.mealEntries)..where((tbl) => tbl.id.equals(entry.id)))
-        .write(companion);
+    await (_db.update(
+      _db.mealEntries,
+    )..where((tbl) => tbl.id.equals(entry.id))).write(companion);
   }
 
   /// Moves a logged meal — and everything hanging off it — to [newConsumedAt].
@@ -1269,11 +1317,13 @@ class DiaryLocalDataSource {
   /// Everything happens in one transaction: a half-applied move would split a
   /// meal across two days, which is worse than not moving it at all.
   Future<void> moveMealEntryTo(
-      String mealEntryId, DateTime newConsumedAt) async {
+    String mealEntryId,
+    DateTime newConsumedAt,
+  ) async {
     await _db.transaction(() async {
-      final mealRow = await (_db.select(_db.mealEntries)
-            ..where((tbl) => tbl.id.equals(mealEntryId)))
-          .getSingleOrNull();
+      final mealRow = await (_db.select(
+        _db.mealEntries,
+      )..where((tbl) => tbl.id.equals(mealEntryId))).getSingleOrNull();
       if (mealRow == null) return;
 
       final delta = newConsumedAt.difference(mealRow.consumedAt);
@@ -1281,77 +1331,91 @@ class DiaryLocalDataSource {
 
       final now = DateTime.now();
 
-      await (_db.update(_db.mealEntries)
-            ..where((tbl) => tbl.id.equals(mealEntryId)))
-          .write(drift_db.MealEntriesCompanion(
-        consumedAt: drift.Value(newConsumedAt),
-        updatedAt: drift.Value(now),
-      ));
+      await (_db.update(
+        _db.mealEntries,
+      )..where((tbl) => tbl.id.equals(mealEntryId))).write(
+        drift_db.MealEntriesCompanion(
+          consumedAt: drift.Value(newConsumedAt),
+          updatedAt: drift.Value(now),
+        ),
+      );
 
-      final logs = await (_db.select(_db.nutritionLogs)
-            ..where((tbl) => tbl.mealEntryId.equals(mealEntryId)))
-          .get();
+      final logs = await (_db.select(
+        _db.nutritionLogs,
+      )..where((tbl) => tbl.mealEntryId.equals(mealEntryId))).get();
 
       for (final log in logs) {
         final shifted = log.consumedAt.add(delta);
 
-        await (_db.update(_db.nutritionLogs)
-              ..where((tbl) => tbl.localId.equals(log.localId)))
-            .write(drift_db.NutritionLogsCompanion(
-          consumedAt: drift.Value(shifted),
-          updatedAt: drift.Value(now),
-        ));
-
-        await (_db.update(_db.fluidLogs)
-              ..where((tbl) => tbl.linkedNutritionLogId.equals(log.id)))
-            .write(drift_db.FluidLogsCompanion(
-          consumedAt: drift.Value(shifted),
-          updatedAt: drift.Value(now),
-        ));
-
-        final supplementRows = await (_db.select(_db.supplementLogs)
-              ..where((tbl) => tbl.sourceNutritionLogId.equals(log.id)))
-            .get();
-        for (final supplementRow in supplementRows) {
-          await (_db.update(_db.supplementLogs)
-                ..where((tbl) => tbl.localId.equals(supplementRow.localId)))
-              .write(drift_db.SupplementLogsCompanion(
-            takenAt: drift.Value(supplementRow.takenAt.add(delta)),
+        await (_db.update(
+          _db.nutritionLogs,
+        )..where((tbl) => tbl.localId.equals(log.localId))).write(
+          drift_db.NutritionLogsCompanion(
+            consumedAt: drift.Value(shifted),
             updatedAt: drift.Value(now),
-          ));
+          ),
+        );
+
+        await (_db.update(
+          _db.fluidLogs,
+        )..where((tbl) => tbl.linkedNutritionLogId.equals(log.id))).write(
+          drift_db.FluidLogsCompanion(
+            consumedAt: drift.Value(shifted),
+            updatedAt: drift.Value(now),
+          ),
+        );
+
+        final supplementRows = await (_db.select(
+          _db.supplementLogs,
+        )..where((tbl) => tbl.sourceNutritionLogId.equals(log.id))).get();
+        for (final supplementRow in supplementRows) {
+          await (_db.update(
+            _db.supplementLogs,
+          )..where((tbl) => tbl.localId.equals(supplementRow.localId))).write(
+            drift_db.SupplementLogsCompanion(
+              takenAt: drift.Value(supplementRow.takenAt.add(delta)),
+              updatedAt: drift.Value(now),
+            ),
+          );
         }
       }
 
-      final macroRows = await (_db.select(_db.macroEntries)
-            ..where((row) => row.mealEntryId.equals(mealEntryId)))
-          .get();
+      final macroRows = await (_db.select(
+        _db.macroEntries,
+      )..where((row) => row.mealEntryId.equals(mealEntryId))).get();
       for (final row in macroRows) {
-        await (_db.update(_db.macroEntries)
-              ..where((macro) => macro.id.equals(row.id)))
-            .write(drift_db.MacroEntriesCompanion(
-          consumedAt: drift.Value(row.consumedAt.add(delta)),
-          updatedAt: drift.Value(now),
-        ));
-        if (row.isFluid) {
-          await (_db.update(_db.fluidLogs)
-                ..where((fluid) => fluid.linkedMacroEntryId.equals(row.id)))
-              .write(drift_db.FluidLogsCompanion(
+        await (_db.update(
+          _db.macroEntries,
+        )..where((macro) => macro.id.equals(row.id))).write(
+          drift_db.MacroEntriesCompanion(
             consumedAt: drift.Value(row.consumedAt.add(delta)),
-          ));
+            updatedAt: drift.Value(now),
+          ),
+        );
+        if (row.isFluid) {
+          await (_db.update(
+            _db.fluidLogs,
+          )..where((fluid) => fluid.linkedMacroEntryId.equals(row.id))).write(
+            drift_db.FluidLogsCompanion(
+              consumedAt: drift.Value(row.consumedAt.add(delta)),
+            ),
+          );
         }
       }
     });
   }
 
-  Future<void> deleteMealEntry(String id,
-      {required bool deleteFoodLogs}) async {
-    final macroRows = await (_db.select(_db.macroEntries)
-          ..where((row) => row.mealEntryId.equals(id)))
-        .get();
+  Future<void> deleteMealEntry(
+    String id, {
+    required bool deleteFoodLogs,
+  }) async {
+    final macroRows = await (_db.select(
+      _db.macroEntries,
+    )..where((row) => row.mealEntryId.equals(id))).get();
     if (deleteFoodLogs) {
-      final logs = await (_db.select(_db.nutritionLogs)
-            ..where((t) => t.mealEntryId.equals(id)))
-          .get();
+      final logs = await (_db.select(
+        _db.nutritionLogs,
+      )..where((t) => t.mealEntryId.equals(id))).get();
       for (final log in logs) {
         await deleteFoodEntry(log.localId);
       }
@@ -1360,24 +1424,22 @@ class DiaryLocalDataSource {
       }
     } else {
       // Unlink entries from meal entry so they remain in diary as individual items
-      await (_db.update(_db.nutritionLogs)
-            ..where((t) => t.mealEntryId.equals(id)))
-          .write(
-        const drift_db.NutritionLogsCompanion(
-          mealEntryId: drift.Value(null),
-        ),
+      await (_db.update(
+        _db.nutritionLogs,
+      )..where((t) => t.mealEntryId.equals(id))).write(
+        const drift_db.NutritionLogsCompanion(mealEntryId: drift.Value(null)),
       );
-      await (_db.update(_db.macroEntries)
-            ..where((row) => row.mealEntryId.equals(id)))
-          .write(const drift_db.MacroEntriesCompanion(
-        mealEntryId: drift.Value(null),
-      ));
+      await (_db.update(
+        _db.macroEntries,
+      )..where((row) => row.mealEntryId.equals(id))).write(
+        const drift_db.MacroEntriesCompanion(mealEntryId: drift.Value(null)),
+      );
     }
     // The photo belongs to the meal entry, so it goes with it — otherwise the
     // files accumulate forever with nothing referencing them.
-    final entry = await (_db.select(_db.mealEntries)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+    final entry = await (_db.select(
+      _db.mealEntries,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (entry != null) {
       final meta = MealCaptureMeta.tryParse(entry.captureMeta);
       await MealPhotoStore.instance.delete(

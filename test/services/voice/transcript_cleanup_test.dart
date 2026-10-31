@@ -11,10 +11,7 @@ void main() {
     });
 
     test('drops English hesitation sounds', () {
-      expect(
-        TranscriptCleanup.clean('um I had uh two eggs'),
-        'I had two eggs',
-      );
+      expect(TranscriptCleanup.clean('um I had uh two eggs'), 'I had two eggs');
     });
 
     test('drops multi-word fillers', () {

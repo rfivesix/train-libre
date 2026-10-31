@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/app_button.dart';
 
 class ExerciseNotesDialog extends StatefulWidget {
@@ -58,8 +61,9 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
           decoration: InputDecoration(
             hintText: l10n.exerciseNoteHint,
             border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               borderSide: BorderSide.none,
             ),
           ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter_test/flutter_test.dart';
@@ -86,9 +87,11 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<String?> getExerciseUuidByLocalId(int localId) async => null;
   @override
-  Future<Map<String, double>> getExerciseBests(String name,
-          {String? altName, String? exerciseUuid}) async =>
-      {};
+  Future<Map<String, double>> getExerciseBests(
+    String name, {
+    String? altName,
+    String? exerciseUuid,
+  }) async => {};
   @override
   Future<void> updateSetLogs(List<SetLog> logs) async {}
   @override
@@ -99,12 +102,15 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) async {}
   @override
   Future<void> updateRoutineExerciseNotes(
-      int routineExerciseId, String? notes) async {}
+    int routineExerciseId,
+    String? notes,
+  ) async {}
   @override
-  Future<void> saveWorkoutExerciseNote(
-      {required int workoutLogId,
-      required String exerciseName,
-      required String? notes}) async {}
+  Future<void> saveWorkoutExerciseNote({
+    required int workoutLogId,
+    required String exerciseName,
+    required String? notes,
+  }) async {}
   @override
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async =>
       {};
@@ -112,12 +118,12 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<List<SetLog>> getLastSetsForExercise({
     required String? exerciseId,
     required String exerciseNameSnapshot,
-  }) async =>
-      [];
+  }) async => [];
   @override
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
-          DateTime start, DateTime end) async =>
-      [];
+    DateTime start,
+    DateTime end,
+  ) async => [];
   @override
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() => Stream.value([]);
   @override
@@ -130,11 +136,13 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]) async {}
   Stream<List<WorkoutLog>> Function(DateTime start, DateTime end)?
-      watchWorkoutLogsForDateRangeMock;
+  watchWorkoutLogsForDateRangeMock;
 
   @override
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
-      DateTime start, DateTime end) {
+    DateTime start,
+    DateTime end,
+  ) {
     if (watchWorkoutLogsForDateRangeMock != null) {
       return watchWorkoutLogsForDateRangeMock!(start, end);
     }
@@ -154,8 +162,7 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<Routine> createRoutineFromWorkout({
     required int workoutLogId,
     required String name,
-  }) async =>
-      Routine(id: 1, name: name);
+  }) async => Routine(id: 1, name: name);
 
   @override
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {}
@@ -190,34 +197,33 @@ void main() {
     });
 
     test(
-        'DiaryLocalDataSource.watchEntriesForDate propagates writes reactively',
-        () async {
-      final date = DateTime(2026, 5, 19);
-      final stream = localDataSource.watchEntriesForDate(date);
-      final emissions = [];
-      final sub = stream.listen((event) => emissions.add(event));
+      'DiaryLocalDataSource.watchEntriesForDate propagates writes reactively',
+      () async {
+        final date = DateTime(2026, 5, 19);
+        final stream = localDataSource.watchEntriesForDate(date);
+        final emissions = [];
+        final sub = stream.listen((event) => emissions.add(event));
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(emissions.last, isEmpty);
+        await Future.delayed(const Duration(milliseconds: 50));
+        expect(emissions.last, isEmpty);
 
-      await localDataSource.insertFoodEntry(
-        FoodEntry(
-          barcode: '12345678',
-          timestamp: date,
-          quantityInGrams: 150,
-          mealType: 'mealtypeBreakfast',
-        ),
-      );
+        await localDataSource.insertFoodEntry(
+          FoodEntry(
+            barcode: '12345678',
+            timestamp: date,
+            quantityInGrams: 150,
+            mealType: 'mealtypeBreakfast',
+          ),
+        );
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(emissions.last, hasLength(1));
+        await Future.delayed(const Duration(milliseconds: 50));
+        expect(emissions.last, hasLength(1));
 
-      await sub.cancel();
-    });
+        await sub.cancel();
+      },
+    );
 
-    test(
-        'DiaryLocalDataSource.watchFluidEntriesForDate propagates writes reactively',
-        () async {
+    test('DiaryLocalDataSource.watchFluidEntriesForDate propagates writes reactively', () async {
       final date = DateTime(2026, 5, 19);
       final stream = localDataSource.watchFluidEntriesForDate(date);
       final emissions = [];
@@ -227,11 +233,7 @@ void main() {
       expect(emissions.last, isEmpty);
 
       await localDataSource.insertFluidEntry(
-        FluidEntry(
-          name: 'Water',
-          quantityInMl: 250,
-          timestamp: date,
-        ),
+        FluidEntry(name: 'Water', quantityInMl: 250, timestamp: date),
       );
 
       await Future.delayed(const Duration(milliseconds: 50));
@@ -240,9 +242,7 @@ void main() {
       await sub.cancel();
     });
 
-    test(
-        'DiaryViewModel updates nutrition and fluid entries reactively without manual triggers',
-        () async {
+    test('DiaryViewModel updates nutrition and fluid entries reactively without manual triggers', () async {
       final date = DateTime(2026, 5, 19);
       viewModel.setSelectedDate(date);
 
@@ -252,11 +252,7 @@ void main() {
 
       // Mutate water via view model - does NOT call manual reload
       await viewModel.insertFluidEntry(
-        FluidEntry(
-          name: 'Water',
-          quantityInMl: 250,
-          timestamp: date,
-        ),
+        FluidEntry(name: 'Water', quantityInMl: 250, timestamp: date),
       );
 
       // Wait a moment for stream delivery
@@ -266,9 +262,7 @@ void main() {
       expect(viewModel.fluidEntries.first.quantityInMl, 250);
     });
 
-    test(
-        'DiaryViewModel updates completed workouts reactively on local database insert',
-        () async {
+    test('DiaryViewModel updates completed workouts reactively on local database insert', () async {
       final date = DateTime(2026, 5, 19);
       viewModel.setSelectedDate(date);
 
@@ -276,7 +270,9 @@ void main() {
       expect(viewModel.workoutSummary, isNull);
 
       // Insert completed workout directly into real test Drift DB
-      await database.into(database.workoutLogs).insert(
+      await database
+          .into(database.workoutLogs)
+          .insert(
             WorkoutLogsCompanion(
               startTime: drift.Value(date),
               endTime: drift.Value(date.add(const Duration(minutes: 60))),
@@ -293,68 +289,84 @@ void main() {
     });
 
     test(
-        'DiaryViewModel updates supplements reactively when supplement logs emit',
-        () async {
-      final date = DateTime(2026, 5, 19);
-      viewModel.setSelectedDate(date);
+      'DiaryViewModel updates supplements reactively when supplement logs emit',
+      () async {
+        final date = DateTime(2026, 5, 19);
+        viewModel.setSelectedDate(date);
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(viewModel.trackedSupplements, isEmpty);
+        await Future.delayed(const Duration(milliseconds: 50));
+        expect(viewModel.trackedSupplements, isEmpty);
 
-      // Setup fake streams to emit items
-      final repo = viewModel.supplementRepo;
-      if (repo is FakeSupplementRepository) {
-        repo.supplementsController.add([
-          Supplement(
+        // Setup fake streams to emit items
+        final repo = viewModel.supplementRepo;
+        if (repo is FakeSupplementRepository) {
+          repo.supplementsController.add([
+            Supplement(
               id: 1,
               name: 'Creatine',
               defaultDose: 5,
               unit: 'g',
-              code: 'creatine_monohydrate'),
-        ]);
-        repo.supplementLogsController.add([
-          SupplementLog(
-              id: 1, supplementId: 1, dose: 5, unit: 'g', timestamp: date),
-        ]);
-      }
-
-      // Wait for stream emission and use case calculation
-      await Future.delayed(const Duration(milliseconds: 150));
-
-      expect(viewModel.trackedSupplements, isNotEmpty);
-      expect(viewModel.trackedSupplements.first.supplement.name,
-          equals('Creatine'));
-      expect(viewModel.trackedSupplements.first.totalDosedToday, equals(5.0));
-    });
-
-    test('watchFullWorkoutLogs emits completed logs reactively on DB insert',
-        () async {
-      final date = DateTime(2026, 5, 19);
-      final workoutDataSource = WorkoutLocalDataSource(database);
-      final stream = workoutDataSource.watchFullWorkoutLogs();
-
-      final emissions = <List<WorkoutLog>>[];
-      final sub = stream.listen(emissions.add);
-
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(emissions.last, isEmpty);
-
-      // Insert a completed workout
-      await database.into(database.workoutLogs).insert(
-            WorkoutLogsCompanion(
-              startTime: drift.Value(date),
-              endTime: drift.Value(date.add(const Duration(minutes: 60))),
-              status: const drift.Value('completed'),
-              routineNameSnapshot: const drift.Value('Reactive Hypertrophy'),
+              code: 'creatine_monohydrate',
             ),
-          );
+          ]);
+          repo.supplementLogsController.add([
+            SupplementLog(
+              id: 1,
+              supplementId: 1,
+              dose: 5,
+              unit: 'g',
+              timestamp: date,
+            ),
+          ]);
+        }
 
-      await Future.delayed(const Duration(milliseconds: 100));
-      expect(emissions.last, hasLength(1));
-      expect(emissions.last.first.routineName, equals('Reactive Hypertrophy'));
+        // Wait for stream emission and use case calculation
+        await Future.delayed(const Duration(milliseconds: 150));
 
-      await sub.cancel();
-    });
+        expect(viewModel.trackedSupplements, isNotEmpty);
+        expect(
+          viewModel.trackedSupplements.first.supplement.name,
+          equals('Creatine'),
+        );
+        expect(viewModel.trackedSupplements.first.totalDosedToday, equals(5.0));
+      },
+    );
+
+    test(
+      'watchFullWorkoutLogs emits completed logs reactively on DB insert',
+      () async {
+        final date = DateTime(2026, 5, 19);
+        final workoutDataSource = WorkoutLocalDataSource(database);
+        final stream = workoutDataSource.watchFullWorkoutLogs();
+
+        final emissions = <List<WorkoutLog>>[];
+        final sub = stream.listen(emissions.add);
+
+        await Future.delayed(const Duration(milliseconds: 50));
+        expect(emissions.last, isEmpty);
+
+        // Insert a completed workout
+        await database
+            .into(database.workoutLogs)
+            .insert(
+              WorkoutLogsCompanion(
+                startTime: drift.Value(date),
+                endTime: drift.Value(date.add(const Duration(minutes: 60))),
+                status: const drift.Value('completed'),
+                routineNameSnapshot: const drift.Value('Reactive Hypertrophy'),
+              ),
+            );
+
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(emissions.last, hasLength(1));
+        expect(
+          emissions.last.first.routineName,
+          equals('Reactive Hypertrophy'),
+        );
+
+        await sub.cancel();
+      },
+    );
 
     test('watchAllRoutines emits routines reactively on DB insert', () async {
       final workoutDataSource = WorkoutLocalDataSource(database);
@@ -367,10 +379,10 @@ void main() {
       expect(emissions.last, isEmpty);
 
       // Insert a new routine
-      await database.into(database.routines).insert(
-            RoutinesCompanion(
-              name: const drift.Value('Powerbuilding Day A'),
-            ),
+      await database
+          .into(database.routines)
+          .insert(
+            RoutinesCompanion(name: const drift.Value('Powerbuilding Day A')),
           );
 
       await Future.delayed(const Duration(milliseconds: 100));
@@ -380,9 +392,7 @@ void main() {
       await sub.cancel();
     });
 
-    test(
-        'DiaryViewModel rapid date switches cancel old subscriptions and prevent stale processing',
-        () async {
+    test('DiaryViewModel rapid date switches cancel old subscriptions and prevent stale processing', () async {
       final dateA = DateTime(2026, 5, 19);
       final dateB = DateTime(2026, 5, 20);
 
@@ -421,7 +431,7 @@ void main() {
           routineName: 'Stale Workout',
           startTime: dateA,
           endTime: dateA.add(const Duration(minutes: 45)),
-        )
+        ),
       ]);
       await Future.delayed(const Duration(milliseconds: 50));
       expect(testVM.workoutSummary, isNull);
@@ -433,7 +443,7 @@ void main() {
           routineName: 'Current Workout',
           startTime: dateB,
           endTime: dateB.add(const Duration(minutes: 45)),
-        )
+        ),
       ]);
       await Future.delayed(const Duration(milliseconds: 100));
       expect(testVM.workoutSummary, isNotNull);
@@ -444,15 +454,18 @@ void main() {
       testVM.dispose();
     });
 
-    test('isSelectedDateToday is true only when selected date is today',
-        () async {
-      viewModel.selectedDateNotifier.value = DateTime.now();
-      expect(viewModel.isSelectedDateToday, isTrue);
+    test(
+      'isSelectedDateToday is true only when selected date is today',
+      () async {
+        viewModel.selectedDateNotifier.value = DateTime.now();
+        expect(viewModel.isSelectedDateToday, isTrue);
 
-      viewModel.selectedDateNotifier.value =
-          DateTime.now().subtract(const Duration(days: 1));
-      expect(viewModel.isSelectedDateToday, isFalse);
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-    });
+        viewModel.selectedDateNotifier.value = DateTime.now().subtract(
+          const Duration(days: 1),
+        );
+        expect(viewModel.isSelectedDateToday, isFalse);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      },
+    );
   });
 }

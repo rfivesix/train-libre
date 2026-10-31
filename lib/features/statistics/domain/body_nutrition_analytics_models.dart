@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'statistics_data_quality_policy.dart';
 
 class DailyValuePoint {

@@ -21,10 +21,7 @@ class AiOverlayLiveChatTurn {
   final String prompt;
   final String response;
 
-  const AiOverlayLiveChatTurn({
-    required this.prompt,
-    required this.response,
-  });
+  const AiOverlayLiveChatTurn({required this.prompt, required this.response});
 }
 
 class AiOverlayChatConfiguration {
@@ -87,9 +84,10 @@ class AiOverlayLiveChatService {
   Future<AiOverlayChatConfiguration> resolveConfiguration() async {
     final resolved = await _resolveEffectiveProvider();
     return AiOverlayChatConfiguration(
-        resolved.provider,
-        await AiService.instance.getSelectedModel(resolved.provider),
-        resolved.apiKey);
+      resolved.provider,
+      await AiService.instance.getSelectedModel(resolved.provider),
+      resolved.apiKey,
+    );
   }
 
   /// Resolves only the configured provider for image-bearing chat turns.
@@ -135,7 +133,7 @@ class AiOverlayLiveChatService {
   /// Resolves the selected provider, falling back to another configured
   /// provider if the active default has no credentials on this device.
   Future<({AiProvider provider, String apiKey})>
-      _resolveEffectiveProvider() async {
+  _resolveEffectiveProvider() async {
     final selected = await AiService.instance.getSelectedProvider();
 
     if (selected == AiProvider.appleFoundation) {
@@ -175,7 +173,7 @@ class AiOverlayLiveChatService {
   }
 
   Future<({AiProvider provider, String apiKey})?>
-      _findConfiguredCloudProvider() async {
+  _findConfiguredCloudProvider() async {
     const cloudProviders = <AiProvider>[
       AiProvider.openai,
       AiProvider.gemini,
@@ -366,8 +364,9 @@ class AiOverlayLiveChatService {
             caseSensitive: false,
           ).hasMatch(e.message)) {
         final options = await AiService.instance.loadModelOptions(provider);
-        final alternatives =
-            options.options.where((option) => option.id != model);
+        final alternatives = options.options.where(
+          (option) => option.id != model,
+        );
         if (alternatives.isNotEmpty) {
           final fallbackModel = alternatives.first.id;
           await AiService.instance.setSelectedModel(provider, fallbackModel);
@@ -398,8 +397,9 @@ class AiOverlayLiveChatService {
   }) async* {
     final fullPrompt = StringBuffer();
     if (history.isNotEmpty) {
-      final recent =
-          history.length > 6 ? history.sublist(history.length - 6) : history;
+      final recent = history.length > 6
+          ? history.sublist(history.length - 6)
+          : history;
       for (final turn in recent) {
         if (turn.prompt.trim().isEmpty) continue;
         fullPrompt.writeln('Nutzer: ${turn.prompt.trim()}');
@@ -467,7 +467,8 @@ class AiOverlayLiveChatService {
       bool includeReasoningEffort = true,
       bool useLegacyMaxTokens = false,
     }) {
-      final legacyFamily = useLegacyMaxTokens ||
+      final legacyFamily =
+          useLegacyMaxTokens ||
           !isOpenAi ||
           model.toLowerCase().startsWith('gpt-3') ||
           model.toLowerCase().startsWith('gpt-4') ||
@@ -501,10 +502,11 @@ class AiOverlayLiveChatService {
       );
 
       if (streamedResponse.statusCode == 400) {
-        final errorBody =
-            await streamedResponse.stream.bytesToString().timeout(timeout);
-        final lowerError =
-            (_extractErrorMessage(errorBody) ?? errorBody).toLowerCase();
+        final errorBody = await streamedResponse.stream.bytesToString().timeout(
+          timeout,
+        );
+        final lowerError = (_extractErrorMessage(errorBody) ?? errorBody)
+            .toLowerCase();
 
         if (lowerError.contains('reasoning_effort') ||
             lowerError.contains('unrecognized request argument')) {
@@ -536,8 +538,9 @@ class AiOverlayLiveChatService {
       }
 
       if (streamedResponse.statusCode != 200) {
-        final errorBody =
-            await streamedResponse.stream.bytesToString().timeout(timeout);
+        final errorBody = await streamedResponse.stream.bytesToString().timeout(
+          timeout,
+        );
         _throwForStatus(streamedResponse.statusCode, errorBody);
       }
 
@@ -658,8 +661,9 @@ class AiOverlayLiveChatService {
       );
 
       if (streamedResponse.statusCode != 200) {
-        final errorBody =
-            await streamedResponse.stream.bytesToString().timeout(timeout);
+        final errorBody = await streamedResponse.stream.bytesToString().timeout(
+          timeout,
+        );
         _throwForStatus(streamedResponse.statusCode, errorBody);
       }
 
@@ -774,9 +778,7 @@ class AiOverlayLiveChatService {
           'maxOutputTokens': 4096,
           if (includeThinkingConfig &&
               candidate.toLowerCase().startsWith('gemini-2.5-flash'))
-            'thinkingConfig': {
-              'thinkingBudget': 0,
-            },
+            'thinkingConfig': {'thinkingBudget': 0},
         },
       };
     }
@@ -812,10 +814,11 @@ class AiOverlayLiveChatService {
         );
 
         if (response.statusCode == 400) {
-          final errBody =
-              await response.stream.bytesToString().timeout(timeout);
-          final lower =
-              (_extractErrorMessage(errBody) ?? errBody).toLowerCase();
+          final errBody = await response.stream.bytesToString().timeout(
+            timeout,
+          );
+          final lower = (_extractErrorMessage(errBody) ?? errBody)
+              .toLowerCase();
           if (lower.contains('thinking') ||
               lower.contains('systeminstruction') ||
               lower.contains('unknown field')) {
@@ -953,15 +956,16 @@ class AiOverlayLiveChatService {
 
   String _normalizeOpenAiModelId(String modelId) {
     final lower = modelId.toLowerCase();
-    final match =
-        RegExp(r'^([a-z0-9.\-]+?)-\d{4}-\d{2}-\d{2}$').firstMatch(lower);
+    final match = RegExp(r'^([a-z0-9.\-]+?)-\d{4}-\d{2}-\d{2}$')
+        .firstMatch(lower);
     if (match != null) return match.group(1)!;
     return modelId;
   }
 
   List<String> _geminiModelCandidates(String model) {
-    final normalized =
-        model.startsWith('models/') ? model.substring('models/'.length) : model;
+    final normalized = model.startsWith('models/')
+        ? model.substring('models/'.length)
+        : model;
     final candidates = <String>[normalized];
     const aliasFallbacks = <String, List<String>>{
       'gemini-flash-latest': ['gemini-2.5-flash', 'gemini-2.0-flash'],

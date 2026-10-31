@@ -71,7 +71,7 @@ const Map<String, List<String>> kRequiredTables = {
     'level',
     'group_id',
     'legacy_group',
-    'body_slugs'
+    'body_slugs',
   ],
   'muscle_translations': ['muscle_id', 'language_code', 'name'],
   'equipment': ['id', 'kind'],
@@ -231,13 +231,19 @@ void main() {
         }
       }
 
-      expect(withoutCategory, isEmpty,
-          reason: 'category_name is what today\'s isCardio reads');
+      expect(
+        withoutCategory,
+        isEmpty,
+        reason: 'category_name is what today\'s isCardio reads',
+      );
       // The data repo caps the exercises whose precision the legacy vocabulary
       // cannot express at ten. Until the app reads exercise_muscles, each one
       // of those silently drops out of recovery and volume.
-      expect(withoutMuscles.length, lessThanOrEqualTo(10),
-          reason: 'legacy muscle columns lost for: $withoutMuscles');
+      expect(
+        withoutMuscles.length,
+        lessThanOrEqualTo(10),
+        reason: 'legacy muscle columns lost for: $withoutMuscles',
+      );
     });
 
     test('legacy muscle names still resolve to a major group', () async {
@@ -259,27 +265,35 @@ void main() {
       }
 
       // A name the app cannot map is volume that lands nowhere, silently.
-      expect(unresolvable, isEmpty,
-          reason: 'unmapped legacy muscle names: $unresolvable');
+      expect(
+        unresolvable,
+        isEmpty,
+        reason: 'unmapped legacy muscle names: $unresolvable',
+      );
     });
   });
 
   group('referential integrity', () {
-    test('exercise_muscles points at real exercises and real muscles',
-        () async {
-      final orphanExercises = await db.rawQuery('''
+    test(
+      'exercise_muscles points at real exercises and real muscles',
+      () async {
+        final orphanExercises = await db.rawQuery('''
         SELECT DISTINCT em.exercise_id FROM exercise_muscles em
         LEFT JOIN exercises e ON e.id = em.exercise_id WHERE e.id IS NULL
       ''');
-      expect(orphanExercises, isEmpty);
+        expect(orphanExercises, isEmpty);
 
-      final orphanMuscles = await db.rawQuery('''
+        final orphanMuscles = await db.rawQuery('''
         SELECT DISTINCT em.muscle_id FROM exercise_muscles em
         LEFT JOIN muscles m ON m.id = em.muscle_id WHERE m.id IS NULL
       ''');
-      expect(orphanMuscles, isEmpty,
-          reason: 'the app imports the vocabulary as a closed set');
-    });
+        expect(
+          orphanMuscles,
+          isEmpty,
+          reason: 'the app imports the vocabulary as a closed set',
+        );
+      },
+    );
 
     test('exercise_equipment points at real equipment', () async {
       final orphans = await db.rawQuery('''
@@ -303,17 +317,21 @@ void main() {
     test('every merged exercise has an alias row and vice versa', () async {
       final merged = (await db.rawQuery(
         "SELECT id FROM exercises WHERE status = 'merged'",
-      ))
-          .map((r) => r['id'].toString())
-          .toSet();
+      )).map((r) => r['id'].toString()).toSet();
       final aliased = (await db.rawQuery('SELECT old_id FROM exercise_aliases'))
           .map((r) => r['old_id'].toString())
           .toSet();
 
-      expect(merged.difference(aliased), isEmpty,
-          reason: 'merged rows with no alias are unreachable user data');
-      expect(aliased.difference(merged), isEmpty,
-          reason: 'an alias whose source is not merged rewrites live data');
+      expect(
+        merged.difference(aliased),
+        isEmpty,
+        reason: 'merged rows with no alias are unreachable user data',
+      );
+      expect(
+        aliased.difference(merged),
+        isEmpty,
+        reason: 'an alias whose source is not merged rewrites live data',
+      );
     });
 
     test('no alias chains — invariant 7', () async {
@@ -365,33 +383,38 @@ void main() {
     });
 
     test('covers each status, including a NULL-modality row', () async {
-      final statuses =
-          (await db.rawQuery('SELECT DISTINCT status FROM exercises'))
-              .map((r) => r['status'].toString())
-              .toSet();
+      final statuses = (await db.rawQuery(
+        'SELECT DISTINCT status FROM exercises',
+      )).map((r) => r['status'].toString()).toSet();
       expect(statuses, containsAll(<String>['active', 'deprecated', 'merged']));
 
       final nullModality = await db.rawQuery(
         'SELECT COUNT(*) AS c FROM exercises WHERE modality IS NULL',
       );
-      expect(nullModality.first['c'], greaterThan(0),
-          reason: 'unset classification must stay a represented case');
+      expect(
+        nullModality.first['c'],
+        greaterThan(0),
+        reason: 'unset classification must stay a represented case',
+      );
     });
 
     test('covers the tracking types that change the log mask', () async {
       final types = (await db.rawQuery(
         'SELECT DISTINCT tracking_type FROM exercises WHERE tracking_type IS NOT NULL',
-      ))
-          .map((r) => r['tracking_type'].toString())
-          .toSet();
-      expect(types,
-          containsAll(<String>['weight_reps', 'bodyweight_reps', 'time']));
+      )).map((r) => r['tracking_type'].toString()).toSet();
+      expect(
+        types,
+        containsAll(<String>['weight_reps', 'bodyweight_reps', 'time']),
+      );
 
       final assisted = await db.rawQuery(
         "SELECT COUNT(*) AS c FROM exercises WHERE load_mode = 'assisted'",
       );
-      expect(assisted.first['c'], greaterThan(0),
-          reason: 'assisted inverts progression and needs a case');
+      expect(
+        assisted.first['c'],
+        greaterThan(0),
+        reason: 'assisted inverts progression and needs a case',
+      );
     });
 
     test('covers two merged ids collapsing into one target', () async {
@@ -399,8 +422,11 @@ void main() {
         SELECT new_id, COUNT(*) AS c FROM exercise_aliases
         GROUP BY new_id HAVING c > 1
       ''');
-      expect(rows, isNotEmpty,
-          reason: 'the duplicate-routine-row case must stay covered');
+      expect(
+        rows,
+        isNotEmpty,
+        reason: 'the duplicate-routine-row case must stay covered',
+      );
     });
 
     test('stretch rows annotate the muscle being stretched', () async {
@@ -437,8 +463,11 @@ void main() {
       for (final entry in kRequiredTables.entries) {
         final present = await columnNames(full, entry.key);
         for (final column in entry.value) {
-          expect(present, contains(column),
-              reason: 'missing ${entry.key}.$column');
+          expect(
+            present,
+            contains(column),
+            reason: 'missing ${entry.key}.$column',
+          );
         }
       }
     }, skip: path == null ? 'set TRAIN_LIBRE_CATALOG_DB to run' : null);
@@ -470,8 +499,11 @@ void main() {
       // were wrong ("Barbell Wrist Curl" → Hamstrings, Shoulders). So the loss
       // is small and mostly an improvement — but it must not grow unnoticed
       // while the app still reads these columns.
-      expect(withoutMuscles.length, lessThanOrEqualTo(45),
-          reason: 'legacy muscle columns lost for: $withoutMuscles');
+      expect(
+        withoutMuscles.length,
+        lessThanOrEqualTo(45),
+        reason: 'legacy muscle columns lost for: $withoutMuscles',
+      );
     }, skip: path == null ? 'set TRAIN_LIBRE_CATALOG_DB to run' : null);
 
     test('no active exercise is without a primary muscle anywhere', () async {
@@ -485,9 +517,13 @@ void main() {
           WHERE em.exercise_id = e.id AND em.role = 'primary'
         )
       ''');
-      expect(rows, isEmpty,
-          reason: 'active exercises with no primary muscle at all: '
-              '${rows.map((r) => r['id']).toList()}');
+      expect(
+        rows,
+        isEmpty,
+        reason:
+            'active exercises with no primary muscle at all: '
+            '${rows.map((r) => r['id']).toList()}',
+      );
     }, skip: path == null ? 'set TRAIN_LIBRE_CATALOG_DB to run' : null);
 
     test('every legacy muscle name in the whole catalog resolves', () async {
@@ -506,20 +542,20 @@ void main() {
           }
         }
       }
-      expect(unresolvable, isEmpty,
-          reason: 'unmapped legacy muscle names: $unresolvable');
+      expect(
+        unresolvable,
+        isEmpty,
+        reason: 'unmapped legacy muscle names: $unresolvable',
+      );
     }, skip: path == null ? 'set TRAIN_LIBRE_CATALOG_DB to run' : null);
 
     test('the alias register is sound across all of it', () async {
       final merged = (await full.rawQuery(
         "SELECT id FROM exercises WHERE status = 'merged'",
-      ))
-          .map((r) => r['id'].toString())
-          .toSet();
-      final aliased =
-          (await full.rawQuery('SELECT old_id FROM exercise_aliases'))
-              .map((r) => r['old_id'].toString())
-              .toSet();
+      )).map((r) => r['id'].toString()).toSet();
+      final aliased = (await full.rawQuery(
+        'SELECT old_id FROM exercise_aliases',
+      )).map((r) => r['old_id'].toString()).toSet();
       expect(merged.difference(aliased), isEmpty);
       expect(aliased.difference(merged), isEmpty);
 

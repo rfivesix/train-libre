@@ -31,8 +31,9 @@ class CloudControlsClipper extends CustomClipper<Rect> {
 /// Computes the visual appearance progress of the overlay during morphing.
 double openingAppearanceProgress(double progress) {
   const transitionRange = 0.5;
-  final transitionProgress =
-      (progress / transitionRange).clamp(0.0, 1.0).toDouble();
+  final transitionProgress = (progress / transitionRange)
+      .clamp(0.0, 1.0)
+      .toDouble();
   return overlayTransitionProgress(transitionProgress);
 }
 

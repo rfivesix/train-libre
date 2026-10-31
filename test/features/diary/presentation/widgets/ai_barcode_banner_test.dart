@@ -7,8 +7,9 @@ import 'package:train_libre/generated/app_localizations.dart';
 
 void main() {
   group('AiBarcodeBanner', () {
-    testWidgets('renders barcode icon, product name, and handles tap',
-        (tester) async {
+    testWidgets('renders barcode icon, product name, and handles tap', (
+      tester,
+    ) async {
       var logged = false;
 
       final product = FoodItem(
@@ -73,8 +74,9 @@ void main() {
       expect(find.text('Barcode 987654321'), findsOneWidget);
     });
 
-    testWidgets('shows loading indicator when isLoggingBarcode is true',
-        (tester) async {
+    testWidgets('shows loading indicator when isLoggingBarcode is true', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           locale: const Locale('de'),
@@ -98,8 +100,9 @@ void main() {
   });
 
   group('AiDemoBarcodeBanner', () {
-    testWidgets('renders demo hints and assigns bannerKey to Material',
-        (tester) async {
+    testWidgets('renders demo hints and assigns bannerKey to Material', (
+      tester,
+    ) async {
       final bannerKey = GlobalKey();
 
       await tester.pumpWidget(

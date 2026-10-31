@@ -72,7 +72,8 @@ class MacroEntryFormState extends State<MacroEntryForm> {
       'salt': TextEditingController(text: _formatNullable(entry?.salt)),
       'caffeine': TextEditingController(text: _formatNullable(entry?.caffeine)),
     };
-    _showExtras = entry?.sugar != null ||
+    _showExtras =
+        entry?.sugar != null ||
         entry?.fiber != null ||
         entry?.salt != null ||
         entry?.caffeine != null;
@@ -108,11 +109,11 @@ class MacroEntryFormState extends State<MacroEntryForm> {
   }
 
   Map<String, double?> get _coreValues => {
-        for (final nutrient in _coreNutrients)
-          nutrient: nutrient == _autoDerivedNutrient
-              ? null
-              : _parse(_coreControllers[nutrient]!),
-      };
+    for (final nutrient in _coreNutrients)
+      nutrient: nutrient == _autoDerivedNutrient
+          ? null
+          : _parse(_coreControllers[nutrient]!),
+  };
 
   MacroEntryCalculation? get calculation {
     final values = _coreValues;
@@ -202,13 +203,15 @@ class MacroEntryFormState extends State<MacroEntryForm> {
       locale: Localizations.localeOf(context),
     );
     if (picked == null) return;
-    setState(() => _timestamp = DateTime(
-          picked.year,
-          picked.month,
-          picked.day,
-          _timestamp.hour,
-          _timestamp.minute,
-        ));
+    setState(
+      () => _timestamp = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        _timestamp.hour,
+        _timestamp.minute,
+      ),
+    );
   }
 
   Future<void> _selectTime() async {
@@ -217,13 +220,15 @@ class MacroEntryFormState extends State<MacroEntryForm> {
       initialTime: TimeOfDay.fromDateTime(_timestamp),
     );
     if (picked == null) return;
-    setState(() => _timestamp = DateTime(
-          _timestamp.year,
-          _timestamp.month,
-          _timestamp.day,
-          picked.hour,
-          picked.minute,
-        ));
+    setState(
+      () => _timestamp = DateTime(
+        _timestamp.year,
+        _timestamp.month,
+        _timestamp.day,
+        picked.hour,
+        picked.minute,
+      ),
+    );
   }
 
   String _nutrientLabel(AppLocalizations l10n, String nutrient) =>
@@ -269,12 +274,13 @@ class MacroEntryFormState extends State<MacroEntryForm> {
       'fat': calc?.fat,
     };
     final autoDerivedNutrient = _autoDerivedNutrient;
-    final calculatedValue =
-        autoDerivedNutrient == null ? null : values[autoDerivedNutrient];
+    final calculatedValue = autoDerivedNutrient == null
+        ? null
+        : values[autoDerivedNutrient];
     final calculatedText =
         calculatedValue == null || _manualOverrideNutrient != null
-            ? ''
-            : _format(calculatedValue);
+        ? ''
+        : _format(calculatedValue);
     if (_calculatedPreviewController.text != calculatedText) {
       _calculatedPreviewController.text = calculatedText;
     }
@@ -284,8 +290,8 @@ class MacroEntryFormState extends State<MacroEntryForm> {
         label: _nutrientLabel(l10n, nutrient),
         controller:
             nutrient == autoDerivedNutrient && _manualOverrideNutrient == null
-                ? _calculatedPreviewController
-                : _coreControllers[nutrient]!,
+            ? _calculatedPreviewController
+            : _coreControllers[nutrient]!,
         suffix: nutrient == 'calories' ? 'kcal' : 'g',
         onChanged: (value) => setState(() {
           if (_manualOverrideNutrient == null &&
@@ -320,11 +326,10 @@ class MacroEntryFormState extends State<MacroEntryForm> {
           _amountController.text.trim().isEmpty
               ? l10n.macroEntryAmountTotalHint
               : (_isFluid
-                  ? l10n.macroEntryAmountPer100MlHint
-                  : l10n.macroEntryAmountPer100GramHint),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    ? l10n.macroEntryAmountPer100MlHint
+                    : l10n.macroEntryAmountPer100GramHint),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: DesignConstants.spacingS),
         Row(
@@ -356,8 +361,8 @@ class MacroEntryFormState extends State<MacroEntryForm> {
             child: Text(
               l10n.macroEntryFillThreeValues,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         const SizedBox(height: DesignConstants.spacingS),

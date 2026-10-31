@@ -42,8 +42,9 @@ Future<void> _tapChoice(WidgetTester tester, String label) async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('shows presets and omits system colors outside Android',
-      (tester) async {
+  testWidgets('shows presets and omits system colors outside Android', (
+    tester,
+  ) async {
     await _pumpColorSettings(tester);
 
     expect(find.text('Train Libre'), findsOneWidget);
@@ -57,12 +58,10 @@ void main() {
     expect(find.text('System colors'), findsNothing);
   });
 
-  testWidgets('selects Android system colors as an exclusive mode',
-      (tester) async {
-    final service = await _pumpColorSettings(
-      tester,
-      showSystemColors: true,
-    );
+  testWidgets('selects Android system colors as an exclusive mode', (
+    tester,
+  ) async {
+    final service = await _pumpColorSettings(tester, showSystemColors: true);
 
     expect(find.text('System colors'), findsOneWidget);
     await _tapChoice(tester, 'System colors');

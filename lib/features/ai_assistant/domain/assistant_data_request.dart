@@ -61,8 +61,8 @@ String localizeAssistantScopeLabel(String rawLabel, String locale) {
   if (!isDe) return rawLabel;
   final trimmed = rawLabel.trim();
   final lower = trimmed.toLowerCase();
-  final inferredDays =
-      RegExp(r'^last (\d+) days \(inferred\)$').firstMatch(lower);
+  final inferredDays = RegExp(r'^last (\d+) days \(inferred\)$')
+      .firstMatch(lower);
   if (inferredDays != null) {
     return 'Letzte ${inferredDays.group(1)} Tage (automatisch gewählt)';
   }
@@ -118,9 +118,10 @@ String synthesizeAssistantConversationTitle({
         .join(isDe ? ' & ' : ' & ');
     final scope = request.scope;
     if (scope != null) {
-      final scopeLabel = localizeAssistantScopeLabel(scope.label, locale)
-          .replaceAll(RegExp(r'\s*\([^)]*\)'), '')
-          .trim();
+      final scopeLabel = localizeAssistantScopeLabel(
+        scope.label,
+        locale,
+      ).replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
       if (scopeLabel.isNotEmpty &&
           !const {
             'Gewähltes Datum',
@@ -163,13 +164,13 @@ class AssistantDateScope {
   final String label;
 
   Map<String, dynamic> toJson() => {
-        'start': _date(start),
-        'end': _date(end),
-        'label': label,
-        'timezone': start.timeZoneName,
-        'startOffsetMinutes': start.timeZoneOffset.inMinutes,
-        'endOffsetMinutes': end.timeZoneOffset.inMinutes,
-      };
+    'start': _date(start),
+    'end': _date(end),
+    'label': label,
+    'timezone': start.timeZoneName,
+    'startOffsetMinutes': start.timeZoneOffset.inMinutes,
+    'endOffsetMinutes': end.timeZoneOffset.inMinutes,
+  };
 
   static String _date(DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -189,8 +190,13 @@ class AssistantDataRequest {
     if (scope != null) {
       final days =
           DateTime.utc(scope!.end.year, scope!.end.month, scope!.end.day)
-              .difference(DateTime.utc(
-                  scope!.start.year, scope!.start.month, scope!.start.day))
+              .difference(
+                DateTime.utc(
+                  scope!.start.year,
+                  scope!.start.month,
+                  scope!.start.day,
+                ),
+              )
               .inDays;
       if (days < 0 || days > 366) {
         throw ArgumentError('Date range must span at most 367 days');
@@ -213,20 +219,21 @@ class AssistantDateResolver {
     final today = DateTime(now.year, now.month, now.day);
     DateTime? parseCivil(String value) {
       final iso = RegExp(r'^(\d{4})-(\d{1,2})-(\d{1,2})$').firstMatch(value);
-      final local =
-          RegExp(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$').firstMatch(value);
+      final local = RegExp(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$')
+          .firstMatch(value);
       final slash = RegExp(r'^(\d{1,2})/(\d{1,2})/(\d{4})$').firstMatch(value);
       if (iso == null && local == null && slash == null) return null;
-      final year =
-          int.parse((iso ?? local ?? slash)!.group(iso != null ? 1 : 3)!);
+      final year = int.parse(
+        (iso ?? local ?? slash)!.group(iso != null ? 1 : 3)!,
+      );
       var month = int.parse((iso ?? local ?? slash)!.group(2)!);
       var day = int.parse((iso ?? local ?? slash)!.group(iso != null ? 3 : 1)!);
       if (slash != null) {
         final first = int.parse(slash.group(1)!);
         final second = int.parse(slash.group(2)!);
         final us = locale.toLowerCase().startsWith('en-us');
-        final dayFirstLocale =
-            RegExp(r'^(de|en-gb|fr|it)').hasMatch(locale.toLowerCase());
+        final dayFirstLocale = RegExp(r'^(de|en-gb|fr|it)')
+            .hasMatch(locale.toLowerCase());
         if (!us && !dayFirstLocale && first <= 12 && second <= 12) {
           return null;
         }
@@ -241,10 +248,8 @@ class AssistantDateResolver {
     }
 
     final dates = RegExp(
-            r'\b\d{4}-\d{1,2}-\d{1,2}\b|\b\d{1,2}\.\d{1,2}\.\d{4}\b|\b\d{1,2}/\d{1,2}/\d{4}\b')
-        .allMatches(text)
-        .map((m) => parseCivil(m.group(0)!))
-        .toList();
+      r'\b\d{4}-\d{1,2}-\d{1,2}\b|\b\d{1,2}\.\d{1,2}\.\d{4}\b|\b\d{1,2}/\d{1,2}/\d{4}\b',
+    ).allMatches(text).map((m) => parseCivil(m.group(0)!)).toList();
     if (dates.contains(null) || dates.length > 2) return null;
     if (dates.length == 2) {
       return AssistantDateScope(dates[0]!, dates[1]!, 'explicit range');
@@ -292,10 +297,12 @@ class AssistantDateResolver {
       'dez': 12,
     };
     final monthWord = namedMonths.keys.join('|');
-    final monthFirst =
-        RegExp('\\b($monthWord)\\s+(\\d{1,2})(?:,?\\s+(\\d{4}))?\\b');
-    final dayFirst =
-        RegExp('\\b(\\d{1,2})\\.?\\s+($monthWord)(?:\\s+(\\d{4}))?\\b');
+    final monthFirst = RegExp(
+      '\\b($monthWord)\\s+(\\d{1,2})(?:,?\\s+(\\d{4}))?\\b',
+    );
+    final dayFirst = RegExp(
+      '\\b(\\d{1,2})\\.?\\s+($monthWord)(?:\\s+(\\d{4}))?\\b',
+    );
     final named = <DateTime>[];
     for (final match in monthFirst.allMatches(text)) {
       final month = namedMonths[match.group(1)]!;
@@ -342,9 +349,8 @@ class AssistantDateResolver {
     // "Juni bis jetzt" are common follow-ups. Treat a month paired with an
     // until-now phrase as a range from its first day through today. A bare
     // month means that calendar month (through today for the current month).
-    final monthOnly = RegExp(
-      '\\b($monthWord)(?:\\s+(\\d{4}))?\\b',
-    ).firstMatch(text);
+    final monthOnly = RegExp('\\b($monthWord)(?:\\s+(\\d{4}))?\\b')
+        .firstMatch(text);
     if (monthOnly != null) {
       final month = namedMonths[monthOnly.group(1)]!;
       final yearText = monthOnly.group(2);
@@ -398,14 +404,23 @@ class AssistantDateResolver {
     }
     if (RegExp(r'\b(last week|letzte woche|vergangene woche)\b')
         .hasMatch(text)) {
-      final start =
-          DateTime(today.year, today.month, today.day - today.weekday - 6);
+      final start = DateTime(
+        today.year,
+        today.month,
+        today.day - today.weekday - 6,
+      );
       return AssistantDateScope(
-          start, DateTime(start.year, start.month, start.day + 6), 'last week');
+        start,
+        DateTime(start.year, start.month, start.day + 6),
+        'last week',
+      );
     }
     if (RegExp(r'\b(this week|diese woche)\b').hasMatch(text)) {
-      final start =
-          DateTime(today.year, today.month, today.day - today.weekday + 1);
+      final start = DateTime(
+        today.year,
+        today.month,
+        today.day - today.weekday + 1,
+      );
       return AssistantDateScope(start, today, 'this week');
     }
     if (RegExp(r'\b(last month|letzten monat|letzter monat)\b')
@@ -416,18 +431,22 @@ class AssistantDateResolver {
     }
     if (RegExp(r'\b(this month|diesen monat|dieser monat)\b').hasMatch(text)) {
       return AssistantDateScope(
-          DateTime(today.year, today.month, 1), today, 'this month');
+        DateTime(today.year, today.month, 1),
+        today,
+        'this month',
+      );
     }
-    final lastDays =
-        RegExp(r'\b(?:last|letzte[nr]?)\s+(\d{1,3})\s+(?:days|tage[n]?)\b')
-            .firstMatch(text);
+    final lastDays = RegExp(
+      r'\b(?:last|letzte[nr]?)\s+(\d{1,3})\s+(?:days|tage[n]?)\b',
+    ).firstMatch(text);
     if (lastDays != null) {
       final days = int.parse(lastDays.group(1)!);
       if (days < 1 || days > 366) return null;
       return AssistantDateScope(
-          DateTime(today.year, today.month, today.day - days + 1),
-          today,
-          'last $days days');
+        DateTime(today.year, today.month, today.day - days + 1),
+        today,
+        'last $days days',
+      );
     }
     return null;
   }

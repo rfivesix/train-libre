@@ -19,13 +19,14 @@ void main() {
   late Directory supportDir;
 
   setUp(() async {
-    supportDir =
-        await Directory.systemTemp.createTemp('workout_photo_card_test');
+    supportDir = await Directory.systemTemp.createTemp(
+      'workout_photo_card_test',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (call) async => supportDir.path,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async => supportDir.path,
+        );
     AppMediaStore.instance.resetForTesting();
     await AppMediaStore.instance.ensureInitialized();
   });
@@ -33,9 +34,9 @@ void main() {
   tearDown(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      null,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
     AppMediaStore.instance.resetForTesting();
     if (await supportDir.exists()) await supportDir.delete(recursive: true);
   });
@@ -73,8 +74,9 @@ void main() {
   }
 
   group('WorkoutPhotoCard', () {
-    testWidgets('renders SizedBox.shrink when empty and not editable',
-        (tester) async {
+    testWidgets('renders SizedBox.shrink when empty and not editable', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         createWidget(photoPaths: const [], isEditable: false),
       );
@@ -85,22 +87,23 @@ void main() {
     });
 
     testWidgets(
-        'renders compact summary card with camera and gallery when empty and editable',
-        (tester) async {
-      await tester.pumpWidget(
-        createWidget(photoPaths: const [], isEditable: true),
-      );
-      await tester.pumpAndSettle();
+      'renders compact summary card with camera and gallery when empty and editable',
+      (tester) async {
+        await tester.pumpWidget(
+          createWidget(photoPaths: const [], isEditable: true),
+        );
+        await tester.pumpAndSettle();
 
-      // Compact card without forced 1:1 AspectRatio and without Add photo header
-      expect(find.byType(AspectRatio), findsNothing);
-      expect(find.byType(SummaryCard), findsOneWidget);
-      expect(find.text('Add photo'), findsNothing);
-      expect(find.text('Take photo'), findsOneWidget);
-      expect(find.text('Choose from library'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.camera), findsOneWidget);
-      expect(find.byIcon(LucideIcons.image), findsOneWidget);
-    });
+        // Compact card without forced 1:1 AspectRatio and without Add photo header
+        expect(find.byType(AspectRatio), findsNothing);
+        expect(find.byType(SummaryCard), findsOneWidget);
+        expect(find.text('Add photo'), findsNothing);
+        expect(find.text('Take photo'), findsOneWidget);
+        expect(find.text('Choose from library'), findsOneWidget);
+        expect(find.byIcon(LucideIcons.camera), findsOneWidget);
+        expect(find.byIcon(LucideIcons.image), findsOneWidget);
+      },
+    );
 
     testWidgets('hides add buttons when 4 photos are present', (tester) async {
       write('media/workouts/p1.jpg', [1, 2, 3]);
@@ -130,69 +133,72 @@ void main() {
     });
 
     testWidgets(
-        'shows glass bottom menu on delete and calls onPhotosChanged on confirm',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1200));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      'shows glass bottom menu on delete and calls onPhotosChanged on confirm',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 1200));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final testImageBytes = base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-      );
+        final testImageBytes = base64Decode(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        );
 
-      write('media/workouts/p1.jpg', testImageBytes);
-      write('media/workouts/p2.jpg', testImageBytes);
+        write('media/workouts/p1.jpg', testImageBytes);
+        write('media/workouts/p2.jpg', testImageBytes);
 
-      List<String>? updatedResult;
+        List<String>? updatedResult;
 
-      await tester.pumpWidget(
-        createWidget(
-          photoPaths: ['media/workouts/p1.jpg', 'media/workouts/p2.jpg'],
-          isEditable: true,
-          onPhotosChanged: (paths) => updatedResult = paths,
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          createWidget(
+            photoPaths: ['media/workouts/p1.jpg', 'media/workouts/p2.jpg'],
+            isEditable: true,
+            onPhotosChanged: (paths) => updatedResult = paths,
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byIcon(LucideIcons.trash), findsOneWidget);
-      await tester.tap(find.byIcon(LucideIcons.trash));
-      await tester.pumpAndSettle();
+        expect(find.byIcon(LucideIcons.trash), findsOneWidget);
+        await tester.tap(find.byIcon(LucideIcons.trash));
+        await tester.pumpAndSettle();
 
-      // Glass bottom menu is shown with title and confirm button
-      expect(find.text('Remove photo'), findsOneWidget);
-      expect(find.text('Delete'), findsOneWidget);
-      expect(find.text('Cancel'), findsOneWidget);
+        // Glass bottom menu is shown with title and confirm button
+        expect(find.text('Remove photo'), findsOneWidget);
+        expect(find.text('Delete'), findsOneWidget);
+        expect(find.text('Cancel'), findsOneWidget);
 
-      // Tap Delete in glass bottom menu
-      final deleteBtn =
-          tester.widgetList<AppButton>(find.byType(AppButton)).last;
-      deleteBtn.onPressed?.call();
-      await tester.pumpAndSettle();
+        // Tap Delete in glass bottom menu
+        final deleteBtn = tester
+            .widgetList<AppButton>(find.byType(AppButton))
+            .last;
+        deleteBtn.onPressed?.call();
+        await tester.pumpAndSettle();
 
-      expect(updatedResult, ['media/workouts/p2.jpg']);
-    });
+        expect(updatedResult, ['media/workouts/p2.jpg']);
+      },
+    );
 
     testWidgets(
-        'renders borderless squircle photo without SummaryCard in view mode',
-        (tester) async {
-      write('media/workouts/p1.jpg', [1, 2, 3]);
-      write('media/workouts/p2.jpg', [1, 2, 3]);
+      'renders borderless squircle photo without SummaryCard in view mode',
+      (tester) async {
+        write('media/workouts/p1.jpg', [1, 2, 3]);
+        write('media/workouts/p2.jpg', [1, 2, 3]);
 
-      await tester.pumpWidget(
-        createWidget(
-          photoPaths: ['media/workouts/p1.jpg', 'media/workouts/p2.jpg'],
-          isEditable: false,
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          createWidget(
+            photoPaths: ['media/workouts/p1.jpg', 'media/workouts/p2.jpg'],
+            isEditable: false,
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      // In view mode: No SummaryCard frame and no "Add photo" header
-      expect(find.byType(SummaryCard), findsNothing);
-      expect(find.text('Add photo'), findsNothing);
-      expect(find.byType(PageView), findsOneWidget);
-      // Top-right counter badge is rendered on multi-photo
-      expect(find.text('1 of 2'), findsOneWidget);
-      // No trash button
-      expect(find.byIcon(LucideIcons.trash), findsNothing);
-    });
+        // In view mode: No SummaryCard frame and no "Add photo" header
+        expect(find.byType(SummaryCard), findsNothing);
+        expect(find.text('Add photo'), findsNothing);
+        expect(find.byType(PageView), findsOneWidget);
+        // Top-right counter badge is rendered on multi-photo
+        expect(find.text('1 of 2'), findsOneWidget);
+        // No trash button
+        expect(find.byIcon(LucideIcons.trash), findsNothing);
+      },
+    );
   });
 }

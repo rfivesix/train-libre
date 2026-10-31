@@ -41,13 +41,14 @@ void main() {
 
     setUp(() async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
-      tempSupportDir =
-          await Directory.systemTemp.createTemp('backup_restore_test');
+      tempSupportDir = await Directory.systemTemp.createTemp(
+        'backup_restore_test',
+      );
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        (call) async => tempSupportDir.path,
-      );
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (call) async => tempSupportDir.path,
+          );
       AppMediaStore.instance.resetForTesting();
       db = AppDatabase(NativeDatabase.memory());
       dbHelper = DatabaseHelper.forTesting(db);
@@ -64,9 +65,9 @@ void main() {
     tearDown(() async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        null,
-      );
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            null,
+          );
       AppMediaStore.instance.resetForTesting();
       if (await tempSupportDir.exists()) {
         await tempSupportDir.delete(recursive: true);
@@ -74,101 +75,115 @@ void main() {
       await db.close();
     });
 
-    test('manual plan revisions and occurrence history survive restore',
-        () async {
-      const workout = TrainingPlanDay(routineSnapshot: {
-        'name': 'Push',
-        'exercises': <Object>[],
-      });
-      final plans = ManualTrainingPlanRepository(database: db);
-      final planId = await plans.createPlan(
-        name: 'My sequence',
-        kind: TrainingPlanKind.sequence,
-        days: const [workout, TrainingPlanDay()],
-      );
-      final plan = (await plans.activePlan())!;
-      final today = DateTime.now();
-      final day = (await plans.calendar(planId, today, today)).single;
-      await plans.skip(plan, day);
+    test(
+      'manual plan revisions and occurrence history survive restore',
+      () async {
+        const workout = TrainingPlanDay(
+          routineSnapshot: {'name': 'Push', 'exercises': <Object>[]},
+        );
+        final plans = ManualTrainingPlanRepository(database: db);
+        final planId = await plans.createPlan(
+          name: 'My sequence',
+          kind: TrainingPlanKind.sequence,
+          days: const [workout, TrainingPlanDay()],
+        );
+        final plan = (await plans.activePlan())!;
+        final today = DateTime.now();
+        final day = (await plans.calendar(planId, today, today)).single;
+        await plans.skip(plan, day);
 
-      final payload = await backupManager.generateBackupPayloadForTesting();
-      expect(payload['training_plans'], hasLength(1));
-      expect(payload['training_plan_revisions'], hasLength(1));
-      expect(payload['training_plan_occurrences'], hasLength(1));
+        final payload = await backupManager.generateBackupPayloadForTesting();
+        expect(payload['training_plans'], hasLength(1));
+        expect(payload['training_plan_revisions'], hasLength(1));
+        expect(payload['training_plan_occurrences'], hasLength(1));
 
-      expect(
-          await backupManager.importBackupPayloadForTesting(payload), isTrue);
-      final restored = await plans.activePlan();
-      expect(restored?.name, 'My sequence');
-      expect(await plans.revisions(restored!.id), hasLength(1));
-      final restoredDay =
-          (await plans.calendar(restored.id, today, today)).single;
-      expect(restoredDay.status, PlannedDayStatus.skipped);
-    });
+        expect(
+          await backupManager.importBackupPayloadForTesting(payload),
+          isTrue,
+        );
+        final restored = await plans.activePlan();
+        expect(restored?.name, 'My sequence');
+        expect(await plans.revisions(restored!.id), hasLength(1));
+        final restoredDay = (await plans.calendar(
+          restored.id,
+          today,
+          today,
+        )).single;
+        expect(restoredDay.status, PlannedDayStatus.skipped);
+      },
+    );
 
-    test('meal templates and nutrition entries survive backup restore',
-        () async {
-      await db.into(db.products).insert(
-            const ProductsCompanion(
-              barcode: drift.Value('base-apple'),
-              name: drift.Value('Apple'),
-              calories: drift.Value(52),
-              protein: drift.Value(0.3),
-              carbs: drift.Value(14),
-              fat: drift.Value(0.2),
-              source: drift.Value('base'),
-            ),
-          );
-      await dbHelper.insertFoodEntry(
-        FoodEntry(
+    test(
+      'meal templates and nutrition entries survive backup restore',
+      () async {
+        await db
+            .into(db.products)
+            .insert(
+              const ProductsCompanion(
+                barcode: drift.Value('base-apple'),
+                name: drift.Value('Apple'),
+                calories: drift.Value(52),
+                protein: drift.Value(0.3),
+                carbs: drift.Value(14),
+                fat: drift.Value(0.2),
+                source: drift.Value('base'),
+              ),
+            );
+        await dbHelper.insertFoodEntry(
+          FoodEntry(
+            barcode: 'base-apple',
+            timestamp: DateTime(2026, 4, 1, 12, 0),
+            quantityInGrams: 180,
+            mealType: 'mealtypeLunch',
+          ),
+        );
+        final mealId = await dbHelper.insertMeal(
+          name: 'Lunch Bowl',
+          notes: 'High-carb pre-workout',
+          servingCount: 2,
+          cookedWeightInGrams: 320,
+        );
+        await dbHelper.addMealItem(
+          mealId: mealId,
           barcode: 'base-apple',
-          timestamp: DateTime(2026, 4, 1, 12, 0),
-          quantityInGrams: 180,
-          mealType: 'mealtypeLunch',
-        ),
-      );
-      final mealId = await dbHelper.insertMeal(
-        name: 'Lunch Bowl',
-        notes: 'High-carb pre-workout',
-        servingCount: 2,
-        cookedWeightInGrams: 320,
-      );
-      await dbHelper.addMealItem(
-        mealId: mealId,
-        barcode: 'base-apple',
-        amount: 180.0,
-      );
+          amount: 180.0,
+        );
 
-      final payload = await backupManager.generateBackupPayloadForTesting();
+        final payload = await backupManager.generateBackupPayloadForTesting();
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
-      expect(imported, isTrue);
+        final imported = await backupManager.importBackupPayloadForTesting(
+          payload,
+        );
+        expect(imported, isTrue);
 
-      final restoredMeals = await dbHelper.getMeals();
-      expect(restoredMeals.length, 1);
-      expect(restoredMeals.first['name'], 'Lunch Bowl');
-      expect(restoredMeals.first['notes'], 'High-carb pre-workout');
-      expect(restoredMeals.first['serving_count'], 2);
-      expect(restoredMeals.first['cooked_weight_in_grams'], 320);
+        final restoredMeals = await dbHelper.getMeals();
+        expect(restoredMeals.length, 1);
+        expect(restoredMeals.first['name'], 'Lunch Bowl');
+        expect(restoredMeals.first['notes'], 'High-carb pre-workout');
+        expect(restoredMeals.first['serving_count'], 2);
+        expect(restoredMeals.first['cooked_weight_in_grams'], 320);
 
-      final restoredItems =
-          await dbHelper.getMealItems(restoredMeals.first['id'] as int);
-      expect(restoredItems.length, 1);
-      expect(restoredItems.first['barcode'], 'base-apple');
-      expect(restoredItems.first['quantity_in_grams'], 180);
+        final restoredItems = await dbHelper.getMealItems(
+          restoredMeals.first['id'] as int,
+        );
+        expect(restoredItems.length, 1);
+        expect(restoredItems.first['barcode'], 'base-apple');
+        expect(restoredItems.first['quantity_in_grams'], 180);
 
-      final restoredEntries = await dbHelper.getEntriesForDate(
-        DateTime(2026, 4, 1),
-      );
-      expect(restoredEntries.length, 1);
-      expect(restoredEntries.first.barcode, 'base-apple');
-      expect(restoredEntries.first.quantityInGrams, 180);
-      expect(restoredEntries.first.mealType, 'mealtypeLunch');
-    });
+        final restoredEntries = await dbHelper.getEntriesForDate(
+          DateTime(2026, 4, 1),
+        );
+        expect(restoredEntries.length, 1);
+        expect(restoredEntries.first.barcode, 'base-apple');
+        expect(restoredEntries.first.quantityInGrams, 180);
+        expect(restoredEntries.first.mealType, 'mealtypeLunch');
+      },
+    );
 
     test('AI meal entries and their grouping survive backup restore', () async {
-      await db.into(db.products).insert(
+      await db
+          .into(db.products)
+          .insert(
             const ProductsCompanion(
               barcode: drift.Value('base-rice'),
               name: drift.Value('Rice'),
@@ -207,7 +222,9 @@ void main() {
 
       final payload = await backupManager.generateBackupPayloadForTesting();
       expect(
-          await backupManager.importBackupPayloadForTesting(payload), isTrue);
+        await backupManager.importBackupPayloadForTesting(payload),
+        isTrue,
+      );
 
       final restored = await diaryDb.getMealEntryById(mealEntryId);
       expect(restored, isNotNull);
@@ -225,20 +242,20 @@ void main() {
       expect(logs.first.mealEntryId, mealEntryId);
     });
 
-    test('a backup archive carries the meal previews to a fresh device',
-        () async {
+    test('a backup archive carries the meal previews to a fresh device', () async {
       // path_provider has no implementation under `flutter test`, so the photo
       // folder is pointed at a real temporary directory instead.
-      final supportDir =
-          await Directory.systemTemp.createTemp('meal_photos_test');
+      final supportDir = await Directory.systemTemp.createTemp(
+        'meal_photos_test',
+      );
       addTearDown(() async {
         if (await supportDir.exists()) await supportDir.delete(recursive: true);
       });
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        (call) async => supportDir.path,
-      );
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (call) async => supportDir.path,
+          );
 
       AppMediaStore.instance.resetForTesting();
       addTearDown(AppMediaStore.instance.resetForTesting);
@@ -285,19 +302,18 @@ void main() {
       expect(File(p.join(photoDir.path, 'abc.jpg')).existsSync(), isFalse);
     });
 
-    test(
-        'workout logs with up to 4 photos survive backup restore and previews extract properly',
-        () async {
-      final supportDir =
-          await Directory.systemTemp.createTemp('workout_photos_test');
+    test('workout logs with up to 4 photos survive backup restore and previews extract properly', () async {
+      final supportDir = await Directory.systemTemp.createTemp(
+        'workout_photos_test',
+      );
       addTearDown(() async {
         if (await supportDir.exists()) await supportDir.delete(recursive: true);
       });
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        (call) async => supportDir.path,
-      );
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (call) async => supportDir.path,
+          );
 
       AppMediaStore.instance.resetForTesting();
       addTearDown(AppMediaStore.instance.resetForTesting);
@@ -370,207 +386,213 @@ void main() {
       expect(File(p.join(photoDir.path, 'w1.jpg')).existsSync(), isFalse);
     });
 
-    test('changed goals/settings and target prefs survive backup restore',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('targetSugar', 37);
-      await prefs.setInt('targetFiber', 31);
-      await prefs.setInt('targetSalt', 5);
+    test(
+      'changed goals/settings and target prefs survive backup restore',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('targetSugar', 37);
+        await prefs.setInt('targetFiber', 31);
+        await prefs.setInt('targetSalt', 5);
 
-      await dbHelper.saveUserProfile(
-        name: 'Alex',
-        birthday: DateTime(1995, 3, 10),
-        height: 182,
-        gender: 'male',
-      );
-      await dbHelper.saveUserGoals(
-        calories: 2500,
-        protein: 180,
-        carbs: 260,
-        fat: 80,
-        water: 3200,
-        steps: 8500,
-      );
-      await dbHelper.saveUserGoals(
-        calories: 2200,
-        protein: 170,
-        carbs: 210,
-        fat: 70,
-        water: 2800,
-        steps: 9500,
-      );
+        await dbHelper.saveUserProfile(
+          name: 'Alex',
+          birthday: DateTime(1995, 3, 10),
+          height: 182,
+          gender: 'male',
+        );
+        await dbHelper.saveUserGoals(
+          calories: 2500,
+          protein: 180,
+          carbs: 260,
+          fat: 80,
+          water: 3200,
+          steps: 8500,
+        );
+        await dbHelper.saveUserGoals(
+          calories: 2200,
+          protein: 170,
+          carbs: 210,
+          fat: 70,
+          water: 2800,
+          steps: 9500,
+        );
 
-      final payload = await backupManager.generateBackupPayloadForTesting();
+        final payload = await backupManager.generateBackupPayloadForTesting();
 
-      await dbHelper.saveUserGoals(
-        calories: 1800,
-        protein: 120,
-        carbs: 140,
-        fat: 55,
-        water: 2200,
-        steps: 6000,
-      );
-      await prefs.setInt('targetSugar', 99);
+        await dbHelper.saveUserGoals(
+          calories: 1800,
+          protein: 120,
+          carbs: 140,
+          fat: 55,
+          water: 2200,
+          steps: 6000,
+        );
+        await prefs.setInt('targetSugar', 99);
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
-      expect(imported, isTrue);
+        final imported = await backupManager.importBackupPayloadForTesting(
+          payload,
+        );
+        expect(imported, isTrue);
 
-      final restoredSettings = await dbHelper.getAppSettings();
-      expect(restoredSettings, isNotNull);
-      expect(restoredSettings!.targetCalories, 2200);
-      expect(restoredSettings.targetProtein, 170);
-      expect(restoredSettings.targetCarbs, 210);
-      expect(restoredSettings.targetFat, 70);
-      expect(restoredSettings.targetWater, 2800);
-      expect(restoredSettings.targetSteps, 9500);
+        final restoredSettings = await dbHelper.getAppSettings();
+        expect(restoredSettings, isNotNull);
+        expect(restoredSettings!.targetCalories, 2200);
+        expect(restoredSettings.targetProtein, 170);
+        expect(restoredSettings.targetCarbs, 210);
+        expect(restoredSettings.targetFat, 70);
+        expect(restoredSettings.targetWater, 2800);
+        expect(restoredSettings.targetSteps, 9500);
 
-      final historyRows = await db.select(db.dailyGoalsHistory).get();
-      expect(
-        historyRows.any(
-          (row) => row.targetCalories == 2200 && row.targetSteps == 9500,
-        ),
-        isTrue,
-      );
+        final historyRows = await db.select(db.dailyGoalsHistory).get();
+        expect(
+          historyRows.any(
+            (row) => row.targetCalories == 2200 && row.targetSteps == 9500,
+          ),
+          isTrue,
+        );
 
-      final restoredPrefs = await SharedPreferences.getInstance();
-      expect(restoredPrefs.getInt('targetSugar'), 37);
-      expect(restoredPrefs.getInt('targetFiber'), 31);
-      expect(restoredPrefs.getInt('targetSalt'), 5);
-    });
+        final restoredPrefs = await SharedPreferences.getInstance();
+        expect(restoredPrefs.getInt('targetSugar'), 37);
+        expect(restoredPrefs.getInt('targetFiber'), 31);
+        expect(restoredPrefs.getInt('targetSalt'), 5);
+      },
+    );
 
-    test('adaptive recommendation shared-preference state survives restore',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
-      const goalKey = 'adaptive_nutrition_recommendation.goal_direction';
-      const rateKey =
-          'adaptive_nutrition_recommendation.target_rate_kg_per_week';
-      const priorActivityLevelKey =
-          'adaptive_nutrition_recommendation.prior_activity_level';
-      const extraCardioHoursKey =
-          'adaptive_nutrition_recommendation.extra_cardio_hours';
-      const latestSnapshotKey =
-          'adaptive_nutrition_recommendation.latest_snapshot';
-      const latestRecursiveStateKey =
-          'adaptive_nutrition_recommendation.latest_recursive_state';
-      const latestAppliedKey =
-          'adaptive_nutrition_recommendation.latest_applied';
-      const dueWeekKey =
-          'adaptive_nutrition_recommendation.last_generated_due_week_key';
-      const dueNotificationWeekKey =
-          'adaptive_nutrition_recommendation.last_due_notification_week_key';
-      const dietPhaseTrackingStateKey =
-          'adaptive_nutrition_recommendation.diet_phase_tracking_state';
-      const legacyGeneratedKey =
-          'adaptive_nutrition_recommendation.latest_generated';
+    test(
+      'adaptive recommendation shared-preference state survives restore',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        const goalKey = 'adaptive_nutrition_recommendation.goal_direction';
+        const rateKey =
+            'adaptive_nutrition_recommendation.target_rate_kg_per_week';
+        const priorActivityLevelKey =
+            'adaptive_nutrition_recommendation.prior_activity_level';
+        const extraCardioHoursKey =
+            'adaptive_nutrition_recommendation.extra_cardio_hours';
+        const latestSnapshotKey =
+            'adaptive_nutrition_recommendation.latest_snapshot';
+        const latestRecursiveStateKey =
+            'adaptive_nutrition_recommendation.latest_recursive_state';
+        const latestAppliedKey =
+            'adaptive_nutrition_recommendation.latest_applied';
+        const dueWeekKey =
+            'adaptive_nutrition_recommendation.last_generated_due_week_key';
+        const dueNotificationWeekKey =
+            'adaptive_nutrition_recommendation.last_due_notification_week_key';
+        const dietPhaseTrackingStateKey =
+            'adaptive_nutrition_recommendation.diet_phase_tracking_state';
+        const legacyGeneratedKey =
+            'adaptive_nutrition_recommendation.latest_generated';
 
-      await prefs.setString(goalKey, 'loseWeight');
-      await prefs.setDouble(rateKey, -0.5);
-      await prefs.setString(priorActivityLevelKey, 'veryHigh');
-      await prefs.setString(extraCardioHoursKey, 'h5');
-      await prefs.setString(
-        latestSnapshotKey,
-        jsonEncode(<String, dynamic>{
-          'dueWeekKey': '2026-03-30',
-          'algorithmVersion':
-              'tdee_adaptive_recommendation_1_0_bayesian_recursive',
-        }),
-      );
-      await prefs.setString(
-        latestRecursiveStateKey,
-        jsonEncode(<String, dynamic>{
-          'lastDueWeekKey': '2026-03-30',
-          'posteriorMeanCalories': 2450.0,
-          'posteriorVarianceCalories2': 160000.0,
-        }),
-      );
-      await prefs.setString(
-        latestAppliedKey,
-        jsonEncode(<String, dynamic>{
-          'recommendedCalories': 2100,
-          'goal': 'loseWeight',
-          'targetRateKgPerWeek': -0.5,
-        }),
-      );
-      await prefs.setString(dueWeekKey, '2026-03-30');
-      await prefs.setString(dueNotificationWeekKey, '2026-03-30');
-      await prefs.setString(
-        dietPhaseTrackingStateKey,
-        jsonEncode(<String, dynamic>{
-          'confirmedPhase': 'cut',
-          'confirmedPhaseStartDay': '2026-03-30',
-        }),
-      );
-      await prefs.setString(legacyGeneratedKey, '{"legacy":true}');
+        await prefs.setString(goalKey, 'loseWeight');
+        await prefs.setDouble(rateKey, -0.5);
+        await prefs.setString(priorActivityLevelKey, 'veryHigh');
+        await prefs.setString(extraCardioHoursKey, 'h5');
+        await prefs.setString(
+          latestSnapshotKey,
+          jsonEncode(<String, dynamic>{
+            'dueWeekKey': '2026-03-30',
+            'algorithmVersion':
+                'tdee_adaptive_recommendation_1_0_bayesian_recursive',
+          }),
+        );
+        await prefs.setString(
+          latestRecursiveStateKey,
+          jsonEncode(<String, dynamic>{
+            'lastDueWeekKey': '2026-03-30',
+            'posteriorMeanCalories': 2450.0,
+            'posteriorVarianceCalories2': 160000.0,
+          }),
+        );
+        await prefs.setString(
+          latestAppliedKey,
+          jsonEncode(<String, dynamic>{
+            'recommendedCalories': 2100,
+            'goal': 'loseWeight',
+            'targetRateKgPerWeek': -0.5,
+          }),
+        );
+        await prefs.setString(dueWeekKey, '2026-03-30');
+        await prefs.setString(dueNotificationWeekKey, '2026-03-30');
+        await prefs.setString(
+          dietPhaseTrackingStateKey,
+          jsonEncode(<String, dynamic>{
+            'confirmedPhase': 'cut',
+            'confirmedPhaseStartDay': '2026-03-30',
+          }),
+        );
+        await prefs.setString(legacyGeneratedKey, '{"legacy":true}');
 
-      final payload = await backupManager.generateBackupPayloadForTesting();
-      final userPreferences =
-          payload['userPreferences'] as Map<String, dynamic>;
-      expect(userPreferences[priorActivityLevelKey], 'veryHigh');
-      expect(userPreferences[extraCardioHoursKey], 'h5');
-      expect(userPreferences[latestSnapshotKey], isNotNull);
-      expect(userPreferences[latestRecursiveStateKey], isNotNull);
-      expect(userPreferences[latestAppliedKey], isNotNull);
-      expect(userPreferences[dueNotificationWeekKey], '2026-03-30');
-      expect(userPreferences[dietPhaseTrackingStateKey], isNotNull);
-      expect(userPreferences[legacyGeneratedKey], '{"legacy":true}');
+        final payload = await backupManager.generateBackupPayloadForTesting();
+        final userPreferences =
+            payload['userPreferences'] as Map<String, dynamic>;
+        expect(userPreferences[priorActivityLevelKey], 'veryHigh');
+        expect(userPreferences[extraCardioHoursKey], 'h5');
+        expect(userPreferences[latestSnapshotKey], isNotNull);
+        expect(userPreferences[latestRecursiveStateKey], isNotNull);
+        expect(userPreferences[latestAppliedKey], isNotNull);
+        expect(userPreferences[dueNotificationWeekKey], '2026-03-30');
+        expect(userPreferences[dietPhaseTrackingStateKey], isNotNull);
+        expect(userPreferences[legacyGeneratedKey], '{"legacy":true}');
 
-      await prefs.setString(goalKey, 'gainWeight');
-      await prefs.setDouble(rateKey, 0.5);
-      await prefs.setString(priorActivityLevelKey, 'low');
-      await prefs.setString(extraCardioHoursKey, 'h0');
-      await prefs.setString(latestSnapshotKey, '{}');
-      await prefs.setString(latestRecursiveStateKey, '{}');
-      await prefs.setString(latestAppliedKey, '{}');
-      await prefs.setString(dueWeekKey, '2026-04-06');
-      await prefs.setString(dueNotificationWeekKey, '2026-04-06');
-      await prefs.setString(dietPhaseTrackingStateKey, '{}');
-      await prefs.setString(legacyGeneratedKey, '{}');
+        await prefs.setString(goalKey, 'gainWeight');
+        await prefs.setDouble(rateKey, 0.5);
+        await prefs.setString(priorActivityLevelKey, 'low');
+        await prefs.setString(extraCardioHoursKey, 'h0');
+        await prefs.setString(latestSnapshotKey, '{}');
+        await prefs.setString(latestRecursiveStateKey, '{}');
+        await prefs.setString(latestAppliedKey, '{}');
+        await prefs.setString(dueWeekKey, '2026-04-06');
+        await prefs.setString(dueNotificationWeekKey, '2026-04-06');
+        await prefs.setString(dietPhaseTrackingStateKey, '{}');
+        await prefs.setString(legacyGeneratedKey, '{}');
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
-      expect(imported, isTrue);
+        final imported = await backupManager.importBackupPayloadForTesting(
+          payload,
+        );
+        expect(imported, isTrue);
 
-      final restoredPrefs = await SharedPreferences.getInstance();
-      expect(restoredPrefs.getString(goalKey), 'loseWeight');
-      expect(restoredPrefs.getDouble(rateKey), -0.5);
-      expect(restoredPrefs.getString(priorActivityLevelKey), 'veryHigh');
-      expect(restoredPrefs.getString(extraCardioHoursKey), 'h5');
-      expect(
-        restoredPrefs.getString(latestAppliedKey),
-        jsonEncode(<String, dynamic>{
-          'recommendedCalories': 2100,
-          'goal': 'loseWeight',
-          'targetRateKgPerWeek': -0.5,
-        }),
-      );
-      expect(
-        restoredPrefs.getString(latestSnapshotKey),
-        jsonEncode(<String, dynamic>{
-          'dueWeekKey': '2026-03-30',
-          'algorithmVersion':
-              'tdee_adaptive_recommendation_1_0_bayesian_recursive',
-        }),
-      );
-      expect(
-        restoredPrefs.getString(latestRecursiveStateKey),
-        jsonEncode(<String, dynamic>{
-          'lastDueWeekKey': '2026-03-30',
-          'posteriorMeanCalories': 2450.0,
-          'posteriorVarianceCalories2': 160000.0,
-        }),
-      );
-      expect(restoredPrefs.getString(dueWeekKey), '2026-03-30');
-      expect(restoredPrefs.getString(dueNotificationWeekKey), '2026-03-30');
-      expect(
-        restoredPrefs.getString(dietPhaseTrackingStateKey),
-        jsonEncode(<String, dynamic>{
-          'confirmedPhase': 'cut',
-          'confirmedPhaseStartDay': '2026-03-30',
-        }),
-      );
-      expect(restoredPrefs.getString(legacyGeneratedKey), '{"legacy":true}');
-    });
+        final restoredPrefs = await SharedPreferences.getInstance();
+        expect(restoredPrefs.getString(goalKey), 'loseWeight');
+        expect(restoredPrefs.getDouble(rateKey), -0.5);
+        expect(restoredPrefs.getString(priorActivityLevelKey), 'veryHigh');
+        expect(restoredPrefs.getString(extraCardioHoursKey), 'h5');
+        expect(
+          restoredPrefs.getString(latestAppliedKey),
+          jsonEncode(<String, dynamic>{
+            'recommendedCalories': 2100,
+            'goal': 'loseWeight',
+            'targetRateKgPerWeek': -0.5,
+          }),
+        );
+        expect(
+          restoredPrefs.getString(latestSnapshotKey),
+          jsonEncode(<String, dynamic>{
+            'dueWeekKey': '2026-03-30',
+            'algorithmVersion':
+                'tdee_adaptive_recommendation_1_0_bayesian_recursive',
+          }),
+        );
+        expect(
+          restoredPrefs.getString(latestRecursiveStateKey),
+          jsonEncode(<String, dynamic>{
+            'lastDueWeekKey': '2026-03-30',
+            'posteriorMeanCalories': 2450.0,
+            'posteriorVarianceCalories2': 160000.0,
+          }),
+        );
+        expect(restoredPrefs.getString(dueWeekKey), '2026-03-30');
+        expect(restoredPrefs.getString(dueNotificationWeekKey), '2026-03-30');
+        expect(
+          restoredPrefs.getString(dietPhaseTrackingStateKey),
+          jsonEncode(<String, dynamic>{
+            'confirmedPhase': 'cut',
+            'confirmedPhaseStartDay': '2026-03-30',
+          }),
+        );
+        expect(restoredPrefs.getString(legacyGeneratedKey), '{"legacy":true}');
+      },
+    );
 
     test('app settings restore even when profile payload is missing', () async {
       final payload = <String, dynamic>{
@@ -604,8 +626,9 @@ void main() {
         'healthStepSegments': const <dynamic>[],
       };
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final imported = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(imported, isTrue);
 
       final restoredSettings = await dbHelper.getAppSettings();
@@ -620,7 +643,9 @@ void main() {
     });
 
     test('workout set metadata is preserved during restore import', () async {
-      await db.into(db.exercises).insert(
+      await db
+          .into(db.exercises)
+          .insert(
             const ExercisesCompanion(
               source: drift.Value('base'),
               isCustom: drift.Value(false),
@@ -673,131 +698,137 @@ void main() {
       expect(set.rir, 1);
     });
 
-    test('backup round-trip preserves exercise blocks and superset snapshots',
-        () async {
-      await workoutDb.importWorkoutData(
-        routines: const [],
-        workoutLogs: [
-          WorkoutLog(
-            routineName: 'Upper',
-            startTime: DateTime(2026, 4, 3, 8),
-            endTime: DateTime(2026, 4, 3, 9),
-            sets: [
-              SetLog(
-                workoutLogId: 1,
-                exerciseName: 'Bench Press',
-                setType: 'normal',
-                exerciseBlock: 0,
-                supersetGroup: 9,
-                logOrder: 0,
-              ),
-              SetLog(
-                workoutLogId: 1,
-                exerciseName: 'Row',
-                setType: 'normal',
-                exerciseBlock: 1,
-                supersetGroup: 9,
-                logOrder: 1,
+    test(
+      'backup round-trip preserves exercise blocks and superset snapshots',
+      () async {
+        await workoutDb.importWorkoutData(
+          routines: const [],
+          workoutLogs: [
+            WorkoutLog(
+              routineName: 'Upper',
+              startTime: DateTime(2026, 4, 3, 8),
+              endTime: DateTime(2026, 4, 3, 9),
+              sets: [
+                SetLog(
+                  workoutLogId: 1,
+                  exerciseName: 'Bench Press',
+                  setType: 'normal',
+                  exerciseBlock: 0,
+                  supersetGroup: 9,
+                  logOrder: 0,
+                ),
+                SetLog(
+                  workoutLogId: 1,
+                  exerciseName: 'Row',
+                  setType: 'normal',
+                  exerciseBlock: 1,
+                  supersetGroup: 9,
+                  logOrder: 1,
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final payload = await backupManager.generateBackupPayloadForTesting();
+        final imported = await backupManager.importBackupPayloadForTesting(
+          payload,
+        );
+
+        expect(imported, isTrue);
+        final restored = await db.select(db.setLogs).get();
+        expect(restored.map((set) => set.exerciseBlock), [0, 1]);
+        expect(restored.map((set) => set.supersetGroup), [9, 9]);
+      },
+    );
+
+    test(
+      'backup payload contains critical persistence domains and changed values',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('targetSugar', 42);
+        await prefs.setInt('targetFiber', 28);
+        await prefs.setInt('targetSalt', 6);
+        await prefs.setBool('ai_enabled', true);
+        await prefs.setString('ai_selected_provider', 'openai');
+        await prefs.setString('ai_selected_model_openai', 'gpt-5.4');
+
+        await dbHelper.saveUserProfile(
+          name: 'Taylor',
+          birthday: DateTime(1994, 8, 12),
+          height: 176,
+          gender: 'female',
+        );
+        await dbHelper.saveUserGoals(
+          calories: 2300,
+          protein: 165,
+          carbs: 240,
+          fat: 72,
+          water: 2900,
+          steps: 9200,
+        );
+        await dbHelper.insertMeasurementSession(
+          MeasurementSession(
+            timestamp: DateTime(2026, 4, 3, 7, 45),
+            measurements: [
+              Measurement(
+                sessionId: 0,
+                type: 'weight',
+                value: 78.4,
+                unit: 'kg',
               ),
             ],
           ),
-        ],
-      );
+        );
 
-      final payload = await backupManager.generateBackupPayloadForTesting();
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
+        final payload = await backupManager.generateBackupPayloadForTesting();
 
-      expect(imported, isTrue);
-      final restored = await db.select(db.setLogs).get();
-      expect(restored.map((set) => set.exerciseBlock), [0, 1]);
-      expect(restored.map((set) => set.supersetGroup), [9, 9]);
-    });
+        expect(payload['schemaVersion'], BackupManager.currentSchemaVersion);
+        expect(payload['foodEntries'], isA<List<dynamic>>());
+        expect(payload['mealTemplates'], isA<List<dynamic>>());
+        expect(payload['fluidEntries'], isA<List<dynamic>>());
+        expect(payload['favoriteBarcodes'], isA<List<dynamic>>());
+        expect(payload['customFoodItems'], isA<List<dynamic>>());
+        expect(payload['measurementSessions'], isA<List<dynamic>>());
+        expect(payload['dailyGoalsHistory'], isA<List<dynamic>>());
+        expect(payload['appSettings'], isA<Map<String, dynamic>>());
+        expect(payload['profile'], isA<Map<String, dynamic>>());
+        expect(payload['userPreferences'], isA<Map<String, dynamic>>());
+        expect(payload['healthStepSegments'], isA<List<dynamic>>());
+
+        final appSettings = payload['appSettings'] as Map<String, dynamic>;
+        expect(appSettings['targetCalories'], 2300);
+        expect(appSettings['targetProtein'], 165);
+        expect(appSettings['targetCarbs'], 240);
+        expect(appSettings['targetFat'], 72);
+        expect(appSettings['targetWater'], 2900);
+        expect(appSettings['targetSteps'], 9200);
+
+        final userPreferences =
+            payload['userPreferences'] as Map<String, dynamic>;
+        expect(userPreferences['targetSugar'], 42);
+        expect(userPreferences['targetFiber'], 28);
+        expect(userPreferences['targetSalt'], 6);
+        expect(userPreferences['ai_enabled'], isTrue);
+        expect(userPreferences['ai_selected_provider'], 'openai');
+        expect(userPreferences['ai_selected_model_openai'], 'gpt-5.4');
+      },
+    );
 
     test(
-        'backup payload contains critical persistence domains and changed values',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('targetSugar', 42);
-      await prefs.setInt('targetFiber', 28);
-      await prefs.setInt('targetSalt', 6);
-      await prefs.setBool('ai_enabled', true);
-      await prefs.setString('ai_selected_provider', 'openai');
-      await prefs.setString('ai_selected_model_openai', 'gpt-5.4');
+      'new backup payload uses Train Libre metadata and file prefix',
+      () async {
+        final payload = await backupManager.generateBackupPayloadForTesting();
 
-      await dbHelper.saveUserProfile(
-        name: 'Taylor',
-        birthday: DateTime(1994, 8, 12),
-        height: 176,
-        gender: 'female',
-      );
-      await dbHelper.saveUserGoals(
-        calories: 2300,
-        protein: 165,
-        carbs: 240,
-        fat: 72,
-        water: 2900,
-        steps: 9200,
-      );
-      await dbHelper.insertMeasurementSession(
-        MeasurementSession(
-          timestamp: DateTime(2026, 4, 3, 7, 45),
-          measurements: [
-            Measurement(
-              sessionId: 0,
-              type: 'weight',
-              value: 78.4,
-              unit: 'kg',
-            ),
-          ],
-        ),
-      );
-
-      final payload = await backupManager.generateBackupPayloadForTesting();
-
-      expect(payload['schemaVersion'], BackupManager.currentSchemaVersion);
-      expect(payload['foodEntries'], isA<List<dynamic>>());
-      expect(payload['mealTemplates'], isA<List<dynamic>>());
-      expect(payload['fluidEntries'], isA<List<dynamic>>());
-      expect(payload['favoriteBarcodes'], isA<List<dynamic>>());
-      expect(payload['customFoodItems'], isA<List<dynamic>>());
-      expect(payload['measurementSessions'], isA<List<dynamic>>());
-      expect(payload['dailyGoalsHistory'], isA<List<dynamic>>());
-      expect(payload['appSettings'], isA<Map<String, dynamic>>());
-      expect(payload['profile'], isA<Map<String, dynamic>>());
-      expect(payload['userPreferences'], isA<Map<String, dynamic>>());
-      expect(payload['healthStepSegments'], isA<List<dynamic>>());
-
-      final appSettings = payload['appSettings'] as Map<String, dynamic>;
-      expect(appSettings['targetCalories'], 2300);
-      expect(appSettings['targetProtein'], 165);
-      expect(appSettings['targetCarbs'], 240);
-      expect(appSettings['targetFat'], 72);
-      expect(appSettings['targetWater'], 2900);
-      expect(appSettings['targetSteps'], 9200);
-
-      final userPreferences =
-          payload['userPreferences'] as Map<String, dynamic>;
-      expect(userPreferences['targetSugar'], 42);
-      expect(userPreferences['targetFiber'], 28);
-      expect(userPreferences['targetSalt'], 6);
-      expect(userPreferences['ai_enabled'], isTrue);
-      expect(userPreferences['ai_selected_provider'], 'openai');
-      expect(userPreferences['ai_selected_model_openai'], 'gpt-5.4');
-    });
-
-    test('new backup payload uses Train Libre metadata and file prefix',
-        () async {
-      final payload = await backupManager.generateBackupPayloadForTesting();
-
-      expect(payload['appName'], BackupManager.currentBackupAppName);
-      expect(payload['applicationId'], BackupManager.currentApplicationId);
-      expect(
-        payload['backupFilePrefix'],
-        BackupManager.currentBackupFilePrefix,
-      );
-      expect(payload['generatedAtUtc'], isA<String>());
-    });
+        expect(payload['appName'], BackupManager.currentBackupAppName);
+        expect(payload['applicationId'], BackupManager.currentApplicationId);
+        expect(
+          payload['backupFilePrefix'],
+          BackupManager.currentBackupFilePrefix,
+        );
+        expect(payload['generatedAtUtc'], isA<String>());
+      },
+    );
 
     test('restore accepts legacy Hypertrack backup metadata', () async {
       final payload = await backupManager.generateBackupPayloadForTesting();
@@ -806,8 +837,9 @@ void main() {
       payload['backupFilePrefix'] =
           BackupManager.legacyBackupFilePrefixes.first;
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final imported = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(imported, isTrue);
     });
 
@@ -817,90 +849,92 @@ void main() {
       payload['applicationId'] = BackupManager.currentApplicationId;
       payload['backupFilePrefix'] = BackupManager.currentBackupFilePrefix;
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final imported = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(imported, isTrue);
     });
 
-    test('restore preserves daily goals history timestamps and target values',
-        () async {
-      final payload = <String, dynamic>{
-        'schemaVersion': BackupManager.currentSchemaVersion,
-        'foodEntries': const <dynamic>[],
-        'mealTemplates': const <dynamic>[],
-        'fluidEntries': const <dynamic>[],
-        'favoriteBarcodes': const <dynamic>[],
-        'customFoodItems': const <dynamic>[],
-        'measurementSessions': const <dynamic>[],
-        'routines': const <dynamic>[],
-        'workoutLogs': const <dynamic>[],
-        'userPreferences': const <String, dynamic>{},
-        'supplements': const <dynamic>[],
-        'supplementLogs': const <dynamic>[],
-        'customExercises': const <dynamic>[],
-        'supplementSettingsHistory': const <dynamic>[],
-        'dailyGoalsHistory': <Map<String, dynamic>>[
-          <String, dynamic>{
-            'targetCalories': 2100,
-            'targetProtein': 155,
-            'targetCarbs': 210,
-            'targetFat': 68,
-            'targetWater': 2600,
-            'targetSteps': 7000,
-            'createdAt': '2026-01-10T08:30:00.000Z',
-          },
-          <String, dynamic>{
+    test(
+      'restore preserves daily goals history timestamps and target values',
+      () async {
+        final payload = <String, dynamic>{
+          'schemaVersion': BackupManager.currentSchemaVersion,
+          'foodEntries': const <dynamic>[],
+          'mealTemplates': const <dynamic>[],
+          'fluidEntries': const <dynamic>[],
+          'favoriteBarcodes': const <dynamic>[],
+          'customFoodItems': const <dynamic>[],
+          'measurementSessions': const <dynamic>[],
+          'routines': const <dynamic>[],
+          'workoutLogs': const <dynamic>[],
+          'userPreferences': const <String, dynamic>{},
+          'supplements': const <dynamic>[],
+          'supplementLogs': const <dynamic>[],
+          'customExercises': const <dynamic>[],
+          'supplementSettingsHistory': const <dynamic>[],
+          'dailyGoalsHistory': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'targetCalories': 2100,
+              'targetProtein': 155,
+              'targetCarbs': 210,
+              'targetFat': 68,
+              'targetWater': 2600,
+              'targetSteps': 7000,
+              'createdAt': '2026-01-10T08:30:00.000Z',
+            },
+            <String, dynamic>{
+              'targetCalories': 2400,
+              'targetProtein': 175,
+              'targetCarbs': 250,
+              'targetFat': 78,
+              'targetWater': 3100,
+              'targetSteps': 9500,
+              'createdAt': '2026-03-05T18:15:00.000Z',
+            },
+          ],
+          'appSettings': <String, dynamic>{
+            'userId': 'hist-user-1',
+            'themeMode': 'system',
+            'unitSystem': 'metric',
             'targetCalories': 2400,
             'targetProtein': 175,
             'targetCarbs': 250,
             'targetFat': 78,
             'targetWater': 3100,
             'targetSteps': 9500,
-            'createdAt': '2026-03-05T18:15:00.000Z',
           },
-        ],
-        'appSettings': <String, dynamic>{
-          'userId': 'hist-user-1',
-          'themeMode': 'system',
-          'unitSystem': 'metric',
-          'targetCalories': 2400,
-          'targetProtein': 175,
-          'targetCarbs': 250,
-          'targetFat': 78,
-          'targetWater': 3100,
-          'targetSteps': 9500,
-        },
-        'profile': null,
-        'healthStepSegments': const <dynamic>[],
-      };
+          'profile': null,
+          'healthStepSegments': const <dynamic>[],
+        };
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
-      expect(imported, isTrue);
+        final imported = await backupManager.importBackupPayloadForTesting(
+          payload,
+        );
+        expect(imported, isTrue);
 
-      final historyRows = await (db.select(db.dailyGoalsHistory)
-            ..orderBy([(t) => drift.OrderingTerm.asc(t.createdAt)]))
-          .get();
+        final historyRows = await (db.select(
+          db.dailyGoalsHistory,
+        )..orderBy([(t) => drift.OrderingTerm.asc(t.createdAt)])).get();
 
-      expect(historyRows.length, 2);
-      expect(historyRows[0].targetCalories, 2100);
-      expect(historyRows[0].targetSteps, 7000);
-      expect(
-        historyRows[0].createdAt.toUtc(),
-        DateTime.parse('2026-01-10T08:30:00.000Z').toUtc(),
-      );
+        expect(historyRows.length, 2);
+        expect(historyRows[0].targetCalories, 2100);
+        expect(historyRows[0].targetSteps, 7000);
+        expect(
+          historyRows[0].createdAt.toUtc(),
+          DateTime.parse('2026-01-10T08:30:00.000Z').toUtc(),
+        );
 
-      expect(historyRows[1].targetCalories, 2400);
-      expect(historyRows[1].targetSteps, 9500);
-      expect(
-        historyRows[1].createdAt.toUtc(),
-        DateTime.parse('2026-03-05T18:15:00.000Z').toUtc(),
-      );
-    });
+        expect(historyRows[1].targetCalories, 2400);
+        expect(historyRows[1].targetSteps, 9500);
+        expect(
+          historyRows[1].createdAt.toUtc(),
+          DateTime.parse('2026-03-05T18:15:00.000Z').toUtc(),
+        );
+      },
+    );
 
-    test(
-        'restore skips malformed daily goals history rows instead of failing import',
-        () async {
+    test('restore skips malformed daily goals history rows instead of failing import', () async {
       final payload = <String, dynamic>{
         'schemaVersion': BackupManager.currentSchemaVersion,
         'foodEntries': const <dynamic>[],
@@ -951,8 +985,9 @@ void main() {
         'healthStepSegments': const <dynamic>[],
       };
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final imported = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(imported, isTrue);
 
       final historyRows = await db.select(db.dailyGoalsHistory).get();
@@ -962,9 +997,7 @@ void main() {
       expect(historyRows.first.targetSteps, 9500);
     });
 
-    test(
-        'restore maps supplement settings history via legacy local id and tolerates string-typed values',
-        () async {
+    test('restore maps supplement settings history via legacy local id and tolerates string-typed values', () async {
       final payload = <String, dynamic>{
         'schemaVersion': BackupManager.currentSchemaVersion,
         'foodEntries': const <dynamic>[],
@@ -1019,8 +1052,9 @@ void main() {
         'healthStepSegments': const <dynamic>[],
       };
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final imported = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(imported, isTrue);
 
       final rows = await db.select(db.supplementSettingsHistory).get();
@@ -1083,8 +1117,9 @@ void main() {
         ],
       };
 
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final imported = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(imported, isTrue);
 
       final segments = await db.select(db.healthStepSegments).get();
@@ -1093,166 +1128,174 @@ void main() {
     });
 
     test(
-        'supplements is_tracked states (true/false) survive backup and restore',
-        () async {
-      // 1. Insert initial supplements with mixed isTracked states
-      await dbHelper.insertSupplement(
-        'Creatine Gold',
-        5.0,
-        'g',
-        10.0,
-      );
-      // Wait, let's insert using domain model
-      final customSupplement = Supplement(
-        id: 101,
-        name: 'Untracked Beta-Alanine',
-        defaultDose: 3.2,
-        unit: 'g',
-        isTracked: false,
-      );
-      final customTrackedSupplement = Supplement(
-        id: 102,
-        name: 'Tracked Citrulline',
-        defaultDose: 8.0,
-        unit: 'g',
-        isTracked: true,
-      );
+      'supplements is_tracked states (true/false) survive backup and restore',
+      () async {
+        // 1. Insert initial supplements with mixed isTracked states
+        await dbHelper.insertSupplement('Creatine Gold', 5.0, 'g', 10.0);
+        // Wait, let's insert using domain model
+        final customSupplement = Supplement(
+          id: 101,
+          name: 'Untracked Beta-Alanine',
+          defaultDose: 3.2,
+          unit: 'g',
+          isTracked: false,
+        );
+        final customTrackedSupplement = Supplement(
+          id: 102,
+          name: 'Tracked Citrulline',
+          defaultDose: 8.0,
+          unit: 'g',
+          isTracked: true,
+        );
 
-      await dbHelper.importUserData(
-        foodEntries: [],
-        fluidEntries: [],
-        favoriteBarcodes: [],
-        measurementSessions: [],
-        supplements: [customSupplement, customTrackedSupplement],
-        supplementLogs: [],
-      );
+        await dbHelper.importUserData(
+          foodEntries: [],
+          fluidEntries: [],
+          favoriteBarcodes: [],
+          measurementSessions: [],
+          supplements: [customSupplement, customTrackedSupplement],
+          supplementLogs: [],
+        );
 
-      // Verify they are initially stored correctly
-      var currentSupps = await dbHelper.getAllSupplements();
-      final untrackedInDb =
-          currentSupps.firstWhere((s) => s.name == 'Untracked Beta-Alanine');
-      final trackedInDb =
-          currentSupps.firstWhere((s) => s.name == 'Tracked Citrulline');
-      expect(untrackedInDb.isTracked, isFalse);
-      expect(trackedInDb.isTracked, isTrue);
+        // Verify they are initially stored correctly
+        var currentSupps = await dbHelper.getAllSupplements();
+        final untrackedInDb = currentSupps.firstWhere(
+          (s) => s.name == 'Untracked Beta-Alanine',
+        );
+        final trackedInDb = currentSupps.firstWhere(
+          (s) => s.name == 'Tracked Citrulline',
+        );
+        expect(untrackedInDb.isTracked, isFalse);
+        expect(trackedInDb.isTracked, isTrue);
 
-      // 2. Generate backup
-      final payload = await backupManager.generateBackupPayloadForTesting();
+        // 2. Generate backup
+        final payload = await backupManager.generateBackupPayloadForTesting();
 
-      // Verify the JSON backup payload contains the correct attributes
-      final suppList = payload['supplements'] as List<dynamic>;
-      final rawUntracked =
-          suppList.firstWhere((s) => s['name'] == 'Untracked Beta-Alanine');
-      final rawTracked =
-          suppList.firstWhere((s) => s['name'] == 'Tracked Citrulline');
-      expect(rawUntracked['is_tracked'], 0);
-      expect(rawTracked['is_tracked'], 1);
+        // Verify the JSON backup payload contains the correct attributes
+        final suppList = payload['supplements'] as List<dynamic>;
+        final rawUntracked = suppList.firstWhere(
+          (s) => s['name'] == 'Untracked Beta-Alanine',
+        );
+        final rawTracked = suppList.firstWhere(
+          (s) => s['name'] == 'Tracked Citrulline',
+        );
+        expect(rawUntracked['is_tracked'], 0);
+        expect(rawTracked['is_tracked'], 1);
 
-      // 3. Clear database and restore
-      await dbHelper.clearAllUserData();
-      final imported =
-          await backupManager.importBackupPayloadForTesting(payload);
-      expect(imported, isTrue);
+        // 3. Clear database and restore
+        await dbHelper.clearAllUserData();
+        final imported = await backupManager.importBackupPayloadForTesting(
+          payload,
+        );
+        expect(imported, isTrue);
 
-      // 4. Verify post-restoration states match original values
-      final restoredSupps = await dbHelper.getAllSupplements();
-      final restoredUntracked =
-          restoredSupps.firstWhere((s) => s.name == 'Untracked Beta-Alanine');
-      final restoredTracked =
-          restoredSupps.firstWhere((s) => s.name == 'Tracked Citrulline');
-      expect(restoredUntracked.isTracked, isFalse);
-      expect(restoredTracked.isTracked, isTrue);
+        // 4. Verify post-restoration states match original values
+        final restoredSupps = await dbHelper.getAllSupplements();
+        final restoredUntracked = restoredSupps.firstWhere(
+          (s) => s.name == 'Untracked Beta-Alanine',
+        );
+        final restoredTracked = restoredSupps.firstWhere(
+          (s) => s.name == 'Tracked Citrulline',
+        );
+        expect(restoredUntracked.isTracked, isFalse);
+        expect(restoredTracked.isTracked, isTrue);
 
-      // 5. Test compatibility with legacy/boolean/null formats
-      final compatPayload = <String, dynamic>{
-        'schemaVersion': BackupManager.currentSchemaVersion,
-        'foodEntries': const <dynamic>[],
-        'mealTemplates': const <dynamic>[],
-        'fluidEntries': const <dynamic>[],
-        'favoriteBarcodes': const <dynamic>[],
-        'customFoodItems': const <dynamic>[],
-        'measurementSessions': const <dynamic>[],
-        'routines': const <dynamic>[],
-        'workoutLogs': const <dynamic>[],
-        'userPreferences': const <String, dynamic>{},
-        'supplements': <Map<String, dynamic>>[
-          <String, dynamic>{
-            'id': 201,
-            'name': 'Legacy Int Tracked',
-            'default_dose': 1.0,
-            'unit': 'pill',
-            'is_tracked': 1,
-          },
-          <String, dynamic>{
-            'id': 202,
-            'name': 'Legacy Int Untracked',
-            'default_dose': 1.0,
-            'unit': 'pill',
-            'is_tracked': 0,
-          },
-          <String, dynamic>{
-            'id': 203,
-            'name': 'Boolean Tracked',
-            'default_dose': 1.0,
-            'unit': 'pill',
-            'is_tracked': true,
-          },
-          <String, dynamic>{
-            'id': 204,
-            'name': 'Boolean Untracked',
-            'default_dose': 1.0,
-            'unit': 'pill',
-            'is_tracked': false,
-          },
-          <String, dynamic>{
-            'id': 205,
-            'name': 'Null Fallback Tracked',
-            'default_dose': 1.0,
-            'unit': 'pill',
-            'is_tracked': null,
-          },
-        ],
-        'supplementLogs': const <dynamic>[],
-        'customExercises': const <dynamic>[],
-        'dailyGoalsHistory': const <dynamic>[],
-        'supplementSettingsHistory': const <dynamic>[],
-        'appSettings': null,
-        'profile': null,
-        'healthStepSegments': const <dynamic>[],
-      };
+        // 5. Test compatibility with legacy/boolean/null formats
+        final compatPayload = <String, dynamic>{
+          'schemaVersion': BackupManager.currentSchemaVersion,
+          'foodEntries': const <dynamic>[],
+          'mealTemplates': const <dynamic>[],
+          'fluidEntries': const <dynamic>[],
+          'favoriteBarcodes': const <dynamic>[],
+          'customFoodItems': const <dynamic>[],
+          'measurementSessions': const <dynamic>[],
+          'routines': const <dynamic>[],
+          'workoutLogs': const <dynamic>[],
+          'userPreferences': const <String, dynamic>{},
+          'supplements': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 201,
+              'name': 'Legacy Int Tracked',
+              'default_dose': 1.0,
+              'unit': 'pill',
+              'is_tracked': 1,
+            },
+            <String, dynamic>{
+              'id': 202,
+              'name': 'Legacy Int Untracked',
+              'default_dose': 1.0,
+              'unit': 'pill',
+              'is_tracked': 0,
+            },
+            <String, dynamic>{
+              'id': 203,
+              'name': 'Boolean Tracked',
+              'default_dose': 1.0,
+              'unit': 'pill',
+              'is_tracked': true,
+            },
+            <String, dynamic>{
+              'id': 204,
+              'name': 'Boolean Untracked',
+              'default_dose': 1.0,
+              'unit': 'pill',
+              'is_tracked': false,
+            },
+            <String, dynamic>{
+              'id': 205,
+              'name': 'Null Fallback Tracked',
+              'default_dose': 1.0,
+              'unit': 'pill',
+              'is_tracked': null,
+            },
+          ],
+          'supplementLogs': const <dynamic>[],
+          'customExercises': const <dynamic>[],
+          'dailyGoalsHistory': const <dynamic>[],
+          'supplementSettingsHistory': const <dynamic>[],
+          'appSettings': null,
+          'profile': null,
+          'healthStepSegments': const <dynamic>[],
+        };
 
-      await dbHelper.clearAllUserData();
-      final compatImported =
-          await backupManager.importBackupPayloadForTesting(compatPayload);
-      expect(compatImported, isTrue);
+        await dbHelper.clearAllUserData();
+        final compatImported = await backupManager
+            .importBackupPayloadForTesting(compatPayload);
+        expect(compatImported, isTrue);
 
-      final restoredCompat = await dbHelper.getAllSupplements();
-      expect(
+        final restoredCompat = await dbHelper.getAllSupplements();
+        expect(
           restoredCompat
               .firstWhere((s) => s.name == 'Legacy Int Tracked')
               .isTracked,
-          isTrue);
-      expect(
+          isTrue,
+        );
+        expect(
           restoredCompat
               .firstWhere((s) => s.name == 'Legacy Int Untracked')
               .isTracked,
-          isFalse);
-      expect(
+          isFalse,
+        );
+        expect(
           restoredCompat
               .firstWhere((s) => s.name == 'Boolean Tracked')
               .isTracked,
-          isTrue);
-      expect(
+          isTrue,
+        );
+        expect(
           restoredCompat
               .firstWhere((s) => s.name == 'Boolean Untracked')
               .isTracked,
-          isFalse);
-      expect(
+          isFalse,
+        );
+        expect(
           restoredCompat
               .firstWhere((s) => s.name == 'Null Fallback Tracked')
               .isTracked,
-          isTrue);
-    });
+          isTrue,
+        );
+      },
+    );
 
     test('backup payload omits device-local catalog state', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{
@@ -1304,71 +1347,82 @@ void main() {
       }
     });
 
-    test('restore keeps this device catalog state instead of the backup one',
-        () async {
-      // A payload from an older build that still carries the catalog keys,
-      // taken on a device where every catalog was installed.
-      final payload = await backupManager.generateBackupPayloadForTesting();
-      (payload['userPreferences'] as Map<String, dynamic>).addAll({
-        'unit_system': 'imperial',
-        'is_exercise_catalog_initialized': true,
-        'installed_training_version': '202601010001',
-        'installed_bls_food_version': '202601010001',
-        'bls_food_catalog_last_remote_version': '202601010001',
-        'installed_off_version_de': '202601010001',
-        'last_db_sync_app_version': '80013',
-      });
+    test(
+      'restore keeps this device catalog state instead of the backup one',
+      () async {
+        // A payload from an older build that still carries the catalog keys,
+        // taken on a device where every catalog was installed.
+        final payload = await backupManager.generateBackupPayloadForTesting();
+        (payload['userPreferences'] as Map<String, dynamic>).addAll({
+          'unit_system': 'imperial',
+          'is_exercise_catalog_initialized': true,
+          'installed_training_version': '202601010001',
+          'installed_bls_food_version': '202601010001',
+          'bls_food_catalog_last_remote_version': '202601010001',
+          'installed_off_version_de': '202601010001',
+          'last_db_sync_app_version': '80013',
+        });
 
-      // This device is a fresh install: no catalogs yet.
-      SharedPreferences.setMockInitialValues(<String, Object>{
-        'unit_system': 'metric',
-      });
+        // This device is a fresh install: no catalogs yet.
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'unit_system': 'metric',
+        });
 
-      expect(
-          await backupManager.importBackupPayloadForTesting(payload), isTrue);
+        expect(
+          await backupManager.importBackupPayloadForTesting(payload),
+          isTrue,
+        );
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('unit_system'), 'imperial',
-          reason: 'ordinary preferences must still be restored');
-      expect(prefs.getBool('is_exercise_catalog_initialized'), isNull);
-      expect(prefs.getString('installed_training_version'), isNull);
-      expect(prefs.getString('installed_bls_food_version'), isNull);
-      expect(prefs.getString('bls_food_catalog_last_remote_version'), isNull);
-      expect(prefs.getString('installed_off_version_de'), isNull);
-      expect(prefs.getString('last_db_sync_app_version'), isNull);
-    });
-
-    test('restore does not wipe catalog state the device already has',
-        () async {
-      final payload = await backupManager.generateBackupPayloadForTesting();
-      (payload['userPreferences'] as Map<String, dynamic>)['unit_system'] =
-          'imperial';
-
-      SharedPreferences.setMockInitialValues(<String, Object>{
-        'unit_system': 'metric',
-        'is_exercise_catalog_initialized': true,
-        'installed_training_version': '202512310001',
-        'installed_bls_food_version': '202512310001',
-        'bls_food_catalog_last_remote_version': '202512310001',
-        'installed_off_version_de': '202512310001',
-      });
-
-      expect(
-          await backupManager.importBackupPayloadForTesting(payload), isTrue);
-
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('unit_system'), 'imperial');
-      expect(prefs.getBool('is_exercise_catalog_initialized'), isTrue);
-      expect(prefs.getString('installed_training_version'), '202512310001');
-      expect(prefs.getString('installed_bls_food_version'), '202512310001');
-      expect(prefs.getString('bls_food_catalog_last_remote_version'),
-          '202512310001');
-      expect(prefs.getString('installed_off_version_de'), '202512310001');
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(
+          prefs.getString('unit_system'),
+          'imperial',
+          reason: 'ordinary preferences must still be restored',
+        );
+        expect(prefs.getBool('is_exercise_catalog_initialized'), isNull);
+        expect(prefs.getString('installed_training_version'), isNull);
+        expect(prefs.getString('installed_bls_food_version'), isNull);
+        expect(prefs.getString('bls_food_catalog_last_remote_version'), isNull);
+        expect(prefs.getString('installed_off_version_de'), isNull);
+        expect(prefs.getString('last_db_sync_app_version'), isNull);
+      },
+    );
 
     test(
-        'user goals and baseline measurements survive backup restore without FK failure',
-        () async {
+      'restore does not wipe catalog state the device already has',
+      () async {
+        final payload = await backupManager.generateBackupPayloadForTesting();
+        (payload['userPreferences'] as Map<String, dynamic>)['unit_system'] =
+            'imperial';
+
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'unit_system': 'metric',
+          'is_exercise_catalog_initialized': true,
+          'installed_training_version': '202512310001',
+          'installed_bls_food_version': '202512310001',
+          'bls_food_catalog_last_remote_version': '202512310001',
+          'installed_off_version_de': '202512310001',
+        });
+
+        expect(
+          await backupManager.importBackupPayloadForTesting(payload),
+          isTrue,
+        );
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('unit_system'), 'imperial');
+        expect(prefs.getBool('is_exercise_catalog_initialized'), isTrue);
+        expect(prefs.getString('installed_training_version'), '202512310001');
+        expect(prefs.getString('installed_bls_food_version'), '202512310001');
+        expect(
+          prefs.getString('bls_food_catalog_last_remote_version'),
+          '202512310001',
+        );
+        expect(prefs.getString('installed_off_version_de'), '202512310001');
+      },
+    );
+
+    test('user goals and baseline measurements survive backup restore without FK failure', () async {
       final goalRepo = GoalRepositoryImpl(database: db);
       final date = DateTime(2026, 3, 15, 8, 30);
       final goal = await goalRepo.createGoal(
@@ -1393,8 +1447,9 @@ void main() {
       expect(payload['measurements'], isNotEmpty);
 
       // Restore into the database
-      final success =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final success = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(success, isTrue);
 
       final restoredGoals = await goalRepo.getActiveGoal();
@@ -1408,9 +1463,7 @@ void main() {
       expect(restoredGoals.baselineMeasurementId, measurementsAfter.single.id);
     });
 
-    test(
-        'restore sanitizes orphan goal baseline measurement references instead of throwing FK error',
-        () async {
+    test('restore sanitizes orphan goal baseline measurement references instead of throwing FK error', () async {
       final payload = await backupManager.generateBackupPayloadForTesting();
       // Simulate an old backup where user_goals has an unknown UUID and measurements is empty or different
       payload['user_goals'] = [
@@ -1426,12 +1479,13 @@ void main() {
           'baseline_date': DateTime(2026, 1, 1).toIso8601String(),
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
-        }
+        },
       ];
       payload['measurements'] = <Map<String, dynamic>>[];
 
-      final success =
-          await backupManager.importBackupPayloadForTesting(payload);
+      final success = await backupManager.importBackupPayloadForTesting(
+        payload,
+      );
       expect(success, isTrue);
 
       final goals = await db.select(db.userGoals).get();

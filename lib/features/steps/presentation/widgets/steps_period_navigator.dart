@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StepsPeriodNavigator extends StatelessWidget {
@@ -22,7 +24,9 @@ class StepsPeriodNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(
-          top: DesignConstants.spacingS, bottom: DesignConstants.spacingS),
+        top: DesignConstants.spacingS,
+        bottom: DesignConstants.spacingS,
+      ),
       child: Row(
         children: [
           IconButton(
@@ -34,9 +38,8 @@ class StepsPeriodNavigator extends StatelessWidget {
             child: Text(
               periodLabel,
               textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           IconButton(

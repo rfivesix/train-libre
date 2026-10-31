@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+
 import '../../analytics/domain/models/chart_data_point.dart';
+
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../domain/repositories/profile_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/measurement.dart';
@@ -18,14 +21,18 @@ import '../../../widgets/common/seamless_loading_overlay.dart';
 import 'widgets/measurement_chart_widget.dart';
 import '../../../util/l10n_ext.dart';
 import '../../../services/unit_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../../util/date_util.dart';
 import '../../../features/statistics/domain/timeframe_block.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/app_button.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import 'measurement_import_settings_screen.dart';
 
@@ -89,12 +96,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   bool _isRolling = true;
 
   List<String> _timeRangeLabels(AppLocalizations l10n) => [
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter6MonthsShort,
-        l10n.filterMax,
-      ];
+    l10n.filter7DaysShort,
+    l10n.filter1MonthShort,
+    l10n.filter3MonthsShort,
+    l10n.filter6MonthsShort,
+    l10n.filterMax,
+  ];
 
   DateTimeRange get _activeDateRange {
     if (_isRolling) return _activeBlock.getRollingBounds();
@@ -134,9 +141,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
           _anchorDate = now;
         } else {
           final previousAnchor = _activeBlock.shift(now, -1);
-          final previousBounds =
-              _activeBlock.getBounds(previousAnchor, DateTime(2020));
-          final isPreviousToOngoing = !_isRolling &&
+          final previousBounds = _activeBlock.getBounds(
+            previousAnchor,
+            DateTime(2020),
+          );
+          final isPreviousToOngoing =
+              !_isRolling &&
               myBounds.start.isAtSameMomentAs(previousBounds.start);
 
           if (isPreviousToOngoing && _activeBlock != TimeframeBlock.day) {
@@ -161,11 +171,14 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   List<MeasurementSession> get _filteredSessions {
     final range = _activeDateRange;
     return _sessions
-        .where((s) =>
-            s.timestamp.isAfter(range.start) &&
-            s.timestamp.isBefore(range.end.add(const Duration(seconds: 1))) &&
-            s.measurements
-                .any((measurement) => measurement.type == _displayChartType))
+        .where(
+          (s) =>
+              s.timestamp.isAfter(range.start) &&
+              s.timestamp.isBefore(range.end.add(const Duration(seconds: 1))) &&
+              s.measurements.any(
+                (measurement) => measurement.type == _displayChartType,
+              ),
+        )
         .toList();
   }
 
@@ -177,8 +190,11 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     if (initialBlock != null && _blocks.contains(initialBlock)) {
       _activeBlock = initialBlock;
     }
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.bodyMeasurements));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.bodyMeasurements,
+      ),
+    );
     // Loads as soon as the first frame is out, so the push transition still
     // animates against the skeleton instead of waiting out a fixed delay.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -275,9 +291,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final hasNoData = _filteredSessions.isEmpty;
     final displaySessions = hasNoData
         ? getMockSessions(_activeDateRange)
-            .where((session) => session.measurements
-                .any((measurement) => measurement.type == _displayChartType))
-            .toList()
+              .where(
+                (session) => session.measurements.any(
+                  (measurement) => measurement.type == _displayChartType,
+                ),
+              )
+              .toList()
         : _filteredSessions;
 
     final timeframeFilter = TimeRangeFilter(
@@ -298,14 +317,14 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
           ? null
           : () async {
-              final selected =
-                  await adaptive_pickers.showAdaptiveTimeframePicker(
-                context: context,
-                activeBlock: _activeBlock,
-                initialAnchor: _anchorDate,
-                initialIsRolling: _isRolling,
-                earliestAvailableDay: DateTime(2020),
-              );
+              final selected = await adaptive_pickers
+                  .showAdaptiveTimeframePicker(
+                    context: context,
+                    activeBlock: _activeBlock,
+                    initialAnchor: _anchorDate,
+                    initialIsRolling: _isRolling,
+                    earliestAvailableDay: DateTime(2020),
+                  );
               if (selected != null) {
                 setState(() {
                   _anchorDate = selected.anchorDate;
@@ -343,9 +362,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         isEmpty: false, // Handle empty state at timeframe/content level
         extendBodyBehindAppBar: true,
         child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            scrollbars: false,
-          ),
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: CupertinoScrollbar(
             controller: _scrollController,
             thumbVisibility: true,
@@ -390,8 +407,13 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                         enabled: true,
                         child: Column(
                           children: displaySessions
-                              .map((session) => _buildSessionCard(
-                                  unitService, dateFormat, session))
+                              .map(
+                                (session) => _buildSessionCard(
+                                  unitService,
+                                  dateFormat,
+                                  session,
+                                ),
+                              )
                               .toList(),
                         ),
                       ),
@@ -408,9 +430,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                       );
                     },
                   ),
-                const SliverToBoxAdapter(
-                  child: BottomContentSpacer(),
-                ),
+                const SliverToBoxAdapter(child: BottomContentSpacer()),
               ],
             ),
           ),
@@ -503,13 +523,16 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       child: GlassActionableCard(
         margin: EdgeInsets.zero,
         dismissibleKey: Key(
-            'session_${session.id}_${session.timestamp.millisecondsSinceEpoch}'),
+          'session_${session.id}_${session.timestamp.millisecondsSinceEpoch}',
+        ),
         onEdit: () => _showMeasurementBottomMenu(existingSession: session),
         onDelete: () {
           setState(() {
-            _sessions.removeWhere((s) =>
-                (s.id != null && s.id == session.id) ||
-                (s.id == null && s.timestamp == session.timestamp));
+            _sessions.removeWhere(
+              (s) =>
+                  (s.id != null && s.id == session.id) ||
+                  (s.id == null && s.timestamp == session.timestamp),
+            );
           });
           _deleteMeasurementSession(session);
         },
@@ -528,9 +551,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             const SizedBox(width: DesignConstants.spacingM),
             Text(
               '$value $unit'.trim(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.end,
             ),
           ],
@@ -540,7 +562,10 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   }
 
   double _displayMeasurementValue(
-      String type, double value, UnitService unitService) {
+    String type,
+    double value,
+    UnitService unitService,
+  ) {
     switch (type) {
       case 'weight':
         return unitService.convertDisplayValue(value, UnitDimension.weight);
@@ -623,14 +648,23 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         timestamp: date,
         measurements: [
           Measurement(
-              sessionId: i, type: 'weight', value: 80.0 - i * 0.5, unit: 'kg'),
+            sessionId: i,
+            type: 'weight',
+            value: 80.0 - i * 0.5,
+            unit: 'kg',
+          ),
           Measurement(
-              sessionId: i,
-              type: 'fat_percent',
-              value: 15.0 - i * 0.1,
-              unit: '%'),
+            sessionId: i,
+            type: 'fat_percent',
+            value: 15.0 - i * 0.1,
+            unit: '%',
+          ),
           Measurement(
-              sessionId: i, type: 'waist', value: 88.0 - i * 0.2, unit: 'cm'),
+            sessionId: i,
+            type: 'waist',
+            value: 88.0 - i * 0.2,
+            unit: 'cm',
+          ),
         ],
       );
     });
@@ -640,8 +674,11 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   /// [MeasurementChartWidget] re-sort and rebuild itself after each parent
   /// build, because it compares the list by identity.
   List<ChartDataPoint> _getMockChartDataPoints(
-      String chartType, DateTimeRange range) {
-    final key = '$chartType|${range.start.millisecondsSinceEpoch}'
+    String chartType,
+    DateTimeRange range,
+  ) {
+    final key =
+        '$chartType|${range.start.millisecondsSinceEpoch}'
         '|${range.end.millisecondsSinceEpoch}';
     final cached = _mockChartPoints;
     if (cached != null && _mockChartKey == key) return cached;
@@ -652,7 +689,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   }
 
   List<ChartDataPoint> _buildMockChartDataPoints(
-      String chartType, DateTimeRange range) {
+    String chartType,
+    DateTimeRange range,
+  ) {
     final start = range.start;
     final end = range.end;
     final duration = end.difference(start);
@@ -737,10 +776,11 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
   void initState() {
     super.initState();
     _repository = widget.repository ?? context.read<IProfileRepository>();
-    _selectedDateTime = (widget.existingSession?.timestamp ??
-            widget.initialDate ??
-            DateTime.now())
-        .withCurrentTime;
+    _selectedDateTime =
+        (widget.existingSession?.timestamp ??
+                widget.initialDate ??
+                DateTime.now())
+            .withCurrentTime;
     for (var key in _measurementTypes.keys) {
       _controllers[key] = TextEditingController();
     }
@@ -805,8 +845,13 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
     );
     if (picked != null) {
       setState(() {
-        _selectedDateTime = DateTime(picked.year, picked.month, picked.day,
-            _selectedDateTime.hour, _selectedDateTime.minute);
+        _selectedDateTime = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _selectedDateTime.hour,
+          _selectedDateTime.minute,
+        );
       });
     }
   }
@@ -819,11 +864,12 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
     if (picked != null) {
       setState(() {
         _selectedDateTime = DateTime(
-            _selectedDateTime.year,
-            _selectedDateTime.month,
-            _selectedDateTime.day,
-            picked.hour,
-            picked.minute);
+          _selectedDateTime.year,
+          _selectedDateTime.month,
+          _selectedDateTime.day,
+          picked.hour,
+          picked.minute,
+        );
       });
     }
   }
@@ -839,12 +885,14 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
           final metricValue = dimension == null
               ? value
               : unitService.convertToMetric(value, dimension);
-          measurements.add(Measurement(
-            sessionId: widget.existingSession?.id ?? 0,
-            type: key,
-            value: metricValue,
-            unit: _measurementTypes[key]!,
-          ));
+          measurements.add(
+            Measurement(
+              sessionId: widget.existingSession?.id ?? 0,
+              type: key,
+              value: metricValue,
+              unit: _measurementTypes[key]!,
+            ),
+          );
         }
       }
     });
@@ -855,7 +903,9 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
     if (measurements.isNotEmpty) {
       await _repository.insertMeasurementSession(
         MeasurementSession(
-            timestamp: _selectedDateTime, measurements: measurements),
+          timestamp: _selectedDateTime,
+          measurements: measurements,
+        ),
       );
     }
     if (mounted) widget.onSaved();
@@ -907,31 +957,33 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    ..._measurementTypes.keys.map((key) => Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: DesignConstants.spacingM,
+                    ..._measurementTypes.keys.map(
+                      (key) => Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: DesignConstants.spacingM,
+                        ),
+                        child: TextFormField(
+                          controller: _controllers[key],
+                          decoration: InputDecoration(
+                            labelText: l10n.getLocalizedMeasurementName(key),
+                            suffixText: _displayUnit(key, unitService),
                           ),
-                          child: TextFormField(
-                            controller: _controllers[key],
-                            decoration: InputDecoration(
-                              labelText: l10n.getLocalizedMeasurementName(key),
-                              suffixText: _displayUnit(key, unitService),
-                            ),
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            textInputAction: TextInputAction.next,
-                            validator: (value) {
-                              if (value != null &&
-                                  value.isNotEmpty &&
-                                  double.tryParse(value.replaceAll(',', '.')) ==
-                                      null) {
-                                return l10n.validatorPleaseEnterNumber;
-                              }
-                              return null;
-                            },
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
                           ),
-                        )),
+                          textInputAction: TextInputAction.next,
+                          validator: (value) {
+                            if (value != null &&
+                                value.isNotEmpty &&
+                                double.tryParse(value.replaceAll(',', '.')) ==
+                                    null) {
+                              return l10n.validatorPleaseEnterNumber;
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

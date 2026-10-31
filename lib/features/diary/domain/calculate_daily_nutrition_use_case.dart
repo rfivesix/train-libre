@@ -266,7 +266,9 @@ class CalculateDailyNutritionUseCase {
         }
         trackedSupps.add(
           TrackedSupplement(
-              supplement: supplementToUse, totalDosedToday: todaysDoses[s.id]!),
+            supplement: supplementToUse,
+            totalDosedToday: todaysDoses[s.id]!,
+          ),
         );
         trackedSuppIds.add(s.id!);
         unaccountedDoses--;

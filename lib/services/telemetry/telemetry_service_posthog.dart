@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -20,8 +21,10 @@ class PostHogTelemetryService implements TelemetryService {
   static const String _prefFoodLogCountKey = 'telemetry_daily_food_count';
   static const String _prefFoodLogSourcesKey = 'telemetry_daily_food_sources';
 
-  static const String _defaultApiKey = String.fromEnvironment('POSTHOG_API_KEY',
-      defaultValue: 'phc_vmLGxjjWfVB58y7smThJX9mQte9Y97Kff62EmLDtNWTB');
+  static const String _defaultApiKey = String.fromEnvironment(
+    'POSTHOG_API_KEY',
+    defaultValue: 'phc_vmLGxjjWfVB58y7smThJX9mQte9Y97Kff62EmLDtNWTB',
+  );
   static const String _postHogEuHost = 'https://eu.i.posthog.com';
 
   /// Reported as `$lib_version` on the direct-HTTP `app_launched` payload so it
@@ -423,7 +426,8 @@ class PostHogTelemetryService implements TelemetryService {
 
       if (kDebugMode && response.statusCode != 200) {
         debugPrint(
-            'trackAppLaunched PostHog response code: ${response.statusCode}');
+          'trackAppLaunched PostHog response code: ${response.statusCode}',
+        );
       }
     } catch (e) {
       debugPrint('PostHogTelemetryService trackAppLaunched error: $e');
@@ -451,24 +455,27 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     // Force workoutType to enum 'routine' or 'custom' ONLY to prevent custom title leaks
     final safeType = workoutType == 'routine' ? 'routine' : 'custom';
-    await track('workout_completed', properties: {
-      'workout_type': safeType,
-      'exercise_count': exerciseCount,
-      'set_count': setCount,
-      'duration_minutes': durationMinutes,
-      'has_rest_timer': hasRestTimer,
-      'rest_timer_count': restTimerCount,
-      'has_rir': hasRir,
-      'rir_sets_count': rirSetsCount,
-      'has_supersets': hasSupersets,
-      'superset_count': supersetCount,
-      'has_warmup_sets': hasWarmupSets,
-      'has_drop_sets': hasDropSets,
-      'has_failure_sets': hasFailureSets,
-      'used_plate_calculator': usedPlateCalculator,
-      'has_workout_notes': hasWorkoutNotes,
-      'from_training_plan': fromTrainingPlan,
-    });
+    await track(
+      'workout_completed',
+      properties: {
+        'workout_type': safeType,
+        'exercise_count': exerciseCount,
+        'set_count': setCount,
+        'duration_minutes': durationMinutes,
+        'has_rest_timer': hasRestTimer,
+        'rest_timer_count': restTimerCount,
+        'has_rir': hasRir,
+        'rir_sets_count': rirSetsCount,
+        'has_supersets': hasSupersets,
+        'superset_count': supersetCount,
+        'has_warmup_sets': hasWarmupSets,
+        'has_drop_sets': hasDropSets,
+        'has_failure_sets': hasFailureSets,
+        'used_plate_calculator': usedPlateCalculator,
+        'has_workout_notes': hasWorkoutNotes,
+        'from_training_plan': fromTrainingPlan,
+      },
+    );
   }
 
   /// Shape every enum-like telemetry value must have: lower_snake_case ASCII.
@@ -483,12 +490,11 @@ class PostHogTelemetryService implements TelemetryService {
       _enumValuePattern.hasMatch(value) ? value : 'unknown';
 
   @override
-  Future<void> trackScreenView({
-    required String screenName,
-  }) async {
-    await track('screen_viewed', properties: {
-      'screen_name': _sanitizeEnumValue(screenName),
-    });
+  Future<void> trackScreenView({required String screenName}) async {
+    await track(
+      'screen_viewed',
+      properties: {'screen_name': _sanitizeEnumValue(screenName)},
+    );
   }
 
   @override
@@ -496,10 +502,13 @@ class PostHogTelemetryService implements TelemetryService {
     required String featureKey,
     Map<String, dynamic>? extraProps,
   }) async {
-    await track('feature_used', properties: {
-      'feature_key': _sanitizeEnumValue(featureKey),
-      if (extraProps != null) ...extraProps,
-    });
+    await track(
+      'feature_used',
+      properties: {
+        'feature_key': _sanitizeEnumValue(featureKey),
+        if (extraProps != null) ...extraProps,
+      },
+    );
   }
 
   /// Serializes the read-modify-write cycles on the food-log counter.
@@ -527,9 +536,7 @@ class PostHogTelemetryService implements TelemetryService {
   }
 
   @override
-  Future<void> incrementFoodLogCount({
-    required String source,
-  }) {
+  Future<void> incrementFoodLogCount({required String source}) {
     if (!_optedIn) return Future<void>.value();
     // Sanitized here rather than trusting callers, so no code path can put
     // free-form text (a routine name, a food name) into the sources list.
@@ -563,10 +570,10 @@ class PostHogTelemetryService implements TelemetryService {
       await prefs.setInt(_prefFoodLogCountKey, 0);
       await prefs.setStringList(_prefFoodLogSourcesKey, <String>[]);
 
-      await track('daily_food_logged', properties: {
-        'count': count,
-        'sources': sources,
-      });
+      await track(
+        'daily_food_logged',
+        properties: {'count': count, 'sources': sources},
+      );
       // The app is usually on its way to the background at this point, so hand
       // the batch to the network instead of leaving it in the SDK queue.
       if (_sdkConfigured) {
@@ -580,10 +587,10 @@ class PostHogTelemetryService implements TelemetryService {
     required String settingKey,
     required dynamic value,
   }) async {
-    await track('setting_toggled', properties: {
-      'setting_key': settingKey,
-      'value': value,
-    });
+    await track(
+      'setting_toggled',
+      properties: {'setting_key': settingKey, 'value': value},
+    );
   }
 
   @override
@@ -594,13 +601,16 @@ class PostHogTelemetryService implements TelemetryService {
     required int durationSeconds,
     required String sessionId,
   }) async {
-    await track('onboarding_step_viewed', properties: {
-      'step_index': stepIndex,
-      'step_name': stepName,
-      'screen_name': screenName,
-      'duration_seconds': durationSeconds,
-      'session_id': sessionId,
-    });
+    await track(
+      'onboarding_step_viewed',
+      properties: {
+        'step_index': stepIndex,
+        'step_name': stepName,
+        'screen_name': screenName,
+        'duration_seconds': durationSeconds,
+        'session_id': sessionId,
+      },
+    );
   }
 
   @override
@@ -609,11 +619,14 @@ class PostHogTelemetryService implements TelemetryService {
     required bool restoredFromBackup,
     required String sessionId,
   }) async {
-    await track('onboarding_completed', properties: {
-      'total_duration_seconds': totalDurationSeconds,
-      'restored_from_backup': restoredFromBackup,
-      'session_id': sessionId,
-    });
+    await track(
+      'onboarding_completed',
+      properties: {
+        'total_duration_seconds': totalDurationSeconds,
+        'restored_from_backup': restoredFromBackup,
+        'session_id': sessionId,
+      },
+    );
   }
 
   @override
@@ -622,11 +635,14 @@ class PostHogTelemetryService implements TelemetryService {
     required String lastStepName,
     required String sessionId,
   }) async {
-    await track('onboarding_abandoned', properties: {
-      'last_step_index': lastStepIndex,
-      'last_step_name': lastStepName,
-      'session_id': sessionId,
-    });
+    await track(
+      'onboarding_abandoned',
+      properties: {
+        'last_step_index': lastStepIndex,
+        'last_step_name': lastStepName,
+        'session_id': sessionId,
+      },
+    );
   }
 
   @override
@@ -639,15 +655,18 @@ class PostHogTelemetryService implements TelemetryService {
     bool? hasVoiceInput,
     bool? hasTextInput,
   }) async {
-    await track('ai_meal_scan_requested', properties: {
-      'request_id': requestId,
-      'provider': provider,
-      if (inputMode != null) 'input_mode': inputMode,
-      if (photoCount != null) 'photo_count': photoCount,
-      if (hasLidar != null) 'has_lidar': hasLidar,
-      if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
-      if (hasTextInput != null) 'has_text_input': hasTextInput,
-    });
+    await track(
+      'ai_meal_scan_requested',
+      properties: {
+        'request_id': requestId,
+        'provider': provider,
+        if (inputMode != null) 'input_mode': inputMode,
+        if (photoCount != null) 'photo_count': photoCount,
+        if (hasLidar != null) 'has_lidar': hasLidar,
+        if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
+        if (hasTextInput != null) 'has_text_input': hasTextInput,
+      },
+    );
   }
 
   @override
@@ -680,44 +699,48 @@ class PostHogTelemetryService implements TelemetryService {
     bool? fastMode,
     bool? hedgeStarted,
   }) async {
-    await track('ai_meal_scan_completed', properties: {
-      'request_id': requestId,
-      'provider': provider,
-      'duration_seconds': durationSeconds,
-      if (reviewVisibleSeconds != null)
-        'review_visible_seconds': reviewVisibleSeconds,
-      if (preliminaryNutritionSeconds != null)
-        'preliminary_nutrition_seconds': preliminaryNutritionSeconds,
-      'success': success,
-      if (errorCode != null) 'error_code': errorCode,
-      if (inputMode != null) 'input_mode': inputMode,
-      if (photoCount != null) 'photo_count': photoCount,
-      if (hasLidar != null) 'has_lidar': hasLidar,
-      if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
-      if (hasTextInput != null) 'has_text_input': hasTextInput,
-      if (validationPassed != null) 'validation_passed': validationPassed,
-      if (repairAttemptsCount != null)
-        'repair_rounds_count': repairAttemptsCount,
-      if (suggestedItemsCountBucket != null)
-        'suggested_items_count_bucket': suggestedItemsCountBucket,
-      if (preparationSeconds != null) 'preparation_seconds': preparationSeconds,
-      if (providerSeconds != null) 'provider_seconds': providerSeconds,
-      if (validationSeconds != null) 'validation_seconds': validationSeconds,
-      if (repairSeconds != null) 'repair_seconds': repairSeconds,
-      if (revealSeconds != null) 'reveal_seconds': revealSeconds,
-      if (primaryFirstPassAccepted != null)
-        'primary_first_pass_accepted': primaryFirstPassAccepted,
-      if (selectedValidationRoundsCount != null)
-        'selected_validation_rounds_count': selectedValidationRoundsCount,
-      if (validationRunsTotalCount != null)
-        'validation_runs_total_count': validationRunsTotalCount,
-      if (repairLimitReached != null)
-        'repair_limit_reached': repairLimitReached,
-      if (firstPassIssueCategories != null)
-        'first_pass_issue_categories': firstPassIssueCategories,
-      if (fastMode != null) 'fast_mode': fastMode,
-      if (hedgeStarted != null) 'hedge_started': hedgeStarted,
-    });
+    await track(
+      'ai_meal_scan_completed',
+      properties: {
+        'request_id': requestId,
+        'provider': provider,
+        'duration_seconds': durationSeconds,
+        if (reviewVisibleSeconds != null)
+          'review_visible_seconds': reviewVisibleSeconds,
+        if (preliminaryNutritionSeconds != null)
+          'preliminary_nutrition_seconds': preliminaryNutritionSeconds,
+        'success': success,
+        if (errorCode != null) 'error_code': errorCode,
+        if (inputMode != null) 'input_mode': inputMode,
+        if (photoCount != null) 'photo_count': photoCount,
+        if (hasLidar != null) 'has_lidar': hasLidar,
+        if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
+        if (hasTextInput != null) 'has_text_input': hasTextInput,
+        if (validationPassed != null) 'validation_passed': validationPassed,
+        if (repairAttemptsCount != null)
+          'repair_rounds_count': repairAttemptsCount,
+        if (suggestedItemsCountBucket != null)
+          'suggested_items_count_bucket': suggestedItemsCountBucket,
+        if (preparationSeconds != null)
+          'preparation_seconds': preparationSeconds,
+        if (providerSeconds != null) 'provider_seconds': providerSeconds,
+        if (validationSeconds != null) 'validation_seconds': validationSeconds,
+        if (repairSeconds != null) 'repair_seconds': repairSeconds,
+        if (revealSeconds != null) 'reveal_seconds': revealSeconds,
+        if (primaryFirstPassAccepted != null)
+          'primary_first_pass_accepted': primaryFirstPassAccepted,
+        if (selectedValidationRoundsCount != null)
+          'selected_validation_rounds_count': selectedValidationRoundsCount,
+        if (validationRunsTotalCount != null)
+          'validation_runs_total_count': validationRunsTotalCount,
+        if (repairLimitReached != null)
+          'repair_limit_reached': repairLimitReached,
+        if (firstPassIssueCategories != null)
+          'first_pass_issue_categories': firstPassIssueCategories,
+        if (fastMode != null) 'fast_mode': fastMode,
+        if (hedgeStarted != null) 'hedge_started': hedgeStarted,
+      },
+    );
   }
 
   @override
@@ -728,13 +751,16 @@ class PostHogTelemetryService implements TelemetryService {
     required bool success,
     String? errorCode,
   }) async {
-    await track('voice_dictation_completed', properties: {
-      'duration_bucket': durationBucket,
-      'ai_tidy_up_enabled': aiTidyUpEnabled,
-      'surface': surface,
-      'success': success,
-      if (errorCode != null) 'error_code': errorCode,
-    });
+    await track(
+      'voice_dictation_completed',
+      properties: {
+        'duration_bucket': durationBucket,
+        'ai_tidy_up_enabled': aiTidyUpEnabled,
+        'surface': surface,
+        'success': success,
+        if (errorCode != null) 'error_code': errorCode,
+      },
+    );
   }
 
   @override
@@ -749,18 +775,21 @@ class PostHogTelemetryService implements TelemetryService {
     int? totalTokens,
     bool? usageComplete,
   }) async {
-    await track('ai_meal_correction_completed', properties: {
-      'has_images': hasImages,
-      'duration_seconds': durationSeconds,
-      'success': success,
-      if (repairAttemptsCount != null)
-        'repair_attempts_count': repairAttemptsCount,
-      if (errorCode != null) 'error_code': errorCode,
-      if (inputTokens != null) 'input_tokens': inputTokens,
-      if (outputTokens != null) 'output_tokens': outputTokens,
-      if (totalTokens != null) 'total_tokens': totalTokens,
-      if (usageComplete != null) 'usage_complete': usageComplete,
-    });
+    await track(
+      'ai_meal_correction_completed',
+      properties: {
+        'has_images': hasImages,
+        'duration_seconds': durationSeconds,
+        'success': success,
+        if (repairAttemptsCount != null)
+          'repair_attempts_count': repairAttemptsCount,
+        if (errorCode != null) 'error_code': errorCode,
+        if (inputTokens != null) 'input_tokens': inputTokens,
+        if (outputTokens != null) 'output_tokens': outputTokens,
+        if (totalTokens != null) 'total_tokens': totalTokens,
+        if (usageComplete != null) 'usage_complete': usageComplete,
+      },
+    );
   }
 
   @override
@@ -769,11 +798,14 @@ class PostHogTelemetryService implements TelemetryService {
     required int toVersion,
     required bool success,
   }) async {
-    await track('db_migration_status', properties: {
-      'from_version': fromVersion,
-      'to_version': toVersion,
-      'success': success,
-    });
+    await track(
+      'db_migration_status',
+      properties: {
+        'from_version': fromVersion,
+        'to_version': toVersion,
+        'success': success,
+      },
+    );
   }
 
   @override
@@ -790,20 +822,24 @@ class PostHogTelemetryService implements TelemetryService {
     required List<String> qualityFlags,
     required bool isPriorOnly,
   }) async {
-    await track('recommendation_generated', properties: {
-      'weight_log_count': weightLogCount,
-      'intake_logged_days': intakeLoggedDays,
-      'window_days': windowDays,
-      'effective_sample_size':
-          double.parse(effectiveSampleSize.toStringAsFixed(1)),
-      'has_slope': hasSlope,
-      'has_intake': hasIntake,
-      'confidence': confidence,
-      'confidence_score_bucket': confidenceScoreBucket,
-      'warning_level': warningLevel,
-      'quality_flags': qualityFlags,
-      'is_prior_only': isPriorOnly,
-    });
+    await track(
+      'recommendation_generated',
+      properties: {
+        'weight_log_count': weightLogCount,
+        'intake_logged_days': intakeLoggedDays,
+        'window_days': windowDays,
+        'effective_sample_size': double.parse(
+          effectiveSampleSize.toStringAsFixed(1),
+        ),
+        'has_slope': hasSlope,
+        'has_intake': hasIntake,
+        'confidence': confidence,
+        'confidence_score_bucket': confidenceScoreBucket,
+        'warning_level': warningLevel,
+        'quality_flags': qualityFlags,
+        'is_prior_only': isPriorOnly,
+      },
+    );
   }
 
   @override
@@ -814,13 +850,16 @@ class PostHogTelemetryService implements TelemetryService {
     required String submissionMethod,
     Map<String, dynamic>? diagnosticsSummary,
   }) async {
-    await track('feedback_report_submitted', properties: {
-      'included_sections': includedSections,
-      'has_user_note': hasUserNote,
-      'user_note_length': userNoteLength,
-      'submission_method': submissionMethod,
-      if (diagnosticsSummary != null) ...diagnosticsSummary,
-    });
+    await track(
+      'feedback_report_submitted',
+      properties: {
+        'included_sections': includedSections,
+        'has_user_note': hasUserNote,
+        'user_note_length': userNoteLength,
+        'submission_method': submissionMethod,
+        if (diagnosticsSummary != null) ...diagnosticsSummary,
+      },
+    );
   }
 
   @override
@@ -831,12 +870,11 @@ class PostHogTelemetryService implements TelemetryService {
   }
 
   @override
-  Future<void> trackAppReviewPromptResponded({
-    required String response,
-  }) async {
-    await track('app_review_prompt_responded', properties: {
-      'response': AppReviewPromptResponse.sanitize(response),
-    });
+  Future<void> trackAppReviewPromptResponded({required String response}) async {
+    await track(
+      'app_review_prompt_responded',
+      properties: {'response': AppReviewPromptResponse.sanitize(response)},
+    );
   }
 
   @override
@@ -848,13 +886,16 @@ class PostHogTelemetryService implements TelemetryService {
     required bool isActive,
   }) async {
     final safeKind = kind == 'sequence' ? 'sequence' : 'week';
-    await track('training_plan_created', properties: {
-      'kind': safeKind,
-      'day_count': dayCount,
-      'workout_days_count': workoutDaysCount,
-      'rest_days_count': restDaysCount,
-      'is_active': isActive,
-    });
+    await track(
+      'training_plan_created',
+      properties: {
+        'kind': safeKind,
+        'day_count': dayCount,
+        'workout_days_count': workoutDaysCount,
+        'rest_days_count': restDaysCount,
+        'is_active': isActive,
+      },
+    );
   }
 
   @override
@@ -866,15 +907,19 @@ class PostHogTelemetryService implements TelemetryService {
     required String effectiveTiming,
   }) async {
     final safeKind = kind == 'sequence' ? 'sequence' : 'week';
-    final safeTiming =
-        effectiveTiming == 'next_cycle' ? 'next_cycle' : 'from_today';
-    await track('training_plan_updated', properties: {
-      'kind': safeKind,
-      'day_count': dayCount,
-      'workout_days_count': workoutDaysCount,
-      'rest_days_count': restDaysCount,
-      'effective_timing': safeTiming,
-    });
+    final safeTiming = effectiveTiming == 'next_cycle'
+        ? 'next_cycle'
+        : 'from_today';
+    await track(
+      'training_plan_updated',
+      properties: {
+        'kind': safeKind,
+        'day_count': dayCount,
+        'workout_days_count': workoutDaysCount,
+        'rest_days_count': restDaysCount,
+        'effective_timing': safeTiming,
+      },
+    );
   }
 
   @override
@@ -884,20 +929,16 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     final safeAction = action == 'activated' ? 'activated' : 'deactivated';
     final safeKind = kind == 'sequence' ? 'sequence' : 'week';
-    await track('training_plan_toggled', properties: {
-      'action': safeAction,
-      'kind': safeKind,
-    });
+    await track(
+      'training_plan_toggled',
+      properties: {'action': safeAction, 'kind': safeKind},
+    );
   }
 
   @override
-  Future<void> trackTrainingPlanDeleted({
-    required String kind,
-  }) async {
+  Future<void> trackTrainingPlanDeleted({required String kind}) async {
     final safeKind = kind == 'sequence' ? 'sequence' : 'week';
-    await track('training_plan_deleted', properties: {
-      'kind': safeKind,
-    });
+    await track('training_plan_deleted', properties: {'kind': safeKind});
   }
 
   @override
@@ -907,11 +948,14 @@ class PostHogTelemetryService implements TelemetryService {
     required int dayIndex,
   }) async {
     final safeKind = kind == 'sequence' ? 'sequence' : 'week';
-    await track('training_plan_session_started', properties: {
-      'kind': safeKind,
-      'is_rest_day_override': isRestDayOverride,
-      'day_index': dayIndex,
-    });
+    await track(
+      'training_plan_session_started',
+      properties: {
+        'kind': safeKind,
+        'is_rest_day_override': isRestDayOverride,
+        'day_index': dayIndex,
+      },
+    );
   }
 
   @override
@@ -929,14 +973,14 @@ class PostHogTelemetryService implements TelemetryService {
       'gain_weight',
       'maintain_weight',
       'recomposition',
-      'custom'
+      'custom',
     };
     const validTrackingModes = {'open', 'weekly_rate', 'target_weight'};
     const validRateDirections = {
       'deficit',
       'surplus',
       'maintenance',
-      'neutral'
+      'neutral',
     };
     const validSources = {'profile', 'onboarding'};
 
@@ -944,19 +988,23 @@ class PostHogTelemetryService implements TelemetryService {
     final safeMode = validTrackingModes.contains(trackingMode)
         ? trackingMode
         : 'weekly_rate';
-    final safeDirection =
-        validRateDirections.contains(rateDirection) ? rateDirection : 'neutral';
+    final safeDirection = validRateDirections.contains(rateDirection)
+        ? rateDirection
+        : 'neutral';
     final safeSource = validSources.contains(source) ? source : 'profile';
 
-    await track('nutrition_goal_created', properties: {
-      'preset': safePreset,
-      'tracking_mode': safeMode,
-      'is_nutrition_driver': isNutritionDriver,
-      'has_target_date': hasTargetDate,
-      'has_numeric_target': hasNumericTarget,
-      'rate_direction': safeDirection,
-      'source': safeSource,
-    });
+    await track(
+      'nutrition_goal_created',
+      properties: {
+        'preset': safePreset,
+        'tracking_mode': safeMode,
+        'is_nutrition_driver': isNutritionDriver,
+        'has_target_date': hasTargetDate,
+        'has_numeric_target': hasNumericTarget,
+        'rate_direction': safeDirection,
+        'source': safeSource,
+      },
+    );
   }
 
   @override
@@ -970,19 +1018,24 @@ class PostHogTelemetryService implements TelemetryService {
       'deficit',
       'surplus',
       'maintenance',
-      'neutral'
+      'neutral',
     };
 
-    final safeType =
-        validTypes.contains(adjustmentType) ? adjustmentType : 'pace';
-    final safeDirection =
-        validRateDirections.contains(rateDirection) ? rateDirection : 'neutral';
+    final safeType = validTypes.contains(adjustmentType)
+        ? adjustmentType
+        : 'pace';
+    final safeDirection = validRateDirections.contains(rateDirection)
+        ? rateDirection
+        : 'neutral';
 
-    await track('nutrition_goal_adjusted', properties: {
-      'adjustment_type': safeType,
-      'is_nutrition_driver': isNutritionDriver,
-      'rate_direction': safeDirection,
-    });
+    await track(
+      'nutrition_goal_adjusted',
+      properties: {
+        'adjustment_type': safeType,
+        'is_nutrition_driver': isNutritionDriver,
+        'rate_direction': safeDirection,
+      },
+    );
   }
 
   @override
@@ -992,10 +1045,13 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     const validReasons = {'completed', 'abandoned', 'superseded', 'manual'};
     final safeReason = validReasons.contains(reason) ? reason : 'manual';
-    await track('nutrition_goal_retired', properties: {
-      'reason': safeReason,
-      'duration_days_bucket': durationDaysBucket,
-    });
+    await track(
+      'nutrition_goal_retired',
+      properties: {
+        'reason': safeReason,
+        'duration_days_bucket': durationDaysBucket,
+      },
+    );
   }
 
   @override
@@ -1019,21 +1075,25 @@ class PostHogTelemetryService implements TelemetryService {
     final safeConfidence = validConfidences.contains(confidenceLevel)
         ? confidenceLevel
         : 'uncalibrated';
-    final safeDecision =
-        validDecisions.contains(decision) ? decision : 'dismissed';
+    final safeDecision = validDecisions.contains(decision)
+        ? decision
+        : 'dismissed';
     final safeCalorieDirection =
         validCalorieDirections.contains(calorieAdjustmentDirection)
-            ? calorieAdjustmentDirection
-            : 'none';
+        ? calorieAdjustmentDirection
+        : 'none';
 
-    await track('weekly_goal_review_completed', properties: {
-      'trajectory_status': safeTrajectory,
-      'confidence_level': safeConfidence,
-      'decision': safeDecision,
-      'weight_observation_count_bucket': weightObservationCountBucket,
-      'logged_intake_days_bucket': loggedIntakeDaysBucket,
-      'calorie_adjustment_direction': safeCalorieDirection,
-      'has_macro_adjustments': hasMacroAdjustments,
-    });
+    await track(
+      'weekly_goal_review_completed',
+      properties: {
+        'trajectory_status': safeTrajectory,
+        'confidence_level': safeConfidence,
+        'decision': safeDecision,
+        'weight_observation_count_bucket': weightObservationCountBucket,
+        'logged_intake_days_bucket': loggedIntakeDaysBucket,
+        'calorie_adjustment_direction': safeCalorieDirection,
+        'has_macro_adjustments': hasMacroAdjustments,
+      },
+    );
   }
 }

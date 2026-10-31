@@ -1,5 +1,6 @@
 // lib/features/profile/data/profile_repository.dart
 import 'package:flutter/material.dart';
+
 import '../../../data/drift_database.dart' as db;
 import '../../profile/domain/models/measurement_session.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
@@ -11,7 +12,7 @@ class ProfileRepository implements IProfileRepository {
   final ProfileLocalDataSource _localDataSource;
 
   ProfileRepository({required ProfileLocalDataSource localDataSource})
-      : _localDataSource = localDataSource;
+    : _localDataSource = localDataSource;
 
   @override
   Future<db.Profile?> getUserProfile() {
@@ -55,7 +56,9 @@ class ProfileRepository implements IProfileRepository {
 
   @override
   Future<List<ChartDataPoint>> getChartDataForTypeAndRange(
-      String type, DateTimeRange range) async {
+    String type,
+    DateTimeRange range,
+  ) async {
     final raw = await _localDataSource.getChartDataForTypeAndRange(type, range);
     return raw.map((item) {
       return ChartDataPoint(
@@ -67,10 +70,12 @@ class ProfileRepository implements IProfileRepository {
 
   @override
   Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(
-      String type, DateTimeRange range) {
-    return _localDataSource
-        .watchChartDataForTypeAndRange(type, range)
-        .map((raw) {
+    String type,
+    DateTimeRange range,
+  ) {
+    return _localDataSource.watchChartDataForTypeAndRange(type, range).map((
+      raw,
+    ) {
       return raw.map((item) {
         return ChartDataPoint(
           date: item['date'] as DateTime,

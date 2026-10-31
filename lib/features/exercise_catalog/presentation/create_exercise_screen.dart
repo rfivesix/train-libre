@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
+
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../domain/models/exercise.dart';
 import '../domain/exercise_classification_labels.dart';
@@ -12,7 +13,9 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../domain/body_slug_mapper.dart';
 import '../domain/muscle_group_normalizer.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/experience_level_service.dart';
 
@@ -89,8 +92,11 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.createExercise));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.createExercise,
+      ),
+    );
     _loadData();
     _nameController.addListener(() => setState(() {}));
   }
@@ -115,8 +121,9 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
 
       if (mounted) {
         setState(() {
-          _allCategories =
-              categories.isNotEmpty ? categories : _defaultCategories;
+          _allCategories = categories.isNotEmpty
+              ? categories
+              : _defaultCategories;
           _allMuscleGroups = mergedMuscles;
 
           _allCategories.sort();
@@ -125,8 +132,9 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
           if (widget.exerciseToEdit != null) {
             final toEdit = widget.exerciseToEdit!;
             _nameController.text = toEdit.localizedNameFor(_languageCode);
-            _descriptionController.text =
-                toEdit.localizedDescriptionFor(_languageCode);
+            _descriptionController.text = toEdit.localizedDescriptionFor(
+              _languageCode,
+            );
             _selectedCategory = toEdit.categoryName;
             _selectedPrimaryMuscles.addAll(
               deduplicateMuscleGroups(toEdit.primaryMuscles),
@@ -197,24 +205,28 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
         await _repository.updateCustomExercise(exercise);
       } else {
         await _repository.insertExercise(exercise);
-        unawaited(TelemetryService.instance
-            .trackFeatureUsed(featureKey: FeatureKey.customExerciseCreated));
+        unawaited(
+          TelemetryService.instance.trackFeatureUsed(
+            featureKey: FeatureKey.customExerciseCreated,
+          ),
+        );
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text(l10n.snackbarSaveSuccess(_nameController.text.trim()))),
+            content: Text(
+              l10n.snackbarSaveSuccess(_nameController.text.trim()),
+            ),
+          ),
         );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       debugPrint("Error saving: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -251,10 +263,8 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
               onPressed: _isValid ? _saveExercise : null,
               color: _isValid
                   ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.38),
+                  : Theme.of(context).colorScheme.onSurface
+                        .withValues(alpha: 0.38),
             ),
         ],
       ),
@@ -411,8 +421,9 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
     required List<String> selectedMuscles,
     required bool coarse,
   }) {
-    final candidates =
-        coarse ? coarsenMuscleGroups(availableMuscles) : availableMuscles;
+    final candidates = coarse
+        ? coarsenMuscleGroups(availableMuscles)
+        : availableMuscles;
     final choices = coarse
         ? deduplicateMuscleGroupsByLabel(
             candidates,
@@ -481,10 +492,8 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
           child: Text(l10n.exerciseClassificationNotSpecified),
         ),
         ...values.map(
-          (value) => DropdownMenuItem(
-            value: value,
-            child: Text(labelFor(value)),
-          ),
+          (value) =>
+              DropdownMenuItem(value: value, child: Text(labelFor(value))),
         ),
       ],
       onChanged: _isReadOnly ? null : onChanged,

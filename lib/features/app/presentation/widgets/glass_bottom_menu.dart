@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../util/design_constants.dart';
+
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/glass_border_painter.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/app_ruler_picker.dart';
@@ -39,9 +42,9 @@ class GlassMenuAction {
     required this.onTap,
     this.result,
   }) : assert(
-          icon != null || customIcon != null,
-          'Icon or customIcon must be provided',
-        );
+         icon != null || customIcon != null,
+         'Icon or customIcon must be provided',
+       );
 }
 
 /// Shows a premium glass-styled modal bottom sheet.
@@ -256,8 +259,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
           minHeight: expandToFullHeight ? maxAvailableHeight : 0,
         ),
         child: Column(
-          mainAxisSize:
-              expandToFullHeight ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisSize: expandToFullHeight
+              ? MainAxisSize.max
+              : MainAxisSize.min,
           children: [
             const SizedBox(height: DesignConstants.spacingS),
             Container(
@@ -272,7 +276,8 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingL),
+                  horizontal: DesignConstants.spacingL,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -306,19 +311,17 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                   builder: (context) {
                     final content = Padding(
                       padding: EdgeInsets.only(
-                          left: DesignConstants.spacingM,
-                          right: DesignConstants.spacingM,
-                          bottom: applySafeAreaBottom ? bottomInset : 0),
-                      child: contentBuilder!(
-                        context,
-                        () {
-                          if (onClose != null) {
-                            onClose!();
-                          } else {
-                            Navigator.maybeOf(context)?.maybePop();
-                          }
-                        },
+                        left: DesignConstants.spacingM,
+                        right: DesignConstants.spacingM,
+                        bottom: applySafeAreaBottom ? bottomInset : 0,
                       ),
+                      child: contentBuilder!(context, () {
+                        if (onClose != null) {
+                          onClose!();
+                        } else {
+                          Navigator.maybeOf(context)?.maybePop();
+                        }
+                      }),
                     );
                     // A full-height sheet is a screen in its own right and lays
                     // itself out against the space it was given; wrapping it in
@@ -342,14 +345,19 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
-                        8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
+                      8,
+                      12,
+                      8,
+                      8 + (applySafeAreaBottom ? bottomInset : 0),
+                    ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(actions.length, (i) {
                         final a = actions[i];
                         return Padding(
                           padding: const EdgeInsets.only(
-                              bottom: DesignConstants.spacingS),
+                            bottom: DesignConstants.spacingS,
+                          ),
                           child: _GlassTile(
                             icon: a.icon,
                             customIcon: a.customIcon, // <--- Pass new value
@@ -421,8 +429,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                       decoration: ShapeDecoration(
                         color: neutralTint,
                         shape: const RoundedSuperellipseBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(r)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(r),
+                          ),
                         ),
                       ),
                     ),
@@ -432,8 +441,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                       painter: GlassBorderPainter(
                         color: isDark
                             ? Colors.white.withValues(alpha: 0.15)
-                            : theme.colorScheme.onSurface
-                                .withValues(alpha: 0.08),
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.08,
+                              ),
                         radius: r,
                         strokeWidth: 0.5,
                         bottomPadding: bottomInset,
@@ -455,8 +465,10 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          constraints: BoxConstraints(
+            maxWidth: 680,
+            maxHeight: maxAvailableHeight,
+          ),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -469,8 +481,9 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                   child: ClipPath(
                     clipper: const ShapeBorderClipper(
                       shape: RoundedSuperellipseBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(r),
+                        ),
                       ),
                     ),
                     child: RepaintBoundary(
@@ -487,9 +500,7 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
                           bottomRadius: 0,
                         ),
                         child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: neutralTint,
-                          ),
+                          decoration: BoxDecoration(color: neutralTint),
                         ),
                       ),
                     ),
@@ -503,10 +514,7 @@ class _GlassBottomMenuSheetContent extends StatelessWidget {
     );
 
     if (onDisposed != null) {
-      return _GlassMenuDisposalNotifier(
-        onDisposed: onDisposed!,
-        child: sheet,
-      );
+      return _GlassMenuDisposalNotifier(onDisposed: onDisposed!, child: sheet);
     }
     return sheet;
   }
@@ -563,20 +571,24 @@ class _GlassTile extends StatelessWidget {
     final Color neutralTint = DesignConstants.glassNeutralTint(isDark);
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
-    final Widget leadingWidget =
-        customIcon != null ? customIcon! : Icon(icon, size: 22);
+    final Widget leadingWidget = customIcon != null
+        ? customIcon!
+        : Icon(icon, size: 22);
 
     final tileContent = Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: 14, vertical: DesignConstants.spacingS),
+        horizontal: 14,
+        vertical: DesignConstants.spacingS,
+      ),
       child: Row(
         children: [
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
                   : Colors.white.withValues(alpha: 0.2),
@@ -627,8 +639,7 @@ class _GlassTile extends StatelessWidget {
         settings: LiquidGlassSettings(
           // Changed here: thickness 0 removes distortion/shift.
           thickness: 0,
-          blur:
-              2.0, // Restored blur for clear but properly diffused liquid-glass look
+          blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
           glassColor: effectiveGlass,
           // Changed here: less light intensity reduces harsh edges.
           lightIntensity: 0.1,
@@ -687,7 +698,8 @@ Future<bool> showDeleteConfirmation(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingS),
+              horizontal: DesignConstants.spacingS,
+            ),
             child: Text(
               effectiveContent,
               textAlign: TextAlign.center,
@@ -828,9 +840,8 @@ Future<double?> showGlassNumberInput({
               ),
               autofocus: true,
               textAlign: TextAlign.center,
-              style: Theme.of(ctx).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(ctx).textTheme.headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 suffixText: unitSuffix,
                 contentPadding: const EdgeInsets.symmetric(
@@ -838,8 +849,9 @@ Future<double?> showGlassNumberInput({
                   vertical: DesignConstants.spacingM,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
               onSubmitted: (text) {
@@ -921,20 +933,18 @@ Future<double?> showGlassRulerInput({
                   Text(
                     formatted,
                     style: Theme.of(ctx).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(ctx).colorScheme.onSurface,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(ctx).colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
                   Text(
                     unit,
                     style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(ctx)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Theme.of(ctx).colorScheme.onSurface
+                          .withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -1037,11 +1047,7 @@ Future<double?> showGlassRateRulerInput({
 }
 
 /// Represents the user's choice when there is an active workout conflict.
-enum ActiveWorkoutConflictResult {
-  resume,
-  discard,
-  cancel,
-}
+enum ActiveWorkoutConflictResult { resume, discard, cancel }
 
 /// Shows a glass-styled modal bottom sheet when trying to start a new workout
 /// while another workout is already in progress.
@@ -1059,7 +1065,8 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingS),
+              horizontal: DesignConstants.spacingS,
+            ),
             child: Text(
               l10n.workoutConflictContent,
               textAlign: TextAlign.center,

@@ -132,9 +132,7 @@ class AssistantDatabaseSnapshotReader {
       'consumed_salt_g': 'REAL',
       'consumed_caffeine_mg': 'REAL',
     },
-    'workout_logs': {
-      'effective_routine_name': 'TEXT',
-    },
+    'workout_logs': {'effective_routine_name': 'TEXT'},
     'set_logs': {
       'effective_exercise_name': 'TEXT',
       'canonical_exercise_name': 'TEXT',
@@ -154,7 +152,8 @@ class AssistantDatabaseSnapshotReader {
   };
 
   Future<Map<String, Map<String, String>>> columnsFor(
-      Map<String, List<Map<String, dynamic>>> tables) async {
+    Map<String, List<Map<String, dynamic>>> tables,
+  ) async {
     final result = <String, Map<String, String>>{};
     for (final entry in tables.entries) {
       final table = entry.key;
@@ -170,11 +169,13 @@ class AssistantDatabaseSnapshotReader {
       }
       final columns = <String, String>{};
       if (RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) {
-        final rows =
-            await database.customSelect('PRAGMA table_info($table)').get();
+        final rows = await database
+            .customSelect('PRAGMA table_info($table)')
+            .get();
         for (final row in rows) {
-          columns[row.read<String>('name')] =
-              _sqliteType(row.read<String>('type'));
+          columns[row.read<String>('name')] = _sqliteType(
+            row.read<String>('type'),
+          );
         }
       }
       final enriched = _enrichedTableColumns[table];
@@ -217,18 +218,30 @@ class AssistantDatabaseSnapshotReader {
           ' WHERE deleted_at IS NULL AND exercise_id IN ($exerciseIds)',
         );
         final exerciseMuscles = await _select(
-            'exercise_muscles', ' WHERE exercise_id IN ($exerciseIds)');
+          'exercise_muscles',
+          ' WHERE exercise_id IN ($exerciseIds)',
+        );
         final muscles = await _select('muscles', ' WHERE id IN ($muscleIds)');
         final muscleTranslations = await _select(
-            'muscle_translations', ' WHERE muscle_id IN ($muscleIds)');
+          'muscle_translations',
+          ' WHERE muscle_id IN ($muscleIds)',
+        );
         final exerciseEquipment = await _select(
-            'exercise_equipment', ' WHERE exercise_id IN ($exerciseIds)');
-        final equipment =
-            await _select('equipment', ' WHERE id IN ($equipmentIds)');
+          'exercise_equipment',
+          ' WHERE exercise_id IN ($exerciseIds)',
+        );
+        final equipment = await _select(
+          'equipment',
+          ' WHERE id IN ($equipmentIds)',
+        );
         final equipmentTranslations = await _select(
-            'equipment_translations', ' WHERE equipment_id IN ($equipmentIds)');
+          'equipment_translations',
+          ' WHERE equipment_id IN ($equipmentIds)',
+        );
         final exerciseTags = await _select(
-            'exercise_tags', ' WHERE exercise_id IN ($exerciseIds)');
+          'exercise_tags',
+          ' WHERE exercise_id IN ($exerciseIds)',
+        );
         _enrichExercises(
           exercises: exercises,
           translations: exerciseTranslations,
@@ -249,7 +262,9 @@ class AssistantDatabaseSnapshotReader {
           ),
           'exercises': exercises,
           'pinned_exercise_notes': await _select(
-              'pinned_exercise_notes', ' WHERE exercise_id IN ($exerciseIds)'),
+            'pinned_exercise_notes',
+            ' WHERE exercise_id IN ($exerciseIds)',
+          ),
           'exercise_translations': exerciseTranslations,
           'exercise_muscles': exerciseMuscles,
           'muscles': muscles,
@@ -263,8 +278,10 @@ class AssistantDatabaseSnapshotReader {
         const planIds =
             'SELECT id FROM training_plans WHERE deleted_at IS NULL';
         final tables = <String, List<Map<String, dynamic>>>{
-          'training_plans':
-              await _select('training_plans', ' WHERE deleted_at IS NULL'),
+          'training_plans': await _select(
+            'training_plans',
+            ' WHERE deleted_at IS NULL',
+          ),
           'training_plan_revisions': await _select(
             'training_plan_revisions',
             ' WHERE deleted_at IS NULL AND plan_id IN ($planIds)',
@@ -288,15 +305,23 @@ class AssistantDatabaseSnapshotReader {
         final range = _range(scope);
         return {
           'health_step_segments': await _select(
-              'health_step_segments', _dateWhere('start_at', range),
-              values: range),
+            'health_step_segments',
+            _dateWhere('start_at', range),
+            values: range,
+          ),
         };
       case AssistantDataCategory.sleep:
         final dateRange = _range(scope, dateOnly: true);
-        final analysisWhere =
-            _dateWhere('night_date', dateRange, hasDeletedAt: false);
-        final analyses = await _select('sleep_nightly_analyses', analysisWhere,
-            values: dateRange);
+        final analysisWhere = _dateWhere(
+          'night_date',
+          dateRange,
+          hasDeletedAt: false,
+        );
+        final analyses = await _select(
+          'sleep_nightly_analyses',
+          analysisWhere,
+          values: dateRange,
+        );
         final sessionsByAnalysis = analyses
             .map((row) => row['session_id'])
             .whereType<String>()
@@ -346,11 +371,15 @@ class AssistantDatabaseSnapshotReader {
         return {
           'sleep_canonical_sessions': analysisSessions,
           'sleep_canonical_stage_segments': await _select(
-              'sleep_canonical_stage_segments', ' WHERE session_id $ids',
-              values: sessionIds),
+            'sleep_canonical_stage_segments',
+            ' WHERE session_id $ids',
+            values: sessionIds,
+          ),
           'sleep_canonical_heart_rate_samples': await _select(
-              'sleep_canonical_heart_rate_samples', ' WHERE session_id $ids',
-              values: sessionIds),
+            'sleep_canonical_heart_rate_samples',
+            ' WHERE session_id $ids',
+            values: sessionIds,
+          ),
           'sleep_nightly_analyses': analyses,
           'sleep_raw_imports': rawImports,
         };
@@ -358,14 +387,18 @@ class AssistantDatabaseSnapshotReader {
         final range = _range(scope);
         return {
           'measurements': await _select(
-              'measurements', _dateWhere('date', range),
-              values: range),
+            'measurements',
+            _dateWhere('date', range),
+            values: range,
+          ),
         };
       case AssistantDataCategory.goals:
         const goalIds = 'SELECT id FROM user_goals WHERE deleted_at IS NULL';
         return {
-          'user_goals':
-              await _select('user_goals', ' WHERE deleted_at IS NULL'),
+          'user_goals': await _select(
+            'user_goals',
+            ' WHERE deleted_at IS NULL',
+          ),
           'goal_events': await _select(
             'goal_events',
             ' WHERE deleted_at IS NULL AND goal_id IN ($goalIds)',
@@ -401,8 +434,10 @@ class AssistantDatabaseSnapshotReader {
         };
       case AssistantDataCategory.supplements:
         return {
-          'supplements':
-              await _select('supplements', ' WHERE deleted_at IS NULL'),
+          'supplements': await _select(
+            'supplements',
+            ' WHERE deleted_at IS NULL',
+          ),
           'supplement_settings_history': await _select(
             'supplement_settings_history',
             ''' WHERE deleted_at IS NULL AND created_at = (
@@ -542,8 +577,11 @@ class AssistantDatabaseSnapshotReader {
     final range = _range(scope);
     final workoutWhere = _dateWhere('start_time', range);
     final workoutIds = 'SELECT id FROM workout_logs$workoutWhere';
-    final workoutLogs =
-        await _select('workout_logs', workoutWhere, values: range);
+    final workoutLogs = await _select(
+      'workout_logs',
+      workoutWhere,
+      values: range,
+    );
     final setLogs = await _select(
       'set_logs',
       ' WHERE deleted_at IS NULL AND workout_log_id IN ($workoutIds)',
@@ -701,12 +739,12 @@ class AssistantDatabaseSnapshotReader {
       final routineId = workout['routine_id'] as String?;
       final routine = routineId == null ? null : routinesById[routineId];
       final currentName = routine?['name'] as String?;
-      final snapshotName =
-          (workout['routine_name_snapshot'] as String?)?.trim();
+      final snapshotName = (workout['routine_name_snapshot'] as String?)
+          ?.trim();
       workout['effective_routine_name'] =
           (currentName != null && currentName.isNotEmpty)
-              ? currentName
-              : snapshotName;
+          ? currentName
+          : snapshotName;
     }
 
     void enrichExerciseLogRow(Map<String, dynamic> row) {
@@ -717,8 +755,8 @@ class AssistantDatabaseSnapshotReader {
       row['canonical_exercise_name'] = canonicalName;
       row['effective_exercise_name'] =
           (canonicalName != null && canonicalName.isNotEmpty)
-              ? canonicalName
-              : snapshotName;
+          ? canonicalName
+          : snapshotName;
     }
 
     for (final setLog in setLogs) {
@@ -820,8 +858,10 @@ class AssistantDatabaseSnapshotReader {
         continue;
       }
       final label = equipmentNameById[equipmentId] ?? equipmentId;
-      final list =
-          equipmentByExercise.putIfAbsent(exerciseId, () => <String>[]);
+      final list = equipmentByExercise.putIfAbsent(
+        exerciseId,
+        () => <String>[],
+      );
       if (!list.contains(label)) list.add(label);
     }
 
@@ -838,12 +878,15 @@ class AssistantDatabaseSnapshotReader {
       final primary = primaryMusclesByExercise[id];
       final secondary = secondaryMusclesByExercise[id];
       final equip = equipmentByExercise[id];
-      exercise['primary_muscles'] =
-          primary == null || primary.isEmpty ? null : primary.join(', ');
-      exercise['secondary_muscles'] =
-          secondary == null || secondary.isEmpty ? null : secondary.join(', ');
-      exercise['equipment_names'] =
-          equip == null || equip.isEmpty ? null : equip.join(', ');
+      exercise['primary_muscles'] = primary == null || primary.isEmpty
+          ? null
+          : primary.join(', ');
+      exercise['secondary_muscles'] = secondary == null || secondary.isEmpty
+          ? null
+          : secondary.join(', ');
+      exercise['equipment_names'] = equip == null || equip.isEmpty
+          ? null
+          : equip.join(', ');
     }
   }
 
@@ -857,13 +900,22 @@ class AssistantDatabaseSnapshotReader {
     final supplementWhere = _dateWhere('taken_at', range);
 
     final mealEntries = await _select('meal_entries', mealWhere, values: range);
-    final nutritionLogs =
-        await _select('nutrition_logs', foodWhere, values: range);
-    final macroEntries =
-        await _select('macro_entries', foodWhere, values: range);
+    final nutritionLogs = await _select(
+      'nutrition_logs',
+      foodWhere,
+      values: range,
+    );
+    final macroEntries = await _select(
+      'macro_entries',
+      foodWhere,
+      values: range,
+    );
     final fluidLogs = await _select('fluid_logs', fluidWhere, values: range);
-    final supplementLogs =
-        await _select('supplement_logs', supplementWhere, values: range);
+    final supplementLogs = await _select(
+      'supplement_logs',
+      supplementWhere,
+      values: range,
+    );
 
     // Saved recipes have no foreign key from meal_entries. They belong only to
     // the separately approved recipes category.
@@ -992,8 +1044,10 @@ class AssistantDatabaseSnapshotReader {
       entry['consumed_sugar_g'] = _scaledOptional(entry['sugar'], factor);
       entry['consumed_fiber_g'] = _scaledOptional(entry['fiber'], factor);
       entry['consumed_salt_g'] = _scaledOptional(entry['salt'], factor);
-      entry['consumed_caffeine_mg'] =
-          _scaledOptional(entry['caffeine'], factor);
+      entry['consumed_caffeine_mg'] = _scaledOptional(
+        entry['caffeine'],
+        factor,
+      );
     }
   }
 
@@ -1088,8 +1142,9 @@ class AssistantDatabaseSnapshotReader {
       final rawBarcode = log['legacy_barcode'] as String?;
       final rawArchiveId = log['archive_local_id'] as int?;
 
-      final archive =
-          rawArchiveId != null ? archivesByLocalId[rawArchiveId] : null;
+      final archive = rawArchiveId != null
+          ? archivesByLocalId[rawArchiveId]
+          : null;
       var product = (rawProductId != null && rawProductId.isNotEmpty)
           ? productsById[rawProductId]
           : null;
@@ -1097,7 +1152,7 @@ class AssistantDatabaseSnapshotReader {
       final candidateBarcode = (rawBarcode != null && rawBarcode.isNotEmpty)
           ? rawBarcode
           : (product?['barcode'] as String?) ??
-              (archive?['barcode'] as String?);
+                (archive?['barcode'] as String?);
 
       if (rawArchiveId == null &&
           product == null &&
@@ -1106,10 +1161,12 @@ class AssistantDatabaseSnapshotReader {
         product = productsByBarcode[candidateBarcode];
       }
 
-      final effectiveBarcode = candidateBarcode ??
+      final effectiveBarcode =
+          candidateBarcode ??
           (product?['barcode'] as String?) ??
           (archive?['barcode'] as String?);
-      final override = rawArchiveId == null &&
+      final override =
+          rawArchiveId == null &&
               effectiveBarcode != null &&
               effectiveBarcode.isNotEmpty
           ? overridesByBarcode[effectiveBarcode]
@@ -1154,7 +1211,8 @@ class AssistantDatabaseSnapshotReader {
       final sugarPer100g = asDouble(pickField('sugar'));
       final fiberPer100g = asDouble(pickField('fiber'));
       final saltPer100g = asDouble(pickField('salt'));
-      final caffeinePer100g = asDouble(pickField('caffeine_mg_per_100g')) ??
+      final caffeinePer100g =
+          asDouble(pickField('caffeine_mg_per_100g')) ??
           asDouble(pickField('caffeine'));
 
       final amount = asDouble(log['amount']) ?? 0.0;
@@ -1203,10 +1261,7 @@ class AssistantDatabaseSnapshotReader {
       ' WHERE deleted_at IS NULL AND created_at < ? ORDER BY created_at DESC, local_id DESC LIMIT 1',
       values: [range.first],
     );
-    final combined = <Map<String, dynamic>>[
-      ...activeAtStart,
-      ...inRange,
-    ];
+    final combined = <Map<String, dynamic>>[...activeAtStart, ...inRange];
     if (combined.isNotEmpty) {
       final seen = <Object?>{};
       return [
@@ -1230,7 +1285,8 @@ class AssistantDatabaseSnapshotReader {
         .toList(growable: false);
     if (blsBarcodes.isEmpty) return const [];
     try {
-      final resolvedPath = blsDatabasePath ??
+      final resolvedPath =
+          blsDatabasePath ??
           await (blsDatabasePathProvider?.call() ??
               BlsFoodCatalogRefreshService.instance.installedDatabasePath());
       if (resolvedPath == null || resolvedPath.isEmpty) return const [];
@@ -1246,8 +1302,7 @@ class AssistantDatabaseSnapshotReader {
         for (var offset = 0; offset < blsBarcodes.length; offset += chunkSize) {
           final chunk = blsBarcodes.skip(offset).take(chunkSize).toList();
           final placeholders = _placeholders(chunk.length);
-          final rows = blsDb.select(
-            '''
+          final rows = blsDb.select('''
             SELECT
               fn.barcode,
               fn.component_code,
@@ -1270,9 +1325,7 @@ class AssistantDatabaseSnapshotReader {
             LEFT JOIN source_references r ON r.reference_id = fn.reference_id
             WHERE fn.barcode IN ($placeholders)
             ORDER BY fn.barcode, nc.group_de, fn.component_code
-            ''',
-            chunk,
-          );
+            ''', chunk);
           for (final row in rows) {
             results.add(Map<String, dynamic>.from(row));
           }
@@ -1295,15 +1348,18 @@ class AssistantDatabaseSnapshotReader {
     bool milliseconds = false,
   }) {
     if (scope == null) return const [];
-    final startInclusive =
-        DateTime(scope.start.year, scope.start.month, scope.start.day);
-    final endExclusive =
-        DateTime(scope.end.year, scope.end.month, scope.end.day + 1);
+    final startInclusive = DateTime(
+      scope.start.year,
+      scope.start.month,
+      scope.start.day,
+    );
+    final endExclusive = DateTime(
+      scope.end.year,
+      scope.end.month,
+      scope.end.day + 1,
+    );
     if (dateOnly) {
-      return [
-        _day(startInclusive),
-        _day(endExclusive),
-      ];
+      return [_day(startInclusive), _day(endExclusive)];
     }
     if (milliseconds) {
       return [
@@ -1318,8 +1374,11 @@ class AssistantDatabaseSnapshotReader {
     ];
   }
 
-  String _dateWhere(String column, List<Object?> range,
-      {bool hasDeletedAt = true}) {
+  String _dateWhere(
+    String column,
+    List<Object?> range, {
+    bool hasDeletedAt = true,
+  }) {
     if (range.isEmpty) return hasDeletedAt ? ' WHERE deleted_at IS NULL' : '';
     return '${hasDeletedAt ? ' WHERE deleted_at IS NULL AND' : ' WHERE'} $column >= ? AND $column < ?';
   }
@@ -1343,8 +1402,9 @@ class AssistantDatabaseSnapshotReader {
     ];
     return (await database
             .customSelect(
-                'SELECT ${columns?.join(', ') ?? '*'} FROM $table$suffix',
-                variables: variables)
+              'SELECT ${columns?.join(', ') ?? '*'} FROM $table$suffix',
+              variables: variables,
+            )
             .get())
         .map((row) => Map<String, dynamic>.from(row.data))
         .toList();
@@ -1354,7 +1414,8 @@ class AssistantDatabaseSnapshotReader {
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
   List<Map<String, dynamic>> _activeWeekSchedule(
-      Map<String, List<Map<String, dynamic>>> tables) {
+    Map<String, List<Map<String, dynamic>>> tables,
+  ) {
     final activePlans = (tables['training_plans'] ?? const [])
         .where((plan) => plan['is_active'] == true || plan['is_active'] == 1)
         .where((plan) => plan['kind'] == 'week')
@@ -1363,39 +1424,60 @@ class AssistantDatabaseSnapshotReader {
     final plan = activePlans.first;
     final planId = plan['id'];
     if (planId is! String) return const [];
-    final activations = (tables['training_plan_activations'] ?? const [])
-        .where((row) => row['plan_id'] == planId && row['ended_on'] == null)
-        .toList()
-      ..sort((a, b) =>
-          _dateValue(a['started_on']).compareTo(_dateValue(b['started_on'])));
+    final activations =
+        (tables['training_plan_activations'] ?? const [])
+            .where((row) => row['plan_id'] == planId && row['ended_on'] == null)
+            .toList()
+          ..sort(
+            (a, b) =>
+                _dateValue(a['started_on'])
+                    .compareTo(_dateValue(b['started_on'])),
+          );
     if (activations.isEmpty) return const [];
     final activation = activations.last;
     final startedOn = _dateValue(activation['started_on']);
-    final startedOnDay =
-        DateTime(startedOn.year, startedOn.month, startedOn.day);
+    final startedOnDay = DateTime(
+      startedOn.year,
+      startedOn.month,
+      startedOn.day,
+    );
     final today = (nowProvider?.call() ?? DateTime.now()).toLocal();
-    final monday =
-        DateTime(today.year, today.month, today.day - today.weekday + 1);
-    final revisions = (tables['training_plan_revisions'] ?? const [])
-        .where((row) => row['plan_id'] == planId)
-        .toList()
-      ..sort((a, b) =>
-          (a['number'] as num? ?? 0).compareTo(b['number'] as num? ?? 0));
+    final monday = DateTime(
+      today.year,
+      today.month,
+      today.day - today.weekday + 1,
+    );
+    final revisions =
+        (tables['training_plan_revisions'] ?? const [])
+            .where((row) => row['plan_id'] == planId)
+            .toList()
+          ..sort(
+            (a, b) =>
+                (a['number'] as num? ?? 0).compareTo(b['number'] as num? ?? 0),
+          );
     if (revisions.isEmpty) return const [];
     final occurrences = tables['training_plan_occurrences'] ?? const [];
     final result = <Map<String, dynamic>>[];
     for (var index = 0; index < 7; index++) {
       final date = DateTime(monday.year, monday.month, monday.day + index);
       final daysDiff = DateTime.utc(date.year, date.month, date.day)
-          .difference(DateTime.utc(
-              startedOnDay.year, startedOnDay.month, startedOnDay.day))
+          .difference(
+            DateTime.utc(
+              startedOnDay.year,
+              startedOnDay.month,
+              startedOnDay.day,
+            ),
+          )
           .inDays;
       final cycle = daysDiff < 0 ? 0 : daysDiff ~/ 7;
       var revision = revisions.first;
       for (final candidate in revisions) {
         final effectiveOn = _dateValue(candidate['effective_on']);
-        final effectiveOnDay =
-            DateTime(effectiveOn.year, effectiveOn.month, effectiveOn.day);
+        final effectiveOnDay = DateTime(
+          effectiveOn.year,
+          effectiveOn.month,
+          effectiveOn.day,
+        );
         final effectiveCycle = candidate['effective_cycle'] as num?;
         if (!date.isBefore(effectiveOnDay) &&
             (effectiveCycle == null || cycle >= effectiveCycle.toInt())) {
@@ -1487,14 +1569,17 @@ class AssistantComprehensiveDataAction implements AssistantDataAction {
 
   @override
   Set<AssistantDataCategory> get categories => {
-        for (final action in actions) ...action.categories,
-      };
+    for (final action in actions) ...action.categories,
+  };
 
   @override
   Future<AssistantActionResult> read(
-      AssistantDataCategory category, AssistantDateScope? scope) async {
-    final matches =
-        actions.where((action) => action.categories.contains(category));
+    AssistantDataCategory category,
+    AssistantDateScope? scope,
+  ) async {
+    final matches = actions.where(
+      (action) => action.categories.contains(category),
+    );
     if (matches.length != 1) throw StateError('No unique action for $category');
     final semantic = await matches.single.read(category, scope);
     if (semantic.status != AssistantActionStatus.success) return semantic;
@@ -1509,7 +1594,8 @@ class AssistantComprehensiveDataAction implements AssistantDataAction {
               'date': record['date'],
               'food_entry_count': record['foodEntryCount'],
               'macro_entry_count': record['macroEntryCount'],
-              'food_count': (record['foodEntryCount'] as num? ?? 0).toInt() +
+              'food_count':
+                  (record['foodEntryCount'] as num? ?? 0).toInt() +
                   (record['macroEntryCount'] as num? ?? 0).toInt(),
               'calories_kcal': record['caloriesKcal'],
               'protein_g': record['proteinGrams'],
@@ -1521,7 +1607,7 @@ class AssistantComprehensiveDataAction implements AssistantDataAction {
               'target_carbs_g': record['targetCarbsGrams'],
               'target_fat_g': record['targetFatGrams'],
               'target_water_ml': record['targetWaterMilliliters'],
-            }
+            },
       ];
       if (dailySummaryRows.isNotEmpty) {
         tables['nutrition_daily_summary'] = dailySummaryRows;

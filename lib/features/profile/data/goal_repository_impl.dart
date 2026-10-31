@@ -17,7 +17,7 @@ class GoalRepositoryImpl implements IGoalRepository {
   final _uuid = const Uuid();
 
   GoalRepositoryImpl({db.AppDatabase? database})
-      : _db = database ?? DatabaseHelper.instance.dbInstance;
+    : _db = database ?? DatabaseHelper.instance.dbInstance;
 
   Goal _mapRowToGoal(db.UserGoal row) {
     return Goal(
@@ -85,10 +85,12 @@ class GoalRepositoryImpl implements IGoalRepository {
 
   @override
   Future<({String id, double valueKg, DateTime date})?>
-      findLatestWeightAtOrBefore(DateTime date) async {
+  findLatestWeightAtOrBefore(DateTime date) async {
     final query = _db.select(_db.measurements)
-      ..where((row) =>
-          row.type.equals('weight') & row.date.isSmallerOrEqualValue(date))
+      ..where(
+        (row) =>
+            row.type.equals('weight') & row.date.isSmallerOrEqualValue(date),
+      )
       ..orderBy([(row) => drift.OrderingTerm.desc(row.date)])
       ..limit(1);
     final row = await query.getSingleOrNull();
@@ -113,21 +115,28 @@ class GoalRepositoryImpl implements IGoalRepository {
       if (measurement == null || measurement.value <= 0) return current;
 
       final now = DateTime.now();
-      await (_db.update(_db.userGoals)..where((row) => row.id.equals(goalId)))
-          .write(db.UserGoalsCompanion(
-        baselineMeasurementId: drift.Value(measurement.id),
-        baselineValueKg: drift.Value(measurement.value),
-        baselineDate: drift.Value(measurement.date),
-        updatedAt: drift.Value(now),
-      ));
-      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-            id: drift.Value(_uuid.v4()),
-            goalId: goalId,
-            eventType: 'baseline_recorded',
-            actor: const drift.Value('user'),
-            occurredAt: drift.Value(now),
-            createdAt: drift.Value(now),
-          ));
+      await (_db.update(
+        _db.userGoals,
+      )..where((row) => row.id.equals(goalId))).write(
+        db.UserGoalsCompanion(
+          baselineMeasurementId: drift.Value(measurement.id),
+          baselineValueKg: drift.Value(measurement.value),
+          baselineDate: drift.Value(measurement.date),
+          updatedAt: drift.Value(now),
+        ),
+      );
+      await _db
+          .into(_db.goalEvents)
+          .insert(
+            db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: goalId,
+              eventType: 'baseline_recorded',
+              actor: const drift.Value('user'),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ),
+          );
       return (await getGoalById(goalId))!;
     });
   }
@@ -141,7 +150,8 @@ class GoalRepositoryImpl implements IGoalRepository {
   Future<Goal?> getActiveNutritionGoal() async {
     final query = _db.select(_db.userGoals)
       ..where(
-          (t) => t.status.equals('active') & t.area.equals('body_composition'))
+        (t) => t.status.equals('active') & t.area.equals('body_composition'),
+      )
       ..limit(1);
     final row = await query.getSingleOrNull();
     if (row == null) return null;
@@ -152,7 +162,8 @@ class GoalRepositoryImpl implements IGoalRepository {
   Future<List<Goal>> getRetiredGoals() async {
     final query = _db.select(_db.userGoals)
       ..where(
-          (t) => t.status.isNotValue('active') & t.status.isNotValue('draft'))
+        (t) => t.status.isNotValue('active') & t.status.isNotValue('draft'),
+      )
       ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)]);
     final rows = await query.get();
     return rows.map(_mapRowToGoal).toList();
@@ -215,7 +226,9 @@ class GoalRepositoryImpl implements IGoalRepository {
       var effectiveMeasurementId = baselineMeasurementId;
       if (effectiveMeasurementId == null) {
         effectiveMeasurementId = _uuid.v4();
-        await _db.into(_db.measurements).insert(
+        await _db
+            .into(_db.measurements)
+            .insert(
               db.MeasurementsCompanion.insert(
                 id: drift.Value(effectiveMeasurementId),
                 type: 'weight',
@@ -230,94 +243,113 @@ class GoalRepositoryImpl implements IGoalRepository {
       }
 
       // Exactly one active goal per area; future workout goals are independent.
-      final existingActive = await (_db.select(_db.userGoals)
-            ..where((t) =>
-                t.status.equals('active') & t.area.equals('body_composition')))
-          .get();
+      final existingActive =
+          await (_db.select(_db.userGoals)..where(
+                (t) =>
+                    t.status.equals('active') &
+                    t.area.equals('body_composition'),
+              ))
+              .get();
 
       for (final existing in existingActive) {
-        await (_db.update(_db.userGoals)
-              ..where((t) => t.id.equals(existing.id)))
-            .write(db.UserGoalsCompanion(
-          status: const drift.Value('superseded'),
-          retiredAt: drift.Value(now),
-          updatedAt: drift.Value(now),
-        ));
-        await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-              id: drift.Value(_uuid.v4()),
-              goalId: existing.id,
-              eventType: 'superseded',
-              actor: const drift.Value('user'),
-              reason: const drift.Value('Replaced by newly created goal'),
-              occurredAt: drift.Value(now),
-              createdAt: drift.Value(now),
-            ));
+        await (_db.update(
+          _db.userGoals,
+        )..where((t) => t.id.equals(existing.id))).write(
+          db.UserGoalsCompanion(
+            status: const drift.Value('superseded'),
+            retiredAt: drift.Value(now),
+            updatedAt: drift.Value(now),
+          ),
+        );
+        await _db
+            .into(_db.goalEvents)
+            .insert(
+              db.GoalEventsCompanion.insert(
+                id: drift.Value(_uuid.v4()),
+                goalId: existing.id,
+                eventType: 'superseded',
+                actor: const drift.Value('user'),
+                reason: const drift.Value('Replaced by newly created goal'),
+                occurredAt: drift.Value(now),
+                createdAt: drift.Value(now),
+              ),
+            );
         await _closePendingReviewsInTransaction(existing.id, now);
       }
 
       final newGoalId = _uuid.v4();
-      await _db.into(_db.userGoals).insert(db.UserGoalsCompanion.insert(
-            id: drift.Value(newGoalId),
-            preset: preset.key,
-            title: title,
-            reason: drift.Value(reason),
-            status: const drift.Value('active'),
-            startDate: startDate,
-            trackingMode: drift.Value(trackingMode.name),
-            baselineMeasurementId: drift.Value(effectiveMeasurementId),
-            baselineValueKg: drift.Value(baselineValueKg),
-            baselineDate: drift.Value(effectiveBaselineDate),
-            targetDate: drift.Value(targetDate),
-            targetMetric: drift.Value(targetMetric),
-            targetValue: drift.Value(targetValue),
-            targetUnit: drift.Value(targetUnit),
-            desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
-            isNutritionDriver: drift.Value(isNutritionDriver),
-            createdAt: drift.Value(now),
-            updatedAt: drift.Value(now),
-          ));
+      await _db
+          .into(_db.userGoals)
+          .insert(
+            db.UserGoalsCompanion.insert(
+              id: drift.Value(newGoalId),
+              preset: preset.key,
+              title: title,
+              reason: drift.Value(reason),
+              status: const drift.Value('active'),
+              startDate: startDate,
+              trackingMode: drift.Value(trackingMode.name),
+              baselineMeasurementId: drift.Value(effectiveMeasurementId),
+              baselineValueKg: drift.Value(baselineValueKg),
+              baselineDate: drift.Value(effectiveBaselineDate),
+              targetDate: drift.Value(targetDate),
+              targetMetric: drift.Value(targetMetric),
+              targetValue: drift.Value(targetValue),
+              targetUnit: drift.Value(targetUnit),
+              desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
+              isNutritionDriver: drift.Value(isNutritionDriver),
+              createdAt: drift.Value(now),
+              updatedAt: drift.Value(now),
+            ),
+          );
 
-      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-            id: drift.Value(_uuid.v4()),
-            goalId: newGoalId,
-            eventType: 'created',
-            actor: const drift.Value('user'),
-            reason: drift.Value(reason),
-            occurredAt: drift.Value(now),
-            createdAt: drift.Value(now),
-          ));
+      await _db
+          .into(_db.goalEvents)
+          .insert(
+            db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: newGoalId,
+              eventType: 'created',
+              actor: const drift.Value('user'),
+              reason: drift.Value(reason),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ),
+          );
       final created = await getGoalById(newGoalId);
       final rate = desiredWeeklyRateKg ?? 0.0;
       final rateDir = rate < -0.05
           ? 'deficit'
           : (rate > 0.05
-              ? 'surplus'
-              : (preset == GoalPreset.maintainWeight ||
-                      preset == GoalPreset.recomposition
-                  ? 'maintenance'
-                  : 'neutral'));
+                ? 'surplus'
+                : (preset == GoalPreset.maintainWeight ||
+                          preset == GoalPreset.recomposition
+                      ? 'maintenance'
+                      : 'neutral'));
 
-      unawaited(TelemetryService.instance.trackNutritionGoalCreated(
-        preset: preset == GoalPreset.loseWeight
-            ? 'lose_weight'
-            : (preset == GoalPreset.gainWeight
-                ? 'gain_weight'
-                : (preset == GoalPreset.maintainWeight
-                    ? 'maintain_weight'
-                    : (preset == GoalPreset.recomposition
-                        ? 'recomposition'
-                        : 'custom'))),
-        trackingMode: trackingMode == GoalTrackingMode.weeklyRate
-            ? 'weekly_rate'
-            : (trackingMode == GoalTrackingMode.targetWeight
-                ? 'target_weight'
-                : 'open'),
-        isNutritionDriver: isNutritionDriver,
-        hasTargetDate: targetDate != null,
-        hasNumericTarget: targetValue != null,
-        rateDirection: rateDir,
-        source: 'profile',
-      ));
+      unawaited(
+        TelemetryService.instance.trackNutritionGoalCreated(
+          preset: preset == GoalPreset.loseWeight
+              ? 'lose_weight'
+              : (preset == GoalPreset.gainWeight
+                    ? 'gain_weight'
+                    : (preset == GoalPreset.maintainWeight
+                          ? 'maintain_weight'
+                          : (preset == GoalPreset.recomposition
+                                ? 'recomposition'
+                                : 'custom'))),
+          trackingMode: trackingMode == GoalTrackingMode.weeklyRate
+              ? 'weekly_rate'
+              : (trackingMode == GoalTrackingMode.targetWeight
+                    ? 'target_weight'
+                    : 'open'),
+          isNutritionDriver: isNutritionDriver,
+          hasTargetDate: targetDate != null,
+          hasNumericTarget: targetValue != null,
+          rateDirection: rateDir,
+          source: 'profile',
+        ),
+      );
       return created!;
     });
   }
@@ -335,61 +367,78 @@ class GoalRepositoryImpl implements IGoalRepository {
       final successorStartDate = DateTime(now.year, now.month, now.day);
 
       // 1. Mark old goal as superseded
-      await (_db.update(_db.userGoals)
-            ..where((t) => t.id.equals(currentGoal.id)))
-          .write(db.UserGoalsCompanion(
-        status: const drift.Value('superseded'),
-        retiredAt: drift.Value(now),
-        updatedAt: drift.Value(now),
-      ));
+      await (_db.update(
+        _db.userGoals,
+      )..where((t) => t.id.equals(currentGoal.id))).write(
+        db.UserGoalsCompanion(
+          status: const drift.Value('superseded'),
+          retiredAt: drift.Value(now),
+          updatedAt: drift.Value(now),
+        ),
+      );
 
-      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-            id: drift.Value(_uuid.v4()),
-            goalId: currentGoal.id,
-            eventType: 'superseded',
-            actor: const drift.Value('user'),
-            reason:
-                drift.Value(reason ?? 'Superseded by trajectory adjustment'),
-            occurredAt: drift.Value(now),
-            createdAt: drift.Value(now),
-          ));
+      await _db
+          .into(_db.goalEvents)
+          .insert(
+            db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: currentGoal.id,
+              eventType: 'superseded',
+              actor: const drift.Value('user'),
+              reason: drift.Value(
+                reason ?? 'Superseded by trajectory adjustment',
+              ),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ),
+          );
       await _closePendingReviewsInTransaction(currentGoal.id, now);
 
       // 2. Create successor goal linked to currentGoal.id
       final successorId = _uuid.v4();
-      await _db.into(_db.userGoals).insert(db.UserGoalsCompanion.insert(
-            id: drift.Value(successorId),
-            preset: currentGoal.preset.key,
-            title: currentGoal.title,
-            reason: drift.Value(reason ?? currentGoal.reason),
-            status: const drift.Value('active'),
-            startDate: successorStartDate,
-            trackingMode: drift.Value(currentGoal.trackingMode.name),
-            baselineMeasurementId:
-                drift.Value(currentGoal.baselineMeasurementId),
-            baselineValueKg: drift.Value(currentGoal.baselineValueKg),
-            baselineDate: drift.Value(currentGoal.baselineDate),
-            targetDate: drift.Value(targetDate),
-            targetMetric: drift.Value(currentGoal.targetMetric),
-            targetValue: drift.Value(targetValue),
-            targetUnit: drift.Value(currentGoal.targetUnit),
-            desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
-            isNutritionDriver: drift.Value(currentGoal.isNutritionDriver),
-            predecessorGoalId: drift.Value(currentGoal.id),
-            createdAt: drift.Value(now),
-            updatedAt: drift.Value(now),
-          ));
+      await _db
+          .into(_db.userGoals)
+          .insert(
+            db.UserGoalsCompanion.insert(
+              id: drift.Value(successorId),
+              preset: currentGoal.preset.key,
+              title: currentGoal.title,
+              reason: drift.Value(reason ?? currentGoal.reason),
+              status: const drift.Value('active'),
+              startDate: successorStartDate,
+              trackingMode: drift.Value(currentGoal.trackingMode.name),
+              baselineMeasurementId: drift.Value(
+                currentGoal.baselineMeasurementId,
+              ),
+              baselineValueKg: drift.Value(currentGoal.baselineValueKg),
+              baselineDate: drift.Value(currentGoal.baselineDate),
+              targetDate: drift.Value(targetDate),
+              targetMetric: drift.Value(currentGoal.targetMetric),
+              targetValue: drift.Value(targetValue),
+              targetUnit: drift.Value(currentGoal.targetUnit),
+              desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
+              isNutritionDriver: drift.Value(currentGoal.isNutritionDriver),
+              predecessorGoalId: drift.Value(currentGoal.id),
+              createdAt: drift.Value(now),
+              updatedAt: drift.Value(now),
+            ),
+          );
 
-      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-            id: drift.Value(_uuid.v4()),
-            goalId: successorId,
-            eventType: 'created',
-            actor: const drift.Value('user'),
-            reason: const drift.Value(
-                'Created as successor from trajectory adjustment'),
-            occurredAt: drift.Value(now),
-            createdAt: drift.Value(now),
-          ));
+      await _db
+          .into(_db.goalEvents)
+          .insert(
+            db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: successorId,
+              eventType: 'created',
+              actor: const drift.Value('user'),
+              reason: const drift.Value(
+                'Created as successor from trajectory adjustment',
+              ),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ),
+          );
 
       final created = await getGoalById(successorId);
       return created!;
@@ -425,26 +474,33 @@ class GoalRepositoryImpl implements IGoalRepository {
         },
       });
 
-      await (_db.update(_db.userGoals)
-            ..where((table) => table.id.equals(currentGoal.id)))
-          .write(db.UserGoalsCompanion(
-        targetValue: drift.Value(targetValue),
-        targetDate: drift.Value(targetDate),
-        desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
-        trackingMode:
-            drift.Value((trackingMode ?? currentGoal.trackingMode).name),
-        updatedAt: drift.Value(now),
-      ));
-      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-            id: drift.Value(_uuid.v4()),
-            goalId: currentGoal.id,
-            eventType: 'plan_revised',
-            actor: const drift.Value('user'),
-            reason: drift.Value(revision),
-            algorithmVersion: const drift.Value('goal_plan_revision_1_0'),
-            occurredAt: drift.Value(now),
-            createdAt: drift.Value(now),
-          ));
+      await (_db.update(
+        _db.userGoals,
+      )..where((table) => table.id.equals(currentGoal.id))).write(
+        db.UserGoalsCompanion(
+          targetValue: drift.Value(targetValue),
+          targetDate: drift.Value(targetDate),
+          desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
+          trackingMode: drift.Value(
+            (trackingMode ?? currentGoal.trackingMode).name,
+          ),
+          updatedAt: drift.Value(now),
+        ),
+      );
+      await _db
+          .into(_db.goalEvents)
+          .insert(
+            db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: currentGoal.id,
+              eventType: 'plan_revised',
+              actor: const drift.Value('user'),
+              reason: drift.Value(revision),
+              algorithmVersion: const drift.Value('goal_plan_revision_1_0'),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ),
+          );
       await _closePendingReviewsInTransaction(currentGoal.id, now);
       return (await getGoalById(currentGoal.id))!;
     });
@@ -454,30 +510,40 @@ class GoalRepositoryImpl implements IGoalRepository {
   Future<void> retireGoal(String goalId, {String? reason}) async {
     final now = DateTime.now();
     await _db.transaction(() async {
-      await (_db.update(_db.userGoals)..where((t) => t.id.equals(goalId)))
-          .write(db.UserGoalsCompanion(
-        status: const drift.Value('retired'),
-        retiredAt: drift.Value(now),
-        updatedAt: drift.Value(now),
-      ));
+      await (_db.update(
+        _db.userGoals,
+      )..where((t) => t.id.equals(goalId))).write(
+        db.UserGoalsCompanion(
+          status: const drift.Value('retired'),
+          retiredAt: drift.Value(now),
+          updatedAt: drift.Value(now),
+        ),
+      );
 
-      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-            id: drift.Value(_uuid.v4()),
-            goalId: goalId,
-            eventType: 'retired',
-            actor: const drift.Value('user'),
-            reason: drift.Value(reason),
-            occurredAt: drift.Value(now),
-            createdAt: drift.Value(now),
-          ));
+      await _db
+          .into(_db.goalEvents)
+          .insert(
+            db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: goalId,
+              eventType: 'retired',
+              actor: const drift.Value('user'),
+              reason: drift.Value(reason),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ),
+          );
       await _closePendingReviewsInTransaction(goalId, now);
       final goal = await getGoalById(goalId);
-      final duration =
-          goal != null ? now.difference(goal.startDate) : Duration.zero;
-      unawaited(TelemetryService.instance.trackNutritionGoalRetired(
-        reason: reason == 'completed' ? 'completed' : 'manual',
-        durationDaysBucket: TelemetryBuckets.getGoalDurationBucket(duration),
-      ));
+      final duration = goal != null
+          ? now.difference(goal.startDate)
+          : Duration.zero;
+      unawaited(
+        TelemetryService.instance.trackNutritionGoalRetired(
+          reason: reason == 'completed' ? 'completed' : 'manual',
+          durationDaysBucket: TelemetryBuckets.getGoalDurationBucket(duration),
+        ),
+      );
     });
   }
 
@@ -487,37 +553,50 @@ class GoalRepositoryImpl implements IGoalRepository {
       final now = DateTime.now();
 
       // Ensure no other goal remains active
-      final activeGoals = await (_db.select(_db.userGoals)
-            ..where((t) =>
-                t.status.equals('active') & t.area.equals('body_composition')))
-          .get();
+      final activeGoals =
+          await (_db.select(_db.userGoals)..where(
+                (t) =>
+                    t.status.equals('active') &
+                    t.area.equals('body_composition'),
+              ))
+              .get();
       for (final g in activeGoals) {
         if (g.id != goalId) {
-          await (_db.update(_db.userGoals)..where((t) => t.id.equals(g.id)))
-              .write(db.UserGoalsCompanion(
-            status: const drift.Value('retired'),
-            retiredAt: drift.Value(now),
-            updatedAt: drift.Value(now),
-          ));
+          await (_db.update(
+            _db.userGoals,
+          )..where((t) => t.id.equals(g.id))).write(
+            db.UserGoalsCompanion(
+              status: const drift.Value('retired'),
+              retiredAt: drift.Value(now),
+              updatedAt: drift.Value(now),
+            ),
+          );
           await _closePendingReviewsInTransaction(g.id, now);
         }
       }
 
-      await (_db.update(_db.userGoals)..where((t) => t.id.equals(goalId)))
-          .write(db.UserGoalsCompanion(
-        status: const drift.Value('active'),
-        retiredAt: const drift.Value(null),
-        updatedAt: drift.Value(now),
-      ));
+      await (_db.update(
+        _db.userGoals,
+      )..where((t) => t.id.equals(goalId))).write(
+        db.UserGoalsCompanion(
+          status: const drift.Value('active'),
+          retiredAt: const drift.Value(null),
+          updatedAt: drift.Value(now),
+        ),
+      );
 
-      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
-            id: drift.Value(_uuid.v4()),
-            goalId: goalId,
-            eventType: 'resumed',
-            actor: const drift.Value('user'),
-            occurredAt: drift.Value(now),
-            createdAt: drift.Value(now),
-          ));
+      await _db
+          .into(_db.goalEvents)
+          .insert(
+            db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: goalId,
+              eventType: 'resumed',
+              actor: const drift.Value('user'),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ),
+          );
 
       final resumed = await getGoalById(goalId);
       return resumed!;
@@ -556,10 +635,12 @@ class GoalRepositoryImpl implements IGoalRepository {
     DateTime windowEnd,
   ) async {
     final query = _db.select(_db.goalReviews)
-      ..where((t) =>
-          t.goalId.equals(goalId) &
-          t.windowStart.equals(windowStart) &
-          t.windowEnd.equals(windowEnd))
+      ..where(
+        (t) =>
+            t.goalId.equals(goalId) &
+            t.windowStart.equals(windowStart) &
+            t.windowEnd.equals(windowEnd),
+      )
       ..limit(1);
     final row = await query.getSingleOrNull();
     return row == null ? null : _mapRowToReview(row);
@@ -567,7 +648,9 @@ class GoalRepositoryImpl implements IGoalRepository {
 
   @override
   Future<void> saveReview(GoalReviewRecord review) async {
-    await _db.into(_db.goalReviews).insertOnConflictUpdate(
+    await _db
+        .into(_db.goalReviews)
+        .insertOnConflictUpdate(
           db.GoalReviewsCompanion.insert(
             id: drift.Value(review.id),
             goalId: review.goalId,
@@ -601,12 +684,15 @@ class GoalRepositoryImpl implements IGoalRepository {
     String status, {
     String? decision,
   }) async {
-    await (_db.update(_db.goalReviews)..where((t) => t.id.equals(reviewId)))
-        .write(db.GoalReviewsCompanion(
-      status: drift.Value(status),
-      decision: drift.Value(decision),
-      updatedAt: drift.Value(DateTime.now()),
-    ));
+    await (_db.update(
+      _db.goalReviews,
+    )..where((t) => t.id.equals(reviewId))).write(
+      db.GoalReviewsCompanion(
+        status: drift.Value(status),
+        decision: drift.Value(decision),
+        updatedAt: drift.Value(DateTime.now()),
+      ),
+    );
   }
 
   Future<void> _closePendingReviewsInTransaction(
@@ -615,11 +701,13 @@ class GoalRepositoryImpl implements IGoalRepository {
   ) async {
     await (_db.update(_db.goalReviews)
           ..where((t) => t.goalId.equals(goalId) & t.status.equals('pending')))
-        .write(db.GoalReviewsCompanion(
-      status: const drift.Value('goal_changed'),
-      decision: const drift.Value('goal_changed'),
-      updatedAt: drift.Value(now),
-    ));
+        .write(
+          db.GoalReviewsCompanion(
+            status: const drift.Value('goal_changed'),
+            decision: const drift.Value('goal_changed'),
+            updatedAt: drift.Value(now),
+          ),
+        );
   }
 
   @override
@@ -630,20 +718,23 @@ class GoalRepositoryImpl implements IGoalRepository {
   @override
   Future<void> updateGoalWeeklyRate(String goalId, double weeklyRateKg) async {
     final now = DateTime.now();
-    await (_db.update(_db.userGoals)..where((t) => t.id.equals(goalId)))
-        .write(db.UserGoalsCompanion(
-      desiredWeeklyRateKg: drift.Value(weeklyRateKg),
-      updatedAt: drift.Value(now),
-    ));
+    await (_db.update(_db.userGoals)..where((t) => t.id.equals(goalId))).write(
+      db.UserGoalsCompanion(
+        desiredWeeklyRateKg: drift.Value(weeklyRateKg),
+        updatedAt: drift.Value(now),
+      ),
+    );
     final goal = await getGoalById(goalId);
     final rateDir = weeklyRateKg < -0.05
         ? 'deficit'
         : (weeklyRateKg > 0.05 ? 'surplus' : 'maintenance');
-    unawaited(TelemetryService.instance.trackNutritionGoalAdjusted(
-      adjustmentType: 'pace',
-      isNutritionDriver: goal?.isNutritionDriver ?? true,
-      rateDirection: rateDir,
-    ));
+    unawaited(
+      TelemetryService.instance.trackNutritionGoalAdjusted(
+        adjustmentType: 'pace',
+        isNutritionDriver: goal?.isNutritionDriver ?? true,
+        rateDirection: rateDir,
+      ),
+    );
   }
 
   @override

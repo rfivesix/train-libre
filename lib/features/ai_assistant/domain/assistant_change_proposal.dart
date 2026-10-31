@@ -33,15 +33,15 @@ class AssistantChangeProposal {
   final String? createdRecordId;
 
   Map<String, dynamic> toJson() => {
-        'operation': operation.name,
-        'targetId': targetId,
-        'nextCycle': nextCycle,
-        'summary': summary,
-        'payload': payload.toJson(),
-        if (sourceImageAttachmentIds.isNotEmpty)
-          'sourceImageAttachmentIds': sourceImageAttachmentIds,
-        if (createdRecordId != null) 'createdRecordId': createdRecordId,
-      };
+    'operation': operation.name,
+    'targetId': targetId,
+    'nextCycle': nextCycle,
+    'summary': summary,
+    'payload': payload.toJson(),
+    if (sourceImageAttachmentIds.isNotEmpty)
+      'sourceImageAttachmentIds': sourceImageAttachmentIds,
+    if (createdRecordId != null) 'createdRecordId': createdRecordId,
+  };
 
   factory AssistantChangeProposal.fromJson(Map<String, dynamic> json) {
     final operationName = json['operation'];
@@ -57,12 +57,12 @@ class AssistantChangeProposal {
     final attachmentIds = rawAttachmentIds == null
         ? const <String>[]
         : rawAttachmentIds is List &&
-                rawAttachmentIds.length <= 4 &&
-                rawAttachmentIds.every(
-                  (value) => value is String && value.trim().isNotEmpty,
-                )
-            ? rawAttachmentIds.cast<String>()
-            : null;
+              rawAttachmentIds.length <= 4 &&
+              rawAttachmentIds.every(
+                (value) => value is String && value.trim().isNotEmpty,
+              )
+        ? rawAttachmentIds.cast<String>()
+        : null;
     if (operation == null ||
         (operation == AssistantChangeOperation.create && targetId != null) ||
         (operation == AssistantChangeOperation.update &&
@@ -78,8 +78,12 @@ class AssistantChangeProposal {
       throw const FormatException('Invalid assistant change proposal.');
     }
     final payload = ShareLinkPayload.fromJson(rawPayload);
-    if (!const {'routine', 'plan', 'recipe', 'meal_entry'}
-        .contains(payload.type)) {
+    if (!const {
+      'routine',
+      'plan',
+      'recipe',
+      'meal_entry',
+    }.contains(payload.type)) {
       throw const FormatException('Unsupported assistant change type.');
     }
     if (payload.type == 'meal_entry' &&
@@ -88,11 +92,13 @@ class AssistantChangeProposal {
     }
     if (payload.type != 'meal_entry' && attachmentIds.isNotEmpty) {
       throw const FormatException(
-          'Only meal proposals can reference source images.');
+        'Only meal proposals can reference source images.',
+      );
     }
     if (payload.type != 'meal_entry' && rawCreatedRecordId != null) {
       throw const FormatException(
-          'Only meal proposals can include a created record id.');
+        'Only meal proposals can include a created record id.',
+      );
     }
     return AssistantChangeProposal(
       operation: operation,
@@ -128,6 +134,6 @@ class AssistantChangeProposal {
       );
 
   static bool _isUuid(String value) => RegExp(
-        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
-      ).hasMatch(value);
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+  ).hasMatch(value);
 }

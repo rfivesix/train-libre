@@ -141,10 +141,14 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
         }
       } else {
         if (_isRolling) return;
-        final currentBounds = SleepPeriodScope.month.block
-            .getBounds(DateTime.now(), DateTime(2020));
-        final myBounds =
-            SleepPeriodScope.month.block.getBounds(_anchorDay, DateTime(2020));
+        final currentBounds = SleepPeriodScope.month.block.getBounds(
+          DateTime.now(),
+          DateTime(2020),
+        );
+        final myBounds = SleepPeriodScope.month.block.getBounds(
+          _anchorDay,
+          DateTime(2020),
+        );
         if (myBounds.start.isAtSameMomentAs(currentBounds.start) ||
             myBounds.start.isAfter(currentBounds.start)) {
           _isRolling = true;
@@ -177,7 +181,8 @@ class MonthSummaryCard extends StatelessWidget {
         : aggregation.meanScore!.toStringAsFixed(0);
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.cardPaddingInternal),
+        horizontal: DesignConstants.cardPaddingInternal,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -243,7 +248,8 @@ class MonthCalendarGrid extends StatelessWidget {
     }
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.cardPaddingInternal),
+        horizontal: DesignConstants.cardPaddingInternal,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -254,16 +260,18 @@ class MonthCalendarGrid extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingS),
           Row(
             children: List.generate(7, (index) {
-              final referenceDay = DateTime(2024, 1, 1).add(
-                Duration(days: index),
-              );
+              final referenceDay = DateTime(
+                2024,
+                1,
+                1,
+              ).add(Duration(days: index));
               return Expanded(
                 child: Center(
                   child: Text(
                     DateFormat.E(localeCode).format(referenceDay),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                 ),
               );
@@ -300,9 +308,7 @@ class MonthCalendarGrid extends StatelessWidget {
                     borderRadius: BorderRadius.circular(
                       DesignConstants.borderRadiusS,
                     ),
-                    border: Border.all(
-                      color: scoreFill.withValues(alpha: 0.7),
-                    ),
+                    border: Border.all(color: scoreFill.withValues(alpha: 0.7)),
                   ),
                   child: Stack(
                     children: [
@@ -311,11 +317,11 @@ class MonthCalendarGrid extends StatelessWidget {
                         right: 4,
                         child: Text(
                           '${day.date.day}',
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: _fixedTextColor(context),
-                                  ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: _fixedTextColor(context),
+                              ),
                         ),
                       ),
                       Center(
@@ -326,9 +332,7 @@ class MonthCalendarGrid extends StatelessWidget {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 scoreText,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
+                                style: Theme.of(context).textTheme.titleSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w800,
                                       color: _fixedTextColor(context),

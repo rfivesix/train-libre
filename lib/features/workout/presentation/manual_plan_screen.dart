@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
@@ -53,10 +54,8 @@ Future<void> startManualPlanDay(
         sourceRect: sourceRect,
         sourceBuilder: sourceBuilder,
         onSourceVisibilityChanged: onSourceVisibilityChanged,
-        builder: (_) => LiveWorkoutScreen(
-          workoutLog: existing,
-          isFromTrainingPlan: true,
-        ),
+        builder: (_) =>
+            LiveWorkoutScreen(workoutLog: existing, isFromTrainingPlan: true),
       );
       await Navigator.of(context).push(route);
       await route.completed;
@@ -66,11 +65,13 @@ Future<void> startManualPlanDay(
     return;
   }
   final started = await repository.start(plan, day);
-  unawaited(TelemetryService.instance.trackTrainingPlanSessionStarted(
-    kind: plan.kind.name,
-    isRestDayOverride: day.day.isRest,
-    dayIndex: day.slotIndex,
-  ));
+  unawaited(
+    TelemetryService.instance.trackTrainingPlanSessionStarted(
+      kind: plan.kind.name,
+      isRestDayOverride: day.day.isRest,
+      dayIndex: day.slotIndex,
+    ),
+  );
   final log = WorkoutLog(
     id: started.log.localId,
     routineName: started.routine.name,
@@ -112,8 +113,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.trainingPlanHub));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.trainingPlanHub,
+      ),
+    );
     _repository = widget.repository ?? ManualTrainingPlanRepository();
   }
 
@@ -127,7 +131,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
 
   Future<void> _createOrEdit(ManualTrainingPlan? plan) async {
     final saved = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => ManualPlanEditorScreen(plan: plan)));
+      MaterialPageRoute(builder: (_) => ManualPlanEditorScreen(plan: plan)),
+    );
     if (saved == true) {
       await _syncReminders();
       _selectedId = null;
@@ -153,14 +158,12 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       _weekAnchor = null;
       _selectedDate = null;
       _reload();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.shareImportSuccess)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.shareImportSuccess)));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(l10n.shareImportInvalid),
-      ));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.shareImportInvalid)));
     }
   }
 
@@ -170,26 +173,32 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       context: context,
       title: text.get('activatePlanTitle'),
       contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(text.get('activatePlanBody')),
-          const SizedBox(height: DesignConstants.spacingM),
-          AppLinkRow(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text.get('activatePlanBody')),
+            const SizedBox(height: DesignConstants.spacingM),
+            AppLinkRow(
               title: text.get('resume'),
               subtitle: text.get('resumeDescription'),
               onTap: () {
                 close();
                 Navigator.pop(context, true);
-              }),
-          AppLinkRow(
+              },
+            ),
+            AppLinkRow(
               title: text.get('restart'),
               subtitle: text.get('restartDescription'),
               onTap: () {
                 close();
                 Navigator.pop(context, false);
-              }),
-        ]),
+              },
+            ),
+          ],
+        ),
       ),
     );
     if (resume == null) return;
@@ -206,25 +215,31 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       context: context,
       title: text.get('deactivatePlanTitle'),
       contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(text.get('deactivatePlanBody')),
-          const SizedBox(height: DesignConstants.spacingM),
-          AppButton.danger(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text.get('deactivatePlanBody')),
+            const SizedBox(height: DesignConstants.spacingM),
+            AppButton.danger(
               label: text.get('deactivate'),
               onPressed: () {
                 close();
                 Navigator.pop(context, true);
-              }),
-          const SizedBox(height: DesignConstants.spacingS),
-          AppButton.secondary(
+              },
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            AppButton.secondary(
               label: text.get('cancel'),
               onPressed: () {
                 close();
                 Navigator.pop(context, false);
-              }),
-        ]),
+              },
+            ),
+          ],
+        ),
       ),
     );
     if (confirmed != true) return;
@@ -234,7 +249,9 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   }
 
   Future<void> _handleManageAction(
-      ManualTrainingPlan plan, String action) async {
+    ManualTrainingPlan plan,
+    String action,
+  ) async {
     switch (action) {
       case 'edit':
         await _createOrEdit(plan);
@@ -267,8 +284,9 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     final routineId = day.routine?.id;
     if (routineId == null) return;
 
-    final routine =
-        await WorkoutLocalDataSource.instance.getRoutineById(routineId);
+    final routine = await WorkoutLocalDataSource.instance.getRoutineById(
+      routineId,
+    );
     if (!mounted || !sourceContext.mounted || routine == null) return;
 
     await Navigator.of(context).push(
@@ -288,25 +306,31 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       context: context,
       title: text.get('confirmSkip'),
       contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(text.get('skipExplanation')),
-          const SizedBox(height: DesignConstants.spacingM),
-          AppButton.danger(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text.get('skipExplanation')),
+            const SizedBox(height: DesignConstants.spacingM),
+            AppButton.danger(
               label: text.get('skip'),
               onPressed: () {
                 close();
                 Navigator.pop(context, true);
-              }),
-          const SizedBox(height: DesignConstants.spacingS),
-          AppButton.secondary(
+              },
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            AppButton.secondary(
               label: text.get('cancel'),
               onPressed: () {
                 close();
                 Navigator.pop(context, false);
-              }),
-        ]),
+              },
+            ),
+          ],
+        ),
       ),
     );
     if (confirmed != true) return;
@@ -328,25 +352,31 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         context: context,
         title: text.get('startPastConfirm'),
         contentBuilder: (context, close) => Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(text.get('startPastBody')),
-            const SizedBox(height: DesignConstants.spacingM),
-            AppButton.primary(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingS,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(text.get('startPastBody')),
+              const SizedBox(height: DesignConstants.spacingM),
+              AppButton.primary(
                 label: text.get('start'),
                 onPressed: () {
                   close();
                   Navigator.pop(context, true);
-                }),
-            const SizedBox(height: DesignConstants.spacingS),
-            AppButton.secondary(
+                },
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              AppButton.secondary(
                 label: text.get('cancel'),
                 onPressed: () {
                   close();
                   Navigator.pop(context, false);
-                }),
-          ]),
+                },
+              ),
+            ],
+          ),
         ),
       );
       if (confirmed != true || !mounted) return;
@@ -373,8 +403,9 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       title: text.get('history'),
       expandToFullHeight: versions.length > 4,
       contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+        ),
         child: SizedBox(
           width: double.infinity,
           child: Column(
@@ -388,11 +419,9 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                 child: Text(
                   text.get('historyExplanation'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
-                      ),
+                    color: Theme.of(context).colorScheme.onSurface
+                        .withValues(alpha: 0.7),
+                  ),
                 ),
               ),
               const SizedBox(height: DesignConstants.spacingM),
@@ -431,23 +460,27 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   }
 
   Future<void> _selectPlan(
-      List<db.TrainingPlan> plans, String selectedId) async {
+    List<db.TrainingPlan> plans,
+    String selectedId,
+  ) async {
     final text = ManualPlanText(context);
     final selected = await showGlassBottomMenu<String>(
       context: context,
       title: text.get('savedPlans'),
       expandToFullHeight: plans.length > 7,
       contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final plan in plans)
               AppLinkRow(
                 title: plan.name,
-                subtitle:
-                    plan.isActive ? text.get('active') : text.get('inactive'),
+                subtitle: plan.isActive
+                    ? text.get('active')
+                    : text.get('inactive'),
                 trailingIcon: plan.id == selectedId
                     ? LucideIcons.check
                     : LucideIcons.chevron_right,
@@ -470,18 +503,21 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   }
 
   Future<({List<PlannedCalendarDay> visible, PlannedCalendarDay? next})>
-      _calendarData(
-          ManualTrainingPlan plan, DateTime start, DateTime end) async {
+  _calendarData(ManualTrainingPlan plan, DateTime start, DateTime end) async {
     final visible = await _repository.calendar(plan.id, start, end);
     if (!plan.active) return (visible: visible, next: null);
     final today = _day(DateTime.now());
     final upcoming = await _repository.calendar(
-        plan.id, today, DateTime(today.year, today.month, today.day + 28));
+      plan.id,
+      today,
+      DateTime(today.year, today.month, today.day + 28),
+    );
     return (
       visible: visible,
       next: upcoming
-          .where((day) =>
-              !day.day.isRest && day.status == PlannedDayStatus.planned)
+          .where(
+            (day) => !day.day.isRest && day.status == PlannedDayStatus.planned,
+          )
           .firstOrNull,
     );
   }
@@ -521,8 +557,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                   child: const Center(child: CircularProgressIndicator()),
                 )
               : isEmpty
-                  ? _buildEmptyState(context, text, topPadding)
-                  : _buildPlanContent(context, rows!, text, topPadding),
+              ? _buildEmptyState(context, text, topPadding)
+              : _buildPlanContent(context, rows!, text, topPadding),
           floatingActionButton: isEmpty
               ? GlassFab(
                   label: text.get('create'),
@@ -561,7 +597,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     ManualPlanText text,
     double topPadding,
   ) {
-    final selectedId = _selectedId ??
+    final selectedId =
+        _selectedId ??
         rows.where((row) => row.isActive).firstOrNull?.id ??
         rows.first.id;
     return FutureBuilder<ManualTrainingPlan?>(
@@ -582,8 +619,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         final overviewActiveSlot = !plan.active
             ? null
             : plan.kind == TrainingPlanKind.week
-                ? today.weekday - 1
-                : null;
+            ? today.weekday - 1
+            : null;
         return ListView(
           padding: EdgeInsets.only(
             top: topPadding + DesignConstants.screenPaddingVertical,
@@ -606,34 +643,42 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
               padding: const EdgeInsets.symmetric(
                 horizontal: DesignConstants.screenPaddingHorizontal,
               ),
-              child: FutureBuilder<
-                  ({
-                    List<PlannedCalendarDay> visible,
-                    PlannedCalendarDay? next
-                  })>(
-                future: _calendarData(plan, start, end),
-                builder: (context, daySnapshot) {
-                  if (!daySnapshot.hasData) {
-                    return const Padding(
-                      padding: EdgeInsets.all(DesignConstants.spacingXL),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  final next = daySnapshot.data!.next;
-                  return Column(
-                    children: [
-                      PlanOverviewCard(
-                        plan: plan,
-                        activeSlotIndex: overviewActiveSlot ?? next?.slotIndex,
-                        onRoutineTap: _openRoutine,
-                      ),
-                      const SizedBox(height: DesignConstants.spacingL),
-                      _buildWeek(context, plan, start,
-                          daySnapshot.data!.visible, next),
-                    ],
-                  );
-                },
-              ),
+              child:
+                  FutureBuilder<
+                    ({
+                      List<PlannedCalendarDay> visible,
+                      PlannedCalendarDay? next,
+                    })
+                  >(
+                    future: _calendarData(plan, start, end),
+                    builder: (context, daySnapshot) {
+                      if (!daySnapshot.hasData) {
+                        return const Padding(
+                          padding: EdgeInsets.all(DesignConstants.spacingXL),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      final next = daySnapshot.data!.next;
+                      return Column(
+                        children: [
+                          PlanOverviewCard(
+                            plan: plan,
+                            activeSlotIndex:
+                                overviewActiveSlot ?? next?.slotIndex,
+                            onRoutineTap: _openRoutine,
+                          ),
+                          const SizedBox(height: DesignConstants.spacingL),
+                          _buildWeek(
+                            context,
+                            plan,
+                            start,
+                            daySnapshot.data!.visible,
+                            next,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
             ),
           ],
         );
@@ -728,7 +773,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
               children: [
                 if (!plan.active)
                   TextSpan(
-                    text: '${text.get('inactive')}'
+                    text:
+                        '${text.get('inactive')}'
                         '${DesignConstants.metadataSeparator}',
                     style: TextStyle(
                       color: theme.colorScheme.error,
@@ -763,34 +809,45 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     );
   }
 
-  Widget _buildWeek(BuildContext context, ManualTrainingPlan plan,
-      DateTime start, List<PlannedCalendarDay> days, PlannedCalendarDay? next) {
+  Widget _buildWeek(
+    BuildContext context,
+    ManualTrainingPlan plan,
+    DateTime start,
+    List<PlannedCalendarDay> days,
+    PlannedCalendarDay? next,
+  ) {
     final byDate = {for (final day in days) _day(day.date): day};
     final dates = List.generate(
-        7, (index) => DateTime(start.year, start.month, start.day + index));
+      7,
+      (index) => DateTime(start.year, start.month, start.day + index),
+    );
     final selectable = dates.where((date) => byDate[date] != null).toList();
     var selected = _selectedDate;
     if (selected == null ||
         !dates.any((date) => DateUtils.isSameDay(date, selected))) {
       final today = _day(DateTime.now());
-      selected = selectable
+      selected =
+          selectable
               .where((date) => DateUtils.isSameDay(date, today))
               .firstOrNull ??
           selectable
-              .where((date) =>
-                  next != null && DateUtils.isSameDay(date, next.date))
+              .where(
+                (date) => next != null && DateUtils.isSameDay(date, next.date),
+              )
               .firstOrNull ??
           selectable.firstOrNull;
     }
     final selectedDay = selected == null ? null : byDate[_day(selected)];
     final reduceMotion = MediaQuery.of(context).disableAnimations;
-    final canStart = plan.active &&
+    final canStart =
+        plan.active &&
         selectedDay != null &&
         !selectedDay.day.isRest &&
         selectedDay.status == PlannedDayStatus.planned &&
         !selectedDay.date.isAfter(_day(DateTime.now()));
     final workoutLogId = selectedDay?.workoutLogId;
-    final canViewWorkout = workoutLogId != null &&
+    final canViewWorkout =
+        workoutLogId != null &&
         (selectedDay?.status == PlannedDayStatus.completed ||
             selectedDay?.status == PlannedDayStatus.partial);
 
@@ -798,71 +855,70 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       VoidCallback? onStart,
       VoidCallback? onSkip,
       VoidCallback? onViewRoutine,
-    }) =>
-        PlanDayDetailCard(
-          plan: plan,
-          day: selectedDay!,
-          onStart: onStart,
-          onSkip: onSkip,
-          onViewWorkout:
-              canViewWorkout ? () => _viewWorkout(workoutLogId) : null,
-          onViewRoutine: onViewRoutine,
-        );
+    }) => PlanDayDetailCard(
+      plan: plan,
+      day: selectedDay!,
+      onStart: onStart,
+      onSkip: onSkip,
+      onViewWorkout: canViewWorkout ? () => _viewWorkout(workoutLogId) : null,
+      onViewRoutine: onViewRoutine,
+    );
 
-    return Column(children: [
-      AnimatedSwitcher(
-        duration:
-            reduceMotion ? Duration.zero : const Duration(milliseconds: 180),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) {
-          if (reduceMotion || _weekDirection == 0) {
-            return FadeTransition(opacity: animation, child: child);
-          }
-          final offset = _weekDirection > 0 ? 0.045 : -0.045;
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: Offset(offset, 0),
-                end: Offset.zero,
-              ).animate(animation),
-              child: child,
-            ),
-          );
-        },
-        child: Row(
-          key: ValueKey(start),
-          children: [
-            PlanCalendarPickerButton(
-              onPressed: () => _pickWeek(plan, start),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: PlanWeekStrip(
-                dates: dates,
-                days: byDate,
-                selectedDate: selected,
-                nextDate: next?.date,
-                onSelected: (date) => setState(() => _selectedDate = date),
+    return Column(
+      children: [
+        AnimatedSwitcher(
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 180),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            if (reduceMotion || _weekDirection == 0) {
+              return FadeTransition(opacity: animation, child: child);
+            }
+            final offset = _weekDirection > 0 ? 0.045 : -0.045;
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: Offset(offset, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
               ),
-            ),
-          ],
+            );
+          },
+          child: Row(
+            key: ValueKey(start),
+            children: [
+              PlanCalendarPickerButton(onPressed: () => _pickWeek(plan, start)),
+              const SizedBox(width: 4),
+              Expanded(
+                child: PlanWeekStrip(
+                  dates: dates,
+                  days: byDate,
+                  selectedDate: selected,
+                  nextDate: next?.date,
+                  onSelected: (date) => setState(() => _selectedDate = date),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      AnimatedSwitcher(
-        duration:
-            reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
-        switchInCurve: Curves.easeOutCubic,
-        child: selectedDay == null
-            ? const SizedBox.shrink()
-            : MorphSourceScope(
-                key: ValueKey('${selectedDay.date}_${selectedDay.status}'),
-                builder: (context, setHidden) => Builder(
-                  builder: (cardContext) => buildDetailCard(
-                    onViewRoutine: selectedDay.day.routine == null
-                        ? null
-                        : () => _openRoutine(
+        AnimatedSwitcher(
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 160),
+          switchInCurve: Curves.easeOutCubic,
+          child: selectedDay == null
+              ? const SizedBox.shrink()
+              : MorphSourceScope(
+                  key: ValueKey('${selectedDay.date}_${selectedDay.status}'),
+                  builder: (context, setHidden) => Builder(
+                    builder: (cardContext) => buildDetailCard(
+                      onViewRoutine: selectedDay.day.routine == null
+                          ? null
+                          : () => _openRoutine(
                               selectedDay.day,
                               cardContext,
                               (_) => buildDetailCard(
@@ -872,25 +928,27 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                               ),
                               setHidden,
                             ),
-                    onStart: canStart
-                        ? () => _start(
+                      onStart: canStart
+                          ? () => _start(
                               plan,
                               selectedDay,
-                              sourceRect:
-                                  CardMorphRoute.measureRect(cardContext),
+                              sourceRect: CardMorphRoute.measureRect(
+                                cardContext,
+                              ),
                               sourceBuilder: (_) => buildDetailCard(
                                 onStart: () {},
                                 onSkip: () {},
                               ),
                               onSourceVisibilityChanged: setHidden,
                             )
-                        : null,
-                    onSkip: canStart ? () => _skip(plan, selectedDay) : null,
+                          : null,
+                      onSkip: canStart ? () => _skip(plan, selectedDay) : null,
+                    ),
                   ),
                 ),
-              ),
-      ),
-    ]);
+        ),
+      ],
+    );
   }
 }
 

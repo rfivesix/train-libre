@@ -18,9 +18,8 @@ class RecommendationInputAdapter {
 
   final DatabaseHelper _databaseHelper;
 
-  const RecommendationInputAdapter({
-    required DatabaseHelper databaseHelper,
-  }) : _databaseHelper = databaseHelper;
+  const RecommendationInputAdapter({required DatabaseHelper databaseHelper})
+    : _databaseHelper = databaseHelper;
 
   static DateTime normalizeDay(DateTime date) {
     return DateTime(date.year, date.month, date.day);
@@ -38,8 +37,9 @@ class RecommendationInputAdapter {
     double? baselineWeightKg,
   }) async {
     final windowEndDay = normalizeDay(now);
-    final windowStartDay = windowEndDay
-        .subtract(Duration(days: math.max(rollingWindowDays, 1) - 1));
+    final windowStartDay = windowEndDay.subtract(
+      Duration(days: math.max(rollingWindowDays, 1) - 1),
+    );
 
     final rangeStart = windowStartDay;
     final rangeEnd = endOfDay(windowEndDay);
@@ -91,16 +91,20 @@ class RecommendationInputAdapter {
       sortedWeightSeries,
       alpha: weightEwmaAlpha,
     );
-    final weightSlopeKgPerWeek =
-        _trendSlopeKgPerWeek(smoothedWeightSeries, sortedWeightSeries);
+    final weightSlopeKgPerWeek = _trendSlopeKgPerWeek(
+      smoothedWeightSeries,
+      sortedWeightSeries,
+    );
 
-    final intakeLoggedDays =
-        caloriesByDay.values.where((value) => value > 0).length;
+    final intakeLoggedDays = caloriesByDay.values
+        .where((value) => value > 0)
+        .length;
     final loggedCaloriesTotal = caloriesByDay.values
         .where((value) => value > 0)
         .fold<double>(0.0, (sum, value) => sum + value);
-    final avgLoggedCalories =
-        intakeLoggedDays == 0 ? 0.0 : loggedCaloriesTotal / intakeLoggedDays;
+    final avgLoggedCalories = intakeLoggedDays == 0
+        ? 0.0
+        : loggedCaloriesTotal / intakeLoggedDays;
 
     final currentWeightKg = sortedWeightSeries.isNotEmpty
         ? sortedWeightSeries.last.value
@@ -150,8 +154,9 @@ class RecommendationInputAdapter {
       smoothedWeightSlopeKgPerWeek: weightSlopeKgPerWeek,
       avgLoggedCalories: avgLoggedCalories,
       currentWeightKg: currentWeightKg,
-      smoothedCurrentWeightKg:
-          smoothedWeightSeries.isEmpty ? null : smoothedWeightSeries.last.value,
+      smoothedCurrentWeightKg: smoothedWeightSeries.isEmpty
+          ? null
+          : smoothedWeightSeries.last.value,
       priorMaintenanceCalories: priorMaintenanceCalories,
       activeTargetCalories: activeGoals?.targetCalories,
       qualityFlags: qualityFlags,
@@ -186,8 +191,8 @@ class RecommendationInputAdapter {
     // Katch-McArdle; otherwise fall back to a profile-based Mifflin prior.
     final validBodyFatPercent =
         (bodyFatPercent != null && bodyFatPercent > 3 && bodyFatPercent < 70)
-            ? bodyFatPercent
-            : null;
+        ? bodyFatPercent
+        : null;
 
     late final double rmr;
     if (validBodyFatPercent != null) {
@@ -290,7 +295,8 @@ class RecommendationInputAdapter {
       return null;
     }
     var years = now.year - birthday.year;
-    final hadBirthdayThisYear = now.month > birthday.month ||
+    final hadBirthdayThisYear =
+        now.month > birthday.month ||
         (now.month == birthday.month && now.day >= birthday.day);
     if (!hadBirthdayThisYear) {
       years -= 1;
@@ -329,8 +335,10 @@ class RecommendationInputAdapter {
   }) {
     final caloriesByDay = <DateTime, double>{...foodCaloriesByDay};
 
-    for (final entry in fluidEntries.where((item) =>
-        item.linkedFoodEntryId == null && item.linkedMacroEntryId == null)) {
+    for (final entry in fluidEntries.where(
+      (item) =>
+          item.linkedFoodEntryId == null && item.linkedMacroEntryId == null,
+    )) {
       final day = normalizeDay(entry.timestamp);
       final addedCalories = (entry.kcal ?? 0).toDouble();
       caloriesByDay[day] = (caloriesByDay[day] ?? 0.0) + addedCalories;
@@ -458,8 +466,5 @@ class _WeightedDayPoint {
   final DateTime day;
   final double value;
 
-  const _WeightedDayPoint({
-    required this.day,
-    required this.value,
-  });
+  const _WeightedDayPoint({required this.day, required this.value});
 }

@@ -123,8 +123,7 @@ int _stagePriority(CanonicalSleepStage stage) {
     CanonicalSleepStage.outOfBed ||
     CanonicalSleepStage.rem ||
     CanonicalSleepStage.deep ||
-    CanonicalSleepStage.light =>
-      4,
+    CanonicalSleepStage.light => 4,
     CanonicalSleepStage.asleepUnspecified => 3,
     CanonicalSleepStage.inBedOnly => 2,
     _ => 1,

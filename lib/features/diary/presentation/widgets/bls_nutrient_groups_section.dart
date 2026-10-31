@@ -74,9 +74,7 @@ class BlsNutrientGroupsSection extends StatelessWidget {
     if (groups.isEmpty) {
       if (blsNutrients.isNotEmpty) return const SizedBox.shrink();
       return Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: DesignConstants.spacingM,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
         child: isLoading
             ? Row(
                 children: [

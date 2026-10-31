@@ -117,8 +117,9 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
     final assessment = _state.evaluateAssessment();
     final reviewRecord = _state.buildSyntheticReviewRecord();
     final syntheticGoal = _state.buildSyntheticGoal();
-    final dateFormat =
-        DateFormat.yMMMd(Localizations.localeOf(context).toString());
+    final dateFormat = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString(),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,8 +189,9 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
                       children: [
                         Text(
                           _humanStatus(assessment.nutritionAction),
-                          style: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: DesignConstants.spacingS),
                         Text(
@@ -240,7 +242,8 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
                                 assessment.trajectoryGap != null
                                     ? '${assessment.trajectoryGap! > 0 ? '+' : ''}${assessment.trajectoryGap!.toStringAsFixed(1)} kg'
                                     : '--',
-                                highlight: assessment.trajectoryGap != null &&
+                                highlight:
+                                    assessment.trajectoryGap != null &&
                                     assessment.trajectoryGap!.abs() > 0.5,
                               ),
                             ),
@@ -259,8 +262,9 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
                           const SizedBox(height: DesignConstants.spacingS),
                           Text(
                             'Prognostiziertes Zieldatum: ${dateFormat.format(assessment.projectedTargetDate!)}',
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(color: theme.colorScheme.primary),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
                           ),
                         ],
                       ],
@@ -301,9 +305,7 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
                   const AppSectionHeader(title: '2. Gewichtsverlauf'),
                   _buildProgressInputs(),
                   const SizedBox(height: DesignConstants.spacingM),
-                  const AppSectionHeader(
-                    title: '3. Ernährung & Datenbasis',
-                  ),
+                  const AppSectionHeader(title: '3. Ernährung & Datenbasis'),
                   _buildDataInputs(),
                 ],
               ),
@@ -500,8 +502,11 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
     );
   }
 
-  Widget _buildMetricItem(String title, String value,
-      {bool highlight = false}) {
+  Widget _buildMetricItem(
+    String title,
+    String value, {
+    bool highlight = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -544,7 +549,9 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
                 child: Text(
                   label,
                   style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w500),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               TextButton(

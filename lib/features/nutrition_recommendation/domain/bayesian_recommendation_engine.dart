@@ -30,8 +30,8 @@ class BayesianNutritionRecommendationEngine {
     BayesianTdeeEstimator estimator = const BayesianTdeeEstimator(),
     RateTrajectoryController trajectoryController =
         const RateTrajectoryController(),
-  })  : _estimator = estimator,
-        _trajectoryController = trajectoryController;
+  }) : _estimator = estimator,
+       _trajectoryController = trajectoryController;
 
   BayesianNutritionRecommendationResult generate({
     required RecommendationGenerationInput input,
@@ -44,7 +44,8 @@ class BayesianNutritionRecommendationEngine {
     NutritionRecommendation? previousRecommendation,
     BayesianObservationPhaseContext? phaseContext,
   }) {
-    final effectivePhaseContext = phaseContext ??
+    final effectivePhaseContext =
+        phaseContext ??
         BayesianObservationPhaseContext.bootstrap(
           phase: goal.canonicalDietPhase,
         );
@@ -68,21 +69,22 @@ class BayesianNutritionRecommendationEngine {
 
     final recommendation =
         AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
-      input: input,
-      goal: goal,
-      targetRateKgPerWeek: targetRateKgPerWeek,
-      generatedAt: generatedAt,
-      algorithmVersion: algorithmVersion,
-      estimatedMaintenanceCalories:
-          maintenanceEstimate.posteriorMaintenanceCalories.round(),
-      confidence: maintenanceEstimate.confidence,
-      phaseEffectiveKcalPerKg: phaseEffectiveKcalPerKg,
-      dueWeekKey: dueWeekKey,
-      previousRecommendation: previousRecommendation,
-      trajectoryCorrectionCalories: trajectoryCorrection.calories,
-      trajectoryRateErrorKgPerWeek: trajectoryCorrection.rateErrorKgPerWeek,
-      trajectoryCorrectionStatus: trajectoryCorrection.status,
-    );
+          input: input,
+          goal: goal,
+          targetRateKgPerWeek: targetRateKgPerWeek,
+          generatedAt: generatedAt,
+          algorithmVersion: algorithmVersion,
+          estimatedMaintenanceCalories: maintenanceEstimate
+              .posteriorMaintenanceCalories
+              .round(),
+          confidence: maintenanceEstimate.confidence,
+          phaseEffectiveKcalPerKg: phaseEffectiveKcalPerKg,
+          dueWeekKey: dueWeekKey,
+          previousRecommendation: previousRecommendation,
+          trajectoryCorrectionCalories: trajectoryCorrection.calories,
+          trajectoryRateErrorKgPerWeek: trajectoryCorrection.rateErrorKgPerWeek,
+          trajectoryCorrectionStatus: trajectoryCorrection.status,
+        );
 
     return BayesianNutritionRecommendationResult(
       recommendation: recommendation,

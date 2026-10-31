@@ -12,9 +12,7 @@ void main() {
           locale: Locale('de'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: AiCameraFallbackView(),
-          ),
+          home: Scaffold(body: AiCameraFallbackView()),
         ),
       );
 
@@ -31,8 +29,9 @@ void main() {
   });
 
   group('AiSimulatorCameraDemo', () {
-    testWidgets('renders simulator demo plate and gradient background',
-        (tester) async {
+    testWidgets('renders simulator demo plate and gradient background', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

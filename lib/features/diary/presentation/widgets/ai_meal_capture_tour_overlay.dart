@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 
@@ -29,7 +31,7 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
     required this.onNext,
     required this.onSkip,
   }) : targetRects =
-            targetRects ?? (targetRect != null ? [targetRect] : const []);
+           targetRects ?? (targetRect != null ? [targetRect] : const []);
 
   @override
   Widget build(BuildContext context) {
@@ -90,8 +92,12 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                 child: ClipPath(
                   clipper: _InvertedHolesClipper(
                     holes: holes
-                        .map((h) => _inflateRRect(
-                            h, (blurTiers - 1 - i) * stepDistance))
+                        .map(
+                          (h) => _inflateRRect(
+                            h,
+                            (blurTiers - 1 - i) * stepDistance,
+                          ),
+                        )
                         .toList(),
                   ),
                   child: BackdropFilter(
@@ -121,8 +127,10 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                 final safeBottom =
                     mediaQuery.padding.bottom + bottomNavClearance;
                 final availableWidth =
-                    (constraints.maxWidth - horizontalPadding * 2)
-                        .clamp(0.0, panelMaxWidth);
+                    (constraints.maxWidth - horizontalPadding * 2).clamp(
+                      0.0,
+                      panelMaxWidth,
+                    );
 
                 final cardWidget = Card(
                   elevation: 14,
@@ -190,8 +198,9 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                               child: Text(
                                 skipLabel,
                                 style: TextStyle(
-                                  color:
-                                      isDark ? Colors.white54 : Colors.black54,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black54,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -210,19 +219,24 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                 );
 
                 if (targetRects.isNotEmpty) {
-                  final topmostTargetTop =
-                      targetRects.map((r) => r.top).reduce(min);
+                  final topmostTargetTop = targetRects
+                      .map((r) => r.top)
+                      .reduce(min);
                   final isLowerHalf =
                       topmostTargetTop > constraints.maxHeight * 0.35;
 
                   if (isLowerHalf) {
-                    final bottomPos = (constraints.maxHeight -
-                            topmostTargetTop +
-                            spotlightGap)
-                        .clamp(
-                            safeBottom,
-                            (constraints.maxHeight - safeTop - 220)
-                                .clamp(safeBottom, double.infinity));
+                    final bottomPos =
+                        (constraints.maxHeight -
+                                topmostTargetTop +
+                                spotlightGap)
+                            .clamp(
+                              safeBottom,
+                              (constraints.maxHeight - safeTop - 220).clamp(
+                                safeBottom,
+                                double.infinity,
+                              ),
+                            );
                     return Stack(
                       children: [
                         Positioned(
@@ -237,19 +251,26 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                 }
 
                 final defaultTop = (constraints.maxHeight * 0.18).clamp(
+                  safeTop,
+                  (constraints.maxHeight - safeBottom - 220).clamp(
                     safeTop,
-                    (constraints.maxHeight - safeBottom - 220)
-                        .clamp(safeTop, double.infinity));
+                    double.infinity,
+                  ),
+                );
                 final lowestTargetBottom = targetRects.isNotEmpty
                     ? targetRects.map((r) => r.bottom).reduce(max)
                     : null;
-                final topPos = (lowestTargetBottom != null
-                        ? lowestTargetBottom + spotlightGap
-                        : defaultTop)
-                    .clamp(
-                        safeTop,
-                        (constraints.maxHeight - safeBottom - 220)
-                            .clamp(safeTop, double.infinity));
+                final topPos =
+                    (lowestTargetBottom != null
+                            ? lowestTargetBottom + spotlightGap
+                            : defaultTop)
+                        .clamp(
+                          safeTop,
+                          (constraints.maxHeight - safeBottom - 220).clamp(
+                            safeTop,
+                            double.infinity,
+                          ),
+                        );
 
                 return Stack(
                   children: [

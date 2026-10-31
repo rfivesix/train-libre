@@ -19,7 +19,8 @@ class _RecordingScheduler implements WorkoutPlanNotificationScheduler {
 
   @override
   Future<void> replaceWorkoutPlanReminders(
-      List<WorkoutPlanReminder> reminders) async {
+    List<WorkoutPlanReminder> reminders,
+  ) async {
     this.reminders = List.of(reminders);
   }
 }
@@ -29,11 +30,9 @@ void main() {
   late ManualTrainingPlanRepository repository;
   late _RecordingScheduler scheduler;
 
-  const workout = TrainingPlanDay(routineSnapshot: {
-    'id': 1,
-    'name': 'Full Body',
-    'exercises': [],
-  });
+  const workout = TrainingPlanDay(
+    routineSnapshot: {'id': 1, 'name': 'Full Body', 'exercises': []},
+  );
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -44,51 +43,63 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('reminders are opt-in and disabled state clears pending requests',
-      () async {
-    await repository.createPlan(
-      name: 'Plan',
-      kind: TrainingPlanKind.week,
-      days: List.filled(7, workout),
-    );
-    await WorkoutPlanNotificationOrchestrator(
-      repository: repository,
-      scheduler: scheduler,
-    ).synchronize();
+  test(
+    'reminders are opt-in and disabled state clears pending requests',
+    () async {
+      await repository.createPlan(
+        name: 'Plan',
+        kind: TrainingPlanKind.week,
+        days: List.filled(7, workout),
+      );
+      await WorkoutPlanNotificationOrchestrator(
+        repository: repository,
+        scheduler: scheduler,
+      ).synchronize();
 
-    expect(scheduler.cancelCount, 1);
-    expect(scheduler.reminders, isEmpty);
-  });
+      expect(scheduler.cancelCount, 1);
+      expect(scheduler.reminders, isEmpty);
+    },
+  );
 
-  test('enabled reminders use the chosen time and never schedule the past',
-      () async {
-    final now = DateTime.now();
-    final todayAtTen = DateTime(now.year, now.month, now.day, 10);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(
-        WorkoutPlanNotificationOrchestrator.enabledPreference, true);
-    await prefs.setInt(WorkoutPlanNotificationOrchestrator.hourPreference, 18);
-    await prefs.setInt(
-        WorkoutPlanNotificationOrchestrator.minutePreference, 15);
-    await repository.createPlan(
-      name: 'Plan',
-      kind: TrainingPlanKind.week,
-      days: List.filled(7, workout),
-    );
+  test(
+    'enabled reminders use the chosen time and never schedule the past',
+    () async {
+      final now = DateTime.now();
+      final todayAtTen = DateTime(now.year, now.month, now.day, 10);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(
+        WorkoutPlanNotificationOrchestrator.enabledPreference,
+        true,
+      );
+      await prefs.setInt(
+        WorkoutPlanNotificationOrchestrator.hourPreference,
+        18,
+      );
+      await prefs.setInt(
+        WorkoutPlanNotificationOrchestrator.minutePreference,
+        15,
+      );
+      await repository.createPlan(
+        name: 'Plan',
+        kind: TrainingPlanKind.week,
+        days: List.filled(7, workout),
+      );
 
-    await WorkoutPlanNotificationOrchestrator(
-      repository: repository,
-      scheduler: scheduler,
-      clock: () => todayAtTen,
-    ).synchronize();
+      await WorkoutPlanNotificationOrchestrator(
+        repository: repository,
+        scheduler: scheduler,
+        clock: () => todayAtTen,
+      ).synchronize();
 
-    expect(scheduler.reminders, isNotEmpty);
-    expect(scheduler.reminders.first.scheduledAt.hour, 18);
-    expect(scheduler.reminders.first.scheduledAt.minute, 15);
-    expect(
-      scheduler.reminders
-          .every((reminder) => reminder.scheduledAt.isAfter(todayAtTen)),
-      isTrue,
-    );
-  });
+      expect(scheduler.reminders, isNotEmpty);
+      expect(scheduler.reminders.first.scheduledAt.hour, 18);
+      expect(scheduler.reminders.first.scheduledAt.minute, 15);
+      expect(
+        scheduler.reminders.every(
+          (reminder) => reminder.scheduledAt.isAfter(todayAtTen),
+        ),
+        isTrue,
+      );
+    },
+  );
 }

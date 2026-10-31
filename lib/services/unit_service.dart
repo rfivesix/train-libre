@@ -31,8 +31,8 @@ class UnitService extends ChangeNotifier {
     final loadedSystem = storedValue == null
         ? _defaultUnitSystemForLocale()
         : storedValue == UnitSystem.imperial.name
-            ? UnitSystem.imperial
-            : UnitSystem.metric;
+        ? UnitSystem.imperial
+        : UnitSystem.metric;
 
     if (storedValue == null) {
       await prefs.setString(_unitSystemKey, loadedSystem.name);
@@ -44,8 +44,8 @@ class UnitService extends ChangeNotifier {
   }
 
   UnitSystem _defaultUnitSystemForLocale() {
-    final countryCode =
-        PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+    final countryCode = PlatformDispatcher.instance.locale.countryCode
+        ?.toUpperCase();
     return switch (countryCode) {
       'LR' || 'MM' || 'US' => UnitSystem.imperial,
       _ => UnitSystem.metric,

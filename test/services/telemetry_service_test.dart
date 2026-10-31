@@ -14,8 +14,10 @@ class _RecordingPostHog extends PostHogTelemetryService {
   final events = <String, Map<String, dynamic>>{};
 
   @override
-  Future<void> track(String eventName,
-      {Map<String, dynamic>? properties}) async {
+  Future<void> track(
+    String eventName, {
+    Map<String, dynamic>? properties,
+  }) async {
     events[eventName] = properties ?? {};
   }
 }
@@ -33,9 +35,7 @@ void main() {
       noOpService = const NoOpTelemetryService();
     });
 
-    test(
-        'NoOpTelemetryService defaults to opted out and performs no-ops without throwing',
-        () async {
+    test('NoOpTelemetryService defaults to opted out and performs no-ops without throwing', () async {
       expect(await noOpService.isOptedIn(), isFalse);
 
       await noOpService.init();
@@ -113,9 +113,7 @@ void main() {
       );
     });
 
-    test(
-        'PostHogTelemetryService handles opt-in, persistent device ID and daily food logging state',
-        () async {
+    test('PostHogTelemetryService handles opt-in, persistent device ID and daily food logging state', () async {
       final prefs = await SharedPreferences.getInstance();
 
       expect(await postHogService.isOptedIn(), isFalse);
@@ -129,8 +127,10 @@ void main() {
       await postHogService.incrementFoodLogCount(source: 'manual_search');
 
       expect(prefs.getInt('telemetry_daily_food_count'), 2);
-      expect(prefs.getStringList('telemetry_daily_food_sources'),
-          containsAll(['barcode_scan', 'manual_search']));
+      expect(
+        prefs.getStringList('telemetry_daily_food_sources'),
+        containsAll(['barcode_scan', 'manual_search']),
+      );
 
       // Flush daily food log
       await postHogService.flushDailyFoodLog();
@@ -144,8 +144,7 @@ void main() {
       expect(prefs.getBool('telemetry_opt_in'), isFalse);
     });
 
-    test('PostHogTelemetryService tracks workout completed without PII',
-        () async {
+    test('PostHogTelemetryService tracks workout completed without PII', () async {
       await postHogService.optIn();
 
       await postHogService.trackWorkoutCompleted(
@@ -166,29 +165,29 @@ void main() {
       );
     });
 
-    test('PostHogTelemetryService onboarding step and completion tracking',
-        () async {
-      await postHogService.optIn();
-
-      const sessionId = 'test-session-uuid-1234';
-      await postHogService.trackOnboardingStep(
-        stepIndex: 0,
-        stepName: 'welcome',
-        screenName: 'welcome',
-        durationSeconds: 15,
-        sessionId: sessionId,
-      );
-
-      await postHogService.trackOnboardingCompleted(
-        totalDurationSeconds: 120,
-        restoredFromBackup: false,
-        sessionId: sessionId,
-      );
-    });
-
     test(
-        'PostHogTelemetryService resetLocalData clears persistent device ID and counters',
-        () async {
+      'PostHogTelemetryService onboarding step and completion tracking',
+      () async {
+        await postHogService.optIn();
+
+        const sessionId = 'test-session-uuid-1234';
+        await postHogService.trackOnboardingStep(
+          stepIndex: 0,
+          stepName: 'welcome',
+          screenName: 'welcome',
+          durationSeconds: 15,
+          sessionId: sessionId,
+        );
+
+        await postHogService.trackOnboardingCompleted(
+          totalDurationSeconds: 120,
+          restoredFromBackup: false,
+          sessionId: sessionId,
+        );
+      },
+    );
+
+    test('PostHogTelemetryService resetLocalData clears persistent device ID and counters', () async {
       final prefs = await SharedPreferences.getInstance();
       await postHogService.optIn();
 
@@ -202,42 +201,43 @@ void main() {
     });
 
     test(
-        'TelemetryService resolves system locale and country metadata accurately',
-        () {
-      final (locale, country) =
-          TelemetryService.resolveSystemLocaleAndCountry();
-      expect(locale, isNotEmpty);
-      expect(country, isNotEmpty);
-      expect(country.length, 2);
+      'TelemetryService resolves system locale and country metadata accurately',
+      () {
+        final (locale, country) =
+            TelemetryService.resolveSystemLocaleAndCountry();
+        expect(locale, isNotEmpty);
+        expect(country, isNotEmpty);
+        expect(country.length, 2);
 
-      final metaDE = TelemetryService.getCountryMetadata('DE');
-      expect(metaDE.countryCode, 'DE');
-      expect(metaDE.countryName, 'Germany');
-      expect(metaDE.continentCode, 'EU');
-      expect(metaDE.continentName, 'Europe');
+        final metaDE = TelemetryService.getCountryMetadata('DE');
+        expect(metaDE.countryCode, 'DE');
+        expect(metaDE.countryName, 'Germany');
+        expect(metaDE.continentCode, 'EU');
+        expect(metaDE.continentName, 'Europe');
 
-      final metaUS = TelemetryService.getCountryMetadata('US');
-      expect(metaUS.countryCode, 'US');
-      expect(metaUS.countryName, 'United States');
-      expect(metaUS.continentCode, 'NA');
-      expect(metaUS.continentName, 'North America');
-    });
-
-    test('PostHogTelemetryService tracks app launched with country and locale',
-        () async {
-      await postHogService.optIn();
-      await postHogService.trackAppLaunched(
-        appVersion: '1.0.0',
-        osVersion: 'iOS 17.5',
-        platform: 'ios',
-        locale: 'de_DE',
-        country: 'DE',
-      );
-    });
+        final metaUS = TelemetryService.getCountryMetadata('US');
+        expect(metaUS.countryCode, 'US');
+        expect(metaUS.countryName, 'United States');
+        expect(metaUS.continentCode, 'NA');
+        expect(metaUS.continentName, 'North America');
+      },
+    );
 
     test(
-        'PostHogTelemetryService tracks recommendation generated and feedback report submitted',
-        () async {
+      'PostHogTelemetryService tracks app launched with country and locale',
+      () async {
+        await postHogService.optIn();
+        await postHogService.trackAppLaunched(
+          appVersion: '1.0.0',
+          osVersion: 'iOS 17.5',
+          platform: 'ios',
+          locale: 'de_DE',
+          country: 'DE',
+        );
+      },
+    );
+
+    test('PostHogTelemetryService tracks recommendation generated and feedback report submitted', () async {
       await postHogService.optIn();
       await postHogService.trackRecommendationGenerated(
         weightLogCount: 12,
@@ -261,9 +261,7 @@ void main() {
       );
     });
 
-    test(
-        'concurrent food log increments are not lost to interleaved read-modify-write',
-        () async {
+    test('concurrent food log increments are not lost to interleaved read-modify-write', () async {
       await postHogService.optIn();
 
       // Mirrors logging a saved meal / confirming an AI meal scan: every item is
@@ -296,14 +294,11 @@ void main() {
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getInt('telemetry_daily_food_count'), 4);
-      expect(
-        prefs.getStringList('telemetry_daily_food_sources'),
-        [
-          FoodLogSource.barcodeScan,
-          FoodLogSource.aiCapture,
-          FoodLogSource.manualSearch,
-        ],
-      );
+      expect(prefs.getStringList('telemetry_daily_food_sources'), [
+        FoodLogSource.barcodeScan,
+        FoodLogSource.aiCapture,
+        FoodLogSource.manualSearch,
+      ]);
     });
 
     test('food log counter stays untouched while opted out', () async {
@@ -363,19 +358,21 @@ void main() {
       );
     });
 
-    test('a persistent device ID is created without contacting PostHog',
-        () async {
-      final service = PostHogTelemetryService();
-      await service.init();
+    test(
+      'a persistent device ID is created without contacting PostHog',
+      () async {
+        final service = PostHogTelemetryService();
+        await service.init();
 
-      // The ID is generated locally so DAU counting works the moment a user
-      // opts in; generating it must not imply any transmission.
-      final prefs = await SharedPreferences.getInstance();
-      final deviceId = prefs.getString('telemetry_persistent_device_id');
-      expect(deviceId, isNotNull);
-      expect(deviceId, isNotEmpty);
-      expect(await service.isOptedIn(), isFalse);
-    });
+        // The ID is generated locally so DAU counting works the moment a user
+        // opts in; generating it must not imply any transmission.
+        final prefs = await SharedPreferences.getInstance();
+        final deviceId = prefs.getString('telemetry_persistent_device_id');
+        expect(deviceId, isNotNull);
+        expect(deviceId, isNotEmpty);
+        expect(await service.isOptedIn(), isFalse);
+      },
+    );
 
     test('screen and feature catalogs contain no user-authored text', () {
       final identifierPattern = RegExp(r'^[a-z][a-z0-9_]*$');
@@ -387,30 +384,34 @@ void main() {
       }
     });
 
-    test('TelemetryBuckets handles voice durations and item counts accurately',
-        () {
-      expect(
-          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 2)),
-          '<5s');
-      expect(
-          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 10)),
-          '5-15s');
-      expect(
-          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 20)),
-          '15-30s');
-      expect(
-          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 45)),
-          '>30s');
-
-      expect(TelemetryBuckets.getItemCountBucket(0), '0');
-      expect(TelemetryBuckets.getItemCountBucket(2), '1-2');
-      expect(TelemetryBuckets.getItemCountBucket(4), '3-5');
-      expect(TelemetryBuckets.getItemCountBucket(8), '6+');
-    });
-
     test(
-        'PostHogTelemetryService tracks AI meal scan, voice dictation, and corrections',
-        () async {
+      'TelemetryBuckets handles voice durations and item counts accurately',
+      () {
+        expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 2)),
+          '<5s',
+        );
+        expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 10)),
+          '5-15s',
+        );
+        expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 20)),
+          '15-30s',
+        );
+        expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 45)),
+          '>30s',
+        );
+
+        expect(TelemetryBuckets.getItemCountBucket(0), '0');
+        expect(TelemetryBuckets.getItemCountBucket(2), '1-2');
+        expect(TelemetryBuckets.getItemCountBucket(4), '3-5');
+        expect(TelemetryBuckets.getItemCountBucket(8), '6+');
+      },
+    );
+
+    test('PostHogTelemetryService tracks AI meal scan, voice dictation, and corrections', () async {
       await postHogService.optIn();
 
       await postHogService.trackAiMealScanRequested(
@@ -454,40 +455,41 @@ void main() {
       await postHogService.trackAppReviewPromptResponded(response: 'later');
     });
 
-    test('AI scan telemetry uses seconds and closed validation counters',
-        () async {
-      final recorder = _RecordingPostHog();
-      await recorder.trackAiMealScanCompleted(
-        requestId: 'random-scan-id',
-        provider: 'gemini',
-        durationSeconds: 12,
-        reviewVisibleSeconds: 5,
-        preliminaryNutritionSeconds: 8,
-        success: true,
-        repairAttemptsCount: 1,
-        primaryFirstPassAccepted: false,
-        selectedValidationRoundsCount: 2,
-        validationRunsTotalCount: 3,
-        firstPassIssueCategories: const ['semantic_match'],
-      );
-      final properties = recorder.events['ai_meal_scan_completed']!;
-      expect(properties['duration_seconds'], 12);
-      expect(properties['review_visible_seconds'], 5);
-      expect(properties['preliminary_nutrition_seconds'], 8);
-      expect(properties['repair_rounds_count'], 1);
-      expect(properties['primary_first_pass_accepted'], false);
-      expect(properties['selected_validation_rounds_count'], 2);
-      expect(properties['validation_runs_total_count'], 3);
-      expect(properties.containsKey('latency_bucket'), false);
-      expect(properties.keys, isNot(contains('meal_name')));
-    });
-
     test(
-        'ICloudSyncService.setSyncEnabled tracks setting_toggled and feature_used on toggle',
-        () async {
+      'AI scan telemetry uses seconds and closed validation counters',
+      () async {
+        final recorder = _RecordingPostHog();
+        await recorder.trackAiMealScanCompleted(
+          requestId: 'random-scan-id',
+          provider: 'gemini',
+          durationSeconds: 12,
+          reviewVisibleSeconds: 5,
+          preliminaryNutritionSeconds: 8,
+          success: true,
+          repairAttemptsCount: 1,
+          primaryFirstPassAccepted: false,
+          selectedValidationRoundsCount: 2,
+          validationRunsTotalCount: 3,
+          firstPassIssueCategories: const ['semantic_match'],
+        );
+        final properties = recorder.events['ai_meal_scan_completed']!;
+        expect(properties['duration_seconds'], 12);
+        expect(properties['review_visible_seconds'], 5);
+        expect(properties['preliminary_nutrition_seconds'], 8);
+        expect(properties['repair_rounds_count'], 1);
+        expect(properties['primary_first_pass_accepted'], false);
+        expect(properties['selected_validation_rounds_count'], 2);
+        expect(properties['validation_runs_total_count'], 3);
+        expect(properties.containsKey('latency_bucket'), false);
+        expect(properties.keys, isNot(contains('meal_name')));
+      },
+    );
+
+    test('ICloudSyncService.setSyncEnabled tracks setting_toggled and feature_used on toggle', () async {
       final trackedEvents = <Map<String, dynamic>>[];
-      final testTelemetry =
-          TestTelemetryService((event) => trackedEvents.add(event));
+      final testTelemetry = TestTelemetryService(
+        (event) => trackedEvents.add(event),
+      );
       TelemetryService.instance = testTelemetry;
 
       await ICloudSyncService.instance.setSyncEnabled(true);
@@ -497,8 +499,10 @@ void main() {
       expect(trackedEvents[0]['setting_key'], equals('icloud_sync_enabled'));
       expect(trackedEvents[0]['value'], equals(true));
       expect(trackedEvents[1]['type'], equals('feature_used'));
-      expect(trackedEvents[1]['feature_key'],
-          equals(FeatureKey.icloudSyncTriggered));
+      expect(
+        trackedEvents[1]['feature_key'],
+        equals(FeatureKey.icloudSyncTriggered),
+      );
 
       trackedEvents.clear();
 
@@ -510,9 +514,7 @@ void main() {
       expect(trackedEvents[0]['value'], equals(false));
     });
 
-    test(
-        'TelemetryBuckets handles observation counts and goal duration buckets accurately',
-        () {
+    test('TelemetryBuckets handles observation counts and goal duration buckets accurately', () {
       expect(TelemetryBuckets.getObservationCountBucket(0), '0');
       expect(TelemetryBuckets.getObservationCountBucket(1), '1-2');
       expect(TelemetryBuckets.getObservationCountBucket(2), '1-2');
@@ -520,70 +522,86 @@ void main() {
       expect(TelemetryBuckets.getObservationCountBucket(5), '3-5');
       expect(TelemetryBuckets.getObservationCountBucket(10), '6+');
 
-      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 3)),
-          '<7d');
-      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 14)),
-          '1-4w');
-      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 60)),
-          '1-3m');
-      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 120)),
-          '3-6m');
-      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 300)),
-          '>6m');
-    });
-
-    test('PostHogTelemetryService tracks training plan events without PII',
-        () async {
-      final recorder = TestRecordingPostHogService();
-
-      await recorder.trackTrainingPlanCreated(
-        kind: 'week',
-        dayCount: 7,
-        workoutDaysCount: 4,
-        restDaysCount: 3,
-        isActive: true,
-      );
-      expect(recorder.recorded.last.event, 'training_plan_created');
-      expect(recorder.recorded.last.properties?['kind'], 'week');
-      expect(recorder.recorded.last.properties?['day_count'], 7);
-      expect(recorder.recorded.last.properties?['workout_days_count'], 4);
-      expect(recorder.recorded.last.properties?['rest_days_count'], 3);
-      expect(recorder.recorded.last.properties?['is_active'], isTrue);
-
-      await recorder.trackTrainingPlanUpdated(
-        kind: 'sequence',
-        dayCount: 6,
-        workoutDaysCount: 4,
-        restDaysCount: 2,
-        effectiveTiming: 'next_cycle',
-      );
-      expect(recorder.recorded.last.event, 'training_plan_updated');
-      expect(recorder.recorded.last.properties?['kind'], 'sequence');
       expect(
-          recorder.recorded.last.properties?['effective_timing'], 'next_cycle');
-
-      await recorder.trackTrainingPlanToggled(
-          action: 'activated', kind: 'week');
-      expect(recorder.recorded.last.event, 'training_plan_toggled');
-      expect(recorder.recorded.last.properties?['action'], 'activated');
-
-      await recorder.trackTrainingPlanDeleted(kind: 'week');
-      expect(recorder.recorded.last.event, 'training_plan_deleted');
-
-      await recorder.trackTrainingPlanSessionStarted(
-        kind: 'sequence',
-        isRestDayOverride: true,
-        dayIndex: 2,
+        TelemetryBuckets.getGoalDurationBucket(const Duration(days: 3)),
+        '<7d',
       );
-      expect(recorder.recorded.last.event, 'training_plan_session_started');
       expect(
-          recorder.recorded.last.properties?['is_rest_day_override'], isTrue);
-      expect(recorder.recorded.last.properties?['day_index'], 2);
+        TelemetryBuckets.getGoalDurationBucket(const Duration(days: 14)),
+        '1-4w',
+      );
+      expect(
+        TelemetryBuckets.getGoalDurationBucket(const Duration(days: 60)),
+        '1-3m',
+      );
+      expect(
+        TelemetryBuckets.getGoalDurationBucket(const Duration(days: 120)),
+        '3-6m',
+      );
+      expect(
+        TelemetryBuckets.getGoalDurationBucket(const Duration(days: 300)),
+        '>6m',
+      );
     });
 
     test(
-        'PostHogTelemetryService tracks nutrition goal and review events without PII',
-        () async {
+      'PostHogTelemetryService tracks training plan events without PII',
+      () async {
+        final recorder = TestRecordingPostHogService();
+
+        await recorder.trackTrainingPlanCreated(
+          kind: 'week',
+          dayCount: 7,
+          workoutDaysCount: 4,
+          restDaysCount: 3,
+          isActive: true,
+        );
+        expect(recorder.recorded.last.event, 'training_plan_created');
+        expect(recorder.recorded.last.properties?['kind'], 'week');
+        expect(recorder.recorded.last.properties?['day_count'], 7);
+        expect(recorder.recorded.last.properties?['workout_days_count'], 4);
+        expect(recorder.recorded.last.properties?['rest_days_count'], 3);
+        expect(recorder.recorded.last.properties?['is_active'], isTrue);
+
+        await recorder.trackTrainingPlanUpdated(
+          kind: 'sequence',
+          dayCount: 6,
+          workoutDaysCount: 4,
+          restDaysCount: 2,
+          effectiveTiming: 'next_cycle',
+        );
+        expect(recorder.recorded.last.event, 'training_plan_updated');
+        expect(recorder.recorded.last.properties?['kind'], 'sequence');
+        expect(
+          recorder.recorded.last.properties?['effective_timing'],
+          'next_cycle',
+        );
+
+        await recorder.trackTrainingPlanToggled(
+          action: 'activated',
+          kind: 'week',
+        );
+        expect(recorder.recorded.last.event, 'training_plan_toggled');
+        expect(recorder.recorded.last.properties?['action'], 'activated');
+
+        await recorder.trackTrainingPlanDeleted(kind: 'week');
+        expect(recorder.recorded.last.event, 'training_plan_deleted');
+
+        await recorder.trackTrainingPlanSessionStarted(
+          kind: 'sequence',
+          isRestDayOverride: true,
+          dayIndex: 2,
+        );
+        expect(recorder.recorded.last.event, 'training_plan_session_started');
+        expect(
+          recorder.recorded.last.properties?['is_rest_day_override'],
+          isTrue,
+        );
+        expect(recorder.recorded.last.properties?['day_index'], 2);
+      },
+    );
+
+    test('PostHogTelemetryService tracks nutrition goal and review events without PII', () async {
       final recorder = TestRecordingPostHogService();
 
       await recorder.trackNutritionGoalCreated(
@@ -598,14 +616,20 @@ void main() {
       expect(recorder.recorded.last.event, 'nutrition_goal_created');
       expect(recorder.recorded.last.properties?['preset'], 'lose_weight');
       expect(
-          recorder.recorded.last.properties?['tracking_mode'], 'weekly_rate');
+        recorder.recorded.last.properties?['tracking_mode'],
+        'weekly_rate',
+      );
       expect(recorder.recorded.last.properties?['is_nutrition_driver'], isTrue);
       expect(recorder.recorded.last.properties?['rate_direction'], 'deficit');
       // Verify no target weight or baseline numbers leak
-      expect(recorder.recorded.last.properties?.containsKey('target_weight'),
-          isFalse);
-      expect(recorder.recorded.last.properties?.containsKey('baseline_weight'),
-          isFalse);
+      expect(
+        recorder.recorded.last.properties?.containsKey('target_weight'),
+        isFalse,
+      );
+      expect(
+        recorder.recorded.last.properties?.containsKey('baseline_weight'),
+        isFalse,
+      );
 
       await recorder.trackNutritionGoalAdjusted(
         adjustmentType: 'pace',
@@ -622,7 +646,9 @@ void main() {
       expect(recorder.recorded.last.event, 'nutrition_goal_retired');
       expect(recorder.recorded.last.properties?['reason'], 'completed');
       expect(
-          recorder.recorded.last.properties?['duration_days_bucket'], '1-3m');
+        recorder.recorded.last.properties?['duration_days_bucket'],
+        '1-3m',
+      );
 
       await recorder.trackWeeklyGoalReviewCompleted(
         trajectoryStatus: 'on_track',
@@ -635,13 +661,19 @@ void main() {
       );
       expect(recorder.recorded.last.event, 'weekly_goal_review_completed');
       expect(
-          recorder.recorded.last.properties?['trajectory_status'], 'on_track');
+        recorder.recorded.last.properties?['trajectory_status'],
+        'on_track',
+      );
       expect(recorder.recorded.last.properties?['decision'], 'applied');
-      expect(recorder.recorded.last.properties?['calorie_adjustment_direction'],
-          'increase');
+      expect(
+        recorder.recorded.last.properties?['calorie_adjustment_direction'],
+        'increase',
+      );
       // Verify no raw kcal or kg leak
       expect(
-          recorder.recorded.last.properties?.containsKey('calories'), isFalse);
+        recorder.recorded.last.properties?.containsKey('calories'),
+        isFalse,
+      );
       expect(recorder.recorded.last.properties?.containsKey('weight'), isFalse);
     });
   });
@@ -651,8 +683,10 @@ class TestRecordingPostHogService extends PostHogTelemetryService {
   final List<({String event, Map<String, dynamic>? properties})> recorded = [];
 
   @override
-  Future<void> track(String eventName,
-      {Map<String, dynamic>? properties}) async {
+  Future<void> track(
+    String eventName, {
+    Map<String, dynamic>? properties,
+  }) async {
     recorded.add((event: eventName, properties: properties));
   }
 }
@@ -666,8 +700,11 @@ class TestTelemetryService extends NoOpTelemetryService {
     required String settingKey,
     required dynamic value,
   }) async {
-    onTrack(
-        {'type': 'setting_toggled', 'setting_key': settingKey, 'value': value});
+    onTrack({
+      'type': 'setting_toggled',
+      'setting_key': settingKey,
+      'value': value,
+    });
   }
 
   @override

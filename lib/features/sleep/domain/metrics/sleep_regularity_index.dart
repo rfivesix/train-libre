@@ -92,8 +92,9 @@ SleepRegularityIndexResult calculateSleepRegularityIndex({
     }
     final previous = valid[i - 1].sleepByMinute;
     final current = valid[i].sleepByMinute;
-    final length =
-        previous.length < current.length ? previous.length : current.length;
+    final length = previous.length < current.length
+        ? previous.length
+        : current.length;
     final comparedLength = length < sleepRegularityMinutesPerDay
         ? length
         : sleepRegularityMinutesPerDay;
@@ -124,7 +125,8 @@ SleepRegularityIndexResult calculateSleepRegularityIndex({
     validDays: validDays,
     validComparisonPairs: validComparisonPairs,
     available: true,
-    stable: validDays >= stableValidDays &&
+    stable:
+        validDays >= stableValidDays &&
         validComparisonPairs >= stableComparisonPairs,
   );
 }

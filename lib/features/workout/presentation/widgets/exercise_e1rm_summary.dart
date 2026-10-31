@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/classification/exercise_log_mask.dart';
@@ -73,9 +75,10 @@ class ExerciseE1rmSummary extends StatelessWidget {
 
         return Padding(
           padding: const EdgeInsets.only(
-              left: DesignConstants.spacingL,
-              right: DesignConstants.spacingL,
-              bottom: DesignConstants.spacingS),
+            left: DesignConstants.spacingL,
+            right: DesignConstants.spacingL,
+            bottom: DesignConstants.spacingS,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -125,10 +128,10 @@ class ExerciseE1rmSummary extends StatelessWidget {
 
     return ExerciseLogMask.forExercise(routineExercise.exercise)
         .estimatedOneRepMax(
-      loggedWeightKg: setLog.weightKg,
-      reps: setLog.reps,
-      bodyweightKg: manager.bodyweightKg,
-    );
+          loggedWeightKg: setLog.weightKg,
+          reps: setLog.reps,
+          bodyweightKg: manager.bodyweightKg,
+        );
   }
 
   double? _getLastSessionBestE1rm(String exerciseName) {

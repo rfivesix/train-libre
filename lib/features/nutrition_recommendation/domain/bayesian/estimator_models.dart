@@ -1,9 +1,6 @@
 part of '../bayesian_tdee_estimator.dart';
 
-enum BayesianPriorSource {
-  profilePriorBootstrap,
-  chainedPosterior,
-}
+enum BayesianPriorSource { profilePriorBootstrap, chainedPosterior }
 
 class BayesianEstimatorConfig {
   /// Bootstrap prior uncertainty (kcal/day, standard deviation).
@@ -164,12 +161,15 @@ class BayesianEstimatorState {
               orElse: () => BayesianPriorSource.chainedPosterior,
             ),
       lastObservationUsed: json['lastObservationUsed'] as bool? ?? false,
-      recentPosteriorMeansCalories:
-          _asDoubleList(json['recentPosteriorMeansCalories']),
-      recentObservationResidualsCalories:
-          _asDoubleList(json['recentObservationResidualsCalories']),
-      recentObservationImpliedMaintenanceCalories:
-          _asDoubleList(json['recentObservationImpliedMaintenanceCalories']),
+      recentPosteriorMeansCalories: _asDoubleList(
+        json['recentPosteriorMeansCalories'],
+      ),
+      recentObservationResidualsCalories: _asDoubleList(
+        json['recentObservationResidualsCalories'],
+      ),
+      recentObservationImpliedMaintenanceCalories: _asDoubleList(
+        json['recentObservationImpliedMaintenanceCalories'],
+      ),
       stateVersion: json['stateVersion'] as int? ?? currentStateVersion,
     );
   }
@@ -291,19 +291,23 @@ class BayesianMaintenanceEstimate {
     final confidenceRaw = json['confidence'] as String?;
     final priorSourceRaw = json['priorSource'] as String?;
 
-    final priorMeanUsed = _asDouble(json['priorMeanUsedCalories']) ??
+    final priorMeanUsed =
+        _asDouble(json['priorMeanUsedCalories']) ??
         _asDouble(json['priorMaintenanceCalories']) ??
         0;
 
-    final priorVarianceFromDebug =
-        _asDouble(debugInfoRaw['priorVarianceCalories2']);
-    final priorStdFromDebug = priorVarianceFromDebug == null ||
+    final priorVarianceFromDebug = _asDouble(
+      debugInfoRaw['priorVarianceCalories2'],
+    );
+    final priorStdFromDebug =
+        priorVarianceFromDebug == null ||
             priorVarianceFromDebug.isNaN ||
             priorVarianceFromDebug <= 0
         ? null
         : math.sqrt(priorVarianceFromDebug);
 
-    final priorStdUsed = _asDouble(json['priorStdDevUsedCalories']) ??
+    final priorStdUsed =
+        _asDouble(json['priorStdDevUsedCalories']) ??
         priorStdFromDebug ??
         _legacyDefaultPriorStdDevCalories;
 
@@ -322,10 +326,12 @@ class BayesianMaintenanceEstimate {
         orElse: () => BayesianPriorSource.profilePriorBootstrap,
       ),
       observedIntakeCalories: _asDouble(json['observedIntakeCalories']),
-      observedWeightSlopeKgPerWeek:
-          _asDouble(json['observedWeightSlopeKgPerWeek']),
-      observationImpliedMaintenanceCalories:
-          _asDouble(json['observationImpliedMaintenanceCalories']),
+      observedWeightSlopeKgPerWeek: _asDouble(
+        json['observedWeightSlopeKgPerWeek'],
+      ),
+      observationImpliedMaintenanceCalories: _asDouble(
+        json['observationImpliedMaintenanceCalories'],
+      ),
       effectiveSampleSize: _asDouble(json['effectiveSampleSize']) ?? 0,
       confidence: RecommendationConfidence.values.firstWhere(
         (candidate) => candidate.name == confidenceRaw,
@@ -464,10 +470,7 @@ class _KcalPerKgSelection {
   final double kcalPerKg;
   final String mode;
 
-  const _KcalPerKgSelection({
-    required this.kcalPerKg,
-    required this.mode,
-  });
+  const _KcalPerKgSelection({required this.kcalPerKg, required this.mode});
 }
 
 double? _asDouble(Object? value) {

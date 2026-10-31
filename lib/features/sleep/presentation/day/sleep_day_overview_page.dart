@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+
 import '../../../../widgets/common/common.dart';
 
 import '../../../../data/database_helper.dart';
@@ -21,8 +22,11 @@ import '../widgets/sleep_score_breakdown_card.dart';
 import '../widgets/sleep_score_card.dart';
 import '../widgets/sleep_timeline_card.dart';
 import 'sleep_day_view_model.dart' hide SleepPeriodScope;
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'dart:async';
+
 import '../../../../services/telemetry/telemetry_service.dart';
 
 class SleepDayOverviewPage extends StatefulWidget {
@@ -34,12 +38,12 @@ class SleepDayOverviewPage extends StatefulWidget {
     SleepPeriodScope? initialScope,
     DateTime? selectedDay,
     SleepImportService? syncService,
-  })  : _repository = repository,
-        _viewModel = viewModel,
-        _queryRepository = queryRepository,
-        _initialScope = initialScope,
-        _selectedDay = selectedDay,
-        _syncService = syncService;
+  }) : _repository = repository,
+       _viewModel = viewModel,
+       _queryRepository = queryRepository,
+       _initialScope = initialScope,
+       _selectedDay = selectedDay,
+       _syncService = syncService;
 
   final SleepDayDataRepository? _repository;
   final SleepDayViewModel? _viewModel;
@@ -69,14 +73,18 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.sleepOverview));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.sleepOverview,
+      ),
+    );
     _anchorDay = _normalizeDate(
       widget._selectedDay ?? widget._viewModel?.selectedDay ?? DateTime.now(),
     );
     _scope = widget._initialScope ?? SleepPeriodScope.day;
     _ownsDayViewModel = widget._viewModel == null;
-    _dayViewModel = widget._viewModel ??
+    _dayViewModel =
+        widget._viewModel ??
         SleepDayViewModel(
           repository: widget._repository ?? SleepDayRepository(),
           syncService: widget._syncService,
@@ -137,7 +145,8 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final aggregation = _weekAggregation;
-        final hasNoData = aggregation == null ||
+        final hasNoData =
+            aggregation == null ||
             aggregation.days.every((day) => day.score == null);
 
         final displayAggregation = hasNoData
@@ -181,7 +190,8 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final aggregation = _monthAggregation;
-        final hasNoData = aggregation == null ||
+        final hasNoData =
+            aggregation == null ||
             aggregation.days.every((day) => day.score == null);
 
         final displayAggregation = hasNoData
@@ -374,15 +384,18 @@ class _SleepDayOverviewContent extends StatelessWidget {
         if (displayOverview.scoringResult != null) ...[
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingL),
+              horizontal: DesignConstants.spacingL,
+            ),
             child: SleepScoreBreakdownCard(
-                scoringResult: displayOverview.scoringResult!),
+              scoringResult: displayOverview.scoringResult!,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
         ],
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
           child: SleepMetricTileGrid(overview: displayOverview),
         ),
       ],
@@ -427,8 +440,9 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
     final countBadgeBg = isDark
         ? const Color(0xFF065F46).withValues(alpha: 0.3)
         : const Color(0xFFD1FAE5);
-    final countBadgeText =
-        isDark ? const Color(0xFF34D399) : const Color(0xFF065F46);
+    final countBadgeText = isDark
+        ? const Color(0xFF34D399)
+        : const Color(0xFF065F46);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
@@ -450,11 +464,14 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: DesignConstants.spacingS, vertical: 2),
+                      horizontal: DesignConstants.spacingS,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: countBadgeBg,
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusM,
+                      ),
                     ),
                     child: Text(
                       '${sessions.length}',
@@ -495,8 +512,9 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                     final session = sessions[index];
                     final startLocal = session.startAtUtc.toLocal();
                     final endLocal = session.endAtUtc.toLocal();
-                    final duration =
-                        session.endAtUtc.difference(session.startAtUtc);
+                    final duration = session.endAtUtc.difference(
+                      session.startAtUtc,
+                    );
 
                     final isCore =
                         session.sessionType == SleepSessionType.mainSleep;
@@ -523,12 +541,14 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                         const SizedBox(width: DesignConstants.spacingM),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: DesignConstants.spacingXS),
+                            horizontal: 10,
+                            vertical: DesignConstants.spacingXS,
+                          ),
                           decoration: BoxDecoration(
                             color: badgeColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusS),
+                              DesignConstants.borderRadiusS,
+                            ),
                             border: Border.all(
                               color: badgeColor.withValues(alpha: 0.3),
                               width: 1,
@@ -554,7 +574,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                               ),
                               if (startLocal.day != endLocal.day) ...[
                                 const SizedBox(
-                                    width: DesignConstants.spacingXS),
+                                  width: DesignConstants.spacingXS,
+                                ),
                                 Text(
                                   '(+1)',
                                   style: theme.textTheme.labelSmall?.copyWith(

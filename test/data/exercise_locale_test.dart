@@ -103,8 +103,10 @@ void main() {
     });
 
     test('allNames covers every language, for matching', () {
-      expect(multilingual.allNames,
-          containsAll(<String>['Kniebeuge', 'Squat', 'スクワット']));
+      expect(
+        multilingual.allNames,
+        containsAll(<String>['Kniebeuge', 'Squat', 'スクワット']),
+      );
     });
 
     test('withText replaces one language and leaves the others', () {
@@ -162,19 +164,18 @@ void main() {
       final de = await source.searchExercises(query: '', languageCode: 'de');
       final en = await source.searchExercises(query: '', languageCode: 'en');
 
-      final deNames = {
-        for (final e in de) e.uuid: e.localizedNameFor('de'),
-      };
-      final enNames = {
-        for (final e in en) e.uuid: e.localizedNameFor('en'),
-      };
+      final deNames = {for (final e in de) e.uuid: e.localizedNameFor('de')};
+      final enNames = {for (final e in en) e.uuid: e.localizedNameFor('en')};
 
       // At least some names must actually differ, or this proves nothing.
       final differing = deNames.entries
           .where((entry) => enNames[entry.key] != entry.value)
           .length;
-      expect(differing, greaterThan(0),
-          reason: 'German and English results were identical');
+      expect(
+        differing,
+        greaterThan(0),
+        reason: 'German and English results were identical',
+      );
     });
 
     test('a language the catalog marks undisplayable is skipped', () async {
@@ -185,8 +186,11 @@ void main() {
           .where((row) => !row.displayable && row.code != 'en')
           .map((row) => row.code)
           .toList();
-      expect(undisplayable, isNotEmpty,
-          reason: 'the fixture must carry at least one');
+      expect(
+        undisplayable,
+        isNotEmpty,
+        reason: 'the fixture must carry at least one',
+      );
 
       final chain = await ExerciseLocaleChain.resolve(db, undisplayable.first);
       expect(chain, isNot(contains(undisplayable.first)));
@@ -231,18 +235,28 @@ void main() {
     test('a resolved exercise carries all its languages', () async {
       final exercise = await source.getExerciseByUuid('20');
       expect(exercise, isNotNull);
-      expect(exercise!.texts.length, greaterThan(2),
-          reason: 'the detail path loads every translation, not just two');
+      expect(
+        exercise!.texts.length,
+        greaterThan(2),
+        reason: 'the detail path loads every translation, not just two',
+      );
     });
 
-    test('a search result carries the one language it was rendered in',
-        () async {
-      final results =
-          await source.searchExercises(query: '', languageCode: 'de');
-      expect(results, isNotEmpty);
-      expect(results.first.texts.length, 1,
-          reason: 'loading 22 translations per row to show one is waste');
-    });
+    test(
+      'a search result carries the one language it was rendered in',
+      () async {
+        final results = await source.searchExercises(
+          query: '',
+          languageCode: 'de',
+        );
+        expect(results, isNotEmpty);
+        expect(
+          results.first.texts.length,
+          1,
+          reason: 'loading 22 translations per row to show one is waste',
+        );
+      },
+    );
 
     test('name lookup matches any language the exercise goes by', () async {
       final byId = await source.getExerciseByUuid('20');

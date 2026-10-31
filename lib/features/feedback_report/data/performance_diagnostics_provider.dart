@@ -16,9 +16,9 @@ class PerformanceDiagnosticsProvider
     this.maxScreens = 12,
     this.maxStalls = 10,
     this.maxStartupRuns = 6,
-  })  : _recorder = recorder ?? JankRecorder.instance,
-        _startupTrace = startupTrace ?? StartupTrace.instance,
-        _deviceLabelLoader = deviceLabelLoader ?? DeviceLabel.load;
+  }) : _recorder = recorder ?? JankRecorder.instance,
+       _startupTrace = startupTrace ?? StartupTrace.instance,
+       _deviceLabelLoader = deviceLabelLoader ?? DeviceLabel.load;
 
   final JankRecorder _recorder;
   final StartupTrace _startupTrace;
@@ -78,9 +78,7 @@ class PerformanceDiagnosticsProvider
     }
 
     if (snapshot.screens.length > maxScreens) {
-      lines.add(
-        'screens_omitted: ${snapshot.screens.length - maxScreens}',
-      );
+      lines.add('screens_omitted: ${snapshot.screens.length - maxScreens}');
     }
 
     final stalls = snapshot.stalls.take(maxStalls).toList();

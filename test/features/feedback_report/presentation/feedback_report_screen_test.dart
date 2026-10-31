@@ -52,15 +52,14 @@ FeedbackReportBuilder _builder() {
 
 Future<String> _previewText(WidgetTester tester) async {
   final previewFinder = find.byKey(const Key('feedback_report_preview_text'));
-  final preview = tester.widget<SelectableText>(
-    previewFinder,
-  );
+  final preview = tester.widget<SelectableText>(previewFinder);
   return preview.data ?? preview.textSpan!.toPlainText();
 }
 
 Future<void> _tapGeneratePreview(WidgetTester tester) async {
-  final button =
-      find.byKey(const Key('feedback_report_generate_preview_button'));
+  final button = find.byKey(
+    const Key('feedback_report_generate_preview_button'),
+  );
   await tester.tap(button);
   await tester.pumpAndSettle();
 }
@@ -83,8 +82,9 @@ Future<void> _setLargeSurface(WidgetTester tester) async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('privacy note is visible and no sharing action runs on open',
-      (tester) async {
+  testWidgets('privacy note is visible and no sharing action runs on open', (
+    tester,
+  ) async {
     await _setLargeSurface(tester);
     var shareCount = 0;
     var emailCount = 0;
@@ -102,12 +102,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      _wrap(
-        FeedbackReportScreen(
-          reportBuilder: _builder(),
-          actions: actions,
-        ),
-      ),
+      _wrap(FeedbackReportScreen(reportBuilder: _builder(), actions: actions)),
     );
     await tester.pumpAndSettle();
 
@@ -117,8 +112,9 @@ void main() {
     expect(find.byKey(const Key('feedback_report_preview_text')), findsNothing);
   });
 
-  testWidgets('preview generation works and toggles control contents',
-      (tester) async {
+  testWidgets('preview generation works and toggles control contents', (
+    tester,
+  ) async {
     await _setLargeSurface(tester);
     final actions = FeedbackReportActions(
       temporaryDirectoryProvider: () async => Directory.systemTemp,
@@ -127,12 +123,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      _wrap(
-        FeedbackReportScreen(
-          reportBuilder: _builder(),
-          actions: actions,
-        ),
-      ),
+      _wrap(FeedbackReportScreen(reportBuilder: _builder(), actions: actions)),
     );
     await tester.pumpAndSettle();
 
@@ -179,12 +170,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      _wrap(
-        FeedbackReportScreen(
-          reportBuilder: _builder(),
-          actions: actions,
-        ),
-      ),
+      _wrap(FeedbackReportScreen(reportBuilder: _builder(), actions: actions)),
     );
     await tester.pumpAndSettle();
 
@@ -198,8 +184,9 @@ void main() {
     expect(find.text('Report copied to clipboard.'), findsOneWidget);
   });
 
-  testWidgets('user note section appears only when note is entered',
-      (tester) async {
+  testWidgets('user note section appears only when note is entered', (
+    tester,
+  ) async {
     await _setLargeSurface(tester);
     final actions = FeedbackReportActions(
       temporaryDirectoryProvider: () async => Directory.systemTemp,
@@ -208,12 +195,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      _wrap(
-        FeedbackReportScreen(
-          reportBuilder: _builder(),
-          actions: actions,
-        ),
-      ),
+      _wrap(FeedbackReportScreen(reportBuilder: _builder(), actions: actions)),
     );
     await tester.pumpAndSettle();
 

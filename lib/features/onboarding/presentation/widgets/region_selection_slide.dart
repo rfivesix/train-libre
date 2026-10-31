@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../config/app_data_sources.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/common.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import 'onboarding_info_box.dart';
@@ -51,8 +53,9 @@ class RegionSelectionSlide extends StatelessWidget {
               decoration: InputDecoration(
                 prefixIcon: const Icon(LucideIcons.globe),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: DesignConstants.spacingM,
@@ -78,9 +81,7 @@ class RegionSelectionSlide extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
-          OnboardingInfoBox(
-            text: l10n.onboardingRegionSettingsHint,
-          ),
+          OnboardingInfoBox(text: l10n.onboardingRegionSettingsHint),
         ],
       ),
     );

@@ -85,73 +85,73 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
         final progress = target > 0 ? (average / target * 100).round() : 0;
         final hasData = data != null && data.trackedDays > 0;
         Widget buildCard({VoidCallback? onTap}) => SummaryCard(
-              margin: EdgeInsets.zero,
-              padding: EdgeInsets.zero,
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.all(DesignConstants.spacingL),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          margin: EdgeInsets.zero,
+          padding: EdgeInsets.zero,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(DesignConstants.spacingL),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.water,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                    Expanded(
+                      child: Text(
+                        l10n.water,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        Icon(LucideIcons.chevron_right, size: 18),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    if (snapshot.connectionState != ConnectionState.done)
-                      const LinearProgressIndicator(minHeight: 2)
-                    else if (!hasData)
-                      Text(
-                        l10n.statisticsWaterNoData,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      )
-                    else ...[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${_displayWaterValue(average, units).toStringAsFixed(1)} ${_waterUnit(units)}',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: DesignConstants.spacingS),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text(
-                              l10n.statisticsWaterDailyAverage,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.outline,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXS),
-                      Text(
-                        l10n.statisticsWaterGoalProgress(progress),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingM),
-                      _WaterSparkline(summary: data),
-                    ],
+                    Icon(LucideIcons.chevron_right, size: 18),
                   ],
                 ),
-              ),
-            );
+                const SizedBox(height: DesignConstants.spacingS),
+                if (snapshot.connectionState != ConnectionState.done)
+                  const LinearProgressIndicator(minHeight: 2)
+                else if (!hasData)
+                  Text(
+                    l10n.statisticsWaterNoData,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  )
+                else ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${_displayWaterValue(average, units).toStringAsFixed(1)} ${_waterUnit(units)}',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingS),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          l10n.statisticsWaterDailyAverage,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingXS),
+                  Text(
+                    l10n.statisticsWaterGoalProgress(progress),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  _WaterSparkline(summary: data),
+                ],
+              ],
+            ),
+          ),
+        );
 
         return MorphSourceScope(
           builder: (context, setHidden) => Builder(
@@ -159,18 +159,18 @@ class _WaterSectionCardState extends State<WaterSectionCard> {
               onTap: data == null
                   ? null
                   : () => Navigator.of(context).push(
-                        CardMorphRoute<void>(
-                          sourceContext: cardContext,
-                          sourceBuilder: (_) => buildCard(),
-                          onSourceVisibilityChanged: setHidden,
-                          builder: (_) => WaterStatisticsScreen(
-                            summary: data,
-                            initialBlock: widget.block,
-                            initialAnchorDate: widget.anchor,
-                            initialIsRolling: widget.isRolling,
-                          ),
+                      CardMorphRoute<void>(
+                        sourceContext: cardContext,
+                        sourceBuilder: (_) => buildCard(),
+                        onSourceVisibilityChanged: setHidden,
+                        builder: (_) => WaterStatisticsScreen(
+                          summary: data,
+                          initialBlock: widget.block,
+                          initialAnchorDate: widget.anchor,
+                          initialIsRolling: widget.isRolling,
                         ),
                       ),
+                    ),
             ),
           ),
         );
@@ -240,11 +240,11 @@ class _WaterSparkline extends StatelessWidget {
                 },
                 getDotPainter: (spot, percent, bar, index) =>
                     FlDotCirclePainter(
-                  radius: 3,
-                  color: color,
-                  strokeWidth: 2,
-                  strokeColor: Theme.of(context).cardColor,
-                ),
+                      radius: 3,
+                      color: color,
+                      strokeWidth: 2,
+                      strokeColor: Theme.of(context).cardColor,
+                    ),
               ),
               belowBarData: BarAreaData(
                 show: true,
@@ -266,12 +266,13 @@ class _WaterSparkline extends StatelessWidget {
 }
 
 class WaterStatisticsScreen extends StatefulWidget {
-  const WaterStatisticsScreen(
-      {super.key,
-      required this.summary,
-      required this.initialBlock,
-      required this.initialAnchorDate,
-      required this.initialIsRolling});
+  const WaterStatisticsScreen({
+    super.key,
+    required this.summary,
+    required this.initialBlock,
+    required this.initialAnchorDate,
+    required this.initialIsRolling,
+  });
 
   final WaterPeriodSummary summary;
   final TimeframeBlock initialBlock;
@@ -316,7 +317,8 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
   }
 
   void _load({DateTimeRange? initialRange}) {
-    final range = initialRange ??
+    final range =
+        initialRange ??
         (_rolling
             ? _block.getRollingBounds()
             : _block.getBounds(_anchor, DateTime(2020)));
@@ -337,7 +339,8 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
       final now = DateTime.now();
       final currentBounds = _block.getBounds(now, DateTime(2020));
       final selectedBounds = _block.getBounds(_anchor, DateTime(2020));
-      final isOngoing = !_rolling &&
+      final isOngoing =
+          !_rolling &&
           selectedBounds.start.isAtSameMomentAs(currentBounds.start);
 
       if (backwards) {
@@ -395,36 +398,38 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: GlobalAppBar(
-          title: l10n.water,
-          actions: [
-            IconButton(
-              tooltip: l10n.shareAsText,
-              onPressed: _share,
-              icon: Icon(DesignConstants.adaptiveShareIcon),
-            ),
+        title: l10n.water,
+        actions: [
+          IconButton(
+            tooltip: l10n.shareAsText,
+            onPressed: _share,
+            icon: Icon(DesignConstants.adaptiveShareIcon),
+          ),
+        ],
+        bottom: TimeRangeFilter(
+          ranges: [
+            l10n.filter7DaysShort,
+            l10n.filter1MonthShort,
+            l10n.filter3MonthsShort,
+            l10n.filter6MonthsShort,
+            l10n.filterMax,
           ],
-          bottom: TimeRangeFilter(
-            ranges: [
-              l10n.filter7DaysShort,
-              l10n.filter1MonthShort,
-              l10n.filter3MonthsShort,
-              l10n.filter6MonthsShort,
-              l10n.filterMax
-            ],
-            selectedIndex: _blocks.indexOf(_block),
-            onSelected: _changeBlock,
-            displayDate: _rolling
-                ? TimeframeLabelFormatter.formatRolling(_block, l10n)
-                : TimeframeLabelFormatter.format(_block, _anchor, l10n),
-            onPrevious: _block == TimeframeBlock.maxBlock
-                ? null
-                : () => _shiftTimeframe(true),
-            onNext: _nextEnabled ? () => _shiftTimeframe(false) : null,
-            onTapDateDisplay:
-                _block == TimeframeBlock.maxBlock ? null : _pickDate,
-            nextEnabled: _nextEnabled,
-            showDateNavigation: _block != TimeframeBlock.maxBlock,
-          )),
+          selectedIndex: _blocks.indexOf(_block),
+          onSelected: _changeBlock,
+          displayDate: _rolling
+              ? TimeframeLabelFormatter.formatRolling(_block, l10n)
+              : TimeframeLabelFormatter.format(_block, _anchor, l10n),
+          onPrevious: _block == TimeframeBlock.maxBlock
+              ? null
+              : () => _shiftTimeframe(true),
+          onNext: _nextEnabled ? () => _shiftTimeframe(false) : null,
+          onTapDateDisplay: _block == TimeframeBlock.maxBlock
+              ? null
+              : _pickDate,
+          nextEnabled: _nextEnabled,
+          showDateNavigation: _block != TimeframeBlock.maxBlock,
+        ),
+      ),
       body: FutureBuilder<WaterPeriodSummary>(
         future: _future,
         builder: (context, snapshot) {
@@ -434,10 +439,9 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           final dateFormat = DateFormat.yMMMMEEEEd(l10n.localeName);
-          final trackedDays = summary.dailyIntakes
-              .where((day) => day.isTracked)
-              .toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
+          final trackedDays =
+              summary.dailyIntakes.where((day) => day.isTracked).toList()
+                ..sort((a, b) => b.date.compareTo(a.date));
           return CupertinoScrollbar(
             controller: _scrollController,
             thumbVisibility: true,
@@ -529,9 +533,7 @@ class _WaterStatisticsScreenState extends State<WaterStatisticsScreen> {
                               const SizedBox(width: DesignConstants.spacingM),
                               Text(
                                 '${_displayWaterValue(day.milliliters, units).toStringAsFixed(1)} ${_waterUnit(units)}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                                 textAlign: TextAlign.end,
                               ),

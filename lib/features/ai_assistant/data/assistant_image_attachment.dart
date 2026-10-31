@@ -66,17 +66,16 @@ class AssistantImageAttachmentStore {
       for (final source in sources.take(4)) {
         if (!await source.exists()) {
           throw FileSystemException(
-              'Chat image is no longer available', source.path);
+            'Chat image is no longer available',
+            source.path,
+          );
         }
         final media = await AppMediaStore.instance.save(
           source,
           domain: MediaDomain.assistantChats,
         );
         if (media == null) {
-          throw FileSystemException(
-            'Could not save chat image',
-            source.path,
-          );
+          throw FileSystemException('Could not save chat image', source.path);
         }
         saved.add(media);
       }
@@ -103,18 +102,22 @@ class AssistantImageAttachmentStore {
     for (final attachment in attachments) {
       final file = attachment.displayFile;
       if (!await file.exists()) continue;
-      final prepared =
-          await MealImageProcessor.instance.prepareForAnalysis(file);
-      payloads.add(AssistantImagePayload(
-        mimeType: attachment.mimeType,
-        base64: prepared.base64,
-      ));
+      final prepared = await MealImageProcessor.instance.prepareForAnalysis(
+        file,
+      );
+      payloads.add(
+        AssistantImagePayload(
+          mimeType: attachment.mimeType,
+          base64: prepared.base64,
+        ),
+      );
     }
     return payloads;
   }
 
   Future<void> deleteFiles(
-      Iterable<AssistantMessageAttachment> attachments) async {
+    Iterable<AssistantMessageAttachment> attachments,
+  ) async {
     await AppMediaStore.instance.deleteAll([
       for (final attachment in attachments) attachment.filePath,
       for (final attachment in attachments) attachment.thumbPath,
@@ -140,11 +143,9 @@ class AssistantImageAttachmentStore {
           p.isAbsolute(storedPath) &&
           p.basename(p.dirname(storedPath)) == 'assistant_attachments') {
         final support = await getApplicationSupportDirectory();
-        final legacyCandidate = File(p.join(
-          support.path,
-          'assistant_attachments',
-          p.basename(storedPath),
-        ));
+        final legacyCandidate = File(
+          p.join(support.path, 'assistant_attachments', p.basename(storedPath)),
+        );
         if (await legacyCandidate.exists()) existingFile = legacyCandidate;
       }
       if (!await existingFile.exists()) {
@@ -152,8 +153,9 @@ class AssistantImageAttachmentStore {
             ? storedThumbPath
             : AppMediaStore.thumbPathFor(storedPath);
         if (fallbackThumbPath == null) continue;
-        final fallbackThumb =
-            await AppMediaStore.instance.resolve(fallbackThumbPath);
+        final fallbackThumb = await AppMediaStore.instance.resolve(
+          fallbackThumbPath,
+        );
         if (fallbackThumb != null && await fallbackThumb.exists()) {
           await database.customStatement(
             'UPDATE assistant_message_attachments SET thumb_path = ? WHERE id = ?',
@@ -163,7 +165,8 @@ class AssistantImageAttachmentStore {
         continue;
       }
 
-      final alreadyInMediaStore = !p.isAbsolute(storedPath) &&
+      final alreadyInMediaStore =
+          !p.isAbsolute(storedPath) &&
           p.isWithin(MediaDomain.assistantChats.folder, storedPath);
       if (alreadyInMediaStore) {
         var thumbPath = storedThumbPath;

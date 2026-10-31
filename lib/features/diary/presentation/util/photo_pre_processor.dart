@@ -1,16 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/media/meal_image_processor.dart';
 
-enum PreProcessStatus {
-  idle,
-  processing,
-  completed,
-  cancelled,
-  error,
-}
+enum PreProcessStatus { idle, processing, completed, cancelled, error }
 
 class PreProcessState {
   final File file;
@@ -154,8 +149,9 @@ class PhotoPreProcessor {
       // `AiService` encoded the original a second time when the request went
       // out — so the work was done twice and the larger of the two payloads
       // was the one actually uploaded. Now both sides share one cached result.
-      final prepared =
-          await MealImageProcessor.instance.prepareForAnalysis(file);
+      final prepared = await MealImageProcessor.instance.prepareForAnalysis(
+        file,
+      );
       if (_cancelTokens[key] == true) return;
 
       notifier.value = notifier.value.copyWith(

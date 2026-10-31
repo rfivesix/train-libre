@@ -7,22 +7,24 @@ import 'package:path/path.dart' as p;
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('backup JSON helpers preserve nested payloads off the main isolate',
-      () async {
-    final payload = <String, dynamic>{
-      'appName': BackupManager.currentBackupAppName,
-      'schemaVersion': BackupManager.currentSchemaVersion,
-      'items': [
-        {'barcode': 'a', 'quantity': 125},
-        {'barcode': 'b', 'quantity': 250},
-      ],
-    };
+  test(
+    'backup JSON helpers preserve nested payloads off the main isolate',
+    () async {
+      final payload = <String, dynamic>{
+        'appName': BackupManager.currentBackupAppName,
+        'schemaVersion': BackupManager.currentSchemaVersion,
+        'items': [
+          {'barcode': 'a', 'quantity': 125},
+          {'barcode': 'b', 'quantity': 250},
+        ],
+      };
 
-    final encoded = await encodeBackupJsonPayloadForTesting(payload);
-    final decoded = await decodeBackupJsonPayloadForTesting(encoded);
+      final encoded = await encodeBackupJsonPayloadForTesting(payload);
+      final decoded = await decodeBackupJsonPayloadForTesting(encoded);
 
-    expect(decoded, payload);
-  });
+      expect(decoded, payload);
+    },
+  );
 
   test(
     'resolveWritableBackupDirectory uses explicit writable directory',
@@ -48,30 +50,27 @@ void main() {
     },
   );
 
-  test(
-    'resolveWritableBackupDirectory falls back to docs backups when explicit path is invalid',
-    () async {
-      final root = await Directory.systemTemp.createTemp(
-        'hypertrack_backup_manager_test_',
-      );
-      addTearDown(() async {
-        if (await root.exists()) {
-          await root.delete(recursive: true);
-        }
-      });
+  test('resolveWritableBackupDirectory falls back to docs backups when explicit path is invalid', () async {
+    final root = await Directory.systemTemp.createTemp(
+      'hypertrack_backup_manager_test_',
+    );
+    addTearDown(() async {
+      if (await root.exists()) {
+        await root.delete(recursive: true);
+      }
+    });
 
-      final invalidAsFile = File(p.join(root.path, 'not_a_directory'));
-      await invalidAsFile.writeAsString('block directory creation');
+    final invalidAsFile = File(p.join(root.path, 'not_a_directory'));
+    await invalidAsFile.writeAsString('block directory creation');
 
-      final expectedFallback = p.join(root.path, 'backups');
-      final resolved = await BackupManager.resolveWritableBackupDirectory(
-        docsDir: root,
-        dirPath: invalidAsFile.path,
-        savedDir: null,
-      );
+    final expectedFallback = p.join(root.path, 'backups');
+    final resolved = await BackupManager.resolveWritableBackupDirectory(
+      docsDir: root,
+      dirPath: invalidAsFile.path,
+      savedDir: null,
+    );
 
-      expect(resolved.path, expectedFallback);
-      expect(await Directory(expectedFallback).exists(), isTrue);
-    },
-  );
+    expect(resolved.path, expectedFallback);
+    expect(await Directory(expectedFallback).exists(), isTrue);
+  });
 }

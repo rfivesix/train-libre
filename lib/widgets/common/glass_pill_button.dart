@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
+
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Reusable liquid-glass Pill / Bubble.
@@ -118,15 +120,9 @@ class _GlassPillButtonState extends State<GlassPillButton>
                 ),
                 foregroundDecoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(effectiveRadius),
-                  border: Border.all(
-                    color: rimColor,
-                    width: 0.5,
-                  ),
+                  border: Border.all(color: rimColor, width: 0.5),
                 ),
-                child: Center(
-                  widthFactor: 1.0,
-                  child: widget.child,
-                ),
+                child: Center(widthFactor: 1.0, child: widget.child),
               ),
             ),
           ),

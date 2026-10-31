@@ -48,8 +48,8 @@ class AppColorSettingsScreen extends StatelessWidget {
           Text(
             l10n.settingsAppColorSubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 20),
           LayoutBuilder(
@@ -74,9 +74,9 @@ class AppColorSettingsScreen extends StatelessWidget {
                           if (choice == AppColorChoice.custom) {
                             _showCustomColorPicker(context);
                           } else {
-                            context
-                                .read<ThemeService>()
-                                .setAppColorChoice(choice);
+                            context.read<ThemeService>().setAppColorChoice(
+                              choice,
+                            );
                           }
                         },
                       ),
@@ -285,14 +285,17 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
             ],
           ),
           Slider(
-            value: ((hsv.value - customAppColorMinBrightness) /
-                    (customAppColorMaxBrightness - customAppColorMinBrightness))
-                .clamp(0, 1)
-                .toDouble(),
+            value:
+                ((hsv.value - customAppColorMinBrightness) /
+                        (customAppColorMaxBrightness -
+                            customAppColorMinBrightness))
+                    .clamp(0, 1)
+                    .toDouble(),
             divisions: 100,
             activeColor: _color,
             onChanged: (value) {
-              final brightness = customAppColorMinBrightness +
+              final brightness =
+                  customAppColorMinBrightness +
                   value *
                       (customAppColorMaxBrightness -
                           customAppColorMinBrightness);
@@ -311,8 +314,9 @@ class _CustomColorPickerState extends State<_CustomColorPicker> {
               const SizedBox(width: 10),
               Expanded(
                 child: FilledButton(
-                  onPressed:
-                      _hexError == null ? () => widget.onApply(_color) : null,
+                  onPressed: _hexError == null
+                      ? () => widget.onApply(_color)
+                      : null,
                   child: Text(widget.applyLabel),
                 ),
               ),
@@ -337,12 +341,14 @@ class _ColorWheelPicker extends StatelessWidget {
 
   void _updateFromPosition(Offset position, Size size) {
     if (size.width <= 0 || size.height <= 0) return;
-    onChanged(_hsvAtColorFieldPosition(
-      position,
-      size,
-      brightness: hsv.value,
-      fallbackHue: hsv.hue,
-    ).toColor());
+    onChanged(
+      _hsvAtColorFieldPosition(
+        position,
+        size,
+        brightness: hsv.value,
+        fallbackHue: hsv.hue,
+      ).toColor(),
+    );
   }
 
   @override
@@ -377,12 +383,14 @@ class _ColorWheelPicker extends StatelessWidget {
               gestures: {
                 _ColorWheelGestureRecognizer:
                     GestureRecognizerFactoryWithHandlers<
-                        _ColorWheelGestureRecognizer>(
-                  _ColorWheelGestureRecognizer.new,
-                  (recognizer) => recognizer
-                    ..onPositionChanged =
-                        (position) => _updateFromPosition(position, size),
-                ),
+                      _ColorWheelGestureRecognizer
+                    >(
+                      _ColorWheelGestureRecognizer.new,
+                      (recognizer) =>
+                          recognizer
+                            ..onPositionChanged = (position) =>
+                                _updateFromPosition(position, size),
+                    ),
               },
               child: Stack(
                 children: [
@@ -481,11 +489,7 @@ HSVColor _hsvAtColorFieldPosition(
 
   final directionX = delta.dx / distance;
   final directionY = delta.dy / distance;
-  final edgeDistance = _distanceToColorFieldEdge(
-    size,
-    directionX,
-    directionY,
-  );
+  final edgeDistance = _distanceToColorFieldEdge(size, directionX, directionY);
   final saturation = (distance / edgeDistance).clamp(0.0, 1.0);
   final hue = (math.atan2(-delta.dy, delta.dx) * 180 / math.pi + 360) % 360;
   return HSVColor.fromAHSV(1, hue, saturation, brightness);
@@ -501,10 +505,7 @@ double _distanceToColorFieldEdge(
   final halfHeight = math.max(0.0, size.height / 2 - inset);
   final cornerRadius = math.max(
     0.0,
-    math.min(
-      _colorFieldCornerRadius - inset,
-      math.min(halfWidth, halfHeight),
-    ),
+    math.min(_colorFieldCornerRadius - inset, math.min(halfWidth, halfHeight)),
   );
   final x = directionX.abs();
   final y = directionY.abs();

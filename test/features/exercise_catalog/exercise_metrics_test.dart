@@ -14,38 +14,36 @@ Exercise exercise({
   required String trackingType,
   String loadMode = 'external',
   bool supportsAddedWeight = false,
-}) =>
-    Exercise(
-      texts: const {'en': ExerciseText(name: 'Test')},
-      categoryName: 'Test',
-      primaryMuscles: const [],
-      secondaryMuscles: const [],
-      trackingType: trackingType,
-      loadMode: loadMode,
-      supportsAddedWeight: supportsAddedWeight,
-    );
+}) => Exercise(
+  texts: const {'en': ExerciseText(name: 'Test')},
+  categoryName: 'Test',
+  primaryMuscles: const [],
+  secondaryMuscles: const [],
+  trackingType: trackingType,
+  loadMode: loadMode,
+  supportsAddedWeight: supportsAddedWeight,
+);
 
 void main() {
   test('a barbell lift keeps the three metrics it always had', () {
-    expect(
-      exerciseMetricsFor(exercise(trackingType: 'weight_reps')),
-      [
-        ExerciseMetric.maxWeight,
-        ExerciseMetric.volume,
-        ExerciseMetric.est1rm,
-      ],
-    );
+    expect(exerciseMetricsFor(exercise(trackingType: 'weight_reps')), [
+      ExerciseMetric.maxWeight,
+      ExerciseMetric.volume,
+      ExerciseMetric.est1rm,
+    ]);
   });
 
-  test('a body-weight exercise does not open on a line that is always zero',
-      () {
-    final metrics = exerciseMetricsFor(
-      exercise(trackingType: 'bodyweight_reps', loadMode: 'bodyweight'),
-    );
-    expect(metrics, isNot(contains(ExerciseMetric.maxWeight)));
-    expect(metrics.first, ExerciseMetric.volume);
-    expect(metrics, contains(ExerciseMetric.est1rm));
-  });
+  test(
+    'a body-weight exercise does not open on a line that is always zero',
+    () {
+      final metrics = exerciseMetricsFor(
+        exercise(trackingType: 'bodyweight_reps', loadMode: 'bodyweight'),
+      );
+      expect(metrics, isNot(contains(ExerciseMetric.maxWeight)));
+      expect(metrics.first, ExerciseMetric.volume);
+      expect(metrics, contains(ExerciseMetric.est1rm));
+    },
+  );
 
   test('unless a belt is the usual way to load it', () {
     final metrics = exerciseMetricsFor(
@@ -76,10 +74,10 @@ void main() {
   });
 
   test('a loaded hold adds the weight it was held with', () {
-    expect(
-      exerciseMetricsFor(exercise(trackingType: 'time_weight')),
-      [ExerciseMetric.duration, ExerciseMetric.maxWeight],
-    );
+    expect(exerciseMetricsFor(exercise(trackingType: 'time_weight')), [
+      ExerciseMetric.duration,
+      ExerciseMetric.maxWeight,
+    ]);
   });
 
   test('a run keeps distance, duration and pace', () {
@@ -87,11 +85,7 @@ void main() {
       exerciseMetricsFor(
         exercise(trackingType: 'distance_time', loadMode: 'bodyweight'),
       ),
-      [
-        ExerciseMetric.distance,
-        ExerciseMetric.duration,
-        ExerciseMetric.pace,
-      ],
+      [ExerciseMetric.distance, ExerciseMetric.duration, ExerciseMetric.pace],
     );
   });
 
@@ -105,8 +99,11 @@ void main() {
       'distance_time',
       'distance_only',
     ]) {
-      expect(exerciseMetricsFor(exercise(trackingType: tracking)), isNotEmpty,
-          reason: tracking);
+      expect(
+        exerciseMetricsFor(exercise(trackingType: tracking)),
+        isNotEmpty,
+        reason: tracking,
+      );
     }
     // And an unclassified exercise, which is every user-created one.
     expect(

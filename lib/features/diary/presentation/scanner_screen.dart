@@ -2,14 +2,21 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import '../../../generated/app_localizations.dart';
+
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
+
 import 'dart:developer' as developer;
+
 import '../../../services/haptic_feedback_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
@@ -62,8 +69,8 @@ class _ScannerScreenState extends State<ScannerScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized = await BasisDataManager.instance
+        .isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -75,16 +82,17 @@ class _ScannerScreenState extends State<ScannerScreen>
   void initState() {
     super.initState();
     _cloudVisibilityLease = AiGlobalCloudVisibility.suppress();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.barcodeScanner));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.barcodeScanner,
+      ),
+    );
     _checkDbStatus();
     WidgetsBinding.instance.addObserver(this);
     _checkPermission(initial: true);
 
     // Lock viewfinder strictly to Portrait mode
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     // Initialize looping laser sweep animation
     _animationController = AnimationController(
@@ -92,10 +100,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       vsync: this,
     );
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.repeat(reverse: true);
   }
@@ -159,15 +164,19 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
-    controller.getFlashStatus().then((status) {
-      if (mounted && status != null) {
-        setState(() => _isFlashOn = status);
-      }
-    }).catchError((_) {});
+    controller
+        .getFlashStatus()
+        .then((status) {
+          if (mounted && status != null) {
+            setState(() => _isFlashOn = status);
+          }
+        })
+        .catchError((_) {});
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code != null && !_isDone) {
-        developer
-            .log('Barcode detected: ${scanData.code} (${scanData.format})');
+        developer.log(
+          'Barcode detected: ${scanData.code} (${scanData.format})',
+        );
         HapticFeedbackService.instance.confirmationFeedback();
         if (mounted) {
           setState(() {
@@ -267,9 +276,8 @@ class _ScannerScreenState extends State<ScannerScreen>
           centerTitle: false,
           title: Text(
             l10n.scann_barcode_capslock,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
           ),
         ),
         body: DatabasePlaceholderWidget(
@@ -298,9 +306,8 @@ class _ScannerScreenState extends State<ScannerScreen>
           centerTitle: false,
           title: Text(
             l10n.scann_barcode_capslock,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
           ),
           actions: [
             if (_cameraPermissionStatus.isGranted)
@@ -308,8 +315,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                 icon: Icon(
                   _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
                   size: 20,
-                  color:
-                      _isFlashOn ? Theme.of(context).colorScheme.primary : null,
+                  color: _isFlashOn
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
                 ),
                 tooltip: l10n.scannerToggleFlash,
                 onPressed: _toggleFlash,
@@ -337,7 +345,8 @@ class _ScannerScreenState extends State<ScannerScreen>
           final boxHeight =
               boxWidth * 0.45; // Optimal aspect ratio for barcodes
           final left = (screenWidth - boxWidth) / 2;
-          final top = (screenHeight - boxHeight) /
+          final top =
+              (screenHeight - boxHeight) /
               2.2; // Optically balanced slightly above center
 
           final scanBox = Rect.fromLTWH(left, top, boxWidth, boxHeight);
@@ -351,7 +360,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   onQRViewCreated: _onQRViewCreated,
                   formatsAllowed: const [
                     BarcodeFormat.ean8,
-                    BarcodeFormat.ean13
+                    BarcodeFormat.ean13,
                   ],
                 ),
               ),
@@ -386,8 +395,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                         color: DesignConstants.brandRedColor,
                         boxShadow: [
                           BoxShadow(
-                            color: DesignConstants.brandRedColor
-                                .withValues(alpha: 0.8),
+                            color: DesignConstants.brandRedColor.withValues(
+                              alpha: 0.8,
+                            ),
                             blurRadius: 6,
                             spreadRadius: 1.5,
                           ),
@@ -410,17 +420,17 @@ class _ScannerScreenState extends State<ScannerScreen>
                       l10n.scann_barcode_capslock,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       l10n.scannerAlignInstruction,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.7),
-                          ),
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
@@ -451,8 +461,8 @@ class _ScannerScreenState extends State<ScannerScreen>
               onPressed: _isRequestingPermission
                   ? null
                   : (_cameraPermissionStatus.isPermanentlyDenied
-                      ? _openSettings
-                      : _requestPermission),
+                        ? _openSettings
+                        : _requestPermission),
               label: _cameraPermissionStatus.isPermanentlyDenied
                   ? l10n.scannerOpenSettings
                   : l10n.scannerGrantPermission,
@@ -495,9 +505,13 @@ class ScannerOverlayPainter extends CustomPainter {
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final innerPath = Path()
       ..addRRect(
-          RRect.fromRectAndRadius(scanBox, Radius.circular(borderRadius)));
-    final maskPath =
-        Path.combine(PathOperation.difference, outerPath, innerPath);
+        RRect.fromRectAndRadius(scanBox, Radius.circular(borderRadius)),
+      );
+    final maskPath = Path.combine(
+      PathOperation.difference,
+      outerPath,
+      innerPath,
+    );
 
     canvas.drawPath(maskPath, paint);
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+
 import '../../util/design_constants.dart';
 
 /// A wrapper widget that provides a seamless loading experience.
@@ -26,10 +27,7 @@ class SeamlessLoadingOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading && isEmpty) {
       if (fallback != null) return fallback!;
-      return Skeletonizer(
-        enabled: true,
-        child: IgnorePointer(child: child),
-      );
+      return Skeletonizer(enabled: true, child: IgnorePointer(child: child));
     }
 
     if (isLoading) {

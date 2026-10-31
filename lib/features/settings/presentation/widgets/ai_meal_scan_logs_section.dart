@@ -42,10 +42,12 @@ class _AiMealScanLogsSectionState extends State<AiMealScanLogsSection> {
   Future<void> _copy(String value) async {
     await Clipboard.setData(ClipboardData(text: value));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(AppLocalizations.of(context)!.aiScanLogsCopied),
-      behavior: SnackBarBehavior.floating,
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.aiScanLogsCopied),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _confirmClear() async {
@@ -69,42 +71,53 @@ class _AiMealScanLogsSectionState extends State<AiMealScanLogsSection> {
       children: [
         if (widget.showHeader) AppSectionHeader(title: l10n.aiScanLogsTitle),
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM),
-          child: Text(l10n.aiScanLogsPrivacy,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingM,
+          ),
+          child: Text(
+            l10n.aiScanLogsPrivacy,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
         if (entries.isEmpty)
           SummaryCard(
             child: Padding(
               padding: const EdgeInsets.all(DesignConstants.spacingM),
-              child:
-                  Text(l10n.aiScanLogsEmpty, style: theme.textTheme.bodyMedium),
+              child: Text(
+                l10n.aiScanLogsEmpty,
+                style: theme.textTheme.bodyMedium,
+              ),
             ),
           )
         else ...[
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingM),
-            child: Row(children: [
-              Text(l10n.aiScanLogsCount(entries.length),
-                  style: theme.textTheme.labelMedium),
-              const Spacer(),
-              TextButton.icon(
-                key: const Key('ai_scan_logs_copy_all'),
-                onPressed: () => _copy(_logs.exportAll()),
-                icon: const Icon(LucideIcons.copy, size: 16),
-                label: Text(l10n.aiScanLogsCopyAll),
-              ),
-              IconButton(
-                key: const Key('ai_scan_logs_clear'),
-                tooltip: l10n.aiScanLogsClear,
-                onPressed: _confirmClear,
-                icon: const Icon(LucideIcons.trash, size: 18),
-              ),
-            ]),
+              horizontal: DesignConstants.spacingM,
+            ),
+            child: Row(
+              children: [
+                Text(
+                  l10n.aiScanLogsCount(entries.length),
+                  style: theme.textTheme.labelMedium,
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  key: const Key('ai_scan_logs_copy_all'),
+                  onPressed: () => _copy(_logs.exportAll()),
+                  icon: const Icon(LucideIcons.copy, size: 16),
+                  label: Text(l10n.aiScanLogsCopyAll),
+                ),
+                IconButton(
+                  key: const Key('ai_scan_logs_clear'),
+                  tooltip: l10n.aiScanLogsClear,
+                  onPressed: _confirmClear,
+                  icon: const Icon(LucideIcons.trash, size: 18),
+                ),
+              ],
+            ),
           ),
           for (final log in entries)
             _LogCard(
@@ -128,8 +141,8 @@ class _LogCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final date =
-        MaterialLocalizations.of(context).formatMediumDate(log.startedAt);
+    final date = MaterialLocalizations.of(context)
+        .formatMediumDate(log.startedAt);
     final time = TimeOfDay.fromDateTime(log.startedAt).format(context);
     final duration = log.durationMilliseconds == null
         ? '…'
@@ -139,101 +152,134 @@ class _LogCard extends StatelessWidget {
       child: ExpansionTile(
         key: Key('ai_scan_log_${log.id}'),
         tilePadding: const EdgeInsets.symmetric(
-            horizontal: DesignConstants.spacingL,
-            vertical: DesignConstants.spacingXS),
-        childrenPadding: const EdgeInsets.fromLTRB(DesignConstants.spacingL, 0,
-            DesignConstants.spacingL, DesignConstants.spacingL),
-        title: Row(children: [
-          Expanded(
-              child: Text('$date · $time',
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w700))),
-          Text(duration,
+          horizontal: DesignConstants.spacingL,
+          vertical: DesignConstants.spacingXS,
+        ),
+        childrenPadding: const EdgeInsets.fromLTRB(
+          DesignConstants.spacingL,
+          0,
+          DesignConstants.spacingL,
+          DesignConstants.spacingL,
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                '$date · $time',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Text(
+              duration,
               style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w700)),
-        ]),
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
         subtitle: Text(
-            '${log.model ?? log.provider} · ${_inputLabel(l10n, log.inputMode)} · ${_resultLabel(l10n, log.result)}',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis),
+          '${log.model ?? log.provider} · ${_inputLabel(l10n, log.inputMode)} · ${_resultLabel(l10n, log.result)}',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         children: [
           const Divider(height: 1),
           const SizedBox(height: DesignConstants.spacingM),
           _DetailRow(l10n.aiScanLogsPhotos, '${log.photoCount}'),
           _DetailRow(
-              l10n.aiScanLogsFirstPass,
-              log.primaryFirstPassAccepted == null
-                  ? '–'
-                  : log.primaryFirstPassAccepted!
-                      ? l10n.yes
-                      : l10n.no),
-          _DetailRow(l10n.aiScanLogsValidations,
-              '${log.selectedValidationRounds ?? '–'} / ${log.totalValidationRuns ?? '–'}'),
+            l10n.aiScanLogsFirstPass,
+            log.primaryFirstPassAccepted == null
+                ? '–'
+                : log.primaryFirstPassAccepted!
+                ? l10n.yes
+                : l10n.no,
+          ),
+          _DetailRow(
+            l10n.aiScanLogsValidations,
+            '${log.selectedValidationRounds ?? '–'} / ${log.totalValidationRuns ?? '–'}',
+          ),
           _DetailRow(l10n.aiScanLogsRepairs, '${log.repairRounds ?? '–'}'),
           _DetailRow(
-              l10n.aiScanLogsHedge,
-              log.hedgeStarted == null
-                  ? '–'
-                  : log.hedgeStarted!
-                      ? l10n.yes
-                      : l10n.no),
+            l10n.aiScanLogsHedge,
+            log.hedgeStarted == null
+                ? '–'
+                : log.hedgeStarted!
+                ? l10n.yes
+                : l10n.no,
+          ),
           _DetailRow(
-              l10n.aiScanLogsTokens,
-              log.usageComplete == true
-                  ? '${log.totalTokens} (${log.inputTokens} ↓ / ${log.outputTokens} ↑)'
-                  : l10n.aiScanLogsUnknown),
+            l10n.aiScanLogsTokens,
+            log.usageComplete == true
+                ? '${log.totalTokens} (${log.inputTokens} ↓ / ${log.outputTokens} ↑)'
+                : l10n.aiScanLogsUnknown,
+          ),
           _DetailRow(l10n.aiScanLogsCalls, '${log.providerCalls ?? '–'}'),
           if (log.reviewResult != null)
             _DetailRow(
-                l10n.aiScanLogsReview, _resultLabel(l10n, log.reviewResult!)),
+              l10n.aiScanLogsReview,
+              _resultLabel(l10n, log.reviewResult!),
+            ),
           if (log.correctionRounds != null)
             _DetailRow(l10n.aiScanLogsCorrections, '${log.correctionRounds}'),
           const SizedBox(height: DesignConstants.spacingM),
           Align(
-              alignment: Alignment.centerLeft,
-              child: Text(l10n.aiScanLogsTimeline,
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(fontWeight: FontWeight.w700))),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.aiScanLogsTimeline,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           const SizedBox(height: DesignConstants.spacingS),
           for (final event in log.events)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),
-              child:
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SizedBox(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
                     width: 70,
                     child: Text(
-                        '+${(event.elapsedMilliseconds / 1000).toStringAsFixed(1)} s',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            fontFeatures: const [
-                              FontFeature.tabularFigures()
-                            ]))),
-                Expanded(
-                    child: Text(_eventLabel(l10n, event),
-                        style: theme.textTheme.bodySmall)),
-              ]),
+                      '+${(event.elapsedMilliseconds / 1000).toStringAsFixed(1)} s',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      _eventLabel(l10n, event),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
             ),
           const SizedBox(height: DesignConstants.spacingM),
           Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                key: Key('ai_scan_log_copy_${log.id}'),
-                onPressed: onCopy,
-                icon: const Icon(LucideIcons.copy, size: 16),
-                label: Text(l10n.aiScanLogsCopy),
-              )),
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              key: Key('ai_scan_log_copy_${log.id}'),
+              onPressed: onCopy,
+              icon: const Icon(LucideIcons.copy, size: 16),
+              label: Text(l10n.aiScanLogsCopy),
+            ),
+          ),
         ],
       ),
     );
   }
 
   String _inputLabel(AppLocalizations l10n, String value) => switch (value) {
-        'text_only' => l10n.aiScanLogsInputText,
-        'photo' => l10n.aiScanLogsInputPhoto,
-        'multimodal' => l10n.aiScanLogsInputMixed,
-        _ => value,
-      };
+    'text_only' => l10n.aiScanLogsInputText,
+    'photo' => l10n.aiScanLogsInputPhoto,
+    'multimodal' => l10n.aiScanLogsInputMixed,
+    _ => value,
+  };
 
   String _eventLabel(AppLocalizations l10n, AiMealScanLogEvent event) {
     final parts = <String>[
@@ -258,19 +304,18 @@ class _LogCard extends StatelessWidget {
   }
 
   String _issueLabel(
-          AppLocalizations l10n, AiMealScanLogIssueCategory category) =>
-      switch (category) {
-        AiMealScanLogIssueCategory.semanticMatch =>
-          l10n.aiScanLogsIssueSemantic,
-        AiMealScanLogIssueCategory.catalogMatch => l10n.aiScanLogsIssueCatalog,
-        AiMealScanLogIssueCategory.quantity => l10n.aiScanLogsIssueQuantity,
-        AiMealScanLogIssueCategory.nutritionAnchor =>
-          l10n.aiScanLogsIssueNutrition,
-        AiMealScanLogIssueCategory.preparationState =>
-          l10n.aiScanLogsIssuePreparation,
-        AiMealScanLogIssueCategory.confidence => l10n.aiScanLogsIssueConfidence,
-        AiMealScanLogIssueCategory.otherValidation => l10n.aiScanLogsIssueOther,
-      };
+    AppLocalizations l10n,
+    AiMealScanLogIssueCategory category,
+  ) => switch (category) {
+    AiMealScanLogIssueCategory.semanticMatch => l10n.aiScanLogsIssueSemantic,
+    AiMealScanLogIssueCategory.catalogMatch => l10n.aiScanLogsIssueCatalog,
+    AiMealScanLogIssueCategory.quantity => l10n.aiScanLogsIssueQuantity,
+    AiMealScanLogIssueCategory.nutritionAnchor => l10n.aiScanLogsIssueNutrition,
+    AiMealScanLogIssueCategory.preparationState =>
+      l10n.aiScanLogsIssuePreparation,
+    AiMealScanLogIssueCategory.confidence => l10n.aiScanLogsIssueConfidence,
+    AiMealScanLogIssueCategory.otherValidation => l10n.aiScanLogsIssueOther,
+  };
 
   String _resultLabel(AppLocalizations l10n, AiMealScanLogResult result) =>
       switch (result) {
@@ -286,27 +331,27 @@ class _LogCard extends StatelessWidget {
         AiMealScanLogResult.discarded => l10n.aiScanLogsDiscarded,
       };
 
-  String _stageLabel(AppLocalizations l10n, AiMealScanLogStage stage) =>
-      switch (stage) {
-        AiMealScanLogStage.requested => l10n.aiScanLogsStageRequested,
-        AiMealScanLogStage.preparationFinished => l10n.aiScanLogsStagePrepared,
-        AiMealScanLogStage.primaryStarted => l10n.aiScanLogsStagePrimary,
-        AiMealScanLogStage.hedgeStarted => l10n.aiScanLogsStageHedge,
-        AiMealScanLogStage.providerFinished => l10n.aiScanLogsStageProvider,
-        AiMealScanLogStage.providerUsageReported => l10n.aiScanLogsStageUsage,
-        AiMealScanLogStage.validationFinished => l10n.aiScanLogsStageValidation,
-        AiMealScanLogStage.candidateSelected => l10n.aiScanLogsStageSelected,
-        AiMealScanLogStage.repairStarted => l10n.aiScanLogsStageRepairStart,
-        AiMealScanLogStage.repairFinished => l10n.aiScanLogsStageRepairEnd,
-        AiMealScanLogStage.reviewVisible => l10n.aiScanLogsStageReview,
-        AiMealScanLogStage.preliminaryNutritionReady =>
-          l10n.aiScanLogsStagePreliminaryNutrition,
-        AiMealScanLogStage.reviewReady => l10n.aiScanLogsStageReviewReady,
-        AiMealScanLogStage.correctionStarted =>
-          l10n.aiScanLogsStageCorrectionStart,
-        AiMealScanLogStage.correctionFinished =>
-          l10n.aiScanLogsStageCorrectionEnd,
-      };
+  String _stageLabel(
+    AppLocalizations l10n,
+    AiMealScanLogStage stage,
+  ) => switch (stage) {
+    AiMealScanLogStage.requested => l10n.aiScanLogsStageRequested,
+    AiMealScanLogStage.preparationFinished => l10n.aiScanLogsStagePrepared,
+    AiMealScanLogStage.primaryStarted => l10n.aiScanLogsStagePrimary,
+    AiMealScanLogStage.hedgeStarted => l10n.aiScanLogsStageHedge,
+    AiMealScanLogStage.providerFinished => l10n.aiScanLogsStageProvider,
+    AiMealScanLogStage.providerUsageReported => l10n.aiScanLogsStageUsage,
+    AiMealScanLogStage.validationFinished => l10n.aiScanLogsStageValidation,
+    AiMealScanLogStage.candidateSelected => l10n.aiScanLogsStageSelected,
+    AiMealScanLogStage.repairStarted => l10n.aiScanLogsStageRepairStart,
+    AiMealScanLogStage.repairFinished => l10n.aiScanLogsStageRepairEnd,
+    AiMealScanLogStage.reviewVisible => l10n.aiScanLogsStageReview,
+    AiMealScanLogStage.preliminaryNutritionReady =>
+      l10n.aiScanLogsStagePreliminaryNutrition,
+    AiMealScanLogStage.reviewReady => l10n.aiScanLogsStageReviewReady,
+    AiMealScanLogStage.correctionStarted => l10n.aiScanLogsStageCorrectionStart,
+    AiMealScanLogStage.correctionFinished => l10n.aiScanLogsStageCorrectionEnd,
+  };
 }
 
 class _DetailRow extends StatelessWidget {
@@ -319,10 +364,12 @@ class _DetailRow extends StatelessWidget {
     final style = Theme.of(context).textTheme.bodySmall;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(children: [
-        Expanded(child: Text(label, style: style)),
-        Text(value, style: style?.copyWith(fontWeight: FontWeight.w700)),
-      ]),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: style)),
+          Text(value, style: style?.copyWith(fontWeight: FontWeight.w700)),
+        ],
+      ),
     );
   }
 }

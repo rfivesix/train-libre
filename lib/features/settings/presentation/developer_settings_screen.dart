@@ -36,44 +36,64 @@ class DeveloperSettingsScreen extends StatelessWidget {
             key: const Key('developer_nutrition_lab'),
             title: 'Nutrition Lab',
             subtitle: l10n.developerNutritionLabSubtitle,
-            leading: Icon(LucideIcons.apple,
-                size: 24, color: theme.colorScheme.primary),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => const _NutritionDeveloperLabScreen(),
-            )),
+            leading: Icon(
+              LucideIcons.apple,
+              size: 24,
+              color: theme.colorScheme.primary,
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const _NutritionDeveloperLabScreen(),
+              ),
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           AppSettingsRow.navigation(
             key: const Key('developer_ai_meal_scan_logs'),
             title: l10n.aiScanLogsTitle,
             subtitle: l10n.aiScanLogsPrivacy,
-            leading: Icon(LucideIcons.scan_search,
-                size: 24, color: theme.colorScheme.primary),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => const _AiMealScanLogsScreen(),
-            )),
+            leading: Icon(
+              LucideIcons.scan_search,
+              size: 24,
+              color: theme.colorScheme.primary,
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const _AiMealScanLogsScreen(),
+              ),
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           AppSettingsRow.navigation(
             key: const Key('developer_ai_overlay_demo'),
             title: l10n.developerAiOverlayDemoTitle,
             subtitle: l10n.developerAiOverlayDemoSubtitle,
-            leading: Icon(LucideIcons.sparkles,
-                size: 24, color: theme.colorScheme.primary),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => const AiOverlayDemoScreen(),
-            )),
+            leading: Icon(
+              LucideIcons.sparkles,
+              size: 24,
+              color: theme.colorScheme.primary,
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const AiOverlayDemoScreen(),
+              ),
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           AppSettingsRow.navigation(
             key: const Key('developer_performance_log'),
             title: l10n.settingsPerformanceLogTitle,
             subtitle: l10n.settingsPerformanceLogSubtitle,
-            leading: Icon(LucideIcons.activity,
-                size: 24, color: theme.colorScheme.primary),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => const PerformanceDiagnosticsScreen(),
-            )),
+            leading: Icon(
+              LucideIcons.activity,
+              size: 24,
+              color: theme.colorScheme.primary,
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const PerformanceDiagnosticsScreen(),
+              ),
+            ),
           ),
         ],
       ),
@@ -86,9 +106,9 @@ class _NutritionDeveloperLabScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: GlobalAppBar(title: 'Nutrition Lab'),
-        body: const NutritionDeveloperLabView(),
-      );
+    appBar: GlobalAppBar(title: 'Nutrition Lab'),
+    body: const NutritionDeveloperLabView(),
+  );
 }
 
 class _AiMealScanLogsScreen extends StatelessWidget {

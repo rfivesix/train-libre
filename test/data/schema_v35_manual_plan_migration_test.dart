@@ -9,8 +9,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('schema 34 upgrades to the complete manual-plan schema', () async {
-    final directory =
-        await Directory.systemTemp.createTemp('schema_v35_plan_test_');
+    final directory = await Directory.systemTemp.createTemp(
+      'schema_v35_plan_test_',
+    );
     addTearDown(() async {
       if (await directory.exists()) await directory.delete(recursive: true);
     });
@@ -52,8 +53,9 @@ void main() {
   });
 
   test('schema 35 adds the nullable routine last-used timestamp', () async {
-    final directory =
-        await Directory.systemTemp.createTemp('schema_v36_routine_test_');
+    final directory = await Directory.systemTemp.createTemp(
+      'schema_v36_routine_test_',
+    );
     addTearDown(() async {
       if (await directory.exists()) await directory.delete(recursive: true);
     });
@@ -61,15 +63,17 @@ void main() {
 
     var database = AppDatabase(NativeDatabase(file));
     await database.customSelect('SELECT 1').get();
-    await database
-        .customStatement('ALTER TABLE routines DROP COLUMN last_used_at');
+    await database.customStatement(
+      'ALTER TABLE routines DROP COLUMN last_used_at',
+    );
     await database.customStatement('PRAGMA user_version = 35');
     await database.close();
 
     database = AppDatabase(NativeDatabase(file));
     await database.customSelect('SELECT 1').get();
-    final columns =
-        await database.customSelect('PRAGMA table_info(routines)').get();
+    final columns = await database
+        .customSelect('PRAGMA table_info(routines)')
+        .get();
     final columnNames = columns.map((row) => row.read<String>('name')).toSet();
 
     expect(database.schemaVersion, 47);

@@ -8,7 +8,7 @@ import '../../../../util/design_constants.dart';
 class OffCatalogRegionPickerContent extends StatefulWidget {
   final OffCatalogCountry initialSelection;
   final String Function(OffCatalogCountry, AppLocalizations)
-      countryLabelResolver;
+  countryLabelResolver;
 
   const OffCatalogRegionPickerContent({
     super.key,
@@ -46,13 +46,14 @@ class _OffCatalogRegionPickerContentState
     final colorScheme = Theme.of(context).colorScheme;
 
     final query = _searchQuery.toLowerCase().trim();
-    final filteredCountries =
-        AppDataSources.supportedOffCatalogCountries.where((country) {
-      if (query.isEmpty) return true;
-      final label = widget.countryLabelResolver(country, l10n).toLowerCase();
-      final code = country.code.toLowerCase();
-      return label.contains(query) || code.contains(query);
-    }).toList();
+    final filteredCountries = AppDataSources.supportedOffCatalogCountries.where(
+      (country) {
+        if (query.isEmpty) return true;
+        final label = widget.countryLabelResolver(country, l10n).toLowerCase();
+        final code = country.code.toLowerCase();
+        return label.contains(query) || code.contains(query);
+      },
+    ).toList();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -100,9 +101,8 @@ class _OffCatalogRegionPickerContentState
                   alignment: Alignment.center,
                   child: Text(
                     l10n.settingsFoodDbRegionNoResults,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 )
               : SingleChildScrollView(
@@ -120,7 +120,8 @@ class _OffCatalogRegionPickerContentState
                             contentPadding: EdgeInsets.zero,
                             value: country,
                             title: Text(
-                                widget.countryLabelResolver(country, l10n)),
+                              widget.countryLabelResolver(country, l10n),
+                            ),
                           ),
                       ],
                     ),

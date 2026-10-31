@@ -86,83 +86,95 @@ void main() {
         buildNumber: '80013',
         buildSignature: '',
       );
-      const pathProviderChannel =
-          MethodChannel('plugins.flutter.io/path_provider');
+      const pathProviderChannel = MethodChannel(
+        'plugins.flutter.io/path_provider',
+      );
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(pathProviderChannel, (call) async {
-        if (call.method == 'getTemporaryDirectory') {
-          return '.';
-        }
-        if (call.method == 'getApplicationSupportDirectory') {
-          return '.';
-        }
-        return null;
-      });
+            if (call.method == 'getTemporaryDirectory') {
+              return '.';
+            }
+            if (call.method == 'getApplicationSupportDirectory') {
+              return '.';
+            }
+            return null;
+          });
       const sqfliteChannel = MethodChannel('com.tekartik.sqflite');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(sqfliteChannel, (call) async {
-        if (call.method == 'getDatabasesPath') {
-          return '.';
-        }
-        if (call.method == 'openDatabase') {
-          return 1;
-        }
-        if (call.method == 'closeDatabase') {
-          return null;
-        }
-        if (call.method == 'query') {
-          final arguments = call.arguments as Map;
-          final sqlTable = arguments['table'] as String?;
-          if (sqlTable == 'sqlite_master') {
-            return [
-              {'name': 'exercises'}
-            ];
-          }
-          if (sqlTable == 'metadata') {
-            return [
-              {'value': '0'}
-            ];
-          }
-          return [];
-        }
-        return null;
-      });
+            if (call.method == 'getDatabasesPath') {
+              return '.';
+            }
+            if (call.method == 'openDatabase') {
+              return 1;
+            }
+            if (call.method == 'closeDatabase') {
+              return null;
+            }
+            if (call.method == 'query') {
+              final arguments = call.arguments as Map;
+              final sqlTable = arguments['table'] as String?;
+              if (sqlTable == 'sqlite_master') {
+                return [
+                  {'name': 'exercises'},
+                ];
+              }
+              if (sqlTable == 'metadata') {
+                return [
+                  {'value': '0'},
+                ];
+              }
+              return [];
+            }
+            return null;
+          });
       db = AppDatabase(NativeDatabase.memory());
       DatabaseHelper.setDriftDb(db);
       BasisDataManager.instance.invalidateCatalogPresenceCache();
-      await db.into(db.exercises).insert(const ExercisesCompanion(
-            id: Value('dummy-uuid'),
-          ));
+      await db
+          .into(db.exercises)
+          .insert(const ExercisesCompanion(id: Value('dummy-uuid')));
       await db
           .into(db.exerciseTranslations)
-          .insert(const ExerciseTranslationsCompanion(
-            exerciseId: Value('dummy-uuid'),
-            name: Value('dummy'),
-            languageCode: Value('de'),
-          ));
+          .insert(
+            const ExerciseTranslationsCompanion(
+              exerciseId: Value('dummy-uuid'),
+              name: Value('dummy'),
+              languageCode: Value('de'),
+            ),
+          );
     });
 
     /// Seeds the rows the bundled imports would have produced, so the
     /// "everything is installed" preference state is actually backed by data.
     Future<void> seedBundledCatalogData() async {
-      await db.into(db.products).insert(const ProductsCompanion(
-            barcode: Value('base-1'),
-            name: Value('Base product'),
-            calories: Value(100),
-            protein: Value(1),
-            carbs: Value(2),
-            fat: Value(3),
-            source: Value('base'),
-          ));
-      await db.into(db.foodCategories).insert(const FoodCategoriesCompanion(
-            key: Value('obst'),
-            nameDe: Value('Obst'),
-          ));
+      await db
+          .into(db.products)
+          .insert(
+            const ProductsCompanion(
+              barcode: Value('base-1'),
+              name: Value('Base product'),
+              calories: Value(100),
+              protein: Value(1),
+              carbs: Value(2),
+              fat: Value(3),
+              source: Value('base'),
+            ),
+          );
+      await db
+          .into(db.foodCategories)
+          .insert(
+            const FoodCategoriesCompanion(
+              key: Value('obst'),
+              nameDe: Value('Obst'),
+            ),
+          );
     }
 
     tearDown(() async {
-      const pathProviderChannel =
-          MethodChannel('plugins.flutter.io/path_provider');
+      const pathProviderChannel = MethodChannel(
+        'plugins.flutter.io/path_provider',
+      );
       const sqfliteChannel = MethodChannel('com.tekartik.sqflite');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(pathProviderChannel, null);
@@ -171,18 +183,21 @@ void main() {
       await db.close();
     });
 
-    test('reports missing BLS foods and categories when build number matches',
-        () async {
+    test('reports missing BLS foods and categories when build number matches', () async {
       await seedBundledCatalogData();
-      await db.into(db.products).insert(const ProductsCompanion(
-            barcode: Value('off-1'),
-            name: Value('OFF product'),
-            calories: Value(100),
-            protein: Value(1),
-            carbs: Value(2),
-            fat: Value(3),
-            source: Value('off'),
-          ));
+      await db
+          .into(db.products)
+          .insert(
+            const ProductsCompanion(
+              barcode: Value('off-1'),
+              name: Value('OFF product'),
+              calories: Value(100),
+              protein: Value(1),
+              carbs: Value(2),
+              fat: Value(3),
+              source: Value('off'),
+            ),
+          );
       SharedPreferences.setMockInitialValues({
         'is_exercise_catalog_initialized': true,
         'last_db_sync_app_version': '80013',
@@ -212,23 +227,27 @@ void main() {
       expect(progressCalls[0]['progress'], 0.0);
       expect(progressCalls[1]['task'], 'Basis-Produkte');
       expect(
-          progressCalls[1]['detail'], 'BLS-Katalog wartet auf den Download.');
+        progressCalls[1]['detail'],
+        'BLS-Katalog wartet auf den Download.',
+      );
       expect(progressCalls[1]['progress'], 1.0);
 
       expect(progressCalls[2]['task'], 'Kategorien');
-      expect(progressCalls[2]['detail'],
-          'BLS-Kategorien warten auf den Download.');
+      expect(
+        progressCalls[2]['detail'],
+        'BLS-Kategorien warten auf den Download.',
+      );
       expect(progressCalls[2]['progress'], 1.0);
 
       expect(progressCalls[3]['task'], startsWith('Produktdatenbank'));
-      expect(progressCalls[3]['detail'],
-          contains('Kein OFF-Bundle/Remote verfügbar'));
+      expect(
+        progressCalls[3]['detail'],
+        contains('Kein OFF-Bundle/Remote verfügbar'),
+      );
       expect(progressCalls[3]['progress'], 1.0);
     });
 
-    test(
-        'does not skip when the preferences claim catalogs the device does not have',
-        () async {
+    test('does not skip when the preferences claim catalogs the device does not have', () async {
       // The state a restored backup used to leave behind: every bookkeeping
       // key says "installed", but nothing was imported on this device.
       SharedPreferences.setMockInitialValues({
@@ -257,47 +276,63 @@ void main() {
       expect(prefs.getString('installed_off_version_de'), null);
     });
 
-    test('isOffDatabaseInitialized ignores a version without matching rows',
-        () async {
-      SharedPreferences.setMockInitialValues({
-        'installed_off_version_de': '999999999999',
-      });
+    test(
+      'isOffDatabaseInitialized ignores a version without matching rows',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'installed_off_version_de': '999999999999',
+        });
 
-      expect(
-          await BasisDataManager.instance.isOffDatabaseInitialized(), isFalse);
+        expect(
+          await BasisDataManager.instance.isOffDatabaseInitialized(),
+          isFalse,
+        );
 
-      await db.into(db.products).insert(const ProductsCompanion(
-            barcode: Value('off-1'),
-            name: Value('OFF product'),
-            calories: Value(100),
-            protein: Value(1),
-            carbs: Value(2),
-            fat: Value(3),
-            source: Value('off'),
-          ));
+        await db
+            .into(db.products)
+            .insert(
+              const ProductsCompanion(
+                barcode: Value('off-1'),
+                name: Value('OFF product'),
+                calories: Value(100),
+                protein: Value(1),
+                carbs: Value(2),
+                fat: Value(3),
+                source: Value('off'),
+              ),
+            );
 
-      expect(
-          await BasisDataManager.instance.isOffDatabaseInitialized(), isTrue);
-    });
+        expect(
+          await BasisDataManager.instance.isOffDatabaseInitialized(),
+          isTrue,
+        );
+      },
+    );
 
-    test('isExerciseCatalogInitialized ignores a flag without matching rows',
-        () async {
-      await db.delete(db.exerciseTranslations).go();
-      await db.delete(db.exercises).go();
-      SharedPreferences.setMockInitialValues({
-        'is_exercise_catalog_initialized': true,
-      });
+    test(
+      'isExerciseCatalogInitialized ignores a flag without matching rows',
+      () async {
+        await db.delete(db.exerciseTranslations).go();
+        await db.delete(db.exercises).go();
+        SharedPreferences.setMockInitialValues({
+          'is_exercise_catalog_initialized': true,
+        });
 
-      expect(await BasisDataManager.instance.isExerciseCatalogInitialized(),
-          isFalse);
+        expect(
+          await BasisDataManager.instance.isExerciseCatalogInitialized(),
+          isFalse,
+        );
 
-      await db.into(db.exercises).insert(const ExercisesCompanion(
-            id: Value('restored-uuid'),
-          ));
-      BasisDataManager.instance.invalidateCatalogPresenceCache();
+        await db
+            .into(db.exercises)
+            .insert(const ExercisesCompanion(id: Value('restored-uuid')));
+        BasisDataManager.instance.invalidateCatalogPresenceCache();
 
-      expect(await BasisDataManager.instance.isExerciseCatalogInitialized(),
-          isTrue);
-    });
+        expect(
+          await BasisDataManager.instance.isExerciseCatalogInitialized(),
+          isTrue,
+        );
+      },
+    );
   });
 }

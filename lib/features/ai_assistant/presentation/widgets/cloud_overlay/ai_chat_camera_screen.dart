@@ -88,12 +88,9 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
       size.width,
       size.height,
     );
-    final origin = widget.sourceRect ??
-        Rect.fromCenter(
-          center: targetRect.center,
-          width: 48,
-          height: 48,
-        );
+    final origin =
+        widget.sourceRect ??
+        Rect.fromCenter(center: targetRect.center, width: 48, height: 48);
     final curved = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOutCubic,
@@ -116,8 +113,9 @@ class _AiChatCameraOverlayState extends State<AiChatCameraOverlay>
           // iOS doesn't expose the device's physical corner radius to Flutter.
           // Scale the panel radius with the display width as a close
           // approximation of the hardware's rounded display corners.
-          final displayCornerRadius =
-              (size.width * 0.14).clamp(44.0, 60.0).toDouble();
+          final displayCornerRadius = (size.width * 0.14)
+              .clamp(44.0, 60.0)
+              .toDouble();
           final radius = lerpDouble(24, displayCornerRadius, progress)!;
           return Stack(
             fit: StackFit.expand,
@@ -364,9 +362,7 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.2,
-                    shadows: [
-                      Shadow(color: Colors.black, blurRadius: 12),
-                    ],
+                    shadows: [Shadow(color: Colors.black, blurRadius: 12)],
                   ),
                 ),
               ),
@@ -398,9 +394,9 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                               TextButton.icon(
                                 onPressed:
                                     _permissionStatus!.isPermanentlyDenied ||
-                                            _permissionStatus!.isRestricted
-                                        ? openAppSettings
-                                        : () => _startCamera(),
+                                        _permissionStatus!.isRestricted
+                                    ? openAppSettings
+                                    : () => _startCamera(),
                                 icon: Icon(
                                   _permissionStatus!.isPermanentlyDenied ||
                                           _permissionStatus!.isRestricted
@@ -452,8 +448,9 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                             maxQuality: DesignConstants.defaultGlassQuality,
                             minQuality: DesignConstants.minGlassQuality,
                             child: AdaptiveGlass(
-                              settings:
-                                  DesignConstants.liquidGlassSettings(true),
+                              settings: DesignConstants.liquidGlassSettings(
+                                true,
+                              ),
                               quality: DesignConstants.defaultGlassQuality,
                               platformViewBackdrop: true,
                               useOwnLayer: true,
@@ -498,7 +495,8 @@ class _AiChatCameraScreenState extends State<AiChatCameraScreen>
                             icon: _torchOn
                                 ? LucideIcons.zap
                                 : LucideIcons.zap_off,
-                            onPressed: (_ready ||
+                            onPressed:
+                                (_ready ||
                                         _debugGlassPreview ||
                                         (_isIosSimulator && kDebugMode)) &&
                                     !_busy

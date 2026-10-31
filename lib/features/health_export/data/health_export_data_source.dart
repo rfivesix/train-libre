@@ -52,7 +52,7 @@ class HealthExportLoadOptions {
 
 class HealthExportDataSource {
   HealthExportDataSource({DatabaseHelper? databaseHelper})
-      : _db = databaseHelper ?? DatabaseHelper.instance;
+    : _db = databaseHelper ?? DatabaseHelper.instance;
 
   final DatabaseHelper _db;
 
@@ -114,12 +114,15 @@ class HealthExportDataSource {
            AND local_measurement_id IN (${List.filled(ids.length, '?').join(',')})''',
       variables: ids.map(Variable.withInt).toList(growable: false),
     ).get();
-    final importedIds =
-        imported.map((row) => row.read<int>('local_measurement_id')).toSet();
-    return records.where((record) {
-      final id = int.tryParse(record.idempotencyKey.split(':').last);
-      return id == null || !importedIds.contains(id);
-    }).toList(growable: false);
+    final importedIds = imported
+        .map((row) => row.read<int>('local_measurement_id'))
+        .toSet();
+    return records
+        .where((record) {
+          final id = int.tryParse(record.idempotencyKey.split(':').last);
+          return id == null || !importedIds.contains(id);
+        })
+        .toList(growable: false);
   }
 
   Future<List<ExportNutritionRecord>> loadNutrition({
@@ -315,9 +318,9 @@ class HealthExportDataSource {
     if (archiveIdsSet.isNotEmpty) {
       final archiveIds = archiveIdsSet.toList();
       final dbInstance = await _db.database;
-      final rows = await (dbInstance.select(dbInstance.offProductsArchive)
-            ..where((tbl) => tbl.localId.isIn(archiveIds)))
-          .get();
+      final rows = await (dbInstance.select(
+        dbInstance.offProductsArchive,
+      )..where((tbl) => tbl.localId.isIn(archiveIds))).get();
       for (final r in rows) {
         archiveProductsMap[r.localId] = r;
       }
@@ -389,8 +392,9 @@ class HealthExportDataSource {
     final macroQuery = database.select(database.macroEntries)
       ..where((row) => row.consumedAt.isBetweenValues(start, end));
     if (updatedSinceUtc != null) {
-      macroQuery
-          .where((row) => row.updatedAt.isBiggerOrEqualValue(updatedSinceUtc));
+      macroQuery.where(
+        (row) => row.updatedAt.isBiggerOrEqualValue(updatedSinceUtc),
+      );
     }
     final macroRows = await macroQuery.get();
     final importedIds = macroRows.isEmpty
@@ -402,9 +406,7 @@ class HealthExportDataSource {
             variables: macroRows
                 .map((row) => Variable.withString(row.id))
                 .toList(growable: false),
-          ).get())
-            .map((row) => row.read<String>('local_macro_entry_id'))
-            .toSet();
+          ).get()).map((row) => row.read<String>('local_macro_entry_id')).toSet();
     for (final entry in macroRows) {
       if (importedIds.contains(entry.id)) continue;
       final factor = entry.amount == null ? 1.0 : entry.amount! / 100.0;
@@ -501,7 +503,8 @@ class HealthExportDataSource {
       workoutType: _mapWorkoutType(workout),
       title: workout.routineName,
       notes: _buildWorkoutExportNotes(workout),
-      segments: includeHealthConnectSegments &&
+      segments:
+          includeHealthConnectSegments &&
               _mapWorkoutType(workout) == ExportWorkoutType.strength
           ? _mapWorkoutSegments(workout)
           : const <ExportWorkoutSegment>[],
@@ -509,11 +512,13 @@ class HealthExportDataSource {
   }
 
   List<ExportWorkoutSegment> _mapWorkoutSegments(WorkoutLog workout) {
-    final eligibleSets = workout.sets.where((set) {
-      if (set.isCompleted != true) return false;
-      final modality = set.exerciseModality?.trim().toLowerCase();
-      return modality == null || modality.isEmpty || modality == 'strength';
-    }).toList(growable: false);
+    final eligibleSets = workout.sets
+        .where((set) {
+          if (set.isCompleted != true) return false;
+          final modality = set.exerciseModality?.trim().toLowerCase();
+          return modality == null || modality.isEmpty || modality == 'strength';
+        })
+        .toList(growable: false);
     if (eligibleSets.isEmpty) return const <ExportWorkoutSegment>[];
 
     final timeRanges = _segmentTimeRanges(workout, eligibleSets);
@@ -607,8 +612,8 @@ class HealthExportDataSource {
   }
 
   ExportWorkoutType _mapWorkoutType(WorkoutLog workout) {
-    final text =
-        '${workout.routineName ?? ''} ${workout.notes ?? ''}'.toLowerCase();
+    final text = '${workout.routineName ?? ''} ${workout.notes ?? ''}'
+        .toLowerCase();
     if (text.contains('run')) return ExportWorkoutType.running;
     if (text.contains('walk')) return ExportWorkoutType.walking;
     if (text.contains('cycle') || text.contains('bike')) {
@@ -626,8 +631,7 @@ class HealthExportDataSource {
     final dbInstance = await _db.database;
     final rows = await (dbInstance.select(
       dbInstance.products,
-    )..where((tbl) => tbl.barcode.isIn(barcodes)))
-        .get();
+    )..where((tbl) => tbl.barcode.isIn(barcodes))).get();
     return rows;
   }
 
@@ -656,34 +660,37 @@ class HealthExportDataSource {
     final dbInstance = await _db.database;
     final effectiveStart = DateTime(start.year, start.month, start.day);
     final effectiveEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
-    final rows = await (dbInstance.select(dbInstance.workoutLogs)
-          ..where((tbl) {
-            final inRange = tbl.startTime.isBetweenValues(
-              effectiveStart,
-              effectiveEnd,
-            );
-            final completed = tbl.status.equals('completed');
-            return inRange & completed;
-          }))
-        .get();
+    final rows =
+        await (dbInstance.select(dbInstance.workoutLogs)..where((tbl) {
+              final inRange = tbl.startTime.isBetweenValues(
+                effectiveStart,
+                effectiveEnd,
+              );
+              final completed = tbl.status.equals('completed');
+              return inRange & completed;
+            }))
+            .get();
 
     if (rows.isEmpty) return const <WorkoutLog>[];
 
     final workoutIds = rows.map((row) => row.id).toList(growable: false);
-    final setRows = await (dbInstance.select(dbInstance.setLogs)
-          ..where((tbl) => tbl.workoutLogId.isIn(workoutIds))
-          ..orderBy([
-            (tbl) => OrderingTerm(expression: tbl.logOrder),
-            (tbl) => OrderingTerm(expression: tbl.localId),
-          ]))
-        .get();
-    final exerciseIds =
-        setRows.map((row) => row.exerciseId).whereType<String>().toSet();
+    final setRows =
+        await (dbInstance.select(dbInstance.setLogs)
+              ..where((tbl) => tbl.workoutLogId.isIn(workoutIds))
+              ..orderBy([
+                (tbl) => OrderingTerm(expression: tbl.logOrder),
+                (tbl) => OrderingTerm(expression: tbl.localId),
+              ]))
+            .get();
+    final exerciseIds = setRows
+        .map((row) => row.exerciseId)
+        .whereType<String>()
+        .toSet();
     final exerciseModalities = <String, String?>{};
     if (exerciseIds.isNotEmpty) {
-      final exerciseRows = await (dbInstance.select(dbInstance.exercises)
-            ..where((tbl) => tbl.id.isIn(exerciseIds)))
-          .get();
+      final exerciseRows = await (dbInstance.select(
+        dbInstance.exercises,
+      )..where((tbl) => tbl.id.isIn(exerciseIds))).get();
       for (final exercise in exerciseRows) {
         exerciseModalities[exercise.id] = exercise.modality;
       }

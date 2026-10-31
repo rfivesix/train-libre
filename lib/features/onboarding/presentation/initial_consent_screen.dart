@@ -1,15 +1,19 @@
 // lib/screens/initial_consent_screen.dart
 
 import 'package:flutter/gestures.dart';
+
 import '../../../util/design_constants.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/legal_screen.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../data/telemetry_consent_prompt.dart';
@@ -44,9 +48,8 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
   }
 
   void _navigateToLegal() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const LegalScreen()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const LegalScreen()));
   }
 
   Future<void> _acceptAndProceed() async {
@@ -66,8 +69,9 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
       if (optedIn) {
         await TelemetryService.instance.optIn();
       }
-      await TelemetryConsentPrompt.instance
-          .recordOnboardingAnswer(optedIn: optedIn);
+      await TelemetryConsentPrompt.instance.recordOnboardingAnswer(
+        optedIn: optedIn,
+      );
     }
 
     if (mounted) {
@@ -105,9 +109,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
             ),
           ),
           Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.5),
-            ),
+            child: Container(color: Colors.black.withValues(alpha: 0.5)),
           ),
           // Consent Card
           Center(
@@ -126,8 +128,9 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                     const SizedBox(height: DesignConstants.spacingL),
                     Text(
                       l10n.welcome_privacy_title,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
@@ -142,7 +145,8 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       child: TextButton(
                         onPressed: _navigateToLegal,
                         child: Text(
-                            '${l10n.legal_notice} & ${l10n.privacy_policy}'),
+                          '${l10n.legal_notice} & ${l10n.privacy_policy}',
+                        ),
                       ),
                     ),
                     const Divider(),
@@ -158,8 +162,9 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: AppButton.primary(
-                        onPressed:
-                            _healthDataAccepted ? _acceptAndProceed : null,
+                        onPressed: _healthDataAccepted
+                            ? _acceptAndProceed
+                            : null,
                         label: l10n.accept_and_get_started,
                         tooltip: l10n.accept_and_get_started,
                       ),
@@ -231,7 +236,9 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.only(
-                  top: 2.0, right: DesignConstants.spacingM),
+                top: 2.0,
+                right: DesignConstants.spacingM,
+              ),
               child: Icon(
                 value ? LucideIcons.circle_check : LucideIcons.circle,
                 color: value
@@ -240,12 +247,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                 size: 22,
               ),
             ),
-            Expanded(
-              child: Text(
-                text,
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
+            Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
           ],
         ),
       ),

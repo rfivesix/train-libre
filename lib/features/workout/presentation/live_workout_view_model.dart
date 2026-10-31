@@ -1,8 +1,10 @@
 import "../../../services/unit_service.dart";
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine_exercise.dart';
 import '../domain/classification/exercise_log_mask.dart';
@@ -53,17 +55,19 @@ class LiveWorkoutViewModel extends ChangeNotifier
     TrainingAutonomyService? trainingAutonomyService,
     bool registerLifecycleObserver = true,
     LiveWorkoutLiveActivityCoordinator? liveActivityCoordinator,
-  })  : _repository = repository,
-        _detectPRUseCase = detectPRUseCase ?? DetectPersonalRecordUseCase(),
-        _logSetUseCase = logSetUseCase ?? LogWorkoutSetUseCase(),
-        _progressionService = progressionService ??
-            WorkoutProgressionService(
-              repository: repository,
-              unitService: unitService,
-            ),
-        _trainingAutonomyService = trainingAutonomyService,
-        _registerLifecycleObserver = registerLifecycleObserver {
-    _liveActivityCoordinator = liveActivityCoordinator ??
+  }) : _repository = repository,
+       _detectPRUseCase = detectPRUseCase ?? DetectPersonalRecordUseCase(),
+       _logSetUseCase = logSetUseCase ?? LogWorkoutSetUseCase(),
+       _progressionService =
+           progressionService ??
+           WorkoutProgressionService(
+             repository: repository,
+             unitService: unitService,
+           ),
+       _trainingAutonomyService = trainingAutonomyService,
+       _registerLifecycleObserver = registerLifecycleObserver {
+    _liveActivityCoordinator =
+        liveActivityCoordinator ??
         LiveWorkoutLiveActivityCoordinator(host: this);
     if (_registerLifecycleObserver) {
       WidgetsBinding.instance.addObserver(this);
@@ -83,7 +87,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
     return LiveWorkoutViewModel(
       repository: workoutDb,
       unitService: resolvedUnitService,
-      progressionService: progressionService ??
+      progressionService:
+          progressionService ??
           WorkoutProgressionService(
             repository: workoutDb,
             unitService: resolvedUnitService,
@@ -130,8 +135,10 @@ class LiveWorkoutViewModel extends ChangeNotifier
   String? getSuggestedFormattedWeight(int templateId) {
     final suggestion = _suggestions[templateId];
     if (suggestion == null || suggestion.targetWeight == null) return null;
-    return unitService.formatDisplayWeight(suggestion.targetWeight!,
-        fractionDigits: 2);
+    return unitService.formatDisplayWeight(
+      suggestion.targetWeight!,
+      fractionDigits: 2,
+    );
   }
 
   /// Changes whenever an engine value should perform its short AI-cloud
@@ -150,10 +157,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
   final Map<int, int> _routineExerciseNoteTargetsByBlock = {};
   WorkoutLog? get currentWorkout => _workoutLog;
 
-  String? workoutNoteFor(
-    RoutineExercise exercise, [
-    Map<int, String>? notes,
-  ]) {
+  String? workoutNoteFor(RoutineExercise exercise, [Map<int, String>? notes]) {
     final block = exerciseBlockFor(exercise);
     return block == null ? null : (notes ?? workoutExerciseNotes)[block];
   }
@@ -241,12 +245,15 @@ class LiveWorkoutViewModel extends ChangeNotifier
         ? elapsedSeconds
         : (_pausedSetTimerId == templateId ? _pausedSetTimerElapsedSeconds : 0);
     _setTimerBaseSeconds = baseSeconds;
-    _setTimerStartedAt =
-        (startedAt ?? DateTime.now()).subtract(Duration(seconds: baseSeconds));
+    _setTimerStartedAt = (startedAt ?? DateTime.now()).subtract(
+      Duration(seconds: baseSeconds),
+    );
     _pausedSetTimerId = null;
     _pausedSetTimerElapsedSeconds = 0;
-    _setTimerTicker =
-        Timer.periodic(const Duration(seconds: 1), (_) => notifyListeners());
+    _setTimerTicker = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => notifyListeners(),
+    );
     notifyListeners();
     unawaited(_syncLiveActivity());
   }
@@ -413,7 +420,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
   }
 
   Future<void> startWorkout(
-      WorkoutLog log, List<RoutineExercise> routineExercises) async {
+    WorkoutLog log,
+    List<RoutineExercise> routineExercises,
+  ) async {
     // Reopening a session this view model no longer holds — the restore on
     // startup never ran, or it failed and was swallowed — must not lay a
     // second set of empty rows on top of the ones already stored. That left
@@ -479,7 +488,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
     // Both the position and the exercise it belongs to are written with the
     // row. They used to be left at the column default of 0, which made the
     // rows indistinguishable and the restore's ordering arbitrary.
-    final isRoutineWorkout = _workoutLog?.routineId != null ||
+    final isRoutineWorkout =
+        _workoutLog?.routineId != null ||
         (_workoutLog?.routineName != null &&
             _workoutLog!.routineName!.isNotEmpty);
 
@@ -491,8 +501,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
 
         final repRange =
             template.targetRepMin != null && template.targetRepMax != null
-                ? (min: template.targetRepMin!, max: template.targetRepMax!)
-                : parseRepRange(template.targetReps);
+            ? (min: template.targetRepMin!, max: template.targetRepMax!)
+            : parseRepRange(template.targetReps);
 
         final newSetLog = SetLog(
           workoutLogId: _workoutLog!.id!,
@@ -507,10 +517,14 @@ class LiveWorkoutViewModel extends ChangeNotifier
           exerciseBlock: blockIndex,
           supersetGroup: re.supersetGroup,
           rir: null,
-          progressionData: re.progression.copyWith(
-              loadMode: re.progression.loadMode ??
-                  LoadMode.fromString(re.exercise.loadMode),
-              events: []).encode(),
+          progressionData: re.progression
+              .copyWith(
+                loadMode:
+                    re.progression.loadMode ??
+                    LoadMode.fromString(re.exercise.loadMode),
+                events: [],
+              )
+              .encode(),
           prescriptionOrigin: isRoutineWorkout
               ? PrescriptionOrigin.routine.name
               : PrescriptionOrigin.none.name,
@@ -534,9 +548,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
     final savedSets = await _repository.getSetLogsForWorkout(log.id!);
     final savedExerciseNotes =
         _repository is WorkoutExerciseBlockNotesRepository
-            ? await (_repository as WorkoutExerciseBlockNotesRepository)
-                .getWorkoutExerciseNotesByBlock(log.id!)
-            : const <int, String>{};
+        ? await (_repository as WorkoutExerciseBlockNotesRepository)
+              .getWorkoutExerciseNotesByBlock(log.id!)
+        : const <int, String>{};
     workoutExerciseNotes = Map<int, String>.from(savedExerciseNotes);
 
     _setLogs.clear();
@@ -601,7 +615,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
 
       final firstSet = block.first;
       final exName = firstSet.exerciseName;
-      final exercise = await _repository.resolveExerciseForSetLog(firstSet) ??
+      final exercise =
+          await _repository.resolveExerciseForSetLog(firstSet) ??
           Exercise(
             texts: {'en': ExerciseText(name: exName)},
             categoryName: 'Unknown',
@@ -609,15 +624,16 @@ class LiveWorkoutViewModel extends ChangeNotifier
             secondaryMuscles: const [],
           );
       final blockId = firstSet.exerciseBlock;
-      final routineSlot = blockId != null &&
+      final routineSlot =
+          blockId != null &&
               blockId >= 0 &&
               blockId < (persistedRoutine?.exercises.length ?? 0)
           ? persistedRoutine!.exercises[blockId]
           : null;
       final matchingRoutineSlot =
           routineSlot != null && routineSlot.exercise.uuid == exercise.uuid
-              ? routineSlot
-              : null;
+          ? routineSlot
+          : null;
       if (blockId != null && matchingRoutineSlot?.id != null) {
         _routineExerciseNoteTargetsByBlock[blockId] = matchingRoutineSlot!.id!;
       }
@@ -750,7 +766,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
   }
 
   Future<void> loadInitialData(
-      WorkoutLog initialLog, List<RoutineExercise>? initialExercises) async {
+    WorkoutLog initialLog,
+    List<RoutineExercise>? initialExercises,
+  ) async {
     isLoading = true;
     notifyListeners();
 
@@ -807,17 +825,19 @@ class LiveWorkoutViewModel extends ChangeNotifier
           initText = setLog.distanceKm == null
               ? ''
               : setLog.distanceKm!
-                  .toStringAsFixed(3)
-                  .replaceAll(RegExp(r'0*$'), '')
-                  .replaceAll(RegExp(r'\.$'), '');
+                    .toStringAsFixed(3)
+                    .replaceAll(RegExp(r'0*$'), '')
+                    .replaceAll(RegExp(r'\.$'), '');
         } else {
           // Left blank when nothing was entered — including for an added-weight
           // column, where blank is a meaningful answer rather than a missing
           // one: it means the set was done with body weight alone.
           initText = setLog.weightKg == null
               ? ''
-              : unitService.formatDisplayWeight(setLog.weightKg!,
-                  fractionDigits: 2);
+              : unitService.formatDisplayWeight(
+                  setLog.weightKg!,
+                  fractionDigits: 2,
+                );
         }
         weightControllers[templateId] = TextEditingController(text: initText);
       }
@@ -833,8 +853,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
       }
 
       if (rirControllers[templateId] == null) {
-        rirControllers[templateId] =
-            TextEditingController(text: setLog.rir?.toString() ?? '');
+        rirControllers[templateId] = TextEditingController(
+          text: setLog.rir?.toString() ?? '',
+        );
       }
     });
   }
@@ -862,14 +883,17 @@ class LiveWorkoutViewModel extends ChangeNotifier
             .replaceAll(RegExp(r'\.$'), '');
       }
     } else if (setLog.weightKg != null) {
-      weightControllers[templateId]?.text =
-          unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
+      weightControllers[templateId]?.text = unitService.formatDisplayWeight(
+        setLog.weightKg!,
+        fractionDigits: 2,
+      );
     }
 
     if (mask.logsDuration) {
       if (setLog.durationSeconds != null) {
-        repsControllers[templateId]?.text =
-            formatPauseDuration(setLog.durationSeconds);
+        repsControllers[templateId]?.text = formatPauseDuration(
+          setLog.durationSeconds,
+        );
       }
     } else if (setLog.reps != null) {
       repsControllers[templateId]?.text = setLog.reps!.toString();
@@ -958,8 +982,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
       {
         final repRange =
             template?.targetRepMin != null && template?.targetRepMax != null
-                ? (min: template!.targetRepMin!, max: template.targetRepMax!)
-                : parseRepRange(template?.targetReps);
+            ? (min: template!.targetRepMin!, max: template.targetRepMax!)
+            : parseRepRange(template?.targetReps);
 
         finalSet = finalSet.copyWith(
           prescriptionOrigin: PrescriptionOrigin.engine.name,
@@ -1179,7 +1203,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
               ? null
               : unitService.formatDisplayWeight(
                   previousSuggestion!.targetWeight!,
-                  fractionDigits: 2);
+                  fractionDigits: 2,
+                );
           if (controller.text.isEmpty || controller.text == previousWeight) {
             controller.text = unitService.formatDisplayWeight(
               suggestion.targetWeight!,
@@ -1201,11 +1226,12 @@ class LiveWorkoutViewModel extends ChangeNotifier
         // no different from values the user can type over immediately.
         final currentLog = _setLogs[templateId];
         if (currentLog != null) {
-          final repRange = nextOpenTemplate.targetRepMin != null &&
+          final repRange =
+              nextOpenTemplate.targetRepMin != null &&
                   nextOpenTemplate.targetRepMax != null
               ? (
                   min: nextOpenTemplate.targetRepMin!,
-                  max: nextOpenTemplate.targetRepMax!
+                  max: nextOpenTemplate.targetRepMax!,
                 )
               : parseRepRange(nextOpenTemplate.targetReps);
 
@@ -1242,9 +1268,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
     var exerciseIndex = -1;
     var templateIndex = -1;
     for (var index = 0; index < _exercises.length; index++) {
-      final found = _exercises[index]
-          .setTemplates
-          .indexWhere((template) => template.id == templateId);
+      final found = _exercises[index].setTemplates.indexWhere(
+        (template) => template.id == templateId,
+      );
       if (found != -1) {
         exerciseIndex = index;
         templateIndex = found;
@@ -1261,8 +1287,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
     if (group != null) {
       var groupStart = exerciseIndex;
       var groupEnd = exerciseIndex;
-      while (
-          groupStart > 0 && _exercises[groupStart - 1].supersetGroup == group) {
+      while (groupStart > 0 &&
+          _exercises[groupStart - 1].supersetGroup == group) {
         groupStart--;
       }
       while (groupEnd + 1 < _exercises.length &&
@@ -1284,9 +1310,11 @@ class LiveWorkoutViewModel extends ChangeNotifier
         shouldRest = false;
         for (var member = groupStart; member <= groupEnd; member++) {
           final templates = _exercises[member].setTemplates;
-          for (var nextRound = templateIndex + 1;
-              nextRound < templates.length;
-              nextRound++) {
+          for (
+            var nextRound = templateIndex + 1;
+            nextRound < templates.length;
+            nextRound++
+          ) {
             final id = templates[nextRound].id;
             if (id != null && _setLogs[id]?.isCompleted != true) {
               shouldRest = true;
@@ -1314,8 +1342,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
 
     if (_exerciseBests[exName] == null) {
       final exercise = await _repository.getExerciseByName(exName);
-      final altName =
-          exercise?.canonicalName != exName ? exercise?.canonicalName : null;
+      final altName = exercise?.canonicalName != exName
+          ? exercise?.canonicalName
+          : null;
       final exerciseUuid = exercise?.id != null
           ? await _repository.getExerciseUuidByLocalId(exercise!.id!)
           : null;
@@ -1384,18 +1413,19 @@ class LiveWorkoutViewModel extends ChangeNotifier
       }
     }
 
-    final repProgressionSupported =
-        ExerciseLogMask.forExercise(re.exercise).supportsLoadRepProgression;
-    final parsedPrecedingRange =
-        parseRepRange(precedingWorkingTemplate?.targetReps);
+    final repProgressionSupported = ExerciseLogMask.forExercise(re.exercise)
+        .supportsLoadRepProgression;
+    final parsedPrecedingRange = parseRepRange(
+      precedingWorkingTemplate?.targetReps,
+    );
     final explicitPrecedingRange =
         precedingWorkingTemplate?.targetRepMin != null &&
-                precedingWorkingTemplate?.targetRepMax != null
-            ? (
-                min: precedingWorkingTemplate!.targetRepMin!,
-                max: precedingWorkingTemplate.targetRepMax!
-              )
-            : null;
+            precedingWorkingTemplate?.targetRepMax != null
+        ? (
+            min: precedingWorkingTemplate!.targetRepMin!,
+            max: precedingWorkingTemplate.targetRepMax!,
+          )
+        : null;
     // A single prescription such as `10` is a fixed target, not a range to
     // inherit. Only a genuine range is copied; otherwise eligible exercises
     // receive the neutral 8–12 fallback below.
@@ -1505,38 +1535,45 @@ class LiveWorkoutViewModel extends ChangeNotifier
     final tempReId = _nextSyntheticId(_allRoutineExerciseIds());
     final isCardio = exercise.isCardio;
     final initialSetCount = isCardio ? 1 : 3;
-    final repProgressionSupported =
-        ExerciseLogMask.forExercise(exercise).supportsLoadRepProgression;
+    final repProgressionSupported = ExerciseLogMask.forExercise(exercise)
+        .supportsLoadRepProgression;
     final initialReps = repProgressionSupported ? '8-12' : '';
 
     final existingTemplateIds = _allTemplateIds()..addAll(_setLogs.keys);
     final templates = <SetTemplate>[];
     for (var index = 0; index < initialSetCount; index++) {
-      final templateId =
-          _nextSyntheticId(existingTemplateIds, seed: tempReId + index + 1);
+      final templateId = _nextSyntheticId(
+        existingTemplateIds,
+        seed: tempReId + index + 1,
+      );
       existingTemplateIds.add(templateId);
-      templates.add(SetTemplate(
+      templates.add(
+        SetTemplate(
           id: templateId,
           setType: 'normal',
           targetReps: initialReps,
           targetRepMin: repProgressionSupported ? 8 : null,
           targetRepMax: repProgressionSupported ? 12 : null,
-          targetWeight: null));
+          targetWeight: null,
+        ),
+      );
     }
 
     final re = RoutineExercise(
-        id: tempReId,
-        exercise: exercise,
-        setTemplates: templates,
-        pauseSeconds: 0);
+      id: tempReId,
+      exercise: exercise,
+      setTemplates: templates,
+      pauseSeconds: 0,
+    );
     final exerciseBlock = _nextWorkoutExerciseBlock();
 
     // Insert directly after the lowest exercise that has at least 1 completed set
     int lastCompletedIndex = -1;
     for (int i = _exercises.length - 1; i >= 0; i--) {
       final ex = _exercises[i];
-      final hasCompletedSet =
-          ex.setTemplates.any((t) => _setLogs[t.id]?.isCompleted == true);
+      final hasCompletedSet = ex.setTemplates.any(
+        (t) => _setLogs[t.id]?.isCompleted == true,
+      );
       if (hasCompletedSet) {
         lastCompletedIndex = i;
         break;
@@ -1723,8 +1760,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
   }
 
   int _nextWorkoutExerciseBlock() {
-    final blocks =
-        _setLogs.values.map((set) => set.exerciseBlock).whereType<int>();
+    final blocks = _setLogs.values
+        .map((set) => set.exerciseBlock)
+        .whereType<int>();
     return blocks.isEmpty ? 0 : blocks.reduce((a, b) => a > b ? a : b) + 1;
   }
 
@@ -1738,11 +1776,11 @@ class LiveWorkoutViewModel extends ChangeNotifier
     if (repository is WorkoutExerciseBlockNotesRepository) {
       await (repository as WorkoutExerciseBlockNotesRepository)
           .saveWorkoutExerciseNoteByBlock(
-        workoutLogId: workoutLogId,
-        exerciseBlock: exerciseBlock,
-        exerciseName: exerciseName,
-        notes: notes,
-      );
+            workoutLogId: workoutLogId,
+            exerciseBlock: exerciseBlock,
+            exerciseName: exerciseName,
+            notes: notes,
+          );
       return;
     }
     await _repository.saveWorkoutExerciseNote(
@@ -1753,7 +1791,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
   }
 
   Future<void> updateWorkoutExerciseNote(
-      RoutineExercise exercise, String? notes) async {
+    RoutineExercise exercise,
+    String? notes,
+  ) async {
     final block = exerciseBlockFor(exercise);
     if (block == null || _workoutLog?.id == null) return;
     final normalized = notes?.trim();
@@ -1767,10 +1807,7 @@ class LiveWorkoutViewModel extends ChangeNotifier
       workoutExerciseNotes = Map<int, String>.from(workoutExerciseNotes)
         ..remove(block);
     } else {
-      workoutExerciseNotes = {
-        ...workoutExerciseNotes,
-        block: normalized,
-      };
+      workoutExerciseNotes = {...workoutExerciseNotes, block: normalized};
     }
     notifyListeners();
   }
@@ -1780,16 +1817,18 @@ class LiveWorkoutViewModel extends ChangeNotifier
   @Deprecated('Use updateWorkoutExerciseNote with a RoutineExercise instance')
   Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
     final exercise = _exercises.cast<RoutineExercise?>().firstWhere(
-          (entry) => entry?.exercise.canonicalName == exerciseName,
-          orElse: () => null,
-        );
+      (entry) => entry?.exercise.canonicalName == exerciseName,
+      orElse: () => null,
+    );
     if (exercise != null) {
       await updateWorkoutExerciseNote(exercise, notes);
     }
   }
 
   Future<void> updateRoutineExerciseNote(
-      RoutineExercise exercise, String? notes) async {
+    RoutineExercise exercise,
+    String? notes,
+  ) async {
     if (_workoutLog?.routineId == null) return;
     final block = exerciseBlockFor(exercise);
     final targetId = block == null
@@ -1816,7 +1855,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
   }
 
   Future<void> updatePinnedExerciseNote(
-      RoutineExercise exercise, String? notes) async {
+    RoutineExercise exercise,
+    String? notes,
+  ) async {
     final uuid = exercise.exercise.uuid;
     if (uuid == null) return;
     final normalized = notes?.trim();
@@ -1824,9 +1865,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
     if (pinnedNotesRepository is WorkoutPinnedExerciseNotesRepository) {
       await (pinnedNotesRepository as WorkoutPinnedExerciseNotesRepository)
           .savePinnedExerciseNote(
-        exerciseUuid: uuid,
-        notes: normalized == null || normalized.isEmpty ? null : normalized,
-      );
+            exerciseUuid: uuid,
+            notes: normalized == null || normalized.isEmpty ? null : normalized,
+          );
     }
     _exercises = _exercises.map((entry) {
       if (entry.exercise.uuid != uuid) return entry;
@@ -1853,8 +1894,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_targetRestEndTime != null) {
-        final remaining =
-            _targetRestEndTime!.difference(DateTime.now()).inSeconds;
+        final remaining = _targetRestEndTime!
+            .difference(DateTime.now())
+            .inSeconds;
         if (remaining > 0) {
           if (_remainingRestSeconds != remaining) {
             _remainingRestSeconds = remaining;
@@ -1873,8 +1915,10 @@ class LiveWorkoutViewModel extends ChangeNotifier
               // the card already says the pause is over. Sound and haptics,
               // which are the actual point, still fire.
               if (!_liveActivityRunning) {
-                unawaited(LocalNotificationService.instance
-                    .showRestTimerDoneNotification(foreground: true));
+                unawaited(
+                  LocalNotificationService.instance
+                      .showRestTimerDoneNotification(foreground: true),
+                );
               }
             } catch (_) {}
           }
@@ -1913,8 +1957,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
     if (_remainingRestSeconds <= 0) return;
     _remainingRestSeconds += deltaSeconds;
     if (_targetRestEndTime != null) {
-      _targetRestEndTime =
-          _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
+      _targetRestEndTime = _targetRestEndTime!.add(
+        Duration(seconds: deltaSeconds),
+      );
     }
 
     _cancelRestSound();
@@ -1979,7 +2024,8 @@ class LiveWorkoutViewModel extends ChangeNotifier
       // disappearing when the user saves the workout.
       final discardSetIds = <int>[];
       for (final set in setsToPersist) {
-        final hasManualInput = set.weightKg != null ||
+        final hasManualInput =
+            set.weightKg != null ||
             set.reps != null ||
             set.distanceKm != null ||
             set.durationSeconds != null ||
@@ -2010,8 +2056,9 @@ class LiveWorkoutViewModel extends ChangeNotifier
       }
 
       final duration = _elapsedDuration;
-      final workoutType =
-          (_workoutLog?.routineId != null) ? 'routine' : 'custom';
+      final workoutType = (_workoutLog?.routineId != null)
+          ? 'routine'
+          : 'custom';
       // BOLT OPTIMIZATION: Replaced multiple .where(), .any(), .map() passes with a single loop
       int totalSetCount = 0;
       int rirSetsCount = 0;
@@ -2055,23 +2102,25 @@ class LiveWorkoutViewModel extends ChangeNotifier
       _cancelRestSound();
       await _endLiveActivity();
 
-      unawaited(TelemetryService.instance.trackWorkoutCompleted(
-        workoutType: workoutType,
-        exerciseCount: _exercises.length,
-        setCount: totalSetCount,
-        durationMinutes: duration.inMinutes,
-        hasRestTimer: pauseTimes.isNotEmpty,
-        restTimerCount: pauseTimes.length,
-        hasRir: rirSetsCount > 0,
-        rirSetsCount: rirSetsCount,
-        hasSupersets: supersetIds.isNotEmpty,
-        supersetCount: supersetIds.length,
-        hasWarmupSets: hasWarmupSets,
-        hasDropSets: hasDropSets,
-        hasFailureSets: hasFailureSets,
-        hasWorkoutNotes: notes != null && notes.trim().isNotEmpty,
-        fromTrainingPlan: isFromTrainingPlan,
-      ));
+      unawaited(
+        TelemetryService.instance.trackWorkoutCompleted(
+          workoutType: workoutType,
+          exerciseCount: _exercises.length,
+          setCount: totalSetCount,
+          durationMinutes: duration.inMinutes,
+          hasRestTimer: pauseTimes.isNotEmpty,
+          restTimerCount: pauseTimes.length,
+          hasRir: rirSetsCount > 0,
+          rirSetsCount: rirSetsCount,
+          hasSupersets: supersetIds.isNotEmpty,
+          supersetCount: supersetIds.length,
+          hasWarmupSets: hasWarmupSets,
+          hasDropSets: hasDropSets,
+          hasFailureSets: hasFailureSets,
+          hasWorkoutNotes: notes != null && notes.trim().isNotEmpty,
+          fromTrainingPlan: isFromTrainingPlan,
+        ),
+      );
 
       _workoutLog = null;
       isFromTrainingPlan = false;

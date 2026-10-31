@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/ai_meal_validation.dart';
 import '../../../../util/ai_validation_localization.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class MealReviewValidationSummary extends StatefulWidget {
@@ -38,13 +40,14 @@ class _MealReviewValidationSummaryState
     final color = validation.passed
         ? Colors.green
         : validation.errors.isNotEmpty
-            ? theme.colorScheme.error
-            : Colors.orange;
+        ? theme.colorScheme.error
+        : Colors.orange;
 
     final shouldAutoExpand = !validation.passed || validation.errors.isNotEmpty;
     final isExpanded = _validationExpanded || shouldAutoExpand;
 
-    final compactTotals = '${validation.totals.kcalRounded} kcal · '
+    final compactTotals =
+        '${validation.totals.kcalRounded} kcal · '
         'P${validation.totals.proteinRounded} · '
         'C${validation.totals.carbsRounded} · '
         'F${validation.totals.fatRounded}';
@@ -53,9 +56,7 @@ class _MealReviewValidationSummaryState
       child: InkWell(
         onTap: shouldAutoExpand
             ? null
-            : () => setState(
-                  () => _validationExpanded = !_validationExpanded,
-                ),
+            : () => setState(() => _validationExpanded = !_validationExpanded),
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         child: Padding(
           padding: const EdgeInsets.all(DesignConstants.spacingM),
@@ -116,7 +117,9 @@ class _MealReviewValidationSummaryState
                 ],
                 if (allActionableIssues.isNotEmpty) ...[
                   const SizedBox(height: DesignConstants.spacingS),
-                  ...allActionableIssues.take(4).map(
+                  ...allActionableIssues
+                      .take(4)
+                      .map(
                         (issue) => Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
@@ -150,10 +153,7 @@ class _MealReviewValidationSummaryState
     );
   }
 
-  void _showAllIssues(
-    List<AiValidationIssue> issues,
-    AppLocalizations l10n,
-  ) {
+  void _showAllIssues(List<AiValidationIssue> issues, AppLocalizations l10n) {
     showGlassBottomMenu(
       context: context,
       title: l10n.aiValidationReviewSuggestedTitle,

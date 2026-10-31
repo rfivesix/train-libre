@@ -1,4 +1,5 @@
 import 'package:train_libre/features/workout/domain/progression/progression_v15.dart';
+
 import 'dart:io';
 
 import 'package:drift/drift.dart' as drift;
@@ -30,13 +31,14 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    tempDir =
-        await Directory.systemTemp.createTemp('backup_prescription_test_');
+    tempDir = await Directory.systemTemp.createTemp(
+      'backup_prescription_test_',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (call) async => tempDir.path,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async => tempDir.path,
+        );
     AppMediaStore.instance.resetForTesting();
     sourceDb = AppDatabase(NativeDatabase.memory());
     targetDb = AppDatabase(NativeDatabase.memory());
@@ -45,9 +47,9 @@ void main() {
   tearDown(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      null,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
     AppMediaStore.instance.resetForTesting();
     await sourceDb.close();
     await targetDb.close();
@@ -56,18 +58,20 @@ void main() {
     }
   });
 
-  test(
-      'Backup round-trip preserves AppSettings autonomy levels and SetLogs prescription fields',
-      () async {
+  test('Backup round-trip preserves AppSettings autonomy levels and SetLogs prescription fields', () async {
     // 1. Setup Source Data: AppSettings
-    final profile = await sourceDb.into(sourceDb.profiles).insertReturning(
+    final profile = await sourceDb
+        .into(sourceDb.profiles)
+        .insertReturning(
           ProfilesCompanion.insert(
             id: const drift.Value('profile-123'),
             visibility: const drift.Value('private'),
           ),
         );
 
-    await sourceDb.into(sourceDb.appSettings).insert(
+    await sourceDb
+        .into(sourceDb.appSettings)
+        .insert(
           AppSettingsCompanion.insert(
             userId: profile.id,
             trainingAutonomyLevel: const drift.Value('suggest'),
@@ -85,39 +89,38 @@ void main() {
       model.Exercise(
         uuid: 'ex-bench-uuid',
         categoryName: 'Strength',
-        texts: {
-          'en': model.ExerciseText(name: 'Bench Press', description: ''),
-        },
+        texts: {'en': model.ExerciseText(name: 'Bench Press', description: '')},
         primaryMuscles: const ['chest'],
         secondaryMuscles: const [],
       ),
     );
 
     final config = ProgressionConfig(
-        policy: ProgressionPolicy.independentWorkingSets,
-        prescriptionKey: 'stable-prescription',
-        ladder: LoadLadder([8, 10], source: LoadLadderSource.user),
-        loadMode: LoadMode.assisted,
-        equipmentIdentity: 'stack-A',
-        completion: SetCompletion.equipmentInterrupted,
-        bridgeTarget: 14,
-        baselines: {
-          '0': ConfirmedBaseline(8, DateTime(2026, 9, 8))
-        },
-        events: [
-          ReviewDecision(
-              review: const ProgressionReview(
-                  kind: ReviewKind.largeStepTrial,
-                  position: '0',
-                  policy: ProgressionPolicy.independentWorkingSets,
-                  ladderSource: LoadLadderSource.user,
-                  reason: 'largeStepTrial',
-                  currentLoad: 8,
-                  targetLoad: 10,
-                  relativeJump: 0.25),
-              action: ReviewAction.rejected,
-              at: DateTime(2026, 9, 8))
-        ]);
+      policy: ProgressionPolicy.independentWorkingSets,
+      prescriptionKey: 'stable-prescription',
+      ladder: LoadLadder([8, 10], source: LoadLadderSource.user),
+      loadMode: LoadMode.assisted,
+      equipmentIdentity: 'stack-A',
+      completion: SetCompletion.equipmentInterrupted,
+      bridgeTarget: 14,
+      baselines: {'0': ConfirmedBaseline(8, DateTime(2026, 9, 8))},
+      events: [
+        ReviewDecision(
+          review: const ProgressionReview(
+            kind: ReviewKind.largeStepTrial,
+            position: '0',
+            policy: ProgressionPolicy.independentWorkingSets,
+            ladderSource: LoadLadderSource.user,
+            reason: 'largeStepTrial',
+            currentLoad: 8,
+            targetLoad: 10,
+            relativeJump: 0.25,
+          ),
+          action: ReviewAction.rejected,
+          at: DateTime(2026, 9, 8),
+        ),
+      ],
+    );
     final setLog = SetLog(
       progressionData: config.encode(),
       workoutLogId: 1,
@@ -197,14 +200,15 @@ void main() {
       productDb: productDbTarget,
     );
 
-    final imported =
-        await backupManagerTarget.importBackupPayloadForTesting(payload);
+    final imported = await backupManagerTarget.importBackupPayloadForTesting(
+      payload,
+    );
     expect(imported, isTrue);
 
     // 5. Verify AppSettings in Target DB
-    final targetSettings = await (targetDb.select(targetDb.appSettings)
-          ..where((t) => t.userId.equals('profile-123')))
-        .getSingleOrNull();
+    final targetSettings = await (targetDb.select(
+      targetDb.appSettings,
+    )..where((t) => t.userId.equals('profile-123'))).getSingleOrNull();
 
     expect(targetSettings, isNotNull);
     expect(targetSettings!.trainingAutonomyLevel, equals('suggest'));
@@ -230,8 +234,9 @@ void main() {
     expect(restoredSet.progressionReason, equals('Gradual overload +2.5kg'));
     expect(restoredSet.progressionAlgorithmVersion, equals('v1.4'));
 
-    final targetTemplates =
-        await targetDb.select(targetDb.routineSetTemplates).get();
+    final targetTemplates = await targetDb
+        .select(targetDb.routineSetTemplates)
+        .get();
     expect(targetTemplates.isNotEmpty, isTrue);
     final restoredTemplate = targetTemplates.first;
     expect(restoredTemplate.targetRepMin, equals(8));

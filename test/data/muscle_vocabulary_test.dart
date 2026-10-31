@@ -67,8 +67,9 @@ void main() {
     test('every muscle resolves to one of the tracked groups', () {
       final unmapped = <String, String>{};
       for (final node in vocabulary.byId.values) {
-        final group =
-            RecoveryDomainService.majorMuscleGroupFor(node.analyticsGroup);
+        final group = RecoveryDomainService.majorMuscleGroupFor(
+          node.analyticsGroup,
+        );
         if (group == null) unmapped[node.id] = node.analyticsGroup;
       }
       // The app's remaining job is picking which of its own buckets a catalog
@@ -127,61 +128,76 @@ void main() {
   });
 
   group('analytics read the precise annotation', () {
-    test('an exercise the legacy columns cannot describe still counts',
-        () async {
-      // Exercise 301 "Hyperextensions": erector_spinae in exercise_muscles,
-      // nothing in muscles_primary, because the fifteen legacy names have no
-      // word for it. Before this it contributed to nothing at all.
-      final legacy = await db
-          .customSelect(
-            "SELECT muscles_primary FROM exercises WHERE id = '301'",
-          )
-          .getSingleOrNull();
+    test(
+      'an exercise the legacy columns cannot describe still counts',
+      () async {
+        // Exercise 301 "Hyperextensions": erector_spinae in exercise_muscles,
+        // nothing in muscles_primary, because the fifteen legacy names have no
+        // word for it. Before this it contributed to nothing at all.
+        final legacy = await db
+            .customSelect(
+              "SELECT muscles_primary FROM exercises WHERE id = '301'",
+            )
+            .getSingleOrNull();
 
-      if (legacy == null) {
-        // Not in the fixture selection — assert the mechanism on any exercise
-        // that has ids but no legacy names.
-        final candidates = await db.customSelect('''
+        if (legacy == null) {
+          // Not in the fixture selection — assert the mechanism on any exercise
+          // that has ids but no legacy names.
+          final candidates = await db.customSelect('''
               SELECT e.id FROM exercises e
               WHERE (e.muscles_primary IS NULL OR e.muscles_primary IN ('', '[]'))
                 AND EXISTS (SELECT 1 FROM exercise_muscles em
                             WHERE em.exercise_id = e.id AND em.role = 'primary')
               LIMIT 1
             ''').get();
-        expect(candidates, isNotEmpty,
-            reason: 'the fixture no longer covers this case');
-        return;
-      }
-
-      expect(legacy.read<String?>('muscles_primary'), anyOf(isNull, '', '[]'));
-
-      final source = WorkoutLocalDataSource.forTesting(db);
-      await db.into(db.workoutLogs).insert(
-            WorkoutLogsCompanion.insert(
-              id: const Value('log-301'),
-              startTime: DateTime.now().subtract(const Duration(hours: 3)),
-              status: const Value('completed'),
-            ),
+          expect(
+            candidates,
+            isNotEmpty,
+            reason: 'the fixture no longer covers this case',
           );
-      for (var i = 0; i < 3; i++) {
-        await db.into(db.setLogs).insert(
-              SetLogsCompanion.insert(
-                workoutLogId: 'log-301',
-                exerciseId: const Value('301'),
-                weight: const Value(40),
-                reps: const Value(10),
-                isCompleted: const Value(true),
+          return;
+        }
+
+        expect(
+          legacy.read<String?>('muscles_primary'),
+          anyOf(isNull, '', '[]'),
+        );
+
+        final source = WorkoutLocalDataSource.forTesting(db);
+        await db
+            .into(db.workoutLogs)
+            .insert(
+              WorkoutLogsCompanion.insert(
+                id: const Value('log-301'),
+                startTime: DateTime.now().subtract(const Duration(hours: 3)),
+                status: const Value('completed'),
               ),
             );
-      }
+        for (var i = 0; i < 3; i++) {
+          await db
+              .into(db.setLogs)
+              .insert(
+                SetLogsCompanion.insert(
+                  workoutLogId: 'log-301',
+                  exerciseId: const Value('301'),
+                  weight: const Value(40),
+                  reps: const Value(10),
+                  isCompleted: const Value(true),
+                ),
+              );
+        }
 
-      final summary = await source.getMuscleGroupAnalytics();
-      final groups = (summary['muscles'] as List)
-          .map((m) => (m as Map)['muscleGroup'] as String)
-          .toSet();
-      expect(groups, contains('lower back'),
-          reason: 'the precise annotation should have reached the statistics');
-    });
+        final summary = await source.getMuscleGroupAnalytics();
+        final groups = (summary['muscles'] as List)
+            .map((m) => (m as Map)['muscleGroup'] as String)
+            .toSet();
+        expect(
+          groups,
+          contains('lower back'),
+          reason: 'the precise annotation should have reached the statistics',
+        );
+      },
+    );
 
     test('two heads of one muscle credit their group once', () async {
       // A naive id-to-group mapping would count pecs_clavicular and
@@ -199,14 +215,18 @@ void main() {
 
       final exerciseId = heads.first.read<String>('id');
       final source = WorkoutLocalDataSource.forTesting(db);
-      await db.into(db.workoutLogs).insert(
+      await db
+          .into(db.workoutLogs)
+          .insert(
             WorkoutLogsCompanion.insert(
               id: Value('log-$exerciseId'),
               startTime: DateTime.now().subtract(const Duration(hours: 2)),
               status: const Value('completed'),
             ),
           );
-      await db.into(db.setLogs).insert(
+      await db
+          .into(db.setLogs)
+          .insert(
             SetLogsCompanion.insert(
               workoutLogId: 'log-$exerciseId',
               exerciseId: Value(exerciseId),
@@ -219,9 +239,13 @@ void main() {
       final summary = await source.getMuscleGroupAnalytics();
       for (final muscle in summary['muscles'] as List) {
         final sets = ((muscle as Map)['equivalentSets'] as num).toDouble();
-        expect(sets, lessThanOrEqualTo(3.0),
-            reason: 'one logged set credited ${muscle['muscleGroup']} '
-                '$sets times');
+        expect(
+          sets,
+          lessThanOrEqualTo(3.0),
+          reason:
+              'one logged set credited ${muscle['muscleGroup']} '
+              '$sets times',
+        );
       }
     });
   });

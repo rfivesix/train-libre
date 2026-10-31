@@ -12,10 +12,10 @@ class WorkoutSetPosition {
 
 abstract final class WorkoutSetPositionMapper {
   static WorkoutSetLane laneFor(String setType) => switch (setType) {
-        'warmup' => WorkoutSetLane.warmup,
-        'dropset' => WorkoutSetLane.dropset,
-        _ => WorkoutSetLane.working,
-      };
+    'warmup' => WorkoutSetLane.warmup,
+    'dropset' => WorkoutSetLane.dropset,
+    _ => WorkoutSetLane.working,
+  };
 
   static bool isWorking(String setType) =>
       laneFor(setType) == WorkoutSetLane.working;

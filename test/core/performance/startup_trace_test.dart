@@ -224,27 +224,29 @@ void main() {
     expect(run.phases.single.durationMs, 266);
   });
 
-  test('a resume is only measured when the app really was in the background',
-      () {
-    trace.beginColdStart();
-    now = 800;
-    trace.noteFrameRasterized();
+  test(
+    'a resume is only measured when the app really was in the background',
+    () {
+      trace.beginColdStart();
+      now = 800;
+      trace.noteFrameRasterized();
 
-    // iOS delivers `resumed` after transient interruptions too — a control
-    // centre pull, a permission sheet. Measuring those would bury the returns
-    // the user actually waits for in noise.
-    trace.handleLifecycleState(AppLifecycleState.resumed);
-    expect(trace.hasOpenRun, isFalse);
+      // iOS delivers `resumed` after transient interruptions too — a control
+      // centre pull, a permission sheet. Measuring those would bury the returns
+      // the user actually waits for in noise.
+      trace.handleLifecycleState(AppLifecycleState.resumed);
+      expect(trace.hasOpenRun, isFalse);
 
-    trace.handleLifecycleState(AppLifecycleState.paused);
-    trace.handleLifecycleState(AppLifecycleState.resumed);
-    expect(trace.hasOpenRun, isTrue);
+      trace.handleLifecycleState(AppLifecycleState.paused);
+      trace.handleLifecycleState(AppLifecycleState.resumed);
+      expect(trace.hasOpenRun, isTrue);
 
-    now = 2000;
-    trace.noteFrameRasterized();
-    expect(trace.snapshot().runs.first.kind, StartupRunKind.resume);
-    expect(trace.snapshot().runs.first.toFirstFrameMs, 1200);
-  });
+      now = 2000;
+      trace.noteFrameRasterized();
+      expect(trace.snapshot().runs.first.kind, StartupRunKind.resume);
+      expect(trace.snapshot().runs.first.toFirstFrameMs, 1200);
+    },
+  );
 
   test('a pull of the control centre is not a resume', () {
     // iOS stops at `inactive` for an interruption that never hides the app.
@@ -305,9 +307,7 @@ void main() {
     wallMicros += 600000 * 1000;
     trace.handleLifecycleState(AppLifecycleState.resumed);
     now = 600030;
-    trace.noteFrameRasterized(
-      rasterFinishWallMicros: wallMicros + 30 * 1000,
-    );
+    trace.noteFrameRasterized(rasterFinishWallMicros: wallMicros + 30 * 1000);
 
     expect(trace.snapshot().runs.single.toFirstFrameMs, 30);
   });

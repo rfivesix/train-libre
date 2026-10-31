@@ -66,11 +66,13 @@ class AiUsageCollector extends ChangeNotifier {
     outputTokens += usage?.outputTokens ?? 0;
     totalTokens += usage?.totalTokens ?? 0;
     if (completedId != null) {
-      onRequestCompleted?.call(AiUsageRequestReport(
-        requestIndex: completedId,
-        durationMilliseconds: watch?.elapsedMilliseconds ?? 0,
-        usage: usage,
-      ));
+      onRequestCompleted?.call(
+        AiUsageRequestReport(
+          requestIndex: completedId,
+          durationMilliseconds: watch?.elapsedMilliseconds ?? 0,
+          usage: usage,
+        ),
+      );
     }
     if (pendingCount == 0) {
       _idleCompleter?.complete();
@@ -85,10 +87,11 @@ class AiUsageRequestReport {
   final int durationMilliseconds;
   final AiTokenUsage? usage;
 
-  const AiUsageRequestReport(
-      {required this.requestIndex,
-      required this.durationMilliseconds,
-      required this.usage});
+  const AiUsageRequestReport({
+    required this.requestIndex,
+    required this.durationMilliseconds,
+    required this.usage,
+  });
 }
 
 class _AiRawResponse {
@@ -179,11 +182,7 @@ class AiModelListError {
   /// The provider's own `error.message`, when it sent one.
   final String? providerMessage;
 
-  const AiModelListError(
-    this.kind, {
-    this.statusCode,
-    this.providerMessage,
-  });
+  const AiModelListError(this.kind, {this.statusCode, this.providerMessage});
 
   /// True for the two "nothing was even attempted" kinds, which describe a
   /// normal state rather than a failure.
@@ -275,11 +274,13 @@ class AiSuggestedItem {
   factory AiSuggestedItem.fromJson(Map<String, dynamic> json) {
     return AiSuggestedItem(
       name: json['name'] as String? ?? 'Unknown',
-      estimatedGrams: (json['estimatedGrams'] as num?)?.toInt() ??
+      estimatedGrams:
+          (json['estimatedGrams'] as num?)?.toInt() ??
           (json['grams'] as num?)?.toInt() ??
           (json['servedGrams'] as num?)?.toInt() ??
           100,
-      servedGrams: (json['servedGrams'] as num?)?.toInt() ??
+      servedGrams:
+          (json['servedGrams'] as num?)?.toInt() ??
           (json['estimatedGrams'] as num?)?.toInt() ??
           (json['grams'] as num?)?.toInt(),
       isFluid: json['isFluid'] == true,
@@ -290,14 +291,14 @@ class AiSuggestedItem {
       catalogSearchTerm: json['catalogSearchTerm'] as String?,
       packagedProductEvidence: json['packagedProductEvidence'] as String?,
       nutritionPer100g: (json['nutritionPer100g'] as Map?)?.map(
-        (key, value) => MapEntry(
-          key.toString(),
-          value is num ? value.toDouble() : null,
-        ),
+        (key, value) =>
+            MapEntry(key.toString(), value is num ? value.toDouble() : null),
       ),
-      repairItemIndex:
-          json['itemIndex'] is int ? json['itemIndex'] as int : null,
-      searchTerms: (json['searchTerms'] as List?)
+      repairItemIndex: json['itemIndex'] is int
+          ? json['itemIndex'] as int
+          : null,
+      searchTerms:
+          (json['searchTerms'] as List?)
               ?.whereType<String>()
               .map((term) => term.trim())
               .where((term) => term.isNotEmpty)
@@ -308,19 +309,19 @@ class AiSuggestedItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'estimatedGrams': estimatedGrams,
-        if (servedGrams != null) 'servedGrams': servedGrams,
-        if (isFluid) 'isFluid': true,
-        'confidence': confidence,
-        if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
-        if (stateHint != null) 'stateHint': stateHint,
-        if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
-        if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
-        if (packagedProductEvidence != null)
-          'packagedProductEvidence': packagedProductEvidence,
-        if (nutritionPer100g != null) 'nutritionPer100g': nutritionPer100g,
-      };
+    'name': name,
+    'estimatedGrams': estimatedGrams,
+    if (servedGrams != null) 'servedGrams': servedGrams,
+    if (isFluid) 'isFluid': true,
+    'confidence': confidence,
+    if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
+    if (stateHint != null) 'stateHint': stateHint,
+    if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
+    if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
+    if (packagedProductEvidence != null)
+      'packagedProductEvidence': packagedProductEvidence,
+    if (nutritionPer100g != null) 'nutritionPer100g': nutritionPer100g,
+  };
 }
 
 /// Base exception for AI service errors.
@@ -333,7 +334,7 @@ sealed class AiServiceException implements Exception {
 
 class AiKeyMissingException extends AiServiceException {
   const AiKeyMissingException()
-      : super('No API key configured for the selected provider.');
+    : super('No API key configured for the selected provider.');
 }
 
 class AiAuthException extends AiServiceException {
@@ -363,20 +364,21 @@ class AiRateLimitException extends AiServiceException {
 }
 
 class AiUnsupportedFeatureException extends AiServiceException {
-  const AiUnsupportedFeatureException(
-      [super.message = 'Feature not supported.']);
+  const AiUnsupportedFeatureException([
+    super.message = 'Feature not supported.',
+  ]);
 }
 
 /// Fixed telemetry vocabulary; provider error text is never transmitted.
 String aiServiceErrorCode(AiServiceException error) => switch (error) {
-      AiKeyMissingException() => 'key_missing',
-      AiAuthException() => 'auth',
-      AiNetworkException() => 'network',
-      AiTimeoutException() => 'timeout',
-      AiParseException() => 'parse',
-      AiRateLimitException() => 'rate_limit',
-      AiUnsupportedFeatureException() => 'unsupported',
-    };
+  AiKeyMissingException() => 'key_missing',
+  AiAuthException() => 'auth',
+  AiNetworkException() => 'network',
+  AiTimeoutException() => 'timeout',
+  AiParseException() => 'parse',
+  AiRateLimitException() => 'rate_limit',
+  AiUnsupportedFeatureException() => 'unsupported',
+};
 
 /// One bullet of a tidied dictation transcript.
 class VoiceTranscriptBullet {
@@ -391,9 +393,9 @@ class VoiceTranscriptBullet {
   const VoiceTranscriptBullet({required this.text, this.notes = const []});
 
   Map<String, dynamic> toJson() => {
-        'text': text,
-        if (notes.isNotEmpty) 'notes': notes,
-      };
+    'text': text,
+    if (notes.isNotEmpty) 'notes': notes,
+  };
 }
 
 /// A dictation transcript turned into readable bullets.

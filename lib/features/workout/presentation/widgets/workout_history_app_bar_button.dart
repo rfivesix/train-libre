@@ -11,10 +11,7 @@ class WorkoutHistoryAppBarButton extends StatelessWidget {
   /// Optional callback to override navigation (e.g. for testing).
   final VoidCallback? onPressed;
 
-  const WorkoutHistoryAppBarButton({
-    super.key,
-    this.onPressed,
-  });
+  const WorkoutHistoryAppBarButton({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +23,7 @@ class WorkoutHistoryAppBarButton extends StatelessWidget {
         AppLocalizations.of(context)?.workoutHistoryTitle ?? 'Workout-Verlauf';
 
     return Padding(
-      padding: const EdgeInsets.only(
-        right: DesignConstants.spacingS,
-      ),
+      padding: const EdgeInsets.only(right: DesignConstants.spacingS),
       child: Center(
         child: Tooltip(
           excludeFromSemantics: true,
@@ -47,7 +42,8 @@ class WorkoutHistoryAppBarButton extends StatelessWidget {
                   customBorder: const CircleBorder(),
                   splashColor: colorScheme.surface.withValues(alpha: 0.15),
                   highlightColor: colorScheme.surface.withValues(alpha: 0.08),
-                  onTap: onPressed ??
+                  onTap:
+                      onPressed ??
                       () {
                         Navigator.of(context).push(
                           MaterialPageRoute(

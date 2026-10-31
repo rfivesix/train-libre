@@ -57,8 +57,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       ..addColumns([dbInstance.exercises.categoryName])
       // A category that only exists on retired rows is a filter chip that
       // selects nothing.
-      ..where(dbInstance.exercises.status.isNull() |
-          dbInstance.exercises.status.equals('active'));
+      ..where(
+        dbInstance.exercises.status.isNull() |
+            dbInstance.exercises.status.equals('active'),
+      );
 
     final rows = await query.get();
     final categories = rows
@@ -82,8 +84,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
     final chain = await ExerciseLocaleChain.resolve(dbInstance, languageCode);
 
-    final rows = await dbInstance.customSelect(
-      '''
+    final rows = await dbInstance
+        .customSelect(
+          '''
       SELECT q.id AS id,
              COALESCE(t_pref.name, t_en.name, q.id) AS name
       FROM equipment q
@@ -99,18 +102,20 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       )
       ORDER BY name ASC
       ''',
-      variables: [drift.Variable.withString(chain.first)],
-      readsFrom: {
-        dbInstance.equipment,
-        dbInstance.equipmentTranslations,
-        dbInstance.exerciseEquipment,
-        dbInstance.exercises,
-      },
-    ).get();
+          variables: [drift.Variable.withString(chain.first)],
+          readsFrom: {
+            dbInstance.equipment,
+            dbInstance.equipmentTranslations,
+            dbInstance.exerciseEquipment,
+            dbInstance.exercises,
+          },
+        )
+        .get();
 
     return rows
-        .map((row) =>
-            (id: row.read<String>('id'), name: row.read<String>('name')))
+        .map(
+          (row) => (id: row.read<String>('id'), name: row.read<String>('name')),
+        )
         .toList(growable: false);
   }
 
@@ -118,16 +123,18 @@ extension ExercisesQueries on WorkoutLocalDataSource {
   /// accessory, conditioning, finisher, cooldown, prehab.
   Future<List<String>> getUsageTags() async {
     final dbInstance = await database;
-    final rows = await dbInstance.customSelect(
-      '''
+    final rows = await dbInstance
+        .customSelect(
+          '''
       SELECT DISTINCT et.tag AS tag
       FROM exercise_tags et
       JOIN exercises e ON e.id = et.exercise_id
       WHERE (e.status IS NULL OR e.status = 'active')
       ORDER BY tag ASC
       ''',
-      readsFrom: {dbInstance.exerciseTags, dbInstance.exercises},
-    ).get();
+          readsFrom: {dbInstance.exerciseTags, dbInstance.exercises},
+        )
+        .get();
     return rows.map((row) => row.read<String>('tag')).toList(growable: false);
   }
 
@@ -140,14 +147,17 @@ extension ExercisesQueries on WorkoutLocalDataSource {
   /// vocabularies, and sorting them alphabetically would put "advanced" first
   /// and read like a mistake.
   Future<
-      ({
-        List<String> difficulties,
-        List<String> mechanics,
-        List<String> lateralities,
-      })> getClassificationAxes() async {
+    ({
+      List<String> difficulties,
+      List<String> mechanics,
+      List<String> lateralities,
+    })
+  >
+  getClassificationAxes() async {
     final dbInstance = await database;
-    final rows = await dbInstance.customSelect(
-      '''
+    final rows = await dbInstance
+        .customSelect(
+          '''
       SELECT 'difficulty' AS axis, e.difficulty AS value,
              CASE e.difficulty
                WHEN 'beginner' THEN 0
@@ -175,8 +185,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       WHERE $_kActiveExerciseSql AND e.laterality IS NOT NULL
       ORDER BY axis ASC, rank ASC
       ''',
-      readsFrom: {dbInstance.exercises},
-    ).get();
+          readsFrom: {dbInstance.exercises},
+        )
+        .get();
 
     final grouped = <String, List<String>>{};
     for (final row in rows) {
@@ -194,24 +205,27 @@ extension ExercisesQueries on WorkoutLocalDataSource {
 
   Future<List<String>> getAllMuscleGroups() async {
     final dbInstance = await database;
-    final exercises = await (dbInstance.select(dbInstance.exercises)
-          ..where((tbl) => tbl.status.isNull() | tbl.status.equals('active')))
-        .get();
+    final exercises = await (dbInstance.select(
+      dbInstance.exercises,
+    )..where((tbl) => tbl.status.isNull() | tbl.status.equals('active'))).get();
     final Set<String> muscles = {};
 
     for (var ex in exercises) {
-      muscles
-          .addAll(WorkoutLocalDataSource._parseMuscleList(ex.musclesPrimary));
-      muscles
-          .addAll(WorkoutLocalDataSource._parseMuscleList(ex.musclesSecondary));
+      muscles.addAll(
+        WorkoutLocalDataSource._parseMuscleList(ex.musclesPrimary),
+      );
+      muscles.addAll(
+        WorkoutLocalDataSource._parseMuscleList(ex.musclesSecondary),
+      );
     }
     return muscles.toList()..sort();
   }
 
   List<String> _tokenizeAndClean(String input) {
-    final sanitized = input
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9äöüß ]', unicode: true), ' ');
+    final sanitized = input.toLowerCase().replaceAll(
+      RegExp(r'[^a-z0-9äöüß ]', unicode: true),
+      ' ',
+    );
     return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   }
 
@@ -269,31 +283,31 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'schulterdruecken',
       'overhead press',
       'military press',
-      'ohp'
+      'ohp',
     ],
     'schulterdruecken': [
       'schulterdrücken',
       'overhead press',
       'military press',
-      'ohp'
+      'ohp',
     ],
     'ueberkopfdrücken': [
       'überkopfdrücken',
       'overhead press',
       'schulterdrücken',
-      'ohp'
+      'ohp',
     ],
     'überkopfdrücken': [
       'ueberkopfdrücken',
       'overhead press',
       'schulterdrücken',
-      'ohp'
+      'ohp',
     ],
     'ueberkopfdruecken': [
       'überkopfdrücken',
       'overhead press',
       'schulterdrücken',
-      'ohp'
+      'ohp',
     ],
     'schulterpresse': ['schulterdrücken', 'overhead press'],
     'brustpresse': ['chest press', 'bankdrücken'],
@@ -307,7 +321,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'pull-up',
       'pull-ups',
       'chinup',
-      'chinups'
+      'chinups',
     ],
     'klimmzüge': [
       'klimmzug',
@@ -317,7 +331,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'pull-up',
       'pull-ups',
       'chinup',
-      'chinups'
+      'chinups',
     ],
     'klimmzuege': [
       'klimmzug',
@@ -327,7 +341,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'pull-up',
       'pull-ups',
       'chinup',
-      'chinups'
+      'chinups',
     ],
     'pullup': ['pullups', 'pull-up', 'pull-ups', 'klimmzug', 'klimmzüge'],
     'pullups': ['pullup', 'pull-up', 'pull-ups', 'klimmzug', 'klimmzüge'],
@@ -343,7 +357,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'pushup',
       'pushups',
       'push-up',
-      'push-ups'
+      'push-ups',
     ],
     'liegestütze': [
       'liegestütz',
@@ -351,7 +365,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'pushup',
       'pushups',
       'push-up',
-      'push-ups'
+      'push-ups',
     ],
     'liegestuetze': [
       'liegestütz',
@@ -359,7 +373,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'pushup',
       'pushups',
       'push-up',
-      'push-ups'
+      'push-ups',
     ],
 
     // Dips
@@ -395,13 +409,13 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'trizepsdruecken',
       'seildrücken',
       'triceps extension',
-      'tricep extension'
+      'tricep extension',
     ],
     'trizepsdruecken': [
       'trizepsdrücken',
       'seildrücken',
       'triceps extension',
-      'tricep extension'
+      'tricep extension',
     ],
 
     // Legs
@@ -411,13 +425,13 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       'leg extension',
       'leg extensions',
       'beinstrecker',
-      'beinstrecken'
+      'beinstrecken',
     ],
     'legextensions': [
       'leg extension',
       'leg extensions',
       'beinstrecker',
-      'beinstrecken'
+      'beinstrecken',
     ],
     'beinbeugen': ['beinbeuger', 'leg curl', 'leg curls'],
     'beinbeuger': ['beinbeugen', 'leg curl', 'leg curls'],
@@ -425,9 +439,24 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     'legcurls': ['leg curl', 'leg curls', 'beinbeuger', 'beinbeugen'],
 
     // Calves
-    'wadenheben': ['wadendrücken', 'wadendruecken', 'calf raise', 'calf raises'],
-    'wadendrücken': ['wadenheben', 'wadendruecken', 'calf raise', 'calf raises'],
-    'wadendruecken': ['wadenheben', 'wadendrücken', 'calf raise', 'calf raises'],
+    'wadenheben': [
+      'wadendrücken',
+      'wadendruecken',
+      'calf raise',
+      'calf raises',
+    ],
+    'wadendrücken': [
+      'wadenheben',
+      'wadendruecken',
+      'calf raise',
+      'calf raises',
+    ],
+    'wadendruecken': [
+      'wadenheben',
+      'wadendrücken',
+      'calf raise',
+      'calf raises',
+    ],
     'calfraise': ['calf raise', 'calf raises', 'wadenheben', 'wadendrücken'],
     'calfraises': ['calf raise', 'calf raises', 'wadenheben', 'wadendrücken'],
     'calf': ['calves', 'waden'],
@@ -628,8 +657,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     final umlautSearchLower = _transliterateToUmlauts(rawSearchLower);
     final hasUmlautVariant =
         umlautSearchLower.isNotEmpty && umlautSearchLower != rawSearchLower;
-    final ninetyDaysAgo = DateTime.now()
-        .subtract(const Duration(days: 90));
+    final ninetyDaysAgo = DateTime.now().subtract(const Duration(days: 90));
 
     final String exactMatchExpr;
     final exactMatchVars = <drift.Variable>[];
@@ -652,8 +680,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       exactBuffer.write('THEN 3 ');
 
       exactBuffer.write(
-          'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_exact '
-          'WHERE tt_exact.exercise_id = e.id AND (LOWER(tt_exact.name) = ? ');
+        'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_exact '
+        'WHERE tt_exact.exercise_id = e.id AND (LOWER(tt_exact.name) = ? ',
+      );
       exactMatchVars.add(drift.Variable.withString(rawSearchLower));
       if (hasUmlautVariant) {
         exactBuffer.write('OR LOWER(tt_exact.name) = ? ');
@@ -662,8 +691,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       exactBuffer.write(')) THEN 2 ');
 
       exactBuffer.write(
-          'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_term '
-          'WHERE tt_term.exercise_id = e.id AND (IFNULL(tt_term.search_terms, \'\') LIKE ? ');
+        'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_term '
+        'WHERE tt_term.exercise_id = e.id AND (IFNULL(tt_term.search_terms, \'\') LIKE ? ',
+      );
       exactMatchVars.add(drift.Variable.withString('%"$rawSearchLower"%'));
       if (hasUmlautVariant) {
         exactBuffer.write('OR IFNULL(tt_term.search_terms, \'\') LIKE ? ');
@@ -684,8 +714,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       prefixBuffer.write('THEN 2 ');
 
       prefixBuffer.write(
-          'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_pref '
-          'WHERE tt_pref.exercise_id = e.id AND (LOWER(tt_pref.name) LIKE ? ');
+        'WHEN EXISTS (SELECT 1 FROM exercise_translations tt_pref '
+        'WHERE tt_pref.exercise_id = e.id AND (LOWER(tt_pref.name) LIKE ? ',
+      );
       prefixMatchVars.add(drift.Variable.withString('$rawSearchLower%'));
       if (hasUmlautVariant) {
         prefixBuffer.write('OR LOWER(tt_pref.name) LIKE ? ');
@@ -743,8 +774,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     }
 
     if (selectedCategories.isNotEmpty) {
-      final placeholders =
-          List.filled(selectedCategories.length, '?').join(', ');
+      final placeholders = List.filled(
+        selectedCategories.length,
+        '?',
+      ).join(', ');
       whereClauses.add('e.category_name IN ($placeholders)');
     }
 
@@ -821,7 +854,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       vars.add(drift.Variable.withString(value));
     }
 
-    final sql = '''
+    final sql =
+        '''
       SELECT e.*,
              t_best.name AS display_name,
              t_best.description AS display_description,
@@ -868,19 +902,21 @@ $_kBestTranslationJoinSql
       LIMIT 100
     ''';
 
-    final rows = await dbInstance.customSelect(
-      sql,
-      variables: vars,
-      readsFrom: {
-        dbInstance.exercises,
-        dbInstance.exerciseTranslations,
-        dbInstance.exerciseEquipment,
-        dbInstance.exerciseTags,
-        dbInstance.setLogs,
-        dbInstance.workoutLogs,
-        dbInstance.pinnedExerciseNotes,
-      },
-    ).get();
+    final rows = await dbInstance
+        .customSelect(
+          sql,
+          variables: vars,
+          readsFrom: {
+            dbInstance.exercises,
+            dbInstance.exerciseTranslations,
+            dbInstance.exerciseEquipment,
+            dbInstance.exerciseTags,
+            dbInstance.setLogs,
+            dbInstance.workoutLogs,
+            dbInstance.pinnedExerciseNotes,
+          },
+        )
+        .get();
 
     return rows.map((row) => _mapSearchRowToExercise(dbInstance, row)).toList();
   }
@@ -929,9 +965,12 @@ $_kBestTranslationJoinSql
     if (candidates.isEmpty) return null;
 
     final candidateList = candidates.toList(growable: false);
-    final placeholders =
-        List.filled(candidateList.length, 'LOWER(?)').join(', ');
-    final sql = '''
+    final placeholders = List.filled(
+      candidateList.length,
+      'LOWER(?)',
+    ).join(', ');
+    final sql =
+        '''
       SELECT e.*
       FROM exercises e
       WHERE EXISTS (
@@ -944,11 +983,15 @@ $_kBestTranslationJoinSql
       LIMIT 8
     ''';
 
-    final rows = await dbInstance.customSelect(
-      sql,
-      variables: candidates.map((n) => drift.Variable.withString(n)).toList(),
-      readsFrom: {dbInstance.exercises, dbInstance.exerciseTranslations},
-    ).get();
+    final rows = await dbInstance
+        .customSelect(
+          sql,
+          variables: candidates
+              .map((n) => drift.Variable.withString(n))
+              .toList(),
+          readsFrom: {dbInstance.exercises, dbInstance.exerciseTranslations},
+        )
+        .get();
     if (rows.isEmpty) return null;
 
     final first = dbInstance.exercises.map(rows.first.data);
@@ -956,12 +999,15 @@ $_kBestTranslationJoinSql
     // A user's own exercise wins outright; the ORDER BY has already put one
     // first if it exists.
     if (first.source != 'user') {
-      final overrideRow = await (dbInstance.select(dbInstance.exercises)
-            ..where((tbl) =>
-                tbl.replacesExerciseId.equals(first.id) &
-                tbl.source.equals('user'))
-            ..limit(1))
-          .getSingleOrNull();
+      final overrideRow =
+          await (dbInstance.select(dbInstance.exercises)
+                ..where(
+                  (tbl) =>
+                      tbl.replacesExerciseId.equals(first.id) &
+                      tbl.source.equals('user'),
+                )
+                ..limit(1))
+              .getSingleOrNull();
       if (overrideRow != null) {
         return _mapExerciseRowToModel(dbInstance, overrideRow);
       }
@@ -974,21 +1020,25 @@ $_kBestTranslationJoinSql
     final dbInstance = await database;
 
     // Resolve overriding custom exercises first
-    final overrideRow = await (dbInstance.select(dbInstance.exercises)
-          ..where((tbl) =>
-              tbl.replacesExerciseId.equals(exerciseUuid) &
-              tbl.source.equals('user'))
-          ..limit(1))
-        .getSingleOrNull();
+    final overrideRow =
+        await (dbInstance.select(dbInstance.exercises)
+              ..where(
+                (tbl) =>
+                    tbl.replacesExerciseId.equals(exerciseUuid) &
+                    tbl.source.equals('user'),
+              )
+              ..limit(1))
+            .getSingleOrNull();
 
     if (overrideRow != null) {
       return _mapExerciseRowToModel(dbInstance, overrideRow);
     }
 
-    final row = await (dbInstance.select(dbInstance.exercises)
-          ..where((tbl) => tbl.id.equals(exerciseUuid))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (dbInstance.select(dbInstance.exercises)
+              ..where((tbl) => tbl.id.equals(exerciseUuid))
+              ..limit(1))
+            .getSingleOrNull();
 
     return row != null ? _mapExerciseRowToModel(dbInstance, row) : null;
   }
@@ -1000,14 +1050,14 @@ $_kBestTranslationJoinSql
     final dbInstance = await database;
     final normalized = notes?.trim();
     await dbInstance.transaction(() async {
-      final existing = await (dbInstance.select(dbInstance.pinnedExerciseNotes)
-            ..where((row) => row.exerciseId.equals(exerciseUuid)))
-          .getSingleOrNull();
+      final existing = await (dbInstance.select(
+        dbInstance.pinnedExerciseNotes,
+      )..where((row) => row.exerciseId.equals(exerciseUuid))).getSingleOrNull();
       if (normalized == null || normalized.isEmpty) {
         if (existing != null) {
-          await (dbInstance.delete(dbInstance.pinnedExerciseNotes)
-                ..where((row) => row.localId.equals(existing.localId)))
-              .go();
+          await (dbInstance.delete(
+            dbInstance.pinnedExerciseNotes,
+          )..where((row) => row.localId.equals(existing.localId))).go();
         }
         return;
       }
@@ -1015,14 +1065,18 @@ $_kBestTranslationJoinSql
         throw ArgumentError.value(notes, 'notes', 'Note exceeds 10000 chars');
       }
       if (existing != null) {
-        await (dbInstance.update(dbInstance.pinnedExerciseNotes)
-              ..where((row) => row.localId.equals(existing.localId)))
-            .write(db.PinnedExerciseNotesCompanion(
-          notes: drift.Value(normalized),
-          updatedAt: drift.Value(DateTime.now()),
-        ));
+        await (dbInstance.update(
+          dbInstance.pinnedExerciseNotes,
+        )..where((row) => row.localId.equals(existing.localId))).write(
+          db.PinnedExerciseNotesCompanion(
+            notes: drift.Value(normalized),
+            updatedAt: drift.Value(DateTime.now()),
+          ),
+        );
       } else {
-        await dbInstance.into(dbInstance.pinnedExerciseNotes).insert(
+        await dbInstance
+            .into(dbInstance.pinnedExerciseNotes)
+            .insert(
               db.PinnedExerciseNotesCompanion(
                 exerciseId: drift.Value(exerciseUuid),
                 notes: drift.Value(normalized),
@@ -1037,10 +1091,11 @@ $_kBestTranslationJoinSql
     String? exerciseUuid;
 
     if (setLog.id != null) {
-      final setRow = await (dbInstance.select(dbInstance.setLogs)
-            ..where((tbl) => tbl.localId.equals(setLog.id!))
-            ..limit(1))
-          .getSingleOrNull();
+      final setRow =
+          await (dbInstance.select(dbInstance.setLogs)
+                ..where((tbl) => tbl.localId.equals(setLog.id!))
+                ..limit(1))
+              .getSingleOrNull();
       exerciseUuid = setRow?.exerciseId;
     }
 
@@ -1084,11 +1139,7 @@ $_kBestTranslationJoinSql
 
       // Insert translations
       await _upsertTranslations(dbInstance, row.id, exercise);
-      await _writePinnedExerciseNote(
-        dbInstance,
-        row.id,
-        exercise.pinnedNote,
-      );
+      await _writePinnedExerciseNote(dbInstance, row.id, exercise.pinnedNote);
 
       return _mapExerciseRowToModel(dbInstance, row);
     });
@@ -1098,7 +1149,9 @@ $_kBestTranslationJoinSql
     final dbInstance = await database;
     await dbInstance.transaction(() async {
       for (final ex in exercises) {
-        final row = await dbInstance.into(dbInstance.exercises).insertReturning(
+        final row = await dbInstance
+            .into(dbInstance.exercises)
+            .insertReturning(
               db.ExercisesCompanion(
                 categoryName: drift.Value(ex.categoryName),
                 musclesPrimary: drift.Value(jsonEncode(ex.primaryMuscles)),
@@ -1127,10 +1180,11 @@ $_kBestTranslationJoinSql
   Future<void> updateCustomExercise(Exercise exercise) async {
     final dbInstance = await database;
     await dbInstance.transaction(() async {
-      final existing = await (dbInstance.select(dbInstance.exercises)
-            ..where((tbl) => tbl.localId.equals(exercise.id!))
-            ..limit(1))
-          .getSingleOrNull();
+      final existing =
+          await (dbInstance.select(dbInstance.exercises)
+                ..where((tbl) => tbl.localId.equals(exercise.id!))
+                ..limit(1))
+              .getSingleOrNull();
 
       if (existing == null) {
         throw Exception("Exercise not found");
@@ -1138,12 +1192,13 @@ $_kBestTranslationJoinSql
 
       if (existing.source != 'user') {
         throw Exception(
-            "Cannot update non-user exercise directly. Create a custom copy instead.");
+          "Cannot update non-user exercise directly. Create a custom copy instead.",
+        );
       }
 
-      await (dbInstance.update(dbInstance.exercises)
-            ..where((tbl) => tbl.localId.equals(exercise.id!)))
-          .write(
+      await (dbInstance.update(
+        dbInstance.exercises,
+      )..where((tbl) => tbl.localId.equals(exercise.id!))).write(
         db.ExercisesCompanion(
           categoryName: drift.Value(exercise.categoryName),
           musclesPrimary: drift.Value(jsonEncode(exercise.primaryMuscles)),
@@ -1169,8 +1224,7 @@ $_kBestTranslationJoinSql
     final dbInstance = await database;
     final rows = await (dbInstance.select(
       dbInstance.exercises,
-    )..where((tbl) => tbl.isCustom.equals(true)))
-        .get();
+    )..where((tbl) => tbl.isCustom.equals(true))).get();
 
     final result = <Exercise>[];
     for (final row in rows) {
@@ -1197,17 +1251,19 @@ $_kBestTranslationJoinSql
 
     return await dbInstance.transaction(() async {
       // 1. Resolve UUID
-      final exerciseRow = await (dbInstance.select(dbInstance.exercises)
-            ..where((tbl) => tbl.localId.equals(localId))
-            ..limit(1))
-          .getSingleOrNull();
+      final exerciseRow =
+          await (dbInstance.select(dbInstance.exercises)
+                ..where((tbl) => tbl.localId.equals(localId))
+                ..limit(1))
+              .getSingleOrNull();
 
       if (exerciseRow == null) {
         throw Exception('Exercise not found (localId=$localId)');
       }
       if (exerciseRow.source != 'user') {
         throw Exception(
-            'Cannot delete non-user exercise (source=${exerciseRow.source})');
+          'Cannot delete non-user exercise (source=${exerciseRow.source})',
+        );
       }
 
       final exerciseUuid = exerciseRow.id;
@@ -1221,18 +1277,18 @@ $_kBestTranslationJoinSql
       final hadLogs = affectedRows > 0;
 
       // 3. Remove routine_exercises referencing this exercise
-      await (dbInstance.delete(dbInstance.routineExercises)
-            ..where((tbl) => tbl.exerciseId.equals(exerciseUuid)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.routineExercises,
+      )..where((tbl) => tbl.exerciseId.equals(exerciseUuid))).go();
 
-      await (dbInstance.delete(dbInstance.pinnedExerciseNotes)
-            ..where((tbl) => tbl.exerciseId.equals(exerciseUuid)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.pinnedExerciseNotes,
+      )..where((tbl) => tbl.exerciseId.equals(exerciseUuid))).go();
 
       // 4. Delete the exercise itself (translations cascade via FK)
-      await (dbInstance.delete(dbInstance.exercises)
-            ..where((tbl) => tbl.localId.equals(localId)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.exercises,
+      )..where((tbl) => tbl.localId.equals(localId))).go();
 
       return hadLogs;
     });
@@ -1257,7 +1313,7 @@ $_kBestTranslationJoinSql
         if (entry.value.name.trim().isNotEmpty)
           entry.key: (
             entry.value.name,
-            entry.value.description.isNotEmpty ? entry.value.description : null
+            entry.value.description.isNotEmpty ? entry.value.description : null,
           ),
     };
 
@@ -1272,13 +1328,15 @@ $_kBestTranslationJoinSql
         description: drift.Value(desc),
       );
 
-      await dbInstance.into(dbInstance.exerciseTranslations).insert(
+      await dbInstance
+          .into(dbInstance.exerciseTranslations)
+          .insert(
             companion,
             onConflict: drift.DoUpdate(
               (old) => companion,
               target: [
                 dbInstance.exerciseTranslations.exerciseId,
-                dbInstance.exerciseTranslations.languageCode
+                dbInstance.exerciseTranslations.languageCode,
               ],
             ),
           );
@@ -1295,7 +1353,9 @@ $_kBestTranslationJoinSql
     if (normalized.length > 10000) {
       throw ArgumentError.value(notes, 'notes', 'Note exceeds 10000 chars');
     }
-    await dbInstance.into(dbInstance.pinnedExerciseNotes).insert(
+    await dbInstance
+        .into(dbInstance.pinnedExerciseNotes)
+        .insert(
           db.PinnedExerciseNotesCompanion(
             exerciseId: drift.Value(exerciseUuid),
             notes: drift.Value(normalized),
@@ -1310,7 +1370,9 @@ $_kBestTranslationJoinSql
   /// A list shows one name per row; loading all 22 translations for 100 rows
   /// to render one of them would be 2200 rows of waste.
   Exercise _mapSearchRowToExercise(
-      db.AppDatabase dbInstance, drift.QueryRow row) {
+    db.AppDatabase dbInstance,
+    drift.QueryRow row,
+  ) {
     final rawExercise = dbInstance.exercises.map(row.data);
     final displayName = row.readNullable<String>('display_name') ?? '';
     final displayDescription =
@@ -1343,10 +1405,12 @@ $_kBestTranslationJoinSql
             },
       categoryName: rawExercise.categoryName ?? 'Other',
       imagePath: rawExercise.imagePath,
-      primaryMuscles:
-          WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesPrimary),
-      secondaryMuscles:
-          WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesSecondary),
+      primaryMuscles: WorkoutLocalDataSource._parseMuscleList(
+        rawExercise.musclesPrimary,
+      ),
+      secondaryMuscles: WorkoutLocalDataSource._parseMuscleList(
+        rawExercise.musclesSecondary,
+      ),
       trackingType: rawExercise.trackingType,
       loadMode: rawExercise.loadMode,
       primaryEquipment: rawExercise.primaryEquipment,
@@ -1367,21 +1431,19 @@ $_kBestTranslationJoinSql
     db.AppDatabase dbInstance,
     db.Exercise row,
   ) async {
-    final translations =
-        await (dbInstance.select(dbInstance.exerciseTranslations)
-              ..where((t) => t.exerciseId.equals(row.id)))
-            .get();
+    final translations = await (dbInstance.select(
+      dbInstance.exerciseTranslations,
+    )..where((t) => t.exerciseId.equals(row.id))).get();
 
     // Precise muscle ids, when the catalog has them. Loaded only on this
     // path — a single exercise — because it is the only place the extra
     // precision is rendered.
-    final muscleRows = await (dbInstance.select(dbInstance.exerciseMuscles)
-          ..where((m) => m.exerciseId.equals(row.id)))
-        .get();
-    final pinnedNoteRow =
-        await (dbInstance.select(dbInstance.pinnedExerciseNotes)
-              ..where((note) => note.exerciseId.equals(row.id)))
-            .getSingleOrNull();
+    final muscleRows = await (dbInstance.select(
+      dbInstance.exerciseMuscles,
+    )..where((m) => m.exerciseId.equals(row.id))).get();
+    final pinnedNoteRow = await (dbInstance.select(
+      dbInstance.pinnedExerciseNotes,
+    )..where((note) => note.exerciseId.equals(row.id))).getSingleOrNull();
 
     // Every language this exercise has. This path returns a single exercise —
     // a detail screen, a resolved set log — where the cost is one query and
@@ -1403,10 +1465,12 @@ $_kBestTranslationJoinSql
       texts: texts,
       categoryName: row.categoryName ?? 'Other',
       imagePath: row.imagePath,
-      primaryMuscles:
-          WorkoutLocalDataSource._parseMuscleList(row.musclesPrimary),
-      secondaryMuscles:
-          WorkoutLocalDataSource._parseMuscleList(row.musclesSecondary),
+      primaryMuscles: WorkoutLocalDataSource._parseMuscleList(
+        row.musclesPrimary,
+      ),
+      secondaryMuscles: WorkoutLocalDataSource._parseMuscleList(
+        row.musclesSecondary,
+      ),
       primaryMuscleIds: [
         for (final m in muscleRows)
           if (m.role == 'primary') m.muscleId,

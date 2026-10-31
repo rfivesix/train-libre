@@ -2,8 +2,10 @@
 
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../../../../services/haptic_feedback_service.dart';
 
 /// State interface for programmatic impulse / ripple triggers on [AiNeuralCloudOrbWidget].
@@ -220,12 +222,13 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
     );
 
     final initialCharge = (widget.tint ?? 0) * 5.0;
-    _chargeAnimation = Tween<double>(
-      begin: initialCharge,
-      end: initialCharge,
-    ).animate(
-      CurvedAnimation(parent: _chargeController, curve: Curves.easeOutCubic),
-    );
+    _chargeAnimation = Tween<double>(begin: initialCharge, end: initialCharge)
+        .animate(
+          CurvedAnimation(
+            parent: _chargeController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
   }
 
   @override
@@ -278,10 +281,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
     // however long the sheet sat in the background.
     final dt = _lastTick == Duration.zero
         ? 1 / 60
-        : math.min(
-            (elapsed - _lastTick).inMicroseconds / 1000000.0,
-            1 / 20,
-          );
+        : math.min((elapsed - _lastTick).inMicroseconds / 1000000.0, 1 / 20);
     _lastTick = elapsed;
     if (dt <= 0) return;
 
@@ -296,7 +296,8 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
     // or external forceHighFrameRate is set, run at full display rate (60/120Hz).
     // During idle rest, throttle repaint triggers to ~30 FPS (32ms), reducing
     // CPU/GPU redraw wakeups by 50-75% without perceptible loss of smoothness.
-    final isHighFrameRate = widget.forceHighFrameRate ||
+    final isHighFrameRate =
+        widget.forceHighFrameRate ||
         _energy > 0.01 ||
         _rippleController.isAnimating ||
         _chargeController.isAnimating ||
@@ -342,12 +343,13 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
   }
 
   void _animateChargeTo(double target) {
-    _chargeAnimation = Tween<double>(
-      begin: _chargeAnimation.value,
-      end: target,
-    ).animate(
-      CurvedAnimation(parent: _chargeController, curve: Curves.easeOutCubic),
-    );
+    _chargeAnimation = Tween<double>(begin: _chargeAnimation.value, end: target)
+        .animate(
+          CurvedAnimation(
+            parent: _chargeController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _chargeController.forward(from: 0.0);
   }
 
@@ -402,9 +404,10 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
                         .toDouble(),
                 time: _flow.value,
                 ripple: _rippleAnimation.value,
-                charge: (_chargeAnimation.value +
-                        widget.tintEnergyGain * _energy * 5.0)
-                    .clamp(0.0, 5.0),
+                charge:
+                    (_chargeAnimation.value +
+                            widget.tintEnergyGain * _energy * 5.0)
+                        .clamp(0.0, 5.0),
                 morph: (widget.instantaneousMorph ?? _morphAnimation.value)
                     .clamp(0.0, 1.0),
                 energy: _energy,
@@ -484,8 +487,9 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     canvas.translate(center.dx, center.dy);
 
     // Smooth sinusoidal ripple envelope (0 -> 1 -> 0)
-    final rippleIntensity =
-        (ripple > 0 && ripple < 1) ? math.sin(ripple * math.pi) : 0.0;
+    final rippleIntensity = (ripple > 0 && ripple < 1)
+        ? math.sin(ripple * math.pi)
+        : 0.0;
 
     // Every undulation is scaled by how far into the cloud we are: at rest the
     // circle must be genuinely still, or it reads as a loading spinner rather
@@ -497,7 +501,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         sizeFactor > 0.01 &&
         morph > 0.01 &&
         frameMorph < 0.999) {
-      final glowBreathe = (0.92 +
+      final glowBreathe =
+          (0.92 +
               0.08 * math.sin(time * 1.6) * motion +
               0.12 * rippleIntensity +
               0.18 * energy) *
@@ -514,18 +519,23 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         )!;
 
         final glowPaint = Paint()
-          ..shader = RadialGradient(
-            colors: [
-              glowPrimaryTint.withValues(
-                  alpha: (0.16 + 0.10 * rippleIntensity + 0.14 * energy) *
-                      glowBreathe),
-              accentColor.withValues(
-                  alpha: (0.04 + 0.08 * (charge / 5.0)) * glowBreathe),
-              Colors.transparent,
-            ],
-            stops: const [0.0, 0.52, 1.0],
-          ).createShader(
-              Rect.fromCircle(center: Offset.zero, radius: glowRadius))
+          ..shader =
+              RadialGradient(
+                colors: [
+                  glowPrimaryTint.withValues(
+                    alpha:
+                        (0.16 + 0.10 * rippleIntensity + 0.14 * energy) *
+                        glowBreathe,
+                  ),
+                  accentColor.withValues(
+                    alpha: (0.04 + 0.08 * (charge / 5.0)) * glowBreathe,
+                  ),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.52, 1.0],
+              ).createShader(
+                Rect.fromCircle(center: Offset.zero, radius: glowRadius),
+              )
           ..blendMode = BlendMode.screen;
 
         canvas.drawCircle(Offset.zero, glowRadius, glowPaint);
@@ -538,18 +548,23 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         )!;
 
         final glowPaint = Paint()
-          ..shader = RadialGradient(
-            colors: [
-              glowPrimaryTint.withValues(
-                  alpha: (0.12 + 0.08 * rippleIntensity + 0.10 * energy) *
-                      glowBreathe),
-              accentColor.withValues(
-                  alpha: (0.02 + 0.06 * (charge / 5.0)) * glowBreathe),
-              Colors.transparent,
-            ],
-            stops: const [0.0, 0.55, 1.0],
-          ).createShader(
-              Rect.fromCircle(center: Offset.zero, radius: glowRadius))
+          ..shader =
+              RadialGradient(
+                colors: [
+                  glowPrimaryTint.withValues(
+                    alpha:
+                        (0.12 + 0.08 * rippleIntensity + 0.10 * energy) *
+                        glowBreathe,
+                  ),
+                  accentColor.withValues(
+                    alpha: (0.02 + 0.06 * (charge / 5.0)) * glowBreathe,
+                  ),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.55, 1.0],
+              ).createShader(
+                Rect.fromCircle(center: Offset.zero, radius: glowRadius),
+              )
           ..blendMode = BlendMode.srcOver;
 
         canvas.drawCircle(Offset.zero, glowRadius, glowPaint);
@@ -581,18 +596,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
       cloudPaint.shader = LinearGradient(
         begin: Alignment.bottomLeft,
         end: Alignment.topRight,
-        colors: [
-          accentColor,
-          accentColor,
-          baseColor,
-          baseColor,
-        ],
-        stops: [
-          0.0,
-          stop1,
-          stop2,
-          1.0,
-        ],
+        colors: [accentColor, accentColor, baseColor, baseColor],
+        stops: [0.0, stop1, stop2, 1.0],
       ).createShader(Rect.fromPoints(gradientStart, gradientEnd));
     }
 
@@ -674,9 +679,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
       canvas.scale(1.004);
       drawCloud(
         Paint()
-          ..color = const Color(0xFF888888).withValues(
-            alpha: isDark ? 0.82 : 0.52,
-          )
+          ..color = const Color(0xFF888888)
+              .withValues(alpha: isDark ? 0.82 : 0.52)
           ..isAntiAlias = true
           ..style = PaintingStyle.fill,
       );
@@ -700,7 +704,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         ..isAntiAlias = true
         ..style = PaintingStyle.fill;
 
-      final satBreathe = 1.0 +
+      final satBreathe =
+          1.0 +
           (0.12 * math.sin(time * 2.4) + 0.05 * math.cos(time * 4.2)) * motion +
           0.12 * rippleIntensity +
           0.22 * energy;
@@ -796,7 +801,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     const verticalIntervals = 7;
     for (var index = 1; index < horizontalIntervals; index++) {
       final along = index / horizontalIntervals;
-      final sizeVariation = 0.98 +
+      final sizeVariation =
+          0.98 +
           0.12 * math.sin(index * 2.1 + 0.5) +
           0.06 * math.cos(index * 1.3);
       for (final y in [frameBounds.top, frameBounds.bottom]) {
@@ -826,7 +832,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
 
     for (var index = 1; index < verticalIntervals; index++) {
       final along = index / verticalIntervals;
-      final sizeVariation = 1.0 +
+      final sizeVariation =
+          1.0 +
           0.11 * math.sin(index * 1.71 + 0.3) +
           0.06 * math.cos(index * 2.23);
       for (final x in [frameBounds.left, frameBounds.right]) {
@@ -876,7 +883,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     final radial = targetCenter - frameCenter;
     final radialLength = radial.distance;
     final normal = radialLength > 0 ? radial / radialLength : Offset.zero;
-    final orbit = normal *
+    final orbit =
+        normal *
         (3.2 * math.sin(localTime * 1.7) + 1.4 * math.cos(localTime * 2.6)) *
         spread;
     final center = Offset.lerp(sourceCenter, targetCenter, spread)! + orbit;
@@ -886,7 +894,8 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         rippleIntensity * 0.12 * math.sin(ripple * math.pi + phase);
     final energySwell = 1.0 + 0.85 * energy;
     final lobeBase = 10.0 + (37.0 - 10.0) * morph;
-    final radius = lobeBase *
+    final radius =
+        lobeBase *
         scale *
         3.0 *
         sizeVariation *
@@ -920,9 +929,9 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     final localTime = time + phaseOffset;
     final coreRespiration =
         (0.06 * math.sin(localTime * 2.0) + 0.03 * math.cos(localTime * 3.6)) *
-                motion +
-            0.10 * rippleIntensity +
-            0.09 * energy;
+            motion +
+        0.10 * rippleIntensity +
+        0.09 * energy;
     final coreBase = 62.0 + (49.0 - 62.0) * morph;
     final coreRadius = coreBase * scale * sizeFactor * (1.0 + coreRespiration);
     canvas.drawCircle(Offset.zero, coreRadius, paint);
@@ -932,10 +941,12 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     final swell = 1.0 + 0.85 * energy;
     for (var index = 0; index < lobeCount; index++) {
       final baseAngle = index * (2 * math.pi / lobeCount);
-      final angle = baseAngle +
+      final angle =
+          baseAngle +
           0.12 * math.sin(localTime * 1.7 + index * 1.5) * motion +
           0.05 * math.cos(localTime * 3.3 + index * 2.3) * motion;
-      final distance = (35.0 * morph +
+      final distance =
+          (35.0 * morph +
               13.0 * energy * morph +
               6.0 * math.sin(localTime * 2.3 + index * 1.9) * motion +
               3.0 * math.cos(localTime * 4.1 + index * 1.1) * motion) *
@@ -952,10 +963,12 @@ class _OrganicLivingCloudPainter extends CustomPainter {
           0.10 * math.cos(localTime * 2.5 + index * 1.7) * motion;
       final secondaryBreathe =
           0.05 * math.sin(localTime * 5.0 + index * 2.8) * motion;
-      final rippleSurge = rippleIntensity *
+      final rippleSurge =
+          rippleIntensity *
           0.14 *
           math.sin(ripple * math.pi + index * (math.pi / 3));
-      final lobeScale = positionalScale *
+      final lobeScale =
+          positionalScale *
           (1.0 + primaryBreathe + secondaryBreathe + rippleSurge);
       final lobeBase = 10.0 + (37.0 - 10.0) * morph;
       final lobeRadius = lobeBase * scale * sizeFactor * lobeScale * swell;
@@ -984,14 +997,15 @@ class _OrganicLivingCloudPainter extends CustomPainter {
       -offset.dx * sinRotation + offset.dy * cosRotation,
     );
 
-    final rippleIntensity =
-        (ripple > 0 && ripple < 1) ? math.sin(ripple * math.pi) : 0.0;
+    final rippleIntensity = (ripple > 0 && ripple < 1)
+        ? math.sin(ripple * math.pi)
+        : 0.0;
     final motion = morph;
     final scale = cloudSize / 280.0;
     final coreRespiration =
         (0.06 * math.sin(time * 2.0) + 0.03 * math.cos(time * 3.6)) * motion +
-            0.10 * rippleIntensity +
-            0.09 * energy;
+        0.10 * rippleIntensity +
+        0.09 * energy;
     final coreBase = 62.0 + (49.0 - 62.0) * morph;
     final coreRadius = coreBase * scale * sizeFactor * (1.0 + coreRespiration);
     if (localPosition.distance <= coreRadius + cloudHitTestPadding) return true;
@@ -1001,10 +1015,12 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     final swell = 1.0 + 0.85 * energy;
     for (var index = 0; index < lobeCount; index++) {
       final baseAngle = index * (2 * math.pi / lobeCount);
-      final angle = baseAngle +
+      final angle =
+          baseAngle +
           0.12 * math.sin(time * 1.7 + index * 1.5) * motion +
           0.05 * math.cos(time * 3.3 + index * 2.3) * motion;
-      final distance = (35.0 * morph +
+      final distance =
+          (35.0 * morph +
               13.0 * energy * morph +
               6.0 * math.sin(time * 2.3 + index * 1.9) * motion +
               3.0 * math.cos(time * 4.1 + index * 1.1) * motion) *
@@ -1020,10 +1036,12 @@ class _OrganicLivingCloudPainter extends CustomPainter {
       final primaryBreathe = 0.10 * math.cos(time * 2.5 + index * 1.7) * motion;
       final secondaryBreathe =
           0.05 * math.sin(time * 5.0 + index * 2.8) * motion;
-      final rippleSurge = rippleIntensity *
+      final rippleSurge =
+          rippleIntensity *
           0.14 *
           math.sin(ripple * math.pi + index * (math.pi / 3));
-      final lobeScale = positionalScale *
+      final lobeScale =
+          positionalScale *
           (1.0 + primaryBreathe + secondaryBreathe + rippleSurge);
       final lobeBase = 10.0 + (37.0 - 10.0) * morph;
       final lobeRadius = lobeBase * scale * sizeFactor * lobeScale * swell;

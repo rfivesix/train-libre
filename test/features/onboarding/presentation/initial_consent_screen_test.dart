@@ -23,31 +23,28 @@ void main() {
   });
 
   testWidgets(
-      'InitialConsentScreen button remains disabled until GDPR consent checkbox is checked',
-      (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _wrap(
-        const InitialConsentScreen(nextScreen: Text('Next Screen')),
-      ),
-    );
-    await tester.pumpAndSettle();
+    'InitialConsentScreen button remains disabled until GDPR consent checkbox is checked',
+    (tester) async {
+      await tester.pumpWidget(
+        _wrap(const InitialConsentScreen(nextScreen: Text('Next Screen'))),
+      );
+      await tester.pumpAndSettle();
 
-    final nextButtonFinder = find.byType(AppButton);
-    expect(nextButtonFinder, findsAtLeastNWidgets(1));
+      final nextButtonFinder = find.byType(AppButton);
+      expect(nextButtonFinder, findsAtLeastNWidgets(1));
 
-    // Check if button is disabled initially
-    var button = tester.widgetList<AppButton>(nextButtonFinder).first;
-    expect(button.onPressed, isNull);
+      // Check if button is disabled initially
+      var button = tester.widgetList<AppButton>(nextButtonFinder).first;
+      expect(button.onPressed, isNull);
 
-    // Find and tap the GDPR health data consent tile (circle icon)
-    final consentIcon = find.byIcon(LucideIcons.circle).first;
-    await tester.tap(consentIcon);
-    await tester.pumpAndSettle();
+      // Find and tap the GDPR health data consent tile (circle icon)
+      final consentIcon = find.byIcon(LucideIcons.circle).first;
+      await tester.tap(consentIcon);
+      await tester.pumpAndSettle();
 
-    // Now enabled
-    button = tester.widgetList<AppButton>(nextButtonFinder).first;
-    expect(button.onPressed, isNotNull);
-  });
+      // Now enabled
+      button = tester.widgetList<AppButton>(nextButtonFinder).first;
+      expect(button.onPressed, isNotNull);
+    },
+  );
 }

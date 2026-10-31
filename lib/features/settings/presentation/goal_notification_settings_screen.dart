@@ -26,7 +26,8 @@ class GoalNotificationSettingsScreen extends StatefulWidget {
 }
 
 class _GoalNotificationSettingsScreenState
-    extends State<GoalNotificationSettingsScreen> with WidgetsBindingObserver {
+    extends State<GoalNotificationSettingsScreen>
+    with WidgetsBindingObserver {
   bool _restNotificationsEnabled = true;
   bool _ignoreSilentMode = true;
   bool _weeklyReviewEnabled = true;
@@ -61,25 +62,27 @@ class _GoalNotificationSettingsScreenState
   }
 
   Future<void> _refreshExactAlarmAccess() async {
-    final allowed =
-        await LocalNotificationService.instance.canScheduleExactRestAlarms();
+    final allowed = await LocalNotificationService.instance
+        .canScheduleExactRestAlarms();
     if (mounted) setState(() => _exactAlarmsAllowed = allowed);
   }
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final activePlan = await ManualTrainingPlanRepository().activePlan();
-    final notificationsEnabled =
-        await LocalNotificationService.instance.areNotificationsEnabled();
-    final exactAlarmsAllowed =
-        await LocalNotificationService.instance.canScheduleExactRestAlarms();
+    final notificationsEnabled = await LocalNotificationService.instance
+        .areNotificationsEnabled();
+    final exactAlarmsAllowed = await LocalNotificationService.instance
+        .canScheduleExactRestAlarms();
     if (!mounted) return;
     setState(() {
-      _restNotificationsEnabled = prefs.getBool(
+      _restNotificationsEnabled =
+          prefs.getBool(
             LiveWorkoutNotificationPreferences.restNotificationsKey,
           ) ??
           true;
-      _ignoreSilentMode = prefs.getBool(
+      _ignoreSilentMode =
+          prefs.getBool(
             LiveWorkoutNotificationPreferences.ignoreSilentModeKey,
           ) ??
           true;
@@ -88,17 +91,16 @@ class _GoalNotificationSettingsScreenState
           prefs.getBool('notify_adaptive_recommendation') ?? true;
       _targetDateReminderEnabled =
           prefs.getBool('notify_goal_target_date') ?? false;
-      _workoutPlanReminderEnabled = prefs.getBool(
+      _workoutPlanReminderEnabled =
+          prefs.getBool(
             WorkoutPlanNotificationOrchestrator.enabledPreference,
           ) ??
           false;
-      _workoutPlanReminderHour = prefs.getInt(
-            WorkoutPlanNotificationOrchestrator.hourPreference,
-          ) ??
+      _workoutPlanReminderHour =
+          prefs.getInt(WorkoutPlanNotificationOrchestrator.hourPreference) ??
           WorkoutPlanNotificationOrchestrator.defaultHour;
-      _workoutPlanReminderMinute = prefs.getInt(
-            WorkoutPlanNotificationOrchestrator.minutePreference,
-          ) ??
+      _workoutPlanReminderMinute =
+          prefs.getInt(WorkoutPlanNotificationOrchestrator.minutePreference) ??
           WorkoutPlanNotificationOrchestrator.defaultMinute;
       _hasActiveWorkoutPlan = activePlan != null;
       _systemNotificationsEnabled = notificationsEnabled;
@@ -115,27 +117,35 @@ class _GoalNotificationSettingsScreenState
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(
-        LiveWorkoutNotificationPreferences.restNotificationsKey, enabled);
-    await WorkoutLiveActivityService.instance
-        .setRestNotificationsEnabled(enabled);
+      LiveWorkoutNotificationPreferences.restNotificationsKey,
+      enabled,
+    );
+    await WorkoutLiveActivityService.instance.setRestNotificationsEnabled(
+      enabled,
+    );
     if (!enabled) {
       await LocalNotificationService.instance.cancelRestTimerNotification();
     }
     if (!mounted) return;
     setState(() => _restNotificationsEnabled = enabled);
     if (value && !enabled) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content:
-            Text(AppLocalizations.of(context)!.notificationPermissionDenied),
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.notificationPermissionDenied,
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
   Future<void> _setIgnoreSilentMode(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(
-        LiveWorkoutNotificationPreferences.ignoreSilentModeKey, value);
+      LiveWorkoutNotificationPreferences.ignoreSilentModeKey,
+      value,
+    );
     await WorkoutLiveActivityService.instance.setRestIgnoreSilentMode(value);
     await SoundService.instance.refreshAudioContext();
     if (mounted) setState(() => _ignoreSilentMode = value);
@@ -161,8 +171,9 @@ class _GoalNotificationSettingsScreenState
     if (!enabled && value && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(AppLocalizations.of(context)!.notificationPermissionDenied),
+          content: Text(
+            AppLocalizations.of(context)!.notificationPermissionDenied,
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -206,8 +217,9 @@ class _GoalNotificationSettingsScreenState
       return;
     }
     if (key == 'notify_weekly_goal_review' && !value && activeGoal != null) {
-      await LocalNotificationService.instance
-          .cancelWeeklyReviewNotifications(goalId: activeGoal.id);
+      await LocalNotificationService.instance.cancelWeeklyReviewNotifications(
+        goalId: activeGoal.id,
+      );
       return;
     }
     if (activeGoal != null) {
@@ -222,30 +234,35 @@ class _GoalNotificationSettingsScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: GlobalAppBar(
-        title: l10n.notificationSettingsTitle,
-      ),
+      appBar: GlobalAppBar(title: l10n.notificationSettingsTitle),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: DesignConstants.screenPadding,
               children: [
                 AppSectionHeader(
-                    title: l10n.notificationLiveWorkoutSectionTitle,
-                    isFirst: true),
+                  title: l10n.notificationLiveWorkoutSectionTitle,
+                  isFirst: true,
+                ),
                 AppSettingsRow.switchTile(
                   title: l10n.notificationRestTimerTitle,
                   subtitle: l10n.notificationRestTimerSubtitle,
-                  leading: Icon(LucideIcons.bell,
-                      size: 24, color: theme.colorScheme.primary),
+                  leading: Icon(
+                    LucideIcons.bell,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   value: _restNotificationsEnabled,
                   onChanged: _setRestNotifications,
                 ),
                 AppSettingsRow.switchTile(
                   title: l10n.notificationIgnoreSilentTitle,
                   subtitle: l10n.notificationIgnoreSilentSubtitle,
-                  leading: Icon(LucideIcons.volume_2,
-                      size: 24, color: theme.colorScheme.primary),
+                  leading: Icon(
+                    LucideIcons.volume_2,
+                    size: 24,
+                    color: theme.colorScheme.primary,
+                  ),
                   value: _ignoreSilentMode,
                   onChanged: _setIgnoreSilentMode,
                 ),
@@ -253,8 +270,11 @@ class _GoalNotificationSettingsScreenState
                   AppLinkRow(
                     title: l10n.notificationExactAlarmTitle,
                     subtitle: l10n.notificationExactAlarmSubtitle,
-                    leading: Icon(LucideIcons.clock_3,
-                        size: 24, color: theme.colorScheme.primary),
+                    leading: Icon(
+                      LucideIcons.clock_3,
+                      size: 24,
+                      color: theme.colorScheme.primary,
+                    ),
                     trailingIcon: LucideIcons.chevron_right,
                     onTap: () async {
                       await LocalNotificationService.instance
@@ -263,9 +283,7 @@ class _GoalNotificationSettingsScreenState
                     },
                   ),
                 const SizedBox(height: DesignConstants.spacingL),
-                AppSectionHeader(
-                  title: l10n.notificationWorkoutSectionTitle,
-                ),
+                AppSectionHeader(title: l10n.notificationWorkoutSectionTitle),
                 Column(
                   children: [
                     AppSettingsRow.switchTile(
@@ -291,14 +309,15 @@ class _GoalNotificationSettingsScreenState
                                   title: l10n.workoutPlanNotifyTimeTitle,
                                   subtitle: MaterialLocalizations.of(context)
                                       .formatTimeOfDay(
-                                    TimeOfDay(
-                                      hour: _workoutPlanReminderHour,
-                                      minute: _workoutPlanReminderMinute,
-                                    ),
-                                    alwaysUse24HourFormat:
-                                        MediaQuery.alwaysUse24HourFormatOf(
-                                            context),
-                                  ),
+                                        TimeOfDay(
+                                          hour: _workoutPlanReminderHour,
+                                          minute: _workoutPlanReminderMinute,
+                                        ),
+                                        alwaysUse24HourFormat:
+                                            MediaQuery.alwaysUse24HourFormatOf(
+                                              context,
+                                            ),
+                                      ),
                                   leading: Icon(
                                     LucideIcons.clock_3,
                                     size: 24,

@@ -36,9 +36,7 @@ void main() {
 
     test('computes muscle-specific base windows with normalized labels', () {
       expect(
-        RecoveryDomainService.recoveringUpperHours(
-          highSessionFatigue: false,
-        ),
+        RecoveryDomainService.recoveringUpperHours(highSessionFatigue: false),
         48,
       );
       expect(
@@ -102,11 +100,7 @@ void main() {
     });
 
     test('classifies default muscle state inclusively at boundaries', () {
-      expectBoundary(
-        muscleGroup: 'chest',
-        recoveringUpper: 48,
-        readyUpper: 72,
-      );
+      expectBoundary(muscleGroup: 'chest', recoveringUpper: 48, readyUpper: 72);
     });
 
     test('classifies fast muscle state inclusively at boundaries', () {
@@ -118,11 +112,7 @@ void main() {
     });
 
     test('classifies slow muscle state inclusively at boundaries', () {
-      expectBoundary(
-        muscleGroup: 'quads',
-        recoveringUpper: 60,
-        readyUpper: 96,
-      );
+      expectBoundary(muscleGroup: 'quads', recoveringUpper: 60, readyUpper: 96);
     });
 
     test('classifies extended muscle state inclusively at boundaries', () {

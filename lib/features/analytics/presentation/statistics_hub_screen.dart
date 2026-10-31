@@ -1,5 +1,7 @@
 import '../../statistics/domain/timeframe_block.dart';
+
 import 'dart:async';
+
 import 'statistics_hub_preferences.dart';
 
 import 'package:flutter/material.dart';
@@ -69,10 +71,10 @@ class StatisticsHubScreen extends StatefulWidget {
     this.initialBlockType = TimeframeBlock.week,
     this.initialAnchorDate,
     this.initialIsRolling = true,
-  })  : _hubDataAdapter = hubDataAdapter,
-        _stepsRepository = stepsRepository,
-        _sleepSummaryRepository = sleepSummaryRepository,
-        _pulseRepository = pulseRepository;
+  }) : _hubDataAdapter = hubDataAdapter,
+       _stepsRepository = stepsRepository,
+       _sleepSummaryRepository = sleepSummaryRepository,
+       _pulseRepository = pulseRepository;
 
   final StatisticsHubDataAdapter? _hubDataAdapter;
   final StepsAggregationRepository? _stepsRepository;
@@ -82,12 +84,14 @@ class StatisticsHubScreen extends StatefulWidget {
     TimeframeBlock selectedBlockType,
     DateTime anchorDate,
     bool isRolling,
-  )? fetchHubAnalytics;
+  )?
+  fetchHubAnalytics;
   final Future<SleepSyncResult?> Function({
     int lookbackDays,
     Duration minInterval,
     bool force,
-  })? importSleepIfDue;
+  })?
+  importSleepIfDue;
   final Future<bool> Function()? isSleepTrackingEnabled;
   final Future<int> Function()? targetStepsLoader;
   final Future<String> Function()? stepsProviderNameLoader;
@@ -117,15 +121,17 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
       importSleepIfDue: widget.importSleepIfDue,
       isSleepTrackingEnabled: widget.isSleepTrackingEnabled,
       targetStepsLoader: widget.targetStepsLoader,
-      stepsProviderNameLoader: widget.stepsProviderNameLoader ??
+      stepsProviderNameLoader:
+          widget.stepsProviderNameLoader ??
           () async {
             if (!mounted) return 'Lokale Daten';
             final l10n = AppLocalizations.of(context);
             if (l10n == null) return 'Lokale Daten';
             final stepsSyncService = StepsSyncService();
             final providerFilter = await stepsSyncService.getProviderFilter();
-            final providerRaw =
-                StepsSyncService.providerFilterToRaw(providerFilter);
+            final providerRaw = StepsSyncService.providerFilterToRaw(
+              providerFilter,
+            );
             if (providerRaw == 'appleHealth') {
               return l10n.statisticsProviderAppleHealth;
             }
@@ -143,9 +149,11 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
       initialAnchorDate: widget.initialAnchorDate,
       initialIsRolling: widget.initialIsRolling,
     );
-    unawaited(StatisticsHubPreferences.loadPinnedCards().then((cards) {
-      if (mounted) setState(() => _pinnedCards = cards);
-    }));
+    unawaited(
+      StatisticsHubPreferences.loadPinnedCards().then((cards) {
+        if (mounted) setState(() => _pinnedCards = cards);
+      }),
+    );
   }
 
   @override
@@ -175,11 +183,7 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
         return _StatisticsHubScreenView(
           showAllData: widget.showAllData,
           pinnedCards: _pinnedCards,
-        )._buildTimeframeFilter(
-          context,
-          _viewModel,
-          l10n,
-        );
+        )._buildTimeframeFilter(context, _viewModel, l10n);
       },
     );
   }
@@ -247,14 +251,17 @@ class _StatisticsHubScreenView extends StatelessWidget {
         );
         if (selected != null) viewModel.setTimeframeSelection(selected);
       },
-      nextEnabled: viewModel.activeBlockType != TimeframeBlock.maxBlock &&
+      nextEnabled:
+          viewModel.activeBlockType != TimeframeBlock.maxBlock &&
           (viewModel.isRolling ||
               !viewModel.activeBlockType
                   .getBounds(viewModel.anchorDate, DateTime(2020))
                   .start
-                  .isAtSameMomentAs(viewModel.activeBlockType
-                      .getBounds(DateTime.now(), DateTime(2020))
-                      .start)),
+                  .isAtSameMomentAs(
+                    viewModel.activeBlockType
+                        .getBounds(DateTime.now(), DateTime(2020))
+                        .start,
+                  )),
       showDateNavigation: viewModel.activeBlockType != TimeframeBlock.maxBlock,
     );
   }
@@ -266,7 +273,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
     // The pinned app bar extension is already accounted for in
     // MediaQuery.paddingOf(context).top by the host Scaffold.
     final finalPadding = EdgeInsets.only(
-      top: (showAllData
+      top:
+          (showAllData
               ? MediaQuery.paddingOf(context).top + kToolbarHeight + 56
               : MediaQuery.paddingOf(context).top) +
           DesignConstants.cardPadding.top,
@@ -302,12 +310,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
   }
 
   String _categoryTitle(String id, AppLocalizations l10n) => switch (id) {
-        'activity' => l10n.statisticsActivityCategory,
-        'recovery' => l10n.sectionRecovery,
-        'body' => l10n.statisticsSectionBody,
-        'training' => l10n.statisticsSectionTraining,
-        _ => l10n.nutrition,
-      };
+    'activity' => l10n.statisticsActivityCategory,
+    'recovery' => l10n.sectionRecovery,
+    'body' => l10n.statisticsSectionBody,
+    'training' => l10n.statisticsSectionTraining,
+    _ => l10n.nutrition,
+  };
 
   Widget _buildHubCards(
     BuildContext context,
@@ -327,16 +335,21 @@ class _StatisticsHubScreenView extends StatelessWidget {
       ]) {
         final cards = ids.where((card) => card.categoryId == category).toList();
         if (cards.isEmpty) continue;
-        children.add(AppSectionHeader(
-          title: _categoryTitle(category, l10n),
-          isFirst: children.isEmpty,
-        ));
+        children.add(
+          AppSectionHeader(
+            title: _categoryTitle(category, l10n),
+            isFirst: children.isEmpty,
+          ),
+        );
         for (final card in cards) {
           if (children.isNotEmpty) {
             children.add(const SizedBox(height: DesignConstants.spacingS));
           }
-          children.add(RepaintBoundary(
-              child: _buildHubCard(context, viewModel, l10n, card)));
+          children.add(
+            RepaintBoundary(
+              child: _buildHubCard(context, viewModel, l10n, card),
+            ),
+          );
         }
         children.add(const SizedBox(height: DesignConstants.spacingL));
       }
@@ -345,14 +358,17 @@ class _StatisticsHubScreenView extends StatelessWidget {
         if (children.isNotEmpty) {
           children.add(const SizedBox(height: DesignConstants.spacingS));
         }
-        children.add(RepaintBoundary(
-            child: _buildHubCard(context, viewModel, l10n, card)));
+        children.add(
+          RepaintBoundary(child: _buildHubCard(context, viewModel, l10n, card)),
+        );
       }
       if (pinnedCards.isEmpty) {
-        children.add(Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Center(child: Text(l10n.statisticsPinnedEmptyHint)),
-        ));
+        children.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: Text(l10n.statisticsPinnedEmptyHint)),
+          ),
+        );
       }
       children.add(const SizedBox(height: DesignConstants.spacingL));
       children.add(_buildAllDataShortcut(context, viewModel, l10n));
@@ -464,9 +480,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
             Expanded(
               child: Text(
                 l10n.statisticsAllDataAction,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             AnalyticsCardBase.buildDrillDownHint(context),
@@ -485,11 +500,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
 
     if (section.hasError && !section.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
-          context,
-          l10n,
-          () => viewModel.loadHubAnalytics(),
-          StatisticsHubSectionId.steps,
-          l10n.steps);
+        context,
+        l10n,
+        () => viewModel.loadHubAnalytics(),
+        StatisticsHubSectionId.steps,
+        l10n.steps,
+      );
     }
     final range = viewModel.stepsRange;
     final hasData =
@@ -587,7 +603,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
     }
     if (viewModel.isRolling) {
       return TimeframeLabelFormatter.formatRolling(
-          viewModel.activeBlockType, l10n);
+        viewModel.activeBlockType,
+        l10n,
+      );
     }
     return TimeframeLabelFormatter.format(
       viewModel.activeBlockType,
@@ -618,9 +636,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   onTap: () {},
                 ),
                 onSourceVisibilityChanged: setHidden,
-                builder: (_) => SleepDayOverviewPage(
-                  selectedDay: DateTime.now(),
-                ),
+                builder: (_) =>
+                    SleepDayOverviewPage(selectedDay: DateTime.now()),
               ),
             );
           },
@@ -745,8 +762,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
     );
     final hasRecords =
         (viewModel.performanceState.data?.recentPrs.isNotEmpty ?? false) ||
-            (viewModel.performanceState.data?.notableImprovements.isNotEmpty ??
-                false);
+        (viewModel.performanceState.data?.notableImprovements.isNotEmpty ??
+            false);
     if (hasRecords || showAllData) return card;
     return CardEmptyStateOverlay(
       isEmpty: true,
@@ -874,35 +891,35 @@ class _StatisticsHubScreenView extends StatelessWidget {
   }
 
   Widget _buildMeasurementsShortcutCard(
-      BuildContext context, AppLocalizations l10n) {
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
     Widget buildShortcutContent() => Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingL),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.body_measurements,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.all_measurements_no_cap,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                    ),
-                  ],
+      padding: const EdgeInsets.all(DesignConstants.spacingL),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.body_measurements,
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-              ),
-              const Icon(LucideIcons.chevron_right),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  l10n.all_measurements_no_cap,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
+              ],
+            ),
           ),
-        );
+          const Icon(LucideIcons.chevron_right),
+        ],
+      ),
+    );
 
     return MorphSourceScope(
       builder: (context, setHidden) => Builder(

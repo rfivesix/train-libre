@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/base_food_language_service.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../domain/models/food_item.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class FoodItemSearchTile extends StatelessWidget {
@@ -36,16 +39,12 @@ class FoodItemSearchTile extends StatelessWidget {
         title: Row(
           children: [
             Expanded(
-              child: Text(
-                () {
-                  final name = item.source == FoodItemSource.base
-                      ? item.getLocalizedName(context,
-                          languageCode: baseFoodLang)
-                      : item.getLocalizedName(context);
-                  return name.isNotEmpty ? name : l10n.unknown;
-                }(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child: Text(() {
+                final name = item.source == FoodItemSource.base
+                    ? item.getLocalizedName(context, languageCode: baseFoodLang)
+                    : item.getLocalizedName(context);
+                return name.isNotEmpty ? name : l10n.unknown;
+              }(), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
             if (item.isCustom) ...[
               const SizedBox(width: DesignConstants.spacingS),
@@ -94,7 +93,9 @@ class FoodItemSearchTile extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingS, vertical: 3),
+        horizontal: DesignConstants.spacingS,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

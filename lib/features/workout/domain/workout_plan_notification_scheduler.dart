@@ -13,9 +13,7 @@ class WorkoutPlanReminder {
 }
 
 abstract interface class WorkoutPlanNotificationScheduler {
-  Future<void> replaceWorkoutPlanReminders(
-    List<WorkoutPlanReminder> reminders,
-  );
+  Future<void> replaceWorkoutPlanReminders(List<WorkoutPlanReminder> reminders);
 
   Future<void> cancelWorkoutPlanReminders();
 }

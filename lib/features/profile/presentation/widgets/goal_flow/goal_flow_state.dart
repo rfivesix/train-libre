@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../../../../../generated/app_localizations.dart';
@@ -121,7 +122,9 @@ class GoalFlowState extends ChangeNotifier {
 
   /// Detects latest weight from database at or before [startDate].
   Future<void> detectBaseline(
-      IGoalRepository repository, UnitService unitService) async {
+    IGoalRepository repository,
+    UnitService unitService,
+  ) async {
     final startEndOfDay = DateTime(
       startDate.year,
       startDate.month,
@@ -184,8 +187,10 @@ class GoalFlowState extends ChangeNotifier {
   void setBaselineManual(double weightKg, UnitService unitService) {
     detectedBaselineWeight = weightKg;
     isManualBaselineMode = true;
-    final disp =
-        unitService.convertDisplayValue(weightKg, UnitDimension.weight);
+    final disp = unitService.convertDisplayValue(
+      weightKg,
+      UnitDimension.weight,
+    );
     baselineWeightController.text = disp.toStringAsFixed(1);
     onBaselineChanged?.call(weightKg);
     notifyListeners();
@@ -338,17 +343,23 @@ class GoalFlowState extends ChangeNotifier {
       }
     } else {
       trackingMode = GoalTrackingMode.targetWeight;
-      final dispBase =
-          unitService.convertDisplayValue(baseline, UnitDimension.weight);
+      final dispBase = unitService.convertDisplayValue(
+        baseline,
+        UnitDimension.weight,
+      );
       if (targetWeightController.text.trim().isEmpty) {
         if (isLosing) {
-          final diff =
-              unitService.convertDisplayValue(5.0, UnitDimension.weight);
+          final diff = unitService.convertDisplayValue(
+            5.0,
+            UnitDimension.weight,
+          );
           final targetDisp = max(30.0, dispBase - diff);
           targetWeightController.text = targetDisp.toStringAsFixed(1);
         } else if (isGaining) {
-          final diff =
-              unitService.convertDisplayValue(3.0, UnitDimension.weight);
+          final diff = unitService.convertDisplayValue(
+            3.0,
+            UnitDimension.weight,
+          );
           targetWeightController.text = (dispBase + diff).toStringAsFixed(1);
         } else {
           targetWeightController.text = dispBase.toStringAsFixed(1);
@@ -454,8 +465,9 @@ class GoalFlowState extends ChangeNotifier {
       signedWeeklyRateKg = weeklyRateKg.abs();
     }
 
-    trackingMode =
-        isMaintain ? GoalTrackingMode.open : GoalTrackingMode.targetWeight;
+    trackingMode = isMaintain
+        ? GoalTrackingMode.open
+        : GoalTrackingMode.targetWeight;
 
     try {
       final previouslyActive = await repository.getActiveNutritionGoal();
@@ -488,8 +500,9 @@ class GoalFlowState extends ChangeNotifier {
             : null,
         startDate: startDate,
         trackingMode: trackingMode,
-        baselineMeasurementId:
-            isManualBaselineMode ? null : detectedBaselineMeasurementId,
+        baselineMeasurementId: isManualBaselineMode
+            ? null
+            : detectedBaselineMeasurementId,
         baselineValueKg: baselineKg,
         baselineDate: isManualBaselineMode
             ? startDate
@@ -502,8 +515,9 @@ class GoalFlowState extends ChangeNotifier {
         isNutritionDriver: isNutritionDriver,
       );
 
-      final notifications =
-          GoalNotificationOrchestrator(goalRepository: repository);
+      final notifications = GoalNotificationOrchestrator(
+        goalRepository: repository,
+      );
       if (previouslyActive != null) {
         await notifications.goalBecameInactive(previouslyActive.id);
       }

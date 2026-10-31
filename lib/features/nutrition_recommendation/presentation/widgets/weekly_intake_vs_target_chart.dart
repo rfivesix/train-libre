@@ -1,6 +1,7 @@
 // lib/features/nutrition_recommendation/presentation/widgets/weekly_intake_vs_target_chart.dart
 
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -69,10 +70,12 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: List.generate(7, (index) {
-                    final day =
-                        index < sevenDays.length ? sevenDays[index] : null;
-                    final dayLabel =
-                        day != null ? _formatWeekday(day.date, locale) : '';
+                    final day = index < sevenDays.length
+                        ? sevenDays[index]
+                        : null;
+                    final dayLabel = day != null
+                        ? _formatWeekday(day.date, locale)
+                        : '';
                     return Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2.5),
@@ -153,8 +156,8 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
     final badgeColor = isTarget
         ? theme.colorScheme.primary.withValues(alpha: 0.2)
         : (isDark
-            ? Colors.blueGrey.shade800.withValues(alpha: 0.6)
-            : Colors.blue.shade50);
+              ? Colors.blueGrey.shade800.withValues(alpha: 0.6)
+              : Colors.blue.shade50);
     final badgeTextColor = isTarget
         ? theme.colorScheme.primary
         : (isDark ? Colors.lightBlueAccent.shade100 : Colors.blue.shade800);
@@ -208,8 +211,9 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final barHeight =
-                  calories > 0 ? max(24.0, constraints.maxHeight * ratio) : 4.0;
+              final barHeight = calories > 0
+                  ? max(24.0, constraints.maxHeight * ratio)
+                  : 4.0;
 
               return Align(
                 alignment: Alignment.bottomCenter,
@@ -219,8 +223,9 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                     border: isTarget
                         ? Border.all(
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.8),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.8,
+                            ),
                             width: 1.5,
                           )
                         : null,
@@ -236,8 +241,9 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                 child: Container(
                                   color: proteinColor,
                                   alignment: Alignment.center,
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 1,
+                                  ),
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
@@ -258,8 +264,9 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                 child: Container(
                                   color: fatColor,
                                   alignment: Alignment.center,
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 1,
+                                  ),
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
@@ -280,8 +287,9 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                 child: Container(
                                   color: carbsColor,
                                   alignment: Alignment.center,
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 1,
+                                  ),
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
@@ -303,8 +311,9 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                             ],
                           )
                         : Container(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.08),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.08,
+                            ),
                           ),
                   ),
                 ),

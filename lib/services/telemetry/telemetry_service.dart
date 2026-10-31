@@ -253,8 +253,10 @@ abstract class TelemetryService {
   /// Creates either a [PostHogTelemetryService] or a [NoOpTelemetryService]
   /// depending on compile-time flag `--dart-define=DISABLE_TELEMETRY=true`.
   static TelemetryService create() {
-    const isTelemetryDisabled =
-        bool.fromEnvironment('DISABLE_TELEMETRY', defaultValue: false);
+    const isTelemetryDisabled = bool.fromEnvironment(
+      'DISABLE_TELEMETRY',
+      defaultValue: false,
+    );
     if (isTelemetryDisabled) {
       return const NoOpTelemetryService();
     }
@@ -285,8 +287,8 @@ abstract class TelemetryService {
 
     // 2. Parse Platform.localeName with Regex
     if (countryCode == null || countryCode.isEmpty) {
-      final match =
-          RegExp(r'[_-]([a-zA-Z]{2})(?:[._@-]|$)').firstMatch(localeStr);
+      final match = RegExp(r'[_-]([a-zA-Z]{2})(?:[._@-]|$)')
+          .firstMatch(localeStr);
       if (match != null) {
         final code = match.group(1)!.toUpperCase();
         if (code != 'HANS' &&
@@ -336,226 +338,263 @@ abstract class TelemetryService {
     switch (code) {
       case 'DE':
         return const CountryMetadata(
-            countryCode: 'DE',
-            countryName: 'Germany',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'DE',
+          countryName: 'Germany',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'US':
         return const CountryMetadata(
-            countryCode: 'US',
-            countryName: 'United States',
-            continentCode: 'NA',
-            continentName: 'North America');
+          countryCode: 'US',
+          countryName: 'United States',
+          continentCode: 'NA',
+          continentName: 'North America',
+        );
       case 'GB':
         return const CountryMetadata(
-            countryCode: 'GB',
-            countryName: 'United Kingdom',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'GB',
+          countryName: 'United Kingdom',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'AT':
         return const CountryMetadata(
-            countryCode: 'AT',
-            countryName: 'Austria',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'AT',
+          countryName: 'Austria',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'CH':
         return const CountryMetadata(
-            countryCode: 'CH',
-            countryName: 'Switzerland',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'CH',
+          countryName: 'Switzerland',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'FR':
         return const CountryMetadata(
-            countryCode: 'FR',
-            countryName: 'France',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'FR',
+          countryName: 'France',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'IT':
         return const CountryMetadata(
-            countryCode: 'IT',
-            countryName: 'Italy',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'IT',
+          countryName: 'Italy',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'ES':
         return const CountryMetadata(
-            countryCode: 'ES',
-            countryName: 'Spain',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'ES',
+          countryName: 'Spain',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'NL':
         return const CountryMetadata(
-            countryCode: 'NL',
-            countryName: 'Netherlands',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'NL',
+          countryName: 'Netherlands',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'BE':
         return const CountryMetadata(
-            countryCode: 'BE',
-            countryName: 'Belgium',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'BE',
+          countryName: 'Belgium',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'PL':
         return const CountryMetadata(
-            countryCode: 'PL',
-            countryName: 'Poland',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'PL',
+          countryName: 'Poland',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'CZ':
         return const CountryMetadata(
-            countryCode: 'CZ',
-            countryName: 'Czechia',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'CZ',
+          countryName: 'Czechia',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'DK':
         return const CountryMetadata(
-            countryCode: 'DK',
-            countryName: 'Denmark',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'DK',
+          countryName: 'Denmark',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'SE':
         return const CountryMetadata(
-            countryCode: 'SE',
-            countryName: 'Sweden',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'SE',
+          countryName: 'Sweden',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'NO':
         return const CountryMetadata(
-            countryCode: 'NO',
-            countryName: 'Norway',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'NO',
+          countryName: 'Norway',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'FI':
         return const CountryMetadata(
-            countryCode: 'FI',
-            countryName: 'Finland',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'FI',
+          countryName: 'Finland',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'PT':
         return const CountryMetadata(
-            countryCode: 'PT',
-            countryName: 'Portugal',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'PT',
+          countryName: 'Portugal',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'GR':
         return const CountryMetadata(
-            countryCode: 'GR',
-            countryName: 'Greece',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'GR',
+          countryName: 'Greece',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'IE':
         return const CountryMetadata(
-            countryCode: 'IE',
-            countryName: 'Ireland',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'IE',
+          countryName: 'Ireland',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'HU':
         return const CountryMetadata(
-            countryCode: 'HU',
-            countryName: 'Hungary',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'HU',
+          countryName: 'Hungary',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'RO':
         return const CountryMetadata(
-            countryCode: 'RO',
-            countryName: 'Romania',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'RO',
+          countryName: 'Romania',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'UA':
         return const CountryMetadata(
-            countryCode: 'UA',
-            countryName: 'Ukraine',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'UA',
+          countryName: 'Ukraine',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       case 'CA':
         return const CountryMetadata(
-            countryCode: 'CA',
-            countryName: 'Canada',
-            continentCode: 'NA',
-            continentName: 'North America');
+          countryCode: 'CA',
+          countryName: 'Canada',
+          continentCode: 'NA',
+          continentName: 'North America',
+        );
       case 'MX':
         return const CountryMetadata(
-            countryCode: 'MX',
-            countryName: 'Mexico',
-            continentCode: 'NA',
-            continentName: 'North America');
+          countryCode: 'MX',
+          countryName: 'Mexico',
+          continentCode: 'NA',
+          continentName: 'North America',
+        );
       case 'JP':
         return const CountryMetadata(
-            countryCode: 'JP',
-            countryName: 'Japan',
-            continentCode: 'AS',
-            continentName: 'Asia');
+          countryCode: 'JP',
+          countryName: 'Japan',
+          continentCode: 'AS',
+          continentName: 'Asia',
+        );
       case 'CN':
         return const CountryMetadata(
-            countryCode: 'CN',
-            countryName: 'China',
-            continentCode: 'AS',
-            continentName: 'Asia');
+          countryCode: 'CN',
+          countryName: 'China',
+          continentCode: 'AS',
+          continentName: 'Asia',
+        );
       case 'KR':
         return const CountryMetadata(
-            countryCode: 'KR',
-            countryName: 'South Korea',
-            continentCode: 'AS',
-            continentName: 'Asia');
+          countryCode: 'KR',
+          countryName: 'South Korea',
+          continentCode: 'AS',
+          continentName: 'Asia',
+        );
       case 'IN':
         return const CountryMetadata(
-            countryCode: 'IN',
-            countryName: 'India',
-            continentCode: 'AS',
-            continentName: 'Asia');
+          countryCode: 'IN',
+          countryName: 'India',
+          continentCode: 'AS',
+          continentName: 'Asia',
+        );
       case 'SG':
         return const CountryMetadata(
-            countryCode: 'SG',
-            countryName: 'Singapore',
-            continentCode: 'AS',
-            continentName: 'Asia');
+          countryCode: 'SG',
+          countryName: 'Singapore',
+          continentCode: 'AS',
+          continentName: 'Asia',
+        );
       case 'AU':
         return const CountryMetadata(
-            countryCode: 'AU',
-            countryName: 'Australia',
-            continentCode: 'OC',
-            continentName: 'Oceania');
+          countryCode: 'AU',
+          countryName: 'Australia',
+          continentCode: 'OC',
+          continentName: 'Oceania',
+        );
       case 'NZ':
         return const CountryMetadata(
-            countryCode: 'NZ',
-            countryName: 'New Zealand',
-            continentCode: 'OC',
-            continentName: 'Oceania');
+          countryCode: 'NZ',
+          countryName: 'New Zealand',
+          continentCode: 'OC',
+          continentName: 'Oceania',
+        );
       case 'BR':
         return const CountryMetadata(
-            countryCode: 'BR',
-            countryName: 'Brazil',
-            continentCode: 'SA',
-            continentName: 'South America');
+          countryCode: 'BR',
+          countryName: 'Brazil',
+          continentCode: 'SA',
+          continentName: 'South America',
+        );
       case 'AR':
         return const CountryMetadata(
-            countryCode: 'AR',
-            countryName: 'Argentina',
-            continentCode: 'SA',
-            continentName: 'South America');
+          countryCode: 'AR',
+          countryName: 'Argentina',
+          continentCode: 'SA',
+          continentName: 'South America',
+        );
       case 'ZA':
         return const CountryMetadata(
-            countryCode: 'ZA',
-            countryName: 'South Africa',
-            continentCode: 'AF',
-            continentName: 'Africa');
+          countryCode: 'ZA',
+          countryName: 'South Africa',
+          continentCode: 'AF',
+          continentName: 'Africa',
+        );
       case 'EG':
         return const CountryMetadata(
-            countryCode: 'EG',
-            countryName: 'Egypt',
-            continentCode: 'AF',
-            continentName: 'Africa');
+          countryCode: 'EG',
+          countryName: 'Egypt',
+          continentCode: 'AF',
+          continentName: 'Africa',
+        );
       case 'IL':
         return const CountryMetadata(
-            countryCode: 'IL',
-            countryName: 'Israel',
-            continentCode: 'AS',
-            continentName: 'Asia');
+          countryCode: 'IL',
+          countryName: 'Israel',
+          continentCode: 'AS',
+          continentName: 'Asia',
+        );
       case 'TR':
         return const CountryMetadata(
-            countryCode: 'TR',
-            countryName: 'Turkey',
-            continentCode: 'EU',
-            continentName: 'Europe');
+          countryCode: 'TR',
+          countryName: 'Turkey',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
       default:
         return CountryMetadata(
           countryCode: code.isNotEmpty ? code : 'DE',
@@ -582,10 +621,7 @@ abstract class TelemetryService {
   Future<void> resetLocalData();
 
   /// Low-level track call for custom anonymous events.
-  Future<void> track(
-    String eventName, {
-    Map<String, dynamic>? properties,
-  });
+  Future<void> track(String eventName, {Map<String, dynamic>? properties});
 
   /// Event 1: app_launched (DAU/MAU via isolated persistent device UUID)
   Future<void> trackAppLaunched({
@@ -600,7 +636,7 @@ abstract class TelemetryService {
   /// Event 2: workout_completed (Aggregated counts and subfeature usage flags, ZERO PII)
   Future<void> trackWorkoutCompleted({
     required String
-        workoutType, // 'routine' or 'custom' ONLY (no custom titles)
+    workoutType, // 'routine' or 'custom' ONLY (no custom titles)
     required int exerciseCount,
     required int setCount,
     required int durationMinutes,
@@ -619,9 +655,7 @@ abstract class TelemetryService {
   });
 
   /// Event 3: screen_viewed
-  Future<void> trackScreenView({
-    required String screenName,
-  });
+  Future<void> trackScreenView({required String screenName});
 
   /// Event 4: feature_used
   Future<void> trackFeatureUsed({
@@ -630,9 +664,7 @@ abstract class TelemetryService {
   });
 
   /// Event 5: daily_food_logged counter increment & flush
-  Future<void> incrementFoodLogCount({
-    required String source,
-  });
+  Future<void> incrementFoodLogCount({required String source});
 
   Future<void> flushDailyFoodLog();
 
@@ -770,9 +802,7 @@ abstract class TelemetryService {
   });
 
   /// Records only the closed-set response to the App Store review prompt.
-  Future<void> trackAppReviewPromptResponded({
-    required String response,
-  });
+  Future<void> trackAppReviewPromptResponded({required String response});
 
   /// Training Plan Event: training_plan_created
   Future<void> trackTrainingPlanCreated({
@@ -799,9 +829,7 @@ abstract class TelemetryService {
   });
 
   /// Training Plan Event: training_plan_deleted
-  Future<void> trackTrainingPlanDeleted({
-    required String kind,
-  });
+  Future<void> trackTrainingPlanDeleted({required String kind});
 
   /// Training Plan Event: training_plan_session_started
   Future<void> trackTrainingPlanSessionStarted({

@@ -27,31 +27,22 @@ class AiMatchingContext {
 /// Helper extension to map [OffCatalogCountry] to its primary language code.
 extension OffCatalogCountryLanguageX on OffCatalogCountry {
   String get primaryLanguageCode => switch (this) {
-        OffCatalogCountry.de ||
-        OffCatalogCountry.at ||
-        OffCatalogCountry.ch =>
-          'de',
-        OffCatalogCountry.us ||
-        OffCatalogCountry.uk ||
-        OffCatalogCountry.au =>
-          'en',
-        OffCatalogCountry.fr => 'fr',
-        OffCatalogCountry.it => 'it',
-        OffCatalogCountry.jp => 'ja',
-        OffCatalogCountry.nl => 'nl',
-        OffCatalogCountry.es => 'es',
-      };
+    OffCatalogCountry.de ||
+    OffCatalogCountry.at ||
+    OffCatalogCountry.ch => 'de',
+    OffCatalogCountry.us ||
+    OffCatalogCountry.uk ||
+    OffCatalogCountry.au => 'en',
+    OffCatalogCountry.fr => 'fr',
+    OffCatalogCountry.it => 'it',
+    OffCatalogCountry.jp => 'ja',
+    OffCatalogCountry.nl => 'nl',
+    OffCatalogCountry.es => 'es',
+  };
 }
 
 /// Legacy enum kept for backward compatibility.
-enum AiMatchingLanguage {
-  auto,
-  en,
-  de,
-  fr,
-  it,
-  ja,
-}
+enum AiMatchingLanguage { auto, en, de, fr, it, ja }
 
 /// Persists and resolves AI matching language context.
 class AiMatchingLanguageService {
@@ -67,8 +58,9 @@ class AiMatchingLanguageService {
     final activeOffCountry =
         OffCatalogCountryService.readActiveCountryFromPrefs(resolvedPrefs);
 
-    final baseFoodChoice =
-        await BaseFoodLanguageService.readChoice(prefs: resolvedPrefs);
+    final baseFoodChoice = await BaseFoodLanguageService.readChoice(
+      prefs: resolvedPrefs,
+    );
     final appLang = BaseFoodLanguageService.resolveLanguageCodeFromLocale(
       choice: baseFoodChoice,
       locale: locale,

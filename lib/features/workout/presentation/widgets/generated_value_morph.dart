@@ -78,10 +78,7 @@ class _GeneratedValueMorphState extends State<GeneratedValueMorph>
     if (_isGenerated && oldWidget.suggestionKey != widget.suggestionKey) {
       // [oldWidget.value] is frozen from the previous build, before the
       // TextEditingController received the new suggestion.
-      _capturePixelFields(
-        outgoing: oldWidget.value,
-        incoming: widget.value,
-      );
+      _capturePixelFields(outgoing: oldWidget.value, incoming: widget.value);
       _controller.forward(from: 0);
     } else if (!_isGenerated) {
       _controller.value = 1;
@@ -94,11 +91,7 @@ class _GeneratedValueMorphState extends State<GeneratedValueMorph>
   }) {
     final generation = ++_captureGeneration;
     final fields = [
-      _PixelField.fromText(
-        outgoing,
-        widget.morphTextStyle,
-        widget.accentColor,
-      ),
+      _PixelField.fromText(outgoing, widget.morphTextStyle, widget.accentColor),
       _PixelField.fromText(
         incoming,
         widget.morphTextStyle,
@@ -144,18 +137,22 @@ class _GeneratedValueMorphState extends State<GeneratedValueMorph>
         // Number -> theme-contrast circle, circle -> cloud, cloud -> circle, circle
         // -> number. The circle windows overlap so every transition has a
         // real shared shape rather than an opacity cut.
-        final outgoingProgress =
-            Curves.easeInOutCubic.transform((timeline / 0.30).clamp(0.0, 1.0));
-        final incomingProgress = Curves.easeInOutCubic
-            .transform(((timeline - 0.70) / 0.30).clamp(0.0, 1.0));
+        final outgoingProgress = Curves.easeInOutCubic.transform(
+          (timeline / 0.30).clamp(0.0, 1.0),
+        );
+        final incomingProgress = Curves.easeInOutCubic.transform(
+          ((timeline - 0.70) / 0.30).clamp(0.0, 1.0),
+        );
         final cloudMorph = timeline < 0.44
-            ? Curves.easeInOutCubic
-                .transform(((timeline - 0.28) / 0.16).clamp(0.0, 1.0))
+            ? Curves.easeInOutCubic.transform(
+                ((timeline - 0.28) / 0.16).clamp(0.0, 1.0),
+              )
             : timeline > 0.56
-                ? 1 -
-                    Curves.easeInOutCubic
-                        .transform(((timeline - 0.56) / 0.16).clamp(0.0, 1.0))
-                : 1.0;
+            ? 1 -
+                  Curves.easeInOutCubic.transform(
+                    ((timeline - 0.56) / 0.16).clamp(0.0, 1.0),
+                  )
+            : 1.0;
         final cloudVisible = timeline >= 0.28 && timeline <= 0.72;
         final textColor = _incomingColor(incomingProgress);
 
@@ -269,15 +266,14 @@ class _PixelField {
     required this.pixels,
   });
 
-  static _PixelField? fromText(
-    String text,
-    TextStyle style,
-    Color color,
-  ) {
+  static _PixelField? fromText(String text, TextStyle style, Color color) {
     if (text.isEmpty) return null;
 
     final textPainter = TextPainter(
-      text: TextSpan(text: text, style: style.copyWith(color: color)),
+      text: TextSpan(
+        text: text,
+        style: style.copyWith(color: color),
+      ),
       textDirection: TextDirection.ltr,
     )..layout();
     final width = math.max(1, textPainter.width.ceil() + 2);
@@ -354,9 +350,9 @@ class _PixelCirclePainter extends CustomPainter {
           pixel.source.center - sourceOrigin + _inputGlyphAlignmentOffset;
       final localCenter = towardCircle
           ? Offset.lerp(sourceCenter, pixel.circlePoint, progress) ??
-              pixel.circlePoint
+                pixel.circlePoint
           : Offset.lerp(pixel.circlePoint, sourceCenter, progress) ??
-              sourceCenter;
+                sourceCenter;
       // Source and destination use the same hard pixel size. The pixels are
       // genuinely re-positioned into the cloud's circle; they do not inflate
       // into a different, larger circle while travelling there.

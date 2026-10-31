@@ -28,17 +28,19 @@ class AppleHealthWeightRecord {
   final String unit;
 
   String get fingerprint => sha256
-      .convert(utf8.encode(
-        '$timestampUtc|${weightKg.toStringAsPrecision(15)}|$sourceBundleId',
-      ))
+      .convert(
+        utf8.encode(
+          '$timestampUtc|${weightKg.toStringAsPrecision(15)}|$sourceBundleId',
+        ),
+      )
       .toString();
 
   factory AppleHealthWeightRecord.fromMap(Map<dynamic, dynamic> map) =>
       AppleHealthWeightRecord(
         recordId: map['recordId'] as String,
         timestampUtc: DateTime.parse(map['timestampUtcIso'] as String).toUtc(),
-        weightKg:
-            ((map['value'] as num?) ?? (map['weightKg'] as num)).toDouble(),
+        weightKg: ((map['value'] as num?) ?? (map['weightKg'] as num))
+            .toDouble(),
         sourceBundleId: map['sourceBundleId'] as String? ?? '',
         measurementType: map['measurementType'] as String? ?? 'weight',
         unit: map['unit'] as String? ?? 'kg',
@@ -46,8 +48,9 @@ class AppleHealthWeightRecord {
 }
 
 class AppleHealthWeightImportPlatform {
-  static const MethodChannel _channel =
-      MethodChannel('trainlibre.health/import_weight_apple_health');
+  static const MethodChannel _channel = MethodChannel(
+    'trainlibre.health/import_weight_apple_health',
+  );
 
   Future<HealthConnectWeightImportStatus> getStatus() async {
     final raw = await _channel.invokeMethod<Map<dynamic, dynamic>>('getStatus');
@@ -66,8 +69,10 @@ class AppleHealthWeightImportPlatform {
       'toUtcIso': toUtc.toUtc().toIso8601String(),
     });
     return (raw ?? const [])
-        .map((row) =>
-            AppleHealthWeightRecord.fromMap(row as Map<dynamic, dynamic>))
+        .map(
+          (row) =>
+              AppleHealthWeightRecord.fromMap(row as Map<dynamic, dynamic>),
+        )
         .toList(growable: false);
   }
 }
@@ -82,9 +87,9 @@ class AppleHealthWeightImportService implements WeightImportService {
     AppleHealthWeightImportPlatform? platform,
     DatabaseHelper? databaseHelper,
     bool? isIOS,
-  })  : _platform = platform ?? AppleHealthWeightImportPlatform(),
-        _dbHelper = databaseHelper ?? DatabaseHelper.instance,
-        _isIOS = isIOS ?? Platform.isIOS;
+  }) : _platform = platform ?? AppleHealthWeightImportPlatform(),
+       _dbHelper = databaseHelper ?? DatabaseHelper.instance,
+       _isIOS = isIOS ?? Platform.isIOS;
 
   final AppleHealthWeightImportPlatform _platform;
   final DatabaseHelper _dbHelper;
@@ -148,17 +153,21 @@ class AppleHealthWeightImportService implements WeightImportService {
   Future<_AppleWeightUpsert> _upsert(AppleHealthWeightRecord record) async {
     final db = await _dbHelper.database;
     return db.transaction(() async {
-      final existing = await db.customSelect(
-        '''SELECT local_measurement_id FROM health_import_records
+      final existing = await db
+          .customSelect(
+            '''SELECT local_measurement_id FROM health_import_records
            WHERE platform = ? AND domain = ? AND external_record_id = ?''',
-        variables: [
-          drift.Variable.withString('appleHealth'),
-          drift.Variable.withString(record.measurementType),
-          drift.Variable.withString(record.recordId),
-        ],
-      ).getSingleOrNull();
+            variables: [
+              drift.Variable.withString('appleHealth'),
+              drift.Variable.withString(record.measurementType),
+              drift.Variable.withString(record.recordId),
+            ],
+          )
+          .getSingleOrNull();
       if (existing != null) return _AppleWeightUpsert.unchanged;
-      final row = await db.into(db.measurements).insertReturning(
+      final row = await db
+          .into(db.measurements)
+          .insertReturning(
             db_model.MeasurementsCompanion.insert(
               type: record.measurementType,
               value: record.weightKg,

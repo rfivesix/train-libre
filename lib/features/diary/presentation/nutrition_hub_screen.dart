@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/nutrition_hub_screen.dart
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -14,8 +15,10 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
+
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
@@ -123,8 +126,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
         .whereType<String>()
         .toSet()
         .toList();
-    final products =
-        await ProductLocalDataSource.instance.getProductsByBarcodes(barcodes);
+    final products = await ProductLocalDataSource.instance
+        .getProductsByBarcodes(barcodes);
     return {for (final product in products) product.barcode: product};
   }
 
@@ -142,8 +145,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
         final name = barcode == null
             ? null
             : products[barcode]
-                ?.getLocalizedName(null, languageCode: languageCode)
-                .trim();
+                  ?.getLocalizedName(null, languageCode: languageCode)
+                  .trim();
         if (name != null && name.isNotEmpty && !names.contains(name)) {
           names.add(name);
         }
@@ -167,8 +170,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
         mealName: meal['name'] as String,
         rawItems: items,
         products: products,
-        recipeCookedWeightInGrams:
-            (meal['cooked_weight_in_grams'] as num?)?.toInt(),
+        recipeCookedWeightInGrams: (meal['cooked_weight_in_grams'] as num?)
+            ?.toInt(),
         recipeServingCount: (meal['serving_count'] as num?)?.toInt(),
         initialDate: DateTime.now(),
         initialMealType: 'mealtypeBreakfast',
@@ -178,21 +181,23 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             return FoodEntry(
               barcode: barcode,
               timestamp: date,
-              quantityInGrams: quantities[item['id']?.toString() ?? barcode] ??
+              quantityInGrams:
+                  quantities[item['id']?.toString() ?? barcode] ??
                   (item['quantity_in_grams'] as int),
               mealType: mealType,
             );
           }).toList();
-          final foodEntryIds =
-              await DatabaseHelper.instance.insertMealEntryWithFoodEntries(
-                  MealEntry(
-                    id: const Uuid().v4(),
-                    title: meal['name'] as String,
-                    consumedAt: date,
-                    mealType: mealType,
-                    source: 'template',
-                  ),
-                  foodEntries);
+          final foodEntryIds = await DatabaseHelper.instance
+              .insertMealEntryWithFoodEntries(
+                MealEntry(
+                  id: const Uuid().v4(),
+                  title: meal['name'] as String,
+                  consumedAt: date,
+                  mealType: mealType,
+                  source: 'template',
+                ),
+                foodEntries,
+              );
           for (var i = 0; i < foodEntries.length; i++) {
             final barcode = foodEntries[i].barcode;
             final quantity = foodEntries[i].quantityInGrams;
@@ -210,9 +215,9 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
           }
           if (!mounted) return;
           HapticFeedbackService.instance.confirmationFeedback();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.mealAddedToDiarySuccess)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.mealAddedToDiarySuccess)));
         },
       ),
     );
@@ -282,27 +287,22 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       if (baseline != null) {
         if (chartPoints.isEmpty) {
           chartPoints = [
-            ChartDataPoint(
-              date: activeGoal.startDate,
-              value: baseline,
-            ),
+            ChartDataPoint(date: activeGoal.startDate, value: baseline),
           ];
         } else if (chartPoints.first.date.isAfter(activeGoal.startDate)) {
           chartPoints.insert(
             0,
-            ChartDataPoint(
-              date: activeGoal.startDate,
-              value: baseline,
-            ),
+            ChartDataPoint(date: activeGoal.startDate, value: baseline),
           );
         }
       }
     }
 
-    final recommendationState =
-        await _recommendationService.loadState(refreshIfDue: refreshIfDue);
-    final recentDailyIntakes =
-        await const MacroAnalyticsDataAdapter().fetchRecentDays(days: 7);
+    final recommendationState = await _recommendationService.loadState(
+      refreshIfDue: refreshIfDue,
+    );
+    final recentDailyIntakes = await const MacroAnalyticsDataAdapter()
+        .fetchRecentDays(days: 7);
 
     return {
       'meals': meals,
@@ -320,8 +320,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     if (_isApplyingRecommendation) return;
     setState(() => _isApplyingRecommendation = true);
 
-    final applied =
-        await _recommendationService.applyLatestRecommendationToActiveTargets();
+    final applied = await _recommendationService
+        .applyLatestRecommendationToActiveTargets();
     if (!mounted) return;
     setState(() => _isApplyingRecommendation = false);
 
@@ -350,9 +350,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
 
     final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.adaptiveRecommendationRecalculatedSnack),
-      ),
+      SnackBar(content: Text(l10n.adaptiveRecommendationRecalculatedSnack)),
     );
     await _refreshData();
   }
@@ -421,8 +419,9 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
           final chartPoints =
               (data['chartPoints'] as List<ChartDataPoint>?) ?? const [];
           final pendingReview = data['pendingReview'] as GoalReviewRecord?;
-          final recommendationState = data['recommendationState']
-              as AdaptiveNutritionRecommendationState;
+          final recommendationState =
+              data['recommendationState']
+                  as AdaptiveNutritionRecommendationState;
 
           return RefreshIndicator(
             onRefresh: _refreshData,
@@ -436,8 +435,9 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                   chartPoints: chartPoints,
                   onRefresh: _refreshData,
                   onBaselineRecorded: () async {
-                    await _goalRepository
-                        .captureMissingBaseline(activeGoal!.id);
+                    await _goalRepository.captureMissingBaseline(
+                      activeGoal!.id,
+                    );
                     await _refreshData();
                   },
                   bleedChartToEdges: true,
@@ -473,9 +473,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 // contains the recommendation, so the standalone card returns
                 // after the review has been completed.
                 if (pendingReview == null) ...[
-                  AppSectionHeader(
-                    title: l10n.adaptiveRecommendationCardTitle,
-                  ),
+                  AppSectionHeader(title: l10n.adaptiveRecommendationCardTitle),
                   _buildGoalsAndRecommendationCard(
                     context,
                     recommendationState,
@@ -533,12 +531,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                     child: Text(
                       l10n.emptyStateNutritionRecipesCallout,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
-                            height: 1.3,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurface
+                            .withValues(alpha: 0.6),
+                        height: 1.3,
+                      ),
                     ),
                   )
                 else
@@ -616,10 +612,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                           meal['name'] as String,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                       PlatformAdaptivePopupMenu<String>(
@@ -629,36 +623,43 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                         ),
                         items: [
                           PlatformAdaptivePopupMenuItem(
-                              value: 'share',
-                              label: l10n.share,
-                              icon: DesignConstants.adaptiveShareIcon),
+                            value: 'share',
+                            label: l10n.share,
+                            icon: DesignConstants.adaptiveShareIcon,
+                          ),
                           PlatformAdaptivePopupMenuItem(
-                              value: 'edit',
-                              label: l10n.mealsEdit,
-                              icon: LucideIcons.pencil),
+                            value: 'edit',
+                            label: l10n.mealsEdit,
+                            icon: LucideIcons.pencil,
+                          ),
                           PlatformAdaptivePopupMenuItem(
-                              value: 'duplicate',
-                              label: l10n.mealDuplicate,
-                              icon: LucideIcons.copy),
+                            value: 'duplicate',
+                            label: l10n.mealDuplicate,
+                            icon: LucideIcons.copy,
+                          ),
                           PlatformAdaptivePopupMenuItem(
-                              value: 'delete',
-                              label: l10n.mealsDelete,
-                              icon: LucideIcons.trash,
-                              isDestructive: true),
+                            value: 'delete',
+                            label: l10n.mealsDelete,
+                            icon: LucideIcons.trash,
+                            isDestructive: true,
+                          ),
                         ],
                         onSelected: (action) async {
                           switch (action) {
                             case 'share':
                               await const ShareService().showRecipeShareSheet(
-                                  context: context, meal: meal);
+                                context: context,
+                                meal: meal,
+                              );
                               break;
                             case 'edit':
                               await openRecipe(edit: true);
                               break;
                             case 'duplicate':
                               await DatabaseHelper.instance.duplicateMeal(
-                                  meal['id'] as int,
-                                  copySuffix: l10n.mealCopySuffix);
+                                meal['id'] as int,
+                                copySuffix: l10n.mealCopySuffix,
+                              );
                               await _refreshData();
                               break;
                             case 'delete':
@@ -672,8 +673,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                   FutureBuilder<String?>(
                     future: _mealIngredientSummary(
                       meal['id'] as int,
-                      languageCode:
-                          Localizations.localeOf(context).languageCode,
+                      languageCode: Localizations.localeOf(context)
+                          .languageCode,
                     ),
                     builder: (context, snapshot) {
                       final summary = snapshot.data;
@@ -688,13 +689,11 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                           summary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.62),
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface
+                                    .withValues(alpha: 0.62),
+                              ),
                         ),
                       );
                     },
@@ -730,9 +729,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     await DatabaseHelper.instance.deleteMeal(meal['id'] as int);
     await _refreshData();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.mealDeleted)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.mealDeleted)));
     }
   }
 

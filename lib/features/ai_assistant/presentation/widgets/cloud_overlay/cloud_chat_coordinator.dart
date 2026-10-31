@@ -31,7 +31,8 @@ class CloudChatCoordinator extends ChangeNotifier {
     String message, {
     String? actionLabel,
     VoidCallback? onAction,
-  })? onShowMessage;
+  })?
+  onShowMessage;
   final ValueGetter<bool> isExpandedGetter;
   final ValueGetter<bool> isDockedSettledGetter;
   final ValueGetter<String> localeGetter;
@@ -93,8 +94,9 @@ class CloudChatCoordinator extends ChangeNotifier {
     _waitingHaptics = CloudWaitingHapticsHandler(
       isExpandedGetter: isExpandedGetter,
     );
-    AiService.instance.configurationRevision
-        .addListener(_handleAiConfigurationChanged);
+    AiService.instance.configurationRevision.addListener(
+      _handleAiConfigurationChanged,
+    );
     unawaited(refreshCurrentModelName());
   }
 
@@ -125,7 +127,7 @@ class CloudChatCoordinator extends ChangeNotifier {
   String? get composerModelName => !useLiveAi
       ? 'Demo'
       : _currentModelName ??
-          (_chatTurns.isNotEmpty ? _chatTurns.last.modelName : null);
+            (_chatTurns.isNotEmpty ? _chatTurns.last.modelName : null);
 
   void markAttentionPeekDismissed() {
     _attentionPeekDismissed = true;
@@ -187,8 +189,10 @@ class CloudChatCoordinator extends ChangeNotifier {
     if (modelClient != null) {
       try {
         final identity = await modelClient!.identity();
-        final formatted =
-            formatModelDisplayName(identity.providerId, identity.modelId);
+        final formatted = formatModelDisplayName(
+          identity.providerId,
+          identity.modelId,
+        );
         if (formatted != null) return formatted;
       } catch (_) {}
     }
@@ -223,11 +227,13 @@ class CloudChatCoordinator extends ChangeNotifier {
     final latest = loaded.first;
     final isRecent =
         DateTime.now().toUtc().difference(latest.updatedAt.toUtc()) <
-            conversationInactivityLimit;
+        conversationInactivityLimit;
     final pending = isRecent
         ? null
-        : await _historyManager.repository
-            ?.latestAccess(latest.id, status: 'pending');
+        : await _historyManager.repository?.latestAccess(
+            latest.id,
+            status: 'pending',
+          );
     if (_isDisposed ||
         _conversationSelectionRevision != revision ||
         !(canRestoreInitialConversation?.call() ?? true)) {
@@ -319,11 +325,13 @@ class CloudChatCoordinator extends ChangeNotifier {
     if (prompt.trim().isEmpty && imageFiles.isEmpty) return;
     _conversationSelectionRevision++;
     if (useLiveAi) {
-      unawaited(_sendAssistantPrompt(
-        prompt.trim(),
-        imageFiles: imageFiles,
-        onRetainedDraft: onRetainedDraft,
-      ));
+      unawaited(
+        _sendAssistantPrompt(
+          prompt.trim(),
+          imageFiles: imageFiles,
+          onRetainedDraft: onRetainedDraft,
+        ),
+      );
     } else if (imageFiles.isNotEmpty) {
       onShowMessage?.call('Image attachments are unavailable in preview mode.');
       onRetainedDraft?.call();
@@ -361,16 +369,18 @@ class CloudChatCoordinator extends ChangeNotifier {
     onScrollToBottom?.call(force: true);
 
     unawaited(
-      enterFuture.then((_) {
-        return _demoRunner.startStreamingAfterLoadingCloud(
-          loadingCloud: _loadingCloud,
-          isStillActive: () =>
-              !_isDisposed &&
-              _activeGenerationId == generationId &&
-              _isGenerating,
-          onWord: _handleDemoWordEmitted,
-        );
-      }).catchError((_) {}),
+      enterFuture
+          .then((_) {
+            return _demoRunner.startStreamingAfterLoadingCloud(
+              loadingCloud: _loadingCloud,
+              isStillActive: () =>
+                  !_isDisposed &&
+                  _activeGenerationId == generationId &&
+                  _isGenerating,
+              onWord: _handleDemoWordEmitted,
+            );
+          })
+          .catchError((_) {}),
     );
   }
 
@@ -408,21 +418,25 @@ class CloudChatCoordinator extends ChangeNotifier {
     }
 
     final obsoleteProposals = _chatTurns
-        .where((turn) =>
-            turn.changeProposal != null &&
-            !turn.isApplyingProposal &&
-            (turn.proposalStatus == 'proposal_pending' ||
-                turn.proposalStatus == 'proposal_rejected') &&
-            turn.assistantMessageId != null)
+        .where(
+          (turn) =>
+              turn.changeProposal != null &&
+              !turn.isApplyingProposal &&
+              (turn.proposalStatus == 'proposal_pending' ||
+                  turn.proposalStatus == 'proposal_rejected') &&
+              turn.assistantMessageId != null,
+        )
         .toList(growable: false);
     for (final oldTurn in obsoleteProposals) {
       try {
         await _liveRunner.supersedeProposal(oldTurn.assistantMessageId!);
       } catch (error) {
         onRetainedDraft?.call();
-        onShowMessage?.call(isDe
-            ? 'Der offene Entwurf konnte nicht geschlossen werden. Bitte versuche es erneut.'
-            : 'The open draft could not be closed. Please try again.');
+        onShowMessage?.call(
+          isDe
+              ? 'Der offene Entwurf konnte nicht geschlossen werden. Bitte versuche es erneut.'
+              : 'The open draft could not be closed. Please try again.',
+        );
         return;
       }
       oldTurn.changeProposal = null;
@@ -444,12 +458,14 @@ class CloudChatCoordinator extends ChangeNotifier {
     _permissionApproved = null;
     notifyListeners();
 
-    unawaited(_resolveCurrentModelName().then((name) {
-      if (_isDisposed) return;
-      _currentModelName = name;
-      turn.modelName ??= name;
-      notifyListeners();
-    }));
+    unawaited(
+      _resolveCurrentModelName().then((name) {
+        if (_isDisposed) return;
+        _currentModelName = name;
+        turn.modelName ??= name;
+        notifyListeners();
+      }),
+    );
 
     _waitingHaptics.sync(isGenerating: true);
     onGenerationChanged?.call(true);
@@ -478,8 +494,10 @@ class CloudChatCoordinator extends ChangeNotifier {
         notifyListeners();
         _waitingHaptics.sync(isGenerating: false);
         onGenerationChanged?.call(false);
-        onShowMessage?.call(submission.clarification ??
-            'The selected AI model does not support images.');
+        onShowMessage?.call(
+          submission.clarification ??
+              'The selected AI model does not support images.',
+        );
         onRetainedDraft?.call();
         return;
       }
@@ -490,8 +508,8 @@ class CloudChatCoordinator extends ChangeNotifier {
       turn.access = submission.access;
       turn.modelName =
           formatModelDisplayName(submission.providerId, submission.modelId) ??
-              _currentModelName ??
-              turn.modelName;
+          _currentModelName ??
+          turn.modelName;
 
       await _loadingCloud.hide();
       if (_isDisposed || _activeGenerationId != generationId) return;
@@ -550,9 +568,11 @@ class CloudChatCoordinator extends ChangeNotifier {
         _waitingHaptics.sync(isGenerating: false);
         onGenerationChanged?.call(false);
         final isDe = locale.toLowerCase().startsWith('de');
-        onShowMessage?.call(isDe
-            ? 'Das ausgewählte KI-Modell unterstützt keine Bilder. Dein Entwurf bleibt im Eingabefeld.'
-            : 'The selected AI model does not support images. Your draft remains in the composer.');
+        onShowMessage?.call(
+          isDe
+              ? 'Das ausgewählte KI-Modell unterstützt keine Bilder. Dein Entwurf bleibt im Eingabefeld.'
+              : 'The selected AI model does not support images. Your draft remains in the composer.',
+        );
         onRetainedDraft?.call();
         return;
       }
@@ -602,8 +622,8 @@ class CloudChatCoordinator extends ChangeNotifier {
           'input_mode': imageFiles.isEmpty
               ? 'text'
               : prompt.trim().isEmpty
-                  ? 'image'
-                  : 'multimodal',
+              ? 'image'
+              : 'multimodal',
           'image_count': imageFiles.length,
         },
       ),
@@ -649,27 +669,29 @@ class CloudChatCoordinator extends ChangeNotifier {
         _liveRunner
             .denyAccess(accessId: access.id, locale: locale)
             .then((message) {
-          if (_isDisposed || _chatTurns.isEmpty) return;
-          if (message != null) {
-            _chatTurns.last.response = message.content;
-          }
-          if (_chatTurns.last.generationStartedAt != null) {
-            _chatTurns.last.duration =
-                DateTime.now().difference(_chatTurns.last.generationStartedAt!);
-          }
-          _chatTurns.last.modelName ??=
-              formatModelDisplayName(access.providerId, access.modelId) ??
+              if (_isDisposed || _chatTurns.isEmpty) return;
+              if (message != null) {
+                _chatTurns.last.response = message.content;
+              }
+              if (_chatTurns.last.generationStartedAt != null) {
+                _chatTurns.last.duration = DateTime.now().difference(
+                  _chatTurns.last.generationStartedAt!,
+                );
+              }
+              _chatTurns.last.modelName ??=
+                  formatModelDisplayName(access.providerId, access.modelId) ??
                   _currentModelName;
-          notifyListeners();
-          unawaited(refreshTurnAccess(access.id));
-          unawaited(_loadAssistantHistory());
-          onScrollToBottom?.call();
-        }).catchError((Object error) {
-          if (!_isDisposed && _chatTurns.isNotEmpty) {
-            _chatTurns.last.response = error.toString();
-            notifyListeners();
-          }
-        }),
+              notifyListeners();
+              unawaited(refreshTurnAccess(access.id));
+              unawaited(_loadAssistantHistory());
+              onScrollToBottom?.call();
+            })
+            .catchError((Object error) {
+              if (!_isDisposed && _chatTurns.isNotEmpty) {
+                _chatTurns.last.response = error.toString();
+                notifyListeners();
+              }
+            }),
       );
       return;
     }
@@ -685,18 +707,20 @@ class CloudChatCoordinator extends ChangeNotifier {
       _chatTurns.last.progressStatus = AssistantProgressStatus.thinking;
       _chatTurns.last.modelName ??=
           formatModelDisplayName(access.providerId, access.modelId) ??
-              _currentModelName;
+          _currentModelName;
     }
     notifyListeners();
 
-    unawaited(_resolveCurrentModelName().then((name) {
-      if (_isDisposed) return;
-      _currentModelName = name;
-      if (_chatTurns.isNotEmpty) {
-        _chatTurns.last.modelName ??= name;
-      }
-      notifyListeners();
-    }));
+    unawaited(
+      _resolveCurrentModelName().then((name) {
+        if (_isDisposed) return;
+        _currentModelName = name;
+        if (_chatTurns.isNotEmpty) {
+          _chatTurns.last.modelName ??= name;
+        }
+        notifyListeners();
+      }),
+    );
 
     _loadingCloud.show();
     _waitingHaptics.sync(isGenerating: true);
@@ -838,7 +862,8 @@ class CloudChatCoordinator extends ChangeNotifier {
       onGenerationChanged?.call(true);
       _demoRunner.startWordTicker(onWord: _handleDemoWordEmitted);
       _demoRunner.scheduleContinuationTimer(
-          onComplete: _completeDemoGeneration);
+        onComplete: _completeDemoGeneration,
+      );
       onScrollToBottom?.call();
       return;
     }
@@ -854,12 +879,15 @@ class CloudChatCoordinator extends ChangeNotifier {
   Future<void> refreshTurnAccess(String accessId) async {
     final access = await _historyManager.getAccess(accessId);
     if (_isDisposed || access == null) return;
-    final index =
-        _chatTurns.indexWhere((turn) => turn.userMessageId == access.messageId);
+    final index = _chatTurns.indexWhere(
+      (turn) => turn.userMessageId == access.messageId,
+    );
     if (index >= 0) {
       _chatTurns[index].access = access;
-      final modelDisplay =
-          formatModelDisplayName(access.providerId, access.modelId);
+      final modelDisplay = formatModelDisplayName(
+        access.providerId,
+        access.modelId,
+      );
       if (modelDisplay != null) {
         _chatTurns[index].modelName = modelDisplay;
       }
@@ -889,8 +917,9 @@ class CloudChatCoordinator extends ChangeNotifier {
     if (_chatTurns.isNotEmpty) {
       final lastTurn = _chatTurns.last;
       if (lastTurn.generationStartedAt != null && lastTurn.duration == null) {
-        lastTurn.duration =
-            DateTime.now().difference(lastTurn.generationStartedAt!);
+        lastTurn.duration = DateTime.now().difference(
+          lastTurn.generationStartedAt!,
+        );
       }
       lastTurn.modelName ??= useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
       if (lastTurn.response.isEmpty) {
@@ -921,8 +950,9 @@ class CloudChatCoordinator extends ChangeNotifier {
     if (_chatTurns.isNotEmpty) {
       final lastTurn = _chatTurns.last;
       if (lastTurn.generationStartedAt != null) {
-        lastTurn.duration =
-            DateTime.now().difference(lastTurn.generationStartedAt!);
+        lastTurn.duration = DateTime.now().difference(
+          lastTurn.generationStartedAt!,
+        );
       }
       lastTurn.modelName ??= useLiveAi ? (_currentModelName ?? 'KI') : 'Demo';
     }
@@ -1038,10 +1068,7 @@ class CloudChatCoordinator extends ChangeNotifier {
     onShowMessage?.call('Kompletter Chat im Markdown-Format kopiert');
   }
 
-  void retryTurnPrompt(
-    AiChatTurn turn, {
-    ValueChanged<String>? onFillPrompt,
-  }) {
+  void retryTurnPrompt(AiChatTurn turn, {ValueChanged<String>? onFillPrompt}) {
     if (_isGenerating) return;
     final prompt = turn.prompt.trim();
     if (prompt.isEmpty) return;
@@ -1060,8 +1087,9 @@ class CloudChatCoordinator extends ChangeNotifier {
     final gate = _additionalAccessGate;
     _additionalAccessGate = null;
     if (gate != null && !gate.isCompleted) gate.complete(false);
-    AiService.instance.configurationRevision
-        .removeListener(_handleAiConfigurationChanged);
+    AiService.instance.configurationRevision.removeListener(
+      _handleAiConfigurationChanged,
+    );
     _liveRunner.dispose();
     _demoRunner.dispose();
     _waitingHaptics.dispose();

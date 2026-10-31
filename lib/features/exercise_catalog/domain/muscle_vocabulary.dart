@@ -57,8 +57,10 @@ class MuscleVocabulary {
 
   const MuscleVocabulary({required this.byId, required this.namesById});
 
-  static const MuscleVocabulary empty =
-      MuscleVocabulary(byId: {}, namesById: {});
+  static const MuscleVocabulary empty = MuscleVocabulary(
+    byId: {},
+    namesById: {},
+  );
 
   bool get isEmpty => byId.isEmpty;
 
@@ -101,8 +103,10 @@ class MuscleVocabulary {
 
       final namesById = <String, Map<String, String>>{};
       for (final row in await db.select(db.muscleTranslations).get()) {
-        namesById.putIfAbsent(row.muscleId, () => <String, String>{})[
-            row.languageCode.trim().toLowerCase()] = row.name;
+        namesById.putIfAbsent(
+          row.muscleId,
+          () => <String, String>{},
+        )[row.languageCode.trim().toLowerCase()] = row.name;
       }
 
       return MuscleVocabulary(byId: byId, namesById: namesById);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../util/design_constants.dart';
 import 'summary_card.dart';
 
@@ -61,17 +62,20 @@ class _OperationProgressWidgetState extends State<OperationProgressWidget>
     final widget = this.widget;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isDeterminate = widget.progress != null &&
+    final isDeterminate =
+        widget.progress != null &&
         widget.progress! >= 0.0 &&
         widget.progress! <= 1.0;
-    final normalizedProgress =
-        isDeterminate ? widget.progress!.clamp(0.0, 1.0) : null;
-    final percentageText =
-        isDeterminate ? '${(normalizedProgress! * 100).round()}%' : null;
+    final normalizedProgress = isDeterminate
+        ? widget.progress!.clamp(0.0, 1.0)
+        : null;
+    final percentageText = isDeterminate
+        ? '${(normalizedProgress! * 100).round()}%'
+        : null;
     final statusText =
         (widget.detail != null && widget.detail!.trim().isNotEmpty)
-            ? widget.detail!.trim().replaceFirst(RegExp(r'(\.{1,3}|…)\s*$'), '')
-            : null;
+        ? widget.detail!.trim().replaceFirst(RegExp(r'(\.{1,3}|…)\s*$'), '')
+        : null;
     final hasStatusRow = statusText != null || percentageText != null;
 
     return ConstrainedBox(
@@ -124,8 +128,16 @@ class _OperationProgressWidgetState extends State<OperationProgressWidget>
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
-          _buildProgressContent(context, theme, widget, statusText,
-              percentageText, normalizedProgress, isDark, hasStatusRow),
+          _buildProgressContent(
+            context,
+            theme,
+            widget,
+            statusText,
+            percentageText,
+            normalizedProgress,
+            isDark,
+            hasStatusRow,
+          ),
         ],
       ),
     );
@@ -169,10 +181,12 @@ class _OperationProgressWidgetState extends State<OperationProgressWidget>
                         text: statusText,
                         children: [
                           TextSpan(
-                            text: '.' *
-                                ((_dotsController.value * 4)
-                                    .floor()
-                                    .clamp(0, 3)),
+                            text:
+                                '.' *
+                                ((_dotsController.value * 4).floor().clamp(
+                                  0,
+                                  3,
+                                )),
                           ),
                         ],
                       ),

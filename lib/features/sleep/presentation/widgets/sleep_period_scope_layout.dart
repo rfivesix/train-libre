@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/timeframe_label_formatter.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -54,11 +56,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 56;
     final localeCode = Localizations.localeOf(context).languageCode;
     final timeframeFilter = TimeRangeFilter(
-      ranges: [
-        l10n.sleepScopeDay,
-        l10n.sleepScopeWeek,
-        l10n.sleepScopeMonth,
-      ],
+      ranges: [l10n.sleepScopeDay, l10n.sleepScopeWeek, l10n.sleepScopeMonth],
       selectedIndex: selectedScope.index,
       onSelected: (index) => onScopeChanged(SleepPeriodScope.values[index]),
       onPrevious: () => onShiftPeriod(-1),
@@ -81,9 +79,9 @@ class SleepPeriodScopeLayout extends StatelessWidget {
       nextEnabled: isRolling
           ? false
           : selectedScope.block
-              .getBounds(anchorDate, DateTime(2020))
-              .end
-              .isBefore(DateTime.now()),
+                .getBounds(anchorDate, DateTime(2020))
+                .end
+                .isBefore(DateTime.now()),
     );
 
     return Scaffold(
@@ -98,8 +96,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
             technicalTitle: l10n.infoSleepTechnicalTitle,
             technicalExplanation: l10n.infoSleepTechnicalExplanation,
             markdownAssetPath: 'documentation/features/sleep_scoring_engine.md',
-            citationUrl:
-                'https://trainlibre.com/docs/features/sleep-scoring-engine/#evidence',
+            citationUrl: 'https://trainlibre.com/docs/features/sleep-scoring-engine/#evidence',
             iconColor: Theme.of(context).colorScheme.onSurface,
           ),
         ],
@@ -135,9 +132,8 @@ class SleepPeriodScopeLayout extends StatelessWidget {
         final end = start.add(const Duration(days: 6));
         return '${DateFormat.MMMd(localeCode).format(start)} - ${DateFormat.MMMd(localeCode).format(end)}';
       case SleepPeriodScope.month:
-        return DateFormat.yMMMM(
-          localeCode,
-        ).format(DateTime(normalized.year, normalized.month, 1));
+        return DateFormat.yMMMM(localeCode)
+            .format(DateTime(normalized.year, normalized.month, 1));
     }
   }
 }

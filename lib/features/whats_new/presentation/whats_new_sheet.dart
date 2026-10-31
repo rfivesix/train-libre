@@ -67,10 +67,12 @@ Future<void> showAiAssistantUpdateIntroSheet(
 }) async {
   final l10n = AppLocalizations.of(context);
   if (l10n == null) return;
-  unawaited(TelemetryService.instance.track(
-    'ai_assistant_update_intro_viewed',
-    properties: {'release_version': '1.7.0', 'source': 'standalone'},
-  ));
+  unawaited(
+    TelemetryService.instance.track(
+      'ai_assistant_update_intro_viewed',
+      properties: {'release_version': '1.7.0', 'source': 'standalone'},
+    ),
+  );
   await showGlassBottomMenu<void>(
     context: context,
     title: l10n.aiAssistantUpdateIntroTitle,
@@ -78,9 +80,7 @@ Future<void> showAiAssistantUpdateIntroSheet(
     contentBuilder: (ctx, close) => Column(
       mainAxisSize: MainAxisSize.max,
       children: [
-        const Expanded(
-          child: _AiAssistantUpdateIntro(fillAvailable: true),
-        ),
+        const Expanded(child: _AiAssistantUpdateIntro(fillAvailable: true)),
         const SizedBox(height: DesignConstants.spacingM),
         AppButton.primary(
           label: l10n.whatsNewCta,
@@ -113,9 +113,9 @@ class _WhatsNewContent extends StatelessWidget {
     final label = l10n.whatsNewVersionHeader(release.version);
     final date = release.releaseDate;
     if (date == null) return label;
-    final formatted =
-        DateFormat.yMMMd(Localizations.localeOf(context).toString())
-            .format(date);
+    final formatted = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString(),
+    ).format(date);
     return '$label · $formatted';
   }
 
@@ -236,8 +236,9 @@ class _AiAssistantUpdateIntro extends StatelessWidget {
                 return PlatformAdaptiveSwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.aiAssistantUpdateIntroLauncherEnabled),
-                  subtitle:
-                      Text(l10n.aiAssistantUpdateIntroLauncherEnabledHint),
+                  subtitle: Text(
+                    l10n.aiAssistantUpdateIntroLauncherEnabledHint,
+                  ),
                   value: settings.enabled,
                   onChanged: aiEnabled
                       ? (enabled) {
@@ -279,10 +280,12 @@ class _AssistantPreviewChat extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final cloudColor =
-        theme.brightness == Brightness.dark ? Colors.white : Colors.black;
-    final cloudTextColor =
-        theme.brightness == Brightness.dark ? Colors.black : Colors.white;
+    final cloudColor = theme.brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+    final cloudTextColor = theme.brightness == Brightness.dark
+        ? Colors.black
+        : Colors.white;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -323,8 +326,10 @@ class _AssistantPreviewChat extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 18,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -374,9 +379,8 @@ class _AssistantPreviewQuestion extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark ? Colors.white : colors.onPrimary,
-            ),
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(color: isDark ? Colors.white : colors.onPrimary),
       ),
     );
   }
@@ -409,14 +413,11 @@ class _WhatsNewEntryTile extends StatelessWidget {
             height: 38,
             decoration: BoxDecoration(
               color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
             ),
-            child: Icon(
-              entry.icon,
-              size: 20,
-              color: theme.colorScheme.primary,
-            ),
+            child: Icon(entry.icon, size: 20, color: theme.colorScheme.primary),
           ),
           const SizedBox(width: DesignConstants.spacingM),
           Expanded(

@@ -17,8 +17,9 @@ void main() {
 
   setUp(() async {
     workDir = await Directory.systemTemp.createTemp('icloud_copy_test');
-    live =
-        AppDatabase(NativeDatabase(File(p.join(workDir.path, 'live.sqlite'))));
+    live = AppDatabase(
+      NativeDatabase(File(p.join(workDir.path, 'live.sqlite'))),
+    );
   });
 
   tearDown(() async {
@@ -55,8 +56,10 @@ void main() {
       (snapshot) => insertProfile(snapshot, 'backed-up', 'From the backup'),
     );
 
-    await ICloudSyncService.instance
-        .copySnapshotIntoLiveDatabaseForTesting(live, snapshotPath);
+    await ICloudSyncService.instance.copySnapshotIntoLiveDatabaseForTesting(
+      live,
+      snapshotPath,
+    );
 
     // Not merged: a restore means the backup's state, not both states.
     expect(await usernames(live), ['From the backup']);
@@ -69,16 +72,22 @@ void main() {
       (snapshot) => insertProfile(snapshot, 'backed-up', 'From the backup'),
     );
 
-    await ICloudSyncService.instance
-        .copySnapshotIntoLiveDatabaseForTesting(live, snapshotPath);
+    await ICloudSyncService.instance.copySnapshotIntoLiveDatabaseForTesting(
+      live,
+      snapshotPath,
+    );
 
     await insertProfile(live, 'after', 'Written after the restore');
     expect(await usernames(live), hasLength(2));
 
-    final foreignKeys =
-        await live.customSelect('PRAGMA foreign_keys').getSingle();
-    expect(foreignKeys.read<int>('foreign_keys'), 1,
-        reason: 'foreign keys must be back on once the copy is done');
+    final foreignKeys = await live
+        .customSelect('PRAGMA foreign_keys')
+        .getSingle();
+    expect(
+      foreignKeys.read<int>('foreign_keys'),
+      1,
+      reason: 'foreign keys must be back on once the copy is done',
+    );
   });
 
   test('carries the preferences table the restore reads afterwards', () async {
@@ -100,11 +109,14 @@ void main() {
       '(key TEXT PRIMARY KEY, value TEXT)',
     );
 
-    await ICloudSyncService.instance
-        .copySnapshotIntoLiveDatabaseForTesting(live, snapshotPath);
+    await ICloudSyncService.instance.copySnapshotIntoLiveDatabaseForTesting(
+      live,
+      snapshotPath,
+    );
 
-    final rows =
-        await live.customSelect('SELECT value FROM system_preferences').get();
+    final rows = await live
+        .customSelect('SELECT value FROM system_preferences')
+        .get();
     expect(rows.single.read<String>('value'), 'b:true');
   });
 
@@ -117,8 +129,10 @@ void main() {
 
     await insertProfile(live, 'local', 'Newer feature row');
 
-    await ICloudSyncService.instance
-        .copySnapshotIntoLiveDatabaseForTesting(live, snapshotPath);
+    await ICloudSyncService.instance.copySnapshotIntoLiveDatabaseForTesting(
+      live,
+      snapshotPath,
+    );
 
     expect(await usernames(live), ['Newer feature row']);
   });
@@ -139,8 +153,10 @@ void main() {
       'CREATE TABLE "evil""; DROP TABLE profiles; --" (id TEXT)',
     );
 
-    await ICloudSyncService.instance
-        .copySnapshotIntoLiveDatabaseForTesting(live, snapshotPath);
+    await ICloudSyncService.instance.copySnapshotIntoLiveDatabaseForTesting(
+      live,
+      snapshotPath,
+    );
 
     // The well-named table still restored, and the live schema is intact.
     expect(await usernames(live), ['From the backup']);
@@ -150,10 +166,9 @@ void main() {
           "AND name NOT LIKE 'sqlite_%'",
         )
         .get();
-    expect(
-      [for (final row in tables) row.read<String>('name')],
-      contains('profiles'),
-    );
+    expect([
+      for (final row in tables) row.read<String>('name'),
+    ], contains('profiles'));
   });
 
   test('restores the columns both sides share when they differ', () async {
@@ -168,8 +183,10 @@ void main() {
       await insertProfile(snapshot, 'old-build', 'From an older build');
     });
 
-    await ICloudSyncService.instance
-        .copySnapshotIntoLiveDatabaseForTesting(live, snapshotPath);
+    await ICloudSyncService.instance.copySnapshotIntoLiveDatabaseForTesting(
+      live,
+      snapshotPath,
+    );
 
     expect(await usernames(live), ['From an older build']);
   });

@@ -29,8 +29,10 @@ import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/app_initializer_screen.dart';
+
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
@@ -45,9 +47,9 @@ class SettingsScreen extends StatefulWidget {
     SleepSettingsService? sleepSyncService,
     SleepPermissionController? sleepPermissionController,
     TrainingAutonomyService? trainingAutonomyService,
-  })  : _sleepSyncService = sleepSyncService,
-        _sleepPermissionController = sleepPermissionController,
-        _trainingAutonomyService = trainingAutonomyService;
+  }) : _sleepSyncService = sleepSyncService,
+       _sleepPermissionController = sleepPermissionController,
+       _trainingAutonomyService = trainingAutonomyService;
 
   final SleepSettingsService? _sleepSyncService;
   final SleepPermissionController? _sleepPermissionController;
@@ -78,15 +80,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _ownsSleepSyncService = widget._sleepSyncService == null;
     _sleepSyncService = widget._sleepSyncService ?? SleepSyncService();
     _ownsSleepPermissionController = widget._sleepPermissionController == null;
-    _sleepPermissionController = widget._sleepPermissionController ??
+    _sleepPermissionController =
+        widget._sleepPermissionController ??
         _sleepSyncService.buildPermissionController();
 
     _loadDiaryOverviewSettings();
     _loadOffCatalogSettings();
     _loadBaseFoodLanguage();
     _loadTelemetryOptIn();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.settingsMain));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.settingsMain,
+      ),
+    );
   }
 
   Future<void> _loadTelemetryOptIn() async {
@@ -107,8 +113,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadDiaryOverviewSettings() async {
-    final nutrient =
-        await UserPreferencesRepository.instance.getOverviewExtraNutrient();
+    final nutrient = await UserPreferencesRepository.instance
+        .getOverviewExtraNutrient();
     if (!mounted) return;
     setState(() {
       _overviewExtraNutrient = nutrient;
@@ -214,9 +220,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10nNow = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(l10nNow.settingsFoodDbRegionChanged(
-          _baseFoodLanguageLabel(selected, l10nNow),
-        )),
+        content: Text(
+          l10nNow.settingsFoodDbRegionChanged(
+            _baseFoodLanguageLabel(selected, l10nNow),
+          ),
+        ),
       ),
     );
   }
@@ -282,7 +290,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final unitService = context.watch<UnitService>();
-    final trainingAutonomyService = widget._trainingAutonomyService ??
+    final trainingAutonomyService =
+        widget._trainingAutonomyService ??
         Provider.of<TrainingAutonomyService?>(context) ??
         TrainingAutonomyService();
     final currentAutonomy = trainingAutonomyService.level;
@@ -292,7 +301,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final experienceLevelService =
         Provider.of<ExperienceLevelService?>(context) ??
-            ExperienceLevelService();
+        ExperienceLevelService();
     final currentExperienceLevel = experienceLevelService.level;
     final experienceLevelLabel = switch (currentExperienceLevel) {
       ExperienceLevel.beginner => l10n.experienceLevelBeginner,
@@ -378,10 +387,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   });
                   await UserPreferencesRepository.instance
                       .setOverviewExtraNutrient(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'overview_extra_nutrient',
-                    value: value,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'overview_extra_nutrient',
+                      value: value,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -402,8 +413,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
                 icon: AppSettingsRow.navigation(
                   title: l10n.settingsOverviewExtraNutrientTitle,
-                  subtitle:
-                      _getExtraNutrientLabel(l10n, _overviewExtraNutrient),
+                  subtitle: _getExtraNutrientLabel(
+                    l10n,
+                    _overviewExtraNutrient,
+                  ),
                   leading: Icon(
                     _getExtraNutrientIcon(_overviewExtraNutrient),
                     size: 24,
@@ -415,10 +428,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 selectedValue: unitService.unitSystem,
                 onSelected: (value) {
                   unitService.setUnitSystem(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'unit_system',
-                    value: value.name,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'unit_system',
+                      value: value.name,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -450,10 +465,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onSelected: (value) async {
                   if (value == currentExperienceLevel) return;
                   await experienceLevelService.setLevel(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'training_experience_level',
-                    value: value.name,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'training_experience_level',
+                      value: value.name,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -489,10 +506,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onSelected: (value) async {
                   if (value == currentAutonomy) return;
                   await trainingAutonomyService.setLevel(value);
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'training_autonomy_level',
-                    value: value.name,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'training_autonomy_level',
+                      value: value.name,
+                    ),
+                  );
                 },
                 items: [
                   PlatformAdaptivePopupMenuItem(
@@ -615,7 +634,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               AppSettingsRow.navigation(
                 title: l10n.settingsFoodDbRegionTitle,
-                subtitle: '${l10n.settingsFoodDbRegionSubtitle}\n'
+                subtitle:
+                    '${l10n.settingsFoodDbRegionSubtitle}\n'
                     '${l10n.settingsFoodDbRegionCurrent}: '
                     '${_offCountryLabel(_activeOffCatalogCountry, l10n)}',
                 leading: Icon(
@@ -687,10 +707,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   } else {
                     await TelemetryService.instance.optOut();
                   }
-                  unawaited(TelemetryService.instance.trackSettingToggled(
-                    settingKey: 'telemetry_opt_in',
-                    value: value,
-                  ));
+                  unawaited(
+                    TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'telemetry_opt_in',
+                      value: value,
+                    ),
+                  );
                   if (!mounted) return;
                   setState(() => _isTelemetryOptedIn = value);
                 },
@@ -746,11 +768,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               l10n.localDataDeletionCardDescription,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
-                  ),
+                color: Theme.of(context).colorScheme.onSurface
+                    .withValues(alpha: 0.7),
+              ),
             ),
           ),
           const SizedBox(height: DesignConstants.spacingL),
@@ -759,8 +779,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: SizedBox(
               width: double.infinity,
               child: AppButton.danger(
-                onPressed:
-                    _isLocalResetRunning ? null : _confirmAndDeleteLocalData,
+                onPressed: _isLocalResetRunning
+                    ? null
+                    : _confirmAndDeleteLocalData,
                 label: l10n.deleteAllLocalAppData,
                 tooltip: l10n.deleteAllLocalAppData,
                 icon: LucideIcons.trash,
@@ -882,9 +903,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return confirmed ?? false;
   }
 
-  Future<bool> _showLocalDataDeletionConfirmation(
-    AppLocalizations l10n,
-  ) async {
+  Future<bool> _showLocalDataDeletionConfirmation(AppLocalizations l10n) async {
     final controller = TextEditingController();
     final result = await showGlassBottomMenu<bool>(
       context: context,
@@ -897,9 +916,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l10n.localDataDeletionConfirmBody,
-                ),
+                Text(l10n.localDataDeletionConfirmBody),
                 const SizedBox(height: DesignConstants.spacingL),
                 TextField(
                   controller: controller,
@@ -984,10 +1001,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return tile;
     }
 
-    return SummaryCard(
-      padding: EdgeInsets.zero,
-      child: tile,
-    );
+    return SummaryCard(padding: EdgeInsets.zero, child: tile);
   }
 
   String _getExtraNutrientLabel(AppLocalizations l10n, String key) {

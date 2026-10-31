@@ -28,10 +28,11 @@ class StepsSyncService {
   final StepsLocalDataSource _stepsDb;
   bool _isSyncing = false;
 
-  StepsSyncService(
-      {HealthPlatformSteps? platform, StepsLocalDataSource? stepsDb})
-      : _platform = platform ?? const HealthPlatformSteps(),
-        _stepsDb = stepsDb ?? StepsLocalDataSource.instance;
+  StepsSyncService({
+    HealthPlatformSteps? platform,
+    StepsLocalDataSource? stepsDb,
+  }) : _platform = platform ?? const HealthPlatformSteps(),
+       _stepsDb = stepsDb ?? StepsLocalDataSource.instance;
 
   Future<bool> isTrackingEnabled() async {
     final prefs = await SharedPreferences.getInstance();
@@ -216,8 +217,8 @@ class StepsSyncService {
             .toString();
         final externalKey =
             segment.nativeId != null && segment.nativeId!.isNotEmpty
-                ? '$provider:${segment.nativeId}'
-                : '$provider:$fallback';
+            ? '$provider:${segment.nativeId}'
+            : '$provider:$fallback';
         return db.HealthStepSegmentsCompanion.insert(
           provider: provider,
           sourceId: drift.Value(segment.sourceId),

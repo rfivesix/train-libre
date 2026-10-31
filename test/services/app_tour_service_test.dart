@@ -19,21 +19,23 @@ void main() {
     expect(second, isNull);
   });
 
-  test('settings restart requests direct start and resets progress flags',
-      () async {
-    final service = AppTourService.instance;
+  test(
+    'settings restart requests direct start and resets progress flags',
+    () async {
+      final service = AppTourService.instance;
 
-    await service.markCompleted();
-    await service.requestRestartFromSettings();
+      await service.markCompleted();
+      await service.requestRestartFromSettings();
 
-    final entry = await service.consumePendingEntryPoint();
-    final progress = await service.loadProgress();
+      final entry = await service.consumePendingEntryPoint();
+      final progress = await service.loadProgress();
 
-    expect(entry, AppTourEntryPoint.settingsRestart);
-    expect(progress.hasBeenOffered, isTrue);
-    expect(progress.wasCompleted, isFalse);
-    expect(progress.wasSkipped, isFalse);
-  });
+      expect(entry, AppTourEntryPoint.settingsRestart);
+      expect(progress.hasBeenOffered, isTrue);
+      expect(progress.wasCompleted, isFalse);
+      expect(progress.wasSkipped, isFalse);
+    },
+  );
 
   test('skip and complete update persisted progress', () async {
     final service = AppTourService.instance;

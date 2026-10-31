@@ -99,7 +99,9 @@ class ExerciseCategoryBadge extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       padding: const EdgeInsets.symmetric(
-          horizontal: 14, vertical: DesignConstants.spacingS),
+        horizontal: 14,
+        vertical: DesignConstants.spacingS,
+      ),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),

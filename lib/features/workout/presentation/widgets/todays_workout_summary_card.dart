@@ -1,13 +1,17 @@
 // lib/widgets/todays_workout_summary_card.dart
 
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../../../services/unit_service.dart';
 import '../../../../util/time_util.dart';
 import '../../../../widgets/common/summary_card.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A summary card specifically for displaying today's workout activity.
@@ -45,8 +49,10 @@ class TodaysWorkoutSummaryCard extends StatelessWidget {
 
     // Builds the subtitle text with all statistics.
     final unitService = Provider.of<UnitService>(context);
-    final displayVolume =
-        unitService.convertDisplayValue(volume, UnitDimension.weight);
+    final displayVolume = unitService.convertDisplayValue(
+      volume,
+      UnitDimension.weight,
+    );
     final subtitleText =
         '${formatDuration(duration)}  •  ${displayVolume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}  •  ${l10n.setCount(sets)}';
 
@@ -62,7 +68,8 @@ class TodaysWorkoutSummaryCard extends StatelessWidget {
         ),
         title: Text(
           workoutCount > 1
-              ? l10n.workoutsLabel // "Workouts"
+              ? l10n
+                    .workoutsLabel // "Workouts"
               : l10n.workout, // "Workout"
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.brightness == Brightness.dark

@@ -9,18 +9,20 @@ import '../domain/models/food_item.dart';
 import '../domain/models/macro_entry.dart';
 import '../domain/repositories/diary_repository.dart';
 import '../../supplements/domain/models/supplement_log.dart';
+
 import 'package:drift/drift.dart' as drift;
+
 import '../../../../data/drift_database.dart' as db;
 import '../../../../services/telemetry/telemetry_service.dart';
+
 import 'dart:async';
 
 /// Concrete implementation of [IDiaryRepository] implementing database transaction logic.
 class NutritionRepository implements IDiaryRepository {
   final DiaryLocalDataSource _localDataSource;
 
-  NutritionRepository({
-    required DiaryLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+  NutritionRepository({required DiaryLocalDataSource localDataSource})
+    : _localDataSource = localDataSource;
 
   @override
   Stream<DailyGoal?> watchGoalsForDate(DateTime date) {
@@ -153,8 +155,7 @@ class NutritionRepository implements IDiaryRepository {
   Future<void> insertMealEntryWithMacroEntries(
     MealEntry entry,
     List<MacroEntry> macroEntries,
-  ) =>
-      _localDataSource.insertMealEntryWithMacroEntries(entry, macroEntries);
+  ) => _localDataSource.insertMealEntryWithMacroEntries(entry, macroEntries);
 
   @override
   Future<void> updateMealEntry(MealEntry entry) =>

@@ -25,7 +25,9 @@ import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../statistics/domain/timeframe_block.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 
 class MuscleGroupAnalyticsScreen extends StatefulWidget {
@@ -58,19 +60,22 @@ class _MuscleGroupAnalyticsScreenState
   ];
 
   List<String> _timeRanges(AppLocalizations l10n) => [
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter6MonthsShort,
-      ];
+    l10n.filter7DaysShort,
+    l10n.filter1MonthShort,
+    l10n.filter3MonthsShort,
+    l10n.filter6MonthsShort,
+  ];
 
   Map<String, dynamic> _analytics = const {};
 
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.muscleGroupAnalytics));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.muscleGroupAnalytics,
+      ),
+    );
     _loadData();
   }
 
@@ -80,8 +85,10 @@ class _MuscleGroupAnalyticsScreenState
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
-    final daysBack =
-        DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+    final daysBack = DateTime.now()
+        .difference(bounds.start)
+        .inDays
+        .clamp(1, 3650);
 
     final weeksBack = _rangePolicy.resolveWeeksBack(
       metricId: StatisticsMetricId.muscleAnalytics,
@@ -115,10 +122,11 @@ class _MuscleGroupAnalyticsScreenState
     final muscles = (displayAnalytics['muscles'] as List<dynamic>? ?? const [])
         .cast<Map<String, dynamic>>()
         .where((m) {
-      final group = m['muscleGroup'] as String?;
-      return group != 'unclassified' &&
-          !StatisticsPresentationFormatter.isOtherCategoryLabel(group);
-    }).toList(growable: false);
+          final group = m['muscleGroup'] as String?;
+          return group != 'unclassified' &&
+              !StatisticsPresentationFormatter.isOtherCategoryLabel(group);
+        })
+        .toList(growable: false);
 
     final movementPatterns =
         (displayAnalytics['movementPatterns'] as List<dynamic>? ?? const [])
@@ -134,8 +142,10 @@ class _MuscleGroupAnalyticsScreenState
         workload[name] = sets;
       }
     }
-    final highlights =
-        MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
+    final highlights = MuscleColorHelper.mapVolumeToPrimaryColors(
+      context,
+      workload,
+    );
 
     final double totalWeeks =
         ((displayAnalytics['daysBack'] as int?) ?? 7) / 7.0;
@@ -176,11 +186,16 @@ class _MuscleGroupAnalyticsScreenState
           ? null
           : () {
               setState(() {
-                final currentBounds =
-                    _activeBlock.getBounds(DateTime.now(), DateTime(2020));
-                final myBounds =
-                    _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                final isOngoing = !_isRolling &&
+                final currentBounds = _activeBlock.getBounds(
+                  DateTime.now(),
+                  DateTime(2020),
+                );
+                final myBounds = _activeBlock.getBounds(
+                  _anchorDate,
+                  DateTime(2020),
+                );
+                final isOngoing =
+                    !_isRolling &&
                     myBounds.start.isAtSameMomentAs(currentBounds.start);
 
                 if (isOngoing) {
@@ -203,11 +218,16 @@ class _MuscleGroupAnalyticsScreenState
                   _anchorDate = DateTime.now();
                 } else {
                   final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
-                  final previousBounds =
-                      _activeBlock.getBounds(previousAnchor, DateTime(2020));
-                  final myBounds =
-                      _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                  final isPreviousToOngoing = !_isRolling &&
+                  final previousBounds = _activeBlock.getBounds(
+                    previousAnchor,
+                    DateTime(2020),
+                  );
+                  final myBounds = _activeBlock.getBounds(
+                    _anchorDate,
+                    DateTime(2020),
+                  );
+                  final isPreviousToOngoing =
+                      !_isRolling &&
                       myBounds.start.isAtSameMomentAs(previousBounds.start);
 
                   if (isPreviousToOngoing) {
@@ -241,13 +261,15 @@ class _MuscleGroupAnalyticsScreenState
       nextEnabled: _activeBlock == TimeframeBlock.maxBlock
           ? false
           : (_isRolling
-              ? true
-              : !_activeBlock
-                  .getBounds(_anchorDate, DateTime(2020))
-                  .start
-                  .isAtSameMomentAs(_activeBlock
-                      .getBounds(DateTime.now(), DateTime(2020))
-                      .start)),
+                ? true
+                : !_activeBlock
+                      .getBounds(_anchorDate, DateTime(2020))
+                      .start
+                      .isAtSameMomentAs(
+                        _activeBlock
+                            .getBounds(DateTime.now(), DateTime(2020))
+                            .start,
+                      )),
       showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
     );
 
@@ -291,8 +313,9 @@ class _MuscleGroupAnalyticsScreenState
       ),
       onPressed: () {
         setState(() {
-          _view =
-              showGrid ? _MuscleAnalyticsView.grid : _MuscleAnalyticsView.chart;
+          _view = showGrid
+              ? _MuscleAnalyticsView.grid
+              : _MuscleAnalyticsView.chart;
         });
       },
     );
@@ -351,9 +374,9 @@ class _MuscleGroupAnalyticsScreenState
             ? l10n.analyticsVolumeTotal
             : l10n.analyticsVolumeWeeklyAverage,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -370,8 +393,9 @@ class _MuscleGroupAnalyticsScreenState
       height: 320,
       onBodyPartTap: (slug, data) {
         final matched = muscles.firstWhere(
-          (m) => BodySlugMapper.fromRawName(m['muscleGroup'] as String? ?? '')
-              .contains(slug),
+          (m) =>
+              BodySlugMapper.fromRawName(m['muscleGroup'] as String? ?? '')
+                  .contains(slug),
           orElse: () => const <String, dynamic>{},
         );
         if (matched.isNotEmpty) {
@@ -396,9 +420,7 @@ class _MuscleGroupAnalyticsScreenState
           children: [
             _buildDetailRow(
               l10n.analyticsWorkSets,
-              _formatCompact(
-                (muscle['equivalentSets'] as num).toDouble(),
-              ),
+              _formatCompact((muscle['equivalentSets'] as num).toDouble()),
               l10n.analyticsUnitSets,
             ),
             _buildDetailRow(
@@ -422,9 +444,8 @@ class _MuscleGroupAnalyticsScreenState
           const Spacer(),
           Text(
             '$value $unit',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -432,7 +453,9 @@ class _MuscleGroupAnalyticsScreenState
   }
 
   Widget _buildWeeklySetsCard(
-      List<Map<String, dynamic>> muscles, double totalWeeks) {
+    List<Map<String, dynamic>> muscles,
+    double totalWeeks,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     if (muscles.isEmpty) {
       return SizedBox(
@@ -447,33 +470,32 @@ class _MuscleGroupAnalyticsScreenState
       );
     }
 
-    final items = muscles
-        .map(
-          (m) => {
-            'muscleGroup': m['muscleGroup'] as String,
-            // Coverage uses direct primary-muscle working-set counts.
-            'value': _displayVolumeValue(
-              (m['equivalentSets'] as num).toDouble(),
-              totalWeeks,
-            ),
-          },
-        )
-        .where(
-          (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
-            m['muscleGroup'] as String?,
-          ),
-        )
-        .where((m) => (m['value'] as double) > 0)
-        .toList()
-      ..sort(
-        (a, b) => (b['value'] as double).compareTo(a['value'] as double),
-      );
+    final items =
+        muscles
+            .map(
+              (m) => {
+                'muscleGroup': m['muscleGroup'] as String,
+                // Coverage uses direct primary-muscle working-set counts.
+                'value': _displayVolumeValue(
+                  (m['equivalentSets'] as num).toDouble(),
+                  totalWeeks,
+                ),
+              },
+            )
+            .where(
+              (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
+                m['muscleGroup'] as String?,
+              ),
+            )
+            .where((m) => (m['value'] as double) > 0)
+            .toList()
+          ..sort(
+            (a, b) => (b['value'] as double).compareTo(a['value'] as double),
+          );
 
     final labels = items
         .take(_maxMuscleBars)
-        .map(
-          (e) => _muscleLabel(l10n, e['muscleGroup'] as String),
-        )
+        .map((e) => _muscleLabel(l10n, e['muscleGroup'] as String))
         .toList();
 
     final totalWorkingSets = muscles.fold<double>(
@@ -489,9 +511,7 @@ class _MuscleGroupAnalyticsScreenState
       emptyLabel: l10n.noWorkoutDataLabel,
       yAxisLabel: '${l10n.analyticsWorkingSetsByMuscle} (${_volumeUnit(l10n)})',
       footer: _showTotalVolume
-          ? l10n.analyticsTotalWorkingSets(
-              _formatCompact(totalWorkingSets),
-            )
+          ? l10n.analyticsTotalWorkingSets(_formatCompact(totalWorkingSets))
           : l10n.analyticsAverageWorkingSetsPerWeek(
               totalPerWeek.toStringAsFixed(1),
             ),
@@ -501,24 +521,23 @@ class _MuscleGroupAnalyticsScreenState
 
   Widget _buildFrequencyCard(List<Map<String, dynamic>> muscles) {
     final l10n = AppLocalizations.of(context)!;
-    final items = muscles
-        .map(
-          (m) => {
-            'muscleGroup': m['muscleGroup'] as String,
-            'value': (m['frequencyPerWeek'] as num).toDouble(),
-          },
-        )
-        .where((m) => (m['value'] as double) > 0)
-        .toList()
-      ..sort(
-        (a, b) => (b['value'] as double).compareTo(a['value'] as double),
-      );
+    final items =
+        muscles
+            .map(
+              (m) => {
+                'muscleGroup': m['muscleGroup'] as String,
+                'value': (m['frequencyPerWeek'] as num).toDouble(),
+              },
+            )
+            .where((m) => (m['value'] as double) > 0)
+            .toList()
+          ..sort(
+            (a, b) => (b['value'] as double).compareTo(a['value'] as double),
+          );
 
     final labels = items
         .take(_maxMuscleBars)
-        .map(
-          (e) => _muscleLabel(l10n, e['muscleGroup'] as String),
-        )
+        .map((e) => _muscleLabel(l10n, e['muscleGroup'] as String))
         .toList();
 
     return _buildMuscleBarChart(
@@ -558,8 +577,9 @@ class _MuscleGroupAnalyticsScreenState
 
     final values = items.map((e) => (e['value'] as num).toDouble()).toList();
 
-    final rawMax =
-        values.isEmpty ? 1.0 : values.reduce((a, b) => a > b ? a : b);
+    final rawMax = values.isEmpty
+        ? 1.0
+        : values.reduce((a, b) => a > b ? a : b);
     final double computedMaxY;
     double tickInterval;
 
@@ -583,10 +603,7 @@ class _MuscleGroupAnalyticsScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnalyticsChartDefaults.axisTitleLabel(
-          context,
-          'Y: $yAxisLabel',
-        ),
+        AnalyticsChartDefaults.axisTitleLabel(context, 'Y: $yAxisLabel'),
         const SizedBox(height: DesignConstants.spacingS),
         SizedBox(
           height: chartHeight,
@@ -612,9 +629,7 @@ class _MuscleGroupAnalyticsScreenState
                         : DesignConstants.summaryCardSecondaryLightMode;
                   },
                   tooltipBorder: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
+                    color: Theme.of(context).colorScheme.onSurface
                         .withValues(alpha: 0.08),
                   ),
                   getTooltipItem: (group, _, rod, __) {
@@ -624,9 +639,9 @@ class _MuscleGroupAnalyticsScreenState
                     return BarTooltipItem(
                       '$label\n${_formatCompact(value)} $unit',
                       Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ) ??
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ) ??
                           TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
@@ -643,9 +658,9 @@ class _MuscleGroupAnalyticsScreenState
                     interval: tickInterval,
                     getTitlesWidget: (value, meta) =>
                         AnalyticsChartDefaults.tickLabel(
-                      context,
-                      _formatCompact(value),
-                    ),
+                          context,
+                          _formatCompact(value),
+                        ),
                   ),
                 ),
                 bottomTitles: AxisTitles(
@@ -712,9 +727,8 @@ class _MuscleGroupAnalyticsScreenState
         const SizedBox(height: 6),
         Text(
           footer,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.outline),
         ),
       ],
     );
@@ -731,11 +745,7 @@ class _MuscleGroupAnalyticsScreenState
     return ExerciseClassificationLabels.movementPattern(context, raw) ?? raw;
   }
 
-  Widget _sectionLabel(
-    String text, {
-    bool isPrimary = false,
-    Widget? action,
-  }) {
+  Widget _sectionLabel(String text, {bool isPrimary = false, Widget? action}) {
     return AppSectionHeader(
       title: text,
       action: action,
@@ -743,7 +753,8 @@ class _MuscleGroupAnalyticsScreenState
           ? const EdgeInsets.only(
               left: DesignConstants.spacingXS,
               bottom: DesignConstants.spacingS,
-              top: DesignConstants.spacingXS)
+              top: DesignConstants.spacingXS,
+            )
           : null,
     );
   }
@@ -755,32 +766,32 @@ class _MuscleGroupAnalyticsScreenState
         {
           'muscleGroup': 'chest',
           'equivalentSets': 12.0,
-          'frequencyPerWeek': 3.0
+          'frequencyPerWeek': 3.0,
         },
         {
           'muscleGroup': 'back',
           'equivalentSets': 10.0,
-          'frequencyPerWeek': 2.0
+          'frequencyPerWeek': 2.0,
         },
         {
           'muscleGroup': 'quads',
           'equivalentSets': 8.0,
-          'frequencyPerWeek': 2.0
+          'frequencyPerWeek': 2.0,
         },
         {
           'muscleGroup': 'shoulders',
           'equivalentSets': 6.0,
-          'frequencyPerWeek': 1.0
+          'frequencyPerWeek': 1.0,
         },
         {
           'muscleGroup': 'biceps',
           'equivalentSets': 4.0,
-          'frequencyPerWeek': 2.0
+          'frequencyPerWeek': 2.0,
         },
         {
           'muscleGroup': 'triceps',
           'equivalentSets': 4.0,
-          'frequencyPerWeek': 2.0
+          'frequencyPerWeek': 2.0,
         },
       ],
       'movementPatterns': [
@@ -806,18 +817,13 @@ class _MuscleGroupAnalyticsScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             RepaintBoundary(
-              child: _buildBodyHeatmap(
-                context,
-                highlights,
-                muscles,
-              ),
+              child: _buildBodyHeatmap(context, highlights, muscles),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Text(
               l10n.analyticsPrimaryMuscleCoverageCaption,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
           ],
         ),
@@ -835,14 +841,10 @@ class _MuscleGroupAnalyticsScreenState
             _volumeSectionTitle(l10n, l10n.analyticsWorkingSetsByMuscle),
             isPrimary: true,
           ),
-          RepaintBoundary(
-            child: _buildWeeklySetsCard(muscles, totalWeeks),
-          ),
+          RepaintBoundary(child: _buildWeeklySetsCard(muscles, totalWeeks)),
           const SizedBox(height: DesignConstants.spacingM),
           _sectionLabel(l10n.analyticsFrequencyByMuscle),
-          RepaintBoundary(
-            child: _buildFrequencyCard(muscles),
-          ),
+          RepaintBoundary(child: _buildFrequencyCard(muscles)),
           const SizedBox(height: DesignConstants.spacingM),
           _buildMovementPatternContent(
             context,
@@ -868,17 +870,21 @@ class _MuscleGroupAnalyticsScreenState
         final bySets = ((b['equivalentSets'] as num?)?.toDouble() ?? 0)
             .compareTo((a['equivalentSets'] as num?)?.toDouble() ?? 0);
         if (bySets != 0) return bySets;
-        return _muscleLabel(l10n, a['muscleGroup'] as String).compareTo(
-          _muscleLabel(l10n, b['muscleGroup'] as String),
-        );
+        return _muscleLabel(
+          l10n,
+          a['muscleGroup'] as String,
+        ).compareTo(_muscleLabel(l10n, b['muscleGroup'] as String));
       });
     final sortedPatterns = List<Map<String, dynamic>>.from(movementPatterns)
       ..sort((a, b) {
-        final bySets = ((b['setCount'] as num?)?.toDouble() ?? 0)
-            .compareTo((a['setCount'] as num?)?.toDouble() ?? 0);
+        final bySets = ((b['setCount'] as num?)?.toDouble() ?? 0).compareTo(
+          (a['setCount'] as num?)?.toDouble() ?? 0,
+        );
         if (bySets != 0) return bySets;
-        return _movementPatternLabel(context, a['movementPattern'] as String)
-            .compareTo(
+        return _movementPatternLabel(
+          context,
+          a['movementPattern'] as String,
+        ).compareTo(
           _movementPatternLabel(context, b['movementPattern'] as String),
         );
       });
@@ -932,8 +938,9 @@ class _MuscleGroupAnalyticsScreenState
   Widget _buildTwoColumnGrid(List<Widget> items) {
     final rows = <Widget>[];
     for (var index = 0; index < items.length; index += 2) {
-      final right =
-          index + 1 < items.length ? items[index + 1] : const SizedBox();
+      final right = index + 1 < items.length
+          ? items[index + 1]
+          : const SizedBox();
       rows.add(
         IntrinsicHeight(
           child: Row(
@@ -962,22 +969,23 @@ class _MuscleGroupAnalyticsScreenState
     double totalWeeks,
     AppLocalizations l10n,
   ) {
-    final items = movementPatterns
-        .map(
-          (pattern) => <String, dynamic>{
-            'value': _displayVolumeValue(
-              (pattern['setCount'] as num?)?.toDouble() ?? 0.0,
-              totalWeeks,
-            ),
-            'movementPattern':
-                pattern['movementPattern'] as String? ?? 'unclassified',
-          },
-        )
-        .where((pattern) => (pattern['value'] as double) > 0)
-        .toList()
-      ..sort(
-        (a, b) => (b['value'] as double).compareTo(a['value'] as double),
-      );
+    final items =
+        movementPatterns
+            .map(
+              (pattern) => <String, dynamic>{
+                'value': _displayVolumeValue(
+                  (pattern['setCount'] as num?)?.toDouble() ?? 0.0,
+                  totalWeeks,
+                ),
+                'movementPattern':
+                    pattern['movementPattern'] as String? ?? 'unclassified',
+              },
+            )
+            .where((pattern) => (pattern['value'] as double) > 0)
+            .toList()
+          ..sort(
+            (a, b) => (b['value'] as double).compareTo(a['value'] as double),
+          );
     final labels = items
         .take(_maxMuscleBars)
         .map(
@@ -1000,9 +1008,8 @@ class _MuscleGroupAnalyticsScreenState
         ),
         Text(
           l10n.analyticsMovementPatternCoverageCaption,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.outline),
         ),
         const SizedBox(height: DesignConstants.spacingM),
         RepaintBoundary(

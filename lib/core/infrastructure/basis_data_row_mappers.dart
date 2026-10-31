@@ -172,8 +172,9 @@ class BasisDataRowMappers {
     // Read category tag blob — may come from the OFF API as a tag list string.
     final rawCategory =
         row['category'] ?? row['categories'] ?? row['categories_tags'];
-    final categoryStr =
-        rawCategory != null ? rawCategory.toString().toLowerCase() : '';
+    final categoryStr = rawCategory != null
+        ? rawCategory.toString().toLowerCase()
+        : '';
 
     // Split the flat string into individual tags, stripping blanks.
     final cats = categoryStr
@@ -351,8 +352,9 @@ class BasisDataRowMappers {
       final isCandidate = cats.any(
         (cat) => beverageAllowlistSubstrings.any((sub) => cat.contains(sub)),
       );
-      final isBlocked =
-          cats.any((cat) => nonBeverageBlocklistTags.contains(cat));
+      final isBlocked = cats.any(
+        (cat) => nonBeverageBlocklistTags.contains(cat),
+      );
 
       if (isBlocked) {
         isFluidVal = false;
@@ -362,13 +364,14 @@ class BasisDataRowMappers {
       // else: category data present but no signal → conservative false
     } else {
       // Tier 3: no category data — fall back to volume unit
-      final nutritionPer = (row['nutrition_data_prepared_per'] ??
-              row['nutrition_data_per'] ??
-              row['nutrition_baseline'] ??
-              row['nutrition_baseline_key'])
-          ?.toString()
-          .toLowerCase()
-          .trim();
+      final nutritionPer =
+          (row['nutrition_data_prepared_per'] ??
+                  row['nutrition_data_per'] ??
+                  row['nutrition_baseline'] ??
+                  row['nutrition_baseline_key'])
+              ?.toString()
+              .toLowerCase()
+              .trim();
       final unit =
           row['product_quantity_unit']?.toString().toLowerCase().trim() ?? '';
       if (nutritionPer != null && nutritionPer.contains('100ml')) {
@@ -399,25 +402,39 @@ class BasisDataRowMappers {
       sugar: drift.Value(parseDouble(row['sugar'])),
       fiber: drift.Value(parseDouble(row['fiber'])),
       salt: drift.Value(parseDouble(row['salt'])),
-      caffeine: drift.Value(parseNullableDouble(row['caffeine_mg_per_100ml'] ??
-              row['caffeine'] ??
-              row['caffeine_mg_per_100g']) ??
-          CaffeineCatalogResolver.lookupCaffeine(
-              barcode, rawNameDe ?? displayName)),
-      caffeineMgPer100g: drift.Value(parseNullableDouble(
+      caffeine: drift.Value(
+        parseNullableDouble(
+              row['caffeine_mg_per_100ml'] ??
+                  row['caffeine'] ??
+                  row['caffeine_mg_per_100g'],
+            ) ??
+            CaffeineCatalogResolver.lookupCaffeine(
+              barcode,
+              rawNameDe ?? displayName,
+            ),
+      ),
+      caffeineMgPer100g: drift.Value(
+        parseNullableDouble(
               row['caffeine_mg_per_100g'] ??
                   row['caffeine_mg_per_100ml'] ??
-                  row['caffeine']) ??
-          CaffeineCatalogResolver.lookupCaffeine(
-              barcode, rawNameDe ?? displayName)),
+                  row['caffeine'],
+            ) ??
+            CaffeineCatalogResolver.lookupCaffeine(
+              barcode,
+              rawNameDe ?? displayName,
+            ),
+      ),
       ingredientsText: drift.Value(
-          sourceLabel == 'base' ? null : row['ingredients_text']?.toString()),
-      ingredientsAnalysisTags:
-          drift.Value(row['ingredients_analysis_tags']?.toString()),
+        sourceLabel == 'base' ? null : row['ingredients_text']?.toString(),
+      ),
+      ingredientsAnalysisTags: drift.Value(
+        row['ingredients_analysis_tags']?.toString(),
+      ),
       additivesTags: drift.Value(row['additives_tags']?.toString()),
       productQuantity: drift.Value(parseDouble(row['product_quantity'])),
-      productQuantityUnit:
-          drift.Value(row['product_quantity_unit']?.toString()),
+      productQuantityUnit: drift.Value(
+        row['product_quantity_unit']?.toString(),
+      ),
       isFluid: drift.Value(isFluidVal),
       source: drift.Value(sourceLabel),
       isLiquid: drift.Value(parseInt(row['is_liquid']) == 1),
@@ -484,15 +501,30 @@ class BasisDataRowMappers {
     // English-locale environments.
     if (row.containsKey('name_de') || row.containsKey('name_en')) {
       addTranslation(
-          'de', row['name_de'] ?? row['name_en'], row['description_de']);
-      addTranslation('en', row['name_en'] ?? row['name_de'],
-          row['description_en'] ?? row['description_de']);
-      addTranslation('fr', row['name_fr'] ?? row['name_en'] ?? row['name_de'],
-          row['description_fr']);
-      addTranslation('it', row['name_it'] ?? row['name_en'] ?? row['name_de'],
-          row['description_it']);
-      addTranslation('ja', row['name_ja'] ?? row['name_en'] ?? row['name_de'],
-          row['description_ja']);
+        'de',
+        row['name_de'] ?? row['name_en'],
+        row['description_de'],
+      );
+      addTranslation(
+        'en',
+        row['name_en'] ?? row['name_de'],
+        row['description_en'] ?? row['description_de'],
+      );
+      addTranslation(
+        'fr',
+        row['name_fr'] ?? row['name_en'] ?? row['name_de'],
+        row['description_fr'],
+      );
+      addTranslation(
+        'it',
+        row['name_it'] ?? row['name_en'] ?? row['name_de'],
+        row['description_it'],
+      );
+      addTranslation(
+        'ja',
+        row['name_ja'] ?? row['name_en'] ?? row['name_de'],
+        row['description_ja'],
+      );
     }
 
     return ExerciseBundle(
@@ -521,12 +553,10 @@ class BasisDataRowMappers {
       return switch (offCountry) {
         OffCatalogCountry.us ||
         OffCatalogCountry.uk ||
-        OffCatalogCountry.au =>
-          'en',
+        OffCatalogCountry.au => 'en',
         OffCatalogCountry.de ||
         OffCatalogCountry.ch ||
-        OffCatalogCountry.at =>
-          'de',
+        OffCatalogCountry.at => 'de',
         OffCatalogCountry.fr => 'fr',
         OffCatalogCountry.it => 'it',
         OffCatalogCountry.jp => 'ja',

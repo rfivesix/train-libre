@@ -28,21 +28,23 @@ void main() {
     expect(File(path).existsSync(), isFalse);
   });
 
-  test('copies verified legacy file to canonical name and removes old file',
-      () async {
-    final legacyFile = File(p.join(tempDir.path, 'hypertrack_training.db'));
-    await legacyFile.writeAsBytes([1, 2, 3, 4, 5], flush: true);
+  test(
+    'copies verified legacy file to canonical name and removes old file',
+    () async {
+      final legacyFile = File(p.join(tempDir.path, 'hypertrack_training.db'));
+      await legacyFile.writeAsBytes([1, 2, 3, 4, 5], flush: true);
 
-    final path = await CatalogFileMigration.resolveCanonicalPath(
-      directoryPath: tempDir.path,
-      canonicalFileName: 'train_libre_training.db',
-      legacyFileName: 'hypertrack_training.db',
-    );
+      final path = await CatalogFileMigration.resolveCanonicalPath(
+        directoryPath: tempDir.path,
+        canonicalFileName: 'train_libre_training.db',
+        legacyFileName: 'hypertrack_training.db',
+      );
 
-    final canonicalFile = File(path);
-    expect(await canonicalFile.readAsBytes(), [1, 2, 3, 4, 5]);
-    expect(await legacyFile.exists(), isFalse);
-  });
+      final canonicalFile = File(path);
+      expect(await canonicalFile.readAsBytes(), [1, 2, 3, 4, 5]);
+      expect(await legacyFile.exists(), isFalse);
+    },
+  );
 
   test('does not overwrite an existing canonical file', () async {
     final canonicalFile = File(p.join(tempDir.path, 'train_libre_training.db'));

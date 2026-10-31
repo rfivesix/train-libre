@@ -1,5 +1,6 @@
 // lib/models/exercise.dart
 import 'dart:convert' show jsonDecode, jsonEncode;
+
 import 'package:flutter/widgets.dart';
 
 import 'exercise_text.dart';
@@ -264,8 +265,8 @@ class Exercise {
     this.lastPerformedAt,
     this.totalLoggedSets = 0,
   }) : texts = {
-          languageCode: ExerciseText(name: name, description: description),
-        };
+         languageCode: ExerciseText(name: name, description: description),
+       };
 
   // ---------- Parsing helpers ----------
   static List<String> _parseMuscleList(dynamic raw) {
@@ -303,10 +304,12 @@ class Exercise {
   /// still understands the old flat `name_de`/`name_en` shape, which is what
   /// backups written before this change contain.
   factory Exercise.fromMap(Map<String, Object?> m) {
-    final primRaw = m['primaryMuscles_json_de'] ??
+    final primRaw =
+        m['primaryMuscles_json_de'] ??
         m['primaryMuscles_json_en'] ??
         m['primaryMuscles'];
-    final secRaw = m['secondaryMuscles_json_de'] ??
+    final secRaw =
+        m['secondaryMuscles_json_de'] ??
         m['secondaryMuscles_json_en'] ??
         m['secondaryMuscles'];
 
@@ -338,8 +341,8 @@ class Exercise {
           if (entry.value is Map)
             entry.key.toString(): ExerciseText(
               name: ((entry.value as Map)['name'] ?? '').toString(),
-              description:
-                  ((entry.value as Map)['description'] ?? '').toString(),
+              description: ((entry.value as Map)['description'] ?? '')
+                  .toString(),
             ),
       };
     }
@@ -446,9 +449,8 @@ class Exercise {
   }
 
   /// Replaces the text of one language, leaving the others alone.
-  Exercise withText(String languageCode, ExerciseText text) => copyWith(
-        texts: {...texts, languageCode: text},
-      );
+  Exercise withText(String languageCode, ExerciseText text) =>
+      copyWith(texts: {...texts, languageCode: text});
 
   /// Spawns a custom copy of a system exercise.
   factory Exercise.duplicateAsCustom(Exercise original, {String? newUuid}) {

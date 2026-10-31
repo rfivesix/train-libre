@@ -86,8 +86,9 @@ class GoalPresetStep extends StatelessWidget {
                 labelText: l10n.goalCustomTitleLabel,
                 hintText: l10n.goalCustomTitleHint,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
             ),
@@ -152,8 +153,9 @@ class GoalPresetStep extends StatelessWidget {
                     ? theme.colorScheme.primary.withValues(alpha: 0.5)
                     : theme.dividerColor.withValues(alpha: 0.35),
               ),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusL,
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,8 +185,9 @@ class GoalPresetStep extends StatelessWidget {
                       Text(
                         subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.65),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.65,
+                          ),
                           height: 1.3,
                         ),
                       ),

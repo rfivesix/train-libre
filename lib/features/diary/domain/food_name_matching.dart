@@ -58,11 +58,12 @@ abstract final class FoodNameMatching {
         .trim();
   }
 
-  static List<String> tokens(String value) => normalize(value)
-      .split(' ')
-      .where((token) => token.isNotEmpty)
-      .toSet()
-      .toList();
+  static List<String> tokens(String value) =>
+      normalize(value)
+          .split(' ')
+          .where((token) => token.isNotEmpty)
+          .toSet()
+          .toList();
 
   /// Lower is better: identity, complete words, word prefixes, no match.
   static int textRank(String query, String name, {bool compactNames = false}) {
@@ -73,8 +74,9 @@ abstract final class FoodNameMatching {
     final queryTokens = tokens(q);
     final nameTokens = tokens(n);
     if (queryTokens.every(nameTokens.contains)) return 1;
-    if (queryTokens.every((q) =>
-        nameTokens.any((n) => q.length <= 2 ? n == q : n.startsWith(q)))) {
+    if (queryTokens.every(
+      (q) => nameTokens.any((n) => q.length <= 2 ? n == q : n.startsWith(q)),
+    )) {
       return 2;
     }
     if (compactNames &&
@@ -88,13 +90,17 @@ abstract final class FoodNameMatching {
   static int rank(String query, FoodItem food, {bool includeBrand = true}) {
     var best = 4;
     for (final name in names(food, includeBrand: includeBrand)) {
-      final score = textRank(query, name,
-          compactNames: food.source == FoodItemSource.base);
+      final score = textRank(
+        query,
+        name,
+        compactNames: food.source == FoodItemSource.base,
+      );
       if (score < best) best = score;
     }
     if (food.catalogMatchAlias case final alias?) {
       final score = textRank(query, alias, compactNames: true);
-      final approved = food.catalogMatchScope == 'identity' &&
+      final approved =
+          food.catalogMatchScope == 'identity' &&
           food.catalogMatchReviewStatus == 'approved';
       final aliasScore = score == 4 ? 4 : (approved ? score : score + 1);
       if (aliasScore < best) best = aliasScore;

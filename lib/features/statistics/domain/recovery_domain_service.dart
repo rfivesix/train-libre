@@ -57,8 +57,10 @@ class RecoveryDomainService {
       recoveringUpperHours: 36,
       readyUpperHours: 60,
     ),
-    'delt':
-        RecoveryWindowProfile(recoveringUpperHours: 36, readyUpperHours: 60),
+    'delt': RecoveryWindowProfile(
+      recoveringUpperHours: 36,
+      readyUpperHours: 60,
+    ),
     'delts': RecoveryWindowProfile(
       recoveringUpperHours: 36,
       readyUpperHours: 60,
@@ -301,9 +303,7 @@ class RecoveryDomainService {
     return 36;
   }
 
-  static int intensityBasedExtensionHours({
-    required bool highSessionFatigue,
-  }) {
+  static int intensityBasedExtensionHours({required bool highSessionFatigue}) {
     return highSessionFatigue ? highFatigueExtensionHours : 0;
   }
 

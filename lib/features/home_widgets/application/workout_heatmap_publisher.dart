@@ -54,10 +54,10 @@ class WorkoutHeatmapPublisher {
   /// wrong source here: the widget follows the *system* appearance, and the app
   /// may well be pinned to the other one. A mid grey at partial opacity is
   /// legible either way.
-  static final Color baseColor =
-      const Color(0xFF8E8E93).withValues(alpha: 0.32);
-  static final Color outlineColor =
-      const Color(0xFF8E8E93).withValues(alpha: 0.55);
+  static final Color baseColor = const Color(0xFF8E8E93)
+      .withValues(alpha: 0.32);
+  static final Color outlineColor = const Color(0xFF8E8E93)
+      .withValues(alpha: 0.55);
 
   /// The five workload tiers, coldest to hottest.
   ///
@@ -141,9 +141,9 @@ class WorkoutHeatmapPublisher {
     return counts.entries.map((entry) {
       final tier = peak > 0
           ? (entry.value / peak * intensityColors.length).ceil().clamp(
-                1,
-                intensityColors.length,
-              )
+              1,
+              intensityColors.length,
+            )
           : 1;
       return BodyPartHighlightData(
         slug: entry.key,
@@ -167,10 +167,7 @@ class WorkoutHeatmapPublisher {
         physicalConstraints: BoxConstraints.tight(canvasSize) * pixelRatio,
         devicePixelRatio: pixelRatio,
       ),
-      child: RenderPositionedBox(
-        alignment: Alignment.center,
-        child: boundary,
-      ),
+      child: RenderPositionedBox(alignment: Alignment.center, child: boundary),
     );
 
     final pipelineOwner = PipelineOwner()..rootNode = renderView;

@@ -50,31 +50,38 @@ void main() {
 
     test('optionalText handles absent, null, empty and valid values', () {
       expect(BasisDataRowMappers.optionalText({}, 'missing').present, isFalse);
-      expect(BasisDataRowMappers.optionalText({'status': null}, 'status').value,
-          isNull);
       expect(
-          BasisDataRowMappers.optionalText({'status': '   '}, 'status').value,
-          isNull);
+        BasisDataRowMappers.optionalText({'status': null}, 'status').value,
+        isNull,
+      );
       expect(
-          BasisDataRowMappers.optionalText({'status': 'active'}, 'status')
-              .value,
-          'active');
+        BasisDataRowMappers.optionalText({'status': '   '}, 'status').value,
+        isNull,
+      );
+      expect(
+        BasisDataRowMappers.optionalText({'status': 'active'}, 'status').value,
+        'active',
+      );
     });
 
     test('optionalBool handles absent, null, and values', () {
       expect(BasisDataRowMappers.optionalBool({}, 'missing').present, isFalse);
       expect(
-          BasisDataRowMappers.optionalBool({'supported': null}, 'supported')
-              .value,
-          isFalse);
+        BasisDataRowMappers.optionalBool({
+          'supported': null,
+        }, 'supported').value,
+        isFalse,
+      );
       expect(
-          BasisDataRowMappers.optionalBool({'supported': '1'}, 'supported')
-              .value,
-          isTrue);
+        BasisDataRowMappers.optionalBool({'supported': '1'}, 'supported').value,
+        isTrue,
+      );
       expect(
-          BasisDataRowMappers.optionalBool({'supported': true}, 'supported')
-              .value,
-          isTrue);
+        BasisDataRowMappers.optionalBool({
+          'supported': true,
+        }, 'supported').value,
+        isTrue,
+      );
     });
   });
 
@@ -111,13 +118,17 @@ void main() {
       expect(bundle.exerciseFields['modality'], 'free_weight');
       expect(bundle.translationFields.length, 5); // de, en, fr, it, ja
       expect(
-          bundle.translationFields
-              .firstWhere((t) => t['language_code'] == 'de')['name'],
-          'Bankdrücken');
+        bundle.translationFields.firstWhere(
+          (t) => t['language_code'] == 'de',
+        )['name'],
+        'Bankdrücken',
+      );
       expect(
-          bundle.translationFields
-              .firstWhere((t) => t['language_code'] == 'en')['name'],
-          'Bench Press');
+        bundle.translationFields.firstWhere(
+          (t) => t['language_code'] == 'en',
+        )['name'],
+        'Bench Press',
+      );
     });
 
     test('mapProductRow maps nutrients, barcode, and beverage heuristic', () {
@@ -243,29 +254,29 @@ void main() {
       );
     });
 
-    test('automatic base-food language follows Spanish and Dutch app locales',
-        () {
-      expect(
-        BaseFoodLanguageService.resolveLanguageCodeFromLocale(
-          choice: BaseFoodLanguage.auto,
-          locale: 'es',
-          activeCountry: OffCatalogCountry.de,
-        ),
-        'es',
-      );
-      expect(
-        BaseFoodLanguageService.resolveLanguageCodeFromLocale(
-          choice: BaseFoodLanguage.auto,
-          locale: 'nl',
-          activeCountry: OffCatalogCountry.es,
-        ),
-        'nl',
-      );
-    });
-
     test(
-        'resolveBaseFoodLangCode handles preferredLanguage and availableLanguages fallback',
-        () {
+      'automatic base-food language follows Spanish and Dutch app locales',
+      () {
+        expect(
+          BaseFoodLanguageService.resolveLanguageCodeFromLocale(
+            choice: BaseFoodLanguage.auto,
+            locale: 'es',
+            activeCountry: OffCatalogCountry.de,
+          ),
+          'es',
+        );
+        expect(
+          BaseFoodLanguageService.resolveLanguageCodeFromLocale(
+            choice: BaseFoodLanguage.auto,
+            locale: 'nl',
+            activeCountry: OffCatalogCountry.es,
+          ),
+          'nl',
+        );
+      },
+    );
+
+    test('resolveBaseFoodLangCode handles preferredLanguage and availableLanguages fallback', () {
       expect(
         BasisDataRowMappers.resolveBaseFoodLangCode(
           preferredLanguage: 'fr',

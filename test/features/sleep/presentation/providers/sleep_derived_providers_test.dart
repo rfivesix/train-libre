@@ -103,9 +103,7 @@ void main() {
     });
 
     group('loadWeek', () {
-      test(
-          'correctly calculates week boundaries (Monday to Sunday) and loads successfully',
-          () async {
+      test('correctly calculates week boundaries (Monday to Sunday) and loads successfully', () async {
         // Wednesday, June 17, 2026
         final anchor = DateTime(2026, 6, 17);
         // Expect Monday June 15 to Sunday June 21
@@ -131,57 +129,67 @@ void main() {
         expect(mockRepository.lastQueryTo, expectedEnd);
       });
 
-      test('handles loadWeek errors and populates week error message',
-          () async {
-        final anchor = DateTime(2026, 6, 17);
-        mockRepository.throwError = true;
+      test(
+        'handles loadWeek errors and populates week error message',
+        () async {
+          final anchor = DateTime(2026, 6, 17);
+          mockRepository.throwError = true;
 
-        await provider.loadWeek(anchor);
+          await provider.loadWeek(anchor);
 
-        expect(provider.week.isLoading, isFalse);
-        expect(provider.week.items, isEmpty);
-        expect(provider.week.errorMessage, 'Failed to load sleep week.');
-      });
+          expect(provider.week.isLoading, isFalse);
+          expect(provider.week.items, isEmpty);
+          expect(provider.week.errorMessage, 'Failed to load sleep week.');
+        },
+      );
     });
 
     group('loadMonth', () {
-      test('correctly calculates month boundaries and loads successfully',
-          () async {
-        // June 15, 2026
-        final anchor = DateTime(2026, 6, 15);
-        final expectedStart = DateTime(2026, 6, 1);
-        final expectedEnd = DateTime(2026, 7, 0); // Last day of June is June 30
+      test(
+        'correctly calculates month boundaries and loads successfully',
+        () async {
+          // June 15, 2026
+          final anchor = DateTime(2026, 6, 15);
+          final expectedStart = DateTime(2026, 6, 1);
+          final expectedEnd = DateTime(
+            2026,
+            7,
+            0,
+          ); // Last day of June is June 30
 
-        final mockAnalyses = [createMockAnalysis(anchor)];
-        mockRepository.mockAnalysesInRange = mockAnalyses;
+          final mockAnalyses = [createMockAnalysis(anchor)];
+          mockRepository.mockAnalysesInRange = mockAnalyses;
 
-        final future = provider.loadMonth(anchor);
+          final future = provider.loadMonth(anchor);
 
-        // Verify intermediate loading state
-        expect(provider.month.isLoading, isTrue);
-        expect(provider.month.items, isEmpty);
+          // Verify intermediate loading state
+          expect(provider.month.isLoading, isTrue);
+          expect(provider.month.items, isEmpty);
 
-        await future;
+          await future;
 
-        expect(provider.month.isLoading, isFalse);
-        expect(provider.month.items, mockAnalyses);
-        expect(provider.month.errorMessage, isNull);
+          expect(provider.month.isLoading, isFalse);
+          expect(provider.month.items, mockAnalyses);
+          expect(provider.month.errorMessage, isNull);
 
-        expect(mockRepository.lastQueryFrom, expectedStart);
-        expect(mockRepository.lastQueryTo, expectedEnd);
-      });
+          expect(mockRepository.lastQueryFrom, expectedStart);
+          expect(mockRepository.lastQueryTo, expectedEnd);
+        },
+      );
 
-      test('handles loadMonth errors and populates month error message',
-          () async {
-        final anchor = DateTime(2026, 6, 15);
-        mockRepository.throwError = true;
+      test(
+        'handles loadMonth errors and populates month error message',
+        () async {
+          final anchor = DateTime(2026, 6, 15);
+          mockRepository.throwError = true;
 
-        await provider.loadMonth(anchor);
+          await provider.loadMonth(anchor);
 
-        expect(provider.month.isLoading, isFalse);
-        expect(provider.month.items, isEmpty);
-        expect(provider.month.errorMessage, 'Failed to load sleep month.');
-      });
+          expect(provider.month.isLoading, isFalse);
+          expect(provider.month.items, isEmpty);
+          expect(provider.month.errorMessage, 'Failed to load sleep month.');
+        },
+      );
     });
   });
 }

@@ -37,8 +37,9 @@ class SleepBenchmarkBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final range = (max - min).abs() < 0.0001 ? 1.0 : (max - min);
-    final marker =
-        value == null ? null : ((value! - min) / range).clamp(0.0, 1.0);
+    final marker = value == null
+        ? null
+        : ((value! - min) / range).clamp(0.0, 1.0);
     final trackRadius = BorderRadius.circular(999);
     final trackColor = isDark
         ? const Color(0xFF4A4F57)
@@ -68,8 +69,8 @@ class SleepBenchmarkBar extends StatelessWidget {
 
                     double currentLeft = 0.0;
                     for (final segment in sortedSegments) {
-                      final segmentFraction =
-                          ((segment.limit - min) / range).clamp(0.0, 1.0);
+                      final segmentFraction = ((segment.limit - min) / range)
+                          .clamp(0.0, 1.0);
                       final rightFraction = 1.0 - segmentFraction;
 
                       children.add(
@@ -85,15 +86,15 @@ class SleepBenchmarkBar extends StatelessWidget {
                               ),
                               borderRadius:
                                   currentLeft == 0.0 && segmentFraction == 1.0
-                                      ? trackRadius
-                                      : BorderRadius.horizontal(
-                                          left: currentLeft == 0.0
-                                              ? const Radius.circular(999)
-                                              : Radius.zero,
-                                          right: segmentFraction == 1.0
-                                              ? const Radius.circular(999)
-                                              : Radius.zero,
-                                        ),
+                                  ? trackRadius
+                                  : BorderRadius.horizontal(
+                                      left: currentLeft == 0.0
+                                          ? const Radius.circular(999)
+                                          : Radius.zero,
+                                      right: segmentFraction == 1.0
+                                          ? const Radius.circular(999)
+                                          : Radius.zero,
+                                    ),
                             ),
                           ),
                         ),
@@ -102,8 +103,8 @@ class SleepBenchmarkBar extends StatelessWidget {
                     }
 
                     if (marker != null) {
-                      final outlineColor =
-                          Theme.of(context).scaffoldBackgroundColor;
+                      final outlineColor = Theme.of(context)
+                          .scaffoldBackgroundColor;
                       children.add(
                         Positioned(
                           left:
@@ -137,25 +138,19 @@ class SleepBenchmarkBar extends StatelessWidget {
           builder: (context, constraints) {
             final labels = <Widget>[];
             final textStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                );
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            );
 
             if (minLabel != null) {
               labels.add(
-                Positioned(
-                  left: 0,
-                  child: Text(minLabel!, style: textStyle),
-                ),
+                Positioned(left: 0, child: Text(minLabel!, style: textStyle)),
               );
             }
 
             if (maxLabel != null) {
               labels.add(
-                Positioned(
-                  right: 0,
-                  child: Text(maxLabel!, style: textStyle),
-                ),
+                Positioned(right: 0, child: Text(maxLabel!, style: textStyle)),
               );
             }
 
@@ -163,8 +158,10 @@ class SleepBenchmarkBar extends StatelessWidget {
               if (segment.label != null &&
                   segment.limit > min &&
                   segment.limit < max) {
-                final fraction =
-                    ((segment.limit - min) / range).clamp(0.0, 1.0);
+                final fraction = ((segment.limit - min) / range).clamp(
+                  0.0,
+                  1.0,
+                );
                 labels.add(
                   Positioned(
                     left: fraction * constraints.maxWidth,
@@ -179,10 +176,7 @@ class SleepBenchmarkBar extends StatelessWidget {
 
             return SizedBox(
               height: 16,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: labels,
-              ),
+              child: Stack(clipBehavior: Clip.none, children: labels),
             );
           },
         ),

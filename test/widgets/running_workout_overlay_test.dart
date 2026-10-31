@@ -33,20 +33,23 @@ Widget _host({
 }
 
 void main() {
-  testWidgets('shows the workout duration and the next exercise while running',
-      (tester) async {
-    await tester.pumpWidget(_host());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'shows the workout duration and the next exercise while running',
+    (tester) async {
+      await tester.pumpWidget(_host());
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('Workout'), findsOneWidget);
-    expect(find.textContaining('05:23'), findsOneWidget);
-    expect(find.text('Lat Pulldown (Cable)'), findsOneWidget);
-    expect(find.byIcon(LucideIcons.chevron_up), findsOneWidget);
-    expect(find.byIcon(LucideIcons.trash), findsOneWidget);
-  });
+      expect(find.textContaining('Workout'), findsOneWidget);
+      expect(find.textContaining('05:23'), findsOneWidget);
+      expect(find.text('Lat Pulldown (Cable)'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.chevron_up), findsOneWidget);
+      expect(find.byIcon(LucideIcons.trash), findsOneWidget);
+    },
+  );
 
-  testWidgets('switches to the rest countdown while a pause runs',
-      (tester) async {
+  testWidgets('switches to the rest countdown while a pause runs', (
+    tester,
+  ) async {
     await tester.pumpWidget(_host(isResting: true));
     await tester.pumpAndSettle();
 
@@ -55,8 +58,9 @@ void main() {
     expect(find.textContaining('05:23'), findsNothing);
   });
 
-  testWidgets('leaves the second row out when no exercise is in the workout',
-      (tester) async {
+  testWidgets('leaves the second row out when no exercise is in the workout', (
+    tester,
+  ) async {
     await tester.pumpWidget(_host(exerciseName: null));
     await tester.pumpAndSettle();
 
@@ -65,8 +69,9 @@ void main() {
     expect(find.byType(Text), findsOneWidget);
   });
 
-  testWidgets('the affordances match the bottom navigation pill geometry',
-      (tester) async {
+  testWidgets('the affordances match the bottom navigation pill geometry', (
+    tester,
+  ) async {
     await tester.pumpWidget(_host());
     await tester.pumpAndSettle();
 
@@ -74,10 +79,7 @@ void main() {
     for (final icon in [LucideIcons.chevron_up, LucideIcons.trash]) {
       final circle = tester.getRect(
         find
-            .ancestor(
-              of: find.byIcon(icon),
-              matching: find.byType(Container),
-            )
+            .ancestor(of: find.byIcon(icon), matching: find.byType(Container))
             .first,
       );
       expect(circle.height, DesignConstants.floatingBarPillSize);
@@ -88,14 +90,14 @@ void main() {
     }
   });
 
-  testWidgets('tapping the bar expands, tapping the bin discards',
-      (tester) async {
+  testWidgets('tapping the bar expands, tapping the bin discards', (
+    tester,
+  ) async {
     var expanded = 0;
     var discarded = 0;
-    await tester.pumpWidget(_host(
-      onExpand: () => expanded++,
-      onDiscard: () => discarded++,
-    ));
+    await tester.pumpWidget(
+      _host(onExpand: () => expanded++, onDiscard: () => discarded++),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Lat Pulldown (Cable)'));

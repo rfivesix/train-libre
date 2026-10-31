@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../../../services/ai_service.dart';
 import '../../../services/theme_service.dart';
@@ -10,11 +11,15 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../ai_assistant/data/ai_overlay_demo_settings.dart';
 import '../../../widgets/common/app_button.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
@@ -62,8 +67,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.aiSettings));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.aiSettings,
+      ),
+    );
     unawaited(_checkAppleFoundationAvailability());
     _loadSettings();
     unawaited(_loadDepthSettings());
@@ -103,15 +111,18 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     final timeout = await AiService.instance.getAiTimeoutSeconds();
     final nutritionMode = await AiService.instance.getMealNutritionMode();
 
-    final isCloud = provider != AiProvider.ollama &&
+    final isCloud =
+        provider != AiProvider.ollama &&
         provider != AiProvider.custom &&
         provider != AiProvider.appleFoundation;
-    final isOffline = provider == AiProvider.ollama ||
+    final isOffline =
+        provider == AiProvider.ollama ||
         provider == AiProvider.custom ||
         provider == AiProvider.appleFoundation;
     final meta = AiService.instance.getProviderMetadata(provider);
-    final effectiveModel =
-        savedModel.isNotEmpty ? savedModel : meta.defaultModel;
+    final effectiveModel = savedModel.isNotEmpty
+        ? savedModel
+        : meta.defaultModel;
 
     if (mounted) {
       setState(() {
@@ -179,16 +190,19 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
 
   Future<void> _onProviderChanged(AiProvider? provider) async {
     if (provider == null) return;
-    final isCloud = provider != AiProvider.ollama &&
+    final isCloud =
+        provider != AiProvider.ollama &&
         provider != AiProvider.custom &&
         provider != AiProvider.appleFoundation;
-    final isOffline = provider == AiProvider.ollama ||
+    final isOffline =
+        provider == AiProvider.ollama ||
         provider == AiProvider.custom ||
         provider == AiProvider.appleFoundation;
     final meta = AiService.instance.getProviderMetadata(provider);
     final savedModel = await AiService.instance.getSelectedModel(provider);
-    final effectiveModel =
-        savedModel.isNotEmpty ? savedModel : meta.defaultModel;
+    final effectiveModel = savedModel.isNotEmpty
+        ? savedModel
+        : meta.defaultModel;
     final key = await AiService.instance.getApiKey(provider);
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
     final customModel = await AiService.instance.getCustomModel();
@@ -208,7 +222,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         );
         _modelListError = null;
         _hasKey = isOffline || (key != null && key.isNotEmpty);
-        _keyController.text = _hasKey &&
+        _keyController.text =
+            _hasKey &&
                 provider != AiProvider.ollama &&
                 provider != AiProvider.appleFoundation
             ? '••••••••••••••••••••'
@@ -391,12 +406,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     AiProvider provider,
   ) {
     if (models.isEmpty) {
-      final defaultModel =
-          AiService.instance.getProviderMetadata(provider).defaultModel;
+      final defaultModel = AiService.instance
+          .getProviderMetadata(provider)
+          .defaultModel;
       final effective = selectedModel.isNotEmpty ? selectedModel : defaultModel;
-      return [
-        AiModelOption(id: effective, label: effective, isFallback: true),
-      ];
+      return [AiModelOption(id: effective, label: effective, isFallback: true)];
     }
     if (selectedModel.isNotEmpty && !models.any((m) => m.id == selectedModel)) {
       return [
@@ -485,7 +499,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
               value: settings.enabled,
               onChanged: aiEnabled
                   ? (value) =>
-                      unawaited(AiOverlayDemoSettings.update(enabled: value))
+                        unawaited(AiOverlayDemoSettings.update(enabled: value))
                   : null,
             ),
           ),
@@ -535,8 +549,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 title: l10n.aiNutritionEngineLabel,
                 subtitle:
                     _mealNutritionMode == AiMealNutritionMode.directEstimate
-                        ? l10n.aiNutritionEngineEstimate
-                        : l10n.aiNutritionEngineCatalog,
+                    ? l10n.aiNutritionEngineEstimate
+                    : l10n.aiNutritionEngineCatalog,
               ),
             ),
             Padding(
@@ -601,8 +615,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                   Skeletonizer(
                     enabled: _isLoadingModels,
                     child: PlatformAdaptivePopupMenu<String>(
-                      selectedValue:
-                          _selectedModel.isNotEmpty ? _selectedModel : null,
+                      selectedValue: _selectedModel.isNotEmpty
+                          ? _selectedModel
+                          : null,
                       onSelected: (val) {
                         if (!_isLoadingModels) _onModelChanged(val);
                       },
@@ -616,7 +631,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           .toList(),
                       icon: AppSettingsRow.navigation(
                         title: l10n.aiModelLabel,
-                        subtitle: _modelOptions
+                        subtitle:
+                            _modelOptions
                                 .cast<AiModelOption?>()
                                 .firstWhere(
                                   (m) => m?.id == _selectedModel,
@@ -713,9 +729,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                         : LucideIcons.eye,
                                   ),
                                   onPressed: () {
-                                    setState(
-                                      () => _obscureKey = !_obscureKey,
-                                    );
+                                    setState(() => _obscureKey = !_obscureKey);
                                   },
                                 ),
                                 if (_hasKey)
@@ -754,7 +768,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           Expanded(
                             child: AppButton.secondary(
                               isLoading: _isTesting,
-                              onPressed: ((_hasKey ||
+                              onPressed:
+                                  ((_hasKey ||
                                           _selectedProvider ==
                                               AiProvider.ollama ||
                                           _selectedProvider ==
@@ -779,8 +794,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                               'ai_advanced_options_expansion',
                             ),
                             tilePadding: EdgeInsets.zero,
-                            childrenPadding:
-                                const EdgeInsets.only(top: 8, bottom: 4),
+                            childrenPadding: const EdgeInsets.only(
+                              top: 8,
+                              bottom: 4,
+                            ),
                             title: Text(
                               l10n.aiAdvancedOptionsTitle,
                               style: theme.textTheme.labelMedium?.copyWith(
@@ -803,16 +820,17 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                           l10n.settingsRequestTimeout,
                                           style: theme.textTheme.labelMedium
                                               ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                         Text(
                                           l10n.settingsSeconds(_timeoutSeconds),
                                           style: theme.textTheme.labelMedium
                                               ?.copyWith(
-                                            color: theme.colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                                color:
+                                                    theme.colorScheme.primary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -822,8 +840,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                     min: 10,
                                     max: 300,
                                     divisions: 29,
-                                    label:
-                                        l10n.settingsSeconds(_timeoutSeconds),
+                                    label: l10n.settingsSeconds(
+                                      _timeoutSeconds,
+                                    ),
                                     activeColor: theme.colorScheme.primary,
                                     onChanged: (value) async {
                                       final seconds = value.round();
@@ -878,8 +897,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                   subtitle: _retentionDays == -1
                       ? l10n.mealPhotoRetentionUnlimited
                       : (_retentionDays == 180
-                          ? '${l10n.mealPhotoRetentionDays(_retentionDays)} ${l10n.mealPhotoRetentionDefaultSuffix}'
-                          : l10n.mealPhotoRetentionDays(_retentionDays)),
+                            ? '${l10n.mealPhotoRetentionDays(_retentionDays)} ${l10n.mealPhotoRetentionDefaultSuffix}'
+                            : l10n.mealPhotoRetentionDays(_retentionDays)),
                 ),
               ),
               AppSettingsRow(

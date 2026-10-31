@@ -8,9 +8,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
+
 import 'package:table_calendar/table_calendar.dart';
+
 import 'glass_border_painter.dart';
 import '../../services/haptic_feedback_service.dart';
 import 'app_button.dart';
@@ -28,8 +31,11 @@ String _getSelectTimeTitle(BuildContext context) {
 
 bool _uses24HourClock(BuildContext context) =>
     MediaQuery.alwaysUse24HourFormatOf(context) ||
-    const {'de', 'es', 'nl'}
-        .contains(Localizations.localeOf(context).languageCode);
+    const {
+      'de',
+      'es',
+      'nl',
+    }.contains(Localizations.localeOf(context).languageCode);
 
 enum AdaptiveDatePickerView { wheel, calendar }
 
@@ -244,10 +250,7 @@ Future<TimeOfDay?> showAdaptiveTimePicker({
   required BuildContext context,
   required TimeOfDay initialTime,
 }) async {
-  return _showGlassTimePicker(
-    context: context,
-    initialTime: initialTime,
-  );
+  return _showGlassTimePicker(context: context, initialTime: initialTime);
 }
 
 /// Internal iOS Liquid Glass Date Picker sheet
@@ -316,7 +319,8 @@ Future<DateTime?> _showGlassDatePicker({
                                 HapticFeedbackService.instance
                                     .selectionFeedback();
                                 setModalState(
-                                    () => showCalendar = !showCalendar);
+                                  () => showCalendar = !showCalendar,
+                                );
                               },
                               icon: Icon(
                                 showCalendar
@@ -350,7 +354,8 @@ Future<DateTime?> _showGlassDatePicker({
                               child: Text(
                                 l10n?.today ?? 'Today',
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w600),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
@@ -404,8 +409,9 @@ Future<DateTime?> _showGlassDatePicker({
                             color: theme.colorScheme.onSurface,
                           ),
                           todayDecoration: BoxDecoration(
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.18),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.18,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           todayTextStyle: TextStyle(
@@ -429,8 +435,9 @@ Future<DateTime?> _showGlassDatePicker({
                       height: 200,
                       child: CupertinoTheme(
                         data: CupertinoThemeData(
-                          brightness:
-                              isDark ? Brightness.dark : Brightness.light,
+                          brightness: isDark
+                              ? Brightness.dark
+                              : Brightness.light,
                           textTheme: CupertinoTextThemeData(
                             dateTimePickerTextStyle: TextStyle(
                               color: isDark ? Colors.white : Colors.black87,
@@ -660,9 +667,8 @@ class _GlassPickerSheetState extends State<GlassPickerSheet> {
   }
 
   @override
-  Widget build(BuildContext context) => _GlassPickerSheetContent(
-        child: widget.child,
-      );
+  Widget build(BuildContext context) =>
+      _GlassPickerSheetContent(child: widget.child);
 }
 
 typedef _GlassPickerSheet = GlassPickerSheet;
@@ -696,8 +702,10 @@ class _GlassPickerSheetContent extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          constraints: BoxConstraints(
+            maxWidth: 680,
+            maxHeight: maxAvailableHeight,
+          ),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -710,8 +718,9 @@ class _GlassPickerSheetContent extends StatelessWidget {
                   child: ClipPath(
                     clipper: const ShapeBorderClipper(
                       shape: RoundedSuperellipseBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(r),
+                        ),
                       ),
                     ),
                     child: RepaintBoundary(
@@ -728,9 +737,7 @@ class _GlassPickerSheetContent extends StatelessWidget {
                           bottomRadius: 0,
                         ),
                         child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: neutralTint,
-                          ),
+                          decoration: BoxDecoration(color: neutralTint),
                         ),
                       ),
                     ),
@@ -741,8 +748,9 @@ class _GlassPickerSheetContent extends StatelessWidget {
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(r),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.18),
@@ -778,7 +786,8 @@ class _GlassPickerSheetContent extends StatelessWidget {
                                 color: neutralTint,
                                 shape: const RoundedSuperellipseBorder(
                                   borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(r)),
+                                    top: Radius.circular(r),
+                                  ),
                                 ),
                               ),
                             ),
@@ -788,8 +797,9 @@ class _GlassPickerSheetContent extends StatelessWidget {
                               painter: GlassBorderPainter(
                                 color: isDark
                                     ? Colors.white.withValues(alpha: 0.15)
-                                    : theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.08),
+                                    : theme.colorScheme.onSurface.withValues(
+                                        alpha: 0.08,
+                                      ),
                                 radius: r,
                                 strokeWidth: 0.5,
                                 bottomPadding: bottomInset,
@@ -802,7 +812,8 @@ class _GlassPickerSheetContent extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 const SizedBox(
-                                    height: DesignConstants.spacingS),
+                                  height: DesignConstants.spacingS,
+                                ),
                                 Center(
                                   child: Container(
                                     width: 44,
@@ -866,7 +877,8 @@ Future<int?> showAdaptiveBlockTypePicker({
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: DesignConstants.spacingL),
+                  vertical: DesignConstants.spacingL,
+                ),
                 child: Center(
                   child: Text(
                     'Timeframe',
@@ -889,14 +901,16 @@ Future<int?> showAdaptiveBlockTypePicker({
                     ),
                   ),
                   child: CupertinoPicker(
-                    scrollController:
-                        FixedExtentScrollController(initialItem: initialIndex),
+                    scrollController: FixedExtentScrollController(
+                      initialItem: initialIndex,
+                    ),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
                       selectedIndex = index;
                     },
-                    children:
-                        ranges.map((r) => Center(child: Text(r))).toList(),
+                    children: ranges
+                        .map((r) => Center(child: Text(r)))
+                        .toList(),
                   ),
                 ),
               ),

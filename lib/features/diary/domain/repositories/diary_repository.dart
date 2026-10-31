@@ -38,10 +38,7 @@ abstract class IDiaryRepository {
   Future<void> updateFoodEntry(FoodEntry entry);
   Future<void> updateMacroEntry(MacroEntry entry);
   Future<int> insertFluidEntry(FluidEntry entry);
-  Future<int> insertFoodEntry(
-    FoodEntry entry, {
-    String telemetrySource,
-  });
+  Future<int> insertFoodEntry(FoodEntry entry, {String telemetrySource});
   Future<void> insertMacroEntry(MacroEntry entry);
 
   Future<String> insertMealEntry(MealEntry entry);

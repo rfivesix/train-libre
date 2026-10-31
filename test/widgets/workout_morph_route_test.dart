@@ -6,26 +6,31 @@ import 'package:train_libre/features/workout/presentation/workout_morph_route.da
 import 'package:train_libre/util/design_constants.dart';
 
 void main() {
-  testWidgets('Live Activity entrance accepts taps on the first frame',
-      (tester) async {
+  testWidgets('Live Activity entrance accepts taps on the first frame', (
+    tester,
+  ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
     var taps = 0;
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      home: const Scaffold(body: Text('main')),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: const Scaffold(body: Text('main')),
+      ),
+    );
 
-    navigatorKey.currentState!.push(WorkoutMorphRoute<void>(
-      animateEntrance: false,
-      builder: (_) => Scaffold(
-        body: Center(
-          child: TextButton(
-            onPressed: () => taps++,
-            child: const Text('Log set'),
+    navigatorKey.currentState!.push(
+      WorkoutMorphRoute<void>(
+        animateEntrance: false,
+        builder: (_) => Scaffold(
+          body: Center(
+            child: TextButton(
+              onPressed: () => taps++,
+              child: const Text('Log set'),
+            ),
           ),
         ),
       ),
-    ));
+    );
 
     // Do not settle or advance the clock: the OS has already opened the app.
     await tester.pump();
@@ -43,13 +48,16 @@ void main() {
     expect(find.text('main'), findsOneWidget);
   });
 
-  testWidgets('morphs a page in and back out without leaving it behind',
-      (tester) async {
+  testWidgets('morphs a page in and back out without leaving it behind', (
+    tester,
+  ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      home: const Scaffold(body: Text('main')),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: const Scaffold(body: Text('main')),
+      ),
+    );
 
     navigatorKey.currentState!.push(
       WorkoutMorphRoute<void>(
@@ -75,13 +83,16 @@ void main() {
     expect(find.text('main'), findsOneWidget);
   });
 
-  testWidgets('mid-flight the page is scaled and the screen behind is dimmed',
-      (tester) async {
+  testWidgets('mid-flight the page is scaled and the screen behind is dimmed', (
+    tester,
+  ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      home: const Scaffold(body: Text('main')),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: const Scaffold(body: Text('main')),
+      ),
+    );
 
     navigatorKey.currentState!.push(
       WorkoutMorphRoute<void>(
@@ -107,69 +118,76 @@ void main() {
 
     // And the screen left behind is dimmed.
     final scrim = tester.widgetList<ColoredBox>(find.byType(ColoredBox));
-    expect(
-      scrim.any((box) => box.color.a > 0.0 && box.color.a < 1.0),
-      isTrue,
-    );
+    expect(scrim.any((box) => box.color.a > 0.0 && box.color.a < 1.0), isTrue);
 
     await tester.pumpAndSettle();
   });
 
-  testWidgets('collapsing hands over to the real bar by fading, not by a swap',
-      (tester) async {
+  testWidgets(
+    'collapsing hands over to the real bar by fading, not by a swap',
+    (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          home: const Scaffold(body: Text('main')),
+        ),
+      );
+
+      navigatorKey.currentState!.push(
+        WorkoutMorphRoute<void>(
+          builder: (_) => const Scaffold(body: Text('workout')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      navigatorKey.currentState!.pop();
+
+      // Stepped frame by frame rather than sampled at one timestamp: a route's
+      // clock only starts on its first tick, so any fixed offset silently means
+      // a different point in the animation than it reads as.
+      var lowest = 1.0;
+      for (var i = 0; i < 45; i++) {
+        await tester.pump(
+          i == 0 ? Duration.zero : const Duration(milliseconds: 16),
+        );
+        if (find.text('workout').evaluate().isEmpty) break;
+        final fades = tester.widgetList<Opacity>(
+          find.ancestor(
+            of: find.text('workout'),
+            matching: find.byType(Opacity),
+          ),
+        );
+        if (fades.isNotEmpty) lowest = math.min(lowest, fades.first.opacity);
+      }
+
+      // The page must have faded out before it is taken away, so what is left
+      // standing is the real bar rather than a stand-in swapped out on the
+      // final frame.
+      expect(lowest, lessThan(0.15));
+      expect(find.text('main'), findsOneWidget);
+
+      await tester.pumpAndSettle();
+      expect(find.text('workout'), findsNothing);
+    },
+  );
+
+  testWidgets('the bar it grew out of travels with it and hands over', (
+    tester,
+  ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      home: const Scaffold(body: Text('main')),
-    ));
-
-    navigatorKey.currentState!.push(
-      WorkoutMorphRoute<void>(
-        builder: (_) => const Scaffold(body: Text('workout')),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    navigatorKey.currentState!.pop();
-
-    // Stepped frame by frame rather than sampled at one timestamp: a route's
-    // clock only starts on its first tick, so any fixed offset silently means
-    // a different point in the animation than it reads as.
-    var lowest = 1.0;
-    for (var i = 0; i < 45; i++) {
-      await tester
-          .pump(i == 0 ? Duration.zero : const Duration(milliseconds: 16));
-      if (find.text('workout').evaluate().isEmpty) break;
-      final fades = tester.widgetList<Opacity>(find.ancestor(
-        of: find.text('workout'),
-        matching: find.byType(Opacity),
-      ));
-      if (fades.isNotEmpty) lowest = math.min(lowest, fades.first.opacity);
-    }
-
-    // The page must have faded out before it is taken away, so what is left
-    // standing is the real bar rather than a stand-in swapped out on the
-    // final frame.
-    expect(lowest, lessThan(0.15));
-    expect(find.text('main'), findsOneWidget);
-
-    await tester.pumpAndSettle();
-    expect(find.text('workout'), findsNothing);
-  });
-
-  testWidgets('the bar it grew out of travels with it and hands over',
-      (tester) async {
-    final navigatorKey = GlobalKey<NavigatorState>();
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      home: Scaffold(
-        body: ValueListenableBuilder<bool>(
-          valueListenable: workoutMorphSourceHidden,
-          builder: (context, hidden, _) =>
-              hidden ? const SizedBox.shrink() : const Text('bar'),
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: Scaffold(
+          body: ValueListenableBuilder<bool>(
+            valueListenable: workoutMorphSourceHidden,
+            builder: (context, hidden, _) =>
+                hidden ? const SizedBox.shrink() : const Text('bar'),
+          ),
         ),
       ),
-    ));
+    );
     expect(find.text('bar'), findsOneWidget);
 
     navigatorKey.currentState!.push(
@@ -219,19 +237,22 @@ void main() {
     expect(find.text('bar'), findsOneWidget);
   });
 
-  testWidgets('there is never a frame without a bar, at either end',
-      (tester) async {
+  testWidgets('there is never a frame without a bar, at either end', (
+    tester,
+  ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      home: Scaffold(
-        body: ValueListenableBuilder<bool>(
-          valueListenable: workoutMorphSourceHidden,
-          builder: (context, hidden, _) =>
-              hidden ? const SizedBox.shrink() : const Text('bar'),
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: Scaffold(
+          body: ValueListenableBuilder<bool>(
+            valueListenable: workoutMorphSourceHidden,
+            builder: (context, hidden, _) =>
+                hidden ? const SizedBox.shrink() : const Text('bar'),
+          ),
         ),
       ),
-    ));
+    );
 
     Future<void> stepThrough(int frames) async {
       for (var i = 0; i < frames; i++) {
@@ -281,10 +302,14 @@ void main() {
     final rect = DesignConstants.workoutOverlayRect(screen);
 
     expect(rect.left, DesignConstants.floatingBarHorizontalInset);
-    expect(rect.width,
-        screen.width - DesignConstants.floatingBarHorizontalInset * 2);
+    expect(
+      rect.width,
+      screen.width - DesignConstants.floatingBarHorizontalInset * 2,
+    );
     expect(rect.height, DesignConstants.workoutOverlayHeight);
     expect(
-        screen.height - rect.bottom, DesignConstants.workoutOverlayBottomInset);
+      screen.height - rect.bottom,
+      DesignConstants.workoutOverlayBottomInset,
+    );
   });
 }

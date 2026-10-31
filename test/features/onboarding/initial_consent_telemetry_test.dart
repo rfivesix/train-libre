@@ -38,17 +38,20 @@ void main() {
   tearDown(() => TelemetryConsentPrompt.instance.resetForTesting());
 
   Future<AppLocalizations> pumpConsent(WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: const InitialConsentScreen(
-        nextScreen: Scaffold(body: Text('next')),
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: const InitialConsentScreen(
+          nextScreen: Scaffold(body: Text('next')),
+        ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     return AppLocalizations.of(
-        tester.element(find.byType(InitialConsentScreen)))!;
+      tester.element(find.byType(InitialConsentScreen)),
+    )!;
   }
 
   /// Ticks the mandatory consent and taps through.
@@ -59,16 +62,18 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('does not bundle the telemetry question into the consent',
-      (tester) async {
+  testWidgets('does not bundle the telemetry question into the consent', (
+    tester,
+  ) async {
     final l10n = await pumpConsent(tester);
 
     expect(find.text(l10n.i_agree_to_optional_telemetry), findsNothing);
     expect(find.text(l10n.i_agree_to_privacy_policy), findsOneWidget);
   });
 
-  testWidgets('asks separately, right after the consent is given',
-      (tester) async {
+  testWidgets('asks separately, right after the consent is given', (
+    tester,
+  ) async {
     final l10n = await pumpConsent(tester);
     await accept(tester, l10n);
 
@@ -78,13 +83,15 @@ void main() {
     expect(telemetry.calls, [false]);
   });
 
-  testWidgets('declining leaves telemetry off and starts the waiting period',
-      (tester) async {
+  testWidgets('declining leaves telemetry off and starts the waiting period', (
+    tester,
+  ) async {
     final l10n = await pumpConsent(tester);
     await accept(tester, l10n);
 
-    await tester
-        .ensureVisible(find.byKey(const Key('telemetry_consent_decline')));
+    await tester.ensureVisible(
+      find.byKey(const Key('telemetry_consent_decline')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('telemetry_consent_decline')));
     await tester.pumpAndSettle();
@@ -96,13 +103,15 @@ void main() {
     expect(find.text('next'), findsOneWidget, reason: 'proceeds either way');
   });
 
-  testWidgets('accepting opts in and closes the subject for good',
-      (tester) async {
+  testWidgets('accepting opts in and closes the subject for good', (
+    tester,
+  ) async {
     final l10n = await pumpConsent(tester);
     await accept(tester, l10n);
 
-    await tester
-        .ensureVisible(find.byKey(const Key('telemetry_consent_accept')));
+    await tester.ensureVisible(
+      find.byKey(const Key('telemetry_consent_accept')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('telemetry_consent_accept')));
     await tester.pumpAndSettle();

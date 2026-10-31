@@ -48,15 +48,15 @@ class ScenarioProfile {
   });
 
   ScenarioProfile.defaultProfile()
-      : name = 'Scenario User',
-        birthday = DateTime(1994, 5, 12),
-        heightCm = 178,
-        gender = 'male',
-        initialWeightKg = 82,
-        bodyFatPercent = null,
-        declaredActivityLevel = PriorActivityLevel.moderate,
-        extraCardioHoursOption = ExtraCardioHoursOption.h0,
-        targetSteps = 8500;
+    : name = 'Scenario User',
+      birthday = DateTime(1994, 5, 12),
+      heightCm = 178,
+      gender = 'male',
+      initialWeightKg = 82,
+      bodyFatPercent = null,
+      declaredActivityLevel = PriorActivityLevel.moderate,
+      extraCardioHoursOption = ExtraCardioHoursOption.h0,
+      targetSteps = 8500;
 }
 
 class WeekScenarioOutput {
@@ -98,10 +98,7 @@ class SameWeekReplayOutput {
   final WeekScenarioOutput initial;
   final WeekScenarioOutput replay;
 
-  const SameWeekReplayOutput({
-    required this.initial,
-    required this.replay,
-  });
+  const SameWeekReplayOutput({required this.initial, required this.replay});
 }
 
 class AdaptiveScenarioHarness {
@@ -177,7 +174,9 @@ class AdaptiveScenarioHarness {
       targetRateKgPerWeek: 0,
     );
 
-    await database.into(database.products).insert(
+    await database
+        .into(database.products)
+        .insert(
           const ProductsCompanion(
             barcode: drift.Value(scenarioFoodBarcode),
             name: drift.Value('Scenario Food 1kcal/g'),
@@ -220,10 +219,7 @@ class AdaptiveScenarioHarness {
     );
   }
 
-  Future<void> logWeight({
-    required DateTime day,
-    required double weightKg,
-  }) {
+  Future<void> logWeight({required DateTime day, required double weightKg}) {
     final sessionTime = DateTime(day.year, day.month, day.day, 7);
     return dbHelper.insertMeasurementSession(
       MeasurementSession(
@@ -268,13 +264,14 @@ class AdaptiveScenarioHarness {
     bool Function(int dayIndex, DateTime day)? shouldLogWeight,
     bool Function(int dayIndex, DateTime day)? shouldLogIntake,
     double Function(int dayIndex, DateTime day, double baselineWeightKg)?
-        weightForDay,
+    weightForDay,
     int Function(int dayIndex, DateTime day, int baselineCalories)?
-        intakeForDay,
+    intakeForDay,
     Set<DateTime> noLogDays = const <DateTime>{},
   }) async {
-    final blockedDayKeys =
-        noLogDays.map((day) => normalizeDay(day).toIso8601String()).toSet();
+    final blockedDayKeys = noLogDays
+        .map((day) => normalizeDay(day).toIso8601String())
+        .toSet();
 
     for (var i = 0; i < dayCount; i++) {
       final day = normalizeDay(startDay.add(Duration(days: i)));
@@ -322,15 +319,17 @@ class AdaptiveScenarioHarness {
         12,
       ).toUtc();
       final endAt = startAt.add(const Duration(hours: 1));
-      companions.add(HealthStepSegmentsCompanion.insert(
-        provider: provider,
-        sourceId: drift.Value(sourceId),
-        startAt: startAt,
-        endAt: endAt,
-        stepCount: dailySteps,
-        externalKey: 'scenario_steps_${localDay.toIso8601String()}_$i',
-        updatedAt: drift.Value(DateTime.now()),
-      ));
+      companions.add(
+        HealthStepSegmentsCompanion.insert(
+          provider: provider,
+          sourceId: drift.Value(sourceId),
+          startAt: startAt,
+          endAt: endAt,
+          stepCount: dailySteps,
+          externalKey: 'scenario_steps_${localDay.toIso8601String()}_$i',
+          updatedAt: drift.Value(DateTime.now()),
+        ),
+      );
     }
     return dbHelper.upsertHealthStepSegments(companions);
   }
@@ -350,7 +349,8 @@ class AdaptiveScenarioHarness {
     );
     if (recommendation == null) {
       throw StateError(
-          'Expected recommendation for ${dueWeekKeyFor(dueStart)}');
+        'Expected recommendation for ${dueWeekKeyFor(dueStart)}',
+      );
     }
 
     final snapshot = await repository.getLatestRecommendationSnapshot();
@@ -359,7 +359,8 @@ class AdaptiveScenarioHarness {
 
     if (snapshot == null || state == null || phase == null) {
       throw StateError(
-          'Missing persisted adaptive state for ${dueWeekKeyFor(dueStart)}');
+        'Missing persisted adaptive state for ${dueWeekKeyFor(dueStart)}',
+      );
     }
 
     return WeekScenarioOutput(
@@ -409,11 +410,10 @@ class AdaptiveScenarioHarness {
   }) async {
     final weeks = <WeekScenarioOutput>[];
     for (var i = 0; i < weekCount; i++) {
-      final dueWeek =
-          normalizeDay(firstDueWeekStart.add(Duration(days: 7 * i)));
-      weeks.add(
-        await generateForDueWeek(dueWeekStart: dueWeek, force: true),
+      final dueWeek = normalizeDay(
+        firstDueWeekStart.add(Duration(days: 7 * i)),
       );
+      weeks.add(await generateForDueWeek(dueWeekStart: dueWeek, force: true));
     }
     return weeks;
   }
@@ -491,9 +491,7 @@ void expectDueWeekAnchorsStable(
   }
 }
 
-void expectFixedEnergyDensityAndPhaseVariance(
-  List<WeekScenarioOutput> weeks,
-) {
+void expectFixedEnergyDensityAndPhaseVariance(List<WeekScenarioOutput> weeks) {
   expect(weeks, isNotEmpty);
 
   for (final week in weeks) {

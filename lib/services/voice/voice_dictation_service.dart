@@ -51,8 +51,9 @@ class VoiceDictationService {
 
   /// Native probe for what the platform speech recognizer can actually do.
   /// See `SpeechCapabilityPlugin` for why this cannot be asked of the plugin.
-  static const MethodChannel _capabilityChannel =
-      MethodChannel('trainlibre.speech/capability');
+  static const MethodChannel _capabilityChannel = MethodChannel(
+    'trainlibre.speech/capability',
+  );
 
   bool _initialized = false;
   bool _onDeviceAvailable = false;
@@ -159,10 +160,13 @@ class VoiceDictationService {
     if (!availability.available) return const [];
     try {
       final locales = await _speech.locales();
-      final mapped = locales
-          .map((l) => (id: l.localeId, name: l.name))
-          .toList(growable: false)
-        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      final mapped =
+          locales
+              .map((l) => (id: l.localeId, name: l.name))
+              .toList(growable: false)
+            ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
       return mapped;
     } catch (e) {
       debugPrint('[VoiceDictation] locales failed: $e');

@@ -14,8 +14,9 @@ void main() {
     await AiMealScanLogService.instance.clear();
   });
 
-  testWidgets('shows a scan timeline and copies privacy-safe diagnostics',
-      (tester) async {
+  testWidgets('shows a scan timeline and copies privacy-safe diagnostics', (
+    tester,
+  ) async {
     final logs = AiMealScanLogService.instance;
     await tester.runAsync(() async {
       await logs.start(
@@ -26,42 +27,65 @@ void main() {
         startedAt: DateTime(2026, 10, 3, 15, 53),
       );
       await logs.setModel('scan-1', 'gpt-6-luna');
-      await logs.event('scan-1', AiMealScanLogStage.preparationFinished,
-          elapsedMilliseconds: 800, durationMilliseconds: 800);
-      await logs.event('scan-1', AiMealScanLogStage.validationFinished,
-          elapsedMilliseconds: 20000,
-          durationMilliseconds: 2500,
-          result: AiMealScanLogResult.needsRepair,
-          candidate: AiMealScanLogCandidate.primary,
-          validationScore: 68,
-          issueCategories: [AiMealScanLogIssueCategory.semanticMatch]);
-      await logs.event('scan-1', AiMealScanLogStage.providerUsageReported,
-          elapsedMilliseconds: 20001,
-          callIndex: 1,
-          inputTokens: 2200,
-          outputTokens: 1800,
-          totalTokens: 4000,
-          usageComplete: true);
-      await logs.event('scan-1', AiMealScanLogStage.reviewVisible,
-          elapsedMilliseconds: 18000);
-      await logs.event('scan-1', AiMealScanLogStage.preliminaryNutritionReady,
-          elapsedMilliseconds: 20100);
-      await logs.event('scan-1', AiMealScanLogStage.reviewReady,
-          elapsedMilliseconds: 37000);
-      await logs.finish('scan-1',
-          result: AiMealScanLogResult.accepted,
-          durationMilliseconds: 37000,
-          selectedValidationRounds: 2,
-          totalValidationRuns: 2,
-          repairRounds: 1,
-          primaryFirstPassAccepted: false,
-          hedgeStarted: false);
-      await logs.usage('scan-1',
-          calls: 2,
-          inputTokens: 9000,
-          outputTokens: 2812,
-          totalTokens: 11812,
-          complete: true);
+      await logs.event(
+        'scan-1',
+        AiMealScanLogStage.preparationFinished,
+        elapsedMilliseconds: 800,
+        durationMilliseconds: 800,
+      );
+      await logs.event(
+        'scan-1',
+        AiMealScanLogStage.validationFinished,
+        elapsedMilliseconds: 20000,
+        durationMilliseconds: 2500,
+        result: AiMealScanLogResult.needsRepair,
+        candidate: AiMealScanLogCandidate.primary,
+        validationScore: 68,
+        issueCategories: [AiMealScanLogIssueCategory.semanticMatch],
+      );
+      await logs.event(
+        'scan-1',
+        AiMealScanLogStage.providerUsageReported,
+        elapsedMilliseconds: 20001,
+        callIndex: 1,
+        inputTokens: 2200,
+        outputTokens: 1800,
+        totalTokens: 4000,
+        usageComplete: true,
+      );
+      await logs.event(
+        'scan-1',
+        AiMealScanLogStage.reviewVisible,
+        elapsedMilliseconds: 18000,
+      );
+      await logs.event(
+        'scan-1',
+        AiMealScanLogStage.preliminaryNutritionReady,
+        elapsedMilliseconds: 20100,
+      );
+      await logs.event(
+        'scan-1',
+        AiMealScanLogStage.reviewReady,
+        elapsedMilliseconds: 37000,
+      );
+      await logs.finish(
+        'scan-1',
+        result: AiMealScanLogResult.accepted,
+        durationMilliseconds: 37000,
+        selectedValidationRounds: 2,
+        totalValidationRuns: 2,
+        repairRounds: 1,
+        primaryFirstPassAccepted: false,
+        hedgeStarted: false,
+      );
+      await logs.usage(
+        'scan-1',
+        calls: 2,
+        inputTokens: 9000,
+        outputTokens: 2812,
+        totalTokens: 11812,
+        complete: true,
+      );
     });
 
     String? clipboardText;
@@ -74,17 +98,23 @@ void main() {
         return null;
       },
     );
-    addTearDown(() => tester.binding.defaultBinaryMessenger
-        .setMockMethodCallHandler(SystemChannels.platform, null));
-
-    await tester.pumpWidget(MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(
-        body: SingleChildScrollView(child: AiMealScanLogsSection()),
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
       ),
-    ));
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(
+          body: SingleChildScrollView(child: AiMealScanLogsSection()),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.textContaining('gpt-6-luna'), findsOneWidget);

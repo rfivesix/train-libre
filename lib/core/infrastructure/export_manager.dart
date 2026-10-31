@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+
 import 'package:excel_community/excel_community.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -242,9 +243,11 @@ class _WorkbookTableSpec {
 
 class ExportManager {
   static const List<_WorkbookTableSpec> _completeWorkbookTables = [
-    _WorkbookTableSpec('profiles', 'profiles', excludedColumns: {
-      'profile_image_path',
-    }),
+    _WorkbookTableSpec(
+      'profiles',
+      'profiles',
+      excludedColumns: {'profile_image_path'},
+    ),
     _WorkbookTableSpec('app_settings', 'app_settings'),
     _WorkbookTableSpec(
       'exercises',
@@ -275,11 +278,11 @@ class ExportManager {
     _WorkbookTableSpec('routines', 'routines'),
     _WorkbookTableSpec('routine_exercises', 'routine_exercises'),
     _WorkbookTableSpec('routine_set_templates', 'routine_set_templates'),
-    _WorkbookTableSpec('workout_logs', 'workout_logs', excludedColumns: {
-      'photo_path',
-      'photo_thumb_path',
-      'photo_extra_paths',
-    }),
+    _WorkbookTableSpec(
+      'workout_logs',
+      'workout_logs',
+      excludedColumns: {'photo_path', 'photo_thumb_path', 'photo_extra_paths'},
+    ),
     _WorkbookTableSpec('set_logs', 'set_logs'),
     _WorkbookTableSpec('cardio_activities', 'cardio_activities'),
     _WorkbookTableSpec('cardio_samples', 'cardio_samples'),
@@ -304,36 +307,54 @@ class ExportManager {
     _WorkbookTableSpec('supplements', 'supplements'),
     _WorkbookTableSpec('supplement_logs', 'supplement_logs'),
     _WorkbookTableSpec('measurements', 'measurements'),
-    _WorkbookTableSpec('meal_entries', 'meal_entries', excludedColumns: {
-      'photo_path',
-      'photo_thumb_path',
-    }),
+    _WorkbookTableSpec(
+      'meal_entries',
+      'meal_entries',
+      excludedColumns: {'photo_path', 'photo_thumb_path'},
+    ),
     _WorkbookTableSpec('meals', 'saved_meals'),
     _WorkbookTableSpec('meal_items', 'saved_meal_items'),
     _WorkbookTableSpec('favorites', 'food_favorites'),
     _WorkbookTableSpec('daily_goals_history', 'daily_goals_history'),
     _WorkbookTableSpec(
-        'supplement_settings_history', 'supplement_settings_history'),
-    _WorkbookTableSpec('health_step_segments', 'health_step_segments',
-        excludedColumns: {'source_id', 'external_key'}),
+      'supplement_settings_history',
+      'supplement_settings_history',
+    ),
+    _WorkbookTableSpec(
+      'health_step_segments',
+      'health_step_segments',
+      excludedColumns: {'source_id', 'external_key'},
+    ),
     _WorkbookTableSpec('workout_exercise_logs', 'workout_exercise_logs'),
     _WorkbookTableSpec('pinned_exercise_notes', 'pinned_exercise_notes'),
     _WorkbookTableSpec('user_food_overrides', 'user_food_overrides'),
     _WorkbookTableSpec(
-        'user_food_override_translations', 'food_override_translations'),
+      'user_food_override_translations',
+      'food_override_translations',
+    ),
     _WorkbookTableSpec('user_goals', 'user_goals'),
     _WorkbookTableSpec('goal_events', 'goal_events'),
     _WorkbookTableSpec('goal_reviews', 'goal_reviews'),
     _WorkbookTableSpec('training_plans', 'training_plans'),
     _WorkbookTableSpec('training_plan_revisions', 'training_plan_revisions'),
     _WorkbookTableSpec(
-        'training_plan_activations', 'training_plan_activations'),
+      'training_plan_activations',
+      'training_plan_activations',
+    ),
     _WorkbookTableSpec(
-        'training_plan_occurrences', 'training_plan_occurrences'),
-    _WorkbookTableSpec('sleep_canonical_sessions', 'sleep_sessions',
-        excludedColumns: {'source_app_id', 'source_record_hash'}),
-    _WorkbookTableSpec('sleep_canonical_stage_segments', 'sleep_stages',
-        excludedColumns: {'source_app_id', 'source_record_hash'}),
+      'training_plan_occurrences',
+      'training_plan_occurrences',
+    ),
+    _WorkbookTableSpec(
+      'sleep_canonical_sessions',
+      'sleep_sessions',
+      excludedColumns: {'source_app_id', 'source_record_hash'},
+    ),
+    _WorkbookTableSpec(
+      'sleep_canonical_stage_segments',
+      'sleep_stages',
+      excludedColumns: {'source_app_id', 'source_record_hash'},
+    ),
     _WorkbookTableSpec(
       'sleep_canonical_heart_rate_samples',
       'sleep_heart_rate',
@@ -362,14 +383,13 @@ class ExportManager {
     List<FoodEntry>? foodEntries,
     List<BlsNutrientFact>? nutrientFacts,
     bool? catalogAvailable,
-  }) =>
-      _collectCompleteDataSheets(
-        databaseHelper: databaseHelper,
-        preferences: preferences,
-        foodEntries: foodEntries,
-        nutrientFacts: nutrientFacts,
-        catalogAvailable: catalogAvailable,
-      );
+  }) => _collectCompleteDataSheets(
+    databaseHelper: databaseHelper,
+    preferences: preferences,
+    foodEntries: foodEntries,
+    nutrientFacts: nutrientFacts,
+    catalogAvailable: catalogAvailable,
+  );
 
   @visibleForTesting
   static List<int>? buildWorkbookForTesting(ExcelExportData data) =>
@@ -396,19 +416,25 @@ class ExportManager {
           .map((row) => row.read<String>('name'))
           .where((name) => !spec.excludedColumns.contains(name))
           .toList(growable: false);
-      sheets.add(WorkbookTableDto(
-        name: spec.sheetName,
-        columns: columns,
-        rows: rows
-            .map((row) => columns
-                .map((column) => _normalizeWorkbookValue(
-                      spec.tableName,
-                      column,
-                      row.data[column],
-                    ))
-                .toList(growable: false))
-            .toList(growable: false),
-      ));
+      sheets.add(
+        WorkbookTableDto(
+          name: spec.sheetName,
+          columns: columns,
+          rows: rows
+              .map(
+                (row) => columns
+                    .map(
+                      (column) => _normalizeWorkbookValue(
+                        spec.tableName,
+                        column,
+                        row.data[column],
+                      ),
+                    )
+                    .toList(growable: false),
+              )
+              .toList(growable: false),
+        ),
+      );
     }
 
     final prefs = preferences ?? await SharedPreferences.getInstance();
@@ -423,11 +449,13 @@ class ExportManager {
         _normalizeWorkbookValue('preferences', 'value', prefs.get(key)),
       ]);
     }
-    sheets.add(WorkbookTableDto(
-      name: 'app_preferences',
-      columns: const ['key', 'value_type', 'value'],
-      rows: preferenceRows,
-    ));
+    sheets.add(
+      WorkbookTableDto(
+        name: 'app_preferences',
+        columns: const ['key', 'value_type', 'value'],
+        rows: preferenceRows,
+      ),
+    );
 
     // The backup query also resolves older rows whose barcode is null but
     // whose product_id still points at a BLS food. That relationship is needed
@@ -438,11 +466,13 @@ class ExportManager {
         .where((entry) => entry.barcode.startsWith('bls:'))
         .where((entry) => entry.quantityInGrams > 0)
         .toList(growable: false);
-    final installed = catalogAvailable ??
+    final installed =
+        catalogAvailable ??
         (blsEntries.isEmpty
             ? true
             : await BlsFoodCatalogRefreshService.instance.isInstalled());
-    final facts = nutrientFacts ??
+    final facts =
+        nutrientFacts ??
         (blsEntries.isEmpty
             ? const <BlsNutrientFact>[]
             : await const BlsNutrientRepository().getFactsForBarcodes(
@@ -550,8 +580,10 @@ class ExportManager {
     if (value is List || value is Map) return jsonEncode(value);
 
     if (value is int && _isTimestampColumn(tableName, columnName)) {
-      return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true)
-          .toIso8601String();
+      return DateTime.fromMillisecondsSinceEpoch(
+        value,
+        isUtc: true,
+      ).toIso8601String();
     }
     return value;
   }
@@ -600,8 +632,10 @@ class ExportManager {
       return true;
     }
     if (tableName.startsWith('sleep_') &&
-        !const {'regularity_valid_days', 'interruptions_count'}
-            .contains(columnName) &&
+        !const {
+          'regularity_valid_days',
+          'interruptions_count',
+        }.contains(columnName) &&
         !columnName.endsWith('_minutes') &&
         columnName != 'id' &&
         columnName != 'session_id' &&
@@ -652,12 +686,17 @@ class ExportManager {
     final dbInst = DatabaseHelper.instance.dbInstance;
     // 1. Try to read from cardio_samples
     try {
-      final rows = await dbInst.customSelect('''
+      final rows = await dbInst
+          .customSelect(
+            '''
         SELECT s.data_json
         FROM cardio_activities a
         JOIN cardio_samples s ON a.id = s.cardio_activity_id
         WHERE a.workout_log_id = ? AND s.data_type = 'HeartRate'
-      ''', variables: [drift.Variable<String>(workoutLogId)]).get();
+      ''',
+            variables: [drift.Variable<String>(workoutLogId)],
+          )
+          .get();
       if (rows.isNotEmpty) {
         final dataJson = rows.first.read<String>('data_json');
         final decoded = jsonDecode(dataJson);
@@ -691,14 +730,19 @@ class ExportManager {
     try {
       final startMs = startTime.millisecondsSinceEpoch;
       final endMs = endTime.millisecondsSinceEpoch;
-      final rows = await dbInst.customSelect('''
+      final rows = await dbInst
+          .customSelect(
+            '''
         SELECT min_bpm, max_bpm, sum_bpm, sample_count
         FROM pulse_hourly_aggregates
         WHERE bucket_end_ms > ? AND bucket_start_ms < ?
-      ''', variables: [
-        drift.Variable<int>(startMs),
-        drift.Variable<int>(endMs)
-      ]).get();
+      ''',
+            variables: [
+              drift.Variable<int>(startMs),
+              drift.Variable<int>(endMs),
+            ],
+          )
+          .get();
       if (rows.isNotEmpty) {
         double min = double.infinity;
         double max = double.negativeInfinity;
@@ -770,40 +814,45 @@ class ExportManager {
           : legacyProductsMap[entry.barcode];
       if (p != null) {
         final ratio = entry.quantityInGrams / 100.0;
-        nutritionRows.add(NutritionRowDto(
-          timestampStr: DateFormat('yyyy-MM-dd HH:mm').format(entry.timestamp),
-          name: p.name,
-          type: 'Essen',
-          quantity: entry.quantityInGrams.toInt(),
-          calories: p.calories * ratio,
-          protein: p.protein * ratio,
-          carbs: p.carbs * ratio,
-          fat: p.fat * ratio,
-          sugar: (p.sugar ?? 0.0) * ratio,
-          fiber: (p.fiber ?? 0.0) * ratio,
-          caffeine:
-              (p.caffeineMgPer100g ?? p.caffeineMgPer100ml ?? 0.0) * ratio,
-          water: 0,
-        ));
+        nutritionRows.add(
+          NutritionRowDto(
+            timestampStr: DateFormat('yyyy-MM-dd HH:mm')
+                .format(entry.timestamp),
+            name: p.name,
+            type: 'Essen',
+            quantity: entry.quantityInGrams.toInt(),
+            calories: p.calories * ratio,
+            protein: p.protein * ratio,
+            carbs: p.carbs * ratio,
+            fat: p.fat * ratio,
+            sugar: (p.sugar ?? 0.0) * ratio,
+            fiber: (p.fiber ?? 0.0) * ratio,
+            caffeine:
+                (p.caffeineMgPer100g ?? p.caffeineMgPer100ml ?? 0.0) * ratio,
+            water: 0,
+          ),
+        );
       }
     }
 
     for (var entry in fluidEntries) {
       final ratio = entry.quantityInMl / 100.0;
-      nutritionRows.add(NutritionRowDto(
-        timestampStr: DateFormat('yyyy-MM-dd HH:mm').format(entry.timestamp),
-        name: entry.name,
-        type: 'Trinken',
-        quantity: entry.quantityInMl.toInt(),
-        calories: (entry.kcal ?? 0) * ratio,
-        protein: 0.0,
-        carbs: (entry.carbsPer100ml ?? 0.0) * ratio,
-        fat: 0.0,
-        sugar: (entry.sugarPer100ml ?? 0.0) * ratio,
-        fiber: 0.0,
-        caffeine: (entry.caffeinePer100ml ?? 0.0) * ratio,
-        water: entry.quantityInMl.toInt(),
-      ));
+      nutritionRows.add(
+        NutritionRowDto(
+          timestampStr: DateFormat('yyyy-MM-dd HH:mm').format(entry.timestamp),
+          name: entry.name,
+          type: 'Trinken',
+          quantity: entry.quantityInMl.toInt(),
+          calories: (entry.kcal ?? 0) * ratio,
+          protein: 0.0,
+          carbs: (entry.carbsPer100ml ?? 0.0) * ratio,
+          fat: 0.0,
+          sugar: (entry.sugarPer100ml ?? 0.0) * ratio,
+          fiber: 0.0,
+          caffeine: (entry.caffeinePer100ml ?? 0.0) * ratio,
+          water: entry.quantityInMl.toInt(),
+        ),
+      );
     }
 
     // -------------------------------------------------------------------------
@@ -824,19 +873,21 @@ class ExportManager {
         final setIndex = (exerciseSetCounts[exercise] ?? 0) + 1;
         exerciseSetCounts[exercise] = setIndex;
 
-        workoutRows.add(WorkoutRowDto(
-          workoutName: workoutName,
-          exerciseName: set.exerciseName,
-          setIndex: setIndex,
-          weight: set.weightKg,
-          reps: set.reps,
-          rir: set.rir,
-          rpe: set.rpe,
-          setNotes: set.notes,
-          workoutComments: log.notes,
-          exerciseBlock: set.exerciseBlock,
-          workoutExerciseNote: log.exerciseNotesByBlock[set.exerciseBlock],
-        ));
+        workoutRows.add(
+          WorkoutRowDto(
+            workoutName: workoutName,
+            exerciseName: set.exerciseName,
+            setIndex: setIndex,
+            weight: set.weightKg,
+            reps: set.reps,
+            rir: set.rir,
+            rpe: set.rpe,
+            setNotes: set.notes,
+            workoutComments: log.notes,
+            exerciseBlock: set.exerciseBlock,
+            workoutExerciseNote: log.exerciseNotesByBlock[set.exerciseBlock],
+          ),
+        );
       }
     }
 
@@ -859,12 +910,14 @@ class ExportManager {
       ORDER BY scope, owner, exercise_name
     ''').get();
     final pinnedNoteRows = pinnedNoteQuery
-        .map((row) => PinnedNoteRowDto(
-              scope: row.read<String>('scope'),
-              owner: row.read<String>('owner'),
-              exerciseName: row.read<String>('exercise_name'),
-              note: row.read<String>('note'),
-            ))
+        .map(
+          (row) => PinnedNoteRowDto(
+            scope: row.read<String>('scope'),
+            owner: row.read<String>('owner'),
+            exerciseName: row.read<String>('exercise_name'),
+            note: row.read<String>('note'),
+          ),
+        )
         .toList(growable: false);
 
     // -------------------------------------------------------------------------
@@ -908,23 +961,27 @@ class ExportManager {
 
       for (final r in sleepRowsFromDb) {
         final sessionId = r.read<String>('session_id');
-        final startTime =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('started_at'));
-        final endTime =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('ended_at'));
+        final startTime = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('started_at'),
+        );
+        final endTime = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('ended_at'),
+        );
         final stages = sessionStages[sessionId] ?? {};
 
-        sleepRows.add(SleepRowDto(
-          nightDate: r.read<String>('night_date'),
-          startTimeIso: startTime.toIso8601String(),
-          endTimeIso: endTime.toIso8601String(),
-          totalSleepMinutes: r.readNullable<int>('total_sleep_minutes') ?? 0,
-          deepMinutes: (stages['deep'] ?? 0.0),
-          lightMinutes: (stages['light'] ?? 0.0),
-          remMinutes: (stages['rem'] ?? 0.0),
-          awakeMinutes: (stages['awake'] ?? 0.0),
-          score: r.readNullable<double>('score') ?? 0.0,
-        ));
+        sleepRows.add(
+          SleepRowDto(
+            nightDate: r.read<String>('night_date'),
+            startTimeIso: startTime.toIso8601String(),
+            endTimeIso: endTime.toIso8601String(),
+            totalSleepMinutes: r.readNullable<int>('total_sleep_minutes') ?? 0,
+            deepMinutes: (stages['deep'] ?? 0.0),
+            lightMinutes: (stages['light'] ?? 0.0),
+            remMinutes: (stages['rem'] ?? 0.0),
+            awakeMinutes: (stages['awake'] ?? 0.0),
+            score: r.readNullable<double>('score') ?? 0.0,
+          ),
+        );
       }
     } catch (_) {}
 
@@ -937,16 +994,19 @@ class ExportManager {
     StepsSourcePolicy stepsSourcePolicy = StepsSourcePolicy.autoDominant;
 
     try {
-      final stepSegmentsRows =
-          await dbInst.select(dbInst.healthStepSegments).get();
+      final stepSegmentsRows = await dbInst
+          .select(dbInst.healthStepSegments)
+          .get();
       stepSegments = stepSegmentsRows
-          .map((s) => HealthStepSegmentDto(
-                provider: s.provider,
-                sourceId: s.sourceId,
-                startAt: s.startAt,
-                endAt: s.endAt,
-                stepCount: s.stepCount,
-              ))
+          .map(
+            (s) => HealthStepSegmentDto(
+              provider: s.provider,
+              sourceId: s.sourceId,
+              startAt: s.startAt,
+              endAt: s.endAt,
+              stepCount: s.stepCount,
+            ),
+          )
           .toList();
 
       final pulseRows = await dbInst.customSelect('''
@@ -954,14 +1014,17 @@ class ExportManager {
         FROM pulse_hourly_aggregates
       ''').get();
       pulseAggregates = pulseRows
-          .map((r) => PulseHourlyAggregateDto(
-                bucketStart: DateTime.fromMillisecondsSinceEpoch(
-                    r.read<int>('bucket_start_ms')),
-                minBpm: r.read<double>('min_bpm'),
-                maxBpm: r.read<double>('max_bpm'),
-                sumBpm: r.read<double>('sum_bpm'),
-                sampleCount: r.read<num>('sample_count').toInt(),
-              ))
+          .map(
+            (r) => PulseHourlyAggregateDto(
+              bucketStart: DateTime.fromMillisecondsSinceEpoch(
+                r.read<int>('bucket_start_ms'),
+              ),
+              minBpm: r.read<double>('min_bpm'),
+              maxBpm: r.read<double>('max_bpm'),
+              sumBpm: r.read<double>('sum_bpm'),
+              sampleCount: r.read<num>('sample_count').toInt(),
+            ),
+          )
           .toList();
 
       final workoutListForHr = await dbInst.customSelect('''
@@ -973,10 +1036,12 @@ class ExportManager {
       final Map<String, List<Map<String, double>>> workoutHrByDate = {};
       for (final w in workoutListForHr) {
         final wId = w.read<String>('id');
-        final startTime =
-            DateTime.fromMillisecondsSinceEpoch(w.read<int>('start_time'));
-        final endTime =
-            DateTime.fromMillisecondsSinceEpoch(w.read<int>('end_time'));
+        final startTime = DateTime.fromMillisecondsSinceEpoch(
+          w.read<int>('start_time'),
+        );
+        final endTime = DateTime.fromMillisecondsSinceEpoch(
+          w.read<int>('end_time'),
+        );
         final day = DateFormat('yyyy-MM-dd')
             .format(startTime.toLocal()); // local timezone date
 
@@ -1020,12 +1085,14 @@ class ExportManager {
       final sessions = await foodHelper.getMeasurementSessions();
       for (final s in sessions) {
         for (final m in s.measurements) {
-          measurementRows.add(MeasurementRowDto(
-            timestamp: s.timestamp,
-            type: m.type,
-            value: m.value,
-            unit: m.unit,
-          ));
+          measurementRows.add(
+            MeasurementRowDto(
+              timestamp: s.timestamp,
+              type: m.type,
+              value: m.value,
+              unit: m.unit,
+            ),
+          );
         }
       }
     } catch (_) {}
@@ -1054,16 +1121,18 @@ class ExportManager {
     if (bytes != null) {
       final tempDir = await getTemporaryDirectory();
       final file = File(
-          '${tempDir.path}/train_libre_complete_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx');
+        '${tempDir.path}/train_libre_complete_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx',
+      );
       await file.writeAsBytes(bytes);
 
       try {
         await SharePlus.instance.share(
           ShareParams(
             files: [
-              XFile(file.path,
-                  mimeType:
-                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+              XFile(
+                file.path,
+                mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              ),
             ],
             subject: 'Train Libre Complete Data Export',
             sharePositionOrigin: _sharePositionOrigin(),
@@ -1086,8 +1155,11 @@ class ExportManager {
     void writeCell(Sheet sheet, int col, int row, CellValue? value) {
       if (value != null) {
         sheet
-            .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row))
-            .value = value;
+                .cell(
+                  CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row),
+                )
+                .value =
+            value;
       }
     }
 
@@ -1107,7 +1179,7 @@ class ExportManager {
       'Zucker (g)',
       'Ballaststoffe (g)',
       'Koffein (mg)',
-      'Wasser/Flüssigkeit (ml)'
+      'Wasser/Flüssigkeit (ml)',
     ];
     for (int col = 0; col < nutritionHeaders.length; col++) {
       writeCell(nutritionSheet, col, 0, TextCellValue(nutritionHeaders[col]));
@@ -1117,7 +1189,11 @@ class ExportManager {
       final rowData = data.nutritionRows[r];
       final rowIndex = r + 1;
       writeCell(
-          nutritionSheet, 0, rowIndex, TextCellValue(rowData.timestampStr));
+        nutritionSheet,
+        0,
+        rowIndex,
+        TextCellValue(rowData.timestampStr),
+      );
       writeCell(nutritionSheet, 1, rowIndex, TextCellValue(rowData.name));
       writeCell(nutritionSheet, 2, rowIndex, TextCellValue(rowData.type));
       writeCell(nutritionSheet, 3, rowIndex, IntCellValue(rowData.quantity));
@@ -1128,7 +1204,11 @@ class ExportManager {
       writeCell(nutritionSheet, 8, rowIndex, DoubleCellValue(rowData.sugar));
       writeCell(nutritionSheet, 9, rowIndex, DoubleCellValue(rowData.fiber));
       writeCell(
-          nutritionSheet, 10, rowIndex, DoubleCellValue(rowData.caffeine));
+        nutritionSheet,
+        10,
+        rowIndex,
+        DoubleCellValue(rowData.caffeine),
+      );
       writeCell(nutritionSheet, 11, rowIndex, IntCellValue(rowData.water));
     }
 
@@ -1147,7 +1227,7 @@ class ExportManager {
       'Set Notes',
       'Workout Comments',
       'Exercise Block',
-      'Workout Exercise Note'
+      'Workout Exercise Note',
     ];
     for (int col = 0; col < workoutHeaders.length; col++) {
       writeCell(workoutSheet, col, 0, TextCellValue(workoutHeaders[col]));
@@ -1162,42 +1242,71 @@ class ExportManager {
 
       // Explicit type safety checks & safe conversion
       if (rowData.weight != null) {
-        writeCell(workoutSheet, 3, rowIndex,
-            DoubleCellValue(rowData.weight!.toDouble()));
+        writeCell(
+          workoutSheet,
+          3,
+          rowIndex,
+          DoubleCellValue(rowData.weight!.toDouble()),
+        );
       }
       if (rowData.reps != null) {
         writeCell(
-            workoutSheet, 4, rowIndex, IntCellValue(rowData.reps!.toInt()));
+          workoutSheet,
+          4,
+          rowIndex,
+          IntCellValue(rowData.reps!.toInt()),
+        );
       }
 
       // CRITICAL COMPLIANCE: RIR/RPE must write empty text cell when null (no ?? 0)
       if (rowData.rir != null) {
         writeCell(
-            workoutSheet, 5, rowIndex, IntCellValue(rowData.rir!.toInt()));
+          workoutSheet,
+          5,
+          rowIndex,
+          IntCellValue(rowData.rir!.toInt()),
+        );
       } else {
         writeCell(workoutSheet, 5, rowIndex, TextCellValue(''));
       }
 
       if (rowData.rpe != null) {
         writeCell(
-            workoutSheet, 6, rowIndex, IntCellValue(rowData.rpe!.toInt()));
+          workoutSheet,
+          6,
+          rowIndex,
+          IntCellValue(rowData.rpe!.toInt()),
+        );
       } else {
         writeCell(workoutSheet, 6, rowIndex, TextCellValue(''));
       }
 
       writeCell(
-          workoutSheet, 7, rowIndex, TextCellValue(rowData.setNotes ?? ''));
-      writeCell(workoutSheet, 8, rowIndex,
-          TextCellValue(rowData.workoutComments ?? ''));
+        workoutSheet,
+        7,
+        rowIndex,
+        TextCellValue(rowData.setNotes ?? ''),
+      );
       writeCell(
-          workoutSheet,
-          9,
-          rowIndex,
-          rowData.exerciseBlock == null
-              ? TextCellValue('')
-              : IntCellValue(rowData.exerciseBlock!));
-      writeCell(workoutSheet, 10, rowIndex,
-          TextCellValue(rowData.workoutExerciseNote ?? ''));
+        workoutSheet,
+        8,
+        rowIndex,
+        TextCellValue(rowData.workoutComments ?? ''),
+      );
+      writeCell(
+        workoutSheet,
+        9,
+        rowIndex,
+        rowData.exerciseBlock == null
+            ? TextCellValue('')
+            : IntCellValue(rowData.exerciseBlock!),
+      );
+      writeCell(
+        workoutSheet,
+        10,
+        rowIndex,
+        TextCellValue(rowData.workoutExerciseNote ?? ''),
+      );
     }
 
     final notesSheet = excel['Pinned Notes'];
@@ -1227,7 +1336,7 @@ class ExportManager {
       'Leichtschlaf (Min)',
       'REM-Schlaf (Min)',
       'Wach/Unterbrechungen (Min)',
-      'Schlaf-Score'
+      'Schlaf-Score',
     ];
     for (int col = 0; col < sleepHeaders.length; col++) {
       writeCell(sleepSheet, col, 0, TextCellValue(sleepHeaders[col]));
@@ -1239,30 +1348,42 @@ class ExportManager {
       writeCell(sleepSheet, 0, rowIndex, TextCellValue(rowData.nightDate));
       writeCell(sleepSheet, 1, rowIndex, TextCellValue(rowData.startTimeIso));
       writeCell(sleepSheet, 2, rowIndex, TextCellValue(rowData.endTimeIso));
-      writeCell(sleepSheet, 3, rowIndex,
-          IntCellValue(rowData.totalSleepMinutes.toInt()));
       writeCell(
-          sleepSheet,
-          4,
-          rowIndex,
-          DoubleCellValue(
-              double.parse(rowData.deepMinutes.toStringAsFixed(1))));
+        sleepSheet,
+        3,
+        rowIndex,
+        IntCellValue(rowData.totalSleepMinutes.toInt()),
+      );
       writeCell(
-          sleepSheet,
-          5,
-          rowIndex,
-          DoubleCellValue(
-              double.parse(rowData.lightMinutes.toStringAsFixed(1))));
-      writeCell(sleepSheet, 6, rowIndex,
-          DoubleCellValue(double.parse(rowData.remMinutes.toStringAsFixed(1))));
+        sleepSheet,
+        4,
+        rowIndex,
+        DoubleCellValue(double.parse(rowData.deepMinutes.toStringAsFixed(1))),
+      );
       writeCell(
-          sleepSheet,
-          7,
-          rowIndex,
-          DoubleCellValue(
-              double.parse(rowData.awakeMinutes.toStringAsFixed(1))));
+        sleepSheet,
+        5,
+        rowIndex,
+        DoubleCellValue(double.parse(rowData.lightMinutes.toStringAsFixed(1))),
+      );
       writeCell(
-          sleepSheet, 8, rowIndex, DoubleCellValue(rowData.score.toDouble()));
+        sleepSheet,
+        6,
+        rowIndex,
+        DoubleCellValue(double.parse(rowData.remMinutes.toStringAsFixed(1))),
+      );
+      writeCell(
+        sleepSheet,
+        7,
+        rowIndex,
+        DoubleCellValue(double.parse(rowData.awakeMinutes.toStringAsFixed(1))),
+      );
+      writeCell(
+        sleepSheet,
+        8,
+        rowIndex,
+        DoubleCellValue(rowData.score.toDouble()),
+      );
     }
 
     // -------------------------------------------------------------------------
@@ -1280,7 +1401,7 @@ class ExportManager {
       'Workout Puls Max (BPM)',
       'Workout Puls Avg (BPM)',
       'Weight (kg)',
-      'Body Fat (%)'
+      'Body Fat (%)',
     ];
     for (int col = 0; col < activityHeaders.length; col++) {
       writeCell(activitySheet, col, 0, TextCellValue(activityHeaders[col]));
@@ -1336,8 +1457,12 @@ class ExportManager {
         if (data.stepsSourcePolicy == StepsSourcePolicy.maxPerHour) {
           final stepsTotal = _calculateMaxPerHourSteps(dayStepsSegments);
           writeCell(activitySheet, 1, rowIndex, IntCellValue(stepsTotal));
-          writeCell(activitySheet, 2, rowIndex,
-              TextCellValue('Merge (max per hour)'));
+          writeCell(
+            activitySheet,
+            2,
+            rowIndex,
+            TextCellValue('Merge (max per hour)'),
+          );
         } else {
           final domResult = _calculateAutoDominantSteps(dayStepsSegments);
           writeCell(activitySheet, 1, rowIndex, IntCellValue(domResult.value));
@@ -1365,8 +1490,12 @@ class ExportManager {
           final avgHr = sumHr / totalSamples;
           writeCell(activitySheet, 3, rowIndex, DoubleCellValue(minHr));
           writeCell(activitySheet, 4, rowIndex, DoubleCellValue(maxHr));
-          writeCell(activitySheet, 5, rowIndex,
-              DoubleCellValue(double.parse(avgHr.toStringAsFixed(1))));
+          writeCell(
+            activitySheet,
+            5,
+            rowIndex,
+            DoubleCellValue(double.parse(avgHr.toStringAsFixed(1))),
+          );
         } else {
           writeCell(activitySheet, 3, rowIndex, TextCellValue(''));
           writeCell(activitySheet, 4, rowIndex, TextCellValue(''));
@@ -1383,8 +1512,12 @@ class ExportManager {
       if (workoutHr != null) {
         writeCell(activitySheet, 6, rowIndex, DoubleCellValue(workoutHr.min));
         writeCell(activitySheet, 7, rowIndex, DoubleCellValue(workoutHr.max));
-        writeCell(activitySheet, 8, rowIndex,
-            DoubleCellValue(double.parse(workoutHr.avg.toStringAsFixed(1))));
+        writeCell(
+          activitySheet,
+          8,
+          rowIndex,
+          DoubleCellValue(double.parse(workoutHr.avg.toStringAsFixed(1))),
+        );
       } else {
         writeCell(activitySheet, 6, rowIndex, TextCellValue(''));
         writeCell(activitySheet, 7, rowIndex, TextCellValue(''));
@@ -1396,8 +1529,12 @@ class ExportManager {
       if (dayWeights.isNotEmpty) {
         final avgWeight =
             dayWeights.reduce((a, b) => a + b) / dayWeights.length;
-        writeCell(activitySheet, 9, rowIndex,
-            DoubleCellValue(double.parse(avgWeight.toStringAsFixed(1))));
+        writeCell(
+          activitySheet,
+          9,
+          rowIndex,
+          DoubleCellValue(double.parse(avgWeight.toStringAsFixed(1))),
+        );
       } else {
         writeCell(activitySheet, 9, rowIndex, TextCellValue(''));
       }
@@ -1406,8 +1543,12 @@ class ExportManager {
       if (dayBodyFats.isNotEmpty) {
         final avgBodyFat =
             dayBodyFats.reduce((a, b) => a + b) / dayBodyFats.length;
-        writeCell(activitySheet, 10, rowIndex,
-            DoubleCellValue(double.parse(avgBodyFat.toStringAsFixed(1))));
+        writeCell(
+          activitySheet,
+          10,
+          rowIndex,
+          DoubleCellValue(double.parse(avgBodyFat.toStringAsFixed(1))),
+        );
       } else {
         writeCell(activitySheet, 10, rowIndex, TextCellValue(''));
       }
@@ -1422,30 +1563,38 @@ class ExportManager {
       'Time',
       'Measurement Type',
       'Value',
-      'Unit'
+      'Unit',
     ];
     for (int col = 0; col < measurementHeaders.length; col++) {
       writeCell(
-          measurementsSheet, col, 0, TextCellValue(measurementHeaders[col]));
+        measurementsSheet,
+        col,
+        0,
+        TextCellValue(measurementHeaders[col]),
+      );
     }
 
-    final sortedMeasurements =
-        List<MeasurementRowDto>.from(data.measurementRows)
-          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final sortedMeasurements = List<MeasurementRowDto>.from(
+      data.measurementRows,
+    )..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     for (int r = 0; r < sortedMeasurements.length; r++) {
       final rowData = sortedMeasurements[r];
       final rowIndex = r + 1;
 
-      final dateStr =
-          DateFormat('yyyy-MM-dd').format(rowData.timestamp.toLocal());
+      final dateStr = DateFormat('yyyy-MM-dd')
+          .format(rowData.timestamp.toLocal());
       final timeStr = DateFormat('HH:mm').format(rowData.timestamp.toLocal());
 
       writeCell(measurementsSheet, 0, rowIndex, TextCellValue(dateStr));
       writeCell(measurementsSheet, 1, rowIndex, TextCellValue(timeStr));
       writeCell(measurementsSheet, 2, rowIndex, TextCellValue(rowData.type));
-      writeCell(measurementsSheet, 3, rowIndex,
-          DoubleCellValue(rowData.value.toDouble()));
+      writeCell(
+        measurementsSheet,
+        3,
+        rowIndex,
+        DoubleCellValue(rowData.value.toDouble()),
+      );
       writeCell(measurementsSheet, 4, rowIndex, TextCellValue(rowData.unit));
     }
 
@@ -1487,7 +1636,8 @@ class ExportManager {
   }
 
   static int _calculateMaxPerHourSteps(
-      List<HealthStepSegmentDto> segmentsForDay) {
+    List<HealthStepSegmentDto> segmentsForDay,
+  ) {
     final hourlySourceSteps = <int, Map<String, int>>{};
     for (final seg in segmentsForDay) {
       final localStart = seg.startAt.toLocal();
@@ -1510,7 +1660,8 @@ class ExportManager {
   }
 
   static MapEntry<String, int> _calculateAutoDominantSteps(
-      List<HealthStepSegmentDto> segmentsForDay) {
+    List<HealthStepSegmentDto> segmentsForDay,
+  ) {
     final sourceTotals = <String, int>{};
     for (final seg in segmentsForDay) {
       final sourceKey = seg.sourceId ?? seg.provider;

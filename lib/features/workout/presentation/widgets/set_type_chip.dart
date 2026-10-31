@@ -1,6 +1,7 @@
 // lib/widgets/set_type_chip.dart
 
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 
 /// A visual indicator for a workout set's type (e.g., normal, warmup, failure).
@@ -39,17 +40,17 @@ class SetTypeChip extends StatelessWidget {
       'warmup': {
         'char': 'W',
         'color': Colors.orange,
-        'label': l10n.set_type_warmup
+        'label': l10n.set_type_warmup,
       },
       'failure': {
         'char': 'F',
         'color': Theme.of(context).colorScheme.error,
-        'label': l10n.set_type_failure
+        'label': l10n.set_type_failure,
       },
       'dropset': {
         'char': 'D',
         'color': Colors.blue,
-        'label': l10n.set_type_dropset
+        'label': l10n.set_type_dropset,
       },
     };
     final type = typeInfo[setType] ?? typeInfo['normal']!;

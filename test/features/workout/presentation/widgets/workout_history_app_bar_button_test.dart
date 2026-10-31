@@ -41,9 +41,7 @@ void main() {
         ),
         home: Scaffold(
           appBar: AppBar(
-            actions: [
-              WorkoutHistoryAppBarButton(onPressed: onPressed),
-            ],
+            actions: [WorkoutHistoryAppBarButton(onPressed: onPressed)],
           ),
         ),
       ),
@@ -100,33 +98,33 @@ void main() {
   });
 
   testWidgets(
-      'applies onSurface background and surface icon matching profile button', (
-    tester,
-  ) async {
-    // Dark mode
-    await tester.pumpWidget(buildTestWidget(brightness: Brightness.dark));
-    await tester.pumpAndSettle();
+    'applies onSurface background and surface icon matching profile button',
+    (tester) async {
+      // Dark mode
+      await tester.pumpWidget(buildTestWidget(brightness: Brightness.dark));
+      await tester.pumpAndSettle();
 
-    final darkMaterial = tester.widget<Material>(
-      find.byWidgetPredicate((w) => w is Material && w.shape is CircleBorder),
-    );
-    expect(darkMaterial.color, equals(const ColorScheme.dark().onSurface));
+      final darkMaterial = tester.widget<Material>(
+        find.byWidgetPredicate((w) => w is Material && w.shape is CircleBorder),
+      );
+      expect(darkMaterial.color, equals(const ColorScheme.dark().onSurface));
 
-    final darkIcon = tester.widget<Icon>(find.byIcon(LucideIcons.calendar));
-    expect(darkIcon.color, equals(const ColorScheme.dark().surface));
+      final darkIcon = tester.widget<Icon>(find.byIcon(LucideIcons.calendar));
+      expect(darkIcon.color, equals(const ColorScheme.dark().surface));
 
-    // Light mode
-    await tester.pumpWidget(buildTestWidget(brightness: Brightness.light));
-    await tester.pumpAndSettle();
+      // Light mode
+      await tester.pumpWidget(buildTestWidget(brightness: Brightness.light));
+      await tester.pumpAndSettle();
 
-    final lightMaterial = tester.widget<Material>(
-      find.byWidgetPredicate((w) => w is Material && w.shape is CircleBorder),
-    );
-    expect(lightMaterial.color, equals(const ColorScheme.light().onSurface));
+      final lightMaterial = tester.widget<Material>(
+        find.byWidgetPredicate((w) => w is Material && w.shape is CircleBorder),
+      );
+      expect(lightMaterial.color, equals(const ColorScheme.light().onSurface));
 
-    final lightIcon = tester.widget<Icon>(find.byIcon(LucideIcons.calendar));
-    expect(lightIcon.color, equals(const ColorScheme.light().surface));
-  });
+      final lightIcon = tester.widget<Icon>(find.byIcon(LucideIcons.calendar));
+      expect(lightIcon.color, equals(const ColorScheme.light().surface));
+    },
+  );
 
   testWidgets('calls custom onPressed callback when tapped', (tester) async {
     var tapped = false;

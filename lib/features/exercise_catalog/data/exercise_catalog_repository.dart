@@ -8,9 +8,9 @@ import '../domain/repositories/exercise_catalog_repository.dart';
 class ExerciseCatalogRepository implements IExerciseCatalogRepository {
   final ExerciseCatalogLocalDataSource _localDataSource;
 
-  ExerciseCatalogRepository(
-      {required ExerciseCatalogLocalDataSource localDataSource})
-      : _localDataSource = localDataSource;
+  ExerciseCatalogRepository({
+    required ExerciseCatalogLocalDataSource localDataSource,
+  }) : _localDataSource = localDataSource;
 
   @override
   Future<List<Exercise>> searchExercises({
@@ -41,19 +41,21 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
 
   @override
   Future<List<({String id, String name})>> getPrimaryEquipment(
-          String languageCode) =>
-      _localDataSource.getPrimaryEquipment(languageCode);
+    String languageCode,
+  ) => _localDataSource.getPrimaryEquipment(languageCode);
 
   @override
   Future<List<String>> getUsageTags() => _localDataSource.getUsageTags();
 
   @override
   Future<
-      ({
-        List<String> difficulties,
-        List<String> mechanics,
-        List<String> lateralities,
-      })> getClassificationAxes() => _localDataSource.getClassificationAxes();
+    ({
+      List<String> difficulties,
+      List<String> mechanics,
+      List<String> lateralities,
+    })
+  >
+  getClassificationAxes() => _localDataSource.getClassificationAxes();
 
   @override
   Future<Exercise?> getExerciseByName(String name) {

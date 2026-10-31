@@ -62,93 +62,86 @@ class MealIngredientsSummary extends StatelessWidget {
           ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
-        ...visibleIngredients.asMap().entries.map(
-          (entry) {
-            final card = Padding(
-              padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
-              child: SummaryCard(
-                margin: EdgeInsets.zero,
-                padding: EdgeInsets.zero,
-                child: InkWell(
-                  onTap: onIngredientTap == null
-                      ? null
-                      : () => onIngredientTap!(entry.key),
-                  onLongPress: onIngredientLongPress == null
-                      ? null
-                      : () => onIngredientLongPress!(entry.key),
-                  borderRadius: BorderRadius.circular(
-                    DesignConstants.borderRadiusL,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(DesignConstants.spacingM),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            entry.value.name.trim(),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
+        ...visibleIngredients.asMap().entries.map((entry) {
+          final card = Padding(
+            padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+            child: SummaryCard(
+              margin: EdgeInsets.zero,
+              padding: EdgeInsets.zero,
+              child: InkWell(
+                onTap: onIngredientTap == null
+                    ? null
+                    : () => onIngredientTap!(entry.key),
+                onLongPress: onIngredientLongPress == null
+                    ? null
+                    : () => onIngredientLongPress!(entry.key),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusL,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(DesignConstants.spacingM),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          entry.value.name.trim(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingM),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${entry.value.kcal} kcal',
+                            style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
+                          const SizedBox(height: 2),
+                          if (entry.value.amountLabel != null ||
+                              entry.value.grams != null)
                             Text(
-                              '${entry.value.kcal} kcal',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w800,
+                              entry.value.amountLabel ??
+                                  '${entry.value.grams} g',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            if (entry.value.amountLabel != null ||
-                                entry.value.grams != null)
-                              Text(
-                                entry.value.amountLabel ??
-                                    '${entry.value.grams} g',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-            if (onIngredientDismissed == null) return card;
-            return Dismissible(
-                  key: ValueKey(
-                    entry.value.key ?? '${entry.value.name}-${entry.key}',
-                  ),
-              direction: DismissDirection.endToStart,
-              onDismissed: (_) => onIngredientDismissed!(entry.key),
-              background: Container(
-                alignment: AlignmentDirectional.centerEnd,
-                margin: const EdgeInsets.only(
-                  bottom: DesignConstants.spacingS,
-                ),
-                padding: const EdgeInsetsDirectional.only(end: 20),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.error,
-                  borderRadius: BorderRadius.circular(
-                    DesignConstants.borderRadiusL,
-                  ),
-                ),
-                child: Icon(
-                  LucideIcons.trash,
-                  color: theme.colorScheme.onError,
+            ),
+          );
+          if (onIngredientDismissed == null) return card;
+          return Dismissible(
+            key: ValueKey(
+              entry.value.key ?? '${entry.value.name}-${entry.key}',
+            ),
+            direction: DismissDirection.endToStart,
+            onDismissed: (_) => onIngredientDismissed!(entry.key),
+            background: Container(
+              alignment: AlignmentDirectional.centerEnd,
+              margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+              padding: const EdgeInsetsDirectional.only(end: 20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.error,
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusL,
                 ),
               ),
-              child: card,
-            );
-          },
-        ),
+              child: Icon(LucideIcons.trash, color: theme.colorScheme.onError),
+            ),
+            child: card,
+          );
+        }),
         if (visibleIngredients.isEmpty) ...[
           const SizedBox(height: DesignConstants.spacingXS),
           Text(

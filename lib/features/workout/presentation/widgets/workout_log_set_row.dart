@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/set_log.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../util/time_util.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
@@ -62,12 +65,13 @@ class WorkoutLogSetRow extends StatelessWidget {
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
     final Color rowColor = isColoredRow
         ? (isLightMode
-            ? Colors.grey.withValues(alpha: 0.1)
-            : Colors.white.withValues(alpha: 0.1))
+              ? Colors.grey.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.1))
         : Colors.transparent;
     final unitService = context.read<UnitService>();
-    final showsIntensity =
-        context.watch<ExperienceLevelService>().showsIntensity;
+    final showsIntensity = context
+        .watch<ExperienceLevelService>()
+        .showsIntensity;
 
     // View Values
     String val1Display, val2Display;
@@ -75,9 +79,9 @@ class WorkoutLogSetRow extends StatelessWidget {
       val1Display = setLog.distanceKm == null
           ? '-'
           : setLog.distanceKm!
-              .toStringAsFixed(3)
-              .replaceAll(RegExp(r'0*$'), '')
-              .replaceAll(RegExp(r'\.$'), '');
+                .toStringAsFixed(3)
+                .replaceAll(RegExp(r'0*$'), '')
+                .replaceAll(RegExp(r'\.$'), '');
     } else if (mask.showsPrimary) {
       val1Display = setLog.weightKg == null
           ? '-'
@@ -98,7 +102,8 @@ class WorkoutLogSetRow extends StatelessWidget {
     final currentSetE1rm = _calculateBrzyckiE1rm(setLog);
     final showCurrentSetE1rm =
         mask.logsWeight && mask.logsReps && currentSetE1rm != null;
-    final bool hasPR = setLog.isMaxWeightPR ||
+    final bool hasPR =
+        setLog.isMaxWeightPR ||
         setLog.isMaxVolumePR ||
         setLog.isMaxEst1RMPR ||
         setLog.isMaxDistancePR ||
@@ -159,34 +164,34 @@ class WorkoutLogSetRow extends StatelessWidget {
           child: !mask.showsPrimary
               ? const SizedBox.shrink()
               : isEditMode
-                  ? TextFormField(
-                      key: ValueKey('weight_input_${setLog.id}'),
-                      controller: weightController,
-                      textAlign: TextAlign.center,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        fillColor: Colors.transparent,
-                        hintText: "-",
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    )
-                  : Text(
-                      val1Display,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              ? TextFormField(
+                  key: ValueKey('weight_input_${setLog.id}'),
+                  controller: weightController,
+                  textAlign: TextAlign.center,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  textInputAction: TextInputAction.next,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    fillColor: Colors.transparent,
+                    hintText: "-",
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                )
+              : Text(
+                  val1Display,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
         const SizedBox(width: 8),
 
@@ -196,55 +201,57 @@ class WorkoutLogSetRow extends StatelessWidget {
           child: !mask.showsSecondary
               ? const SizedBox.shrink()
               : isEditMode
-                  ? TextFormField(
-                      controller: repsController,
-                      readOnly: mask.logsDuration,
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      inputFormatters:
-                          mask.logsDuration ? [TimerInputFormatter()] : null,
-                      textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        fillColor: Colors.transparent,
-                        hintText: mask.logsDuration ? "00:00" : "-",
-                      ),
-                      onTap: mask.logsDuration
-                          ? () async {
-                              final currentSeconds = parsePauseDuration(
-                                      repsController?.text ?? "") ??
-                                  0;
-                              final newDuration = await adaptive_pickers
-                                  .showAdaptiveDurationPicker(
+              ? TextFormField(
+                  controller: repsController,
+                  readOnly: mask.logsDuration,
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: mask.logsDuration
+                      ? [TimerInputFormatter()]
+                      : null,
+                  textInputAction: TextInputAction.next,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    fillColor: Colors.transparent,
+                    hintText: mask.logsDuration ? "00:00" : "-",
+                  ),
+                  onTap: mask.logsDuration
+                      ? () async {
+                          final currentSeconds =
+                              parsePauseDuration(repsController?.text ?? "") ??
+                              0;
+                          final newDuration = await adaptive_pickers
+                              .showAdaptiveDurationPicker(
                                 context: context,
-                                initialDuration:
-                                    Duration(seconds: currentSeconds),
-                                title:
-                                    AppLocalizations.of(context)!.durationLabel,
+                                initialDuration: Duration(
+                                  seconds: currentSeconds,
+                                ),
+                                title: AppLocalizations.of(context)!
+                                    .durationLabel,
                                 allowClear: true,
                               );
-                              if (newDuration != null) {
-                                final seconds = newDuration.inSeconds;
-                                repsController?.text = seconds > 0
-                                    ? formatPauseDuration(seconds)
-                                    : "";
-                              }
-                            }
-                          : null,
-                    )
-                  : Text(
-                      val2Display,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                          if (newDuration != null) {
+                            final seconds = newDuration.inSeconds;
+                            repsController?.text = seconds > 0
+                                ? formatPauseDuration(seconds)
+                                : "";
+                          }
+                        }
+                      : null,
+                )
+              : Text(
+                  val2Display,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
 
         // 4. INPUT 3: RIR / INTENSITY
@@ -427,11 +434,7 @@ class WorkoutLogSetRow extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            LucideIcons.trophy,
-            color: Colors.amber,
-            size: 14,
-          ),
+          const Icon(LucideIcons.trophy, color: Colors.amber, size: 14),
           const SizedBox(width: 4),
           Text(
             label,

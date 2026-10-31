@@ -1,17 +1,22 @@
 // lib/screens/onboarding_screen.dart
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../../../util/design_constants.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
 import '../../app/presentation/main_screen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../profile/data/legacy_goal_migration.dart';
 import '../../nutrition_recommendation/presentation/body_fat_guidance_sheet.dart';
@@ -47,8 +52,11 @@ import '../../profile/presentation/widgets/goal_flow/goal_target_step.dart';
 import '../../../services/off_catalog_country_service.dart';
 import '../../../config/app_data_sources.dart';
 import '../../../core/infrastructure/icloud_sync_service.dart';
+
 import 'dart:io';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../../widgets/common/long_running_operation_overlay.dart';
 import '../../../util/permission_dialogs.dart';
@@ -62,7 +70,9 @@ import '../../health_export/export_service.dart';
 import '../../health_export/adapters/apple_health/apple_health_export_adapter.dart';
 import '../../health_export/adapters/health_connect/health_connect_export_adapter.dart';
 import '../../health_export/models/export_models.dart';
+
 import 'package:uuid/uuid.dart';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/experience_level_service.dart';
 import 'widgets/experience_level_slide.dart';
@@ -207,20 +217,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    assert(_stepNames.length == _totalPageCount,
-        'Every onboarding page must have exactly one telemetry step name.');
+    assert(
+      _stepNames.length == _totalPageCount,
+      'Every onboarding page must have exactly one telemetry step name.',
+    );
     _isImportedMode = widget.forceImportMode;
     _databaseHelper = widget.databaseHelper ?? DatabaseHelper.instance;
-    _goalRepository = widget.goalRepository ??
+    _goalRepository =
+        widget.goalRepository ??
         GoalRepositoryImpl(database: _databaseHelper.dbInstance);
-    _recommendationService = widget.recommendationService ??
+    _recommendationService =
+        widget.recommendationService ??
         AdaptiveNutritionRecommendationService(databaseHelper: _databaseHelper);
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
 
     _goalFlowState.onBaselineChanged = (weightKg) {
-      final disp =
-          _unitService.convertDisplayValue(weightKg, UnitDimension.weight);
+      final disp = _unitService.convertDisplayValue(
+        weightKg,
+        UnitDimension.weight,
+      );
       _weightController.text = disp.toStringAsFixed(1);
     };
     _goalFlowState.addListener(() {
@@ -373,10 +389,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _loadAdaptiveGoalSettings() async {
     final goal = await _recommendationService.getGoal();
     final rate = await _recommendationService.getTargetRateKgPerWeek();
-    final priorActivityLevel =
-        await _recommendationService.getPriorActivityLevel();
-    final extraCardioHoursOption =
-        await _recommendationService.getExtraCardioHoursOption();
+    final priorActivityLevel = await _recommendationService
+        .getPriorActivityLevel();
+    final extraCardioHoursOption = await _recommendationService
+        .getExtraCardioHoursOption();
     if (!mounted) return;
     setState(() {
       _selectedPriorActivityLevel = priorActivityLevel;
@@ -424,29 +440,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final height = heightInput == null
         ? null
         : unitService
-            .convertToMetric(heightInput, UnitDimension.height)
-            .round();
-    final bodyFatPercent =
-        double.tryParse(_bodyFatPercentController.text.replaceAll(',', '.'));
+              .convertToMetric(heightInput, UnitDimension.height)
+              .round();
+    final bodyFatPercent = double.tryParse(
+      _bodyFatPercentController.text.replaceAll(',', '.'),
+    );
 
     final effectiveGoal = _resolveEffectiveGoal();
     final effectiveTargetRate = _resolveEffectiveTargetRate();
 
     try {
-      final preview =
-          await _recommendationService.generateOnboardingRecommendationPreview(
-        goal: effectiveGoal,
-        targetRateKgPerWeek: effectiveTargetRate,
-        weightKg: weight,
-        heightCm: height,
-        birthday: _selectedDate,
-        gender: _selectedGender,
-        bodyFatPercent: bodyFatPercent,
-        declaredActivityLevel: _selectedPriorActivityLevel,
-        extraCardioHoursOption: _selectedExtraCardioHoursOption,
-        persistGenerated: false,
-        markAsApplied: false,
-      );
+      final preview = await _recommendationService
+          .generateOnboardingRecommendationPreview(
+            goal: effectiveGoal,
+            targetRateKgPerWeek: effectiveTargetRate,
+            weightKg: weight,
+            heightCm: height,
+            birthday: _selectedDate,
+            gender: _selectedGender,
+            bodyFatPercent: bodyFatPercent,
+            declaredActivityLevel: _selectedPriorActivityLevel,
+            extraCardioHoursOption: _selectedExtraCardioHoursOption,
+            persistGenerated: false,
+            markAsApplied: false,
+          );
 
       if (!mounted) return;
       setState(() {
@@ -492,7 +509,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   bool _activeGoalInputsMatchRecommendation(
-      NutritionRecommendation recommendation) {
+    NutritionRecommendation recommendation,
+  ) {
     return (int.tryParse(_calController.text) ?? -1) ==
             recommendation.recommendedCalories &&
         (int.tryParse(_protController.text) ?? -1) ==
@@ -530,8 +548,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final int? height = heightInput == null
         ? null
         : unitService
-            .convertToMetric(heightInput, UnitDimension.height)
-            .round();
+              .convertToMetric(heightInput, UnitDimension.height)
+              .round();
     final double? weight = weightInput == null
         ? null
         : unitService.convertToMetric(weightInput, UnitDimension.weight);
@@ -543,7 +561,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final effectiveGoal = _resolveEffectiveGoal();
     final effectiveTargetRate = _resolveEffectiveTargetRate();
 
-    final onboardingRecommendation = _onboardingRecommendation ??
+    final onboardingRecommendation =
+        _onboardingRecommendation ??
         await _recommendationService.generateOnboardingRecommendation(
           goal: effectiveGoal,
           targetRateKgPerWeek: effectiveTargetRate,
@@ -569,9 +588,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_selectedGender != null && mounted) {
       try {
         await context.read<ProfileService>().updateGender(
-              UserGender.fromString(_selectedGender),
-              context.read<IProfileRepository>(),
-            );
+          UserGender.fromString(_selectedGender),
+          context.read<IProfileRepository>(),
+        );
       } catch (_) {
         // Safe fallback in widget tests where ProfileService is omitted
       }
@@ -663,9 +682,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Save selected experience level
     if (mounted) {
       try {
-        await context
-            .read<ExperienceLevelService>()
-            .setLevel(_selectedExperienceLevel);
+        await context.read<ExperienceLevelService>().setLevel(
+          _selectedExperienceLevel,
+        );
       } catch (_) {
         // Safe fallback in widget tests where ExperienceLevelService is omitted
         await ExperienceLevelService().setLevel(_selectedExperienceLevel);
@@ -677,11 +696,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppTourService.instance.queuePostOnboardingOffer();
 
     _onboardingCompletedSuccessfully = true;
-    unawaited(TelemetryService.instance.trackOnboardingCompleted(
-      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
-      restoredFromBackup: _isImportedMode,
-      sessionId: _onboardingSessionId,
-    ));
+    unawaited(
+      TelemetryService.instance.trackOnboardingCompleted(
+        totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+        restoredFromBackup: _isImportedMode,
+        sessionId: _onboardingSessionId,
+      ),
+    );
 
     if (!mounted) return;
 
@@ -770,13 +791,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _restoreFromBackup() async {
     final l10n = AppLocalizations.of(context)!;
 
-    final wgerInitialized =
-        await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final wgerInitialized = await BasisDataManager.instance
+        .isExerciseCatalogInitialized();
 
     if (!wgerInitialized) {
       if (!mounted) return;
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       return;
     }
 
@@ -857,9 +879,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _isImportedMode = true;
         _requiresHardRestart = true;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.onboardingRestoreSuccess)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.onboardingRestoreSuccess)));
       _pageController.animateToPage(
         _unitSystemPageIndex,
         duration: const Duration(milliseconds: 300),
@@ -918,9 +939,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _nextPage() async {
     final l10n = AppLocalizations.of(context)!;
     if (_currentPage == _workoutImportPageIndex) {
-      unawaited(TelemetryService.instance.trackFeatureUsed(
-        featureKey: FeatureKey.workoutImportPromptSkipped,
-      ));
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: FeatureKey.workoutImportPromptSkipped,
+        ),
+      );
     }
     if (_currentPage == _regionSelectionPageIndex) {
       await OffCatalogCountryService.writeActiveCountry(_selectedOffCountry);
@@ -968,7 +991,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         } else {
           final now = DateTime.now();
           var age = now.year - _selectedDate!.year;
-          final hadBirthdayThisYear = now.month > _selectedDate!.month ||
+          final hadBirthdayThisYear =
+              now.month > _selectedDate!.month ||
               (now.month == _selectedDate!.month &&
                   now.day >= _selectedDate!.day);
           if (!hadBirthdayThisYear) {
@@ -999,11 +1023,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           });
           return;
         }
-        final heightInput =
-            double.tryParse(_heightController.text.replaceAll(',', '.'));
+        final heightInput = double.tryParse(
+          _heightController.text.replaceAll(',', '.'),
+        );
         if (heightInput != null) {
-          final heightCm =
-              _unitService.convertToMetric(heightInput, UnitDimension.height);
+          final heightCm = _unitService.convertToMetric(
+            heightInput,
+            UnitDimension.height,
+          );
           if (heightCm < 100 || heightCm > 250) {
             if (_lastWarnedHeightValue != _heightController.text) {
               setState(() {
@@ -1037,8 +1064,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
         final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
         if (weightInput != null) {
-          final weightKg =
-              _unitService.convertToMetric(weightInput, UnitDimension.weight);
+          final weightKg = _unitService.convertToMetric(
+            weightInput,
+            UnitDimension.weight,
+          );
           if (weightKg < 35 || weightKg > 250) {
             if (_lastWarnedWeightValue != _weightController.text) {
               setState(() {
@@ -1192,13 +1221,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         cancelLabel: l10n.health_permission_not_now,
       );
       if (confirmed && mounted) {
-        final service = HealthExportService(adapters: [
-          AppleHealthExportAdapter(),
-          HealthConnectExportAdapter()
-        ]);
-        await service.requestPermissions(Platform.isIOS
-            ? HealthExportPlatform.appleHealth
-            : HealthExportPlatform.healthConnect);
+        final service = HealthExportService(
+          adapters: [AppleHealthExportAdapter(), HealthConnectExportAdapter()],
+        );
+        await service.requestPermissions(
+          Platform.isIOS
+              ? HealthExportPlatform.appleHealth
+              : HealthExportPlatform.healthConnect,
+        );
       }
     }
 
@@ -1243,11 +1273,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // 4. Sleep Tracking
     final sleepEnabled = prefs.getBool('sleep_tracking_enabled') ?? false;
     if (sleepEnabled) {
-      final controller = SleepPermissionController(Platform.isIOS
-          ? const HealthKitSleepPermissionsService(
-              HealthKitSleepMethodChannelBridge())
-          : const HealthConnectSleepPermissionsService(
-              HealthConnectSleepMethodChannelBridge()));
+      final controller = SleepPermissionController(
+        Platform.isIOS
+            ? const HealthKitSleepPermissionsService(
+                HealthKitSleepMethodChannelBridge(),
+              )
+            : const HealthConnectSleepPermissionsService(
+                HealthConnectSleepMethodChannelBridge(),
+              ),
+      );
       await controller.requestAccess(context);
     }
 
@@ -1257,11 +1291,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppTourService.instance.queuePostOnboardingOffer();
 
     _onboardingCompletedSuccessfully = true;
-    unawaited(TelemetryService.instance.trackOnboardingCompleted(
-      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
-      restoredFromBackup: _isImportedMode,
-      sessionId: _onboardingSessionId,
-    ));
+    unawaited(
+      TelemetryService.instance.trackOnboardingCompleted(
+        totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+        restoredFromBackup: _isImportedMode,
+        sessionId: _onboardingSessionId,
+      ),
+    );
 
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
@@ -1360,9 +1396,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         });
                       },
                     ),
-                    NameSlide(
-                      nameController: _nameController,
-                    ),
+                    NameSlide(nameController: _nameController),
                     BioDataSlide(
                       selectedDate: _selectedDate,
                       selectedGender: _selectedGender,
@@ -1371,7 +1405,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onSelectDate: (picked) {
                         final now = DateTime.now();
                         var age = now.year - picked.year;
-                        final hadBirthdayThisYear = now.month > picked.month ||
+                        final hadBirthdayThisYear =
+                            now.month > picked.month ||
                             (now.month == picked.month &&
                                 now.day >= picked.day);
                         if (!hadBirthdayThisYear) {
@@ -1477,9 +1512,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     WorkoutImportSlide(
                       onImport: () {
-                        unawaited(TelemetryService.instance.trackFeatureUsed(
-                          featureKey: FeatureKey.workoutImportPromptStarted,
-                        ));
+                        unawaited(
+                          TelemetryService.instance.trackFeatureUsed(
+                            featureKey: FeatureKey.workoutImportPromptStarted,
+                          ),
+                        );
                         unawaited(performWorkoutImport(context));
                       },
                     ),
@@ -1505,23 +1542,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       const Spacer(),
                       AppButton.primary(
                         key: const Key('onboarding_bottom_next_button'),
-                        onPressed: _isGeneratingOnboardingRecommendation ||
+                        onPressed:
+                            _isGeneratingOnboardingRecommendation ||
                                 _isCheckingDatabase
                             ? null
                             : _nextPage,
                         label: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
                             : _currentPage == _workoutImportPageIndex
-                                ? l10n.onboardingWorkoutImportLater
-                                    .toUpperCase()
-                                : l10n.onboardingNext.toUpperCase(),
+                            ? l10n.onboardingWorkoutImportLater.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
                         tooltip: _currentPage == _lastPageIndex
                             ? l10n.onboardingFinish.toUpperCase()
                             : _currentPage == _workoutImportPageIndex
-                                ? l10n.onboardingWorkoutImportLater
-                                    .toUpperCase()
-                                : l10n.onboardingNext.toUpperCase(),
-                        isLoading: (_isGeneratingOnboardingRecommendation &&
+                            ? l10n.onboardingWorkoutImportLater.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
+                        isLoading:
+                            (_isGeneratingOnboardingRecommendation &&
                                 _currentPage == _nutritionPageIndex) ||
                             _isCheckingDatabase,
                       ),
@@ -1540,15 +1577,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _openAiSettings() {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const AiSettingsScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
   }
 
   Future<void> _openHealthSettings() async {
     final sleepSyncService = SleepSyncService();
-    final sleepPermissionController =
-        sleepSyncService.buildPermissionController();
+    final sleepPermissionController = sleepSyncService
+        .buildPermissionController();
     try {
       await Navigator.of(context).push<bool>(
         MaterialPageRoute(
@@ -1645,10 +1682,7 @@ class _OnboardingMeasurementsStepState
             const SizedBox(height: 4),
             Text(
               widget.weightWarning!,
-              style: TextStyle(
-                color: Colors.orange.shade800,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
             ),
           ],
           const SizedBox(height: DesignConstants.spacingM),
@@ -1761,7 +1795,7 @@ class _OnboardingMeasurementRulerState
   Widget build(BuildContext context) {
     final value =
         double.tryParse(widget.controller.text.replaceAll(',', '.')) ??
-            widget.value;
+        widget.value;
     final theme = Theme.of(context);
     return Column(
       children: [
@@ -1776,8 +1810,9 @@ class _OnboardingMeasurementRulerState
                   controller: widget.controller,
                   autofocus: true,
                   textAlign: TextAlign.center,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   style: theme.textTheme.displaySmall?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -1797,12 +1832,14 @@ class _OnboardingMeasurementRulerState
                 ),
               )
             else
-              Text('${value.toStringAsFixed(1)} ${widget.unit}',
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  )),
+              Text(
+                '${value.toStringAsFixed(1)} ${widget.unit}',
+                style: theme.textTheme.displaySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
             IconButton(
               key: widget.editorKey,
               tooltip: widget.title,
@@ -1815,10 +1852,12 @@ class _OnboardingMeasurementRulerState
         if (widget.errorText != null)
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(widget.errorText!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                )),
+            child: Text(
+              widget.errorText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
           ),
       ],
     );
@@ -1845,8 +1884,8 @@ class _OnboardingNutritionStep extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final liquidSuffix = context.watch<UnitService>().suffixFor(
-          UnitDimension.liquid,
-        );
+      UnitDimension.liquid,
+    );
 
     return SingleChildScrollView(
       key: const Key('onboarding_nutrition_page'),
@@ -1875,8 +1914,7 @@ class _OnboardingNutritionStep extends StatelessWidget {
                 technicalExplanation: l10n.infoTdeeTechnicalExplanation,
                 markdownAssetPath:
                     'documentation/features/bayesian_tdee_estimator.md',
-                citationUrl:
-                    'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
+                citationUrl: 'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../util/design_constants.dart';
 
 /// A compact, left-aligned metadata row that joins items with the " • " separator.
@@ -35,7 +36,8 @@ class AppMetadataRow extends StatelessWidget {
     if (items.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
-    final effectiveStyle = style ??
+    final effectiveStyle =
+        style ??
         theme.textTheme.bodyMedium?.copyWith(
           color: theme.textTheme.bodySmall?.color,
         );

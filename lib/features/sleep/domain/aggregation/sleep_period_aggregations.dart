@@ -114,9 +114,11 @@ class SleepPeriodAggregationEngine {
     final monthEnd = DateTime(monthStart.year, monthStart.month + 1, 0);
     final byDate = _latestByDate(analyses);
     final days = <SleepDayAggregate>[];
-    for (var date = normalizedMonthStart;
-        !date.isAfter(monthEnd);
-        date = date.add(const Duration(days: 1))) {
+    for (
+      var date = normalizedMonthStart;
+      !date.isAfter(monthEnd);
+      date = date.add(const Duration(days: 1))
+    ) {
       final analysis = byDate[date];
       days.add(
         SleepDayAggregate(
@@ -181,8 +183,9 @@ class SleepPeriodAggregationEngine {
       }
 
       byDate[key] = primary.copyWith(
-        totalSleepMinutes:
-            totalMinutes > 0 ? totalMinutes : primary.totalSleepMinutes,
+        totalSleepMinutes: totalMinutes > 0
+            ? totalMinutes
+            : primary.totalSleepMinutes,
       );
     }
     return byDate;

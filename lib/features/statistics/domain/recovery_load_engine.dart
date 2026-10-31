@@ -77,28 +77,28 @@ class RecoveryMuscleLoadResult {
   });
 
   Map<String, dynamic> toMap() => {
-        'muscleGroup': muscleGroup,
-        'state': state,
-        'readinessScore': readinessScore,
-        'hoursSinceLastSignificantLoad': hoursSinceLastSession,
-        'lastSignificantLoadAt': lastSessionAt?.toIso8601String(),
-        // Kept for the existing payload consumers. In v2 this is strictly
-        // the latest session, never a whole-lookback aggregate.
-        'lastEquivalentSets': lastSessionLoad,
-        'lastSessionLoad': lastSessionLoad,
-        'lastSessionDirectLoad': lastSessionDirectLoad,
-        'lastSessionIndirectLoad': lastSessionIndirectLoad,
-        'residualLoad': residualLoad,
-        'avgRir': averageLastSessionRir,
-        'avgRpe': null,
-        'highSessionFatigue': highLastSessionFatigue,
-        'eligibleSetCount': eligibleSetCount,
-        'setsWithRir': setsWithRir,
-        'dataConfidence': dataConfidence,
-        'movementPatterns': movementPatterns,
-        'recoveringUpperHours': recoveringUpperHours,
-        'readyUpperHours': readyUpperHours,
-      };
+    'muscleGroup': muscleGroup,
+    'state': state,
+    'readinessScore': readinessScore,
+    'hoursSinceLastSignificantLoad': hoursSinceLastSession,
+    'lastSignificantLoadAt': lastSessionAt?.toIso8601String(),
+    // Kept for the existing payload consumers. In v2 this is strictly
+    // the latest session, never a whole-lookback aggregate.
+    'lastEquivalentSets': lastSessionLoad,
+    'lastSessionLoad': lastSessionLoad,
+    'lastSessionDirectLoad': lastSessionDirectLoad,
+    'lastSessionIndirectLoad': lastSessionIndirectLoad,
+    'residualLoad': residualLoad,
+    'avgRir': averageLastSessionRir,
+    'avgRpe': null,
+    'highSessionFatigue': highLastSessionFatigue,
+    'eligibleSetCount': eligibleSetCount,
+    'setsWithRir': setsWithRir,
+    'dataConfidence': dataConfidence,
+    'movementPatterns': movementPatterns,
+    'recoveringUpperHours': recoveringUpperHours,
+    'readyUpperHours': readyUpperHours,
+  };
 }
 
 class RecoveryLoadAnalysis {
@@ -115,7 +115,8 @@ class RecoveryLoadAnalysis {
   Map<String, dynamic> toMap() {
     final recovering = muscles
         .where(
-            (muscle) => muscle.state == RecoveryDomainService.stateRecovering)
+          (muscle) => muscle.state == RecoveryDomainService.stateRecovering,
+        )
         .length;
     final ready = muscles
         .where((muscle) => muscle.state == RecoveryDomainService.stateReady)
@@ -188,11 +189,13 @@ class RecoveryLoadEngine {
     final results = <RecoveryMuscleLoadResult>[];
     final allMuscles = <String>{...trackedMuscles, ...sessionsByMuscle.keys};
     for (final muscle in allMuscles) {
-      results.add(_resultForMuscle(
-        muscle: muscle,
-        sessions: sessionsByMuscle[muscle]?.values.toList() ?? const [],
-        now: now,
-      ));
+      results.add(
+        _resultForMuscle(
+          muscle: muscle,
+          sessions: sessionsByMuscle[muscle]?.values.toList() ?? const [],
+          now: now,
+        ),
+      );
     }
 
     results.sort((a, b) {
@@ -211,7 +214,8 @@ class RecoveryLoadEngine {
     final hasData = sessionsByMuscle.isNotEmpty;
     final recovering = results
         .where(
-            (result) => result.state == RecoveryDomainService.stateRecovering)
+          (result) => result.state == RecoveryDomainService.stateRecovering,
+        )
         .length;
     return RecoveryLoadAnalysis(
       hasData: hasData,
@@ -270,10 +274,12 @@ class RecoveryLoadEngine {
     final state = readiness < _recoveringScoreBoundary
         ? RecoveryDomainService.stateRecovering
         : readiness < _freshScoreBoundary
-            ? RecoveryDomainService.stateReady
-            : RecoveryDomainService.stateFresh;
-    final hoursSinceLatest =
-        math.max(0.0, now.difference(latest.completedAt).inMinutes / 60.0);
+        ? RecoveryDomainService.stateReady
+        : RecoveryDomainService.stateFresh;
+    final hoursSinceLatest = math.max(
+      0.0,
+      now.difference(latest.completedAt).inMinutes / 60.0,
+    );
 
     return RecoveryMuscleLoadResult(
       muscleGroup: muscle,
@@ -286,7 +292,8 @@ class RecoveryLoadEngine {
       lastSessionIndirectLoad: latest.indirectLoad,
       residualLoad: residual,
       averageLastSessionRir: latest.averageRir,
-      highLastSessionFatigue: latest.hasFailure ||
+      highLastSessionFatigue:
+          latest.hasFailure ||
           (latest.averageRir != null && latest.averageRir! <= 1.0),
       eligibleSetCount: latest.eligibleSets,
       setsWithRir: latest.setsWithRir,
@@ -312,8 +319,8 @@ class RecoveryLoadEngine {
     final roleWeight = contribution != null && contribution.isFinite
         ? contribution.clamp(0.0, 1.0).toDouble()
         : input.role == RecoveryMuscleRole.primary
-            ? _primaryFallbackWeight
-            : _secondaryFallbackWeight;
+        ? _primaryFallbackWeight
+        : _secondaryFallbackWeight;
     return roleWeight * _effortWeight(input) * _repetitionWeight(input);
   }
 

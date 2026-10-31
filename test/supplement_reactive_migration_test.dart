@@ -31,9 +31,7 @@ void main() {
       await database.close();
     });
 
-    test(
-        'SupplementLocalDataSource.watchAllSupplements propagates updates reactively',
-        () async {
+    test('SupplementLocalDataSource.watchAllSupplements propagates updates reactively', () async {
       // 1. Establish the stream expectation
       final stream = localDataSource.watchAllSupplements();
 
@@ -57,9 +55,7 @@ void main() {
       );
     });
 
-    test(
-        'SupplementLocalDataSource.watchSupplementLogsForDate propagates writes reactively',
-        () async {
+    test('SupplementLocalDataSource.watchSupplementLogsForDate propagates writes reactively', () async {
       final date = DateTime(2026, 5, 19);
       final stream = localDataSource.watchSupplementLogsForDate(date);
 
@@ -84,9 +80,7 @@ void main() {
       );
     });
 
-    test(
-        'SupplementsViewModel updates state automatically without manual loadData reload triggers',
-        () async {
+    test('SupplementsViewModel updates state automatically without manual loadData reload triggers', () async {
       final date = DateTime(2026, 5, 19);
       viewModel.setSelectedDate(date);
 
@@ -95,8 +89,9 @@ void main() {
 
       expect(viewModel.todaysLogs, isEmpty);
 
-      final creatine = viewModel.supplementsById.values
-          .firstWhere((s) => s.name == 'Creatine');
+      final creatine = viewModel.supplementsById.values.firstWhere(
+        (s) => s.name == 'Creatine',
+      );
 
       // Log a dose on the view model - note this does NOT trigger manual loadData() in our reactive VM
       await viewModel.logSupplementDose(creatine, 5.0, date);
@@ -107,23 +102,23 @@ void main() {
       expect(viewModel.todaysLogs, hasLength(1));
       expect(viewModel.todaysLogs.first.dose, 5.0);
       expect(
-          viewModel.tracked
-              .firstWhere((ts) => ts.supplement.name == 'Creatine')
-              .totalDosedToday,
-          5.0);
+        viewModel.tracked
+            .firstWhere((ts) => ts.supplement.name == 'Creatine')
+            .totalDosedToday,
+        5.0,
+      );
     });
 
-    test(
-        'SupplementsViewModel subscription cleans up and updates cleanly on date selection switch',
-        () async {
+    test('SupplementsViewModel subscription cleans up and updates cleanly on date selection switch', () async {
       final dateA = DateTime(2026, 5, 19);
       final dateB = DateTime(2026, 5, 20);
 
       viewModel.setSelectedDate(dateA);
       await Future.delayed(const Duration(milliseconds: 50));
 
-      final creatine = viewModel.supplementsById.values
-          .firstWhere((s) => s.name == 'Creatine');
+      final creatine = viewModel.supplementsById.values.firstWhere(
+        (s) => s.name == 'Creatine',
+      );
 
       // Log dose on Date A
       await viewModel.logSupplementDose(creatine, 5.0, dateA);

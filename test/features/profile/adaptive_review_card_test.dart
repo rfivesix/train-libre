@@ -5,19 +5,19 @@ import 'package:train_libre/features/profile/presentation/widgets/adaptive_revie
 import 'package:train_libre/generated/app_localizations.dart';
 
 Goal _goal() => Goal(
-      id: 'goal-1',
-      preset: GoalPreset.loseWeight,
-      title: 'Weight goal',
-      status: GoalStatus.active,
-      startDate: DateTime(2026, 1, 1),
-      targetDate: DateTime(2026, 6, 1),
-      targetMetric: 'weight',
-      targetValue: 75,
-      targetUnit: 'kg',
-      desiredWeeklyRateKg: -0.5,
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-    );
+  id: 'goal-1',
+  preset: GoalPreset.loseWeight,
+  title: 'Weight goal',
+  status: GoalStatus.active,
+  startDate: DateTime(2026, 1, 1),
+  targetDate: DateTime(2026, 6, 1),
+  targetMetric: 'weight',
+  targetValue: 75,
+  targetUnit: 'kg',
+  desiredWeeklyRateKg: -0.5,
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+);
 
 GoalReviewRecord _review({
   required String status,
@@ -34,8 +34,9 @@ GoalReviewRecord _review({
     nutritionLoggedDays: 7,
     currentCalories: recommendedCalories == null ? null : 2100,
     dataQuality: 'sufficient',
-    nutritionAction:
-        recommendedCalories == null ? 'keep_targets' : 'adjust_targets',
+    nutritionAction: recommendedCalories == null
+        ? 'keep_targets'
+        : 'adjust_targets',
   );
   return GoalReviewRecord(
     id: 'review-1',
@@ -57,17 +58,15 @@ Widget _testApp({required Locale locale, required Widget child}) {
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [child],
-      ),
+      body: ListView(padding: EdgeInsets.zero, children: [child]),
     ),
   );
 }
 
 void main() {
-  testWidgets('shows progress and the calorie change with one review action',
-      (tester) async {
+  testWidgets('shows progress and the calorie change with one review action', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(320, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -99,8 +98,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('fits the longer English status on a narrow viewport',
-      (tester) async {
+  testWidgets('fits the longer English status on a narrow viewport', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(320, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

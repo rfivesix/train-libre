@@ -90,49 +90,47 @@ void main() {
     },
   );
 
-  testWidgets(
-    'cloud hitbox matches painted cloud during left dock animation',
-    (tester) async {
-      tester.view.physicalSize = const Size(400, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+  testWidgets('cloud hitbox matches painted cloud during left dock animation', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
-      await tester.pumpWidget(buildTestApp(width: 400, height: 800));
-      await tester.pump();
+    await tester.pumpWidget(buildTestApp(width: 400, height: 800));
+    await tester.pump();
 
-      // Wait 650ms for initial dock timer to fire and pump mid-animation
-      await tester.pump(const Duration(milliseconds: 650));
-      await tester.pump(const Duration(milliseconds: 200));
+    // Wait 650ms for initial dock timer to fire and pump mid-animation
+    await tester.pump(const Duration(milliseconds: 650));
+    await tester.pump(const Duration(milliseconds: 200));
 
-      final semanticsFinder = find.bySemanticsLabel('KI-Wolke');
-      final cloudBox = tester.renderObject<RenderBox>(semanticsFinder);
-      final currentPos = cloudBox.localToGlobal(Offset.zero);
+    final semanticsFinder = find.bySemanticsLabel('KI-Wolke');
+    final cloudBox = tester.renderObject<RenderBox>(semanticsFinder);
+    final currentPos = cloudBox.localToGlobal(Offset.zero);
 
-      // Position should be between 16.0 and -96.0
-      expect(currentPos.dx, lessThan(16.0));
-      expect(currentPos.dx, greaterThan(-96.0));
+    // Position should be between 16.0 and -96.0
+    expect(currentPos.dx, lessThan(16.0));
+    expect(currentPos.dx, greaterThan(-96.0));
 
-      // Tap during dock animation on the visible part (e.g. x = 30)
-      final midAnimTapPoint = Offset(30, currentPos.dy + 80);
-      final hitResult = tester.hitTestOnBinding(midAnimTapPoint);
-      final hitTargets = hitResult.path.map((entry) => entry.target).toList();
-      expect(
-        hitTargets.any((target) => target == cloudBox),
-        isTrue,
-        reason:
-            'During left dock animation, hitbox must match current animated position',
-      );
+    // Tap during dock animation on the visible part (e.g. x = 30)
+    final midAnimTapPoint = Offset(30, currentPos.dy + 80);
+    final hitResult = tester.hitTestOnBinding(midAnimTapPoint);
+    final hitTargets = hitResult.path.map((entry) => entry.target).toList();
+    expect(
+      hitTargets.any((target) => target == cloudBox),
+      isTrue,
+      reason: 'During left dock animation, hitbox must match current animated position',
+    );
 
-      // Tap to expand mid-animation
-      await tester.tapAt(midAnimTapPoint);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.byType(TextField), findsOneWidget);
-    },
-  );
+    // Tap to expand mid-animation
+    await tester.tapAt(midAnimTapPoint);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(TextField), findsOneWidget);
+  });
 
   testWidgets(
     'dragging cloud from bottom-left to right moves hitbox and snaps cleanly',

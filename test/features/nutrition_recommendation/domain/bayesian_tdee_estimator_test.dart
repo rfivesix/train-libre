@@ -27,10 +27,8 @@ void main() {
         run.estimate,
         'priorVarianceCalories2',
       );
-      final referenceR = _debugDouble(
-            run.estimate,
-            'observationBaseVarianceCalories2',
-          ) +
+      final referenceR =
+          _debugDouble(run.estimate, 'observationBaseVarianceCalories2') +
           _debugDouble(run.estimate, 'observationIntakeVarianceCalories2') +
           _debugDouble(run.estimate, 'observationSlopeVarianceCalories2');
       final phaseMultiplier = _debugDouble(
@@ -43,12 +41,11 @@ void main() {
         cap,
       );
 
+      expect(priorVariance, closeTo(expectedP0, 0.0001));
       expect(
-        priorVariance,
-        closeTo(expectedP0, 0.0001),
+        run.estimate.priorSource,
+        BayesianPriorSource.profilePriorBootstrap,
       );
-      expect(
-          run.estimate.priorSource, BayesianPriorSource.profilePriorBootstrap);
       expect(run.estimate.priorMeanUsedCalories, closeTo(2500, 0.0001));
     });
 
@@ -133,55 +130,61 @@ void main() {
       );
     });
 
-    test('no-observation week performs prediction-only and increases variance',
-        () {
-      final week1 = estimator.estimate(
-        input: _input(
-          priorMaintenanceCalories: 2500,
-          avgLoggedCalories: 2200,
-          smoothedWeightSlopeKgPerWeek: -0.2,
-          windowDays: 21,
-          weightLogCount: 10,
-          intakeLoggedDays: 16,
-        ),
-        dueWeekKey: '2026-04-06',
-      );
+    test(
+      'no-observation week performs prediction-only and increases variance',
+      () {
+        final week1 = estimator.estimate(
+          input: _input(
+            priorMaintenanceCalories: 2500,
+            avgLoggedCalories: 2200,
+            smoothedWeightSlopeKgPerWeek: -0.2,
+            windowDays: 21,
+            weightLogCount: 10,
+            intakeLoggedDays: 16,
+          ),
+          dueWeekKey: '2026-04-06',
+        );
 
-      final week2NoObs = estimator.estimate(
-        input: _input(
-          priorMaintenanceCalories: 2500,
-          avgLoggedCalories: 0,
-          smoothedWeightSlopeKgPerWeek: null,
-          windowDays: 7,
-          weightLogCount: 0,
-          intakeLoggedDays: 0,
-        ),
-        recursiveState: week1.nextState,
-        dueWeekKey: '2026-04-13',
-      );
+        final week2NoObs = estimator.estimate(
+          input: _input(
+            priorMaintenanceCalories: 2500,
+            avgLoggedCalories: 0,
+            smoothedWeightSlopeKgPerWeek: null,
+            windowDays: 7,
+            weightLogCount: 0,
+            intakeLoggedDays: 0,
+          ),
+          recursiveState: week1.nextState,
+          dueWeekKey: '2026-04-13',
+        );
 
-      final q = _debugDouble(week2NoObs.estimate, 'qVarianceCalories2');
-      final priorVar =
-          _debugDouble(week2NoObs.estimate, 'priorVarianceCalories2');
-      final cap = _debugDouble(week2NoObs.estimate, 'varianceCapCalories2');
-      final predictedVar =
-          _debugDouble(week2NoObs.estimate, 'predictedVarianceCalories2');
+        final q = _debugDouble(week2NoObs.estimate, 'qVarianceCalories2');
+        final priorVar = _debugDouble(
+          week2NoObs.estimate,
+          'priorVarianceCalories2',
+        );
+        final cap = _debugDouble(week2NoObs.estimate, 'varianceCapCalories2');
+        final predictedVar = _debugDouble(
+          week2NoObs.estimate,
+          'predictedVarianceCalories2',
+        );
 
-      expect(
-        week2NoObs.estimate.observationImpliedMaintenanceCalories,
-        isNull,
-      );
-      expect(_debugDouble(week2NoObs.estimate, 'kalmanGain'), 0);
-      expect(
-        week2NoObs.estimate.posteriorMaintenanceCalories,
-        closeTo(week1.estimate.posteriorMaintenanceCalories, 0.0001),
-      );
-      expect(predictedVar, closeTo(math.min(priorVar + q, cap), 0.0001));
-      expect(
-        _debugDouble(week2NoObs.estimate, 'posteriorVarianceCalories2'),
-        closeTo(predictedVar, 0.0001),
-      );
-    });
+        expect(
+          week2NoObs.estimate.observationImpliedMaintenanceCalories,
+          isNull,
+        );
+        expect(_debugDouble(week2NoObs.estimate, 'kalmanGain'), 0);
+        expect(
+          week2NoObs.estimate.posteriorMaintenanceCalories,
+          closeTo(week1.estimate.posteriorMaintenanceCalories, 0.0001),
+        );
+        expect(predictedVar, closeTo(math.min(priorVar + q, cap), 0.0001));
+        expect(
+          _debugDouble(week2NoObs.estimate, 'posteriorVarianceCalories2'),
+          closeTo(predictedVar, 0.0001),
+        );
+      },
+    );
 
     test('repeated no-observation weeks are bounded by variance cap', () {
       const cappedEstimator = BayesianTdeeEstimator(
@@ -257,80 +260,82 @@ void main() {
         phaseContext: _phaseContext(confirmedPhaseAgeDays: 1),
       );
 
-      expect(_debugDouble(week1.estimate, 'effectiveKcalPerKg'),
-          closeTo(7700, 0.0001));
+      expect(
+        _debugDouble(week1.estimate, 'effectiveKcalPerKg'),
+        closeTo(7700, 0.0001),
+      );
       expect(
         week1.estimate.debugInfo['effectiveKcalPerKgMode'],
         'fixed_energy_density',
       );
     });
 
-    test('phase transition inflates R for two weeks then returns to normal',
-        () {
-      final week1 = estimator.estimate(
-        input: _input(
-          priorMaintenanceCalories: 2400,
-          avgLoggedCalories: 2200,
-          smoothedWeightSlopeKgPerWeek: -0.2,
-          windowDays: 14,
-          weightLogCount: 8,
-          intakeLoggedDays: 8,
-        ),
-        dueWeekKey: '2026-04-06',
-        phaseContext: _phaseContext(confirmedPhaseAgeDays: 1),
-      );
-      final week2 = estimator.estimate(
-        input: _input(
-          priorMaintenanceCalories: 2400,
-          avgLoggedCalories: 2200,
-          smoothedWeightSlopeKgPerWeek: -0.2,
-          windowDays: 14,
-          weightLogCount: 8,
-          intakeLoggedDays: 8,
-        ),
-        dueWeekKey: '2026-04-06',
-        phaseContext: _phaseContext(confirmedPhaseAgeDays: 8),
-      );
-      final week3 = estimator.estimate(
-        input: _input(
-          priorMaintenanceCalories: 2400,
-          avgLoggedCalories: 2200,
-          smoothedWeightSlopeKgPerWeek: -0.2,
-          windowDays: 14,
-          weightLogCount: 8,
-          intakeLoggedDays: 8,
-        ),
-        dueWeekKey: '2026-04-06',
-        phaseContext: _phaseContext(confirmedPhaseAgeDays: 15),
-      );
+    test(
+      'phase transition inflates R for two weeks then returns to normal',
+      () {
+        final week1 = estimator.estimate(
+          input: _input(
+            priorMaintenanceCalories: 2400,
+            avgLoggedCalories: 2200,
+            smoothedWeightSlopeKgPerWeek: -0.2,
+            windowDays: 14,
+            weightLogCount: 8,
+            intakeLoggedDays: 8,
+          ),
+          dueWeekKey: '2026-04-06',
+          phaseContext: _phaseContext(confirmedPhaseAgeDays: 1),
+        );
+        final week2 = estimator.estimate(
+          input: _input(
+            priorMaintenanceCalories: 2400,
+            avgLoggedCalories: 2200,
+            smoothedWeightSlopeKgPerWeek: -0.2,
+            windowDays: 14,
+            weightLogCount: 8,
+            intakeLoggedDays: 8,
+          ),
+          dueWeekKey: '2026-04-06',
+          phaseContext: _phaseContext(confirmedPhaseAgeDays: 8),
+        );
+        final week3 = estimator.estimate(
+          input: _input(
+            priorMaintenanceCalories: 2400,
+            avgLoggedCalories: 2200,
+            smoothedWeightSlopeKgPerWeek: -0.2,
+            windowDays: 14,
+            weightLogCount: 8,
+            intakeLoggedDays: 8,
+          ),
+          dueWeekKey: '2026-04-06',
+          phaseContext: _phaseContext(confirmedPhaseAgeDays: 15),
+        );
 
-      expect(
-        _debugDouble(week1.estimate, 'observationPhaseVarianceMultiplier'),
-        closeTo(2.25, 0.0001),
-      );
-      expect(
-        _debugDouble(week2.estimate, 'observationPhaseVarianceMultiplier'),
-        closeTo(1.50, 0.0001),
-      );
-      expect(
-        _debugDouble(week3.estimate, 'observationPhaseVarianceMultiplier'),
-        closeTo(1.0, 0.0001),
-      );
-      expect(
-        _debugDouble(week1.estimate, 'observationVarianceCalories2'),
-        greaterThan(_debugDouble(
-          week2.estimate,
-          'observationVarianceCalories2',
-        )),
-      );
-      expect(
-        _debugDouble(week2.estimate, 'observationVarianceCalories2'),
-        greaterThan(_debugDouble(
-          week3.estimate,
-          'observationVarianceCalories2',
-        )),
-      );
-    });
+        expect(
+          _debugDouble(week1.estimate, 'observationPhaseVarianceMultiplier'),
+          closeTo(2.25, 0.0001),
+        );
+        expect(
+          _debugDouble(week2.estimate, 'observationPhaseVarianceMultiplier'),
+          closeTo(1.50, 0.0001),
+        );
+        expect(
+          _debugDouble(week3.estimate, 'observationPhaseVarianceMultiplier'),
+          closeTo(1.0, 0.0001),
+        );
+        expect(
+          _debugDouble(week1.estimate, 'observationVarianceCalories2'),
+          greaterThan(
+            _debugDouble(week2.estimate, 'observationVarianceCalories2'),
+          ),
+        );
+        expect(
+          _debugDouble(week2.estimate, 'observationVarianceCalories2'),
+          greaterThan(
+            _debugDouble(week3.estimate, 'observationVarianceCalories2'),
+          ),
+        );
+      },
+    );
 
     test('fixed energy density remains unchanged at long phase ages', () {
       final week9 = estimator.estimate(
@@ -358,10 +363,14 @@ void main() {
         phaseContext: _phaseContext(confirmedPhaseAgeDays: 99),
       );
 
-      expect(_debugDouble(week9.estimate, 'effectiveKcalPerKg'),
-          closeTo(7700, 0.0001));
-      expect(_debugDouble(week14.estimate, 'effectiveKcalPerKg'),
-          closeTo(7700, 0.0001));
+      expect(
+        _debugDouble(week9.estimate, 'effectiveKcalPerKg'),
+        closeTo(7700, 0.0001),
+      );
+      expect(
+        _debugDouble(week14.estimate, 'effectiveKcalPerKg'),
+        closeTo(7700, 0.0001),
+      );
     });
 
     test('fixed energy density does not depend on window length', () {
@@ -390,8 +399,10 @@ void main() {
         phaseContext: _phaseContext(confirmedPhaseAgeDays: 29),
       );
 
-      final shortKcal =
-          _debugDouble(shortWindow.estimate, 'effectiveKcalPerKg');
+      final shortKcal = _debugDouble(
+        shortWindow.estimate,
+        'effectiveKcalPerKg',
+      );
       final longKcal = _debugDouble(longWindow.estimate, 'effectiveKcalPerKg');
       expect(shortKcal, closeTo(longKcal, 0.0001));
       expect(shortKcal, closeTo(7700, 0.0001));
@@ -422,10 +433,10 @@ void main() {
         dueWeekKey: '2026-04-06',
       );
 
-      final strongMove =
-          (stronger.estimate.posteriorMaintenanceCalories - 2600).abs();
-      final sparseMove =
-          (sparse.estimate.posteriorMaintenanceCalories - 2600).abs();
+      final strongMove = (stronger.estimate.posteriorMaintenanceCalories - 2600)
+          .abs();
+      final sparseMove = (sparse.estimate.posteriorMaintenanceCalories - 2600)
+          .abs();
       final strongR = _debugDouble(stronger.estimate, 'rVarianceCalories2');
       final sparseR = _debugDouble(sparse.estimate, 'rVarianceCalories2');
       final strongK = _debugDouble(stronger.estimate, 'kalmanGain');
@@ -436,9 +447,7 @@ void main() {
       expect(strongK, greaterThan(sparseK));
     });
 
-    test(
-        'history-calibrated R is higher for noisy residual histories and widens interval',
-        () {
+    test('history-calibrated R is higher for noisy residual histories and widens interval', () {
       const calibratedEstimator = BayesianTdeeEstimator(
         config: BayesianEstimatorConfig(
           minimumHistorySamplesForCalibration: 3,
@@ -499,9 +508,13 @@ void main() {
           .estimate;
 
       expect(
-          stable.qualityFlags, contains('bayesian_r_calibrated_from_history'));
+        stable.qualityFlags,
+        contains('bayesian_r_calibrated_from_history'),
+      );
       expect(
-          noisy.qualityFlags, contains('bayesian_r_calibrated_from_history'));
+        noisy.qualityFlags,
+        contains('bayesian_r_calibrated_from_history'),
+      );
       expect(
         _debugDouble(noisy, 'rCalibrationScaleFromHistory'),
         greaterThan(_debugDouble(stable, 'rCalibrationScaleFromHistory')),
@@ -569,12 +582,18 @@ void main() {
         dueWeekKey: '2026-04-13',
       );
 
-      final stableScale =
-          _debugDouble(stable.estimate, 'qCalibrationScaleFromHistory');
-      final driftingScale =
-          _debugDouble(drifting.estimate, 'qCalibrationScaleFromHistory');
-      expect(stable.estimate.qualityFlags,
-          contains('bayesian_q_calibrated_from_history'));
+      final stableScale = _debugDouble(
+        stable.estimate,
+        'qCalibrationScaleFromHistory',
+      );
+      final driftingScale = _debugDouble(
+        drifting.estimate,
+        'qCalibrationScaleFromHistory',
+      );
+      expect(
+        stable.estimate.qualityFlags,
+        contains('bayesian_q_calibrated_from_history'),
+      );
       expect(
         drifting.estimate.qualityFlags,
         contains('bayesian_q_calibrated_from_history'),
@@ -590,9 +609,7 @@ void main() {
 
     test('calibration falls back safely when history is insufficient', () {
       const fallbackEstimator = BayesianTdeeEstimator(
-        config: BayesianEstimatorConfig(
-          minimumHistorySamplesForCalibration: 6,
-        ),
+        config: BayesianEstimatorConfig(minimumHistorySamplesForCalibration: 6),
       );
       const sparseState = BayesianEstimatorState(
         posteriorMeanCalories: 2450,
@@ -620,100 +637,101 @@ void main() {
       );
 
       expect(
-          run.estimate.qualityFlags, contains('bayesian_q_default_fallback'));
+        run.estimate.qualityFlags,
+        contains('bayesian_q_default_fallback'),
+      );
       expect(
-          run.estimate.qualityFlags, contains('bayesian_r_default_fallback'));
+        run.estimate.qualityFlags,
+        contains('bayesian_r_default_fallback'),
+      );
       expect(_debugDouble(run.estimate, 'qCalibrationScaleFromHistory'), 1.0);
       expect(_debugDouble(run.estimate, 'rCalibrationScaleFromHistory'), 1.0);
     });
 
-    test('stabilization quality flag is raised for noisy transient regimes',
-        () {
-      const estimatorWithNoisyHistory = BayesianTdeeEstimator(
-        config: BayesianEstimatorConfig(
-          minimumHistorySamplesForCalibration: 3,
-          residualHistoryInfluenceOnR: 1.0,
-        ),
-      );
-      const priorState = BayesianEstimatorState(
-        posteriorMeanCalories: 2480,
-        posteriorVarianceCalories2: 60000,
-        lastDueWeekKey: '2026-04-06',
-        lastPriorMeanCalories: 2460,
-        lastPriorVarianceCalories2: 62000,
-        lastPriorSource: BayesianPriorSource.chainedPosterior,
-        lastObservationUsed: true,
-        recentPosteriorMeansCalories: <double>[2440, 2470, 2490, 2500],
-        recentObservationResidualsCalories: <double>[
-          -920,
-          910,
-          -940,
-          930,
-        ],
-      );
+    test(
+      'stabilization quality flag is raised for noisy transient regimes',
+      () {
+        const estimatorWithNoisyHistory = BayesianTdeeEstimator(
+          config: BayesianEstimatorConfig(
+            minimumHistorySamplesForCalibration: 3,
+            residualHistoryInfluenceOnR: 1.0,
+          ),
+        );
+        const priorState = BayesianEstimatorState(
+          posteriorMeanCalories: 2480,
+          posteriorVarianceCalories2: 60000,
+          lastDueWeekKey: '2026-04-06',
+          lastPriorMeanCalories: 2460,
+          lastPriorVarianceCalories2: 62000,
+          lastPriorSource: BayesianPriorSource.chainedPosterior,
+          lastObservationUsed: true,
+          recentPosteriorMeansCalories: <double>[2440, 2470, 2490, 2500],
+          recentObservationResidualsCalories: <double>[-920, 910, -940, 930],
+        );
 
-      final run = estimatorWithNoisyHistory.estimate(
-        input: _input(
-          priorMaintenanceCalories: 2500,
-          avgLoggedCalories: 2200,
-          smoothedWeightSlopeKgPerWeek: -0.08,
-          windowDays: 21,
-          weightLogCount: 8,
-          intakeLoggedDays: 8,
-        ),
-        recursiveState: priorState,
-        dueWeekKey: '2026-04-13',
-        phaseContext: _phaseContext(confirmedPhaseAgeDays: 21),
-      );
+        final run = estimatorWithNoisyHistory.estimate(
+          input: _input(
+            priorMaintenanceCalories: 2500,
+            avgLoggedCalories: 2200,
+            smoothedWeightSlopeKgPerWeek: -0.08,
+            windowDays: 21,
+            weightLogCount: 8,
+            intakeLoggedDays: 8,
+          ),
+          recursiveState: priorState,
+          dueWeekKey: '2026-04-13',
+          phaseContext: _phaseContext(confirmedPhaseAgeDays: 21),
+        );
 
-      expect(run.estimate.isStillStabilizing, isTrue);
-      expect(
-        run.estimate.qualityFlags,
-        anyOf(
-          contains('bayesian_stabilizing_noisy_regime'),
-          contains('bayesian_stabilizing_high_gain'),
-          contains('bayesian_stabilizing_high_variance'),
-        ),
-      );
-    });
+        expect(run.estimate.isStillStabilizing, isTrue);
+        expect(
+          run.estimate.qualityFlags,
+          anyOf(
+            contains('bayesian_stabilizing_noisy_regime'),
+            contains('bayesian_stabilizing_high_gain'),
+            contains('bayesian_stabilizing_high_variance'),
+          ),
+        );
+      },
+    );
 
     test('deterministic repeated runs with identical weekly sequence', () {
       final weeks =
           <({String dueWeekKey, RecommendationGenerationInput input})>[
-        (
-          dueWeekKey: '2026-04-06',
-          input: _input(
-            priorMaintenanceCalories: 2500,
-            avgLoggedCalories: 2200,
-            smoothedWeightSlopeKgPerWeek: -0.2,
-            windowDays: 21,
-            weightLogCount: 10,
-            intakeLoggedDays: 16,
-          ),
-        ),
-        (
-          dueWeekKey: '2026-04-13',
-          input: _input(
-            priorMaintenanceCalories: 2500,
-            avgLoggedCalories: 0,
-            smoothedWeightSlopeKgPerWeek: null,
-            windowDays: 7,
-            weightLogCount: 0,
-            intakeLoggedDays: 0,
-          ),
-        ),
-        (
-          dueWeekKey: '2026-04-20',
-          input: _input(
-            priorMaintenanceCalories: 2500,
-            avgLoggedCalories: 2300,
-            smoothedWeightSlopeKgPerWeek: -0.05,
-            windowDays: 21,
-            weightLogCount: 9,
-            intakeLoggedDays: 14,
-          ),
-        ),
-      ];
+            (
+              dueWeekKey: '2026-04-06',
+              input: _input(
+                priorMaintenanceCalories: 2500,
+                avgLoggedCalories: 2200,
+                smoothedWeightSlopeKgPerWeek: -0.2,
+                windowDays: 21,
+                weightLogCount: 10,
+                intakeLoggedDays: 16,
+              ),
+            ),
+            (
+              dueWeekKey: '2026-04-13',
+              input: _input(
+                priorMaintenanceCalories: 2500,
+                avgLoggedCalories: 0,
+                smoothedWeightSlopeKgPerWeek: null,
+                windowDays: 7,
+                weightLogCount: 0,
+                intakeLoggedDays: 0,
+              ),
+            ),
+            (
+              dueWeekKey: '2026-04-20',
+              input: _input(
+                priorMaintenanceCalories: 2500,
+                avgLoggedCalories: 2300,
+                smoothedWeightSlopeKgPerWeek: -0.05,
+                windowDays: 21,
+                weightLogCount: 9,
+                intakeLoggedDays: 14,
+              ),
+            ),
+          ];
 
       final firstPass = _runSequence(estimator, weeks);
       final secondPass = _runSequence(estimator, weeks);
@@ -727,8 +745,10 @@ void main() {
         );
         expect(
           _debugDouble(second.estimate, 'posteriorVarianceCalories2'),
-          closeTo(_debugDouble(first.estimate, 'posteriorVarianceCalories2'),
-              0.000001),
+          closeTo(
+            _debugDouble(first.estimate, 'posteriorVarianceCalories2'),
+            0.000001,
+          ),
         );
         expect(second.estimate.confidence, first.estimate.confidence);
       }
@@ -742,8 +762,10 @@ void main() {
         residuals: const <double>[20, -10, 25, -15, 5],
       );
 
-      expect(summaryA.meanResidualCalories,
-          closeTo(summaryB.meanResidualCalories, 0.000001));
+      expect(
+        summaryA.meanResidualCalories,
+        closeTo(summaryB.meanResidualCalories, 0.000001),
+      );
       expect(summaryA.observationCount, summaryB.observationCount);
       expect(summaryA.status, BayesianResidualBiasStatus.neutral);
     });

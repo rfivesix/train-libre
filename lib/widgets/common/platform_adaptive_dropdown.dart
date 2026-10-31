@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../util/design_constants.dart';
 import '../../features/ai_assistant/presentation/ai_global_cloud_visibility.dart';
 
@@ -83,10 +84,12 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       menuItems.add(
         GlassMenuItem(
           title: item.label,
-          icon: item.customIcon ??
+          icon:
+              item.customIcon ??
               (item.icon != null ? Icon(item.icon, size: 20) : null),
           isSelected: isSelected,
-          trailing: item.customTrailing ??
+          trailing:
+              item.customTrailing ??
               (isSelected
                   ? Icon(
                       LucideIcons.check,
@@ -190,14 +193,15 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           selectedItem = items.first;
         }
 
-        final selectedText =
-            selectedItem != null ? _getItemText(selectedItem.child) : '';
+        final selectedText = selectedItem != null
+            ? _getItemText(selectedItem.child)
+            : '';
         // Keep the collapsed trigger visually identical to a regular text field:
         // take the fill straight from the input theme (white in Light, 0xFF2C2C2E
         // in Dark) and stay borderless like the themed fields do.
         final containerFillColor =
             Theme.of(context).inputDecorationTheme.fillColor ??
-                (isDark ? const Color(0xFF2C2C2E) : Colors.white);
+            (isDark ? const Color(0xFF2C2C2E) : Colors.white);
 
         const borderColor = Colors.transparent;
 
@@ -215,7 +219,9 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.primary, width: 2),
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.spacingM,
@@ -233,11 +239,13 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           fillColor: decoration?.fillColor ?? containerFillColor,
           filled: decoration?.filled ?? true,
           contentPadding: decoration?.contentPadding,
-          border: decoration?.border != null &&
+          border:
+              decoration?.border != null &&
                   decoration?.border != const OutlineInputBorder()
               ? decoration?.border
               : defaultDecoration.border,
-          enabledBorder: decoration?.enabledBorder != null &&
+          enabledBorder:
+              decoration?.enabledBorder != null &&
                   decoration?.enabledBorder != const OutlineInputBorder()
               ? decoration?.enabledBorder
               : defaultDecoration.enabledBorder,
@@ -245,8 +253,9 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final menuWidth =
-                constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+            final menuWidth = constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : 280.0;
             return AdaptiveLiquidGlassLayer(
               settings: menuSettings,
               quality: DesignConstants.defaultGlassQuality,
@@ -269,9 +278,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 selectedText,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
                                       color: isDark
                                           ? Colors.white
@@ -384,7 +391,8 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
         .toList(growable: false);
     final summary = selectedLabels.join(', ');
 
-    final fillColor = theme.inputDecorationTheme.fillColor ??
+    final fillColor =
+        theme.inputDecorationTheme.fillColor ??
         (isDark ? const Color(0xFF2C2C2E) : Colors.white);
     const borderColor = Colors.transparent;
 
@@ -396,8 +404,9 @@ class PlatformAdaptiveMultiSelectField<T> extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final menuWidth =
-            constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+        final menuWidth = constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : 280.0;
         return AdaptiveLiquidGlassLayer(
           settings: menuSettings,
           quality: DesignConstants.defaultGlassQuality,

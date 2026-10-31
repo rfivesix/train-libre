@@ -1,8 +1,12 @@
 import 'package:uuid/uuid.dart';
+
 import '../../domain/progression/progression_contract.dart';
+
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart' as drift;
+
 import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../exercise_catalog/domain/exercise_locale_chain.dart';
@@ -123,8 +127,11 @@ class WorkoutLocalDataSource {
     );
   }
 
-  SetLog _mapSetLogToModel(db.SetLog row, int workoutLogLocalId,
-      {DateTime? performedAt}) {
+  SetLog _mapSetLogToModel(
+    db.SetLog row,
+    int workoutLogLocalId, {
+    DateTime? performedAt,
+  }) {
     return SetLog(
       id: row.localId,
       workoutLogId: workoutLogLocalId,
@@ -187,13 +194,15 @@ class WorkoutLocalDataSource {
       startTime: logRow.startTime,
       endTime: logRow.endTime,
       notes: logRow.notes,
-      photoPaths: _extractPhotoPaths(
-        logRow.photoPath,
-        logRow.photoExtraPaths,
-      ),
+      photoPaths: _extractPhotoPaths(logRow.photoPath, logRow.photoExtraPaths),
       sets: setRows
-          .map((row) => _mapSetLogToModel(row, logRow.localId,
-              performedAt: logRow.startTime))
+          .map(
+            (row) => _mapSetLogToModel(
+              row,
+              logRow.localId,
+              performedAt: logRow.startTime,
+            ),
+          )
           .toList(),
       exerciseNotesByBlock: exerciseNotesByBlock,
     );
@@ -205,9 +214,7 @@ class WorkoutLocalDataSource {
     if (logRows.isEmpty) return [];
 
     final dbInstance = await database;
-    final localIdsByUuid = {
-      for (final row in logRows) row.id: row.localId,
-    };
+    final localIdsByUuid = {for (final row in logRows) row.id: row.localId};
 
     final allUuids = localIdsByUuid.keys.toList();
     final setRows = <db.SetLog>[];
@@ -218,13 +225,14 @@ class WorkoutLocalDataSource {
         i,
         i + chunkSize > allUuids.length ? allUuids.length : i + chunkSize,
       );
-      final batchSets = await (dbInstance.select(dbInstance.setLogs)
-            ..where((tbl) => tbl.workoutLogId.isIn(chunk))
-            ..orderBy([
-              (t) => drift.OrderingTerm(expression: t.workoutLogId),
-              (t) => drift.OrderingTerm(expression: t.logOrder),
-            ]))
-          .get();
+      final batchSets =
+          await (dbInstance.select(dbInstance.setLogs)
+                ..where((tbl) => tbl.workoutLogId.isIn(chunk))
+                ..orderBy([
+                  (t) => drift.OrderingTerm(expression: t.workoutLogId),
+                  (t) => drift.OrderingTerm(expression: t.logOrder),
+                ]))
+              .get();
       setRows.addAll(batchSets);
     }
 
@@ -239,23 +247,29 @@ class WorkoutLocalDataSource {
         i,
         i + chunkSize > allUuids.length ? allUuids.length : i + chunkSize,
       );
-      noteRows.addAll(await (dbInstance.select(dbInstance.workoutExerciseLogs)
-            ..where((tbl) => tbl.workoutLogId.isIn(chunk)))
-          .get());
+      noteRows.addAll(
+        await (dbInstance.select(
+          dbInstance.workoutExerciseLogs,
+        )..where((tbl) => tbl.workoutLogId.isIn(chunk))).get(),
+      );
     }
     final notesByWorkoutUuid = <String, Map<int, String>>{};
     for (final note in noteRows) {
       if (note.exerciseBlock == null || note.notes == null) continue;
       notesByWorkoutUuid.putIfAbsent(
-          note.workoutLogId, () => {})[note.exerciseBlock!] = note.notes!;
+        note.workoutLogId,
+        () => {},
+      )[note.exerciseBlock!] = note.notes!;
     }
 
     return logRows
-        .map((row) => _mapWorkoutLogWithSets(
-              row,
-              setsByWorkoutUuid[row.id] ?? const <db.SetLog>[],
-              notesByWorkoutUuid[row.id] ?? const <int, String>{},
-            ))
+        .map(
+          (row) => _mapWorkoutLogWithSets(
+            row,
+            setsByWorkoutUuid[row.id] ?? const <db.SetLog>[],
+            notesByWorkoutUuid[row.id] ?? const <int, String>{},
+          ),
+        )
         .toList();
   }
 }

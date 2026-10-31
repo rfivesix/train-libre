@@ -9,30 +9,37 @@ class AssistantDiaryActions implements AssistantDataAction {
 
   @override
   Set<AssistantDataCategory> get categories => const {
-        AssistantDataCategory.diary,
-        AssistantDataCategory.nutrition,
-      };
+    AssistantDataCategory.diary,
+    AssistantDataCategory.nutrition,
+  };
 
   @override
   Future<AssistantActionResult> read(
-      AssistantDataCategory category, AssistantDateScope? scope) async {
+    AssistantDataCategory category,
+    AssistantDateScope? scope,
+  ) async {
     final records = <Map<String, dynamic>>[];
-    for (var day = scope!.start;
-        !day.isAfter(scope.end);
-        day = DateTime(day.year, day.month, day.day + 1)) {
+    for (
+      var day = scope!.start;
+      !day.isAfter(scope.end);
+      day = DateTime(day.year, day.month, day.day + 1)
+    ) {
       final foods = await diary.watchEntriesForDate(day).first;
       final macros = await diary.watchMacroEntriesForDate(day).first;
       final fluids = await diary.watchFluidEntriesForDate(day).first;
       final products = await diary.getProductsByBarcodes(
-          foods.map((food) => food.barcode).toSet().toList());
+        foods.map((food) => food.barcode).toSet().toList(),
+      );
       final byBarcode = {
-        for (final product in products) product.barcode: product
+        for (final product in products) product.barcode: product,
       };
-      final archived = await diary.getProductsByArchiveIds(foods
-          .map((food) => food.archiveLocalId)
-          .whereType<int>()
-          .toSet()
-          .toList());
+      final archived = await diary.getProductsByArchiveIds(
+        foods
+            .map((food) => food.archiveLocalId)
+            .whereType<int>()
+            .toSet()
+            .toList(),
+      );
       final date =
           '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
       if (category == AssistantDataCategory.diary) {
@@ -51,14 +58,16 @@ class AssistantDiaryActions implements AssistantDataAction {
               'ref': 'foodEntry:${food.id}',
               'date': date,
               'time': food.timestamp.toIso8601String(),
-              'name': (food.archiveLocalId == null
-                      ? byBarcode[food.barcode]
-                      : archived[food.archiveLocalId])
-                  ?.name,
+              'name':
+                  (food.archiveLocalId == null
+                          ? byBarcode[food.barcode]
+                          : archived[food.archiveLocalId])
+                      ?.name,
               'grams': food.quantityInGrams,
               'mealType': food.mealType,
-              'mealRef':
-                  food.mealEntryId == null ? null : 'meal:${food.mealEntryId}',
+              'mealRef': food.mealEntryId == null
+                  ? null
+                  : 'meal:${food.mealEntryId}',
             },
           for (final macro in macros)
             {
@@ -91,22 +100,24 @@ class AssistantDiaryActions implements AssistantDataAction {
             goals == null) {
           continue;
         }
-        final summary = CalculateDailyNutritionUseCase().execute(
-          goals: goals,
-          targetSugar: 0,
-          targetFiber: 0,
-          targetSalt: 0,
-          targetCaffeine: 0,
-          foodEntries: foods,
-          macroEntries: macros,
-          fluidEntries: fluids,
-          foodProductsByBarcode: byBarcode,
-          foodProductsByArchiveLocalId: archived,
-          workoutLogs: const [],
-          supplementsForDate: const [],
-          allSupplements: const [],
-          todaysSupplementLogs: const [],
-        ).summary;
+        final summary = CalculateDailyNutritionUseCase()
+            .execute(
+              goals: goals,
+              targetSugar: 0,
+              targetFiber: 0,
+              targetSalt: 0,
+              targetCaffeine: 0,
+              foodEntries: foods,
+              macroEntries: macros,
+              fluidEntries: fluids,
+              foodProductsByBarcode: byBarcode,
+              foodProductsByArchiveLocalId: archived,
+              workoutLogs: const [],
+              supplementsForDate: const [],
+              allSupplements: const [],
+              todaysSupplementLogs: const [],
+            )
+            .summary;
         records.add({
           'ref': 'nutrition:$date',
           'date': date,
@@ -132,8 +143,9 @@ class AssistantDiaryActions implements AssistantDataAction {
       }
     }
     return AssistantActionResult(
-        category: category,
-        status: AssistantActionStatus.success,
-        records: records);
+      category: category,
+      status: AssistantActionStatus.success,
+      records: records,
+    );
   }
 }

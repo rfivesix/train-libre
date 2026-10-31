@@ -1,5 +1,6 @@
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
+
 import '../../util/design_constants.dart';
 
 /// A standardized card for displaying summary information with a glass aesthetic.
@@ -61,11 +62,11 @@ class SummaryCard extends StatelessWidget {
 
     final defaultBg = isDark
         ? (useSecondarySurface
-            ? DesignConstants.summaryCardSecondaryDarkMode
-            : DesignConstants.summaryCardDarkMode)
+              ? DesignConstants.summaryCardSecondaryDarkMode
+              : DesignConstants.summaryCardDarkMode)
         : (useSecondarySurface
-            ? DesignConstants.summaryCardSecondaryLightMode
-            : Colors.white);
+              ? DesignConstants.summaryCardSecondaryLightMode
+              : Colors.white);
     final cardBg = backgroundColor ?? defaultBg;
 
     // True Apple-style squircle using the figma_squircle package.
@@ -90,7 +91,8 @@ class SummaryCard extends StatelessWidget {
       // surface color (#F2F2F7) to prevent white-on-white blending.
       // If the card already uses the secondary surface (#F2F2F7), nested inputs
       // take white.
-      final isWhiteCard = (cardBg == Colors.white ||
+      final isWhiteCard =
+          (cardBg == Colors.white ||
               cardBg.toARGB32() == 0xFFFFFFFF ||
               cardBg.computeLuminance() > 0.95) &&
           cardBg != DesignConstants.summaryCardSecondaryLightMode;
@@ -113,14 +115,14 @@ class SummaryCard extends StatelessWidget {
           shape: squircle,
           shadows: showShadow && !disableShadow
               ? (isDark
-                  ? [
-                      BoxShadow(
-                        color: cardBg.withValues(alpha: 0.28),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : DesignConstants.glassShadow(isDark))
+                    ? [
+                        BoxShadow(
+                          color: cardBg.withValues(alpha: 0.28),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
+                    : DesignConstants.glassShadow(isDark))
               : null,
         ),
         child: ClipPath(
@@ -152,10 +154,7 @@ class SummaryCard extends StatelessWidget {
                 padding: padding,
                 child: Material(
                   color: Colors.transparent,
-                  child: Theme(
-                    data: cardTheme,
-                    child: child,
-                  ),
+                  child: Theme(data: cardTheme, child: child),
                 ),
               ),
             ],

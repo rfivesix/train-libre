@@ -93,16 +93,20 @@ Future<void> performWorkoutImport(BuildContext context) async {
                     children: [
                       Text(instructions),
                       const SizedBox(height: DesignConstants.spacingM),
-                      Text(l10n.workoutImportPreviewSummary(
-                        workouts.length,
-                        setCount,
-                        duplicateCount,
-                      )),
+                      Text(
+                        l10n.workoutImportPreviewSummary(
+                          workouts.length,
+                          setCount,
+                          duplicateCount,
+                        ),
+                      ),
                       if (workouts.first.skippedInvalidRows > 0) ...[
                         const SizedBox(height: DesignConstants.spacingS),
-                        Text(l10n.workoutImportPreviewInvalidRows(
-                          workouts.first.skippedInvalidRows,
-                        )),
+                        Text(
+                          l10n.workoutImportPreviewInvalidRows(
+                            workouts.first.skippedInvalidRows,
+                          ),
+                        ),
                       ],
                       const SizedBox(height: DesignConstants.spacingS),
                       for (final workout in workouts.take(5))
@@ -115,13 +119,15 @@ Future<void> performWorkoutImport(BuildContext context) async {
                             children: [
                               Text(
                                 workout.title,
-                                style:
-                                    Theme.of(sheetContext).textTheme.titleSmall,
+                                style: Theme.of(sheetContext)
+                                    .textTheme
+                                    .titleSmall,
                               ),
                               Text(
                                 '${MaterialLocalizations.of(sheetContext).formatMediumDate(workout.startTime)} · ${workout.sets.length}',
-                                style:
-                                    Theme.of(sheetContext).textTheme.bodySmall,
+                                style: Theme.of(sheetContext)
+                                    .textTheme
+                                    .bodySmall,
                               ),
                             ],
                           ),
@@ -155,8 +161,11 @@ Future<void> performWorkoutImport(BuildContext context) async {
           },
         );
         if (count > 0) {
-          unawaited(TelemetryService.instance
-              .trackFeatureUsed(featureKey: FeatureKey.workoutImported));
+          unawaited(
+            TelemetryService.instance.trackFeatureUsed(
+              featureKey: FeatureKey.workoutImported,
+            ),
+          );
         }
         updateProgress(l10n.workoutImportButton, 1.0);
       },
@@ -169,9 +178,8 @@ Future<void> performWorkoutImport(BuildContext context) async {
   if (!context.mounted || wasCanceled) return;
   if (count == -2) return;
   if (count == 0) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.workoutImportZeroNew)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.workoutImportZeroNew)));
     return;
   }
   if (count == -1) {
@@ -184,8 +192,8 @@ Future<void> performWorkoutImport(BuildContext context) async {
     return;
   }
 
-  final unknown =
-      await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
+  final unknown = await WorkoutLocalDataSource.instance
+      .findUnknownExerciseNames();
 
   if (context.mounted && unknown.isNotEmpty) {
     await Navigator.of(context).push(
@@ -197,7 +205,6 @@ Future<void> performWorkoutImport(BuildContext context) async {
 
   if (!context.mounted) return;
 
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(l10n.workoutImportSuccess(count))));
+  ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(l10n.workoutImportSuccess(count))));
 }

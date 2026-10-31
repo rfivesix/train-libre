@@ -147,7 +147,8 @@ void main() {
             exerciseNameSnapshot: 'Something',
             reps: 10,
           ),
-          reason: 'divergence here means volume and recovery tell different '
+          reason:
+              'divergence here means volume and recovery tell different '
               'stories about the same set: $modality',
         );
       }
@@ -159,7 +160,9 @@ void main() {
     late WorkoutLocalDataSource source;
 
     Future<void> logSet(String exerciseId, {required String logId}) async {
-      await db.into(db.workoutLogs).insert(
+      await db
+          .into(db.workoutLogs)
+          .insert(
             WorkoutLogsCompanion.insert(
               id: Value(logId),
               startTime: DateTime.now().subtract(const Duration(hours: 4)),
@@ -169,7 +172,9 @@ void main() {
       // Three working sets, weighted, so nothing else in the query filters
       // them out for us and the modality rule is what is actually under test.
       for (var i = 0; i < 3; i++) {
-        await db.into(db.setLogs).insert(
+        await db
+            .into(db.setLogs)
+            .insert(
               SetLogsCompanion.insert(
                 workoutLogId: logId,
                 exerciseId: Value(exerciseId),
@@ -230,9 +235,13 @@ void main() {
       await logSet(kStretch, logId: 'log-stretch');
 
       expect(await volume(), 0);
-      expect(await recoveringMuscles(), isEmpty,
-          reason: 'a stretch must not open a recovery window on the muscle '
-              'it stretches');
+      expect(
+        await recoveringMuscles(),
+        isEmpty,
+        reason:
+            'a stretch must not open a recovery window on the muscle '
+            'it stretches',
+      );
     });
 
     test('a mobility drill moves neither', () async {
@@ -257,8 +266,11 @@ void main() {
 
       await logSet(kStretch, logId: 'log-stretch');
 
-      expect(await volume(), strengthOnly,
-          reason: 'the stretch inflated the total');
+      expect(
+        await volume(),
+        strengthOnly,
+        reason: 'the stretch inflated the total',
+      );
       expect(await recoveringMuscles(), strengthRecovering);
     });
   });

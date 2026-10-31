@@ -1,6 +1,7 @@
 //lib/widgets/frosted_container.dart
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
+
 import '../../util/design_constants.dart';
 
 /// A container widget that applies a frosted glass (blur) effect to its background.

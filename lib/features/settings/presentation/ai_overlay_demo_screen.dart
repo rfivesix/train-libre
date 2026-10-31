@@ -33,15 +33,14 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final contentTop = MediaQuery.paddingOf(context).top +
+    final contentTop =
+        MediaQuery.paddingOf(context).top +
         kToolbarHeight +
         DesignConstants.spacingS;
 
     final scaffold = Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: 'AI Overlay',
-      ),
+      appBar: GlobalAppBar(title: 'AI Overlay'),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           DesignConstants.spacingL,
@@ -60,10 +59,14 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             isFirst: true,
           ),
           _buildColorCard(
-              color: Colors.white, semanticLabel: l10n.aiOverlayDemoColorWhite),
+            color: Colors.white,
+            semanticLabel: l10n.aiOverlayDemoColorWhite,
+          ),
           const SizedBox(height: DesignConstants.spacingM),
           _buildColorCard(
-              color: Colors.black, semanticLabel: l10n.aiOverlayDemoColorBlack),
+            color: Colors.black,
+            semanticLabel: l10n.aiOverlayDemoColorBlack,
+          ),
         ],
       ),
     );
@@ -90,7 +93,8 @@ class _AiOverlayDemoScreenState extends State<AiOverlayDemoScreen> {
             scaffold,
             ValueListenableBuilder<AiOverlayDemoConfiguration>(
               valueListenable: AiOverlayDemoSettings.configuration,
-              builder: (context, settings, _) => (settings.enabled &&
+              builder: (context, settings, _) =>
+                  (settings.enabled &&
                       context.watch<ThemeService>().isAiEnabled)
                   ? const SizedBox.shrink()
                   : Positioned.fill(

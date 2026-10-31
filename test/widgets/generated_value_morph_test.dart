@@ -52,8 +52,9 @@ void main() {
     expect(focusNode.hasFocus, isTrue);
   });
 
-  testWidgets('pixel morph survives a generated-value replacement',
-      (tester) async {
+  testWidgets('pixel morph survives a generated-value replacement', (
+    tester,
+  ) async {
     final state = ValueNotifier(const _MorphState('10', null));
     addTearDown(state.dispose);
 

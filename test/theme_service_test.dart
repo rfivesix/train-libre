@@ -49,40 +49,42 @@ void main() {
       expect(prefs.getString('app_color_choice'), 'system');
     });
 
-    test('setters persist changed values and update observable state',
-        () async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
-      final service = ThemeService();
-      await _waitForThemeServiceInit();
+    test(
+      'setters persist changed values and update observable state',
+      () async {
+        SharedPreferences.setMockInitialValues(<String, Object>{});
+        final service = ThemeService();
+        await _waitForThemeServiceInit();
 
-      await service.setThemeMode(ThemeMode.light);
-      await service.setVisualStyle(1); // Test writing style 1
-      await service.setAiEnabled(false);
-      await service.setAppColorChoice(AppColorChoice.blue);
-      await service.setCustomAppColor(const Color(0xFF7952B3));
-      await service.setHapticsEnabled(false);
+        await service.setThemeMode(ThemeMode.light);
+        await service.setVisualStyle(1); // Test writing style 1
+        await service.setAiEnabled(false);
+        await service.setAppColorChoice(AppColorChoice.blue);
+        await service.setCustomAppColor(const Color(0xFF7952B3));
+        await service.setHapticsEnabled(false);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(service.themeMode, ThemeMode.light);
-      expect(service.visualStyle, 1);
-      expect(service.isAiEnabled, false);
-      expect(service.appColorChoice, AppColorChoice.custom);
-      expect(service.customAppColor, const Color(0xFF7952B3));
-      expect(service.materialColorsEnabled, false);
-      expect(service.hapticsEnabled, false);
-      expect(prefs.getInt('theme_mode'), ThemeMode.light.index);
-      expect(prefs.getInt('visual_style'), 1);
-      expect(prefs.getBool('ai_enabled'), false);
-      expect(prefs.getString('app_color_choice'), 'custom');
-      expect(prefs.getInt('custom_app_color'), 0xFF7952B3);
-      expect(prefs.getBool('material_colors_enabled'), isNull);
-      expect(prefs.getBool('haptics_enabled'), false);
+        final prefs = await SharedPreferences.getInstance();
+        expect(service.themeMode, ThemeMode.light);
+        expect(service.visualStyle, 1);
+        expect(service.isAiEnabled, false);
+        expect(service.appColorChoice, AppColorChoice.custom);
+        expect(service.customAppColor, const Color(0xFF7952B3));
+        expect(service.materialColorsEnabled, false);
+        expect(service.hapticsEnabled, false);
+        expect(prefs.getInt('theme_mode'), ThemeMode.light.index);
+        expect(prefs.getInt('visual_style'), 1);
+        expect(prefs.getBool('ai_enabled'), false);
+        expect(prefs.getString('app_color_choice'), 'custom');
+        expect(prefs.getInt('custom_app_color'), 0xFF7952B3);
+        expect(prefs.getBool('material_colors_enabled'), isNull);
+        expect(prefs.getBool('haptics_enabled'), false);
 
-      final reloadedService = ThemeService();
-      await _waitForThemeServiceInit();
-      expect(reloadedService.appColorChoice, AppColorChoice.custom);
-      expect(reloadedService.customAppColor, const Color(0xFF7952B3));
-    });
+        final reloadedService = ThemeService();
+        await _waitForThemeServiceInit();
+        expect(reloadedService.appColorChoice, AppColorChoice.custom);
+        expect(reloadedService.customAppColor, const Color(0xFF7952B3));
+      },
+    );
 
     test('setters are no-ops when assigning existing values', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{

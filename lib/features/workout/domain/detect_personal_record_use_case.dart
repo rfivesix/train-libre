@@ -48,7 +48,8 @@ class DetectPersonalRecordUseCase {
       bodyweightKg: bodyweightKg,
     );
 
-    final currentEst1rm = effectiveMask.estimatedOneRepMax(
+    final currentEst1rm =
+        effectiveMask.estimatedOneRepMax(
           loggedWeightKg: currentSet.weightKg,
           reps: currentSet.reps,
           bodyweightKg: bodyweightKg,
@@ -157,63 +158,75 @@ class DetectPersonalRecordUseCase {
 
     if (isMaxWeightPR || isMaxVolumePR || isMaxEst1RMPR) {
       if (isMaxWeightPR) {
-        alerts.add(PRAlert(
-          exerciseName: currentSet.exerciseName,
-          recordType: "Best Max Weight",
-          achievementValue:
-              "${unitService.convertDisplayValue(currentWeight, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
-          diff: weightDiff,
-        ));
+        alerts.add(
+          PRAlert(
+            exerciseName: currentSet.exerciseName,
+            recordType: "Best Max Weight",
+            achievementValue:
+                "${unitService.convertDisplayValue(currentWeight, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
+            diff: weightDiff,
+          ),
+        );
       }
       if (isMaxVolumePR) {
-        alerts.add(PRAlert(
-          exerciseName: currentSet.exerciseName,
-          recordType: "Best Volume Set",
-          achievementValue:
-              "${unitService.convertDisplayValue(currentVolume, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
-          diff: volumeDiff,
-        ));
+        alerts.add(
+          PRAlert(
+            exerciseName: currentSet.exerciseName,
+            recordType: "Best Volume Set",
+            achievementValue:
+                "${unitService.convertDisplayValue(currentVolume, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
+            diff: volumeDiff,
+          ),
+        );
       }
       if (isMaxEst1RMPR) {
-        alerts.add(PRAlert(
-          exerciseName: currentSet.exerciseName,
-          recordType: "Best 1-Rep Max",
-          achievementValue:
-              "${unitService.convertDisplayValue(currentEst1rm, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
-          diff: est1rmDiff,
-        ));
+        alerts.add(
+          PRAlert(
+            exerciseName: currentSet.exerciseName,
+            recordType: "Best 1-Rep Max",
+            achievementValue:
+                "${unitService.convertDisplayValue(currentEst1rm, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
+            diff: est1rmDiff,
+          ),
+        );
       }
     }
 
     if (isMaxDistancePR || isMaxDurationPR || isFastestPacePR) {
       if (isMaxDistancePR) {
-        alerts.add(PRAlert(
-          exerciseName: currentSet.exerciseName,
-          recordType: "Best Distance",
-          achievementValue:
-              "${unitService.convertDisplayValue(currentDistance, UnitDimension.distance).toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '')} ${unitService.suffixFor(UnitDimension.distance)}",
-          diff: distanceDiff,
-        ));
+        alerts.add(
+          PRAlert(
+            exerciseName: currentSet.exerciseName,
+            recordType: "Best Distance",
+            achievementValue:
+                "${unitService.convertDisplayValue(currentDistance, UnitDimension.distance).toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '')} ${unitService.suffixFor(UnitDimension.distance)}",
+            diff: distanceDiff,
+          ),
+        );
       }
       if (isMaxDurationPR) {
         final m = currentDuration ~/ 60;
         final s = currentDuration % 60;
-        alerts.add(PRAlert(
-          exerciseName: currentSet.exerciseName,
-          recordType: "Longest Duration",
-          achievementValue: "${m}m ${s}s",
-          diff: durationDiff?.toDouble(),
-        ));
+        alerts.add(
+          PRAlert(
+            exerciseName: currentSet.exerciseName,
+            recordType: "Longest Duration",
+            achievementValue: "${m}m ${s}s",
+            diff: durationDiff?.toDouble(),
+          ),
+        );
       }
       if (isFastestPacePR) {
         final pm = currentPace.toInt() ~/ 60;
         final ps = currentPace.toInt() % 60;
-        alerts.add(PRAlert(
-          exerciseName: currentSet.exerciseName,
-          recordType: "Fastest Pace",
-          achievementValue: "${pm}m ${ps}s / km",
-          diff: paceDiff,
-        ));
+        alerts.add(
+          PRAlert(
+            exerciseName: currentSet.exerciseName,
+            recordType: "Fastest Pace",
+            achievementValue: "${pm}m ${ps}s / km",
+            diff: paceDiff,
+          ),
+        );
       }
     }
 

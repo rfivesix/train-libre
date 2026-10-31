@@ -24,8 +24,9 @@ class RoutineShareFormatter {
         final membership = supersetMembershipAt(routine.exercises, entry.key);
         final prefix = membership == null ? '' : '${membership.label} · ';
         buffer.writeln('$prefix${_exerciseName(routineExercise)}');
-        for (final line
-            in _formatTemplateGroups(routineExercise.setTemplates)) {
+        for (final line in _formatTemplateGroups(
+          routineExercise.setTemplates,
+        )) {
           buffer.writeln('- $line');
         }
         buffer.writeln();
@@ -42,12 +43,15 @@ class RoutineShareFormatter {
     Routine routine, {
     int visibleExerciseLimit = 6,
   }) {
-    return routine.exercises.take(visibleExerciseLimit).map((routineExercise) {
-      return RoutineShareExerciseSummary(
-        name: _exerciseName(routineExercise),
-        detail: imagePlanSummary(routineExercise.setTemplates),
-      );
-    }).toList(growable: false);
+    return routine.exercises
+        .take(visibleExerciseLimit)
+        .map((routineExercise) {
+          return RoutineShareExerciseSummary(
+            name: _exerciseName(routineExercise),
+            detail: imagePlanSummary(routineExercise.setTemplates),
+          );
+        })
+        .toList(growable: false);
   }
 
   String _exerciseName(RoutineExercise routineExercise) {

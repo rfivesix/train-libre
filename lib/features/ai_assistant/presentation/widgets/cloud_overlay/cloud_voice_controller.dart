@@ -52,9 +52,11 @@ class CloudVoiceController extends ChangeNotifier {
       if (sampleIndex > _lastVoiceWaveSampleIndex &&
           !_isDisposed &&
           (_voiceRecording || _voiceStarting)) {
-        for (var index = _lastVoiceWaveSampleIndex + 1;
-            index <= sampleIndex;
-            index++) {
+        for (
+          var index = _lastVoiceWaveSampleIndex + 1;
+          index <= sampleIndex;
+          index++
+        ) {
           _appendVoiceLevel(_latestVoiceLevel, index * sampleSpacing);
         }
         _lastVoiceWaveSampleIndex = sampleIndex;
@@ -75,8 +77,7 @@ class CloudVoiceController extends ChangeNotifier {
     if (!kDebugMode || defaultTargetPlatform != TargetPlatform.iOS) {
       return Future<bool>.value(false);
     }
-    return _iosSimulatorCheck ??= DeviceInfoPlugin()
-        .iosInfo
+    return _iosSimulatorCheck ??= DeviceInfoPlugin().iosInfo
         .then((info) => !info.isPhysicalDevice)
         .catchError((Object _) => false);
   }
@@ -94,24 +95,25 @@ class CloudVoiceController extends ChangeNotifier {
     const sample = 'Das ist eine simulierte Spracheingabe im iOS-Simulator.';
     var elapsedMs = 0;
     _voiceSimulationTimer?.cancel();
-    _voiceSimulationTimer = Timer.periodic(
-      const Duration(milliseconds: 80),
-      (timer) {
-        if (_isDisposed || sessionId != _voiceSessionId || !_voiceSimulation) {
-          timer.cancel();
-          return;
-        }
-        elapsedMs += 80;
-        final transcriptCharacters =
-            ((elapsedMs - 450) / 34).floor().clamp(0, sample.length);
-        final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
-        final variation = (math.sin(elapsedMs / 73) + 1) / 2;
-        final level = 0.12 + pulse * 0.58 + variation * 0.22;
-        _latestVoiceLevel = level;
-        _voiceTranscript = sample.substring(0, transcriptCharacters);
-        notifyListeners();
-      },
-    );
+    _voiceSimulationTimer = Timer.periodic(const Duration(milliseconds: 80), (
+      timer,
+    ) {
+      if (_isDisposed || sessionId != _voiceSessionId || !_voiceSimulation) {
+        timer.cancel();
+        return;
+      }
+      elapsedMs += 80;
+      final transcriptCharacters = ((elapsedMs - 450) / 34).floor().clamp(
+        0,
+        sample.length,
+      );
+      final pulse = (math.sin(elapsedMs / 170) + 1) / 2;
+      final variation = (math.sin(elapsedMs / 73) + 1) / 2;
+      final level = 0.12 + pulse * 0.58 + variation * 0.22;
+      _latestVoiceLevel = level;
+      _voiceTranscript = sample.substring(0, transcriptCharacters);
+      notifyListeners();
+    });
   }
 
   Future<void> start(BuildContext context) async {
@@ -201,9 +203,7 @@ class CloudVoiceController extends ChangeNotifier {
     _startVoiceWaveAnimation();
     notifyListeners();
     if (service.lastRunUsedNetwork && context.mounted) {
-      onShowMessage?.call(
-        AppLocalizations.of(context)!.voiceNetworkNotice,
-      );
+      onShowMessage?.call(AppLocalizations.of(context)!.voiceNetworkNotice);
     }
   }
 

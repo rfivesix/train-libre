@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../data/database_helper.dart';
 import '../../../services/health/steps_sync_service.dart';
 import '../../../services/health/health_nutrition_import.dart';
@@ -43,51 +45,69 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
     required bool Function(DateTime date) isCurrentLoad,
   }) async {
     final providerFilter = await _stepsSyncService.getProviderFilter();
-    final providerFilterRaw =
-        StepsSyncService.providerFilterToRaw(providerFilter);
+    final providerFilterRaw = StepsSyncService.providerFilterToRaw(
+      providerFilter,
+    );
 
-    unawaited(_loadStepsForDate(
-      date,
-      providerFilterRaw: providerFilterRaw,
-      isCurrentLoad: isCurrentLoad,
-    ).timeout(const Duration(seconds: 10), onTimeout: () {
-      if (isCurrentLoad(date)) {
-        isStepsWidgetLoading = false;
-        notifyListeners();
-      }
-    }));
+    unawaited(
+      _loadStepsForDate(
+        date,
+        providerFilterRaw: providerFilterRaw,
+        isCurrentLoad: isCurrentLoad,
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          if (isCurrentLoad(date)) {
+            isStepsWidgetLoading = false;
+            notifyListeners();
+          }
+        },
+      ),
+    );
 
-    unawaited(_loadSleepAndSyncIfDue(
-      date,
-      force: forceStepsRefresh,
-      isCurrentLoad: isCurrentLoad,
-    ).timeout(const Duration(seconds: 15), onTimeout: () {
-      if (isCurrentLoad(date)) {
-        isSleepWidgetLoading = false;
-        notifyListeners();
-      }
-    }));
+    unawaited(
+      _loadSleepAndSyncIfDue(
+        date,
+        force: forceStepsRefresh,
+        isCurrentLoad: isCurrentLoad,
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          if (isCurrentLoad(date)) {
+            isSleepWidgetLoading = false;
+            notifyListeners();
+          }
+        },
+      ),
+    );
 
-    unawaited(_loadPulseForDate(
-      date,
-      isCurrentLoad: isCurrentLoad,
-    ).timeout(const Duration(seconds: 10), onTimeout: () {
-      if (isCurrentLoad(date)) {
-        isPulseWidgetLoading = false;
-        notifyListeners();
-      }
-    }));
+    unawaited(
+      _loadPulseForDate(date, isCurrentLoad: isCurrentLoad).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          if (isCurrentLoad(date)) {
+            isPulseWidgetLoading = false;
+            notifyListeners();
+          }
+        },
+      ),
+    );
 
-    unawaited(_syncStepsIfDue(
-      date,
-      force: forceStepsRefresh,
-      isCurrentLoad: isCurrentLoad,
-    ).timeout(const Duration(seconds: 15), onTimeout: () {
-      if (isCurrentLoad(date)) {
-        isStepsWidgetLoading = false;
-        notifyListeners();
-      }
-    }));
+    unawaited(
+      _syncStepsIfDue(
+        date,
+        force: forceStepsRefresh,
+        isCurrentLoad: isCurrentLoad,
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          if (isCurrentLoad(date)) {
+            isStepsWidgetLoading = false;
+            notifyListeners();
+          }
+        },
+      ),
+    );
     unawaited(_syncNutritionImport(force: forceStepsRefresh));
   }
 
@@ -223,8 +243,9 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastSyncStr = prefs.getString('last_steps_sync');
-      final lastSync =
-          lastSyncStr != null ? DateTime.tryParse(lastSyncStr) : null;
+      final lastSync = lastSyncStr != null
+          ? DateTime.tryParse(lastSyncStr)
+          : null;
 
       if (force ||
           lastSync == null ||
@@ -235,8 +256,9 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
         if (!isCurrentLoad(diaryDate)) return;
 
         final providerFilter = await _stepsSyncService.getProviderFilter();
-        final providerFilterRaw =
-            StepsSyncService.providerFilterToRaw(providerFilter);
+        final providerFilterRaw = StepsSyncService.providerFilterToRaw(
+          providerFilter,
+        );
         await _loadStepsForDate(
           diaryDate,
           providerFilterRaw: providerFilterRaw,
@@ -253,8 +275,9 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastSyncStr = prefs.getString('last_sleep_sync');
-      final lastSync =
-          lastSyncStr != null ? DateTime.tryParse(lastSyncStr) : null;
+      final lastSync = lastSyncStr != null
+          ? DateTime.tryParse(lastSyncStr)
+          : null;
 
       if (force ||
           lastSync == null ||

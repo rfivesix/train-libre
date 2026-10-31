@@ -26,8 +26,8 @@ class _NotificationTestViewState extends State<NotificationTestView> {
   }
 
   Future<void> _checkPermissionStatus() async {
-    final enabled =
-        await LocalNotificationService.instance.areNotificationsEnabled();
+    final enabled = await LocalNotificationService.instance
+        .areNotificationsEnabled();
     if (mounted) {
       setState(() => _notificationsEnabled = enabled);
     }
@@ -37,9 +37,11 @@ class _NotificationTestViewState extends State<NotificationTestView> {
     final granted = await LocalNotificationService.instance
         .requestNotificationPermissions();
     await _checkPermissionStatus();
-    _setMessage(granted
-        ? 'Berechtigung erteilt oder aktiv'
-        : 'Berechtigung nicht erteilt');
+    _setMessage(
+      granted
+          ? 'Berechtigung erteilt oder aktiv'
+          : 'Berechtigung nicht erteilt',
+    );
   }
 
   void _setMessage(String msg) {
@@ -52,25 +54,30 @@ class _NotificationTestViewState extends State<NotificationTestView> {
   Future<void> _triggerWeeklyReviewNow() async {
     final success = await LocalNotificationService.instance
         .showWeeklyGoalReviewNotification(
-      goalId: 'sandbox-goal-id',
-      reviewId: 'test-weekly-review-${DateTime.now().millisecondsSinceEpoch}',
-      ignorePreferences: true,
+          goalId: 'sandbox-goal-id',
+          reviewId:
+              'test-weekly-review-${DateTime.now().millisecondsSinceEpoch}',
+          ignorePreferences: true,
+        );
+    _setMessage(
+      success
+          ? 'Wochen-Review Benachrichtigung gesendet'
+          : 'Senden fehlgeschlagen (Berechtigung im System prüfen)',
     );
-    _setMessage(success
-        ? 'Wochen-Review Benachrichtigung gesendet'
-        : 'Senden fehlgeschlagen (Berechtigung im System prüfen)');
   }
 
   Future<void> _triggerWeeklyReviewIn5Seconds() async {
     _setMessage(
-        'Wochen-Review in 5 Sekunden im System geplant... (App jetzt minimieren)');
+      'Wochen-Review in 5 Sekunden im System geplant... (App jetzt minimieren)',
+    );
     final success = await LocalNotificationService.instance
         .showWeeklyGoalReviewNotification(
-      goalId: 'sandbox-goal-id',
-      reviewId: 'test-weekly-review-${DateTime.now().millisecondsSinceEpoch}',
-      ignorePreferences: true,
-      delay: const Duration(seconds: 5),
-    );
+          goalId: 'sandbox-goal-id',
+          reviewId:
+              'test-weekly-review-${DateTime.now().millisecondsSinceEpoch}',
+          ignorePreferences: true,
+          delay: const Duration(seconds: 5),
+        );
     if (!success) {
       _setMessage('Planung fehlgeschlagen (Berechtigung im System prüfen)');
     }
@@ -79,19 +86,22 @@ class _NotificationTestViewState extends State<NotificationTestView> {
   Future<void> _triggerRecommendationDueNow() async {
     final success = await LocalNotificationService.instance
         .showAdaptiveRecommendationDueNotification(ignorePreferences: true);
-    _setMessage(success
-        ? 'Adaptive Empfehlungs-Benachrichtigung gesendet'
-        : 'Senden fehlgeschlagen (Berechtigung im System prüfen)');
+    _setMessage(
+      success
+          ? 'Adaptive Empfehlungs-Benachrichtigung gesendet'
+          : 'Senden fehlgeschlagen (Berechtigung im System prüfen)',
+    );
   }
 
   Future<void> _triggerRecommendationDueIn5Seconds() async {
     _setMessage(
-        'Empfehlung in 5 Sekunden im System geplant... (App jetzt minimieren)');
+      'Empfehlung in 5 Sekunden im System geplant... (App jetzt minimieren)',
+    );
     final success = await LocalNotificationService.instance
         .showAdaptiveRecommendationDueNotification(
-      ignorePreferences: true,
-      delay: const Duration(seconds: 5),
-    );
+          ignorePreferences: true,
+          delay: const Duration(seconds: 5),
+        );
     if (!success) {
       _setMessage('Planung fehlgeschlagen (Berechtigung im System prüfen)');
     }
@@ -100,19 +110,22 @@ class _NotificationTestViewState extends State<NotificationTestView> {
   Future<void> _triggerTargetDateReminderNow() async {
     final success = await LocalNotificationService.instance
         .showGoalTargetDateReminderNotification(
-      goalId: 'sandbox-goal-id',
-      goalTitle: '78.0 kg erreichen',
-      isDueToday: true,
-      ignorePreferences: true,
+          goalId: 'sandbox-goal-id',
+          goalTitle: '78.0 kg erreichen',
+          isDueToday: true,
+          ignorePreferences: true,
+        );
+    _setMessage(
+      success
+          ? 'Zieldatum-Erinnerung gesendet'
+          : 'Senden fehlgeschlagen (Berechtigung im System prüfen)',
     );
-    _setMessage(success
-        ? 'Zieldatum-Erinnerung gesendet'
-        : 'Senden fehlgeschlagen (Berechtigung im System prüfen)');
   }
 
   Future<void> _cancelAllGoalNotifications() async {
-    await LocalNotificationService.instance
-        .cancelGoalNotifications(goalId: 'sandbox-goal-id');
+    await LocalNotificationService.instance.cancelGoalNotifications(
+      goalId: 'sandbox-goal-id',
+    );
     _setMessage('Alle Ziel-Benachrichtigungen für Sandbox abgebrochen');
   }
 
@@ -128,13 +141,17 @@ class _NotificationTestViewState extends State<NotificationTestView> {
           children: [
             Row(
               children: [
-                Icon(LucideIcons.bell_ring,
-                    color: theme.colorScheme.primary, size: 20),
+                Icon(
+                  LucideIcons.bell_ring,
+                  color: theme.colorScheme.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: DesignConstants.spacingS),
                 Text(
                   'Lokale Benachrichtigungen testen',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -145,8 +162,9 @@ class _NotificationTestViewState extends State<NotificationTestView> {
                 color: _notificationsEnabled == true
                     ? Colors.green.withValues(alpha: 0.1)
                     : Colors.orange.withValues(alpha: 0.1),
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
               child: Row(
                 children: [
@@ -165,8 +183,8 @@ class _NotificationTestViewState extends State<NotificationTestView> {
                       _notificationsEnabled == null
                           ? 'Berechtigungsstatus wird geprüft...'
                           : _notificationsEnabled == true
-                              ? 'System-Benachrichtigungen sind aktiv'
-                              : 'System-Benachrichtigungen nicht erteilt',
+                          ? 'System-Benachrichtigungen sind aktiv'
+                          : 'System-Benachrichtigungen nicht erteilt',
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -184,13 +202,15 @@ class _NotificationTestViewState extends State<NotificationTestView> {
             Text(
               'Status: $_statusMessage',
               style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
             ),
             const Divider(height: DesignConstants.spacingL),
             Text(
               '1. Wöchentlicher Ziel-Review',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Row(
@@ -214,8 +234,9 @@ class _NotificationTestViewState extends State<NotificationTestView> {
             const SizedBox(height: DesignConstants.spacingL),
             Text(
               '2. Neue adaptive Empfehlung fällig',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Row(
@@ -238,8 +259,9 @@ class _NotificationTestViewState extends State<NotificationTestView> {
             const SizedBox(height: DesignConstants.spacingL),
             Text(
               '3. Zieldatum-Erinnerung',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             AppButton.secondary(

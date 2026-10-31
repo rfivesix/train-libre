@@ -3,10 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../widgets/common/common.dart';
 
 /// A dialog content widget for logging fluid intake (water, coffee, etc.).
@@ -44,13 +47,14 @@ class FluidDialogContentState extends State<FluidDialogContent> {
   String get nameText => _nameController.text;
   String get quantityText => _quantityController.text;
   int? get quantityInMl {
-    final enteredAmount =
-        double.tryParse(quantityText.trim().replaceAll(',', '.'));
+    final enteredAmount = double.tryParse(
+      quantityText.trim().replaceAll(',', '.'),
+    );
     if (enteredAmount == null || enteredAmount <= 0) return null;
     final amountInMl = context.read<UnitService>().convertToMetric(
-          enteredAmount,
-          UnitDimension.liquid,
-        );
+      enteredAmount,
+      UnitDimension.liquid,
+    );
     final roundedAmount = amountInMl.round();
     return roundedAmount > 0 ? roundedAmount : null;
   }
@@ -62,9 +66,7 @@ class FluidDialogContentState extends State<FluidDialogContent> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(
-      text: widget.initialName ?? '',
-    );
+    _nameController = TextEditingController(text: widget.initialName ?? '');
     _quantityController = TextEditingController(
       text: widget.initialQuantity?.toString() ?? '',
     );
@@ -94,8 +96,9 @@ class FluidDialogContentState extends State<FluidDialogContent> {
       }
       _quantityDisplayUnitSystem = unitService.unitSystem;
     } else if (previousUnitSystem != unitService.unitSystem) {
-      final enteredAmount =
-          double.tryParse(quantityText.trim().replaceAll(',', '.'));
+      final enteredAmount = double.tryParse(
+        quantityText.trim().replaceAll(',', '.'),
+      );
       if (enteredAmount != null) {
         final amountInMl = previousUnitSystem == UnitSystem.metric
             ? enteredAmount

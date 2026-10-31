@@ -28,8 +28,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'on_trajectory',
       title: 'Auf Zielkurs (Normalverlauf)',
-      description:
-          'Stetige Abnahme (-0.5 kg/Woche), Kalorienziel eingehalten, 5 Wiegungen, 7 Tage geloggt. Keine Anpassung nötig.',
+      description: 'Stetige Abnahme (-0.5 kg/Woche), Kalorienziel eingehalten, 5 Wiegungen, 7 Tage geloggt. Keine Anpassung nötig.',
       expectedOverallStatus: 'on_trajectory',
       expectedMomentum: 'matching_plan',
       expectedAction: 'keep_targets',
@@ -54,8 +53,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'behind_plateau',
       title: 'Plateau / Stoffwechsel-Stall',
-      description:
-          'Gewicht stagniert bei 83.5 kg trotz 100% Einhaltung des Kaloriendefizits (2100 kcal). Engine empfiehlt Kalorienreduktion.',
+      description: 'Gewicht stagniert bei 83.5 kg trotz 100% Einhaltung des Kaloriendefizits (2100 kcal). Engine empfiehlt Kalorienreduktion.',
       expectedOverallStatus: 'behind',
       expectedMomentum: 'falling_further_behind',
       expectedAction: 'adjust_targets',
@@ -81,8 +79,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'behind_intake_gap',
       title: 'Abweichung durch Nahrungsaufnahme',
-      description:
-          'Gewicht stagniert, aber der Nutzer hat im Schnitt 400 kcal/Tag über dem Ziel gegessen. Keine Kaloriensenkung, sondern ehrlicher Hinweis.',
+      description: 'Gewicht stagniert, aber der Nutzer hat im Schnitt 400 kcal/Tag über dem Ziel gegessen. Keine Kaloriensenkung, sondern ehrlicher Hinweis.',
       expectedOverallStatus: 'behind',
       expectedMomentum: 'falling_further_behind',
       expectedAction: 'keep_targets_intake_differs',
@@ -107,8 +104,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'behind_catching_up',
       title: 'Hinter Plan, aber holt auf',
-      description:
-          'Gesamtverlauf liegt noch hinter dem Zieldatum, aber die letzten 7 Tage waren mit -0.85 kg/Woche spürbar schneller als geplant.',
+      description: 'Gesamtverlauf liegt noch hinter dem Zieldatum, aber die letzten 7 Tage waren mit -0.85 kg/Woche spürbar schneller als geplant.',
       expectedOverallStatus: 'behind',
       expectedMomentum: 'catching_up',
       expectedAction: 'adjust_targets',
@@ -133,8 +129,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'ahead_aggressive',
       title: 'Vor Zielkurs (Zu aggressiver Pace)',
-      description:
-          'Gewicht fällt zu schnell (-1.35 kg/Woche statt -0.5 kg). Engine warnt vor Muskelverlust und schlägt Kalorienerhöhung vor.',
+      description: 'Gewicht fällt zu schnell (-1.35 kg/Woche statt -0.5 kg). Engine warnt vor Muskelverlust und schlägt Kalorienerhöhung vor.',
       expectedOverallStatus: 'ahead',
       expectedMomentum: 'moving_faster',
       expectedAction: 'adjust_targets',
@@ -160,8 +155,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'insufficient_data',
       title: 'Unvollständige Daten (Kalibriert noch)',
-      description:
-          'Nur 1 Wiegung und 2 geloggte Tage in der letzten Woche. Sufficiency Gate schlägt an: "Kalibriert noch", keine voreiligen Schlüsse.',
+      description: 'Nur 1 Wiegung und 2 geloggte Tage in der letzten Woche. Sufficiency Gate schlägt an: "Kalibriert noch", keine voreiligen Schlüsse.',
       expectedOverallStatus: 'behind',
       expectedMomentum: 'unclear',
       expectedAction: 'insufficient_data',
@@ -186,8 +180,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'target_date_needs_review',
       title: 'Zieldatum prüfen (Termin verstrichen)',
-      description:
-          'Das ursprünglich gewählte Zieldatum liegt in der Vergangenheit oder ist rechnerisch unmöglich. Plananpassungs-Editor wird angeboten.',
+      description: 'Das ursprünglich gewählte Zieldatum liegt in der Vergangenheit oder ist rechnerisch unmöglich. Plananpassungs-Editor wird angeboten.',
       expectedOverallStatus: 'target_date_needs_review',
       expectedMomentum: 'moving_slower',
       expectedAction: 'trajectory_change_needed',
@@ -212,8 +205,7 @@ class CanonicalNutritionScenarios {
     CanonicalNutritionScenario(
       id: 'target_reached',
       title: 'Ziel erreicht!',
-      description:
-          'Zielgewicht von 78.0 kg wurde erreicht (aktuell 77.8 kg). Erfolgszustand: Übergang zur Gewichtserhaltung wird vorgeschlagen.',
+      description: 'Zielgewicht von 78.0 kg wurde erreicht (aktuell 77.8 kg). Erfolgszustand: Übergang zur Gewichtserhaltung wird vorgeschlagen.',
       expectedOverallStatus: 'target_reached',
       expectedMomentum: 'matching_plan',
       expectedAction: 'keep_targets',

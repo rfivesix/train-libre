@@ -25,23 +25,25 @@ class FakeExerciseCatalogRepository implements IExerciseCatalogRepository {
 
   @override
   Future<List<({String id, String name})>> getPrimaryEquipment(
-          String languageCode) async =>
-      [];
+    String languageCode,
+  ) async => [];
 
   @override
   Future<List<String>> getUsageTags() async => [];
 
   @override
   Future<
-      ({
-        List<String> difficulties,
-        List<String> mechanics,
-        List<String> lateralities,
-      })> getClassificationAxes() async => (
-        difficulties: <String>[],
-        mechanics: <String>[],
-        lateralities: <String>[],
-      );
+    ({
+      List<String> difficulties,
+      List<String> mechanics,
+      List<String> lateralities,
+    })
+  >
+  getClassificationAxes() async => (
+    difficulties: <String>[],
+    mechanics: <String>[],
+    lateralities: <String>[],
+  );
 
   @override
   Future<Exercise?> getExerciseByName(String name) async => null;
@@ -76,8 +78,7 @@ class FakeExerciseCatalogRepository implements IExerciseCatalogRepository {
     String? altName,
     String? exerciseUuid,
     bool isCardio = false,
-  }) async =>
-      {};
+  }) async => {};
 
   @override
   Future<List<Map<String, dynamic>>> getExerciseTimeSeriesData(
@@ -85,8 +86,7 @@ class FakeExerciseCatalogRepository implements IExerciseCatalogRepository {
     String? altName,
     String? exerciseUuid,
     bool isCardio = false,
-  }) async =>
-      [];
+  }) async => [];
 
   @override
   Future<List<String>> getAllCategories() async => [];
@@ -98,47 +98,46 @@ class FakeExerciseCatalogRepository implements IExerciseCatalogRepository {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('ExerciseMappingScreen renders scrollbar and content properly positioned',
-      (tester) async {
-    final repo = FakeExerciseCatalogRepository();
-    final names = List.generate(20, (i) => 'Unknown Exercise $i');
+  testWidgets(
+    'ExerciseMappingScreen renders scrollbar and content properly positioned',
+    (tester) async {
+      final repo = FakeExerciseCatalogRepository();
+      final names = List.generate(20, (i) => 'Unknown Exercise $i');
 
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('de'),
-        home: MediaQuery(
-          data: const MediaQueryData(
-            size: Size(393, 852),
-            padding: EdgeInsets.only(top: 59, bottom: 34),
-          ),
-          child: ExerciseMappingScreen(
-            unknownNames: names,
-            repository: repo,
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('de'),
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(393, 852),
+              padding: EdgeInsets.only(top: 59, bottom: 34),
+            ),
+            child: ExerciseMappingScreen(unknownNames: names, repository: repo),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.byType(CupertinoScrollbar), findsOneWidget);
-    expect(find.text('Unknown Exercise 0'), findsOneWidget);
+      expect(find.byType(CupertinoScrollbar), findsOneWidget);
+      expect(find.text('Unknown Exercise 0'), findsOneWidget);
 
-    final scrollbarRect = tester.getRect(find.byType(CupertinoScrollbar));
-    // Scrollbar starts at top of screen (0.0) and stretches to above bottomNavigationBar
-    expect(scrollbarRect.top, 0.0);
+      final scrollbarRect = tester.getRect(find.byType(CupertinoScrollbar));
+      // Scrollbar starts at top of screen (0.0) and stretches to above bottomNavigationBar
+      expect(scrollbarRect.top, 0.0);
 
-    // First exercise item starts below the app bar (topPadding = 59 + 56 = 115)
-    final item0Rect = tester.getRect(find.text('Unknown Exercise 0'));
-    expect(item0Rect.top, greaterThan(115.0));
+      // First exercise item starts below the app bar (topPadding = 59 + 56 = 115)
+      final item0Rect = tester.getRect(find.text('Unknown Exercise 0'));
+      expect(item0Rect.top, greaterThan(115.0));
 
-    // Scroll down and ensure items scroll behind app bar
-    await tester.drag(find.byType(ListView), const Offset(0, -300));
-    await tester.pumpAndSettle();
+      // Scroll down and ensure items scroll behind app bar
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
 
-    // After scrolling, items have moved up
-    expect(find.text('Unknown Exercise 0'), findsNothing);
-    expect(find.text('Unknown Exercise 5'), findsOneWidget);
-  });
+      // After scrolling, items have moved up
+      expect(find.text('Unknown Exercise 0'), findsNothing);
+      expect(find.text('Unknown Exercise 5'), findsOneWidget);
+    },
+  );
 }

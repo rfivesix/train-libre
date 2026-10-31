@@ -29,10 +29,7 @@ void main() {
 
   group('BLS catalog release contract', () {
     test('parses the published stable gzip catalog manifest', () {
-      final parsed = BlsFoodCatalogManifest.parse(
-        manifest,
-        Uri.parse(baseUri),
-      );
+      final parsed = BlsFoodCatalogManifest.parse(manifest, Uri.parse(baseUri));
 
       expect(parsed.version, '4.0.0');
       expect(parsed.schemaVersion, 1);
@@ -42,23 +39,25 @@ void main() {
       expect(parsed.foodNutrientFactCount, 985320);
     });
 
-    test('rejects a manifest from a different source or compression format',
-        () {
-      final wrongSource = {...manifest, 'source_id': 'other'};
-      expect(
-        () => BlsFoodCatalogManifest.parse(wrongSource, Uri.parse(baseUri)),
-        throwsFormatException,
-      );
+    test(
+      'rejects a manifest from a different source or compression format',
+      () {
+        final wrongSource = {...manifest, 'source_id': 'other'};
+        expect(
+          () => BlsFoodCatalogManifest.parse(wrongSource, Uri.parse(baseUri)),
+          throwsFormatException,
+        );
 
-      final wrongCompression = {...manifest, 'db_compression': 'zip'};
-      expect(
-        () => BlsFoodCatalogManifest.parse(
-          wrongCompression,
-          Uri.parse(baseUri),
-        ),
-        throwsFormatException,
-      );
-    });
+        final wrongCompression = {...manifest, 'db_compression': 'zip'};
+        expect(
+          () => BlsFoodCatalogManifest.parse(
+            wrongCompression,
+            Uri.parse(baseUri),
+          ),
+          throwsFormatException,
+        );
+      },
+    );
 
     test('rejects catalog schemas newer than this app supports', () {
       final newerSchema = {...manifest, 'schema_version': 99};
@@ -94,10 +93,8 @@ void main() {
         'min_app_schema_version': 3,
       }..remove('food_translation_count');
       expect(
-        () => BlsFoodCatalogManifest.parse(
-          localizedManifest,
-          Uri.parse(baseUri),
-        ),
+        () =>
+            BlsFoodCatalogManifest.parse(localizedManifest, Uri.parse(baseUri)),
         throwsFormatException,
       );
     });

@@ -22,7 +22,9 @@ class OnboardingActivityStep extends StatelessWidget {
   final ValueChanged<ExtraCardioHoursOption> onExtraCardioHoursOptionChanged;
 
   static String _priorActivityLabel(
-      AppLocalizations l10n, PriorActivityLevel level) {
+    AppLocalizations l10n,
+    PriorActivityLevel level,
+  ) {
     switch (level) {
       case PriorActivityLevel.low:
         return l10n.adaptivePriorActivityLow;
@@ -36,7 +38,9 @@ class OnboardingActivityStep extends StatelessWidget {
   }
 
   static String _extraCardioLabel(
-      AppLocalizations l10n, ExtraCardioHoursOption option) {
+    AppLocalizations l10n,
+    ExtraCardioHoursOption option,
+  ) {
     switch (option) {
       case ExtraCardioHoursOption.h0:
         return l10n.adaptiveExtraCardioOption0;
@@ -88,8 +92,9 @@ class OnboardingActivityStep extends StatelessWidget {
                 prefixIcon: const Icon(LucideIcons.activity),
                 labelText: l10n.adaptivePriorActivityLabel,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
               items: PriorActivityLevel.values
@@ -117,8 +122,9 @@ class OnboardingActivityStep extends StatelessWidget {
                 prefixIcon: const Icon(LucideIcons.timer),
                 labelText: l10n.adaptiveExtraCardioLabel,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
               items: ExtraCardioHoursCatalog.supportedOptions

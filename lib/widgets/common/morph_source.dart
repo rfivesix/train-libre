@@ -45,7 +45,8 @@ class MorphSourceScope extends StatefulWidget {
   final Widget Function(
     BuildContext context,
     MorphSourceVisibilityCallback setHidden,
-  ) builder;
+  )
+  builder;
 
   @override
   State<MorphSourceScope> createState() => _MorphSourceScopeState();
@@ -62,10 +63,8 @@ class _MorphSourceScopeState extends State<MorphSourceScope> {
   }
 
   @override
-  Widget build(BuildContext context) => MorphSource(
-        hidden: _hidden,
-        child: widget.builder(context, _setHidden),
-      );
+  Widget build(BuildContext context) =>
+      MorphSource(hidden: _hidden, child: widget.builder(context, _setHidden));
 }
 
 /// Takes [child] off screen while a route flies a copy of it, without moving
@@ -86,11 +85,7 @@ class _MorphSourceScopeState extends State<MorphSourceScope> {
 /// from that subtree would then be looking up a deactivated widget's ancestor
 /// for the rest of the flight.
 class MorphSource extends StatelessWidget {
-  const MorphSource({
-    super.key,
-    required this.hidden,
-    required this.child,
-  });
+  const MorphSource({super.key, required this.hidden, required this.child});
 
   /// Whether a route is currently flying a copy of [child].
   final bool hidden;
@@ -99,7 +94,7 @@ class MorphSource extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Opacity(
-        opacity: hidden ? 0.0 : 1.0,
-        child: IgnorePointer(ignoring: hidden, child: child),
-      );
+    opacity: hidden ? 0.0 : 1.0,
+    child: IgnorePointer(ignoring: hidden, child: child),
+  );
 }

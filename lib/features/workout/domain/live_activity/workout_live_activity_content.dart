@@ -11,11 +11,11 @@ enum WorkoutLiveActivityPhase {
   empty;
 
   String get wireName => switch (this) {
-        WorkoutLiveActivityPhase.setPending => 'setPending',
-        WorkoutLiveActivityPhase.resting => 'resting',
-        WorkoutLiveActivityPhase.noSetsLeft => 'noSetsLeft',
-        WorkoutLiveActivityPhase.empty => 'empty',
-      };
+    WorkoutLiveActivityPhase.setPending => 'setPending',
+    WorkoutLiveActivityPhase.resting => 'resting',
+    WorkoutLiveActivityPhase.noSetsLeft => 'noSetsLeft',
+    WorkoutLiveActivityPhase.empty => 'empty',
+  };
 }
 
 /// Static data for the lifetime of one activity.
@@ -43,15 +43,15 @@ class WorkoutLiveActivityAttributes {
   });
 
   Map<String, Object?> toMap() => {
-        'workoutTitle': workoutTitle,
-        'workoutStartedAtEpochMs': workoutStartedAt.millisecondsSinceEpoch,
-        'deepLink': deepLink,
-        'workoutLogId': workoutLogId,
-        'labelAddExercise': labelAddExercise,
-        'labelOpenApp': labelOpenApp,
-        'labelSkip': labelSkip,
-        'labelOverdue': labelOverdue,
-      };
+    'workoutTitle': workoutTitle,
+    'workoutStartedAtEpochMs': workoutStartedAt.millisecondsSinceEpoch,
+    'deepLink': deepLink,
+    'workoutLogId': workoutLogId,
+    'labelAddExercise': labelAddExercise,
+    'labelOpenApp': labelOpenApp,
+    'labelSkip': labelSkip,
+    'labelOverdue': labelOverdue,
+  };
 }
 
 /// Everything that changes during the workout.
@@ -121,29 +121,29 @@ class WorkoutLiveActivityContent {
   });
 
   Map<String, Object?> toMap() => {
-        'phase': phase.wireName,
-        'restEndsAtEpochMs': restEndsAt?.millisecondsSinceEpoch,
-        'restStartedAtEpochMs': restStartedAt?.millisecondsSinceEpoch,
-        'setTimerStartedAtEpochMs': setTimerStartedAt?.millisecondsSinceEpoch,
-        'setTimerDeadlineEpochMs': setTimerDeadline?.millisecondsSinceEpoch,
-        'setTimerTemplateId': setTimerTemplateId,
-        'setTimerElapsedSeconds': setTimerElapsedSeconds,
-        'labelStartTimer': labelStartTimer,
-        'labelStopTimer': labelStopTimer,
-        'labelTimerRunning': labelTimerRunning,
-        'exerciseName': exerciseName,
-        'setPosition': setPosition,
-        'badgeText': badgeText,
-        'badgeColorHex': badgeColorHex,
-        'metricPrimary': metricPrimary,
-        'metricSecondary': metricSecondary,
-        'metricTertiary': metricTertiary,
-        'metricSeparator': metricSeparator,
-        'compactPrimary': compactPrimary,
-        'compactSecondary': compactSecondary,
-        'canCompleteSet': canCompleteSet,
-        'upcomingSets': upcomingSets.map((set) => set.toMap()).toList(),
-      };
+    'phase': phase.wireName,
+    'restEndsAtEpochMs': restEndsAt?.millisecondsSinceEpoch,
+    'restStartedAtEpochMs': restStartedAt?.millisecondsSinceEpoch,
+    'setTimerStartedAtEpochMs': setTimerStartedAt?.millisecondsSinceEpoch,
+    'setTimerDeadlineEpochMs': setTimerDeadline?.millisecondsSinceEpoch,
+    'setTimerTemplateId': setTimerTemplateId,
+    'setTimerElapsedSeconds': setTimerElapsedSeconds,
+    'labelStartTimer': labelStartTimer,
+    'labelStopTimer': labelStopTimer,
+    'labelTimerRunning': labelTimerRunning,
+    'exerciseName': exerciseName,
+    'setPosition': setPosition,
+    'badgeText': badgeText,
+    'badgeColorHex': badgeColorHex,
+    'metricPrimary': metricPrimary,
+    'metricSecondary': metricSecondary,
+    'metricTertiary': metricTertiary,
+    'metricSeparator': metricSeparator,
+    'compactPrimary': compactPrimary,
+    'compactSecondary': compactSecondary,
+    'canCompleteSet': canCompleteSet,
+    'upcomingSets': upcomingSets.map((set) => set.toMap()).toList(),
+  };
 
   @override
   bool operator ==(Object other) =>
@@ -170,34 +170,36 @@ class WorkoutLiveActivityContent {
       other.compactSecondary == compactSecondary &&
       other.canCompleteSet == canCompleteSet &&
       other.upcomingSets.length == upcomingSets.length &&
-      List.generate(upcomingSets.length, (index) => index)
-          .every((index) => other.upcomingSets[index] == upcomingSets[index]);
+      List.generate(
+        upcomingSets.length,
+        (index) => index,
+      ).every((index) => other.upcomingSets[index] == upcomingSets[index]);
 
   @override
   int get hashCode => Object.hashAll([
-        phase,
-        restEndsAt,
-        restStartedAt,
-        setTimerStartedAt,
-        setTimerDeadline,
-        setTimerTemplateId,
-        setTimerElapsedSeconds,
-        labelStartTimer,
-        labelStopTimer,
-        labelTimerRunning,
-        exerciseName,
-        setPosition,
-        badgeText,
-        badgeColorHex,
-        metricPrimary,
-        metricSecondary,
-        metricTertiary,
-        metricSeparator,
-        compactPrimary,
-        compactSecondary,
-        canCompleteSet,
-        Object.hashAll(upcomingSets),
-      ]);
+    phase,
+    restEndsAt,
+    restStartedAt,
+    setTimerStartedAt,
+    setTimerDeadline,
+    setTimerTemplateId,
+    setTimerElapsedSeconds,
+    labelStartTimer,
+    labelStopTimer,
+    labelTimerRunning,
+    exerciseName,
+    setPosition,
+    badgeText,
+    badgeColorHex,
+    metricPrimary,
+    metricSecondary,
+    metricTertiary,
+    metricSeparator,
+    compactPrimary,
+    compactSecondary,
+    canCompleteSet,
+    Object.hashAll(upcomingSets),
+  ]);
 }
 
 /// The native Live Activity keeps a small workout-order snapshot so its
@@ -232,19 +234,19 @@ class WorkoutLiveActivitySetSnapshot {
   });
 
   Map<String, Object?> toMap() => {
-        'exerciseName': exerciseName,
-        'setPosition': setPosition,
-        'badgeText': badgeText,
-        'badgeColorHex': badgeColorHex,
-        'metricPrimary': metricPrimary,
-        'metricSecondary': metricSecondary,
-        'metricTertiary': metricTertiary,
-        'metricSeparator': metricSeparator,
-        'compactPrimary': compactPrimary,
-        'compactSecondary': compactSecondary,
-        'setTimerTemplateId': setTimerTemplateId,
-        'canCompleteSet': canCompleteSet,
-      };
+    'exerciseName': exerciseName,
+    'setPosition': setPosition,
+    'badgeText': badgeText,
+    'badgeColorHex': badgeColorHex,
+    'metricPrimary': metricPrimary,
+    'metricSecondary': metricSecondary,
+    'metricTertiary': metricTertiary,
+    'metricSeparator': metricSeparator,
+    'compactPrimary': compactPrimary,
+    'compactSecondary': compactSecondary,
+    'setTimerTemplateId': setTimerTemplateId,
+    'canCompleteSet': canCompleteSet,
+  };
 
   @override
   bool operator ==(Object other) =>
@@ -264,17 +266,17 @@ class WorkoutLiveActivitySetSnapshot {
 
   @override
   int get hashCode => Object.hash(
-        exerciseName,
-        setPosition,
-        badgeText,
-        badgeColorHex,
-        metricPrimary,
-        metricSecondary,
-        metricTertiary,
-        metricSeparator,
-        compactPrimary,
-        compactSecondary,
-        setTimerTemplateId,
-        canCompleteSet,
-      );
+    exerciseName,
+    setPosition,
+    badgeText,
+    badgeColorHex,
+    metricPrimary,
+    metricSecondary,
+    metricTertiary,
+    metricSeparator,
+    compactPrimary,
+    compactSecondary,
+    setTimerTemplateId,
+    canCompleteSet,
+  );
 }

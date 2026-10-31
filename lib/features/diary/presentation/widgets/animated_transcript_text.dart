@@ -55,7 +55,8 @@ class _AnimatedTranscriptTextState extends State<AnimatedTranscriptText> {
 
     // A rewritten transcript — the cleanup pass, or a fresh recording — starts
     // over; an extended one keeps the timing of the words it already showed.
-    final isExtension = next.length >= _words.length &&
+    final isExtension =
+        next.length >= _words.length &&
         _words.asMap().entries.every((e) => next[e.key] == e.value);
 
     if (!isExtension) _seenAt.clear();

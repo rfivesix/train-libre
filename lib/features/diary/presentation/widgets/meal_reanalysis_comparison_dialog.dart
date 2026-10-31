@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/widgets/meal_reanalysis_comparison_dialog.dart
 
 import 'package:flutter/material.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../domain/models/tracked_food_item.dart';
@@ -66,8 +67,9 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
     final bg = isDark ? const Color(0xFF161616) : const Color(0xFFF7F7F4);
     final cardBg = isDark ? const Color(0xFF222220) : Colors.white;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
-    final subtitleColor =
-        isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
+    final subtitleColor = isDark
+        ? const Color(0xFF8A8A82)
+        : const Color(0xFF5C5C55);
     final lime = theme.colorScheme.primary;
 
     int prevKcal = 0;
@@ -250,53 +252,53 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                           ],
                         ),
                         const Divider(height: 16),
-                        ...newItems.map(
-                          (it) {
-                            final isHighlighted = it.isNew || it.isChanged;
-                            return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 3),
-                              padding: isHighlighted
-                                  ? const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 3)
-                                  : EdgeInsets.zero,
-                              decoration: isHighlighted
-                                  ? BoxDecoration(
-                                      color: lime.withValues(alpha: 0.28),
-                                      borderRadius: BorderRadius.circular(8),
-                                    )
-                                  : null,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    it.name,
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                      color: titleColor,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                        ...newItems.map((it) {
+                          final isHighlighted = it.isNew || it.isChanged;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 3),
+                            padding: isHighlighted
+                                ? const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 3,
+                                  )
+                                : EdgeInsets.zero,
+                            decoration: isHighlighted
+                                ? BoxDecoration(
+                                    color: lime.withValues(alpha: 0.28),
+                                    borderRadius: BorderRadius.circular(8),
+                                  )
+                                : null,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  it.name,
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                    color: titleColor,
                                   ),
-                                  Text(
-                                    '${it.grams} g${it.diffBadge != null ? " · ${it.diffBadge}" : ""}',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontWeight: isHighlighted
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                      fontSize: 12,
-                                      color: isHighlighted
-                                          ? const Color(0xFF4A5800)
-                                          : subtitleColor,
-                                    ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${it.grams} g${it.diffBadge != null ? " · ${it.diffBadge}" : ""}',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontWeight: isHighlighted
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    fontSize: 12,
+                                    color: isHighlighted
+                                        ? const Color(0xFF4A5800)
+                                        : subtitleColor,
                                   ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),

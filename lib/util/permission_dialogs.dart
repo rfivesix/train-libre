@@ -1,6 +1,7 @@
 // lib/util/permission_dialogs.dart
 
 import 'package:flutter/material.dart';
+
 import 'design_constants.dart';
 
 import '../features/app/presentation/widgets/glass_bottom_menu.dart';
@@ -30,7 +31,8 @@ Future<bool> showPrePermissionDialog({
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingS),
+                horizontal: DesignConstants.spacingS,
+              ),
               child: Text(
                 body,
                 textAlign: TextAlign.center,

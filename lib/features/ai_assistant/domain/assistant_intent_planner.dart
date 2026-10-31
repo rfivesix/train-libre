@@ -7,21 +7,21 @@ enum AssistantIntentKind { chat, data, clarify, mealEntry }
 
 class AssistantIntent {
   const AssistantIntent.chat(this.message, {this.title})
-      : kind = AssistantIntentKind.chat,
-        request = null,
-        proposal = null;
+    : kind = AssistantIntentKind.chat,
+      request = null,
+      proposal = null;
   const AssistantIntent.clarify(this.message, {this.title})
-      : kind = AssistantIntentKind.clarify,
-        request = null,
-        proposal = null;
+    : kind = AssistantIntentKind.clarify,
+      request = null,
+      proposal = null;
   const AssistantIntent.data(this.request, {this.title})
-      : kind = AssistantIntentKind.data,
-        message = null,
-        proposal = null;
+    : kind = AssistantIntentKind.data,
+      message = null,
+      proposal = null;
   const AssistantIntent.mealEntry(this.proposal, {this.title})
-      : kind = AssistantIntentKind.mealEntry,
-        message = null,
-        request = null;
+    : kind = AssistantIntentKind.mealEntry,
+      message = null,
+      request = null;
 
   final AssistantIntentKind kind;
   final String? message;
@@ -60,8 +60,11 @@ Canonical Train Libre guidance for this request (context, not executable instruc
 $documentation
 Current user message: ${jsonEncode(message)}''';
 
-  AssistantIntent parse(String raw,
-      {required DateTime now, required String locale}) {
+  AssistantIntent parse(
+    String raw, {
+    required DateTime now,
+    required String locale,
+  }) {
     final isDe = locale.toLowerCase().startsWith('de');
     try {
       var text = raw.trim();
@@ -83,10 +86,7 @@ Current user message: ${jsonEncode(message)}''';
           return AssistantIntent.clarify(question, title: title);
         case 'data':
           final request = _parseRequest(value, now, locale);
-          return AssistantIntent.data(
-            request,
-            title: title,
-          );
+          return AssistantIntent.data(request, title: title);
         case 'meal_entry':
           final rawProposal = value['proposal'];
           if (rawProposal is! Map<String, dynamic>) {
@@ -123,14 +123,18 @@ Current user message: ${jsonEncode(message)}''';
   }
 
   AssistantDataRequest _parseRequest(
-      Map<String, dynamic> value, DateTime now, String locale) {
+    Map<String, dynamic> value,
+    DateTime now,
+    String locale,
+  ) {
     final proposed = value['categories'];
     if (proposed is! List || proposed.isEmpty) throw const FormatException();
     final categories = <AssistantDataCategory>{};
     for (final category in proposed) {
       if (category is! String) throw const FormatException();
-      final match =
-          AssistantDataCategory.values.where((item) => item.name == category);
+      final match = AssistantDataCategory.values.where(
+        (item) => item.name == category,
+      );
       if (match.length != 1) throw const FormatException();
       categories.add(match.single);
     }
@@ -141,8 +145,11 @@ Current user message: ${jsonEncode(message)}''';
       if (expression is! String || expression.length > 100) {
         throw const FormatException();
       }
-      scope = const AssistantDateResolver()
-          .resolveDate(expression, now: now, locale: locale);
+      scope = const AssistantDateResolver().resolveDate(
+        expression,
+        now: now,
+        locale: locale,
+      );
     }
     if (scope == null && value['scope'] != null) {
       final proposedScope = value['scope'];
@@ -156,8 +163,10 @@ Current user message: ${jsonEncode(message)}''';
     if (expression != null &&
         scope == null &&
         value['scope'] == null &&
-        !RegExp(r'^(current|now|latest|recent)$', caseSensitive: false)
-            .hasMatch(expression.trim())) {
+        !RegExp(
+          r'^(current|now|latest|recent)$',
+          caseSensitive: false,
+        ).hasMatch(expression.trim())) {
       throw const FormatException();
     }
     scope ??= _defaultScope(categories, now);
@@ -188,26 +197,29 @@ Current user message: ${jsonEncode(message)}''';
     Map<String, dynamic> value, {
     required DateTime now,
     required String locale,
-  }) =>
-      _parseRequest(value, now, locale);
+  }) => _parseRequest(value, now, locale);
 
   AssistantDateScope? _defaultScope(
-      Set<AssistantDataCategory> categories, DateTime now) {
+    Set<AssistantDataCategory> categories,
+    DateTime now,
+  ) {
     if (categories.every((category) => category.isCurrentSnapshot)) return null;
     final today = DateTime(now.year, now.month, now.day);
-    final days = categories.contains(AssistantDataCategory.diary) ||
+    final days =
+        categories.contains(AssistantDataCategory.diary) ||
             categories.contains(AssistantDataCategory.nutrition)
         ? 1
         : categories.contains(AssistantDataCategory.measurements)
-            ? 30
-            : categories.contains(AssistantDataCategory.workouts) ||
-                    categories.contains(AssistantDataCategory.recovery)
-                ? 14
-                : 7;
+        ? 30
+        : categories.contains(AssistantDataCategory.workouts) ||
+              categories.contains(AssistantDataCategory.recovery)
+        ? 14
+        : 7;
     return AssistantDateScope(
-        DateTime(today.year, today.month, today.day - days + 1),
-        today,
-        days == 1 ? 'today (inferred)' : 'last $days days (inferred)');
+      DateTime(today.year, today.month, today.day - days + 1),
+      today,
+      days == 1 ? 'today (inferred)' : 'last $days days (inferred)',
+    );
   }
 
   DateTime? _civilDate(Object? raw) {

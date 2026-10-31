@@ -4,12 +4,12 @@ import 'package:train_libre/features/workout/domain/models/set_log.dart';
 
 void main() {
   SetLog set(String name, {int? block, int? id}) => SetLog(
-        id: id,
-        workoutLogId: 1,
-        exerciseName: name,
-        setType: 'normal',
-        exerciseBlock: block,
-      );
+    id: id,
+    workoutLogId: 1,
+    exerciseName: name,
+    setType: 'normal',
+    exerciseBlock: block,
+  );
 
   test('same exercise in distinct modern blocks creates distinct cards', () {
     final groups = groupSetsByExerciseBlock([

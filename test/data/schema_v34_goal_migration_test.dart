@@ -13,9 +13,7 @@ Future<Set<String>> _columns(AppDatabase database, String table) async {
 
 Future<Set<String>> _tables(AppDatabase database) async {
   final rows = await database
-      .customSelect(
-        "SELECT name FROM sqlite_master WHERE type = 'table'",
-      )
+      .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
       .get();
   return rows.map((row) => row.read<String>('name')).toSet();
 }
@@ -79,24 +77,28 @@ void main() {
     await assertCurrentAndReopen(file);
   });
 
-  test('repairs a partially present schema-32 fixture before indexing',
-      () async {
-    final file = await currentFixture('v32_partial');
-    final old = AppDatabase(NativeDatabase(file));
-    await old.customStatement('PRAGMA foreign_keys = OFF');
-    await old.customStatement('DROP TABLE goal_reviews');
-    await old.customStatement('DROP TABLE goal_events');
-    await old.customStatement('PRAGMA user_version = 32');
-    await old.close();
+  test(
+    'repairs a partially present schema-32 fixture before indexing',
+    () async {
+      final file = await currentFixture('v32_partial');
+      final old = AppDatabase(NativeDatabase(file));
+      await old.customStatement('PRAGMA foreign_keys = OFF');
+      await old.customStatement('DROP TABLE goal_reviews');
+      await old.customStatement('DROP TABLE goal_events');
+      await old.customStatement('PRAGMA user_version = 32');
+      await old.close();
 
-    await assertCurrentAndReopen(file);
-  });
+      await assertCurrentAndReopen(file);
+    },
+  );
 
   test('schema-33 backfills immutable baseline columns and reopens', () async {
     final file = await currentFixture('v33');
     final old = AppDatabase(NativeDatabase(file));
     final baselineDate = DateTime(2026, 1, 2);
-    await old.into(old.measurements).insert(
+    await old
+        .into(old.measurements)
+        .insert(
           MeasurementsCompanion.insert(
             id: const Value('weight-v33'),
             type: 'weight',
@@ -105,7 +107,9 @@ void main() {
             date: baselineDate,
           ),
         );
-    await old.into(old.userGoals).insert(
+    await old
+        .into(old.userGoals)
+        .insert(
           UserGoalsCompanion.insert(
             id: const Value('goal-v33'),
             preset: 'loseWeight',
@@ -114,22 +118,26 @@ void main() {
           ),
         );
     await old.customStatement('PRAGMA foreign_keys = OFF');
-    await old
-        .customStatement('ALTER TABLE user_goals DROP COLUMN baseline_date');
     await old.customStatement(
-        'ALTER TABLE user_goals DROP COLUMN baseline_value_kg');
+      'ALTER TABLE user_goals DROP COLUMN baseline_date',
+    );
     await old.customStatement(
-        'ALTER TABLE user_goals DROP COLUMN baseline_measurement_id');
-    await old
-        .customStatement('ALTER TABLE user_goals DROP COLUMN tracking_mode');
+      'ALTER TABLE user_goals DROP COLUMN baseline_value_kg',
+    );
+    await old.customStatement(
+      'ALTER TABLE user_goals DROP COLUMN baseline_measurement_id',
+    );
+    await old.customStatement(
+      'ALTER TABLE user_goals DROP COLUMN tracking_mode',
+    );
     await old.customStatement('PRAGMA user_version = 33');
     await old.close();
 
     final migrated = AppDatabase(NativeDatabase(file));
     await migrated.customSelect('SELECT 1').get();
-    final goal = await (migrated.select(migrated.userGoals)
-          ..where((row) => row.id.equals('goal-v33')))
-        .getSingle();
+    final goal = await (migrated.select(
+      migrated.userGoals,
+    )..where((row) => row.id.equals('goal-v33'))).getSingle();
     expect(goal.trackingMode, 'weeklyRate');
     expect(goal.baselineMeasurementId, 'weight-v33');
     expect(goal.baselineValueKg, 79.5);

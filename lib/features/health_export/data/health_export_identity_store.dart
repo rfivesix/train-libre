@@ -24,7 +24,7 @@ class PreparedHealthExportIdentity {
 /// those steps therefore retries the same native id/revision safely.
 class HealthExportIdentityStore {
   HealthExportIdentityStore({DatabaseHelper? databaseHelper})
-      : _dbHelper = databaseHelper ?? DatabaseHelper.instance;
+    : _dbHelper = databaseHelper ?? DatabaseHelper.instance;
 
   final DatabaseHelper _dbHelper;
 
@@ -42,16 +42,18 @@ class HealthExportIdentityStore {
         sourceKey: sourceKey,
       );
       if (row == null) {
-        final legacy = await db.customSelect(
-          '''SELECT 1 FROM health_export_records
+        final legacy = await db
+            .customSelect(
+              '''SELECT 1 FROM health_export_records
              WHERE platform = ? AND domain = ? AND idempotency_key = ?
              LIMIT 1''',
-          variables: [
-            drift.Variable.withString(platform.name),
-            drift.Variable.withString(domain.name),
-            drift.Variable.withString(sourceKey),
-          ],
-        ).getSingleOrNull();
+              variables: [
+                drift.Variable.withString(platform.name),
+                drift.Variable.withString(domain.name),
+                drift.Variable.withString(sourceKey),
+              ],
+            )
+            .getSingleOrNull();
         // Builds before schema 38 already wrote sourceKey as the native client
         // ID at revision 0. Preserve that identity and continue at revision 1
         // so edited historical records replace rather than duplicate it.
@@ -64,13 +66,7 @@ class HealthExportIdentityStore {
              (platform, domain, source_key, external_id, revision,
               payload_fingerprint, is_legacy, exported_at)
              VALUES (?, ?, ?, ?, ?, NULL, 0, NULL)''',
-          [
-            platform.name,
-            domain.name,
-            sourceKey,
-            externalId,
-            initialRevision,
-          ],
+          [platform.name, domain.name, sourceKey, externalId, initialRevision],
         );
         row = await _load(
           platform: platform,
@@ -80,8 +76,9 @@ class HealthExportIdentityStore {
       }
       if (row == null || row.read<int>('is_legacy') == 1) return null;
 
-      final committedFingerprint =
-          row.readNullable<String>('payload_fingerprint');
+      final committedFingerprint = row.readNullable<String>(
+        'payload_fingerprint',
+      );
       if (committedFingerprint == payloadFingerprint) return null;
       final committedRevision = row.read<int>('revision');
       return PreparedHealthExportIdentity(
@@ -122,16 +119,18 @@ class HealthExportIdentityStore {
     required String sourceKey,
   }) async {
     final db = await _dbHelper.database;
-    return db.customSelect(
-      '''SELECT external_id, revision, payload_fingerprint, is_legacy
+    return db
+        .customSelect(
+          '''SELECT external_id, revision, payload_fingerprint, is_legacy
          FROM health_export_identities
          WHERE platform = ? AND domain = ? AND source_key = ?''',
-      variables: [
-        drift.Variable.withString(platform.name),
-        drift.Variable.withString(domain.name),
-        drift.Variable.withString(sourceKey),
-      ],
-    ).getSingleOrNull();
+          variables: [
+            drift.Variable.withString(platform.name),
+            drift.Variable.withString(domain.name),
+            drift.Variable.withString(sourceKey),
+          ],
+        )
+        .getSingleOrNull();
   }
 
   String _externalId(
@@ -151,8 +150,9 @@ class HealthExportIdentityStore {
     final bytes = [...digest];
     bytes[6] = (bytes[6] & 0x0f) | 0x50;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    final hex =
-        bytes.map((value) => value.toRadixString(16).padLeft(2, '0')).join();
+    final hex = bytes
+        .map((value) => value.toRadixString(16).padLeft(2, '0'))
+        .join();
     return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
         '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
         '${hex.substring(20)}';

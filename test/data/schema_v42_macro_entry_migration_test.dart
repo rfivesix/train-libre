@@ -24,10 +24,13 @@ void main() {
     final migrated = AppDatabase(NativeDatabase(file));
     try {
       await migrated.customSelect('SELECT 1').get();
-      final columns =
-          await migrated.customSelect('PRAGMA table_info(macro_entries)').get();
-      expect(columns.map((row) => row.read<String>('name')),
-          contains('meal_entry_id'));
+      final columns = await migrated
+          .customSelect('PRAGMA table_info(macro_entries)')
+          .get();
+      expect(
+        columns.map((row) => row.read<String>('name')),
+        contains('meal_entry_id'),
+      );
       final version = await migrated.customSelect('PRAGMA user_version').get();
       expect(version.single.read<int>('user_version'), 47);
     } finally {

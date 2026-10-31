@@ -39,10 +39,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   /// Retrieves the UUID (string) for an exercise given its local integer ID.
   Future<String?> getExerciseUuidByLocalId(int localId) async {
     final dbInstance = await database;
-    final row = await (dbInstance.select(dbInstance.exercises)
-          ..where((tbl) => tbl.localId.equals(localId))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (dbInstance.select(dbInstance.exercises)
+              ..where((tbl) => tbl.localId.equals(localId))
+              ..limit(1))
+            .getSingleOrNull();
     return row?.id;
   }
 
@@ -69,16 +70,20 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     db.AppDatabase dbInstance,
   ) async {
     final exerciseRows = await dbInstance.select(dbInstance.exercises).get();
-    final translationRows =
-        await dbInstance.select(dbInstance.exerciseTranslations).get();
+    final translationRows = await dbInstance
+        .select(dbInstance.exerciseTranslations)
+        .get();
     final vocabulary = await MuscleVocabulary.load(dbInstance);
 
-    final catalogGroups = <String,
-        ({
-      Set<String> primary,
-      Set<String> secondary,
-      Map<String, double> contributionByGroup,
-    })>{};
+    final catalogGroups =
+        <
+          String,
+          ({
+            Set<String> primary,
+            Set<String> secondary,
+            Map<String, double> contributionByGroup,
+          })
+        >{};
     if (!vocabulary.isEmpty) {
       for (final row
           in await dbInstance.select(dbInstance.exerciseMuscles).get()) {
@@ -110,10 +115,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       }
     }
 
-    Set<String> legacyGroups(String? rawMuscles) => _parseMuscles(rawMuscles)
-        .map(RecoveryDomainService.majorMuscleGroupFor)
-        .whereType<String>()
-        .toSet();
+    Set<String> legacyGroups(String? rawMuscles) =>
+        _parseMuscles(rawMuscles)
+            .map(RecoveryDomainService.majorMuscleGroupFor)
+            .whereType<String>()
+            .toSet();
 
     final byId = <String, _ExerciseMuscleProfile>{};
     for (final exerciseRow in exerciseRows) {
@@ -193,10 +199,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     if (exerciseUuid == null || exerciseUuid.isEmpty) {
       return (trackingType: null, loadMode: null);
     }
-    final row = await (dbInstance.select(dbInstance.exercises)
-          ..where((e) => e.id.equals(exerciseUuid))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (dbInstance.select(dbInstance.exercises)
+              ..where((e) => e.id.equals(exerciseUuid))
+              ..limit(1))
+            .getSingleOrNull();
     return (trackingType: row?.trackingType, loadMode: row?.loadMode);
   }
 
@@ -212,10 +219,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     db.AppDatabase dbInstance,
   ) async {
     try {
-      final rows = await (dbInstance.select(dbInstance.measurements)
-            ..where((m) => m.type.equals('weight'))
-            ..orderBy([(m) => drift.OrderingTerm.asc(m.date)]))
-          .get();
+      final rows =
+          await (dbInstance.select(dbInstance.measurements)
+                ..where((m) => m.type.equals('weight'))
+                ..orderBy([(m) => drift.OrderingTerm.asc(m.date)]))
+              .get();
       return BodyweightHistory.fromRows(
         rows.map((row) => (date: row.date, kg: row.value)),
       );
@@ -267,8 +275,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     String? altName,
     String? exerciseUuid,
   }) {
-    drift.Expression<bool> nameExpr =
-        dbInstance.setLogs.exerciseNameSnapshot.equals(exerciseName);
+    drift.Expression<bool> nameExpr = dbInstance.setLogs.exerciseNameSnapshot
+        .equals(exerciseName);
 
     if (altName != null && altName.isNotEmpty && altName != exerciseName) {
       nameExpr =
@@ -304,32 +312,32 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     // Qualifying sets for PRs:
     // isCompleted == true, setType != 'warmup', (weight > 0 & reps > 0 OR distance > 0 OR duration > 0)
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-    ])
-      ..where(
-        exerciseMatch &
-            dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // Reps, not reps *and* a typed weight. A pull-up at body weight
-            // leaves the weight column empty and a set on an assistance
-            // machine may legitimately log 0, so requiring a number here
-            // meant neither exercise had a personal record of any kind — the
-            // sets never even reached the aggregation.
-            switch (shape) {
-              _PrShape.distance =>
-                dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
-                    dbInstance.setLogs.durationSeconds.isBiggerThanValue(0),
-              _PrShape.duration =>
-                dbInstance.setLogs.durationSeconds.isBiggerThanValue(0),
-              _PrShape.reps => dbInstance.setLogs.reps.isBiggerThanValue(0),
-            },
-      );
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
+            ),
+          ),
+        ])..where(
+          exerciseMatch &
+              dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isNotIn(['warmup']) &
+              // Reps, not reps *and* a typed weight. A pull-up at body weight
+              // leaves the weight column empty and a set on an assistance
+              // machine may legitimately log 0, so requiring a number here
+              // meant neither exercise had a personal record of any kind — the
+              // sets never even reached the aggregation.
+              switch (shape) {
+                _PrShape.distance =>
+                  dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
+                      dbInstance.setLogs.durationSeconds.isBiggerThanValue(0),
+                _PrShape.duration =>
+                  dbInstance.setLogs.durationSeconds.isBiggerThanValue(0),
+                _PrShape.reps => dbInstance.setLogs.reps.isBiggerThanValue(0),
+              },
+        );
 
     final rows = await query.get();
 
@@ -449,7 +457,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         // barbell. The rep brackets are ranked on this rather than on the
         // typed number, which was 0 for every body-weight set and ran
         // backwards for every assisted one.
-        final effectiveLoad = effectiveSetLoadKg(
+        final effectiveLoad =
+            effectiveSetLoadKg(
               trackingType: classification.trackingType,
               loadMode: classification.loadMode,
               loggedWeightKg: setLog.weightKg,
@@ -526,29 +535,29 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     // Qualifying sets for PRs:
     // isCompleted == true, setType != 'warmup', weight > 0, reps > 0
-    var query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-    ])
-      ..where(
-        exerciseMatch &
-            dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // Reps, not reps *and* a typed weight. A pull-up at body weight
-            // leaves the weight column empty and a set on an assistance
-            // machine may legitimately log 0, so requiring a number here
-            // meant neither exercise had a personal record of any kind — the
-            // sets never even reached the aggregation.
-            (isCardio
-                ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
-                    dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
-                : dbInstance.setLogs.reps.isBiggerThanValue(0)) &
-            dbInstance.workoutLogs.status.equals('completed'),
-      );
+    var query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
+            ),
+          ),
+        ])..where(
+          exerciseMatch &
+              dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isNotIn(['warmup']) &
+              // Reps, not reps *and* a typed weight. A pull-up at body weight
+              // leaves the weight column empty and a set on an assistance
+              // machine may legitimately log 0, so requiring a number here
+              // meant neither exercise had a personal record of any kind — the
+              // sets never even reached the aggregation.
+              (isCardio
+                  ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
+                        dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
+                  : dbInstance.setLogs.reps.isBiggerThanValue(0)) &
+              dbInstance.workoutLogs.status.equals('completed'),
+        );
 
     if (excludeUuid != null) {
       query = query..where(dbInstance.workoutLogs.id.isNotValue(excludeUuid));
@@ -556,9 +565,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     if (beforeTimestamp != null) {
       query = query
-        ..where(dbInstance.workoutLogs.startTime.isSmallerThanValue(
-          beforeTimestamp,
-        ));
+        ..where(
+          dbInstance.workoutLogs.startTime.isSmallerThanValue(beforeTimestamp),
+        );
     }
 
     final rows = await query.get();
@@ -630,26 +639,27 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       exerciseUuid: exerciseUuid,
     );
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-    ])
-      ..where(
-        exerciseMatch &
-            dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.workoutLogs.status.equals('completed'),
-      )
-      ..orderBy([
-        drift.OrderingTerm(
-          expression: dbInstance.workoutLogs.startTime,
-          mode: drift.OrderingMode.asc,
-        ),
-      ]);
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+            drift.innerJoin(
+              dbInstance.workoutLogs,
+              dbInstance.workoutLogs.id.equalsExp(
+                dbInstance.setLogs.workoutLogId,
+              ),
+            ),
+          ])
+          ..where(
+            exerciseMatch &
+                dbInstance.setLogs.isCompleted.equals(true) &
+                dbInstance.setLogs.setType.isNotIn(['warmup']) &
+                dbInstance.workoutLogs.status.equals('completed'),
+          )
+          ..orderBy([
+            drift.OrderingTerm(
+              expression: dbInstance.workoutLogs.startTime,
+              mode: drift.OrderingMode.asc,
+            ),
+          ]);
 
     final rows = await query.get();
 
@@ -752,27 +762,27 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   /// which is why this is a Dart pass over the rows rather than a smarter
   /// query.
   Future<List<({String name, double load, int reps, DateTime achievedAt})>>
-      _qualifyingRepSets(db.AppDatabase dbInstance) async {
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // Deliberately no `weight > 0`. Whether a set carried load is a
-            // question about the exercise, and this predicate cannot see one.
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed'),
-      );
+  _qualifyingRepSets(db.AppDatabase dbInstance) async {
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
+            ),
+          ),
+          drift.leftOuterJoin(
+            dbInstance.exercises,
+            dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+          ),
+        ])..where(
+          dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isNotIn(['warmup']) &
+              // Deliberately no `weight > 0`. Whether a set carried load is a
+              // question about the exercise, and this predicate cannot see one.
+              dbInstance.setLogs.reps.isBiggerThanValue(0) &
+              dbInstance.workoutLogs.status.equals('completed'),
+        );
 
     final rows = await query.get();
     final bodyweights = await _loadBodyweightHistory(dbInstance);
@@ -823,7 +833,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   /// record, but it is one the user touched today, and "recent records" is a
   /// question about when an exercise last mattered.
   Future<List<({String name, double load, int reps, DateTime achievedAt})>>
-      _bestRepSetPerExercise(db.AppDatabase dbInstance) async {
+  _bestRepSetPerExercise(db.AppDatabase dbInstance) async {
     final best =
         <String, ({String name, double load, int reps, DateTime achievedAt})>{};
 
@@ -888,38 +898,39 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final since = now.subtract(Duration(days: weeksBack * 7));
     final dbInstance = await database;
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        (dbInstance.exercises.categoryName.isNull() |
-                dbInstance.exercises.categoryName
-                    .lower()
-                    .isNotValue('cardio')) &
-            dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // A body-weight set has no weight to be greater than zero. Which
-            // sets carry load is decided when the tonnage is computed, not by
-            // a predicate that cannot see the exercise.
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              since,
-              now.add(const Duration(days: 1)),
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+            drift.innerJoin(
+              dbInstance.workoutLogs,
+              dbInstance.workoutLogs.id.equalsExp(
+                dbInstance.setLogs.workoutLogId,
+              ),
             ),
-      )
-      ..orderBy([
-        drift.OrderingTerm(expression: dbInstance.workoutLogs.startTime),
-      ]);
+            drift.leftOuterJoin(
+              dbInstance.exercises,
+              dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+            ),
+          ])
+          ..where(
+            (dbInstance.exercises.categoryName.isNull() |
+                    dbInstance.exercises.categoryName.lower().isNotValue(
+                      'cardio',
+                    )) &
+                dbInstance.setLogs.isCompleted.equals(true) &
+                dbInstance.setLogs.setType.isNotIn(['warmup']) &
+                // A body-weight set has no weight to be greater than zero. Which
+                // sets carry load is decided when the tonnage is computed, not by
+                // a predicate that cannot see the exercise.
+                dbInstance.setLogs.reps.isBiggerThanValue(0) &
+                dbInstance.workoutLogs.status.equals('completed') &
+                dbInstance.workoutLogs.startTime.isBetweenValues(
+                  since,
+                  now.add(const Duration(days: 1)),
+                ),
+          )
+          ..orderBy([
+            drift.OrderingTerm(expression: dbInstance.workoutLogs.startTime),
+          ]);
 
     final rows = await query.get();
 
@@ -958,7 +969,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
       ensureWeek(date);
 
-      weekMap[key]!['tonnage'] = (weekMap[key]!['tonnage'] as double) +
+      weekMap[key]!['tonnage'] =
+          (weekMap[key]!['tonnage'] as double) +
           _rowTonnage(dbInstance, r, bodyweights, date);
       weekMap[key]!['setCount'] = (weekMap[key]!['setCount'] as int) + 1;
     }
@@ -987,31 +999,31 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
     final muscleLookup = await _loadExerciseMuscleLookup(dbInstance);
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isIn(['normal', 'failure']) &
-            // A body-weight set has no weight to be greater than zero. Which
-            // sets carry load is decided when the tonnage is computed, not by
-            // a predicate that cannot see the exercise.
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              since,
-              now.add(const Duration(days: 1)),
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
             ),
-      );
+          ),
+          drift.leftOuterJoin(
+            dbInstance.exercises,
+            dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+          ),
+        ])..where(
+          dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isIn(['normal', 'failure']) &
+              // A body-weight set has no weight to be greater than zero. Which
+              // sets carry load is decided when the tonnage is computed, not by
+              // a predicate that cannot see the exercise.
+              dbInstance.setLogs.reps.isBiggerThanValue(0) &
+              dbInstance.workoutLogs.status.equals('completed') &
+              dbInstance.workoutLogs.startTime.isBetweenValues(
+                since,
+                now.add(const Duration(days: 1)),
+              ),
+        );
 
     final rows = await query.get();
     final bodyweights = await _loadBodyweightHistory(dbInstance);
@@ -1037,8 +1049,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         continue;
       }
 
-      final tonnage =
-          _rowTonnage(dbInstance, row, bodyweights, logRow.startTime);
+      final tonnage = _rowTonnage(
+        dbInstance,
+        row,
+        bodyweights,
+        logRow.startTime,
+      );
       final muscles = profile?.primary ?? const <String>[];
 
       if (muscles.isEmpty) {
@@ -1052,13 +1068,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     }
 
     return tonnageByMuscle.entries
-        .map((entry) => {
-              'muscleGroup': entry.key,
-              'tonnage': entry.value,
-            })
+        .map((entry) => {'muscleGroup': entry.key, 'tonnage': entry.value})
         .toList()
       ..sort(
-          (a, b) => (b['tonnage'] as double).compareTo(a['tonnage'] as double));
+        (a, b) => (b['tonnage'] as double).compareTo(a['tonnage'] as double),
+      );
   }
 
   /// Descriptive working-set coverage for primary muscle groups and movement
@@ -1073,63 +1087,65 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
     final muscleLookup = await _loadExerciseMuscleLookup(dbInstance);
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isIn(['normal', 'failure']) &
-            // Was `weight > 0 AND reps > 0`. That held only as long as every
-            // exercise was logged with weight and reps; once tracking_type
-            // drives the mask, 253 bodyweight exercises have no weight field
-            // and 154 have no reps field, and this predicate would delete
-            // every pull-up and every plank from the muscle statistics without
-            // a trace. What makes a set count is now the exercise's modality,
-            // checked below — this only asks whether anything was performed.
-            (dbInstance.setLogs.reps.isBiggerThanValue(0) |
-                dbInstance.setLogs.durationSeconds.isBiggerThanValue(0)) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              since,
-              now.add(const Duration(days: 1)),
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
             ),
-      );
+          ),
+          drift.leftOuterJoin(
+            dbInstance.exercises,
+            dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+          ),
+        ])..where(
+          dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isIn(['normal', 'failure']) &
+              // Was `weight > 0 AND reps > 0`. That held only as long as every
+              // exercise was logged with weight and reps; once tracking_type
+              // drives the mask, 253 bodyweight exercises have no weight field
+              // and 154 have no reps field, and this predicate would delete
+              // every pull-up and every plank from the muscle statistics without
+              // a trace. What makes a set count is now the exercise's modality,
+              // checked below — this only asks whether anything was performed.
+              (dbInstance.setLogs.reps.isBiggerThanValue(0) |
+                  dbInstance.setLogs.durationSeconds.isBiggerThanValue(0)) &
+              dbInstance.workoutLogs.status.equals('completed') &
+              dbInstance.workoutLogs.startTime.isBetweenValues(
+                since,
+                now.add(const Duration(days: 1)),
+              ),
+        );
 
     final rows = await query.get();
 
     // Map QueryRows to simple data objects for Isolate transfer
-    final rawData = rows.map((row) {
-      final logRow = row.readTable(dbInstance.workoutLogs);
-      final setRow = row.readTable(dbInstance.setLogs);
-      final exRow = row.readTableOrNull(dbInstance.exercises);
-      final profile = _resolveExerciseMuscleProfile(
-        lookup: muscleLookup,
-        exerciseRow: exRow,
-        exerciseNameSnapshot: setRow.exerciseNameSnapshot,
-      );
-      return MuscleContributionRawData(
-        startTime: logRow.startTime,
-        // Already resolved to tracked groups by _loadExerciseMuscleLookup, so
-        // the isolate does not need the catalog vocabulary shipped to it.
-        musclesPrimary: jsonEncode(profile?.primary ?? const <String>[]),
-        movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
-        modality: exRow?.modality,
-        categoryName: exRow?.categoryName,
-        setType: setRow.setType,
-        exerciseNameSnapshot: setRow.exerciseNameSnapshot,
-        reps: setRow.reps ?? 0,
-        durationSeconds: setRow.durationSeconds ?? 0,
-      );
-    }).toList(growable: false);
+    final rawData = rows
+        .map((row) {
+          final logRow = row.readTable(dbInstance.workoutLogs);
+          final setRow = row.readTable(dbInstance.setLogs);
+          final exRow = row.readTableOrNull(dbInstance.exercises);
+          final profile = _resolveExerciseMuscleProfile(
+            lookup: muscleLookup,
+            exerciseRow: exRow,
+            exerciseNameSnapshot: setRow.exerciseNameSnapshot,
+          );
+          return MuscleContributionRawData(
+            startTime: logRow.startTime,
+            // Already resolved to tracked groups by _loadExerciseMuscleLookup, so
+            // the isolate does not need the catalog vocabulary shipped to it.
+            musclesPrimary: jsonEncode(profile?.primary ?? const <String>[]),
+            movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
+            modality: exRow?.modality,
+            categoryName: exRow?.categoryName,
+            setType: setRow.setType,
+            exerciseNameSnapshot: setRow.exerciseNameSnapshot,
+            reps: setRow.reps ?? 0,
+            durationSeconds: setRow.durationSeconds ?? 0,
+          );
+        })
+        .toList(growable: false);
 
     final result = await compute(
       _processMuscleGroupAnalyticsInBackground,
@@ -1145,10 +1161,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       area: 'db',
       label: 'getMuscleGroupAnalytics',
       elapsed: stopwatch.elapsed,
-      fields: {
-        'rows': rows.length,
-        'range': '${daysBack}d',
-      },
+      fields: {'rows': rows.length, 'range': '${daysBack}d'},
     );
     return result;
   }
@@ -1176,9 +1189,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       }
 
       final primary = <String>{
-        ...WorkoutLocalDataSource._parseMuscleList(
-          row.musclesPrimary,
-        ).map((m) => m.trim()).where((m) => m.isNotEmpty),
+        ...WorkoutLocalDataSource._parseMuscleList(row.musclesPrimary)
+            .map((m) => m.trim())
+            .where((m) => m.isNotEmpty),
       };
       for (final group in primary) {
         muscleContributions.add({
@@ -1201,19 +1214,20 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       weeksBack: params.weeksBack,
       now: params.now,
     );
-    final movementPatterns = movementPatternSets.entries
-        .map(
-          (entry) => <String, dynamic>{
-            'movementPattern': entry.key,
-            'setCount': entry.value,
-          },
-        )
-        .toList()
-      ..sort(
-        (a, b) => ((b['setCount'] as num).toDouble()).compareTo(
-          (a['setCount'] as num).toDouble(),
-        ),
-      );
+    final movementPatterns =
+        movementPatternSets.entries
+            .map(
+              (entry) => <String, dynamic>{
+                'movementPattern': entry.key,
+                'setCount': entry.value,
+              },
+            )
+            .toList()
+          ..sort(
+            (a, b) => ((b['setCount'] as num).toDouble()).compareTo(
+              (a['setCount'] as num).toDouble(),
+            ),
+          );
     return {...result, 'movementPatterns': movementPatterns};
   }
 
@@ -1227,30 +1241,30 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
     final muscleLookup = await _loadExerciseMuscleLookup(dbInstance);
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // Same reasoning as the volume query: a plank is a set.
-            (dbInstance.setLogs.reps.isBiggerThanValue(0) |
-                dbInstance.setLogs.durationSeconds.isBiggerThanValue(0)) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              since,
-              now.add(const Duration(days: 1)),
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
             ),
-      );
+          ),
+          drift.leftOuterJoin(
+            dbInstance.exercises,
+            dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+          ),
+        ])..where(
+          dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isNotIn(['warmup']) &
+              // Same reasoning as the volume query: a plank is a set.
+              (dbInstance.setLogs.reps.isBiggerThanValue(0) |
+                  dbInstance.setLogs.durationSeconds.isBiggerThanValue(0)) &
+              dbInstance.workoutLogs.status.equals('completed') &
+              dbInstance.workoutLogs.startTime.isBetweenValues(
+                since,
+                now.add(const Duration(days: 1)),
+              ),
+        );
 
     final rows = await query.get();
     final inputs = <RecoverySetLoadInput>[];
@@ -1266,7 +1280,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       );
 
       if (!WorkoutLocalDataSource._isRecoveryStrengthWorkSet(
-          setRow: setRow, exerciseRow: exRow)) {
+        setRow: setRow,
+        exerciseRow: exRow,
+      )) {
         continue;
       }
 
@@ -1276,38 +1292,44 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final completedAt = logRow.endTime ?? logRow.startTime;
 
       for (final group in primary) {
-        inputs.add(RecoverySetLoadInput(
-          workoutLogId: logRow.id,
-          completedAt: completedAt,
-          muscleGroup: group,
-          role: RecoveryMuscleRole.primary,
-          catalogContribution: profile?.contributionFor(group),
-          movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
-          reps: setRow.reps ?? 0,
-          durationSeconds: setRow.durationSeconds ?? 0,
-          rir: setRow.rir,
-          setType: setRow.setType,
-        ));
+        inputs.add(
+          RecoverySetLoadInput(
+            workoutLogId: logRow.id,
+            completedAt: completedAt,
+            muscleGroup: group,
+            role: RecoveryMuscleRole.primary,
+            catalogContribution: profile?.contributionFor(group),
+            movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
+            reps: setRow.reps ?? 0,
+            durationSeconds: setRow.durationSeconds ?? 0,
+            rir: setRow.rir,
+            setType: setRow.setType,
+          ),
+        );
       }
 
       for (final group in secondary) {
-        inputs.add(RecoverySetLoadInput(
-          workoutLogId: logRow.id,
-          completedAt: completedAt,
-          muscleGroup: group,
-          role: RecoveryMuscleRole.secondary,
-          catalogContribution: profile?.contributionFor(group),
-          movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
-          reps: setRow.reps ?? 0,
-          durationSeconds: setRow.durationSeconds ?? 0,
-          rir: setRow.rir,
-          setType: setRow.setType,
-        ));
+        inputs.add(
+          RecoverySetLoadInput(
+            workoutLogId: logRow.id,
+            completedAt: completedAt,
+            muscleGroup: group,
+            role: RecoveryMuscleRole.secondary,
+            catalogContribution: profile?.contributionFor(group),
+            movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
+            reps: setRow.reps ?? 0,
+            durationSeconds: setRow.durationSeconds ?? 0,
+            rir: setRow.rir,
+            setType: setRow.setType,
+          ),
+        );
       }
     }
 
-    final analysis =
-        const RecoveryLoadEngine().analyze(inputs: inputs, now: now);
+    final analysis = const RecoveryLoadEngine().analyze(
+      inputs: inputs,
+      now: now,
+    );
     final result = analysis.toMap();
     PerfDebugTimer.logDuration(
       area: 'db',
@@ -1331,32 +1353,32 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final since = now.subtract(Duration(days: daysBack));
     final dbInstance = await database;
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      // Joined only so the tonnage can tell a pull-up from a curl.
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // A body-weight set has no weight to be greater than zero. Which
-            // sets carry load is decided when the tonnage is computed, not by
-            // a predicate that cannot see the exercise.
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              since,
-              now.add(const Duration(days: 1)),
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
             ),
-      );
+          ),
+          // Joined only so the tonnage can tell a pull-up from a curl.
+          drift.leftOuterJoin(
+            dbInstance.exercises,
+            dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+          ),
+        ])..where(
+          dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isNotIn(['warmup']) &
+              // A body-weight set has no weight to be greater than zero. Which
+              // sets carry load is decided when the tonnage is computed, not by
+              // a predicate that cannot see the exercise.
+              dbInstance.setLogs.reps.isBiggerThanValue(0) &
+              dbInstance.workoutLogs.status.equals('completed') &
+              dbInstance.workoutLogs.startTime.isBetweenValues(
+                since,
+                now.add(const Duration(days: 1)),
+              ),
+        );
 
     final rows = await query.get();
     final bodyweights = await _loadBodyweightHistory(dbInstance);
@@ -1366,7 +1388,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final setRow = r.readTable(dbInstance.setLogs);
       final logRow = r.readTable(dbInstance.workoutLogs);
       final name = setRow.exerciseNameSnapshot ?? 'Unknown';
-      exVolume[name] = (exVolume[name] ?? 0.0) +
+      exVolume[name] =
+          (exVolume[name] ?? 0.0) +
           _rowTonnage(dbInstance, r, bodyweights, logRow.startTime);
     }
 
@@ -1386,17 +1409,18 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final since = now.subtract(Duration(days: weeksBack * 7));
     final dbInstance = await database;
 
-    final rows = await (dbInstance.select(dbInstance.workoutLogs)
-          ..where(
-            (tbl) =>
-                tbl.status.equals('completed') &
-                tbl.startTime.isBetweenValues(
-                  since,
-                  now.add(const Duration(days: 1)),
-                ),
-          )
-          ..orderBy([(t) => drift.OrderingTerm(expression: t.startTime)]))
-        .get();
+    final rows =
+        await (dbInstance.select(dbInstance.workoutLogs)
+              ..where(
+                (tbl) =>
+                    tbl.status.equals('completed') &
+                    tbl.startTime.isBetweenValues(
+                      since,
+                      now.add(const Duration(days: 1)),
+                    ),
+              )
+              ..orderBy([(t) => drift.OrderingTerm(expression: t.startTime)]))
+            .get();
 
     final Map<String, Map<String, dynamic>> weekMap = {};
 
@@ -1472,17 +1496,18 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ensureWeek(effectiveUntil.subtract(Duration(days: w * 7)));
     }
 
-    final workoutRows = await (dbInstance.select(dbInstance.workoutLogs)
-          ..where(
-            (tbl) =>
-                tbl.status.equals('completed') &
-                tbl.startTime.isBetweenValues(
-                  since,
-                  effectiveUntil.add(const Duration(days: 1)),
-                ),
-          )
-          ..orderBy([(t) => drift.OrderingTerm(expression: t.startTime)]))
-        .get();
+    final workoutRows =
+        await (dbInstance.select(dbInstance.workoutLogs)
+              ..where(
+                (tbl) =>
+                    tbl.status.equals('completed') &
+                    tbl.startTime.isBetweenValues(
+                      since,
+                      effectiveUntil.add(const Duration(days: 1)),
+                    ),
+              )
+              ..orderBy([(t) => drift.OrderingTerm(expression: t.startTime)]))
+            .get();
 
     for (final row in workoutRows) {
       final start = row.startTime;
@@ -1496,42 +1521,44 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final durationMinutes = row.endTime == null
           ? 0.0
           : row.endTime!
-                  .difference(start)
-                  .inSeconds
-                  .clamp(0, 24 * 60 * 60)
-                  .toDouble() /
-              60.0;
+                    .difference(start)
+                    .inSeconds
+                    .clamp(0, 24 * 60 * 60)
+                    .toDouble() /
+                60.0;
 
       weekMap[key]!['count'] = (weekMap[key]!['count'] as int) + 1;
       weekMap[key]!['durationMinutes'] =
           (weekMap[key]!['durationMinutes'] as double) + durationMinutes;
     }
 
-    final tonnageRows = await (dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      // Joined only so the tonnage can tell a pull-up from a curl.
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-          ..where(
-            dbInstance.setLogs.isCompleted.equals(true) &
-                dbInstance.setLogs.setType.isNotIn(['warmup']) &
-                // A body-weight set has no weight to be greater than zero.
-                dbInstance.setLogs.reps.isBiggerThanValue(0) &
-                dbInstance.workoutLogs.status.equals('completed') &
-                dbInstance.workoutLogs.startTime.isBetweenValues(
-                  since,
-                  effectiveUntil.add(const Duration(days: 1)),
+    final tonnageRows =
+        await (dbInstance.select(dbInstance.setLogs).join([
+              drift.innerJoin(
+                dbInstance.workoutLogs,
+                dbInstance.workoutLogs.id.equalsExp(
+                  dbInstance.setLogs.workoutLogId,
                 ),
-          ))
-        .get();
+              ),
+              // Joined only so the tonnage can tell a pull-up from a curl.
+              drift.leftOuterJoin(
+                dbInstance.exercises,
+                dbInstance.exercises.id.equalsExp(
+                  dbInstance.setLogs.exerciseId,
+                ),
+              ),
+            ])..where(
+              dbInstance.setLogs.isCompleted.equals(true) &
+                  dbInstance.setLogs.setType.isNotIn(['warmup']) &
+                  // A body-weight set has no weight to be greater than zero.
+                  dbInstance.setLogs.reps.isBiggerThanValue(0) &
+                  dbInstance.workoutLogs.status.equals('completed') &
+                  dbInstance.workoutLogs.startTime.isBetweenValues(
+                    since,
+                    effectiveUntil.add(const Duration(days: 1)),
+                  ),
+            ))
+            .get();
 
     final bodyweights = await _loadBodyweightHistory(dbInstance);
 
@@ -1576,15 +1603,16 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final now = DateTime.now();
     final dbInstance = await database;
 
-    final allLogs = await (dbInstance.select(dbInstance.workoutLogs)
-          ..where((tbl) => tbl.status.equals('completed'))
-          ..orderBy([
-            (t) => drift.OrderingTerm(
+    final allLogs =
+        await (dbInstance.select(dbInstance.workoutLogs)
+              ..where((tbl) => tbl.status.equals('completed'))
+              ..orderBy([
+                (t) => drift.OrderingTerm(
                   expression: t.startTime,
                   mode: drift.OrderingMode.desc,
                 ),
-          ]))
-        .get();
+              ]))
+            .get();
 
     final totalWorkouts = allLogs.length;
 
@@ -1602,8 +1630,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         .length;
 
     final fourWeeksAgo = now.subtract(const Duration(days: 28));
-    final last4Count =
-        allLogs.where((r) => r.startTime.isAfter(fourWeeksAgo)).length;
+    final last4Count = allLogs
+        .where((r) => r.startTime.isAfter(fourWeeksAgo))
+        .length;
     final avgPerWeek = last4Count / 4.0;
 
     // Current weekly streak
@@ -1643,16 +1672,16 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final since = now.subtract(Duration(days: daysBack));
     final dbInstance = await database;
 
-    final rows = await (dbInstance.select(dbInstance.workoutLogs)
-          ..where(
-            (tbl) =>
-                tbl.status.equals('completed') &
-                tbl.startTime.isBetweenValues(
-                  since,
-                  now.add(const Duration(days: 1)),
-                ),
-          ))
-        .get();
+    final rows =
+        await (dbInstance.select(dbInstance.workoutLogs)..where(
+              (tbl) =>
+                  tbl.status.equals('completed') &
+                  tbl.startTime.isBetweenValues(
+                    since,
+                    now.add(const Duration(days: 1)),
+                  ),
+            ))
+            .get();
 
     return rows.map((r) {
       final d = r.startTime;
@@ -1666,16 +1695,16 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final since = now.subtract(Duration(days: daysBack));
     final dbInstance = await database;
 
-    final rows = await (dbInstance.select(dbInstance.workoutLogs)
-          ..where(
-            (tbl) =>
-                tbl.status.equals('completed') &
-                tbl.startTime.isBetweenValues(
-                  since,
-                  now.add(const Duration(days: 1)),
-                ),
-          ))
-        .get();
+    final rows =
+        await (dbInstance.select(dbInstance.workoutLogs)..where(
+              (tbl) =>
+                  tbl.status.equals('completed') &
+                  tbl.startTime.isBetweenValues(
+                    since,
+                    now.add(const Duration(days: 1)),
+                  ),
+            ))
+            .get();
 
     final Map<DateTime, int> counts = {};
     for (final row in rows) {
@@ -1742,13 +1771,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     return best
         .take(limit)
-        .map(
-          (e) => {
-            'exerciseName': e.name,
-            'weight': e.load,
-            'reps': e.reps,
-          },
-        )
+        .map((e) => {'exerciseName': e.name, 'weight': e.load, 'reps': e.reps})
         .toList();
   }
 
@@ -1765,38 +1788,39 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     );
     final dbInstance = await database;
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        (dbInstance.exercises.categoryName.isNull() |
-                dbInstance.exercises.categoryName
-                    .lower()
-                    .isNotValue('cardio')) &
-            dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // A body-weight set has no weight to be greater than zero. Which
-            // sets carry load is decided when the tonnage is computed, not by
-            // a predicate that cannot see the exercise.
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              since,
-              now.add(const Duration(days: 1)),
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+            drift.innerJoin(
+              dbInstance.workoutLogs,
+              dbInstance.workoutLogs.id.equalsExp(
+                dbInstance.setLogs.workoutLogId,
+              ),
             ),
-      )
-      ..orderBy([
-        drift.OrderingTerm(expression: dbInstance.workoutLogs.startTime),
-      ]);
+            drift.leftOuterJoin(
+              dbInstance.exercises,
+              dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+            ),
+          ])
+          ..where(
+            (dbInstance.exercises.categoryName.isNull() |
+                    dbInstance.exercises.categoryName.lower().isNotValue(
+                      'cardio',
+                    )) &
+                dbInstance.setLogs.isCompleted.equals(true) &
+                dbInstance.setLogs.setType.isNotIn(['warmup']) &
+                // A body-weight set has no weight to be greater than zero. Which
+                // sets carry load is decided when the tonnage is computed, not by
+                // a predicate that cannot see the exercise.
+                dbInstance.setLogs.reps.isBiggerThanValue(0) &
+                dbInstance.workoutLogs.status.equals('completed') &
+                dbInstance.workoutLogs.startTime.isBetweenValues(
+                  since,
+                  now.add(const Duration(days: 1)),
+                ),
+          )
+          ..orderBy([
+            drift.OrderingTerm(expression: dbInstance.workoutLogs.startTime),
+          ]);
 
     final rows = await query.get();
 
@@ -1835,7 +1859,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
       ensureMonth(logRow.startTime);
 
-      monthMap[key]!['tonnage'] = (monthMap[key]!['tonnage'] as double) +
+      monthMap[key]!['tonnage'] =
+          (monthMap[key]!['tonnage'] as double) +
           _rowTonnage(dbInstance, r, bodyweights, logRow.startTime);
       monthMap[key]!['setCount'] = (monthMap[key]!['setCount'] as int) + 1;
     }
@@ -1863,11 +1888,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     DateTime recentStart;
 
     if (daysWindow >= 3650) {
-      final earliest = await (dbInstance.select(dbInstance.workoutLogs)
-            ..where((tbl) => tbl.status.equals('completed'))
-            ..orderBy([(t) => drift.OrderingTerm(expression: t.startTime)])
-            ..limit(1))
-          .getSingleOrNull();
+      final earliest =
+          await (dbInstance.select(dbInstance.workoutLogs)
+                ..where((tbl) => tbl.status.equals('completed'))
+                ..orderBy([(t) => drift.OrderingTerm(expression: t.startTime)])
+                ..limit(1))
+              .getSingleOrNull();
 
       final t0 = earliest?.startTime ?? now.subtract(const Duration(days: 365));
       final lifetimeDays = now.difference(t0).inDays;
@@ -1881,36 +1907,36 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       previousStart = recentStart.subtract(Duration(days: daysWindow));
     }
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        (dbInstance.exercises.categoryName.isNull() |
-                dbInstance.exercises.categoryName
-                    .lower()
-                    .isNotValue('cardio')) &
-            dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            // No weight filter: a pull-up carries the user's body weight and a
-            // set on an assistance machine carries body weight minus the
-            // number entered. Both are resolved below, where the exercise is
-            // in hand.
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              previousStart,
-              now.add(const Duration(days: 1)),
+    final query =
+        dbInstance.select(dbInstance.setLogs).join([
+          drift.innerJoin(
+            dbInstance.workoutLogs,
+            dbInstance.workoutLogs.id.equalsExp(
+              dbInstance.setLogs.workoutLogId,
             ),
-      );
+          ),
+          drift.leftOuterJoin(
+            dbInstance.exercises,
+            dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+          ),
+        ])..where(
+          (dbInstance.exercises.categoryName.isNull() |
+                  dbInstance.exercises.categoryName.lower().isNotValue(
+                    'cardio',
+                  )) &
+              dbInstance.setLogs.isCompleted.equals(true) &
+              dbInstance.setLogs.setType.isNotIn(['warmup']) &
+              // No weight filter: a pull-up carries the user's body weight and a
+              // set on an assistance machine carries body weight minus the
+              // number entered. Both are resolved below, where the exercise is
+              // in hand.
+              dbInstance.setLogs.reps.isBiggerThanValue(0) &
+              dbInstance.workoutLogs.status.equals('completed') &
+              dbInstance.workoutLogs.startTime.isBetweenValues(
+                previousStart,
+                now.add(const Duration(days: 1)),
+              ),
+        );
 
     final rows = await query.get();
 
@@ -1983,11 +2009,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     result.sort(
       sortByRecentDate
           ? (a, b) => (b['achievedAt'] as DateTime).compareTo(
-                a['achievedAt'] as DateTime,
-              )
+              a['achievedAt'] as DateTime,
+            )
           : (a, b) => (b['improvementPct'] as double).compareTo(
-                a['improvementPct'] as double,
-              ),
+              a['improvementPct'] as double,
+            ),
     );
     final limited = result.take(limit).toList();
     PerfDebugTimer.logDuration(
@@ -2017,8 +2043,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ..addColumns([countExpr])
       ..where(dbInstance.workoutLogs.status.equals('completed'))
       ..where(dbInstance.workoutLogs.startTime.isBiggerOrEqualValue(start))
-      ..where(dbInstance.workoutLogs.startTime
-          .isSmallerOrEqualValue(referenceTime));
+      ..where(
+        dbInstance.workoutLogs.startTime.isSmallerOrEqualValue(referenceTime),
+      );
 
     final row = await query.getSingleOrNull();
     final completedCount = row?.read(countExpr) ?? 0;
@@ -2031,10 +2058,7 @@ class _ExerciseMuscleLookup {
   final Map<String, _ExerciseMuscleProfile> byId;
   final Map<String, _ExerciseMuscleProfile> byName;
 
-  const _ExerciseMuscleLookup({
-    required this.byId,
-    required this.byName,
-  });
+  const _ExerciseMuscleLookup({required this.byId, required this.byName});
 }
 
 class _ExerciseMuscleProfile {

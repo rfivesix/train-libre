@@ -45,42 +45,51 @@ class GoalMotivationStep extends StatelessWidget {
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: [
-              l10n.goalReasonSuggestionHealth,
-              l10n.goalReasonSuggestionFitness,
-              l10n.goalReasonSuggestionEnergy,
-              l10n.goalReasonSuggestionHabits,
-            ].map((suggestion) {
-              final isSelected =
-                  state.reasonController.text.trim() == suggestion;
-              return ActionChip(
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                label: Text(
-                  suggestion,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface,
-                  ),
-                ),
-                side: isSelected
-                    ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
-                    : BorderSide(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.15),
+            children:
+                [
+                  l10n.goalReasonSuggestionHealth,
+                  l10n.goalReasonSuggestionFitness,
+                  l10n.goalReasonSuggestionEnergy,
+                  l10n.goalReasonSuggestionHabits,
+                ].map((suggestion) {
+                  final isSelected =
+                      state.reasonController.text.trim() == suggestion;
+                  return ActionChip(
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 0,
+                    ),
+                    label: Text(
+                      suggestion,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurface,
                       ),
-                backgroundColor: isSelected
-                    ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                    : null,
-                onPressed: () {
-                  state.setReason(suggestion);
-                },
-              );
-            }).toList(),
+                    ),
+                    side: isSelected
+                        ? BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 1.5,
+                          )
+                        : BorderSide(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.15,
+                            ),
+                          ),
+                    backgroundColor: isSelected
+                        ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                        : null,
+                    onPressed: () {
+                      state.setReason(suggestion);
+                    },
+                  );
+                }).toList(),
           ),
           const SizedBox(height: DesignConstants.spacingM),
 
@@ -98,8 +107,9 @@ class GoalMotivationStep extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: l10n.goalReasonPlaceholder,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                 ),
               ),
             ),

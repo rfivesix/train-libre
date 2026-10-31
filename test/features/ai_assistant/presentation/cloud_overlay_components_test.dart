@@ -53,7 +53,9 @@ void main() {
 
     test('formats durations of 10s and above as rounded integer seconds', () {
       expect(
-        formatGenerationDuration(const Duration(seconds: 12, milliseconds: 300)),
+        formatGenerationDuration(
+          const Duration(seconds: 12, milliseconds: 300),
+        ),
         equals('12 s'),
       );
     });
@@ -62,7 +64,10 @@ void main() {
   group('Access Status and Model Name Localization', () {
     test('localizes German and English access status', () {
       expect(localizeAccessStatus('denied', isDe: true), equals('Abgelehnt'));
-      expect(localizeAccessStatus('approved', isDe: true), equals('Freigegeben'));
+      expect(
+        localizeAccessStatus('approved', isDe: true),
+        equals('Freigegeben'),
+      );
       expect(localizeAccessStatus('denied', isDe: false), equals('denied'));
       expect(
         localizeAccessStatus('not_shared', isDe: true),
@@ -83,10 +88,7 @@ void main() {
         formatModelDisplayName(null, 'apple-foundation-system'),
         equals('Apple Intelligence'),
       );
-      expect(
-        formatModelDisplayName('openai', 'gpt-4o'),
-        equals('gpt-4o'),
-      );
+      expect(formatModelDisplayName('openai', 'gpt-4o'), equals('gpt-4o'));
     });
   });
 

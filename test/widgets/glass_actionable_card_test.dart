@@ -4,15 +4,14 @@ import 'package:train_libre/widgets/common/glass_actionable_card.dart';
 import 'package:train_libre/widgets/common/summary_card.dart';
 
 void main() {
-  testWidgets('GlassActionableCard renders child widget correctly',
-      (tester) async {
+  testWidgets('GlassActionableCard renders child widget correctly', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
           body: GlassActionableCard(
-            child: SummaryCard(
-              child: Text('Test Card Content'),
-            ),
+            child: SummaryCard(child: Text('Test Card Content')),
           ),
         ),
       ),
@@ -21,8 +20,9 @@ void main() {
     expect(find.text('Test Card Content'), findsOneWidget);
   });
 
-  testWidgets('GlassActionableCard triggers onTap when pressed',
-      (tester) async {
+  testWidgets('GlassActionableCard triggers onTap when pressed', (
+    tester,
+  ) async {
     bool tapped = false;
 
     await tester.pumpWidget(
@@ -32,9 +32,7 @@ void main() {
             onTap: () {
               tapped = true;
             },
-            child: const SummaryCard(
-              child: Text('Tappable Card'),
-            ),
+            child: const SummaryCard(child: Text('Tappable Card')),
           ),
         ),
       ),
@@ -46,8 +44,9 @@ void main() {
     expect(tapped, isTrue);
   });
 
-  testWidgets('GlassActionableCard triggers context menu on long press',
-      (tester) async {
+  testWidgets('GlassActionableCard triggers context menu on long press', (
+    tester,
+  ) async {
     bool editCalled = false;
     bool deleteCalled = false;
 
@@ -63,9 +62,7 @@ void main() {
             onDelete: () {
               deleteCalled = true;
             },
-            child: const SummaryCard(
-              child: Text('Long Press Card'),
-            ),
+            child: const SummaryCard(child: Text('Long Press Card')),
           ),
         ),
       ),

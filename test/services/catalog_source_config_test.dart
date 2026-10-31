@@ -39,8 +39,10 @@ void main() {
         reason: 'a rejected manifest is indistinguishable from no release',
       );
       expect(manifest!.schemaVersion, 2);
-      expect(manifest.minAppSchemaVersion,
-          lessThanOrEqualTo(AppDataSources.supportedCatalogSchemaVersion));
+      expect(
+        manifest.minAppSchemaVersion,
+        lessThanOrEqualTo(AppDataSources.supportedCatalogSchemaVersion),
+      );
     });
 
     test('resolves to the release assets, not to the old repository', () {

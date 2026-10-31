@@ -80,10 +80,12 @@ class ICloudBackupArchive {
         targetPath: targetPath,
         databasePath: database.path,
         thumbnailPaths: thumbnails.map((file) => file.path).toList(),
-        workoutThumbnailPaths:
-            workoutThumbnails.map((file) => file.path).toList(),
-        assistantChatThumbnailPaths:
-            assistantChatThumbnails.map((file) => file.path).toList(),
+        workoutThumbnailPaths: workoutThumbnails
+            .map((file) => file.path)
+            .toList(),
+        assistantChatThumbnailPaths: assistantChatThumbnails
+            .map((file) => file.path)
+            .toList(),
       ),
     );
     return File(archivePath);
@@ -104,17 +106,14 @@ class ICloudBackupArchive {
     try {
       // Streamed from disk: the snapshot is the largest thing the app owns and
       // must not be held in memory in full to be zipped.
-      await encoder.addFile(
-        File(databasePath),
-        databaseEntry,
-        _databaseLevel,
-      );
+      await encoder.addFile(File(databasePath), databaseEntry, _databaseLevel);
 
       final used = <String>{};
       for (final thumbnailPath in thumbnailPaths) {
         final thumb = File(thumbnailPath);
         final name = p.basename(thumbnailPath);
-        final folder = thumbnailPath.contains('/workouts/') ||
+        final folder =
+            thumbnailPath.contains('/workouts/') ||
                 thumbnailPath.contains('\\workouts\\')
             ? workoutThumbsFolder
             : mealThumbsFolder;

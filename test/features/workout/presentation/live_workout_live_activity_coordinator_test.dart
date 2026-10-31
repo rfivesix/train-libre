@@ -23,17 +23,20 @@ class FakeLiveActivityService extends WorkoutLiveActivityService {
   bool? soundIgnoresSilent;
 
   @override
-  Future<void> setRestNotificationsEnabled(bool enabled,
-      {bool refreshPending = true}) async {
+  Future<void> setRestNotificationsEnabled(
+    bool enabled, {
+    bool refreshPending = true,
+  }) async {
     bannerEnabled = enabled;
   }
 
   @override
-  Future<void> scheduleRestSound(
-      {required DateTime endsAt,
-      required String title,
-      required String body,
-      bool ignoreSilentMode = true}) async {
+  Future<void> scheduleRestSound({
+    required DateTime endsAt,
+    required String title,
+    required String body,
+    bool ignoreSilentMode = true,
+  }) async {
     soundIgnoresSilent = ignoreSilentMode;
     soundScheduled.complete();
   }
@@ -119,7 +122,7 @@ class FakeHost implements LiveWorkoutLiveActivityHost {
   int? adjustedRestDelta;
   final List<({int templateId, int? elapsedSeconds})> completedTimedSets = [];
   final List<({int templateId, DateTime? startedAt, int elapsedSeconds})>
-      startedSetTimers = [];
+  startedSetTimers = [];
   final List<({int templateId, int? elapsedSeconds})> stoppedSetTimers = [];
   final List<Map<String, dynamic>> updatedSets = [];
 
@@ -134,15 +137,22 @@ class FakeHost implements LiveWorkoutLiveActivityHost {
   }
 
   @override
-  Future<void> completeTimedSet(int timerTemplateId,
-      {int? elapsedSeconds}) async {
-    completedTimedSets
-        .add((templateId: timerTemplateId, elapsedSeconds: elapsedSeconds));
+  Future<void> completeTimedSet(
+    int timerTemplateId, {
+    int? elapsedSeconds,
+  }) async {
+    completedTimedSets.add((
+      templateId: timerTemplateId,
+      elapsedSeconds: elapsedSeconds,
+    ));
   }
 
   @override
-  void startSetTimer(int templateId,
-      {DateTime? startedAt, int elapsedSeconds = 0}) {
+  void startSetTimer(
+    int templateId, {
+    DateTime? startedAt,
+    int elapsedSeconds = 0,
+  }) {
     startedSetTimers.add((
       templateId: templateId,
       startedAt: startedAt,
@@ -152,8 +162,10 @@ class FakeHost implements LiveWorkoutLiveActivityHost {
 
   @override
   Future<void> stopSetTimer(int templateId, {int? elapsedSeconds}) async {
-    stoppedSetTimers
-        .add((templateId: templateId, elapsedSeconds: elapsedSeconds));
+    stoppedSetTimers.add((
+      templateId: templateId,
+      elapsedSeconds: elapsedSeconds,
+    ));
   }
 
   @override
@@ -219,20 +231,23 @@ void main() {
       );
     });
 
-    test('schedules the rest sound even when the notification banner is off',
-        () async {
-      SharedPreferences.setMockInitialValues({
-        LiveWorkoutNotificationPreferences.restNotificationsKey: false,
-        LiveWorkoutNotificationPreferences.ignoreSilentModeKey: false,
-      });
-      host.isActive = false;
-      coordinator.configure(strings: testStrings, localeName: 'en');
-      coordinator
-          .scheduleRestSound(DateTime.now().add(const Duration(seconds: 20)));
-      await service.soundScheduled.future;
-      expect(service.bannerEnabled, isFalse);
-      expect(service.soundIgnoresSilent, isFalse);
-    });
+    test(
+      'schedules the rest sound even when the notification banner is off',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          LiveWorkoutNotificationPreferences.restNotificationsKey: false,
+          LiveWorkoutNotificationPreferences.ignoreSilentModeKey: false,
+        });
+        host.isActive = false;
+        coordinator.configure(strings: testStrings, localeName: 'en');
+        coordinator.scheduleRestSound(
+          DateTime.now().add(const Duration(seconds: 20)),
+        );
+        await service.soundScheduled.future;
+        expect(service.bannerEnabled, isFalse);
+        expect(service.soundIgnoresSilent, isFalse);
+      },
+    );
 
     test('configure triggers initial sync when host is active', () async {
       expect(coordinator.isRunning, isFalse);
@@ -244,8 +259,10 @@ void main() {
       expect(coordinator.isRunning, isTrue);
       expect(service.startCalls, equals(1));
       expect(service.lastAttributes?.workoutTitle, equals('Test Routine'));
-      expect(service.lastAttributes?.deepLink,
-          equals(LiveWorkoutLiveActivityCoordinator.liveActivityDeepLink));
+      expect(
+        service.lastAttributes?.deepLink,
+        equals(LiveWorkoutLiveActivityCoordinator.liveActivityDeepLink),
+      );
     });
 
     test('does not sync on configure when host is not active', () async {
@@ -255,17 +272,19 @@ void main() {
       expect(coordinator.isRunning, isFalse);
     });
 
-    test('subsequent sync updates live activity instead of restarting',
-        () async {
-      coordinator.configure(strings: testStrings, localeName: 'en');
-      await coordinator.syncLiveActivity();
-      expect(service.startCalls, equals(1));
-      expect(service.updateCalls, equals(1));
+    test(
+      'subsequent sync updates live activity instead of restarting',
+      () async {
+        coordinator.configure(strings: testStrings, localeName: 'en');
+        await coordinator.syncLiveActivity();
+        expect(service.startCalls, equals(1));
+        expect(service.updateCalls, equals(1));
 
-      await coordinator.syncLiveActivity();
-      expect(service.startCalls, equals(1));
-      expect(service.updateCalls, equals(2));
-    });
+        await coordinator.syncLiveActivity();
+        expect(service.startCalls, equals(1));
+        expect(service.updateCalls, equals(2));
+      },
+    );
 
     test('endLiveActivity stops running activity', () async {
       coordinator.configure(strings: testStrings, localeName: 'en');
@@ -286,9 +305,7 @@ void main() {
 
       final exercise = Exercise(
         id: 1,
-        texts: const {
-          'en': ExerciseText(name: 'Bench Press', description: ''),
-        },
+        texts: const {'en': ExerciseText(name: 'Bench Press', description: '')},
         categoryName: 'Strength',
         primaryMuscles: const [],
         secondaryMuscles: const [],
@@ -300,11 +317,7 @@ void main() {
         targetRir: 2,
       );
       host.exercises = [
-        RoutineExercise(
-          id: 10,
-          exercise: exercise,
-          setTemplates: [template],
-        ),
+        RoutineExercise(id: 10, exercise: exercise, setTemplates: [template]),
       ];
       host.setLogs = {
         101: SetLog(
@@ -319,11 +332,7 @@ void main() {
       service.queuedCommands = [
         {'kind': 'skipRest'},
         {'kind': 'adjustRest', 'deltaSeconds': 30},
-        {
-          'kind': 'completeSet',
-          'timerTemplateId': 202,
-          'elapsedSeconds': 45,
-        },
+        {'kind': 'completeSet', 'timerTemplateId': 202, 'elapsedSeconds': 45},
         {'kind': 'completeSet'},
         {
           'kind': 'startSetTimer',
@@ -331,19 +340,17 @@ void main() {
           'startedAtEpochMs': 1700000000000,
           'elapsedSeconds': 15,
         },
-        {
-          'kind': 'stopSetTimer',
-          'templateId': 303,
-          'elapsedSeconds': 60,
-        },
+        {'kind': 'stopSetTimer', 'templateId': 303, 'elapsedSeconds': 60},
       ];
 
       await coordinator.applyPendingLiveActivityCommands();
 
       expect(host.cancelRestCalled, isTrue);
       expect(host.adjustedRestDelta, equals(30));
-      expect(host.completedTimedSets,
-          equals([(templateId: 202, elapsedSeconds: 45)]));
+      expect(
+        host.completedTimedSets,
+        equals([(templateId: 202, elapsedSeconds: 45)]),
+      );
       expect(host.updatedSets.length, equals(1));
       expect(host.updatedSets.first['templateId'], equals(101));
       expect(host.updatedSets.first['weight'], equals(80.0));

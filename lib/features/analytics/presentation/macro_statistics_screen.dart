@@ -1,6 +1,7 @@
 // lib/features/analytics/presentation/macro_statistics_screen.dart
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -68,9 +69,11 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance.trackScreenView(
-      screenName: ScreenName.bodyNutritionCorrelation,
-    ));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.bodyNutritionCorrelation,
+      ),
+    );
     _activeBlock = _validBlocks.contains(widget.initialBlock)
         ? widget.initialBlock
         : TimeframeBlock.week;
@@ -111,13 +114,13 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
   }
 
   List<String> _ranges(AppLocalizations l10n) => [
-        l10n.filter7DaysShort,
-        l10n.filter1MonthShort,
-        l10n.filter3MonthsShort,
-        l10n.filter6MonthsShort,
-        l10n.filter1YearShort,
-        l10n.filterMax,
-      ];
+    l10n.filter7DaysShort,
+    l10n.filter1MonthShort,
+    l10n.filter3MonthsShort,
+    l10n.filter6MonthsShort,
+    l10n.filter1YearShort,
+    l10n.filterMax,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -146,11 +149,16 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
           ? null
           : () {
               setState(() {
-                final currentBounds =
-                    _activeBlock.getBounds(DateTime.now(), DateTime(2020));
-                final myBounds =
-                    _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                final isOngoing = !_isRolling &&
+                final currentBounds = _activeBlock.getBounds(
+                  DateTime.now(),
+                  DateTime(2020),
+                );
+                final myBounds = _activeBlock.getBounds(
+                  _anchorDate,
+                  DateTime(2020),
+                );
+                final isOngoing =
+                    !_isRolling &&
                     myBounds.start.isAtSameMomentAs(currentBounds.start);
 
                 if (isOngoing) {
@@ -173,11 +181,16 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                   _anchorDate = DateTime.now();
                 } else {
                   final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
-                  final previousBounds =
-                      _activeBlock.getBounds(previousAnchor, DateTime(2020));
-                  final myBounds =
-                      _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                  final isPreviousToOngoing = !_isRolling &&
+                  final previousBounds = _activeBlock.getBounds(
+                    previousAnchor,
+                    DateTime(2020),
+                  );
+                  final myBounds = _activeBlock.getBounds(
+                    _anchorDate,
+                    DateTime(2020),
+                  );
+                  final isPreviousToOngoing =
+                      !_isRolling &&
                       myBounds.start.isAtSameMomentAs(previousBounds.start);
 
                   if (isPreviousToOngoing) {
@@ -211,28 +224,26 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
       nextEnabled: _activeBlock == TimeframeBlock.maxBlock
           ? false
           : (_isRolling
-              ? false
-              : !_activeBlock
-                  .getBounds(_anchorDate, DateTime(2020))
-                  .start
-                  .isAtSameMomentAs(_activeBlock
-                      .getBounds(DateTime.now(), DateTime(2020))
-                      .start)),
+                ? false
+                : !_activeBlock
+                      .getBounds(_anchorDate, DateTime(2020))
+                      .start
+                      .isAtSameMomentAs(
+                        _activeBlock
+                            .getBounds(DateTime.now(), DateTime(2020))
+                            .start,
+                      )),
       showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
     );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: l10n.nutrition,
-        bottom: timeframeFilter,
-      ),
+      appBar: GlobalAppBar(title: l10n.nutrition, bottom: timeframeFilter),
       body: Stack(
         children: [
           ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              scrollbars: false,
-            ),
+            behavior: ScrollConfiguration.of(context)
+                .copyWith(scrollbars: false),
             child: CupertinoScrollbar(
               controller: _scrollController,
               thumbVisibility: true,
@@ -280,9 +291,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                             )
                           : const SizedBox(
                               height: 220,
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
+                              child: Center(child: CircularProgressIndicator()),
                             ),
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
@@ -343,8 +352,8 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     final protText = showDay
         ? '${selected.proteinGrams.toStringAsFixed(0)} g'
         : (summary != null
-            ? '${summary.avgProtein.toStringAsFixed(0)} g'
-            : '--');
+              ? '${summary.avgProtein.toStringAsFixed(0)} g'
+              : '--');
     final fatText = showDay
         ? '${selected.fatGrams.toStringAsFixed(0)} g'
         : (summary != null ? '${summary.avgFat.toStringAsFixed(0)} g' : '--');
@@ -493,8 +502,11 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
       return const SizedBox.shrink();
     }
 
-    final trackedDays =
-        summary.dailyIntakes.where((d) => d.hasData).toList().reversed.toList();
+    final trackedDays = summary.dailyIntakes
+        .where((d) => d.hasData)
+        .toList()
+        .reversed
+        .toList();
     if (trackedDays.isEmpty) return const SizedBox.shrink();
 
     final locale = Localizations.localeOf(context).toString();

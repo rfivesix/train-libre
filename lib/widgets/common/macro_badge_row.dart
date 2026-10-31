@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import 'app_metadata_row.dart';
@@ -69,10 +70,7 @@ class MacroBadgeRow extends StatelessWidget {
     }
     if (waterMl != null && waterMl! > 0) items.add('${waterMl}ml');
 
-    return AppMetadataRow(
-      items: items,
-      style: style,
-    );
+    return AppMetadataRow(items: items, style: style);
   }
 
   Widget _buildBadgeRow(BuildContext context) {
@@ -96,22 +94,31 @@ class MacroBadgeRow extends StatelessWidget {
     }
     if (protein != null && protein! > 0) {
       badges.add(
-          _badge('P ${protein!.toStringAsFixed(0)}', 'g', proteinColor, theme));
+        _badge('P ${protein!.toStringAsFixed(0)}', 'g', proteinColor, theme),
+      );
     }
     if (carbs != null && carbs! > 0) {
-      badges.add(_badge(
-          '$carbsAbbr ${carbs!.toStringAsFixed(0)}', 'g', carbsColor, theme));
+      badges.add(
+        _badge(
+          '$carbsAbbr ${carbs!.toStringAsFixed(0)}',
+          'g',
+          carbsColor,
+          theme,
+        ),
+      );
     }
     if (fat != null && fat! > 0) {
       badges.add(_badge('F ${fat!.toStringAsFixed(0)}', 'g', fatColor, theme));
     }
     if (sugar != null && sugar! > 0) {
       badges.add(
-          _badge('S ${sugar!.toStringAsFixed(0)}', 'g', sugarColor, theme));
+        _badge('S ${sugar!.toStringAsFixed(0)}', 'g', sugarColor, theme),
+      );
     }
     if (caffeine != null && caffeine! > 0) {
       badges.add(
-          _badge(caffeine!.toStringAsFixed(0), 'mg', caffeineColor, theme));
+        _badge(caffeine!.toStringAsFixed(0), 'mg', caffeineColor, theme),
+      );
     }
     if (waterMl != null && waterMl! > 0) {
       badges.add(_badge(waterMl.toString(), 'ml', waterColor, theme));
@@ -119,11 +126,7 @@ class MacroBadgeRow extends StatelessWidget {
 
     if (badges.isEmpty) return const SizedBox.shrink();
 
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children: badges,
-    );
+    return Wrap(spacing: 4, runSpacing: 4, children: badges);
   }
 
   String _carbsAbbreviation(BuildContext context) =>

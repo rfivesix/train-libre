@@ -1,13 +1,16 @@
 // lib/widgets/editable_set_row.dart
 
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../domain/models/set_log.dart';
 import 'set_type_chip.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// An interactive row for editing a single workout set's weight and repetitions.
@@ -54,10 +57,12 @@ class _EditableSetRowState extends State<EditableSetRow> {
       text: widget.setLog.weightKg == null
           ? ''
           : unitService
-              .convertDisplayValue(
-                  widget.setLog.weightKg!, UnitDimension.weight)
-              .toStringAsFixed(2)
-              .replaceAll('.00', ''),
+                .convertDisplayValue(
+                  widget.setLog.weightKg!,
+                  UnitDimension.weight,
+                )
+                .toStringAsFixed(2)
+                .replaceAll('.00', ''),
     );
     _repsController = TextEditingController(
       text: widget.setLog.reps?.toString() ?? '',
@@ -104,7 +109,8 @@ class _EditableSetRowState extends State<EditableSetRow> {
                 decimal: true,
               ),
               textInputAction: TextInputAction.next,
-              validator: (value) => (value == null ||
+              validator: (value) =>
+                  (value == null ||
                       value.trim().isEmpty ||
                       double.tryParse(value.replaceAll(',', '.')) == null)
                   ? "!"
@@ -125,7 +131,8 @@ class _EditableSetRowState extends State<EditableSetRow> {
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
-              validator: (value) => (value == null ||
+              validator: (value) =>
+                  (value == null ||
                       value.trim().isEmpty ||
                       int.tryParse(value) == null)
                   ? "!"
@@ -133,8 +140,10 @@ class _EditableSetRowState extends State<EditableSetRow> {
             ),
           ),
           IconButton(
-            icon: Icon(LucideIcons.trash,
-                color: Theme.of(context).colorScheme.error),
+            icon: Icon(
+              LucideIcons.trash,
+              color: Theme.of(context).colorScheme.error,
+            ),
             tooltip: l10n.delete,
             onPressed: widget.onDelete,
           ),

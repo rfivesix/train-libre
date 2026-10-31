@@ -109,8 +109,9 @@ class WorkoutHeartRateService {
     final quality = _classifyQuality(
       sampleCount: samples.length,
       workoutDuration: endUtc.difference(startUtc),
-      coverageSpan:
-          samples.last.sampledAtUtc.difference(samples.first.sampledAtUtc),
+      coverageSpan: samples.last.sampledAtUtc.difference(
+        samples.first.sampledAtUtc,
+      ),
     );
 
     return WorkoutHeartRateSummary(
@@ -191,18 +192,21 @@ class WorkoutHeartRateService {
     }
 
     final timestamps = groupedByTimestamp.keys.toList()..sort();
-    return timestamps.map((timestamp) {
-      final values = groupedByTimestamp[timestamp]!;
-      final averaged =
-          values.fold<double>(0, (sum, value) => sum + value) / values.length;
-      return WorkoutHeartRateSamplePoint(
-        sampledAtUtc: DateTime.fromMillisecondsSinceEpoch(
-          timestamp,
-          isUtc: true,
-        ),
-        bpm: averaged,
-      );
-    }).toList(growable: false);
+    return timestamps
+        .map((timestamp) {
+          final values = groupedByTimestamp[timestamp]!;
+          final averaged =
+              values.fold<double>(0, (sum, value) => sum + value) /
+              values.length;
+          return WorkoutHeartRateSamplePoint(
+            sampledAtUtc: DateTime.fromMillisecondsSinceEpoch(
+              timestamp,
+              isUtc: true,
+            ),
+            bpm: averaged,
+          );
+        })
+        .toList(growable: false);
   }
 
   WorkoutHeartRateDataQuality _classifyQuality({

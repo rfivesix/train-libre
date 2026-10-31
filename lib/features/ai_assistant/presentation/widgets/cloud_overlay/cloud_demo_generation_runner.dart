@@ -40,9 +40,7 @@ class CloudDemoGenerationRunner {
     _demoWordIndex = 0;
   }
 
-  void startWordTicker({
-    required void Function(String wordSnippet) onWord,
-  }) {
+  void startWordTicker({required void Function(String wordSnippet) onWord}) {
     _responseTimer?.cancel();
     _responseTimer = Timer.periodic(const Duration(milliseconds: 55), (timer) {
       if (_isDisposed) {
@@ -74,16 +72,11 @@ class CloudDemoGenerationRunner {
     _responseTimer = null;
   }
 
-  void schedulePermissionBadge({
-    required VoidCallback onShowBadge,
-  }) {
+  void schedulePermissionBadge({required VoidCallback onShowBadge}) {
     _permissionBadgeDelayTimer?.cancel();
-    _permissionBadgeDelayTimer = Timer(
-      const Duration(milliseconds: 300),
-      () {
-        if (!_isDisposed) onShowBadge();
-      },
-    );
+    _permissionBadgeDelayTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!_isDisposed) onShowBadge();
+    });
   }
 
   void cancelPermissionBadgeTimer() {
@@ -91,16 +84,11 @@ class CloudDemoGenerationRunner {
     _permissionBadgeDelayTimer = null;
   }
 
-  void scheduleContinuationTimer({
-    required VoidCallback onComplete,
-  }) {
+  void scheduleContinuationTimer({required VoidCallback onComplete}) {
     _permissionContinuationTimer?.cancel();
-    _permissionContinuationTimer = Timer(
-      const Duration(seconds: 3),
-      () {
-        if (!_isDisposed) onComplete();
-      },
-    );
+    _permissionContinuationTimer = Timer(const Duration(seconds: 3), () {
+      if (!_isDisposed) onComplete();
+    });
   }
 
   void cancelContinuationTimer() {

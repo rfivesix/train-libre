@@ -1,10 +1,14 @@
 import 'package:intl/intl.dart';
+
 import '../features/statistics/domain/timeframe_block.dart';
 import '../generated/app_localizations.dart';
 
 class TimeframeLabelFormatter {
   static String format(
-      TimeframeBlock block, DateTime anchorDate, AppLocalizations l10n) {
+    TimeframeBlock block,
+    DateTime anchorDate,
+    AppLocalizations l10n,
+  ) {
     if (block == TimeframeBlock.maxBlock) {
       return l10n.filterMax;
     }

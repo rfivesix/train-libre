@@ -42,7 +42,10 @@ String? _decodeStreamingAnswerPrefix(String rawCommand) {
 
 class AssistantModelIdentity {
   const AssistantModelIdentity(
-      this.providerId, this.modelId, this.configuration);
+    this.providerId,
+    this.modelId,
+    this.configuration,
+  );
   final String providerId;
   final String modelId;
   final AiOverlayChatConfiguration? configuration;
@@ -54,10 +57,11 @@ abstract class AssistantModelClient {
     required String prompt,
     required AssistantModelIdentity identity,
   });
-  Stream<String> answer(
-      {required String prompt,
-      required AssistantModelIdentity identity,
-      required Future<void> Function() onDispatch});
+  Stream<String> answer({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required Future<void> Function() onDispatch,
+  });
 }
 
 /// Optional image-aware extension. Existing test clients and alternate model
@@ -86,15 +90,15 @@ class ConfiguredAssistantModelClient
 
   @override
   Future<AssistantModelIdentity> identity() async {
-    final config =
-        await AiOverlayLiveChatService.instance.resolveConfiguration();
+    final config = await AiOverlayLiveChatService.instance
+        .resolveConfiguration();
     return AssistantModelIdentity(config.provider.name, config.model, config);
   }
 
   @override
   Future<AssistantModelIdentity> identityForImages() async {
-    final config =
-        await AiOverlayLiveChatService.instance.resolveSelectedConfiguration();
+    final config = await AiOverlayLiveChatService.instance
+        .resolveSelectedConfiguration();
     return AssistantModelIdentity(config.provider.name, config.model, config);
   }
 
@@ -103,26 +107,21 @@ class ConfiguredAssistantModelClient
     required String prompt,
     required AssistantModelIdentity identity,
   }) =>
-      interpretWithImages(
-        prompt: prompt,
-        identity: identity,
-        images: const [],
-      );
+      interpretWithImages(prompt: prompt, identity: identity, images: const []);
 
   @override
   Future<String> interpretWithImages({
     required String prompt,
     required AssistantModelIdentity identity,
     required List<AssistantImagePayload> images,
-  }) =>
-      AiOverlayLiveChatService.instance
-          .streamChat(
-            prompt: prompt,
-            configuration: identity.configuration,
-            images: images,
-            smoothWords: false,
-          )
-          .join();
+  }) => AiOverlayLiveChatService.instance
+      .streamChat(
+        prompt: prompt,
+        configuration: identity.configuration,
+        images: images,
+        smoothWords: false,
+      )
+      .join();
 
   @override
   Future<void> validateImageSupport(AssistantModelIdentity identity) async {
@@ -135,9 +134,10 @@ class ConfiguredAssistantModelClient
       );
     }
     if (config.provider == AiProvider.ollama &&
-        !RegExp(r'(llava|vision|pixtral|moondream|qwen.*vl|gemma3|minicpm-v)',
-                caseSensitive: false)
-            .hasMatch(config.model)) {
+        !RegExp(
+          r'(llava|vision|pixtral|moondream|qwen.*vl|gemma3|minicpm-v)',
+          caseSensitive: false,
+        ).hasMatch(config.model)) {
       throw const AiUnsupportedImageException(
         'The selected Ollama model is not a known vision model.',
       );
@@ -145,31 +145,32 @@ class ConfiguredAssistantModelClient
   }
 
   @override
-  Stream<String> answer(
-          {required String prompt,
-          required AssistantModelIdentity identity,
-          required Future<void> Function() onDispatch}) =>
-      answerWithImages(
-        prompt: prompt,
-        identity: identity,
-        images: const [],
-        onDispatch: onDispatch,
-      );
+  Stream<String> answer({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required Future<void> Function() onDispatch,
+  }) => answerWithImages(
+    prompt: prompt,
+    identity: identity,
+    images: const [],
+    onDispatch: onDispatch,
+  );
 
   @override
-  Stream<String> answerWithImages(
-          {required String prompt,
-          required AssistantModelIdentity identity,
-          required List<AssistantImagePayload> images,
-          required Future<void> Function() onDispatch}) =>
-      AiOverlayLiveChatService.instance.streamChat(
-        prompt: prompt, configuration: identity.configuration,
-        images: images,
-        onDispatch: onDispatch,
-        smoothWords: false,
-        // Previous answers may contain personal data from a different scope.
-        history: const [],
-      );
+  Stream<String> answerWithImages({
+    required String prompt,
+    required AssistantModelIdentity identity,
+    required List<AssistantImagePayload> images,
+    required Future<void> Function() onDispatch,
+  }) => AiOverlayLiveChatService.instance.streamChat(
+    prompt: prompt,
+    configuration: identity.configuration,
+    images: images,
+    onDispatch: onDispatch,
+    smoothWords: false,
+    // Previous answers may contain personal data from a different scope.
+    history: const [],
+  );
 }
 
 class AssistantSubmission {
@@ -204,16 +205,17 @@ class AssistantChatService {
   static const maxSqlQueryRounds = 8;
   static const maxModelProtocolTurns = 12;
   static const maxTotalQueryResultCharacters = 24000;
-  AssistantChatService(
-      {required this.history,
-      required this.data,
-      required this.model,
-      IDiaryRepository? diaryRepository,
-      AssistantChangeExecutor? changeExecutor,
-      AssistantIntentPlanner? planner})
-      : changeExecutor = changeExecutor ??
-            AssistantChangeExecutor(diaryRepository: diaryRepository),
-        planner = planner ?? const AssistantIntentPlanner();
+  AssistantChatService({
+    required this.history,
+    required this.data,
+    required this.model,
+    IDiaryRepository? diaryRepository,
+    AssistantChangeExecutor? changeExecutor,
+    AssistantIntentPlanner? planner,
+  }) : changeExecutor =
+           changeExecutor ??
+           AssistantChangeExecutor(diaryRepository: diaryRepository),
+       planner = planner ?? const AssistantIntentPlanner();
 
   final AssistantHistoryRepository history;
   final AssistantDataGateway data;
@@ -221,11 +223,13 @@ class AssistantChatService {
   final AssistantChangeExecutor changeExecutor;
   final AssistantIntentPlanner planner;
 
-  Future<AssistantSubmission> submit(String prompt,
-      {String? conversationId,
-      List<File> imageFiles = const [],
-      required DateTime now,
-      required String locale}) async {
+  Future<AssistantSubmission> submit(
+    String prompt, {
+    String? conversationId,
+    List<File> imageFiles = const [],
+    required DateTime now,
+    required String locale,
+  }) async {
     final isDe = locale.toLowerCase().startsWith('de');
     AssistantModelIdentity? preflightIdentity;
     if (imageFiles.isNotEmpty) {
@@ -235,8 +239,8 @@ class AssistantChatService {
         );
       }
       final imageClient = model as AssistantImageModelClient;
-      preflightIdentity =
-          await (model as AssistantImageModelClient).identityForImages();
+      preflightIdentity = await (model as AssistantImageModelClient)
+          .identityForImages();
       await imageClient.validateImageSupport(preflightIdentity);
     }
     final conversation = conversationId == null
@@ -264,40 +268,48 @@ class AssistantChatService {
       await imageClient.validateImageSupport(preflightIdentity);
     }
     List<({String filePath, String? thumbPath, String mimeType})>
-        savedAttachments;
+    savedAttachments;
     try {
-      savedAttachments =
-          await AssistantImageAttachmentStore.instance.persist(imageFiles);
+      savedAttachments = await AssistantImageAttachmentStore.instance.persist(
+        imageFiles,
+      );
     } catch (_) {
       if (conversation != null) await history.deleteConversation(id);
       rethrow;
     }
     final user = await history.addMessage(
-        conversationId: id,
-        role: 'user',
-        content: prompt,
-        status: 'generating',
-        attachments: savedAttachments);
+      conversationId: id,
+      role: 'user',
+      content: prompt,
+      status: 'generating',
+      attachments: savedAttachments,
+    );
     final safeContext = priorMessages
-        .where((message) =>
-            message.role == 'user' ||
-            (message.role == 'assistant' &&
-                (message.status == 'clarification' ||
-                    message.status == 'chat')))
+        .where(
+          (message) =>
+              message.role == 'user' ||
+              (message.role == 'assistant' &&
+                  (message.status == 'clarification' ||
+                      message.status == 'chat')),
+        )
         .toList()
         .reversed
         .take(6)
         .toList()
         .reversed
-        .map((message) => {
-              'role': message.role,
-              'content': message.content.length > 500
-                  ? message.content.substring(0, 500)
-                  : message.content,
-            })
+        .map(
+          (message) => {
+            'role': message.role,
+            'content': message.content.length > 500
+                ? message.content.substring(0, 500)
+                : message.content,
+          },
+        )
         .toList();
-    final pendingDraftContext =
-        _pendingDraftFollowUpContext(priorMessages, prompt);
+    final pendingDraftContext = _pendingDraftFollowUpContext(
+      priorMessages,
+      prompt,
+    );
     if (pendingDraftContext != null) {
       safeContext.add(pendingDraftContext);
     }
@@ -321,11 +333,12 @@ class AssistantChatService {
             'The configured chat client does not support image input.',
           );
         }
-        await (model as AssistantImageModelClient)
-            .validateImageSupport(identity);
+        await (model as AssistantImageModelClient).validateImageSupport(
+          identity,
+        );
       }
-      final intentDocumentation =
-          await AssistantDocumentationReader().forQuestion(prompt);
+      final intentDocumentation = await AssistantDocumentationReader()
+          .forQuestion(prompt);
       decision = planner.parse(
         await _interpret(
           prompt: planner.prompt(
@@ -360,13 +373,14 @@ class AssistantChatService {
           ? 'Der konfigurierte Assistent konnte nicht erreicht werden. Bitte versuche es erneut.'
           : 'I could not reach the configured assistant. Please try again.';
       await history.addMessage(
-          conversationId: id,
-          role: 'assistant',
-          content: reply,
-          status: 'error',
-          providerId: identity?.providerId,
-          modelId: identity?.modelId,
-          error: error.toString());
+        conversationId: id,
+        role: 'assistant',
+        content: reply,
+        status: 'error',
+        providerId: identity?.providerId,
+        modelId: identity?.modelId,
+        error: error.toString(),
+      );
       await history.updateMessage(user.id, content: prompt, status: 'complete');
       return AssistantSubmission(
         conversationId: id,
@@ -418,14 +432,15 @@ class AssistantChatService {
     if (decision.kind != AssistantIntentKind.data) {
       final reply = decision.message!;
       await history.addMessage(
-          conversationId: id,
-          role: 'assistant',
-          content: reply,
-          status: decision.kind == AssistantIntentKind.chat
-              ? 'chat'
-              : 'clarification',
-          providerId: identity.providerId,
-          modelId: identity.modelId);
+        conversationId: id,
+        role: 'assistant',
+        content: reply,
+        status: decision.kind == AssistantIntentKind.chat
+            ? 'chat'
+            : 'clarification',
+        providerId: identity.providerId,
+        modelId: identity.modelId,
+      );
       await history.updateMessage(user.id, content: prompt, status: 'complete');
       return AssistantSubmission(
         conversationId: id,
@@ -441,12 +456,13 @@ class AssistantChatService {
           ? 'Diese Kombination von App-Daten kann ich hier nicht lesen. Kannst du nach einem engeren Bereich fragen?'
           : 'I cannot read that combination of app data here. Could you ask about a narrower part of it?';
       await history.addMessage(
-          conversationId: id,
-          role: 'assistant',
-          content: reply,
-          status: 'clarification',
-          providerId: identity.providerId,
-          modelId: identity.modelId);
+        conversationId: id,
+        role: 'assistant',
+        content: reply,
+        status: 'clarification',
+        providerId: identity.providerId,
+        modelId: identity.modelId,
+      );
       await history.updateMessage(user.id, content: prompt, status: 'complete');
       return AssistantSubmission(
         conversationId: id,
@@ -484,30 +500,35 @@ class AssistantChatService {
     if (_isExpired(access)) {
       await history.expireAccess(accessId);
       await history.addMessage(
-          conversationId: access.conversationId,
-          role: 'assistant',
-          content: isDe
-              ? 'Die Datenanfrage ist abgelaufen. Es wurden keine App-Daten gesendet.'
-              : 'Data request expired. No app data was sent.',
-          status: 'complete');
+        conversationId: access.conversationId,
+        role: 'assistant',
+        content: isDe
+            ? 'Die Datenanfrage ist abgelaufen. Es wurden keine App-Daten gesendet.'
+            : 'Data request expired. No app data was sent.',
+        status: 'complete',
+      );
       throw StateError('Data request expired');
     }
     await history.decideAccess(accessId, approved: false);
     return history.addMessage(
-        conversationId: access.conversationId,
-        role: 'assistant',
-        content: isDe
-            ? 'Datenzugriff abgelehnt. Es wurden keine App-Daten gesendet.'
-            : 'Data access denied. No app data was sent.',
-        status: 'complete');
+      conversationId: access.conversationId,
+      role: 'assistant',
+      content: isDe
+          ? 'Datenzugriff abgelehnt. Es wurden keine App-Daten gesendet.'
+          : 'Data access denied. No app data was sent.',
+      status: 'complete',
+    );
   }
 
-  Stream<String> approveAndAnswer(String accessId, String question,
-      {String locale = 'en',
-      Future<bool> Function(AssistantAccessRecord access)? onAdditionalAccess,
-      void Function(AssistantProgressStatus status)? onProgressStatus,
-      void Function(String messageId, AssistantChangeProposal proposal)?
-          onProposalAvailable}) async* {
+  Stream<String> approveAndAnswer(
+    String accessId,
+    String question, {
+    String locale = 'en',
+    Future<bool> Function(AssistantAccessRecord access)? onAdditionalAccess,
+    void Function(AssistantProgressStatus status)? onProgressStatus,
+    void Function(String messageId, AssistantChangeProposal proposal)?
+    onProposalAvailable,
+  }) async* {
     final isDe = locale.toLowerCase().startsWith('de');
     final access = await history.access(accessId);
     if (access == null || access.status != 'pending') {
@@ -516,12 +537,13 @@ class AssistantChatService {
     if (_isExpired(access)) {
       await history.expireAccess(accessId);
       await history.addMessage(
-          conversationId: access.conversationId,
-          role: 'assistant',
-          content: isDe
-              ? 'Die Datenanfrage ist abgelaufen. Es wurden keine App-Daten gesendet.'
-              : 'Data request expired. No app data was sent.',
-          status: 'complete');
+        conversationId: access.conversationId,
+        role: 'assistant',
+        content: isDe
+            ? 'Die Datenanfrage ist abgelaufen. Es wurden keine App-Daten gesendet.'
+            : 'Data request expired. No app data was sent.',
+        status: 'complete',
+      );
       throw StateError('Data request expired');
     }
     final request = _requestFrom(access);
@@ -562,34 +584,40 @@ class AssistantChatService {
           .toList();
       if (errors.isNotEmpty) {
         final message = errors
-            .map((result) =>
-                '${result.category.name}: ${result.error ?? result.status.name}')
+            .map(
+              (result) =>
+                  '${result.category.name}: ${result.error ?? result.status.name}',
+            )
             .join('; ');
         await history.failAccess(accessId, message);
         assistant = await history.addMessage(
-            conversationId: access.conversationId,
-            role: 'assistant',
-            content: isDe
-                ? 'Die angeforderten Daten konnten nicht gelesen werden: $message'
-                : 'I could not read the requested data: $message',
-            status: 'error',
-            error: message);
+          conversationId: access.conversationId,
+          role: 'assistant',
+          content: isDe
+              ? 'Die angeforderten Daten konnten nicht gelesen werden: $message'
+              : 'I could not read the requested data: $message',
+          status: 'error',
+          error: message,
+        );
         yield assistant.content;
         finished = true;
         return;
       }
-      if (results.every((result) =>
-          result.records.isEmpty &&
-          (result.tables.isEmpty ||
-              result.tables.values.every((rows) => rows.isEmpty)))) {
+      if (results.every(
+        (result) =>
+            result.records.isEmpty &&
+            (result.tables.isEmpty ||
+                result.tables.values.every((rows) => rows.isEmpty)),
+      )) {
         await history.markNoData(accessId);
         assistant = await history.addMessage(
-            conversationId: access.conversationId,
-            role: 'assistant',
-            content: isDe
-                ? 'Im freigegebenen Zeitraum wurden keine Einträge für diese Kategorien gefunden.'
-                : 'No records were found in the approved categories and date range.',
-            status: 'complete');
+          conversationId: access.conversationId,
+          role: 'assistant',
+          content: isDe
+              ? 'Im freigegebenen Zeitraum wurden keine Einträge für diese Kategorien gefunden.'
+              : 'No records were found in the approved categories and date range.',
+          status: 'complete',
+        );
         finished = true;
         yield assistant.content;
         return;
@@ -597,7 +625,8 @@ class AssistantChatService {
       final targeted = <AssistantActionResult>[];
       final explicitlyCreating = _explicitlyRequestsCreation(question);
       for (final result in results) {
-        final shouldResolve = result.records.isNotEmpty &&
+        final shouldResolve =
+            result.records.isNotEmpty &&
             !explicitlyCreating &&
             _asksForSingleTarget(question, result.category);
         if (!shouldResolve) continue;
@@ -661,14 +690,18 @@ class AssistantChatService {
       }
       final identity = imageResponseIdentity ?? await model.identity();
       await history.setAccessProvider(
-          accessId, identity.providerId, identity.modelId);
+        accessId,
+        identity.providerId,
+        identity.modelId,
+      );
       assistant = await history.addMessage(
-          conversationId: access.conversationId,
-          role: 'assistant',
-          content: '',
-          status: 'generating',
-          providerId: identity.providerId,
-          modelId: identity.modelId);
+        conversationId: access.conversationId,
+        role: 'assistant',
+        content: '',
+        status: 'generating',
+        providerId: identity.providerId,
+        modelId: identity.modelId,
+      );
       // Only selected action results enter this prompt. Conversation history
       // is intentionally excluded because its older answers may contain data.
       var resolvedQuestion = await _questionContext(
@@ -688,8 +721,9 @@ class AssistantChatService {
       }
       final exchanges = <Map<String, Object?>>[];
       final auditQueries = <Map<String, Object?>>[];
-      final documentation =
-          await AssistantDocumentationReader().forQuestion(question);
+      final documentation = await AssistantDocumentationReader().forQuestion(
+        question,
+      );
       final requestedCategories = {...request.categories};
       final availableCategories = {...request.categories};
       var totalResultCharacters = 0;
@@ -712,8 +746,9 @@ class AssistantChatService {
               documentation: documentation,
               exchanges: exchanges,
               locale: locale,
-              availableCategories:
-                  availableCategories.map((item) => item.name).toSet(),
+              availableCategories: availableCategories
+                  .map((item) => item.name)
+                  .toSet(),
             );
             var dispatchedThisTurn = false;
             var rawCommand = '';
@@ -729,15 +764,16 @@ class AssistantChatService {
                     exchanges.last['kind'] == 'query_result' &&
                     exchanges.last['shared'] == false) {
                   exchanges.last['shared'] = true;
-                  auditQueries
-                      .add(exchanges.last['audit'] as Map<String, Object?>);
+                  auditQueries.add(
+                    exchanges.last['audit'] as Map<String, Object?>,
+                  );
                   sharedAnyResults = true;
                   for (final record in accessRecords) {
                     await history.markShared(record.id, {
                       'sqlAnalysis': {
                         'queryCount': auditQueries.length,
                         'queries': auditQueries,
-                      }
+                      },
                     });
                   }
                 }
@@ -782,8 +818,7 @@ class AssistantChatService {
               if (_isNumberedSelectionAnswer(answer)) {
                 exchanges.add({
                   'kind': 'protocol_error',
-                  'message':
-                      'Never ask the user to choose by number or show a numbered selection list. Resolve the best matching record from the approved rows and request wording. If genuinely ambiguous, ask a short natural-language question using record names.',
+                  'message': 'Never ask the user to choose by number or show a numbered selection list. Resolve the best matching record from the approved rows and request wording. If genuinely ambiguous, ask a short natural-language question using record names.',
                 });
                 continue;
               }
@@ -791,8 +826,9 @@ class AssistantChatService {
               break;
             }
 
-            if (command
-                case AssistantSqlChangeProposalCommand(:final proposal)) {
+            if (command case AssistantSqlChangeProposalCommand(
+              :final proposal,
+            )) {
               final selectedTargetId = expectedTargetIds[proposal.payload.type];
               final boundProposal = explicitlyCreating
                   ? AssistantChangeProposal(
@@ -803,29 +839,27 @@ class AssistantChatService {
                       payload: proposal.payload,
                     )
                   : selectedTargetId != null
-                      ? AssistantChangeProposal(
-                          operation: AssistantChangeOperation.update,
-                          targetId: selectedTargetId,
-                          nextCycle: proposal.nextCycle,
-                          summary: proposal.summary,
-                          payload: proposal.payload,
-                        )
-                      : proposal;
+                  ? AssistantChangeProposal(
+                      operation: AssistantChangeOperation.update,
+                      targetId: selectedTargetId,
+                      nextCycle: proposal.nextCycle,
+                      summary: proposal.summary,
+                      payload: proposal.payload,
+                    )
+                  : proposal;
               final proposalWithImages =
                   boundProposal.payload.type == 'meal_entry'
-                      ? boundProposal.withSourceImageAttachmentIds(
-                          currentMessage?.attachments
-                                  .map((attachment) => attachment.id)
-                                  .toList() ??
-                              const [],
-                        )
-                      : boundProposal;
+                  ? boundProposal.withSourceImageAttachmentIds(
+                      currentMessage?.attachments
+                              .map((attachment) => attachment.id)
+                              .toList() ??
+                          const [],
+                    )
+                  : boundProposal;
               final appBoundProposal =
                   proposalWithImages.payload.type == 'meal_entry'
-                      ? proposalWithImages.withCreatedRecordId(
-                          const Uuid().v4(),
-                        )
-                      : proposalWithImages;
+                  ? proposalWithImages.withCreatedRecordId(const Uuid().v4())
+                  : proposalWithImages;
               final validationError = _validateProposal(
                 appBoundProposal,
                 results,
@@ -844,11 +878,10 @@ class AssistantChatService {
               break;
             }
 
-            if (command
-                case AssistantSqlCatalogSearchCommand(
-                  :final catalog,
-                  :final query
-                )) {
+            if (command case AssistantSqlCatalogSearchCommand(
+              :final catalog,
+              :final query,
+            )) {
               final requiredCategory = catalog == 'food'
                   ? AssistantDataCategory.recipes
                   : AssistantDataCategory.exerciseCatalog;
@@ -856,8 +889,7 @@ class AssistantChatService {
                   catalogSearches >= 12) {
                 exchanges.add({
                   'kind': 'protocol_error',
-                  'message':
-                      'This approved local catalog search is unavailable or its budget was reached.',
+                  'message': 'This approved local catalog search is unavailable or its budget was reached.',
                 });
                 continue;
               }
@@ -866,46 +898,53 @@ class AssistantChatService {
               late final List<Map<String, dynamic>> rows;
               late final bool truncated;
               if (isFoodCatalog) {
-                final matches =
-                    await ProductLocalDataSource.instance.searchProducts(query);
+                final matches = await ProductLocalDataSource.instance
+                    .searchProducts(query);
                 truncated = matches.length > 20;
                 rows = matches
                     .take(20)
-                    .map((item) => {
-                          'barcode': item.barcode,
-                          'name': item.name,
-                          'brand': item.brand,
-                          'unit': item.isLiquid == true || item.isFluid
-                              ? 'ml'
-                              : 'g',
-                          'kcal': item.calories,
-                          'protein': item.protein,
-                          'carbs': item.carbs,
-                          'fat': item.fat,
-                        })
+                    .map(
+                      (item) => {
+                        'barcode': item.barcode,
+                        'name': item.name,
+                        'brand': item.brand,
+                        'unit': item.isLiquid == true || item.isFluid
+                            ? 'ml'
+                            : 'g',
+                        'kcal': item.calories,
+                        'protein': item.protein,
+                        'carbs': item.carbs,
+                        'fat': item.fat,
+                      },
+                    )
                     .toList(growable: false);
               } else {
-                final matches =
-                    await WorkoutLocalDataSource.instance.searchExercises(
-                  query: query,
-                  languageCode:
-                      locale.toLowerCase().split(RegExp('[-_]')).first,
-                );
+                final matches = await WorkoutLocalDataSource.instance
+                    .searchExercises(
+                      query: query,
+                      languageCode: locale
+                          .toLowerCase()
+                          .split(RegExp('[-_]'))
+                          .first,
+                    );
                 truncated = matches.length > 20;
                 rows = matches
                     .take(20)
-                    .map((item) => {
-                          'id': item.uuid,
-                          'uuid': item.uuid,
-                          'name': item.localizedNameFor(
-                              locale.toLowerCase().split(RegExp('[-_]')).first),
-                          'canonical_name': item.canonicalName,
-                          'category': item.categoryName,
-                          'tracking_type': item.trackingType,
-                          'primary_equipment': item.primaryEquipment,
-                          'primary_muscles': item.primaryMuscles,
-                          'secondary_muscles': item.secondaryMuscles,
-                        })
+                    .map(
+                      (item) => {
+                        'id': item.uuid,
+                        'uuid': item.uuid,
+                        'name': item.localizedNameFor(
+                          locale.toLowerCase().split(RegExp('[-_]')).first,
+                        ),
+                        'canonical_name': item.canonicalName,
+                        'category': item.categoryName,
+                        'tracking_type': item.trackingType,
+                        'primary_equipment': item.primaryEquipment,
+                        'primary_muscles': item.primaryMuscles,
+                        'secondary_muscles': item.secondaryMuscles,
+                      },
+                    )
                     .toList(growable: false);
               }
               results = [
@@ -923,50 +962,54 @@ class AssistantChatService {
               exchanges.add({
                 'kind': 'query_result',
                 'sql': 'search_catalog($catalog, ${jsonEncode(query)})',
-                'result': {
-                  'rows': rows,
-                  'truncated': truncated,
-                },
+                'result': {'rows': rows, 'truncated': truncated},
                 'shared': false,
                 'audit': {
                   'tables': [
-                    isFoodCatalog ? 'food_catalog_search' : 'exercise_catalog'
+                    isFoodCatalog ? 'food_catalog_search' : 'exercise_catalog',
                   ],
                   'rowCount': rows.length,
                   'fields': rows.expand((row) => row.keys).toSet().toList()
                     ..sort(),
                   'truncated': truncated,
                   'querySha256': sha256.convert(utf8.encode(query)).toString(),
-                  'payloadSha256':
-                      sha256.convert(utf8.encode(encoded)).toString(),
+                  'payloadSha256': sha256
+                      .convert(utf8.encode(encoded))
+                      .toString(),
                 },
               });
               requestMore = true;
               break;
             }
 
-            if (command
-                case AssistantSqlDataRequestCommand(
-                  :final categories,
-                  :final dateExpression,
-                  :final scope
-                )) {
+            if (command case AssistantSqlDataRequestCommand(
+              :final categories,
+              :final dateExpression,
+              :final scope,
+            )) {
               try {
-                final requested = planner.parseAdditionalRequest({
-                  'categories': categories,
-                  if (dateExpression != null) 'dateExpression': dateExpression,
-                  if (scope != null) 'scope': scope,
-                }, now: DateTime.now(), locale: locale);
+                final requested = planner.parseAdditionalRequest(
+                  {
+                    'categories': categories,
+                    if (dateExpression != null)
+                      'dateExpression': dateExpression,
+                    if (scope != null) 'scope': scope,
+                  },
+                  now: DateTime.now(),
+                  locale: locale,
+                );
                 if (requested.categories.any(requestedCategories.contains)) {
                   throw const FormatException(
-                      'Category was already requested.');
+                    'Category was already requested.',
+                  );
                 }
                 if (data.supports(requested) && onAdditionalAccess != null) {
                   final extra = await history.requestAccess(
                     conversationId: access.conversationId,
                     messageId: access.messageId,
-                    categories:
-                        requested.categories.map((item) => item.name).toList(),
+                    categories: requested.categories
+                        .map((item) => item.name)
+                        .toList(),
                     scope: requested.scope?.toJson() ?? {'label': 'current'},
                     providerId: identity.providerId,
                     modelId: identity.modelId,
@@ -982,38 +1025,44 @@ class AssistantChatService {
                   final approved = await onAdditionalAccess(extra);
                   await history.decideAccess(extra.id, approved: approved);
                   if (approved) {
-                    final extraResults =
-                        await data.readApproved(requested, approved: true);
-                    onProgressStatus
-                        ?.call(AssistantProgressStatus.processingData);
+                    final extraResults = await data.readApproved(
+                      requested,
+                      approved: true,
+                    );
+                    onProgressStatus?.call(
+                      AssistantProgressStatus.processingData,
+                    );
                     final failures = extraResults.where(
-                        (item) => item.status != AssistantActionStatus.success);
+                      (item) => item.status != AssistantActionStatus.success,
+                    );
                     if (failures.isEmpty) {
                       results = [...results, ...extraResults];
                       availableCategories.addAll(requested.categories);
                       exchanges.add({
                         'kind': 'additional_data_result',
                         'categories': categories,
-                        'status': 'approved'
+                        'status': 'approved',
                       });
                     } else {
                       final detail = failures
-                          .map((item) =>
-                              '${item.category.name}: ${item.error ?? item.status.name}')
+                          .map(
+                            (item) =>
+                                '${item.category.name}: ${item.error ?? item.status.name}',
+                          )
                           .join('; ');
                       await history.failAccess(extra.id, detail);
                       exchanges.add({
                         'kind': 'additional_data_result',
                         'categories': categories,
                         'status': 'unavailable',
-                        'message': detail
+                        'message': detail,
                       });
                     }
                   } else {
                     exchanges.add({
                       'kind': 'additional_data_result',
                       'categories': categories,
-                      'status': 'denied'
+                      'status': 'denied',
                     });
                   }
                   requestMore = true;
@@ -1022,19 +1071,17 @@ class AssistantChatService {
                 exchanges.add({
                   'kind': 'additional_data_result',
                   'categories': categories,
-                  'status': 'unavailable'
+                  'status': 'unavailable',
                 });
               } on FormatException {
                 exchanges.add({
                   'kind': 'protocol_error',
-                  'message':
-                      'That category or scope is invalid or was already requested. Continue with currently approved data.'
+                  'message': 'That category or scope is invalid or was already requested. Continue with currently approved data.',
                 });
               } on ArgumentError {
                 exchanges.add({
                   'kind': 'protocol_error',
-                  'message':
-                      'That category or scope is invalid or was already requested. Continue with currently approved data.'
+                  'message': 'That category or scope is invalid or was already requested. Continue with currently approved data.',
                 });
               }
               continue;
@@ -1063,8 +1110,7 @@ class AssistantChatService {
                   'kind': 'query_result',
                   'sql': query,
                   'result': {
-                    'error':
-                        'The total result budget was reached. Aggregate or narrow the query.',
+                    'error': 'The total result budget was reached. Aggregate or narrow the query.',
                   },
                   'shared': true,
                   'audit': <String, Object?>{},
@@ -1115,8 +1161,11 @@ class AssistantChatService {
             );
             onProposalAvailable?.call(assistant.id, proposal);
           } else {
-            await history.updateMessage(assistant.id,
-                content: response, status: 'complete');
+            await history.updateMessage(
+              assistant.id,
+              content: response,
+              status: 'complete',
+            );
           }
           finished = true;
           if (response.isNotEmpty) {
@@ -1143,15 +1192,20 @@ class AssistantChatService {
           ? _sqlFailureMessage(error, isDe: isDe)
           : error.toString();
       if (assistant != null) {
-        await history.updateMessage(assistant.id,
-            content: userError, status: 'error', error: error.toString());
+        await history.updateMessage(
+          assistant.id,
+          content: userError,
+          status: 'error',
+          error: error.toString(),
+        );
       } else {
         await history.addMessage(
-            conversationId: access.conversationId,
-            role: 'assistant',
-            content: userError,
-            status: 'error',
-            error: error.toString());
+          conversationId: access.conversationId,
+          role: 'assistant',
+          content: userError,
+          status: 'error',
+          error: error.toString(),
+        );
       }
       finished = true;
       if (error is AssistantSqlQueryException) {
@@ -1164,10 +1218,12 @@ class AssistantChatService {
         final interruptedReply = isDe
             ? 'Anfrage abgebrochen. Du kannst es erneut versuchen.'
             : 'Request interrupted. You can try again.';
-        await history.updateMessage(assistant.id,
-            content: interruptedReply,
-            status: 'interrupted',
-            error: 'Generation interrupted');
+        await history.updateMessage(
+          assistant.id,
+          content: interruptedReply,
+          status: 'interrupted',
+          error: 'Generation interrupted',
+        );
       }
     }
   }
@@ -1177,12 +1233,14 @@ class AssistantChatService {
     required List<AssistantMessageAttachment> currentAttachments,
   }) async {
     final previous = <AssistantMessageAttachment>[];
-    for (final message in priorMessages.where((message) =>
-        message.role == 'user' && message.attachments.isNotEmpty)) {
+    for (final message in priorMessages.where(
+      (message) => message.role == 'user' && message.attachments.isNotEmpty,
+    )) {
       previous.addAll(message.attachments);
     }
-    final previousContext =
-        previous.length > 4 ? previous.sublist(previous.length - 4) : previous;
+    final previousContext = previous.length > 4
+        ? previous.sublist(previous.length - 4)
+        : previous;
     return AssistantImageAttachmentStore.instance.prepare([
       ...previousContext,
       ...currentAttachments,
@@ -1263,7 +1321,8 @@ class AssistantChatService {
       throw const FormatException('Stored proposal is invalid.');
     }
     final proposal = AssistantChangeProposal.fromJson(
-        Map<String, dynamic>.from(stored['proposal'] as Map));
+      Map<String, dynamic>.from(stored['proposal'] as Map),
+    );
     if (!approved) {
       await history.updateMessage(
         messageId,
@@ -1279,8 +1338,9 @@ class AssistantChatService {
         : const <AssistantMessageAttachment>[];
     await changeExecutor.apply(
       proposal,
-      mealPhotos:
-          attachments.map((attachment) => attachment.displayFile).toList(),
+      mealPhotos: attachments
+          .map((attachment) => attachment.displayFile)
+          .toList(),
       providerId: message.providerId,
       modelId: message.modelId,
     );
@@ -1318,7 +1378,8 @@ class AssistantChatService {
     if (proposal.sourceImageAttachmentIds.isEmpty) return const [];
     final messages = await history.messages(proposalMessage.conversationId);
     final proposalIndex = messages.indexWhere(
-        (item) => item.id == proposalMessage.id && item.role == 'assistant');
+      (item) => item.id == proposalMessage.id && item.role == 'assistant',
+    );
     if (proposalIndex < 0) throw StateError('Meal draft message not found.');
     final precedingMessages = messages.take(proposalIndex).toList();
     final userMessage = precedingMessages.lastWhere(
@@ -1367,13 +1428,9 @@ Schema and column meanings:
 $schema
 Prior query exchanges (query results are the only app records sent to you):
 ${jsonEncode([
-            for (final exchange in exchanges)
-              {
-                for (final entry in exchange.entries)
-                  if (entry.key != 'shared' && entry.key != 'audit')
-                    entry.key: entry.value,
-              },
-          ])}''';
+        for (final exchange in exchanges) {for (final entry in exchange.entries)
+            if (entry.key != 'shared' && entry.key != 'audit') entry.key: entry.value},
+      ])}''';
 
   String? _validateProposal(
     AssistantChangeProposal proposal,
@@ -1392,13 +1449,13 @@ ${jsonEncode([
     }
     final requiredCategories = switch (payload.type) {
       'routine' => {
-          AssistantDataCategory.routines,
-          AssistantDataCategory.exerciseCatalog,
-        },
+        AssistantDataCategory.routines,
+        AssistantDataCategory.exerciseCatalog,
+      },
       'plan' => {
-          AssistantDataCategory.trainingPlans,
-          AssistantDataCategory.routines,
-        },
+        AssistantDataCategory.trainingPlans,
+        AssistantDataCategory.routines,
+      },
       'recipe' => {AssistantDataCategory.recipes},
       _ => <AssistantDataCategory>{},
     };
@@ -1495,10 +1552,12 @@ ${jsonEncode([
     if (payload.type == 'recipe') {
       final items = payload.data['items'];
       if (items is! List ||
-          items.any((raw) =>
-              raw is! Map ||
-              raw['barcode'] is! String ||
-              !recipeBarcodes.contains(raw['barcode']))) {
+          items.any(
+            (raw) =>
+                raw is! Map ||
+                raw['barcode'] is! String ||
+                !recipeBarcodes.contains(raw['barcode']),
+          )) {
         return 'Every recipe ingredient must match an approved saved product or local catalog search result.';
       }
     }
@@ -1514,10 +1573,15 @@ ${jsonEncode([
       final end = access.scope['end'] as String?;
       final scope = start == null || end == null
           ? null
-          : AssistantDateScope(DateTime.parse(start), DateTime.parse(end),
-              access.scope['label'] as String? ?? 'date range');
-      final request =
-          AssistantDataRequest(categories: categories, scope: scope);
+          : AssistantDateScope(
+              DateTime.parse(start),
+              DateTime.parse(end),
+              access.scope['label'] as String? ?? 'date range',
+            );
+      final request = AssistantDataRequest(
+        categories: categories,
+        scope: scope,
+      );
       request.validate();
       return request;
     } catch (_) {
@@ -1541,20 +1605,22 @@ ${jsonEncode([
       return null;
     }
     if (!RegExp(
-            r'\b(setzen|setze|setz|stelle|stell|mache|mach|machen|aender|ändere|passe|set|make|change|update)\b')
-        .hasMatch(normalizedQuestion)) {
+      r'\b(setzen|setze|setz|stelle|stell|mache|mach|machen|aender|ändere|passe|set|make|change|update)\b',
+    ).hasMatch(normalizedQuestion)) {
       return null;
     }
     final durationMatch = RegExp(
       r'(\d+(?:[.,]\d+)?)\s*(minuten?|mins?|minutes?|sekunden?|secs?|seconds?)\b',
     ).firstMatch(normalizedQuestion);
     if (durationMatch == null) return null;
-    final amount =
-        double.tryParse(durationMatch.group(1)!.replaceAll(',', '.'));
+    final amount = double.tryParse(
+      durationMatch.group(1)!.replaceAll(',', '.'),
+    );
     if (amount == null || amount <= 0) return null;
     final unit = durationMatch.group(2)!;
-    final seconds =
-        unit.startsWith('min') ? (amount * 60).round() : amount.round();
+    final seconds = unit.startsWith('min')
+        ? (amount * 60).round()
+        : amount.round();
     if (seconds <= 0 || seconds > 3600) return null;
 
     final routineResult = targetedResults.where(
@@ -1566,8 +1632,9 @@ ${jsonEncode([
     final selected = routineResult.single.records.single;
     final localId = _routineLocalId(selected);
     if (localId == null) return null;
-    final routine =
-        await WorkoutLocalDataSource.instance.getRoutineById(localId);
+    final routine = await WorkoutLocalDataSource.instance.getRoutineById(
+      localId,
+    );
     if (routine == null || routine.exercises.isEmpty) return null;
 
     final exported = ShareLinkCodec.forRoutine(routine);
@@ -1575,18 +1642,21 @@ ${jsonEncode([
     final updatedExercises = (exported.data['exercises'] as List)
         .asMap()
         .entries
-        .map((entry) => {
-              ...Map<String, dynamic>.from(entry.value as Map),
-              'displayName': routine.exercises[entry.key].exercise
-                  .localizedNameFor(languageCode),
-              'pause': seconds,
-            })
+        .map(
+          (entry) => {
+            ...Map<String, dynamic>.from(entry.value as Map),
+            'displayName': routine.exercises[entry.key].exercise
+                .localizedNameFor(languageCode),
+            'pause': seconds,
+          },
+        )
         .toList(growable: false);
-    final payload = ShareLinkPayload.fromJson(ShareLinkPayload(
-      'routine',
-      exported.name,
-      {...exported.data, 'exercises': updatedExercises},
-    ).toJson());
+    final payload = ShareLinkPayload.fromJson(
+      ShareLinkPayload('routine', exported.name, {
+        ...exported.data,
+        'exercises': updatedExercises,
+      }).toJson(),
+    );
     final isDe = locale.toLowerCase().startsWith('de');
     final formattedDuration = seconds % 60 == 0
         ? '${seconds ~/ 60} ${isDe ? 'Minuten' : 'minutes'}'
@@ -1616,10 +1686,7 @@ ${jsonEncode([
         text.contains('which one do you mean');
   }
 
-  int? _matchNamedRecord(
-    String text,
-    List<Map<String, Object?>> records,
-  ) {
+  int? _matchNamedRecord(String text, List<Map<String, Object?>> records) {
     if (records.isEmpty) return null;
     final target = _nameTokens(text);
     if (target.isEmpty) return null;
@@ -1628,8 +1695,11 @@ ${jsonEncode([
     for (var index = 0; index < records.length; index++) {
       final candidate = _nameTokens(_recordLabel(records[index]));
       if (candidate.isEmpty ||
-          !candidate.every((nameToken) => target
-              .any((queryToken) => _sameNameToken(nameToken, queryToken)))) {
+          !candidate.every(
+            (nameToken) => target.any(
+              (queryToken) => _sameNameToken(nameToken, queryToken),
+            ),
+          )) {
         continue;
       }
       final score = candidate.length;
@@ -1735,26 +1805,29 @@ ${jsonEncode([
         .split(RegExp(r'[^a-z0-9]+'))
         .where((token) => token.isNotEmpty && !ignored.contains(token))
         .map((token) {
-      if (token == 'shoulder' || token == 'shoulders') return 'schulter';
-      if (token == 'arms') return 'arm';
-      if (token.length > 4 && token.endsWith('ern')) {
-        return '${token.substring(0, token.length - 3)}er';
-      }
-      if (token.length > 4 && token.endsWith('en')) {
-        return token.substring(0, token.length - 2);
-      }
-      if (token.length > 3 && token.endsWith('e')) {
-        return token.substring(0, token.length - 1);
-      }
-      if (token.length > 4 && token.endsWith('n')) {
-        return token.substring(0, token.length - 1);
-      }
-      return token;
-    }).toList(growable: false);
+          if (token == 'shoulder' || token == 'shoulders') return 'schulter';
+          if (token == 'arms') return 'arm';
+          if (token.length > 4 && token.endsWith('ern')) {
+            return '${token.substring(0, token.length - 3)}er';
+          }
+          if (token.length > 4 && token.endsWith('en')) {
+            return token.substring(0, token.length - 2);
+          }
+          if (token.length > 3 && token.endsWith('e')) {
+            return token.substring(0, token.length - 1);
+          }
+          if (token.length > 4 && token.endsWith('n')) {
+            return token.substring(0, token.length - 1);
+          }
+          return token;
+        })
+        .toList(growable: false);
   }
 
   String? _routineStableId(
-      AssistantActionResult result, Map<String, Object?> record) {
+    AssistantActionResult result,
+    Map<String, Object?> record,
+  ) {
     final localId = _routineLocalId(record);
     final name = record['name']?.toString().trim().toLowerCase();
     final rows = result.tables['routines'] ?? const [];
@@ -1779,8 +1852,9 @@ ${jsonEncode([
     required AssistantModelIdentity identity,
   }) async {
     final messages = await history.messages(access.conversationId);
-    final currentIndex =
-        messages.indexWhere((message) => message.id == access.messageId);
+    final currentIndex = messages.indexWhere(
+      (message) => message.id == access.messageId,
+    );
     if (currentIndex <= 0) return question;
     final previousUsers = messages
         .take(currentIndex)
@@ -1790,16 +1864,22 @@ ${jsonEncode([
     final previous = previousUsers.last.content;
     final previousUser = previousUsers.last;
     final previousUserIndex = messages.indexOf(previousUser);
-    final priorAccesses = (await history.accessForConversation(
-      access.conversationId,
-    ))
-        .where((record) =>
-            record.messageId == previousUser.id &&
-            const {'shared', 'not_shared', 'no_data'}.contains(record.status))
-        .toList();
+    final priorAccesses =
+        (await history.accessForConversation(access.conversationId))
+            .where(
+              (record) =>
+                  record.messageId == previousUser.id &&
+                  const {
+                    'shared',
+                    'not_shared',
+                    'no_data',
+                  }.contains(record.status),
+            )
+            .toList();
     final approvedCategories = access.categories.toSet();
-    final hasFreshOverlap = priorAccesses
-        .any((record) => record.categories.any(approvedCategories.contains));
+    final hasFreshOverlap = priorAccesses.any(
+      (record) => record.categories.any(approvedCategories.contains),
+    );
     AssistantMessage? priorAnswer;
     if (hasFreshOverlap) {
       for (final message
@@ -1828,7 +1908,8 @@ ${jsonEncode([
         : _proposalFromMessage(pendingDraftMessage);
     final pendingDraftProvider =
         pendingDraftMessage?.providerId ?? previousAccess?.providerId;
-    final mayReuseDraft = pendingDraft != null &&
+    final mayReuseDraft =
+        pendingDraft != null &&
         _looksLikePendingDraftEdit(question) &&
         hasFreshOverlap &&
         pendingDraftProvider == identity.providerId;
@@ -1860,19 +1941,28 @@ ${jsonEncode([
       }
     }
     if (precedingUser == null) return null;
-    final categories = accesses
-        .where((record) =>
-            record.messageId == precedingUser!.id &&
-            const {'shared', 'not_shared', 'no_data'}.contains(record.status))
-        .expand((record) => record.categories)
-        .toSet()
-        .toList()
-      ..sort();
+    final categories =
+        accesses
+            .where(
+              (record) =>
+                  record.messageId == precedingUser!.id &&
+                  const {
+                    'shared',
+                    'not_shared',
+                    'no_data',
+                  }.contains(record.status),
+            )
+            .expand((record) => record.categories)
+            .toSet()
+            .toList()
+          ..sort();
     if (categories.isEmpty) return null;
     final previousScope = accesses.reversed
-        .where((record) =>
-            record.messageId == precedingUser!.id &&
-            const {'shared', 'not_shared', 'no_data'}.contains(record.status))
+        .where(
+          (record) =>
+              record.messageId == precedingUser!.id &&
+              const {'shared', 'not_shared', 'no_data'}.contains(record.status),
+        )
         .map((record) => record.scope)
         .firstOrNull;
     final start = previousScope?['start']?.toString();
@@ -1882,7 +1972,8 @@ ${jsonEncode([
         : '';
     return {
       'role': 'assistant_context',
-      'content': 'Earlier data-backed turn: the user asked "${precedingUser.content}". '
+      'content':
+          'Earlier data-backed turn: the user asked "${precedingUser.content}". '
           'The previous answer text is withheld unless the user approves fresh data access. '
           'Categories used earlier: ${categories.join(', ')}. '
           '$scopeDescription '
@@ -1916,7 +2007,8 @@ ${jsonEncode([
     };
     return {
       'role': 'assistant_context',
-      'content': 'There is an unapplied $type draft named "${proposal.payload.name}" '
+      'content':
+          'There is an unapplied $type draft named "${proposal.payload.name}" '
           'from the immediately preceding assistant turn. The current user message '
           'appears to modify that draft. After the user approves fresh data access, '
           'request these categories as applicable: $categories. '
@@ -1926,9 +2018,9 @@ ${jsonEncode([
   }
 
   bool _looksLikePendingDraftEdit(String prompt) => RegExp(
-        r'\b(weniger|mehr|dazu|hinzu|ergänz\w*|aender\w*|änder\w*|anpass\w*|entfern\w*|streich\w*|tausch\w*|erset\w*|dafür|statt|add|remove|replace|change|adjust|modify|fewer|more|another)\b',
-        caseSensitive: false,
-      ).hasMatch(prompt);
+    r'\b(weniger|mehr|dazu|hinzu|ergänz\w*|aender\w*|änder\w*|anpass\w*|entfern\w*|streich\w*|tausch\w*|erset\w*|dafür|statt|add|remove|replace|change|adjust|modify|fewer|more|another)\b',
+    caseSensitive: false,
+  ).hasMatch(prompt);
 
   AssistantChangeProposal? _proposalFromMessage(AssistantMessage message) {
     try {
@@ -1951,8 +2043,9 @@ ${jsonEncode([
                 .hasMatch(text),
       AssistantDataCategory.routines =>
         RegExp(r'\b(routine)\b').hasMatch(text) || (_mentionsPauseChange(text)),
-      AssistantDataCategory.trainingPlans =>
-        RegExp(r'\b(training plan|trainingsplan)\b').hasMatch(text),
+      AssistantDataCategory.trainingPlans => RegExp(
+        r'\b(training plan|trainingsplan)\b',
+      ).hasMatch(text),
       AssistantDataCategory.goals => RegExp(r'\b(goal|ziel)\b').hasMatch(text),
       _ => false,
     };
@@ -1961,11 +2054,12 @@ ${jsonEncode([
   bool _mentionsPauseChange(String text) =>
       RegExp(r'\b(pause|pausen|ruhezeit|ruhezeiten|rest|breaks?)\b')
           .hasMatch(text) &&
-      RegExp(r'\b(setzen|setze|setz|stelle|stell|mache|mach|machen|aender|ändere|passe|set|make|change|update)\b')
-          .hasMatch(text);
+      RegExp(
+        r'\b(setzen|setze|setz|stelle|stell|mache|mach|machen|aender|ändere|passe|set|make|change|update)\b',
+      ).hasMatch(text);
 
   bool _explicitlyRequestsCreation(String question) => RegExp(
-        r'\b(create|make a new|new|erstelle\w*|erstell\w*|generier\w*|neu anlegen|lege\w*\s+.+\s+an|neue routine|neuen trainingsplan|neues rezept)\b',
-        caseSensitive: false,
-      ).hasMatch(question);
+    r'\b(create|make a new|new|erstelle\w*|erstell\w*|generier\w*|neu anlegen|lege\w*\s+.+\s+an|neue routine|neuen trainingsplan|neues rezept)\b',
+    caseSensitive: false,
+  ).hasMatch(question);
 }

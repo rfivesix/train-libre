@@ -133,21 +133,26 @@ class _RulerPainter extends CustomPainter {
       final major = tenths % (imperial ? 50 : 10) == 0;
       final mid = tenths % (imperial ? 10 : 5) == 0;
       final x = middle + (tickValue - value) * pixelsPerUnit;
-      final fade =
-          (math.min(x, size.width - x) / (size.width * .09)).clamp(0.0, 1.0);
-      paint.color =
-          tickColor.withValues(alpha: fade * (major || mid ? .8 : .4));
+      final fade = (math.min(x, size.width - x) / (size.width * .09)).clamp(
+        0.0,
+        1.0,
+      );
+      paint.color = tickColor.withValues(
+        alpha: fade * (major || mid ? .8 : .4),
+      );
       final height = major ? 26.0 : (mid ? 15.0 : 9.0);
       canvas.drawLine(Offset(x, 42 - height), Offset(x, 42), paint);
       // Wider accessibility labels use fewer labels, while all ticks remain.
-      final labelStride =
-          math.max(1, textScaler.scale(33) / (imperial ? 175 : 70)).ceil();
+      final labelStride = math
+          .max(1, textScaler.scale(33) / (imperial ? 175 : 70))
+          .ceil();
       if (major && (tenths ~/ (imperial ? 50 : 10)) % labelStride == 0) {
         final text = TextPainter(
           text: TextSpan(
             text: labelFormat.format(tickValue),
-            style:
-                labelStyle.copyWith(color: tickColor.withValues(alpha: fade)),
+            style: labelStyle.copyWith(
+              color: tickColor.withValues(alpha: fade),
+            ),
           ),
           textDirection: TextDirection.ltr,
           textScaler: textScaler,

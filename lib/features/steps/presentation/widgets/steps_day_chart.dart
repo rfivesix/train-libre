@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
@@ -49,14 +50,14 @@ class StepsDayChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = Localizations.localeOf(
-      context,
-    ).languageCode.toLowerCase();
+    final localeCode = Localizations.localeOf(context).languageCode
+        .toLowerCase();
     final numberFormat = NumberFormat.decimalPattern(localeCode);
     final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
     final activeHours = buckets.where((b) => b.steps > 0).length;
-    final safeGoal =
-        dailyGoal > 0 ? dailyGoal : StepsSyncService.defaultStepsGoal;
+    final safeGoal = dailyGoal > 0
+        ? dailyGoal
+        : StepsSyncService.defaultStepsGoal;
 
     StepsBucket? peakBucket;
     for (final bucket in buckets) {
@@ -81,8 +82,9 @@ class StepsDayChart extends StatelessWidget {
     const dayDrawableHeight = dayChartBottom - chartTopInset;
     final dayGoalRatio = (safeGoal / maxValue).clamp(0.0, 1.0);
     final dayGoalLineY = dayChartBottom - (dayDrawableHeight * dayGoalRatio);
-    final dayGoalLabelTop =
-        (dayGoalLineY - 10).clamp(0.0, dayChartHeight - 16).toDouble();
+    final dayGoalLabelTop = (dayGoalLineY - 10)
+        .clamp(0.0, dayChartHeight - 16)
+        .toDouble();
 
     final peakText = peakBucket == null || peakBucket.steps <= 0
         ? '-'
@@ -98,9 +100,8 @@ class StepsDayChart extends StatelessWidget {
         if (date != null)
           Text(
             DateFormat.MMMd(localeCode).format(date!),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: Theme.of(context).colorScheme.outline),
           ),
         const SizedBox(height: DesignConstants.spacingM),
         _buildTwoColumnGrid([
@@ -112,10 +113,7 @@ class StepsDayChart extends StatelessWidget {
             value: activeHours.toString(),
             label: l10n.stepsModuleActiveHours,
           ),
-          ValueSummaryCard(
-            value: peakText,
-            label: l10n.stepsModulePeakHour,
-          ),
+          ValueSummaryCard(value: peakText, label: l10n.stepsModulePeakHour),
         ]),
         const SizedBox(height: DesignConstants.spacingM),
         SizedBox(
@@ -125,9 +123,8 @@ class StepsDayChart extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   painter: HorizontalGuidePainter(
-                    lineColor: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    lineColor: Theme.of(context).colorScheme.outlineVariant
+                        .withValues(alpha: 0.5),
                     goalColor: Theme.of(context).colorScheme.primary,
                     goalRatio: (safeGoal / maxValue).clamp(0.0, 1.0),
                     leftInset: chartLeftInset,
@@ -142,22 +139,23 @@ class StepsDayChart extends StatelessWidget {
                 child: Text(
                   compactAxisLabel(maxValue),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Positioned(
                 left: 0,
-                top: ((160 - chartBottomInset - chartTopInset) / 2) +
+                top:
+                    ((160 - chartBottomInset - chartTopInset) / 2) +
                     chartTopInset -
                     8,
                 child: Text(
                   compactAxisLabel((maxValue / 2).round()),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Positioned.fill(
@@ -170,45 +168,47 @@ class StepsDayChart extends StatelessWidget {
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    children: buckets.map((bucket) {
-                      final ratio = (bucket.steps / maxValue).clamp(
-                        0.0,
-                        1.0,
-                      );
-                      return Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final barHeight = constraints.maxHeight * ratio;
-                            return Align(
-                              alignment: Alignment.bottomCenter,
-                              child: bucket.steps <= 0
-                                  ? Container(
-                                      width: 4,
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.outlineVariant,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    )
-                                  : Container(
-                                      width: 6,
-                                      height: barHeight,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        borderRadius: BorderRadius.circular(
-                                          4,
+                    children: buckets
+                        .map((bucket) {
+                          final ratio = (bucket.steps / maxValue).clamp(
+                            0.0,
+                            1.0,
+                          );
+                          return Expanded(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final barHeight = constraints.maxHeight * ratio;
+                                return Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: bucket.steps <= 0
+                                      ? Container(
+                                          width: 4,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .outlineVariant,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        )
+                                      : Container(
+                                          width: 6,
+                                          height: barHeight,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                            );
-                          },
-                        ),
-                      );
-                    }).toList(growable: false),
+                                );
+                              },
+                            ),
+                          );
+                        })
+                        .toList(growable: false),
                   ),
                 ),
               ),
@@ -222,32 +222,32 @@ class StepsDayChart extends StatelessWidget {
                     Text(
                       '00',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     Text(
                       '06',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     Text(
                       '12',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     Text(
                       '18',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     Text(
                       '24',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                   ],
                 ),

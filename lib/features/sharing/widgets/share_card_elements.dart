@@ -152,9 +152,7 @@ class _MetricTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
+                color: Theme.of(context).colorScheme.onSurface
                     .withValues(alpha: 0.58),
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
@@ -288,9 +286,7 @@ class _RoutinePill extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
+                color: Theme.of(context).colorScheme.onSurface
                     .withValues(alpha: 0.62),
                 fontSize: 25,
                 height: 1.05,
@@ -382,9 +378,7 @@ class _MuscleVolumePill extends StatelessWidget {
             child: LinearProgressIndicator(
               value: ratio.clamp(0.0, 1.0),
               minHeight: 10,
-              backgroundColor: Theme.of(context)
-                  .colorScheme
-                  .onSurface
+              backgroundColor: Theme.of(context).colorScheme.onSurface
                   .withValues(alpha: 0.1),
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -470,8 +464,8 @@ class _TrainLibreFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted =
-        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = Theme.of(context).colorScheme.onSurface
+        .withValues(alpha: 0.6);
     return Row(
       children: [
         SizedBox(

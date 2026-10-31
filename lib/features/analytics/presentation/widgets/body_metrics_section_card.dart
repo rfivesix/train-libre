@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../util/design_constants.dart';
 
 import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -105,11 +107,11 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 ),
                 ValueSummaryCard(
                   label: l10n.analyticsWeightTrendLabel(
-                      unitService.suffixFor(UnitDimension.weight)),
+                    unitService.suffixFor(UnitDimension.weight),
+                  ),
                   value: body == null
                       ? l10n.analyticsTrendUnclear
-                      : StatisticsPresentationFormatter
-                          .bodyNutritionTrendDirectionLabel(
+                      : StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
                           l10n,
                           body.weightTrend.direction,
                         ),
@@ -120,8 +122,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   label: l10n.analyticsCaloriesTrendLabel,
                   value: body == null
                       ? l10n.analyticsTrendUnclear
-                      : StatisticsPresentationFormatter
-                          .bodyNutritionTrendDirectionLabel(
+                      : StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
                           l10n,
                           body.calorieTrend.direction,
                         ),
@@ -130,10 +131,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 ),
               ]),
               const SizedBox(height: 10),
-              Text(
-                relationship,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(relationship, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: DesignConstants.spacingS),
               Wrap(
                 spacing: DesignConstants.spacingM,
@@ -143,7 +141,8 @@ class BodyMetricsSectionCard extends StatelessWidget {
                     context,
                     color: Theme.of(context).colorScheme.primary,
                     label: l10n.analyticsBodyNutritionTotalWeightLabel(
-                        unitService.suffixFor(UnitDimension.weight)),
+                      unitService.suffixFor(UnitDimension.weight),
+                    ),
                     shape: BoxShape.circle,
                   ),
                   _legendDot(
@@ -169,9 +168,8 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 body == null
                     ? confidenceLabel
                     : '$confidenceLabel • ${l10n.analyticsBasedOnDataCoverage(body.weightDays, body.loggedCalorieDays)}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                style: Theme.of(context).textTheme.labelSmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
             ],
           ),
@@ -219,17 +217,17 @@ class BodyMetricsSectionCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             shape: shape,
-            borderRadius:
-                shape == BoxShape.rectangle ? BorderRadius.circular(2) : null,
+            borderRadius: shape == BoxShape.rectangle
+                ? BorderRadius.circular(2)
+                : null,
           ),
         ),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
       ],

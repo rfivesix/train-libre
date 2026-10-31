@@ -14,34 +14,35 @@ class AiMealValidationEngine {
   late final AiFoodMatchLoader _matchLoader;
   final Map<String, Future<List<FoodItem>>> _matchCache = {};
 
-  AiMealValidationEngine({
-    AiFoodMatchLoader? matchLoader,
-  }) {
+  AiMealValidationEngine({AiFoodMatchLoader? matchLoader}) {
     if (matchLoader != null) {
       _matchLoader = matchLoader;
     } else {
       final session = ProductLocalDataSource.instance.createAiSearchSession();
       _matchLoader = (item) => defaultMatchLoader(
-            item,
-            aiSession: session,
-            includeOff: item.canSearchOff,
-          );
+        item,
+        aiSession: session,
+        includeOff: item.canSearchOff,
+      );
     }
   }
 
   String _itemCacheKey(AiMealCandidateItem item) => jsonEncode([
-        item.name,
-        item.matchedBarcode,
-        item.catalogSearchTerm,
-        item.searchTerms,
-        item.isPackagedProduct,
-        item.allowOffFallback,
-        item.selectedFood?.barcode,
-        item.selectedFood?.id,
-      ]);
+    item.name,
+    item.matchedBarcode,
+    item.catalogSearchTerm,
+    item.searchTerms,
+    item.isPackagedProduct,
+    item.allowOffFallback,
+    item.selectedFood?.barcode,
+    item.selectedFood?.id,
+  ]);
 
-  static Future<List<FoodItem>> defaultMatchLoader(AiMealCandidateItem item,
-      {AiCatalogSearchSession? aiSession, bool includeOff = false}) async {
+  static Future<List<FoodItem>> defaultMatchLoader(
+    AiMealCandidateItem item, {
+    AiCatalogSearchSession? aiSession,
+    bool includeOff = false,
+  }) async {
     if (item.selectedFood case final selected?) return [selected];
     final helper = ProductLocalDataSource.instance;
     final matches = <FoodItem>[];
@@ -94,10 +95,12 @@ class AiMealValidationEngine {
       for (var i = start; i < end; i++) {
         final item = items[i];
         final matches = matchesByItem[i - start]
-            .where((food) =>
-                food.source != FoodItemSource.off ||
-                item.canSearchOff ||
-                identical(food, item.selectedFood))
+            .where(
+              (food) =>
+                  food.source != FoodItemSource.off ||
+                  item.canSearchOff ||
+                  identical(food, item.selectedFood),
+            )
             .toList(growable: false);
         final match = _evaluateMatch(item, matches);
         final nutrition = match.bestMatch == null
@@ -144,15 +147,14 @@ class AiMealValidationEngine {
       for (final item in validatedItems) ...item.issues,
     ];
     final score = _computeValidationScore(allIssues, macroFit);
-    final passed = _isGoodEnough(
+    final passed =
+        _isGoodEnough(
           issues: allIssues,
           score: score,
           macroFit: macroFit,
           mode: mode,
         ) &&
-        !allIssues.any(
-          (issue) => issue.code == 'ambiguous_nutrition_match',
-        );
+        !allIssues.any((issue) => issue.code == 'ambiguous_nutrition_match');
 
     return AiValidationResult(
       candidate: normalized.candidate,
@@ -298,9 +300,7 @@ class AiMealValidationEngine {
 class AiRepairOrchestrator {
   final AiMealValidationEngine validationEngine;
 
-  const AiRepairOrchestrator({
-    required this.validationEngine,
-  });
+  const AiRepairOrchestrator({required this.validationEngine});
 
   Future<AiRepairOutcome> run({
     required AiMealCandidate initialCandidate,
@@ -310,13 +310,17 @@ class AiRepairOrchestrator {
     AiMacroTargetContext? targetContext,
     int maxPasses = maxRepairPasses,
     void Function(
-            int round, AiValidationResult result, int durationMilliseconds)?
-        onRepairValidation,
+      int round,
+      AiValidationResult result,
+      int durationMilliseconds,
+    )?
+    onRepairValidation,
     void Function(AiValidationResult result, int durationMilliseconds)?
-        onFallbackValidation,
+    onFallbackValidation,
   }) async {
     var candidate = initialCandidate;
-    var validation = initialValidation ??
+    var validation =
+        initialValidation ??
         await validationEngine.validateMealCandidate(
           candidate: candidate,
           mode: mode,
@@ -343,18 +347,26 @@ class AiRepairOrchestrator {
         repairPasses < maxPasses) {
       // Work from the normalized item list so repair indices match validation.
       // Eligibility travels with the item even if repair changes its wording.
-      final needsCatalogRefresh = validation.items.any((item) =>
-          item.needsCatalogRepair &&
-          (!item.candidate.canSearchOff ||
-              item.candidate.selectedFood != null));
-      candidate = validation.candidate.copyWith(items: [
-        for (final item in validation.items)
-          item.candidate.copyWith(
-            allowOffFallback: item.candidate.allowOffFallback ||
-                (item.needsCatalogRepair && !item.candidate.isPackagedProduct),
-            selectedFood: item.needsCatalogRepair ? null : item.match.bestMatch,
-          ),
-      ]);
+      final needsCatalogRefresh = validation.items.any(
+        (item) =>
+            item.needsCatalogRepair &&
+            (!item.candidate.canSearchOff ||
+                item.candidate.selectedFood != null),
+      );
+      candidate = validation.candidate.copyWith(
+        items: [
+          for (final item in validation.items)
+            item.candidate.copyWith(
+              allowOffFallback:
+                  item.candidate.allowOffFallback ||
+                  (item.needsCatalogRepair &&
+                      !item.candidate.isPackagedProduct),
+              selectedFood: item.needsCatalogRepair
+                  ? null
+                  : item.match.bestMatch,
+            ),
+        ],
+      );
       if (needsCatalogRefresh) {
         // A previously verified selection with new catalog/state issues must
         // regain its alternatives, even if this item already used fallback.
@@ -366,7 +378,9 @@ class AiRepairOrchestrator {
         );
         validationRuns++;
         onFallbackValidation?.call(
-            validation, fallbackWatch.elapsedMilliseconds);
+          validation,
+          fallbackWatch.elapsedMilliseconds,
+        );
         candidate = validation.candidate;
         if (validation.passed && !validation.needsSemanticSelection) break;
       }
@@ -381,12 +395,15 @@ class AiRepairOrchestrator {
       validationWatch.stop();
       validationRuns++;
       onRepairValidation?.call(
-          repairPasses, validation, validationWatch.elapsedMilliseconds);
+        repairPasses,
+        validation,
+        validationWatch.elapsedMilliseconds,
+      );
     }
 
     final limitReached =
         (!validation.passed || validation.needsSemanticSelection) &&
-            repairPasses >= maxPasses;
+        repairPasses >= maxPasses;
     return AiRepairOutcome(
       validation: validation.copyWithRepairMetadata(
         repairPassesUsed: repairPasses,
@@ -396,8 +413,9 @@ class AiRepairOrchestrator {
       repairLimitReached: limitReached,
       firstPassAccepted: firstPassAccepted,
       validationRunsCount: validationRuns,
-      firstPassIssueCategories:
-          firstPassIssueCategories.toList(growable: false),
+      firstPassIssueCategories: firstPassIssueCategories.toList(
+        growable: false,
+      ),
     );
   }
 }

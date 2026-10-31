@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
@@ -10,6 +11,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SleepSettingsScreen extends StatefulWidget {
@@ -17,8 +19,8 @@ class SleepSettingsScreen extends StatefulWidget {
     super.key,
     SleepSettingsService? sleepSyncService,
     SleepPermissionController? sleepPermissionController,
-  })  : _sleepSyncService = sleepSyncService,
-        _sleepPermissionController = sleepPermissionController;
+  }) : _sleepSyncService = sleepSyncService,
+       _sleepPermissionController = sleepPermissionController;
 
   final SleepSettingsService? _sleepSyncService;
   final SleepPermissionController? _sleepPermissionController;
@@ -42,7 +44,8 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
     _ownsSleepSyncService = widget._sleepSyncService == null;
     _sleepSyncService = widget._sleepSyncService ?? SleepSyncService();
     _ownsSleepPermissionController = widget._sleepPermissionController == null;
-    _sleepPermissionController = widget._sleepPermissionController ??
+    _sleepPermissionController =
+        widget._sleepPermissionController ??
         _sleepSyncService.buildPermissionController();
     _loadSleepSettings();
   }
@@ -141,8 +144,8 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       await _sleepSyncService.setTrackingEnabled(value);
                       if (value && !wasEnabled) {
                         await _sleepPermissionController
-                            // ignore: use_build_context_synchronously
-                            .requestAccess(context);
+                        // ignore: use_build_context_synchronously
+                        .requestAccess(context);
                       }
                       await _sleepPermissionController.refresh();
                       if (!mounted) return;
@@ -163,20 +166,20 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                         Text(
                           permission.state == SleepPermissionState.ready
                               ? (Platform.isIOS
-                                  ? l10n.sleepDataStatusSubtitleIos
-                                  : l10n.sleepDataStatusSubtitle)
+                                    ? l10n.sleepDataStatusSubtitleIos
+                                    : l10n.sleepDataStatusSubtitle)
                               : (permission.state ==
-                                          SleepPermissionState.denied ||
-                                      permission.state ==
-                                          SleepPermissionState.partial
-                                  ? l10n.sleepNoPermissionSubtitle
-                                  : l10n.sleepFeatureUnavailableSubtitle),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                                            SleepPermissionState.denied ||
+                                        permission.state ==
+                                            SleepPermissionState.partial
+                                    ? l10n.sleepNoPermissionSubtitle
+                                    : l10n.sleepFeatureUnavailableSubtitle),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
@@ -184,17 +187,19 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       permission.state == SleepPermissionState.ready
                           ? LucideIcons.circle_check
                           : (permission.state == SleepPermissionState.denied ||
-                                  permission.state ==
-                                      SleepPermissionState.partial
-                              ? LucideIcons.chevron_right
-                              : _sleepStatusIcon(permission.state)),
+                                    permission.state ==
+                                        SleepPermissionState.partial
+                                ? LucideIcons.chevron_right
+                                : _sleepStatusIcon(permission.state)),
                       color: _sleepStatusColor(context, permission.state),
                     ),
-                    onTap: (permission.state == SleepPermissionState.denied ||
+                    onTap:
+                        (permission.state == SleepPermissionState.denied ||
                             permission.state == SleepPermissionState.partial)
                         ? () async {
-                            await _sleepPermissionController
-                                .requestAccess(context);
+                            await _sleepPermissionController.requestAccess(
+                              context,
+                            );
                             if (!mounted) return;
                             setState(() {});
                           }
@@ -244,17 +249,16 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                             content: Text(
                               res.success
                                   ? l10n.sleepImportFinishedSessions(
-                                      res.importedSessions)
+                                      res.importedSessions,
+                                    )
                                   : (res.message ??
-                                      l10n.sleepImportUnavailableCheckPermissions),
+                                        l10n.sleepImportUnavailableCheckPermissions),
                             ),
                           ),
                         );
                       } else if (!success) {
                         messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.snackbarImportError),
-                          ),
+                          SnackBar(content: Text(l10n.snackbarImportError)),
                         );
                       }
                       await _sleepPermissionController.refresh();

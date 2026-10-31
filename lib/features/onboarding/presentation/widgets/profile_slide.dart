@@ -48,15 +48,18 @@ class NameSlide extends StatelessWidget {
                     CircleAvatar(
                       key: ValueKey(profileService?.cacheBuster ?? 0),
                       radius: 48,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.primaryContainer,
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primaryContainer,
                       backgroundImage: profileService?.profileImagePath == null
                           ? null
                           : FileImage(File(profileService!.profileImagePath!)),
                       child: profileService?.profileImagePath == null
-                          ? Icon(LucideIcons.user_round,
+                          ? Icon(
+                              LucideIcons.user_round,
                               size: 44,
-                              color: Theme.of(context).colorScheme.primary)
+                              color: Theme.of(context).colorScheme.primary,
+                            )
                           : null,
                     ),
                     Positioned(
@@ -65,9 +68,11 @@ class NameSlide extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 16,
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        child: Icon(LucideIcons.camera,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.onPrimary),
+                        child: Icon(
+                          LucideIcons.camera,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
                       ),
                     ),
                   ],
@@ -76,18 +81,23 @@ class NameSlide extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          Text(l10n.onboardingProfilePhotoAdd,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  )),
+          Text(
+            l10n.onboardingProfilePhotoAdd,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: DesignConstants.spacingXL),
           TextField(
             key: const Key('onboarding_name_text_field'),
             controller: nameController,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
-            decoration: _inputDecoration(context,
-                label: l10n.onboardingNameLabel, icon: LucideIcons.user),
+            decoration: _inputDecoration(
+              context,
+              label: l10n.onboardingNameLabel,
+              icon: LucideIcons.user,
+            ),
           ),
         ],
       ),
@@ -119,46 +129,57 @@ class BioDataSlide extends StatelessWidget {
       pageKey: const Key('onboarding_bio_data_page'),
       title: l10n.onboardingAgeTitle,
       subtitle: l10n.onboardingBioDataInfo,
-      child: Column(children: [
-        InkWell(
-          onTap: () async {
-            final picked = await showAdaptiveDatePicker(
-              context: context,
-              initialDate: selectedDate ?? DateTime(2000),
-              firstDate: DateTime(1900),
-              lastDate: DateTime.now(),
-              initialView: AdaptiveDatePickerView.wheel,
-            );
-            if (picked != null) onSelectDate(picked);
-          },
-          child: InputDecorator(
-            decoration: _inputDecoration(context,
-                    label: l10n.onboardingDobLabel, icon: LucideIcons.cake)
-                .copyWith(errorText: dobError),
-            child: Text(
-              selectedDate == null
-                  ? l10n.onboardingDobPlaceholder
-                  : DateFormat.yMMMd(Localizations.localeOf(context).toString())
-                      .format(selectedDate!),
-              style: const TextStyle(fontSize: 16),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () async {
+              final picked = await showAdaptiveDatePicker(
+                context: context,
+                initialDate: selectedDate ?? DateTime(2000),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+                initialView: AdaptiveDatePickerView.wheel,
+              );
+              if (picked != null) onSelectDate(picked);
+            },
+            child: InputDecorator(
+              decoration: _inputDecoration(
+                context,
+                label: l10n.onboardingDobLabel,
+                icon: LucideIcons.cake,
+              ).copyWith(errorText: dobError),
+              child: Text(
+                selectedDate == null
+                    ? l10n.onboardingDobPlaceholder
+                    : DateFormat.yMMMd(
+                        Localizations.localeOf(context).toString(),
+                      ).format(selectedDate!),
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
-        PlatformAdaptiveDropdownFormField<String>(
-          key: const Key('onboarding_gender_dropdown'),
-          initialValue: selectedGender,
-          errorText: genderError,
-          decoration: _inputDecoration(context,
-              label: l10n.onboardingGenderLabel, icon: LucideIcons.user_round),
-          items: [
-            DropdownMenuItem(value: 'male', child: Text(l10n.genderMale)),
-            DropdownMenuItem(value: 'female', child: Text(l10n.genderFemale)),
-            DropdownMenuItem(value: 'diverse', child: Text(l10n.genderDiverse)),
-          ],
-          onChanged: onSelectGender,
-        ),
-      ]),
+          const SizedBox(height: DesignConstants.spacingL),
+          PlatformAdaptiveDropdownFormField<String>(
+            key: const Key('onboarding_gender_dropdown'),
+            initialValue: selectedGender,
+            errorText: genderError,
+            decoration: _inputDecoration(
+              context,
+              label: l10n.onboardingGenderLabel,
+              icon: LucideIcons.user_round,
+            ),
+            items: [
+              DropdownMenuItem(value: 'male', child: Text(l10n.genderMale)),
+              DropdownMenuItem(value: 'female', child: Text(l10n.genderFemale)),
+              DropdownMenuItem(
+                value: 'diverse',
+                child: Text(l10n.genderDiverse),
+              ),
+            ],
+            onChanged: onSelectGender,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -183,8 +204,9 @@ class _HeightSlideState extends State<HeightSlide> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (widget.heightController.text.trim().isEmpty) {
-      widget.heightController.text =
-          context.read<UnitService>().isImperial ? '67' : '170';
+      widget.heightController.text = context.read<UnitService>().isImperial
+          ? '67'
+          : '170';
     }
   }
 
@@ -205,41 +227,47 @@ class _HeightSlideState extends State<HeightSlide> {
       pageKey: const Key('onboarding_height_page'),
       title: l10n.onboardingHeightTitle,
       subtitle: l10n.onboardingHeightSubtitle,
-      child: Column(children: [
-        Text('${current.toStringAsFixed(0)} $suffix',
+      child: Column(
+        children: [
+          Text(
+            '${current.toStringAsFixed(0)} $suffix',
             style: Theme.of(context).textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.primary,
               fontFeatures: const [FontFeature.tabularFigures()],
-            )),
-        const SizedBox(height: DesignConstants.spacingL),
-        SizedBox(
-          height: 320,
-          child: _VerticalHeightRuler(
-            value: current,
-            min: min,
-            max: max,
-            onChanged: (value) {
-              widget.heightController.text = value.toStringAsFixed(1);
-              setState(() {});
-            },
-            onChangeEnd: (value) {
-              widget.heightController.text = value.toStringAsFixed(0);
-              setState(() {});
-            },
+            ),
           ),
-        ),
-        if (widget.heightError != null || widget.heightWarning != null) ...[
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(widget.heightError ?? widget.heightWarning!,
+          const SizedBox(height: DesignConstants.spacingL),
+          SizedBox(
+            height: 320,
+            child: _VerticalHeightRuler(
+              value: current,
+              min: min,
+              max: max,
+              onChanged: (value) {
+                widget.heightController.text = value.toStringAsFixed(1);
+                setState(() {});
+              },
+              onChangeEnd: (value) {
+                widget.heightController.text = value.toStringAsFixed(0);
+                setState(() {});
+              },
+            ),
+          ),
+          if (widget.heightError != null || widget.heightWarning != null) ...[
+            const SizedBox(height: DesignConstants.spacingS),
+            Text(
+              widget.heightError ?? widget.heightWarning!,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: widget.heightError != null
-                        ? Theme.of(context).colorScheme.error
-                        : Colors.orange.shade800,
-                  )),
+                color: widget.heightError != null
+                    ? Theme.of(context).colorScheme.error
+                    : Colors.orange.shade800,
+              ),
+            ),
+          ],
         ],
-      ]),
+      ),
     );
   }
 }
@@ -282,10 +310,12 @@ class _VerticalHeightRulerState extends State<_VerticalHeightRuler> {
     return Semantics(
       label: AppLocalizations.of(context)!.onboardingHeightLabel,
       value: widget.value.toStringAsFixed(0),
-      increasedValue:
-          (widget.value + 1).clamp(widget.min, widget.max).toStringAsFixed(0),
-      decreasedValue:
-          (widget.value - 1).clamp(widget.min, widget.max).toStringAsFixed(0),
+      increasedValue: (widget.value + 1)
+          .clamp(widget.min, widget.max)
+          .toStringAsFixed(0),
+      decreasedValue: (widget.value - 1)
+          .clamp(widget.min, widget.max)
+          .toStringAsFixed(0),
       onIncrease: () => _update(widget.value + 1),
       onDecrease: () => _update(widget.value - 1),
       child: GestureDetector(
@@ -339,8 +369,11 @@ class _VerticalRulerPainter extends CustomPainter {
       final fade = (1 - ((y - center).abs() / center)).clamp(0.0, 1.0);
       paint.color = tickColor.withValues(alpha: fade * (isMajor ? .8 : .4));
       final length = isMajor ? 46.0 : 26.0;
-      canvas.drawLine(Offset(size.width / 2 - length / 2, y),
-          Offset(size.width / 2 + length / 2, y), paint);
+      canvas.drawLine(
+        Offset(size.width / 2 - length / 2, y),
+        Offset(size.width / 2 + length / 2, y),
+        paint,
+      );
       if (isMajor) {
         final label = TextPainter(
           text: TextSpan(
@@ -360,8 +393,11 @@ class _VerticalRulerPainter extends CustomPainter {
     paint
       ..color = markerColor
       ..strokeWidth = 3;
-    canvas.drawLine(Offset(size.width / 2 - 58, center),
-        Offset(size.width / 2 + 58, center), paint);
+    canvas.drawLine(
+      Offset(size.width / 2 - 58, center),
+      Offset(size.width / 2 + 58, center),
+      paint,
+    );
   }
 
   @override
@@ -387,33 +423,41 @@ class _OnboardingStepPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-        key: pageKey,
-        padding: const EdgeInsets.all(DesignConstants.spacingXL),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SizedBox(height: DesignConstants.spacingXL),
-          Text(title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  )),
-          if (subtitle != null) ...[
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(subtitle!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    )),
-          ],
-          const SizedBox(height: DesignConstants.spacingXL),
-          child,
-        ]),
-      );
+    key: pageKey,
+    padding: const EdgeInsets.all(DesignConstants.spacingXL),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: DesignConstants.spacingXL),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(
+            subtitle!,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: DesignConstants.spacingXL),
+        child,
+      ],
+    ),
+  );
 }
 
-InputDecoration _inputDecoration(BuildContext context,
-        {required String label, required IconData icon}) =>
-    InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-      ),
-    );
+InputDecoration _inputDecoration(
+  BuildContext context, {
+  required String label,
+  required IconData icon,
+}) => InputDecoration(
+  labelText: label,
+  prefixIcon: Icon(icon),
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+  ),
+);

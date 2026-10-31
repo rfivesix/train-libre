@@ -1,4 +1,5 @@
 import "package:provider/provider.dart";
+
 import "../../services/unit_service.dart";
 
 import 'dart:io';
@@ -23,13 +24,16 @@ import 'workout_share_formatter.dart';
 import 'share_link_codec.dart';
 import 'share_link_repository.dart';
 import 'share_export_formatter.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'dart:async';
+
 import '../../services/telemetry/telemetry_service.dart';
 
 class ShareService {
   const ShareService({ShareCardRenderer renderer = const ShareCardRenderer()})
-      : _renderer = renderer;
+    : _renderer = renderer;
 
   final ShareCardRenderer _renderer;
 
@@ -45,10 +49,8 @@ class ShareService {
         GlassMenuAction(
           icon: LucideIcons.image,
           label: l10n.shareAsImage,
-          onTap: () => _showWorkoutImageLayoutSheet(
-            context: context,
-            workout: workout,
-          ),
+          onTap: () =>
+              _showWorkoutImageLayoutSheet(context: context, workout: workout),
         ),
         GlassMenuAction(
           icon: LucideIcons.text_initial,
@@ -58,10 +60,8 @@ class ShareService {
         GlassMenuAction(
           icon: LucideIcons.file_text,
           label: l10n.sharePortableJson,
-          onTap: () => _showJsonActions(
-            context,
-            ShareLinkCodec.forWorkout(workout),
-          ),
+          onTap: () =>
+              _showJsonActions(context, ShareLinkCodec.forWorkout(workout)),
         ),
       ],
     );
@@ -99,8 +99,11 @@ class ShareService {
     required BuildContext context,
     required Routine routine,
   }) async {
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.routineShared));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.routineShared,
+      ),
+    );
     final l10n = AppLocalizations.of(context)!;
     final payload = ShareLinkCodec.forRoutine(routine);
     await showGlassBottomMenu<void>(
@@ -116,10 +119,8 @@ class ShareService {
         GlassMenuAction(
           icon: LucideIcons.image,
           label: l10n.shareAsImage,
-          onTap: () => _showRoutineImageLayoutSheet(
-            context: context,
-            routine: routine,
-          ),
+          onTap: () =>
+              _showRoutineImageLayoutSheet(context: context, routine: routine),
         ),
         GlassMenuAction(
           icon: LucideIcons.text_initial,
@@ -185,7 +186,9 @@ class ShareService {
   }
 
   Future<void> _sharePortableText(
-      BuildContext context, ShareLinkPayload payload) async {
+    BuildContext context,
+    ShareLinkPayload payload,
+  ) async {
     final text = ShareExportFormatter.format(
       payload,
       AppLocalizations.of(context)!,
@@ -196,7 +199,9 @@ class ShareService {
   }
 
   Future<void> _showJsonActions(
-      BuildContext context, ShareLinkPayload payload) async {
+    BuildContext context,
+    ShareLinkPayload payload,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     late final String content;
     try {
@@ -215,9 +220,8 @@ class ShareService {
           onTap: () async {
             await Clipboard.setData(ClipboardData(text: content));
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.shareJsonCopied)),
-              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(l10n.shareJsonCopied)));
             }
           },
         ),
@@ -231,17 +235,23 @@ class ShareService {
   }
 
   Future<void> _shareJsonFile(
-      BuildContext context, ShareLinkPayload payload, String content) async {
+    BuildContext context,
+    ShareLinkPayload payload,
+    String content,
+  ) async {
     try {
       final directory = await getTemporaryDirectory();
       final file = File(
-          '${directory.path}/train-libre-${payload.type}-${DateTime.now().microsecondsSinceEpoch}.json');
+        '${directory.path}/train-libre-${payload.type}-${DateTime.now().microsecondsSinceEpoch}.json',
+      );
       await file.writeAsString(content);
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'application/json')],
-        subject: payload.name,
-        sharePositionOrigin: _sharePositionOrigin(),
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'application/json')],
+          subject: payload.name,
+          sharePositionOrigin: _sharePositionOrigin(),
+        ),
+      );
     } catch (_) {
       if (context.mounted) _showLinkError(context);
     }
@@ -332,8 +342,10 @@ class ShareService {
     required WorkoutLog workout,
   }) async {
     final unitService = context.read<UnitService>();
-    final labels =
-        ShareLabels.fromL10n(AppLocalizations.of(context)!, unitService);
+    final labels = ShareLabels.fromL10n(
+      AppLocalizations.of(context)!,
+      unitService,
+    );
     final locale = Localizations.localeOf(context).toString();
     final details = await _loadExerciseDetails(workout);
     final text = WorkoutShareFormatter(
@@ -395,9 +407,8 @@ class ShareService {
       );
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
       }
       if (context.mounted) {
         await shareWorkoutAsText(context: context, workout: workout);
@@ -428,16 +439,11 @@ class ShareService {
         unitService,
         locale,
       );
-      await _shareImage(
-        file,
-        subject: routine.name,
-        text: formattedText,
-      );
+      await _shareImage(file, subject: routine.name, text: formattedText);
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
       }
       if (context.mounted) {
         await shareRoutineAsText(context: context, routine: routine);
@@ -470,8 +476,8 @@ class ShareService {
     final details = <String, Exercise>{};
     for (final set in workout.sets) {
       if (details.containsKey(set.exerciseName)) continue;
-      final exercise =
-          await WorkoutLocalDataSource.instance.resolveExerciseForSetLog(set);
+      final exercise = await WorkoutLocalDataSource.instance
+          .resolveExerciseForSetLog(set);
       if (exercise != null) {
         details[set.exerciseName] = exercise;
       }

@@ -49,8 +49,8 @@ extension AiNetwork on AiService {
   /// how the list ends up frozen at one generation.
   String _normalizeOpenAiModelId(String modelId) {
     final lower = modelId.toLowerCase();
-    final match =
-        RegExp(r'^([a-z0-9.\-]+?)-\d{4}-\d{2}-\d{2}$').firstMatch(lower);
+    final match = RegExp(r'^([a-z0-9.\-]+?)-\d{4}-\d{2}-\d{2}$')
+        .firstMatch(lower);
     if (match != null) return match.group(1)!;
     return modelId;
   }
@@ -83,7 +83,8 @@ extension AiNetwork on AiService {
     if (provider != AiProvider.openai) {
       return const {'max_tokens': 2000};
     }
-    final isLegacyFamily = id.startsWith('gpt-3') ||
+    final isLegacyFamily =
+        id.startsWith('gpt-3') ||
         id.startsWith('gpt-4') ||
         id.startsWith('text-') ||
         id.startsWith('davinci') ||
@@ -146,11 +147,7 @@ extension AiNetwork on AiService {
       );
       final timeoutSeconds = await getAiTimeoutSeconds();
       final response = await http
-          .post(
-            uri,
-            headers: {'Content-Type': 'application/json'},
-            body: body,
-          )
+          .post(uri, headers: {'Content-Type': 'application/json'}, body: body)
           .timeout(Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200) {
@@ -159,9 +156,10 @@ extension AiNetwork on AiService {
       }
       lastResponse = response;
 
-      final message =
-          (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
-      final retryAnotherRoute = response.statusCode == 404 ||
+      final message = (_extractProviderErrorMessage(response.body) ?? '')
+          .toLowerCase();
+      final retryAnotherRoute =
+          response.statusCode == 404 ||
           (response.statusCode == 400 &&
               (message.contains('model') || message.contains('version')));
       if (!retryAnotherRoute) {
@@ -222,8 +220,8 @@ extension AiNetwork on AiService {
           )
           .timeout(Duration(seconds: timeoutSeconds));
       if (structuredOutput && response.statusCode == 400) {
-        final message =
-            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        final message = (_extractProviderErrorMessage(response.body) ?? '')
+            .toLowerCase();
         if (message.contains('output_config') || message.contains('schema')) {
           request.remove('output_config');
           response = await http
@@ -252,8 +250,9 @@ extension AiNetwork on AiService {
         throw const AiParseException();
       }
       final textPart = contentList.cast<Map<String, dynamic>>().firstWhere(
-          (e) => e['type'] == 'text',
-          orElse: () => <String, dynamic>{});
+        (e) => e['type'] == 'text',
+        orElse: () => <String, dynamic>{},
+      );
       final text = textPart['text'] as String?;
       if (text == null || text.isEmpty) throw const AiParseException();
       return _AiRawResponse(text, _anthropicUsage(json));
@@ -339,7 +338,7 @@ extension AiNetwork on AiService {
           'type': 'json_schema',
           'json_schema': {
             'name': 'meal_capture',
-            'schema': _AiPrompts.mealSchema
+            'schema': _AiPrompts.mealSchema,
           },
         },
     };
@@ -357,8 +356,8 @@ extension AiNetwork on AiService {
           )
           .timeout(Duration(seconds: timeoutSeconds));
       if (structuredOutput && response.statusCode == 400) {
-        final message =
-            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        final message = (_extractProviderErrorMessage(response.body) ?? '')
+            .toLowerCase();
         if (message.contains('response_format') || message.contains('schema')) {
           request.remove('response_format');
           response = await http
@@ -426,22 +425,18 @@ extension AiNetwork on AiService {
   /// because they are single-purpose (code).
   static const Map<AiProvider, List<String>> _providerExcludedTokens =
       <AiProvider, List<String>>{
-    AiProvider.openai: <String>[
-      'codex', // code-only
-      'deep-research', // async research endpoint, not chat/completions
-      'computer-use', // needs the tool-use loop
-      'search', // server-side web search; also refuses `temperature`
-    ],
-    AiProvider.gemini: <String>[
-      'aqa', // attributed-question-answering endpoint
-      'learnlm', // experimental education tuning
-    ],
-    AiProvider.mistral: <String>[
-      'codestral',
-      'devstral',
-      'leanstral',
-    ],
-  };
+        AiProvider.openai: <String>[
+          'codex', // code-only
+          'deep-research', // async research endpoint, not chat/completions
+          'computer-use', // needs the tool-use loop
+          'search', // server-side web search; also refuses `temperature`
+        ],
+        AiProvider.gemini: <String>[
+          'aqa', // attributed-question-answering endpoint
+          'learnlm', // experimental education tuning
+        ],
+        AiProvider.mistral: <String>['codestral', 'devstral', 'leanstral'],
+      };
 
   bool _isChatCapableModelId(AiProvider provider, String modelId) {
     if (modelId.isEmpty) return false;
@@ -469,8 +464,10 @@ extension AiNetwork on AiService {
     http.Response response;
     try {
       final timeoutSeconds = await getAiTimeoutSeconds();
-      response = await _httpGet(uri, headers: headers)
-          .timeout(Duration(seconds: timeoutSeconds));
+      response = await _httpGet(
+        uri,
+        headers: headers,
+      ).timeout(Duration(seconds: timeoutSeconds));
     } on TimeoutException {
       return const AiModelIdsFetch.failure(
         AiModelListError(AiModelListErrorKind.timeout),
@@ -656,10 +653,7 @@ extension AiNetwork on AiService {
   Future<AiModelIdsFetch> _loadAnthropicModels(String apiKey) {
     return _fetchModelIds(
       uri: Uri.parse('https://api.anthropic.com/v1/models'),
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
+      headers: {'x-api-key': apiKey, 'anthropic-version': '2023-06-01'},
       parse: (json) {
         final data = json['data'] as List<dynamic>? ?? const [];
         return data
@@ -692,7 +686,8 @@ extension AiNetwork on AiService {
     // - o-series: o1, o3, o4, etc.
     // - gpt-5.6+ and specialized variants: -luna, -terra, -sol
     // - reasoning / thinking variants
-    final isFixedTemperature = id.startsWith('o1') ||
+    final isFixedTemperature =
+        id.startsWith('o1') ||
         id.startsWith('o3') ||
         id.startsWith('o4') ||
         id.contains('-luna') ||
@@ -724,8 +719,10 @@ extension AiNetwork on AiService {
     }
     contentParts.add({'type': 'text', 'text': userContent});
 
-    final sendTemperature =
-        _openAiSupportsCustomTemperature(effectiveModel, provider: provider);
+    final sendTemperature = _openAiSupportsCustomTemperature(
+      effectiveModel,
+      provider: provider,
+    );
     final isReasoningModel = !sendTemperature && provider == AiProvider.openai;
 
     final requestMap = <String, dynamic>{
@@ -762,11 +759,7 @@ extension AiNetwork on AiService {
     try {
       final timeoutSeconds = await getAiTimeoutSeconds();
       var response = await http
-          .post(
-            Uri.parse(endpoint),
-            headers: headers,
-            body: body,
-          )
+          .post(Uri.parse(endpoint), headers: headers, body: body)
           .timeout(Duration(seconds: timeoutSeconds));
 
       // Automatic fallback retry for any model rejecting custom temperature
@@ -791,9 +784,9 @@ extension AiNetwork on AiService {
         final message = _extractProviderErrorMessage(response.body);
         if (message != null &&
             (message.toLowerCase().contains('reasoning_effort') ||
-                message
-                    .toLowerCase()
-                    .contains('unrecognized request argument'))) {
+                message.toLowerCase().contains(
+                  'unrecognized request argument',
+                ))) {
           final retryMap = Map<String, dynamic>.from(requestMap)
             ..remove('reasoning_effort');
           response = await http
@@ -807,8 +800,8 @@ extension AiNetwork on AiService {
       }
 
       if (structuredOutput && response.statusCode == 400) {
-        final message =
-            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        final message = (_extractProviderErrorMessage(response.body) ?? '')
+            .toLowerCase();
         if (message.contains('response_format') || message.contains('schema')) {
           final retryMap = Map<String, dynamic>.from(requestMap)
             ..remove('response_format');
@@ -895,9 +888,7 @@ extension AiNetwork on AiService {
         'temperature': temperature,
         'maxOutputTokens': 8192,
         if (model.toLowerCase().startsWith('gemini-2.5-flash'))
-          'thinkingConfig': {
-            'thinkingBudget': 0,
-          },
+          'thinkingConfig': {'thinkingBudget': 0},
         if (structuredOutput) ...{
           'responseMimeType': 'application/json',
           'responseJsonSchema': _AiPrompts.mealSchema,
@@ -912,17 +903,19 @@ extension AiNetwork on AiService {
         body: jsonEncode(request),
       );
       if (response.statusCode == 400 &&
-          (request['generationConfig'] as Map<String, dynamic>)
-              .containsKey('thinkingConfig')) {
-        final message =
-            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+          (request['generationConfig'] as Map<String, dynamic>).containsKey(
+            'thinkingConfig',
+          )) {
+        final message = (_extractProviderErrorMessage(response.body) ?? '')
+            .toLowerCase();
         if (message.contains('thinkingconfig') ||
             message.contains('thinkingbudget') ||
             message.contains('thinking') ||
             message.contains('unknown field') ||
             message.contains('invalid argument')) {
-          (request['generationConfig'] as Map<String, dynamic>)
-              .remove('thinkingConfig');
+          (request['generationConfig'] as Map<String, dynamic>).remove(
+            'thinkingConfig',
+          );
           response = await _postGeminiGenerateContent(
             apiKey: apiKey,
             model: model,
@@ -931,8 +924,8 @@ extension AiNetwork on AiService {
         }
       }
       if (structuredOutput && response.statusCode == 400) {
-        final message =
-            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        final message = (_extractProviderErrorMessage(response.body) ?? '')
+            .toLowerCase();
         if (message.contains('responsejsonschema') ||
             message.contains('schema')) {
           (request['generationConfig'] as Map<String, dynamic>)

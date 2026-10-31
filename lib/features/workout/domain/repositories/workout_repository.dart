@@ -42,13 +42,17 @@ abstract class IWorkoutRepository {
     required String exerciseNameSnapshot,
   });
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
-      DateTime start, DateTime end);
+    DateTime start,
+    DateTime end,
+  );
   Stream<List<WorkoutLog>> watchFullWorkoutLogs();
   Stream<List<Routine>> watchAllRoutines();
   Stream<List<Routine>> watchAllRoutinesWithDetails();
   Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]);
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
-      DateTime start, DateTime end);
+    DateTime start,
+    DateTime end,
+  );
   Future<Routine?> getRoutineByUuid(String uuid);
   Future<void> syncRoutineWithWorkout({
     required String routineUuid,
@@ -86,8 +90,11 @@ abstract interface class ProgressionHistoryRepository {
 }
 
 abstract interface class ProgressionPrescriptionRepository {
-  Future<void> saveProgressionConfig(String prescriptionKey, String data,
-      {bool equipmentOnly = false});
+  Future<void> saveProgressionConfig(
+    String prescriptionKey,
+    String data, {
+    bool equipmentOnly = false,
+  });
   Future<void> initializeProgressionConfig(int routineExerciseId, String data);
 }
 

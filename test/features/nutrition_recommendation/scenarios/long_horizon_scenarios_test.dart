@@ -57,7 +57,8 @@ void main() {
 
       expect(
         weeks.every(
-            (week) => week.phaseState.confirmedPhase == AdaptiveDietPhase.cut),
+          (week) => week.phaseState.confirmedPhase == AdaptiveDietPhase.cut,
+        ),
         isTrue,
       );
       expect(
@@ -127,7 +128,8 @@ void main() {
 
       expect(
         weeks.every(
-            (week) => week.phaseState.confirmedPhase == AdaptiveDietPhase.bulk),
+          (week) => week.phaseState.confirmedPhase == AdaptiveDietPhase.bulk,
+        ),
         isTrue,
       );
       expect(
@@ -184,13 +186,16 @@ void main() {
       expectNoAbsurdMaintenanceJumps(weeks, maxJumpCalories: 460);
 
       expect(
-        weeks.every((week) =>
-            week.phaseState.confirmedPhase == AdaptiveDietPhase.maintain),
+        weeks.every(
+          (week) =>
+              week.phaseState.confirmedPhase == AdaptiveDietPhase.maintain,
+        ),
         isTrue,
       );
       expect(
         weeks.every(
-            (week) => week.phaseState.confirmedPhaseStartDay == firstDueWeek),
+          (week) => week.phaseState.confirmedPhaseStartDay == firstDueWeek,
+        ),
         isTrue,
       );
       expect(
@@ -198,8 +203,9 @@ void main() {
         isTrue,
       );
 
-      final firstVariance =
-          weeks.first.debugValue('posteriorVarianceCalories2');
+      final firstVariance = weeks.first.debugValue(
+        'posteriorVarianceCalories2',
+      );
       final lastVariance = weeks.last.debugValue('posteriorVarianceCalories2');
       expect(lastVariance, lessThanOrEqualTo(firstVariance * 1.20));
 
@@ -300,14 +306,16 @@ void main() {
 
         final lowOrNotEnoughWeeks = weeks
             .where(
-                (week) => confidenceRank(week.recommendation.confidence) <= 1)
+              (week) => confidenceRank(week.recommendation.confidence) <= 1,
+            )
             .length;
         expect(lowOrNotEnoughWeeks, greaterThanOrEqualTo(4));
 
         final predictionOnlyWeeks = weeks
             .where(
-              (week) => week.maintenanceEstimate.qualityFlags
-                  .contains('bayesian_prediction_only_no_observation'),
+              (week) => week.maintenanceEstimate.qualityFlags.contains(
+                'bayesian_prediction_only_no_observation',
+              ),
             )
             .toList(growable: false);
 
@@ -325,10 +333,12 @@ void main() {
           final firstPredictionWeek = predictionOnlyWeeks.first;
           final index = weeks.indexOf(firstPredictionWeek);
           if (index > 0) {
-            final previousVariance =
-                weeks[index - 1].debugValue('posteriorVarianceCalories2');
-            final predictionVariance =
-                firstPredictionWeek.debugValue('posteriorVarianceCalories2');
+            final previousVariance = weeks[index - 1].debugValue(
+              'posteriorVarianceCalories2',
+            );
+            final predictionVariance = firstPredictionWeek.debugValue(
+              'posteriorVarianceCalories2',
+            );
             expect(predictionVariance, greaterThanOrEqualTo(previousVariance));
           }
         } else {
@@ -337,50 +347,54 @@ void main() {
       });
     }
 
-    test('same-week force refresh remains deterministic and due-week anchored',
-        () async {
-      final harness = await AdaptiveScenarioHarness.create();
-      addTearDown(harness.dispose);
+    test(
+      'same-week force refresh remains deterministic and due-week anchored',
+      () async {
+        final harness = await AdaptiveScenarioHarness.create();
+        addTearDown(harness.dispose);
 
-      await harness.seedDailyHistory(
-        startDay: historyStart,
-        dayCount: historyDays,
-        startWeightKg: 88,
-        weeklyWeightChangeKg: -0.40,
-        averageIntakeCalories: 2320,
-      );
-      await harness.setGoalForDay(
-        goal: BodyweightGoal.loseWeight,
-        targetRateKgPerWeek: -0.5,
-        day: firstDueWeek,
-      );
+        await harness.seedDailyHistory(
+          startDay: historyStart,
+          dayCount: historyDays,
+          startWeightKg: 88,
+          weeklyWeightChangeKg: -0.40,
+          averageIntakeCalories: 2320,
+        );
+        await harness.setGoalForDay(
+          goal: BodyweightGoal.loseWeight,
+          targetRateKgPerWeek: -0.5,
+          day: firstDueWeek,
+        );
 
-      final replay = await harness.generateAndReplaySameDueWeek(
-        dueWeekStart: firstDueWeek,
-        onBeforeReplay: () async {
-          final inWeekDay = firstDueWeek.add(const Duration(days: 2));
-          await harness.logWeight(day: inWeekDay, weightKg: 63);
-          await harness.logIntakeCalories(day: inWeekDay, calories: 4300);
-        },
-      );
+        final replay = await harness.generateAndReplaySameDueWeek(
+          dueWeekStart: firstDueWeek,
+          onBeforeReplay: () async {
+            final inWeekDay = firstDueWeek.add(const Duration(days: 2));
+            await harness.logWeight(day: inWeekDay, weightKg: 63);
+            await harness.logIntakeCalories(day: inWeekDay, calories: 4300);
+          },
+        );
 
-      expect(replay.initial.dueWeekKey, replay.replay.dueWeekKey);
-      expect(replay.initial.dueWeekKey, dueWeekKeyFor(firstDueWeek));
-      expect(replay.replay.recommendation.windowEnd,
-          replay.initial.recommendation.windowEnd);
-      expect(
-        replay.replay.recommendation.estimatedMaintenanceCalories,
-        replay.initial.recommendation.estimatedMaintenanceCalories,
-      );
-      expect(
-        replay.replay.recommendation.recommendedCalories,
-        replay.initial.recommendation.recommendedCalories,
-      );
-      expect(
-        replay.replay.recursiveState.toJson(),
-        replay.initial.recursiveState.toJson(),
-      );
-    });
+        expect(replay.initial.dueWeekKey, replay.replay.dueWeekKey);
+        expect(replay.initial.dueWeekKey, dueWeekKeyFor(firstDueWeek));
+        expect(
+          replay.replay.recommendation.windowEnd,
+          replay.initial.recommendation.windowEnd,
+        );
+        expect(
+          replay.replay.recommendation.estimatedMaintenanceCalories,
+          replay.initial.recommendation.estimatedMaintenanceCalories,
+        );
+        expect(
+          replay.replay.recommendation.recommendedCalories,
+          replay.initial.recommendation.recommendedCalories,
+        );
+        expect(
+          replay.replay.recursiveState.toJson(),
+          replay.initial.recursiveState.toJson(),
+        );
+      },
+    );
   });
 }
 
@@ -406,10 +420,7 @@ class _NoLogGap {
   final int startOffsetDays;
   final int lengthDays;
 
-  const _NoLogGap({
-    required this.startOffsetDays,
-    required this.lengthDays,
-  });
+  const _NoLogGap({required this.startOffsetDays, required this.lengthDays});
 
   Set<DateTime> expand(DateTime historyStart) {
     return List<DateTime>.generate(

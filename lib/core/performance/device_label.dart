@@ -53,10 +53,10 @@ class DeviceLabel {
         final info = await plugin.androidInfo;
         final manufacturer = info.manufacturer.trim();
         final model = info.model.trim();
-        final label = [manufacturer, model]
-            .where((part) => part.isNotEmpty)
-            .join(' ')
-            .trim();
+        final label = [
+          manufacturer,
+          model,
+        ].where((part) => part.isNotEmpty).join(' ').trim();
         return label.isEmpty ? unavailable : label;
       }
 

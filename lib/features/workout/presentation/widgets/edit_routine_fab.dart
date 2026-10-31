@@ -8,7 +8,8 @@ class EditRoutineFab extends StatefulWidget {
     BuildContext? sourceContext,
     WidgetBuilder? sourceBuilder,
     void Function(bool hidden)? onSourceVisibilityChanged,
-  }) onPressed;
+  })
+  onPressed;
 
   const EditRoutineFab({super.key, required this.onPressed});
 
@@ -58,9 +59,9 @@ class _EditRoutineFabState extends State<EditRoutineFab>
       return const SizedBox.shrink();
     }
     Widget buildFabContent({VoidCallback? onPressed}) => GlassFab(
-          label: AppLocalizations.of(context)!.fabAddExercise,
-          onPressed: onPressed ?? () {},
-        );
+      label: AppLocalizations.of(context)!.fabAddExercise,
+      onPressed: onPressed ?? () {},
+    );
 
     return Opacity(
       opacity: _isFabHidden ? 0.0 : 1.0,

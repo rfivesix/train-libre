@@ -60,8 +60,7 @@ class _FakeSleepSettingsService implements SleepSettingsService {
     int lookbackDays = 30,
     Duration minInterval = const Duration(hours: 6),
     bool force = false,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<void> dispose() async {}
@@ -118,8 +117,9 @@ void main() {
   });
 
   group('SettingsScreen progression widget test', () {
-    testWidgets('renders training progression entry and title in German',
-        (tester) async {
+    testWidgets('renders training progression entry and title in German', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(900, 2200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -131,10 +131,12 @@ void main() {
         buildSignature: '',
       );
 
-      final sleepController =
-          SleepPermissionController(const _StubPermissionService());
-      final sleepService =
-          _FakeSleepSettingsService(controller: sleepController);
+      final sleepController = SleepPermissionController(
+        const _StubPermissionService(),
+      );
+      final sleepService = _FakeSleepSettingsService(
+        controller: sleepController,
+      );
       final autonomyService = TrainingAutonomyService();
       await autonomyService.initialize();
 
@@ -159,13 +161,17 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('settings_training_progression_entry')),
-          findsOneWidget);
+      expect(
+        find.byKey(const Key('settings_training_progression_entry')),
+        findsOneWidget,
+      );
       expect(find.text('Trainingsprogression'), findsOneWidget);
       expect(find.textContaining('Aus'), findsOneWidget);
 
-      expect(find.byKey(const Key('settings_training_experience_entry')),
-          findsOneWidget);
+      expect(
+        find.byKey(const Key('settings_training_experience_entry')),
+        findsOneWidget,
+      );
       expect(find.text('Trainingserfahrung'), findsOneWidget);
       expect(find.textContaining('Profi'), findsOneWidget);
     });

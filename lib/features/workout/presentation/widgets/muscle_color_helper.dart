@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
+
 import '../../../exercise_catalog/domain/body_slug_mapper.dart';
 
 /// Helper utility to map muscle volumes/workloads to dynamic Material Theme primary colors.
@@ -42,13 +43,11 @@ class MuscleColorHelper {
         : slugWorkload.values.reduce((a, b) => a > b ? a : b);
 
     return slugWorkload.entries.map((entry) {
-      final intensity =
-          maxVal > 0.0 ? (entry.value / maxVal * 5).ceil().clamp(1, 5) : 1;
+      final intensity = maxVal > 0.0
+          ? (entry.value / maxVal * 5).ceil().clamp(1, 5)
+          : 1;
       final color = colors[intensity - 1];
-      return BodyPartHighlightData(
-        slug: entry.key,
-        color: color,
-      );
+      return BodyPartHighlightData(slug: entry.key, color: color);
     }).toList();
   }
 }

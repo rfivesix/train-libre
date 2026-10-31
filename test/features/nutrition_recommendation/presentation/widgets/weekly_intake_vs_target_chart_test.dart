@@ -5,8 +5,9 @@ import 'package:train_libre/features/statistics/data/macro_analytics_data_adapte
 import 'package:train_libre/generated/app_localizations.dart';
 
 void main() {
-  testWidgets('renders WeeklyIntakeVsTargetChart with 7 days and target bar',
-      (tester) async {
+  testWidgets('renders WeeklyIntakeVsTargetChart with 7 days and target bar', (
+    tester,
+  ) async {
     final now = DateTime(2026, 4, 10);
     final days = List.generate(7, (i) {
       final date = now.subtract(Duration(days: 6 - i));

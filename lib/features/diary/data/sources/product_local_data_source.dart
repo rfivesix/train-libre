@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart';
+
 import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../../data/food_search_index.dart';
@@ -21,8 +22,8 @@ import '../../../../core/infrastructure/caffeine_catalog_resolver.dart';
 /// all ingredients and repair rounds. Both values stay on-device.
 class AiCatalogSearchSession {
   final ProductLocalDataSource _source;
-  late final Future<({String barcodes, String ids})> scores =
-      _source._loadRecentAiScores();
+  late final Future<({String barcodes, String ids})> scores = _source
+      ._loadRecentAiScores();
   final Map<String, Future<List<FoodItem>>> _terms = {};
   final Queue<Completer<void>> _waiting = Queue<Completer<void>>();
   int _active = 0;
@@ -31,9 +32,9 @@ class AiCatalogSearchSession {
 
   Future<List<FoodItem>> search(String term, {bool includeOff = false}) async {
     Future<List<FoodItem>> sourceSearch(bool offOnly) => _terms.putIfAbsent(
-          '${offOnly ? 'off' : 'base'}:${FoodNameMatching.normalize(term)}',
-          () => _runBounded(term, offOnly: offOnly),
-        );
+      '${offOnly ? 'off' : 'base'}:${FoodNameMatching.normalize(term)}',
+      () => _runBounded(term, offOnly: offOnly),
+    );
     final results = await Future.wait([
       sourceSearch(false),
       if (includeOff) sourceSearch(true),
@@ -41,8 +42,10 @@ class AiCatalogSearchSession {
     return results.expand((foods) => foods).toList(growable: false);
   }
 
-  Future<List<FoodItem>> _runBounded(String term,
-      {required bool offOnly}) async {
+  Future<List<FoodItem>> _runBounded(
+    String term, {
+    required bool offOnly,
+  }) async {
     if (_active >= 4) {
       final ready = Completer<void>();
       _waiting.add(ready);
@@ -84,46 +87,50 @@ class ProductLocalDataSource {
   AiCatalogSearchSession createAiSearchSession() =>
       AiCatalogSearchSession(this);
 
-  FoodItem _withCatalogMatchEvidence(FoodItem food, String alias,
-          String language, String scope, String status) =>
-      FoodItem(
-        id: food.id,
-        barcode: food.barcode,
-        name: food.name,
-        nameDe: food.nameDe,
-        nameEn: food.nameEn,
-        nameFr: food.nameFr,
-        nameIt: food.nameIt,
-        nameJa: food.nameJa,
-        nameEs: food.nameEs,
-        nameNl: food.nameNl,
-        brand: food.brand,
-        calories: food.calories,
-        protein: food.protein,
-        carbs: food.carbs,
-        fat: food.fat,
-        source: food.source,
-        category: food.category,
-        kj: food.kj,
-        fiber: food.fiber,
-        sugar: food.sugar,
-        salt: food.salt,
-        sodium: food.sodium,
-        calcium: food.calcium,
-        isLiquid: food.isLiquid,
-        isFluid: food.isFluid,
-        caffeineMgPer100ml: food.caffeineMgPer100ml,
-        caffeineMgPer100g: food.caffeineMgPer100g,
-        ingredientsText: food.ingredientsText,
-        ingredientsAnalysisTags: food.ingredientsAnalysisTags,
-        additivesTags: food.additivesTags,
-        productQuantity: food.productQuantity,
-        productQuantityUnit: food.productQuantityUnit,
-        catalogMatchAlias: alias,
-        catalogMatchLanguage: language,
-        catalogMatchScope: scope,
-        catalogMatchReviewStatus: status,
-      );
+  FoodItem _withCatalogMatchEvidence(
+    FoodItem food,
+    String alias,
+    String language,
+    String scope,
+    String status,
+  ) => FoodItem(
+    id: food.id,
+    barcode: food.barcode,
+    name: food.name,
+    nameDe: food.nameDe,
+    nameEn: food.nameEn,
+    nameFr: food.nameFr,
+    nameIt: food.nameIt,
+    nameJa: food.nameJa,
+    nameEs: food.nameEs,
+    nameNl: food.nameNl,
+    brand: food.brand,
+    calories: food.calories,
+    protein: food.protein,
+    carbs: food.carbs,
+    fat: food.fat,
+    source: food.source,
+    category: food.category,
+    kj: food.kj,
+    fiber: food.fiber,
+    sugar: food.sugar,
+    salt: food.salt,
+    sodium: food.sodium,
+    calcium: food.calcium,
+    isLiquid: food.isLiquid,
+    isFluid: food.isFluid,
+    caffeineMgPer100ml: food.caffeineMgPer100ml,
+    caffeineMgPer100g: food.caffeineMgPer100g,
+    ingredientsText: food.ingredientsText,
+    ingredientsAnalysisTags: food.ingredientsAnalysisTags,
+    additivesTags: food.additivesTags,
+    productQuantity: food.productQuantity,
+    productQuantityUnit: food.productQuantityUnit,
+    catalogMatchAlias: alias,
+    catalogMatchLanguage: language,
+    catalogMatchScope: scope,
+    catalogMatchReviewStatus: status,
+  );
 
   Future<({String barcodes, String ids})> _loadRecentAiScores() async {
     final dbInstance = await database;
@@ -133,13 +140,15 @@ class ProductLocalDataSource {
       if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(field)) {
         return {};
       }
-      final rows = await dbInstance.customSelect(
-        'SELECT $field AS key, COUNT(*) * 10 AS score FROM nutrition_logs '
-        'WHERE consumed_at >= ? AND $field IS NOT NULL AND $field != \'\' '
-        'GROUP BY $field',
-        variables: [Variable.withDateTime(cutoff)],
-        readsFrom: {dbInstance.nutritionLogs},
-      ).get();
+      final rows = await dbInstance
+          .customSelect(
+            'SELECT $field AS key, COUNT(*) * 10 AS score FROM nutrition_logs '
+            'WHERE consumed_at >= ? AND $field IS NOT NULL AND $field != \'\' '
+            'GROUP BY $field',
+            variables: [Variable.withDateTime(cutoff)],
+            readsFrom: {dbInstance.nutritionLogs},
+          )
+          .get();
       return {
         for (final row in rows) row.read<String>('key'): row.read<int>('score'),
       };
@@ -225,7 +234,9 @@ class ProductLocalDataSource {
   }
 
   FoodItem _mapRowAndOverrideToFoodItem(
-      db.Product row, db.UserFoodOverride? overrideRow) {
+    db.Product row,
+    db.UserFoodOverride? overrideRow,
+  ) {
     FoodItemSource source;
     switch (row.source) {
       case 'base':
@@ -268,20 +279,27 @@ class ProductLocalDataSource {
       calcium: null,
       isLiquid: overrideRow?.isLiquid ?? row.isLiquid,
       isFluid: overrideRow?.isFluid ?? row.isFluid,
-      caffeineMgPer100ml: (overrideRow?.caffeine ?? row.caffeine) ??
+      caffeineMgPer100ml:
+          (overrideRow?.caffeine ?? row.caffeine) ??
           (overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g) ??
           CaffeineCatalogResolver.lookupCaffeine(
-              row.barcode, row.nameDe ?? row.name),
+            row.barcode,
+            row.nameDe ?? row.name,
+          ),
       caffeineMgPer100g:
           (overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g) ??
-              (overrideRow?.caffeine ?? row.caffeine) ??
-              CaffeineCatalogResolver.lookupCaffeine(
-                  row.barcode, row.nameDe ?? row.name),
+          (overrideRow?.caffeine ?? row.caffeine) ??
+          CaffeineCatalogResolver.lookupCaffeine(
+            row.barcode,
+            row.nameDe ?? row.name,
+          ),
       ingredientsText: overrideRow?.ingredientsText ?? row.ingredientsText,
       ingredientsAnalysisTags: _parseJsonList(
-          overrideRow?.ingredientsAnalysisTags ?? row.ingredientsAnalysisTags),
-      additivesTags:
-          _parseJsonList(overrideRow?.additivesTags ?? row.additivesTags),
+        overrideRow?.ingredientsAnalysisTags ?? row.ingredientsAnalysisTags,
+      ),
+      additivesTags: _parseJsonList(
+        overrideRow?.additivesTags ?? row.additivesTags,
+      ),
       productQuantity: overrideRow?.productQuantity ?? row.productQuantity,
       productQuantityUnit:
           overrideRow?.productQuantityUnit ?? row.productQuantityUnit,
@@ -301,7 +319,8 @@ class ProductLocalDataSource {
         source = FoodItemSource.user;
     }
 
-    final archiveCaffeine = row.caffeine ??
+    final archiveCaffeine =
+        row.caffeine ??
         row.caffeineMgPer100g ??
         CaffeineCatalogResolver.lookupCaffeine(row.barcode, row.productName);
 
@@ -342,14 +361,15 @@ class ProductLocalDataSource {
   }
 
   Future<List<FoodItem>> _enrichProductsWithOverrides(
-      List<db.Product> rows) async {
+    List<db.Product> rows,
+  ) async {
     if (rows.isEmpty) return [];
     final dbInstance = await database;
     final barcodes = rows.map((r) => r.barcode).toList();
 
-    final overrides = await (dbInstance.select(dbInstance.userFoodOverrides)
-          ..where((tbl) => tbl.barcode.isIn(barcodes)))
-        .get();
+    final overrides = await (dbInstance.select(
+      dbInstance.userFoodOverrides,
+    )..where((tbl) => tbl.barcode.isIn(barcodes))).get();
 
     final overrideMap = {for (final o in overrides) o.barcode: o};
 
@@ -376,10 +396,9 @@ class ProductLocalDataSource {
           ..where((tbl) => tbl.barcode.equals(item.barcode)))
         .write(_mapModelToCompanion(item));
 
-    final existingOverride =
-        await (dbInstance.select(dbInstance.userFoodOverrides)
-              ..where((tbl) => tbl.barcode.equals(item.barcode)))
-            .getSingleOrNull();
+    final existingOverride = await (dbInstance.select(
+      dbInstance.userFoodOverrides,
+    )..where((tbl) => tbl.barcode.equals(item.barcode))).getSingleOrNull();
 
     final overrideCompanion = db.UserFoodOverridesCompanion(
       localId: existingOverride != null
@@ -423,8 +442,7 @@ class ProductLocalDataSource {
 
     final rows = await (dbInstance.select(
       dbInstance.products,
-    )..where((tbl) => tbl.barcode.isIn(barcodes)))
-        .get();
+    )..where((tbl) => tbl.barcode.isIn(barcodes))).get();
 
     final result = await _enrichProductsWithOverrides(rows);
     PerfDebugTimer.logDuration(
@@ -438,14 +456,15 @@ class ProductLocalDataSource {
 
   /// Retrieves a map of [localId] to [FoodItem]s matching the provided [archiveLocalIds].
   Future<Map<int, FoodItem>> getProductsByArchiveIds(
-      List<int> archiveLocalIds) async {
+    List<int> archiveLocalIds,
+  ) async {
     if (archiveLocalIds.isEmpty) return {};
     final stopwatch = Stopwatch()..start();
     final dbInstance = await database;
 
-    final rows = await (dbInstance.select(dbInstance.offProductsArchive)
-          ..where((tbl) => tbl.localId.isIn(archiveLocalIds)))
-        .get();
+    final rows = await (dbInstance.select(
+      dbInstance.offProductsArchive,
+    )..where((tbl) => tbl.localId.isIn(archiveLocalIds))).get();
 
     final barcodesSet = <String>{};
     for (final r in rows) {
@@ -454,9 +473,9 @@ class ProductLocalDataSource {
 
     final products = barcodesSet.isEmpty
         ? <db.Product>[]
-        : await (dbInstance.select(dbInstance.products)
-              ..where((tbl) => tbl.barcode.isIn(barcodesSet)))
-            .get();
+        : await (dbInstance.select(
+            dbInstance.products,
+          )..where((tbl) => tbl.barcode.isIn(barcodesSet))).get();
 
     final productMap = {for (final p in products) p.barcode: p};
 
@@ -495,9 +514,7 @@ class ProductLocalDataSource {
     final query = dbInstance.selectOnly(dbInstance.nutritionLogs)
       ..addColumns([dbInstance.nutritionLogs.legacyBarcode, maxDate])
       ..groupBy([dbInstance.nutritionLogs.legacyBarcode])
-      ..orderBy([
-        OrderingTerm(expression: maxDate, mode: OrderingMode.desc),
-      ])
+      ..orderBy([OrderingTerm(expression: maxDate, mode: OrderingMode.desc)])
       ..limit(100);
 
     final result = await query.get();
@@ -512,7 +529,7 @@ class ProductLocalDataSource {
 
     // Sort products to match the exact descending order of recentBarcodes
     final barcodeToIndex = {
-      for (var i = 0; i < recentBarcodes.length; i++) recentBarcodes[i]: i
+      for (var i = 0; i < recentBarcodes.length; i++) recentBarcodes[i]: i,
     };
     products.sort((a, b) {
       final indexA = barcodeToIndex[a.barcode] ?? 9999;
@@ -528,8 +545,7 @@ class ProductLocalDataSource {
     final db = await database;
     final rows = await (db.select(
       db.foodCategories,
-    )..orderBy([(t) => OrderingTerm(expression: t.key)]))
-        .get();
+    )..orderBy([(t) => OrderingTerm(expression: t.key)])).get();
 
     return rows.map((row) {
       return {
@@ -563,8 +579,12 @@ class ProductLocalDataSource {
     }
 
     if (search != null && search.trim().isNotEmpty) {
-      return _searchCatalog(search,
-          baseOnly: true, categoryKey: categoryKey, limit: limit);
+      return _searchCatalog(
+        search,
+        baseOnly: true,
+        categoryKey: categoryKey,
+        limit: limit,
+      );
     }
     query = query
       ..orderBy([
@@ -578,11 +598,13 @@ class ProductLocalDataSource {
   }
 
   Future<bool> hasSearchableProducts() async {
-    final result = await _dbInstance.customSelect(
-      "SELECT 1 FROM products WHERE source IN ('base', 'user', 'off') "
-      'AND deleted_at IS NULL LIMIT 1',
-      readsFrom: {_dbInstance.products},
-    ).get();
+    final result = await _dbInstance
+        .customSelect(
+          "SELECT 1 FROM products WHERE source IN ('base', 'user', 'off') "
+          'AND deleted_at IS NULL LIMIT 1',
+          readsFrom: {_dbInstance.products},
+        )
+        .get();
     return result.isNotEmpty;
   }
 
@@ -591,15 +613,18 @@ class ProductLocalDataSource {
   Future<List<FoodItem>> searchProductsForUser(String keyword) =>
       searchProducts(keyword);
 
-  Future<List<FoodItem>> searchProducts(String keyword,
-          {AiCatalogSearchSession? aiSession,
-          bool includeOff = true,
-          bool offOnly = false}) =>
-      _searchCatalog(keyword,
-          aiSession: aiSession,
-          includeOff: includeOff,
-          offOnly: offOnly,
-          groupBySource: aiSession == null);
+  Future<List<FoodItem>> searchProducts(
+    String keyword, {
+    AiCatalogSearchSession? aiSession,
+    bool includeOff = true,
+    bool offOnly = false,
+  }) => _searchCatalog(
+    keyword,
+    aiSession: aiSession,
+    includeOff: includeOff,
+    offOnly: offOnly,
+    groupBySource: aiSession == null,
+  );
 
   Future<List<FoodItem>> _searchCatalog(
     String keyword, {
@@ -632,24 +657,29 @@ class ProductLocalDataSource {
       List<String> otherExactNames = const [],
       String? compactName,
     }) {
-      final exact = [expression, ...otherExactNames]
-          .map((name) => '$name = ${bind(normalized)}')
-          .join(' OR ');
-      final compactExact =
-          compactName == null ? '' : ' OR $compactName = ${bind(compact)}';
+      final exact = [
+        expression,
+        ...otherExactNames,
+      ].map((name) => '$name = ${bind(normalized)}').join(' OR ');
+      final compactExact = compactName == null
+          ? ''
+          : ' OR $compactName = ${bind(compact)}';
       final words = tokens
-          .map((token) =>
-              "(' ' || $expression || ' ') LIKE ${bind('% $token %')}")
+          .map(
+            (token) => "(' ' || $expression || ' ') LIKE ${bind('% $token %')}",
+          )
           .join(' AND ');
       final prefixes = tokens
-          .map((token) => token.length <= 2
-              ? "(' ' || $expression || ' ') LIKE ${bind('% $token %')}"
-              : "(' ' || $expression) LIKE ${bind('% $token%')}")
+          .map(
+            (token) => token.length <= 2
+                ? "(' ' || $expression || ' ') LIKE ${bind('% $token %')}"
+                : "(' ' || $expression) LIKE ${bind('% $token%')}",
+          )
           .join(' AND ');
       final compactPrefix =
           compactName == null || tokens.any((token) => token.length <= 2)
-              ? ''
-              : "WHEN $compactName LIKE ${bind('$compact%')} THEN 3";
+          ? ''
+          : "WHEN $compactName LIKE ${bind('$compact%')} THEN 3";
       return '(CASE WHEN $exact$compactExact THEN 0 '
           'WHEN $words THEN 1 WHEN $prefixes THEN 2 $compactPrefix ELSE 4 END)';
     }
@@ -658,19 +688,21 @@ class ProductLocalDataSource {
     final sourceFilter = baseOnly
         ? "p.source = 'base'"
         : offOnly
-            ? "p.source = 'off'"
-            : includeOff
-                ? "p.source IN ('base', 'user', 'off')"
-                : "p.source IN ('base', 'user')";
+        ? "p.source = 'off'"
+        : includeOff
+        ? "p.source IN ('base', 'user', 'off')"
+        : "p.source IN ('base', 'user')";
     final categoryFilter = categoryKey == null
         ? ''
         : ' AND p.category = ${FoodSearchIndex.literal(categoryKey)}';
     final ranks = [
       for (final name in FoodSearchIndex.names)
-        rankName("TRIM(f.$name || ' ' || f.brand)",
-            otherExactNames: ['f.$name', "TRIM(f.brand || ' ' || f.$name)"],
-            compactName:
-                "CASE WHEN p.source = 'base' THEN REPLACE(f.$name, ' ', '') ELSE '' END"),
+        rankName(
+          "TRIM(f.$name || ' ' || f.brand)",
+          otherExactNames: ['f.$name', "TRIM(f.brand || ' ' || f.$name)"],
+          compactName:
+              "CASE WHEN p.source = 'base' THEN REPLACE(f.$name, ' ', '') ELSE '' END",
+        ),
     ];
     final canonicalSql =
         'SELECT p.local_id, MIN(${ranks.join(', ')}) AS relevance, '
@@ -680,9 +712,12 @@ class ProductLocalDataSource {
         'AND $sourceFilter$categoryFilter AND p.deleted_at IS NULL';
     var aliasesSql = '';
     if (!offOnly) {
-      final aliasRank =
-          rankName('f.name', compactName: "REPLACE(f.name, ' ', '')");
-      aliasesSql = ' UNION ALL SELECT p.local_id, $aliasRank + '
+      final aliasRank = rankName(
+        'f.name',
+        compactName: "REPLACE(f.name, ' ', '')",
+      );
+      aliasesSql =
+          ' UNION ALL SELECT p.local_id, $aliasRank + '
           "CASE WHEN a.match_scope = 'identity' AND a.review_status = 'approved' THEN 0 ELSE 1 END, "
           'a.rowid FROM ${FoodSearchIndex.aliases} f '
           'JOIN bls_food_alias_index a ON a.rowid = f.rowid '
@@ -735,21 +770,23 @@ class ProductLocalDataSource {
           readsFrom: {
             dbInstance.products,
             dbInstance.userFoodOverrides,
-            dbInstance.nutritionLogs
+            dbInstance.nutritionLogs,
           },
         )
         .get();
     final foods = await _enrichProductsWithOverrides(
-        rows.map((row) => dbInstance.products.map(row.data)).toList());
+      rows.map((row) => dbInstance.products.map(row.data)).toList(),
+    );
     return [
       for (var i = 0; i < foods.length; i++)
         if (rows[i].readNullable<String>('match_alias') case final alias?)
           _withCatalogMatchEvidence(
-              foods[i],
-              alias,
-              rows[i].read<String>('match_language'),
-              rows[i].read<String>('match_scope'),
-              rows[i].read<String>('match_review_status'))
+            foods[i],
+            alias,
+            rows[i].read<String>('match_language'),
+            rows[i].read<String>('match_scope'),
+            rows[i].read<String>('match_review_status'),
+          )
         else
           foods[i],
     ];
@@ -758,10 +795,11 @@ class ProductLocalDataSource {
   /// Retrieves a single product by its [barcode].
   Future<FoodItem?> getProductByBarcode(String barcode) async {
     final db = await database;
-    final row = await (db.select(db.products)
-          ..where((t) => t.barcode.equals(barcode))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (db.select(db.products)
+              ..where((t) => t.barcode.equals(barcode))
+              ..limit(1))
+            .getSingleOrNull();
 
     if (row == null) return null;
     final enriched = await _enrichProductsWithOverrides([row]);
@@ -917,9 +955,9 @@ class ProductLocalDataSource {
   /// Retrieves all custom/user-created food items from the database.
   Future<List<FoodItem>> getCustomFoods() async {
     final dbInstance = await database;
-    final rows = await (dbInstance.select(dbInstance.products)
-          ..where((tbl) => tbl.source.equals('user')))
-        .get();
+    final rows = await (dbInstance.select(
+      dbInstance.products,
+    )..where((tbl) => tbl.source.equals('user'))).get();
     return _enrichProductsWithOverrides(rows);
   }
 
@@ -933,24 +971,24 @@ class ProductLocalDataSource {
           .write(const db.NutritionLogsCompanion(productId: Value(null)));
 
       // 2. Delete references in MealItems
-      await (dbInstance.delete(dbInstance.mealItems)
-            ..where((tbl) => tbl.productId.equals(id)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.mealItems,
+      )..where((tbl) => tbl.productId.equals(id))).go();
 
       // 3. Remove from Favorites
-      await (dbInstance.delete(dbInstance.favorites)
-            ..where((tbl) => tbl.barcode.equals(barcode)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.favorites,
+      )..where((tbl) => tbl.barcode.equals(barcode))).go();
 
       // 4. Remove overrides if any
-      await (dbInstance.delete(dbInstance.userFoodOverrides)
-            ..where((tbl) => tbl.barcode.equals(barcode)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.userFoodOverrides,
+      )..where((tbl) => tbl.barcode.equals(barcode))).go();
 
       // 5. Delete the product itself
-      await (dbInstance.delete(dbInstance.products)
-            ..where((tbl) => tbl.id.equals(id)))
-          .go();
+      await (dbInstance.delete(
+        dbInstance.products,
+      )..where((tbl) => tbl.id.equals(id))).go();
     });
   }
 
@@ -958,8 +996,7 @@ class ProductLocalDataSource {
     final dbInstance = await database;
     final count = await (dbInstance.select(
       dbInstance.favorites,
-    )..where((t) => t.barcode.equals(barcode)))
-        .get();
+    )..where((t) => t.barcode.equals(barcode))).get();
     return count.isNotEmpty;
   }
 
@@ -971,7 +1008,9 @@ class ProductLocalDataSource {
 
   Future<void> addFavorite(String barcode) async {
     final dbInstance = await database;
-    await dbInstance.into(dbInstance.favorites).insert(
+    await dbInstance
+        .into(dbInstance.favorites)
+        .insert(
           db.FavoritesCompanion(barcode: Value(barcode)),
           mode: InsertMode.insertOrReplace,
         );
@@ -981,7 +1020,6 @@ class ProductLocalDataSource {
     final dbInstance = await database;
     await (dbInstance.delete(
       dbInstance.favorites,
-    )..where((t) => t.barcode.equals(barcode)))
-        .go();
+    )..where((t) => t.barcode.equals(barcode))).go();
   }
 }

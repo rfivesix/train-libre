@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../data/sources/product_local_data_source.dart';
 import 'create_food_screen.dart';
 import 'widgets/food_glass_badge.dart';
@@ -19,19 +20,25 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
+
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/value_summary_card.dart';
 import '../../../theme/app_colors.dart';
+
 import 'dart:async';
+
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/bls_food_catalog_refresh_service.dart';
 
@@ -93,16 +100,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     'salz',
     'kochsalz',
   };
-  static const Set<String> _caffeineBlsNames = {
-    'caffeine',
-    'koffein',
-  };
-  static const Set<String> _coreBlsCodes = {
-    'ENERCC',
-    'PROT625',
-    'CHO',
-    'FAT',
-  };
+  static const Set<String> _caffeineBlsNames = {'caffeine', 'koffein'};
+  static const Set<String> _coreBlsCodes = {'ENERCC', 'PROT625', 'CHO', 'FAT'};
 
   bool _isFavorite = false;
   bool _showPer100g = false;
@@ -146,8 +145,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.foodDetail));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.foodDetail,
+      ),
+    );
     if (widget.trackedItem != null) {
       _displayItem = widget.trackedItem!.item;
       _trackedQuantity = widget.trackedItem!.entry.quantityInGrams;
@@ -174,8 +176,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   Future<void> _loadBlsNutrients(String language) async {
     setState(() => _isLoadingBlsNutrients = true);
     try {
-      final facts = await const BlsNutrientRepository()
-          .getFacts(_displayItem.barcode, language);
+      final facts = await const BlsNutrientRepository().getFacts(
+        _displayItem.barcode,
+        language,
+      );
       if (mounted) setState(() => _blsNutrients = facts);
     } catch (error) {
       debugPrint('[BLS food detail] Nutrient read failed: $error');
@@ -227,8 +231,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         'name_de': _deCtrl.text.trim(),
         'name_en': _enCtrl.text.trim().isEmpty ? null : _enCtrl.text.trim(),
         'name': _deCtrl.text.trim(),
-        'category_key':
-            _catCtrl.text.trim().isEmpty ? null : _catCtrl.text.trim(),
+        'category_key': _catCtrl.text.trim().isEmpty
+            ? null
+            : _catCtrl.text.trim(),
         // Nutrients
         'calories_100g': int.tryParse(_calCtrl.text.trim()),
         'protein_100g': double.tryParse(_proCtrl.text.trim()),
@@ -281,15 +286,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.foodDetailSavedBaseDb)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.foodDetailSavedBaseDb)));
     } catch (e) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
     }
   }
 
@@ -306,9 +309,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.foodDetailExportError(e))));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.foodDetailExportError(e))));
     }
   }
 
@@ -542,9 +544,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     } catch (e) {
       debugPrint("Error duplicating food: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("${l10n.error}: $e")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("${l10n.error}: $e")));
       }
     } finally {
       if (mounted) {
@@ -611,16 +612,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           _displayItem.barcode,
         );
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.foodItemDeleted)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l10n.foodItemDeleted)));
           Navigator.of(context).pop(true);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
         }
       } finally {
         if (mounted) {
@@ -645,7 +644,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final isBlsFood = _displayItem.barcode.startsWith('bls:');
     final hasVeganTag =
         _displayItem.ingredientsAnalysisTags?.contains('en:vegan') == true;
-    final hasVegetarianTag = !hasVeganTag &&
+    final hasVegetarianTag =
+        !hasVeganTag &&
         _displayItem.ingredientsAnalysisTags?.contains('en:vegetarian') == true;
     final hasFoodMetadata =
         _displayItem.brand.isNotEmpty || hasVeganTag || hasVegetarianTag;
@@ -675,9 +675,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   final themeService = Provider.of<ThemeService>(context);
                   final baseFoodLang =
                       BaseFoodLanguageService.resolveLanguageCode(
-                    choice: themeService.baseFoodLanguage,
-                    context: context,
-                  );
+                        choice: themeService.baseFoodLanguage,
+                        context: context,
+                      );
                   return _displayItem.source == FoodItemSource.base
                       ? _displayItem.getLocalizedName(
                           context,
@@ -685,9 +685,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         )
                       : _displayItem.getLocalizedName(context);
                 }(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -779,8 +778,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     Divider(
                       height: 32,
                       thickness: 1,
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.1,
+                      ),
                     ),
                   // ── Compact nutrition heading + optional portion toggle ────────
                   Row(
@@ -823,9 +823,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       _displayItem.ingredientsText!.isNotEmpty) ...[
                     const SizedBox(height: DesignConstants.spacingM),
                     Theme(
-                      data: Theme.of(
-                        context,
-                      ).copyWith(dividerColor: Colors.transparent),
+                      data: Theme.of(context)
+                          .copyWith(dividerColor: Colors.transparent),
                       child: SummaryCard(
                         child: ExpansionTile(
                           title: Text(l10n.ingredients),
@@ -890,9 +889,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                   tooltip: l10n.save,
                                   icon: LucideIcons.save,
                                 ),
-                                const SizedBox(
-                                  width: DesignConstants.spacingM,
-                                ),
+                                const SizedBox(width: DesignConstants.spacingM),
                                 TextButton.icon(
                                   onPressed: () =>
                                       setState(() => _devEditing = false),
@@ -947,30 +944,54 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final caffeineValue =
         _displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml;
     if (caffeineFact != null && (caffeineFact.value ?? 0) > 0) {
-      additionalRows.add(BlsNutrientRow(
-        fact: caffeineFact,
-        displayValue: _getDisplayValue(caffeineFact.value),
-      ));
+      additionalRows.add(
+        BlsNutrientRow(
+          fact: caffeineFact,
+          displayValue: _getDisplayValue(caffeineFact.value),
+        ),
+      );
     } else if (caffeineFact == null && (caffeineValue ?? 0) > 0) {
-      additionalRows.add(_buildNutritionValueRow(
-        label: l10n.caffeine,
-        value: _getDisplayValue(caffeineValue),
-        unit: 'mg',
-        isInt: true,
-      ));
+      additionalRows.add(
+        _buildNutritionValueRow(
+          label: l10n.caffeine,
+          value: _getDisplayValue(caffeineValue),
+          unit: 'mg',
+          isInt: true,
+        ),
+      );
     }
 
     return [
       _buildNutritionMetricGrid([
-        _NutritionMetric(l10n.calories, calories.value, calories.marker, 'kcal',
-            macroColors?.calories ?? Colors.orange,
-            decimals: 0),
-        _NutritionMetric(l10n.protein, protein.value, protein.marker, 'g',
-            macroColors?.protein ?? Colors.red),
-        _NutritionMetric(l10n.carbs, carbs.value, carbs.marker, 'g',
-            macroColors?.carbs ?? Colors.green),
-        _NutritionMetric(l10n.fat, fat.value, fat.marker, 'g',
-            macroColors?.fat ?? Colors.purple),
+        _NutritionMetric(
+          l10n.calories,
+          calories.value,
+          calories.marker,
+          'kcal',
+          macroColors?.calories ?? Colors.orange,
+          decimals: 0,
+        ),
+        _NutritionMetric(
+          l10n.protein,
+          protein.value,
+          protein.marker,
+          'g',
+          macroColors?.protein ?? Colors.red,
+        ),
+        _NutritionMetric(
+          l10n.carbs,
+          carbs.value,
+          carbs.marker,
+          'g',
+          macroColors?.carbs ?? Colors.green,
+        ),
+        _NutritionMetric(
+          l10n.fat,
+          fat.value,
+          fat.marker,
+          'g',
+          macroColors?.fat ?? Colors.purple,
+        ),
       ]),
       if (sugarFact != null ||
           _displayItem.sugar != null ||
@@ -982,34 +1003,52 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         _buildNutritionMetricGrid([
           if (sugarFact != null)
             _NutritionMetric(
-                l10n.sugar,
-                _getDisplayValue(sugarFact.value),
-                sugarFact.valueText,
-                sugarFact.unit,
-                macroColors?.sugar ?? Colors.pink)
+              l10n.sugar,
+              _getDisplayValue(sugarFact.value),
+              sugarFact.valueText,
+              sugarFact.unit,
+              macroColors?.sugar ?? Colors.pink,
+            )
           else if (sugar != null)
-            _NutritionMetric(l10n.sugar, sugar, null, 'g',
-                macroColors?.sugar ?? Colors.pink),
+            _NutritionMetric(
+              l10n.sugar,
+              sugar,
+              null,
+              'g',
+              macroColors?.sugar ?? Colors.pink,
+            ),
           if (fiberFact != null)
             _NutritionMetric(
-                l10n.fiber,
-                _getDisplayValue(fiberFact.value),
-                fiberFact.valueText,
-                fiberFact.unit,
-                macroColors?.fiber ?? Colors.brown)
+              l10n.fiber,
+              _getDisplayValue(fiberFact.value),
+              fiberFact.valueText,
+              fiberFact.unit,
+              macroColors?.fiber ?? Colors.brown,
+            )
           else if (fiber != null)
-            _NutritionMetric(l10n.fiber, fiber, null, 'g',
-                macroColors?.fiber ?? Colors.brown),
+            _NutritionMetric(
+              l10n.fiber,
+              fiber,
+              null,
+              'g',
+              macroColors?.fiber ?? Colors.brown,
+            ),
           if (saltFact != null)
             _NutritionMetric(
-                l10n.salt,
-                _getDisplayValue(saltFact.value),
-                saltFact.valueText,
-                saltFact.unit,
-                macroColors?.salt ?? Colors.blueGrey)
+              l10n.salt,
+              _getDisplayValue(saltFact.value),
+              saltFact.valueText,
+              saltFact.unit,
+              macroColors?.salt ?? Colors.blueGrey,
+            )
           else if (salt != null)
-            _NutritionMetric(l10n.salt, salt, null, 'g',
-                macroColors?.salt ?? Colors.blueGrey),
+            _NutritionMetric(
+              l10n.salt,
+              salt,
+              null,
+              'g',
+              macroColors?.salt ?? Colors.blueGrey,
+            ),
         ]),
       ],
       if (additionalRows.isNotEmpty) ...[
@@ -1038,9 +1077,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   String _normalizeBlsNutrientName(String name) =>
       name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9äöüß]'), '');
 
-  Widget _buildNutritionMetricGrid(
-    List<_NutritionMetric> metrics,
-  ) {
+  Widget _buildNutritionMetricGrid(List<_NutritionMetric> metrics) {
     if (metrics.isEmpty) return const SizedBox.shrink();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final valueTextColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
@@ -1068,7 +1105,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       final displayValue = metric.value == null
           ? metric.missingValue ?? '-'
           : '${metric.decimals == 0 ? metric.value!.round() : metric.value!.toStringAsFixed(metric.decimals)} ${metric.unit}'
-              .trim();
+                .trim();
       return ValueSummaryCard(
         label: metric.label,
         value: displayValue,
@@ -1173,9 +1210,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             topSpacing: DesignConstants.spacingXXL,
           ),
           InkWell(
-            onTap: () => launchUrl(Uri.parse(
-              'https://doi.org/10.25826/Data20251217-134202-0',
-            )),
+            onTap: () => launchUrl(
+              Uri.parse('https://doi.org/10.25826/Data20251217-134202-0'),
+            ),
             child: Text(
               '${AppLocalizations.of(context)!.blsFoodSource} · DOI 10.25826/Data20251217-134202-0',
               style: theme.textTheme.bodySmall?.copyWith(
@@ -1185,9 +1222,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ),
           const SizedBox(height: DesignConstants.spacingXS),
           InkWell(
-            onTap: () => launchUrl(Uri.parse(
-              'https://creativecommons.org/licenses/by/4.0/',
-            )),
+            onTap: () => launchUrl(
+              Uri.parse('https://creativecommons.org/licenses/by/4.0/'),
+            ),
             child: Text(
               '${AppLocalizations.of(context)!.blsFoodLicense} · ${AppLocalizations.of(context)!.blsFoodModifications}',
               style: theme.textTheme.bodySmall,
@@ -1201,29 +1238,29 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   // ---------- DEV: small helper inputs ----------
 
   Widget _row(String label, TextEditingController c) => TextField(
-        controller: c,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
-      );
+    controller: c,
+    decoration: InputDecoration(
+      labelText: label,
+      border: const OutlineInputBorder(),
+      isDense: true,
+    ),
+  );
 
   Widget _num(String label, TextEditingController c) => SizedBox(
-        width: 160,
-        child: TextField(
-          controller: c,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-            signed: false,
-          ),
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-      );
+    width: 160,
+    child: TextField(
+      controller: c,
+      keyboardType: const TextInputType.numberWithOptions(
+        decimal: true,
+        signed: false,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        isDense: true,
+      ),
+    ),
+  );
 }
 
 class _NutritionMetric {

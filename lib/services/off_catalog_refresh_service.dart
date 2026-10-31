@@ -105,13 +105,13 @@ class OffCatalogRefreshService {
     SupportDirectoryProvider? supportDirectoryProvider,
     TempDirectoryProvider? tempDirectoryProvider,
     PrefsProvider? prefsProvider,
-  })  : _httpClient = httpClient ?? http.Client(),
-        _configResolver = configResolver ?? AppDataSources.offCatalogForCountry,
-        _nowProvider = nowProvider ?? DateTime.now,
-        _supportDirectoryProvider =
-            supportDirectoryProvider ?? getApplicationSupportDirectory,
-        _tempDirectoryProvider = tempDirectoryProvider ?? getTemporaryDirectory,
-        _prefsProvider = prefsProvider ?? SharedPreferences.getInstance;
+  }) : _httpClient = httpClient ?? http.Client(),
+       _configResolver = configResolver ?? AppDataSources.offCatalogForCountry,
+       _nowProvider = nowProvider ?? DateTime.now,
+       _supportDirectoryProvider =
+           supportDirectoryProvider ?? getApplicationSupportDirectory,
+       _tempDirectoryProvider = tempDirectoryProvider ?? getTemporaryDirectory,
+       _prefsProvider = prefsProvider ?? SharedPreferences.getInstance;
 
   static final OffCatalogRefreshService instance = OffCatalogRefreshService._();
 
@@ -225,7 +225,7 @@ class OffCatalogRefreshService {
     );
     final hasLastError =
         prefs.getString(_countryScopedKey(_keyLastErrorPrefix, countryCode)) !=
-            null;
+        null;
     if (!force &&
         !hasLastError &&
         !shouldCheckRemoteNow(
@@ -257,10 +257,7 @@ class OffCatalogRefreshService {
         0.0,
         canSkip: true,
       );
-      final manifest = await _fetchManifest(
-        manifestUri,
-        config,
-      );
+      final manifest = await _fetchManifest(manifestUri, config);
       if (manifest == null) {
         await prefs.setString(
           _countryScopedKey(_keyLastErrorPrefix, countryCode),
@@ -558,19 +555,16 @@ class OffCatalogRefreshService {
       'cached_at': _nowProvider().toIso8601String(),
     };
 
-    await manifestFile.writeAsString(
-      jsonEncode(map),
-      flush: true,
-    );
+    await manifestFile.writeAsString(jsonEncode(map), flush: true);
   }
 
   Future<OffCatalogManifest?> _fetchManifest(
     Uri manifestUri,
     OffCatalogRemoteSourceConfig config,
   ) async {
-    final response = await _httpClient.get(manifestUri, headers: const {
-      'Accept': 'application/json'
-    }).timeout(config.manifestTimeout);
+    final response = await _httpClient
+        .get(manifestUri, headers: const {'Accept': 'application/json'})
+        .timeout(config.manifestTimeout);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return null;
@@ -618,17 +612,12 @@ class OffCatalogRefreshService {
       return null;
     }
 
-    final channel = _firstNonBlankString([
-      json['channel'],
-      build['channel'],
-    ]);
+    final channel = _firstNonBlankString([json['channel'], build['channel']]);
     if (channel == null || channel != config.channel) {
       return null;
     }
 
-    final dbSha256 = _firstNonBlankString([
-      json['db_sha256'],
-    ]);
+    final dbSha256 = _firstNonBlankString([json['db_sha256']]);
     if (dbSha256 == null || !_isValidSha256(dbSha256)) {
       return null;
     }
@@ -645,7 +634,8 @@ class OffCatalogRefreshService {
       return null;
     }
 
-    final hasDbLocator = _firstNonBlankString([
+    final hasDbLocator =
+        _firstNonBlankString([
           json['db_url'],
           json['database_url'],
           json['db_path'],
@@ -657,7 +647,8 @@ class OffCatalogRefreshService {
       return null;
     }
 
-    final effectiveBaseUrl = _firstNonBlankString([
+    final effectiveBaseUrl =
+        _firstNonBlankString([
           json['asset_base_url'],
           json['download_base_url'],
           json['base_url'],
@@ -666,10 +657,7 @@ class OffCatalogRefreshService {
 
     final dbUri = _resolveFromManifest(
       baseUrl: effectiveBaseUrl,
-      urlValue: _firstNonBlankString([
-        json['db_url'],
-        json['database_url'],
-      ]),
+      urlValue: _firstNonBlankString([json['db_url'], json['database_url']]),
       pathValue: _firstNonBlankString([
         json['db_path'],
         json['database_path'],
@@ -699,12 +687,8 @@ class OffCatalogRefreshService {
 
     final diffReportUri = _resolveFromManifest(
       baseUrl: effectiveBaseUrl,
-      urlValue: _firstNonBlankString([
-        json['diff_report_url'],
-      ]),
-      pathValue: _firstNonBlankString([
-        json['diff_report_file'],
-      ]),
+      urlValue: _firstNonBlankString([json['diff_report_url']]),
+      pathValue: _firstNonBlankString([json['diff_report_file']]),
       fallbackPath: '',
     );
     if (diffReportUri != null && !_isSecureRemoteUri(diffReportUri)) {
@@ -715,8 +699,9 @@ class OffCatalogRefreshService {
       json['generated_at'],
       build['generated_at'],
     ]);
-    final generatedAt =
-        generatedAtRaw != null ? DateTime.tryParse(generatedAtRaw) : null;
+    final generatedAt = generatedAtRaw != null
+        ? DateTime.tryParse(generatedAtRaw)
+        : null;
 
     return OffCatalogManifest(
       version: version,
