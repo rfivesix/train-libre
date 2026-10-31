@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Replaced the workout rest-timer completion chime across in-app playback (`assets/sounds/timer_done.mp3` and `assets/sounds/timer_done.wav`), iOS background notifications (`ios/Runner/timer_done.caf`), and Android background alarms (`android/app/src/main/res/raw/rest_timer_done.mp3`) with a custom synthesized stereo two-step chime.
 - Added live workout settings for rest-timer notifications and the in-app silent-mode override, and removed the duplicate calorie recalculation notification.
 - Fixed the iOS background rest-timer notification to use the bundled CAF conversion of the app's `timer_done.mp3` chime.
 - Updated PostHog and compatible Flutter dependencies, including file picking, fonts, and loading placeholders; migrated telemetry calls to the current PostHog API.
