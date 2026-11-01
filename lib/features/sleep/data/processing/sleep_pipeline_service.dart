@@ -472,10 +472,14 @@ class SleepPipelineService {
         )
         .toList(growable: true);
 
+    final activeLookbackSessionIds = <String>{
+      for (final session in activeLookbackSessions) session.id,
+    };
+
     // Also include re-classified active lookback sessions
     for (final dbSession in params.lookbackSessions) {
       final domain = _toDomainSession(dbSession);
-      final isActive = activeLookbackSessions.any((s) => s.id == domain.id);
+      final isActive = activeLookbackSessionIds.contains(domain.id);
       if (!isActive) continue;
 
       final newType = classifications[domain.id];
@@ -540,9 +544,6 @@ class SleepPipelineService {
         )
         .toList(growable: false);
 
-    final activeLookbackSessionIds = <String>{
-      for (final session in activeLookbackSessions) session.id,
-    };
     final activeLookbackSessionsRecords = params.lookbackSessions
         .where((dbSession) => activeLookbackSessionIds.contains(dbSession.id))
         .toList();
@@ -594,7 +595,7 @@ class SleepPipelineService {
       for (final s in nightSessions) {
         List<SleepStageSegment> segments;
         double? avgHr;
-        if (mapped.sessions.any((incoming) => incoming.id == s.id)) {
+        if (mappedSessionIds.contains(s.id)) {
           segments = segmentsBySession[s.id] ?? const [];
           final hr = hrBySession[s.id] ?? const [];
           avgHr = hr.isEmpty
