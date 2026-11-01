@@ -813,19 +813,23 @@ class CloudChatTurnView extends StatelessWidget {
     VoidCallback? onLongPress,
     required Color foregroundColor,
   }) {
-    return Semantics(
-      button: onTap != null,
-      label: tooltip,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(14),
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: Center(child: Icon(icon, size: 15, color: foregroundColor)),
+    return Tooltip(
+      message: tooltip,
+      excludeFromSemantics: true,
+      child: Semantics(
+        button: onTap != null,
+        label: tooltip,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
+            onLongPress: onLongPress,
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: Center(child: Icon(icon, size: 15, color: foregroundColor)),
+            ),
           ),
         ),
       ),
