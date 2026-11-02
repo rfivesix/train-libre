@@ -69,11 +69,23 @@ Without an observation, the filter makes a prediction-only step: the mean is not
 
 The interface displays the maintenance estimate and a range calculated as the posterior mean plus or minus **one posterior standard deviation**. This is an uncertainty display, not a 95% interval or a calibrated probability statement. Confidence labels are separate heuristic categories based on data sufficiency and filter state.
 
+The data-basis bar represents four categories, not the percentage of days logged: insufficient, limited, usable, and strong. Its fills are 10%, 40%, 70%, and 100% respectively. Fourteen logged intake days therefore do not automatically produce a full bar: weight measurements, estimated uncertainty, and filter stabilization also matter.
+
+For classification, the usable span is the inclusive interval between the first and last day with a weight or positive-calorie entry in the input window. When an observation is available, the effective sample size is the smaller of that span and $\sqrt{I\cdot\max(W-1,0)}$. The uncertainty ratio is posterior variance divided by the variance cap, clamped to 0–1. The initial category is:
+
+| Category | Minimum usable span | Minimum effective sample size | Maximum uncertainty ratio |
+| --- | ---: | ---: | ---: |
+| Strong | 14 days | 10 | 0.25 |
+| Usable | 14 days | 7 | 0.45 |
+| Limited | 7 days | 4 | 0.70 |
+
+If none of these conditions is met, or there is no observation or the effective sample size is below 2.5, the category is insufficient. A stabilizing filter lowers the initial category by one level; the calorie floor can also lower strong or usable to limited. Consequently, even complete intake logging may receive a lower category, and the strong category is attainable within the normal 14-day window when the other conditions are met. The labels are heuristics, not validated measures of accuracy.
+
 ## 5. History-based noise calibration
 
 The model retains up to eight recent posterior means and observation residuals. After at least four history samples, residual variability can adjust observation variance ($R$), and root-mean-square changes in posterior means can adjust process variance ($Q$). Both adjustments are blended with their defaults and clamped to configured ranges.
 
-When the recommendation algorithm version changes, the next service refresh recomputes the recommendation. The stored posterior mean and variance are retained, while the histories used for noise calibration are cleared before the new model runs. This avoids mixing residual history from the prior observation model with the fixed-coefficient model.
+When the recommendation algorithm version changes, the next service refresh recomputes the recommendation. Upgrades that change the observation model retain the stored posterior mean and variance but clear the calibration histories to avoid mixing incompatible residuals. The confidence-window update from version 1.2 to 1.3 leaves the observation model unchanged and retains those histories.
 
 ## 6. Bounded trajectory controller
 

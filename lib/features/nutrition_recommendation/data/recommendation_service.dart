@@ -56,6 +56,8 @@ class AdaptiveNutritionRecommendationService {
   /// `1_1` moved fat off its floor onto a goal-dependent g/kg target.
   /// `1_2` separates latent TDEE estimation from bounded trajectory control.
   static const String algorithmVersion =
+      'tdee_adaptive_recommendation_1_3_confidence_window';
+  static const String _previousConfidenceOnlyVersion =
       'tdee_adaptive_recommendation_1_2_dual_loop';
   static const int _phaseChangeConfirmationWindowDays = 7;
 
@@ -416,7 +418,8 @@ class AdaptiveNutritionRecommendationService {
       anchorDay: phaseAnchorDay,
     );
     final previousRecommendation = latestSnapshot?.recommendation;
-    final recursiveState = algorithmChanged
+    final recursiveState = algorithmChanged &&
+            latestSnapshot?.algorithmVersion != _previousConfidenceOnlyVersion
         ? _prepareRecursiveStateForAlgorithmUpgrade(latestRecursiveState)
         : latestRecursiveState;
 

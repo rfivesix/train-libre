@@ -3,12 +3,52 @@ import 'dart:math' as math;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/adaptive_diet_phase.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/bayesian_tdee_estimator.dart';
+import 'package:train_libre/features/nutrition_recommendation/domain/confidence_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/recommendation_models.dart';
 
 void main() {
   group('BayesianTdeeEstimator recursive filter', () {
     const estimator = BayesianTdeeEstimator();
     const defaultConfig = BayesianEstimatorConfig();
+
+    test('complete 14-day data can reach high confidence after stabilization',
+        () {
+      BayesianEstimatorState? state;
+      late BayesianEstimatorRunResult run;
+      for (var week = 0; week < 10; week++) {
+        run = estimator.estimate(
+          input: _input(
+            priorMaintenanceCalories: 2500,
+            avgLoggedCalories: 2500,
+            smoothedWeightSlopeKgPerWeek: 0,
+            windowDays: 14,
+            weightLogCount: 14,
+            intakeLoggedDays: 14,
+          ),
+          recursiveState: state,
+          dueWeekKey: DateTime(2026, 1, 5 + week * 7)
+              .toIso8601String()
+              .substring(0, 10),
+        );
+        state = run.nextState;
+      }
+      expect(run.estimate.isStillStabilizing, isFalse);
+      expect(run.estimate.confidence, RecommendationConfidence.high);
+
+      final sparse = estimator.estimate(
+        input: _input(
+          priorMaintenanceCalories: 2500,
+          avgLoggedCalories: 2500,
+          smoothedWeightSlopeKgPerWeek: 0,
+          windowDays: 14,
+          weightLogCount: 3,
+          intakeLoggedDays: 14,
+        ),
+        recursiveState: state,
+        dueWeekKey: '2026-03-16',
+      );
+      expect(sparse.estimate.confidence, isNot(RecommendationConfidence.high));
+    });
 
     test('first update initializes with P0 = min(10 * R_initial, P_cap)', () {
       final run = estimator.estimate(

@@ -5330,11 +5330,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Built from recent logs and their completeness.';
+      'The assessment considers nutrition and weight logs and the stability of the estimate.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Based on profile/prior data only. Add recent weight and intake logs for adaptive adjustment.';
+      'There is currently not enough informative data for a reliable assessment.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5349,10 +5349,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Recent weight and intake logs are sparse, so this recommendation is more conservative.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Profile/prior only';
+  String get adaptiveConfidenceNotEnoughData => 'Insufficient reliable data';
 
   @override
-  String get adaptiveConfidenceLow => 'Limited recent logs';
+  String get adaptiveConfidenceLow => 'Limited data basis';
 
   @override
   String get adaptiveConfidenceMedium => 'Usable recent logs';

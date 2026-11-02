@@ -9397,13 +9397,13 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveRecommendationDataBasisHintDefault.
   ///
   /// In en, this message translates to:
-  /// **'Built from recent logs and their completeness.'**
+  /// **'The assessment considers nutrition and weight logs and the stability of the estimate.'**
   String get adaptiveRecommendationDataBasisHintDefault;
 
   /// No description provided for @adaptiveRecommendationDataBasisHintPriorOnly.
   ///
   /// In en, this message translates to:
-  /// **'Based on profile/prior data only. Add recent weight and intake logs for adaptive adjustment.'**
+  /// **'There is currently not enough informative data for a reliable assessment.'**
   String get adaptiveRecommendationDataBasisHintPriorOnly;
 
   /// No description provided for @adaptiveRecommendationDataBasisHintSparseWeight.
@@ -9427,13 +9427,13 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveConfidenceNotEnoughData.
   ///
   /// In en, this message translates to:
-  /// **'Profile/prior only'**
+  /// **'Insufficient reliable data'**
   String get adaptiveConfidenceNotEnoughData;
 
   /// No description provided for @adaptiveConfidenceLow.
   ///
   /// In en, this message translates to:
-  /// **'Limited recent logs'**
+  /// **'Limited data basis'**
   String get adaptiveConfidenceLow;
 
   /// No description provided for @adaptiveConfidenceMedium.

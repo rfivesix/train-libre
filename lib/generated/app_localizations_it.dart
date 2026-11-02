@@ -5404,11 +5404,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Costruito a partire dai registri recenti e dalla loro completezza.';
+      'La valutazione considera i dati alimentari e di peso e la stabilità della stima.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Basato solo sul profilo/dati precedenti. Aggiungi i registri recenti del peso e dell\'assunzione per un adeguamento adattivo.';
+      'Al momento non ci sono dati sufficienti per una valutazione affidabile.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5423,10 +5423,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'I registri recenti del peso e dell\'assunzione sono scarsi, quindi questa raccomandazione è più conservativa.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Solo profilo/precedente';
+  String get adaptiveConfidenceNotEnoughData => 'Dati affidabili insufficienti';
 
   @override
-  String get adaptiveConfidenceLow => 'Registri recenti limitati';
+  String get adaptiveConfidenceLow => 'Base di dati limitata';
 
   @override
   String get adaptiveConfidenceMedium => 'Registri recenti utilizzabili';

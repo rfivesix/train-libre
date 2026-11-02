@@ -5417,11 +5417,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Construit à partir des journaux récents et de leur exhaustivité.';
+      'L’évaluation tient compte des données alimentaires et de poids ainsi que de la stabilité de l’estimation.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Basé uniquement sur le profil/les données antérieures. Ajoutez des journaux de poids et de consommation récents pour un ajustement adaptatif.';
+      'Les données disponibles ne permettent pas encore une évaluation fiable.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5436,10 +5436,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les registres récents de poids et de consommation sont rares, cette recommandation est donc plus conservatrice.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Profil/antérieur seulement';
+  String get adaptiveConfidenceNotEnoughData => 'Données fiables insuffisantes';
 
   @override
-  String get adaptiveConfidenceLow => 'Journaux récents limités';
+  String get adaptiveConfidenceLow => 'Base de données limitée';
 
   @override
   String get adaptiveConfidenceMedium => 'Journaux récents utilisables';

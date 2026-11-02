@@ -285,7 +285,7 @@ extension RegressionEngine on BayesianTdeeEstimator {
         (posteriorVarianceCalories2 / math.max(varianceCapCalories2, 1.0))
             .clamp(0.0, 1.0);
 
-    if (windowDays >= 21 &&
+    if (windowDays >= 14 &&
         effectiveSampleSize >= 10 &&
         uncertaintyRatio <= 0.25) {
       return RecommendationConfidence.high;

@@ -5420,11 +5420,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Se basa en los registros recientes y en su grado de detalle.';
+      'La valoración considera los registros de alimentación y peso y la estabilidad de la estimación.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Solo se basa en los datos previos del perfil. Añade registros recientes de peso y alimentación para ajustar la recomendación.';
+      'Actualmente no hay suficientes datos útiles para una valoración fiable.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5439,10 +5439,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Hay pocos registros recientes de peso y alimentación, por lo que esta recomendación es más prudente.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Solo datos previos del perfil';
+  String get adaptiveConfidenceNotEnoughData => 'Datos fiables insuficientes';
 
   @override
-  String get adaptiveConfidenceLow => 'Pocos registros recientes';
+  String get adaptiveConfidenceLow => 'Base de datos limitada';
 
   @override
   String get adaptiveConfidenceMedium => 'Registros recientes suficientes';

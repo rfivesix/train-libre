@@ -5371,11 +5371,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Basiert auf deinen letzten Logs und deren Vollständigkeit.';
+      'Die Einschätzung berücksichtigt Ernährungs- und Gewichtsdaten sowie die Stabilität der Schätzung.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Aktuell nur auf Profil-/Prior-Daten basiert. Mit aktuellen Gewichts- und Intake-Logs wird die Anpassung präziser.';
+      'Für eine verlässliche Einschätzung fehlen derzeit ausreichend aussagekräftige Daten.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5390,10 +5390,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gewichts- und Intake-Logs sind aktuell spärlich, deshalb ist diese Empfehlung konservativer.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Nur Profil-/Prior-Basis';
+  String get adaptiveConfidenceNotEnoughData => 'Zu wenig verlässliche Daten';
 
   @override
-  String get adaptiveConfidenceLow => 'Wenige aktuelle Logs';
+  String get adaptiveConfidenceLow => 'Begrenzte Datengrundlage';
 
   @override
   String get adaptiveConfidenceMedium => 'Nutzbare aktuelle Logs';

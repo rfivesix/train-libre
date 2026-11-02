@@ -5169,11 +5169,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      '最近のログとその完全性に基づいて構築されています。';
+      '食事と体重の記録、および推定の安定性を考慮しています。';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'プロフィール/以前のデータのみに基づいています。適応的な調整のために、最近の体重と摂取量のログを追加します。';
+      '信頼できる評価に必要なデータが現在不足しています。';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5188,10 +5188,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '最近の体重と摂取量のログがまばらであるため、この推奨事項はより保守的です。';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'プロフィール/以前のみ';
+  String get adaptiveConfidenceNotEnoughData => '信頼できるデータが不足';
 
   @override
-  String get adaptiveConfidenceLow => '限定された最近のログ';
+  String get adaptiveConfidenceLow => 'データ基盤が限定的';
 
   @override
   String get adaptiveConfidenceMedium => '使用可能な最近のログ';

@@ -5385,11 +5385,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Gebaseerd op recente registraties en hoe volledig die zijn.';
+      'De beoordeling houdt rekening met voedings- en gewichtsregistraties en de stabiliteit van de schatting.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Alleen gebaseerd op profiel- en eerdere gegevens. Voeg recente gewichts- en voedingsregistraties toe voor een adaptieve aanpassing.';
+      'Er zijn momenteel onvoldoende bruikbare gegevens voor een betrouwbare beoordeling.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
@@ -5405,10 +5405,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get adaptiveConfidenceNotEnoughData =>
-      'Alleen profiel- en eerdere gegevens';
+      'Onvoldoende betrouwbare gegevens';
 
   @override
-  String get adaptiveConfidenceLow => 'Weinig recente registraties';
+  String get adaptiveConfidenceLow => 'Beperkte gegevensbasis';
 
   @override
   String get adaptiveConfidenceMedium => 'Bruikbare recente registraties';

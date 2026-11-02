@@ -51,8 +51,9 @@ The public website is hosted at `https://trainlibre.com/`. GitHub Pages serves
 the root of `gh-pages`; `docs/CNAME` preserves the custom domain when the website
 is deployed. The F-Droid repository is at `https://trainlibre.com/fdroid/repo`.
 
-- `deploy-docs.yml` publishes changes to `docs/` on `main`, changes to that
-  workflow itself, or a manual dispatch.
+- `deploy-docs.yml` builds the Markdown in `documentation/` into the public
+  site and publishes changes to `documentation/` or `docs/` on `main`, relevant
+  build-tool changes, changes to the workflow itself, or a manual dispatch.
 - `fdroid-repo.yml` runs once on release publication, or on manual dispatch.
   A manual dispatch resolves the latest release once and uses its tag for APKs,
   version information, store metadata, screenshots, and release notes. The

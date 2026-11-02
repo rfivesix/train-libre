@@ -16,6 +16,8 @@ The review window is seven completed days and is aligned to the active goal's st
 
 A review can still be created with sparse data, but it is marked as calibrating/insufficient. The review's basic data gate is at least three weight observations, at least four logged-intake days, and an available observed weight rate. Meeting that gate does not by itself authorize a nutrition adjustment: the review also evaluates trajectory status, difference from planned rate, whether logged intake differs from the current calorie target, and whether the required remaining rate passes the app's safety bound. The review may recommend keeping targets, collecting more data, changing the goal trajectory, or adjusting nutrition targets. These thresholds are product rules, not clinical standards.
 
+The recommendation's data-basis bar is separate from this seven-day review gate. It summarizes the adaptive estimate using a 14-day window, weight and intake records, estimated uncertainty, and whether the filter is still stabilizing. It does not show the percentage of intake days logged: 14 of 14 intake days alone do not guarantee a full bar. See [Bayesian TDEE Estimate and Adaptive Calorie Target](bayesian_tdee_estimator.md) for the categories and their limits.
+
 ## Applying recommendations
 
 Generating a review does not automatically change active targets. The review screen's explicit apply action recalculates the current adaptive recommendation and applies its calorie and macro targets. If the goal is behind schedule or its target date needs review, the action can also propose a revised pace/date; a changed target date requires confirmation before it is saved.
