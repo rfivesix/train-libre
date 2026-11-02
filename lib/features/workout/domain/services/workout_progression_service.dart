@@ -199,20 +199,27 @@ class WorkoutProgressionService {
     }
     if (sessions.isEmpty) return null;
 
-    final latest = sessions.values.reduce((left, right) {
-      final leftDate = left
-          .map(
-            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-          )
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      final rightDate = right
-          .map(
-            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-          )
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      return leftDate.isAfter(rightDate) ? left : right;
-    });
-    latest.sort((left, right) {
+    // BOLT OPTIMIZATION: Replace O(N^2) reduce() (which recalculates the left
+    // accumulator's date on every step) with an O(N) single-pass loop.
+    List<SetLog>? latest;
+    DateTime? latestMaxDate;
+
+    for (final sessionSets in sessions.values) {
+      DateTime maxDate = DateTime.fromMillisecondsSinceEpoch(0);
+      for (final set in sessionSets) {
+        final d = set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        if (d.isAfter(maxDate)) {
+          maxDate = d;
+        }
+      }
+
+      if (latestMaxDate == null || maxDate.isAfter(latestMaxDate)) {
+        latestMaxDate = maxDate;
+        latest = sessionSets;
+      }
+    }
+
+    latest!.sort((left, right) {
       final order = (left.logOrder ?? 0).compareTo(right.logOrder ?? 0);
       return order != 0 ? order : (left.id ?? 0).compareTo(right.id ?? 0);
     });
