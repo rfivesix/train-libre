@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.7.0-beta.1] - 2026-10-31
+## [1.7.0] - 2026-11-03
 
 ### Fixed
 - The AI meal scanner now updates distance guidance from live absolute LiDAR measurements during camera preview and clears it when the distance is suitable, the camera stops, or camera permission is lost. Devices without live absolute depth continue scanning without a stale hint.
@@ -43,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated the user guides and feature documentation for direct AI nutrition estimates, manual macros, health nutrition imports, AI data access, and current catalog languages and regions.
 - AI chat resumes recent conversations and starts a fresh chat after 30 minutes away, while preserving drafts, ongoing responses, and pending data approvals.
 - Improved AI chat sidebar swipes with velocity-aware settling, more reliable vertical scrolling, and a dimmed, rounded chat surface while the sidebar is open.
-- Prepared the 1.7.0 beta release and updated TestFlight testing priorities; iOS builds resolve the matching beta notes from their numeric marketing version.
+- Prepared the 1.7.0 release and updated TestFlight testing priorities; iOS builds resolve the matching release notes from their numeric marketing version.
 - Clarified privacy, AI data-sharing, health, backup, and telemetry disclosures across legal documents and app settings, and repaired language switching on legal website pages.
 - Optimized `SleepPipelineService` by combining night session metric iterations and eliminating redundant map lookups (#748).
 - Optimized `_WaterSparkline` daily intake min/max calculation using a single-pass loop without intermediate list allocations (#747).

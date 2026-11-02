@@ -1,4 +1,4 @@
-Train Libre 1.7.0-beta.1
+Train Libre 1.7.0
 
 Please prioritise these checks and report crashes, lost data, incorrect totals, or changes made without approval. Include your device, iOS version, steps, and screenshots where helpful.
 
