@@ -31,6 +31,24 @@ AiMealValidationEngine testEngine() => AiMealValidationEngine(
 );
 
 void main() {
+  test('direct scan keeps a large candidate when validation raises issues', () async {
+    const candidate = AiMealCandidate(items: [
+      AiMealCandidateItem(name: 'Rice', grams: 3600, servedGrams: 3600),
+    ]);
+    var repairs = 0;
+    final result = await AiMealScanRunner(validationEngine: testEngine()).run(
+      fastMode: false,
+      automaticRepair: false,
+      analyze: () async => candidate,
+      repairer: (candidate, validation, attempt) async {
+        repairs++;
+        return accepted;
+      },
+    );
+    expect(repairs, 0);
+    expect(result.outcome.validation.items.single.candidate.grams, 3600);
+    expect(result.outcome.repairLimitReached, isFalse);
+  });
   test('accepted first candidate does one validation and no repair', () async {
     var calls = 0;
     var repairs = 0;

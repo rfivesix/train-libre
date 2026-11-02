@@ -182,7 +182,8 @@ CRITICAL RULES:
 2. Do NOT return composite meal names as ingredients (e.g. NEVER return "Sandwich mit Fleisch", "Döner", "Pizza" inside items). Always separate bread, meat, vegetables, cheese, sauce.
 3. Use SIMPLE, SHORT base food names only (e.g. "Reis" not "Gebratener Basmatireis", "Ei" not "Gekochtes Hühnerei", "Tomaten" not "Reife Tomatenscheiben"). Keep names generic so they match local nutrition databases reliably.
 4. Estimate the entire visible or described serving, including heaped, deep, stacked or unusually large portions. Use visible dimensions, depth cues when available, and reasonable food density; do not assume a standard serving or cap the total. Respect explicit user-provided quantities. Check that component weights together plausibly account for the whole serving without double counting.
-5. The database commonly stores nutrition for RAW or UNPREPARED food. Provide both "servedGrams" (visible cooked/eaten weight) and "estimatedGrams" (raw equivalent weight used for database lookup). For raw or non-swelling foods, both numbers are identical.
+   Estimate the footprint and average thickness of each visible component, including layers and food hidden within a mound, before translating its volume to served weight. Use only supported scale cues and do not invent a precise size when scale is uncertain. Then check the sum against the full visible serving.
+5. The database commonly stores nutrition for RAW or UNPREPARED food. Provide both "servedGrams" (visible cooked/eaten weight) and "estimatedGrams" (raw equivalent weight used for database lookup). Account for water gained or lost during cooking when relevant; for unchanged foods use the same weight. Respect whether a user-provided quantity refers to raw or served food.
 6. Provide "stateHint" ("cooked", "raw", "fried", "baked", "boiled", "grilled") to resolve the correct database preparation state.
 7. Provide 1-2 specific "searchTerms" for each item using only synonyms of the ingredient itself. Include a canonical BLS term when its formal catalog wording differs from everyday wording. NEVER use broad category words like "fruit", "vegetable", "dairy", "starch", "topping", "snack" as search terms.
 8. Consolidate duplicate items into a single entry with total combined weight.$langRule
@@ -244,13 +245,13 @@ Rules:
 
     final anchorBlock = mealContext != null
         ? '\n\nMEAL CONTEXT ANCHOR:\n'
-              '- Dish: ${mealContext.dishType}\n'
-              '- Estimated calories: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]} kcal\n'
-              '- Estimated macros: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
-              'C${mealContext.expectedMacroProfile["carbsPercent"]}% '
-              'F${mealContext.expectedMacroProfile["fatPercent"]}%\n'
-              '- Cooking: ${mealContext.cookingMethod ?? "unknown"}\n'
-              'These are uncertain AI estimates, not targets that override the visible portion or user-provided quantities.'
+            '- Dish: ${mealContext.dishType}\n'
+            '- Estimated calories: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]} kcal\n'
+            '- Estimated macros: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
+            'C${mealContext.expectedMacroProfile["carbsPercent"]}% '
+            'F${mealContext.expectedMacroProfile["fatPercent"]}%\n'
+            '- Cooking: ${mealContext.cookingMethod ?? "unknown"}\n'
+            'These are uncertain AI estimates, not targets that override the visible portion or user-provided quantities.'
         : '';
 
     final depthBlock = (depthFacts != null && depthFacts.isValid)
@@ -263,7 +264,7 @@ You are repairing an AI meal candidate after deterministic local database valida
 RULES:
 1. When CANDIDATES are listed for an item, pick the EXACT name and [id] from that item's list. Return the [id] as `matchedBarcode`, including for base foods. This selects a supplied catalog entry; it is not evidence of packaging. For generic ingredients prefer a suitable [base] candidate. Use [off] only when no suitable base candidate exists or original packaged-product evidence identifies that product.
 2. If no candidates are listed, use simple, generic base food names in "$effectiveLang" that exist in standard nutrition tables.
-3. Change portion weights (`servedGrams` and `estimatedGrams`) only when the feedback or available evidence supports it. Do not force weights to match the uncertain calorie range; preserve explicit user quantities.
+3. Preserve valid portion weights (`servedGrams` and `estimatedGrams`); correct them only if missing or invalid. Do not force weights to match the uncertain calorie range; preserve explicit user quantities.
 4. Keep names simple and in the "$effectiveLang" language.
 5. For generic ingredient matching, include the German BLS food-class term in `searchTerms` when the everyday term differs from the source catalog wording. Preserve the correct composition and preparation state.
 6. Do NOT output calorie numbers in the JSON array.$anchorBlock$depthBlock

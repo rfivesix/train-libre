@@ -2469,6 +2469,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mealTotalAmountLabel => 'Quantità totale della ricetta';
 
   @override
+  String get aiMealRawEquivalent => 'Equivalente crudo';
+
+  @override
+  String get aiMealServed => 'Servito';
+
+  @override
   String get mealWeightBasisLabel => 'Stato';
 
   @override
@@ -3168,6 +3174,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get aiReviewScanTimedOut =>
       'La richiesta IA ha impiegato troppo tempo. La scansione è stata interrotta. Torna indietro e riprova.';
+
+  @override
+  String get aiReviewAdjustPortions => 'Modifica stima';
+
+  @override
+  String get aiReviewPortionsLarger => 'Porzioni più grandi';
+
+  @override
+  String get aiReviewPortionsSmaller => 'Porzioni più piccole';
 
   @override
   String get aiReviewFeedbackHint =>

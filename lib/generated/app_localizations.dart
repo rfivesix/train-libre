@@ -4452,6 +4452,18 @@ abstract class AppLocalizations {
   /// **'Total recipe amount'**
   String get mealTotalAmountLabel;
 
+  /// No description provided for @aiMealRawEquivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw equivalent'**
+  String get aiMealRawEquivalent;
+
+  /// No description provided for @aiMealServed.
+  ///
+  /// In en, this message translates to:
+  /// **'Served'**
+  String get aiMealServed;
+
   /// No description provided for @mealWeightBasisLabel.
   ///
   /// In en, this message translates to:
@@ -5711,6 +5723,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The AI request took too long. The scan has stopped. Please go back and try again.'**
   String get aiReviewScanTimedOut;
+
+  /// No description provided for @aiReviewAdjustPortions.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust estimate'**
+  String get aiReviewAdjustPortions;
+
+  /// No description provided for @aiReviewPortionsLarger.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger portions'**
+  String get aiReviewPortionsLarger;
+
+  /// No description provided for @aiReviewPortionsSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller portions'**
+  String get aiReviewPortionsSmaller;
 
   /// No description provided for @aiReviewFeedbackHint.
   ///

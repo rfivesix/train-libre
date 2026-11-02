@@ -34,8 +34,72 @@ AiMealValidationEngine engineWith(Map<String, List<FoodItem>> matches) {
 }
 
 void main() {
+  test('direct estimate uses served weight and accepts a very large portion', () {
+    final parsed = AiService.instance.parseMealCandidateForTesting('''
+      {"items":[{"name":"Rice","estimatedGrams":1200,"servedGrams":3600,
+      "nutritionPer100g":{"protein":3,"carbs":28,"fat":1}}]}
+    ''');
+    final result = AiService.instance.attachDirectEstimateFoodsForTesting(parsed);
+    expect(result.items.single.grams, 3600);
+    expect(result.items.single.servedGrams, 3600);
+    expect(result.items.single.selectedFood!.carbs, 28);
+  });
+
+  test('direct estimate preserves a single explicitly supplied amount', () {
+    final parsed = AiService.instance.parseMealCandidateForTesting('''
+      {"items":[{"name":"Rice","estimatedGrams":725,
+      "nutritionPer100g":{"protein":3,"carbs":28,"fat":1}}]}
+    ''');
+    final result = AiService.instance.attachDirectEstimateFoodsForTesting(parsed);
+    expect(result.items.single.grams, 725);
+    expect(result.items.single.servedGrams, 725);
+  });
+  test('large duplicate servings retain both total weights', () async {
+    final candidate = AiService.instance.parseMealCandidateForTesting('''
+      {"items":[
+        {"name":"Rice","servedGrams":900,"estimatedGrams":300,"stateHint":"cooked"},
+        {"name":"Rice","servedGrams":600,"estimatedGrams":200,"stateHint":"cooked"}
+      ]}''');
+    final result = await engineWith({
+      'rice': [food('Rice raw', kcal: 350)]
+    }).validateMealCandidate(
+        candidate: candidate, mode: AiValidationMode.capture);
+    expect(result.items.single.candidate.grams, 500);
+    expect(result.items.single.candidate.servedGrams, 1500);
+    expect(result.totals.kcalRounded, 1750);
+  });
+
+  test(
+      'prepared catalog uses served weight and raw catalog uses raw equivalent',
+      () async {
+    const candidate = AiMealCandidate(items: [
+      AiMealCandidateItem(
+          name: 'Rice', grams: 200, servedGrams: 600, stateHint: 'cooked'),
+    ]);
+    final raw = await engineWith({
+      'rice': [food('Rice raw', kcal: 350)]
+    }).validateMealCandidate(
+        candidate: candidate, mode: AiValidationMode.capture);
+    final cooked = await engineWith({
+      'rice': [food('Rice cooked', kcal: 130)]
+    }).validateMealCandidate(
+        candidate: candidate, mode: AiValidationMode.capture);
+    expect(raw.totals.kcalRounded, 700);
+    expect(cooked.totals.kcalRounded, 780);
+    expect(
+        AiMealValidationEngine.catalogGrams(
+            candidate.items.single, cooked.items.single.match.bestMatch!),
+        600);
+    expect(
+        AiMealValidationEngine.catalogGrams(
+            candidate.items.single, raw.items.single.match.bestMatch!),
+        200);
+  });
+
   group('AiMealValidationEngine', () {
-    test('prioritizes base food parenthetical stem matches over generic off matches for Reis', () async {
+    test(
+        'prioritizes base food parenthetical stem matches over generic off matches for Reis',
+        () async {
       final engine = engineWith({
         'reis': [
           food(
@@ -127,6 +191,15 @@ void main() {
         ]);
       },
     );
+
+  test('cooking loss and ambiguous catalog basis retain the correct amount', () {
+    const item = AiMealCandidateItem(
+      name: 'Chicken', grams: 400, servedGrams: 300, stateHint: 'grilled',
+    );
+    expect(AiMealValidationEngine.catalogGrams(item, food('Chicken grilled')), 300);
+    expect(AiMealValidationEngine.catalogGrams(item, food('Chicken raw')), 400);
+    expect(AiMealValidationEngine.catalogGrams(item, food('Chicken')), 400);
+  });
 
     test(
       'keeps a chicken item unresolved when only venison is retrieved',
@@ -276,21 +349,21 @@ void main() {
         final engine = engineWith({'unknown': const []});
         var attempts = 0;
 
-        final outcome = await AiRepairOrchestrator(validationEngine: engine)
-            .run(
-              initialCandidate: const AiMealCandidate(
-                items: [AiMealCandidateItem(name: 'Unknown', grams: 100)],
-              ),
-              mode: AiValidationMode.capture,
-              repairer: (_, __, ___) async {
-                attempts += 1;
-                return AiMealCandidate(
-                  items: [
-                    AiMealCandidateItem(name: 'Unknown', grams: 100 + attempts),
-                  ],
-                );
-              },
+        final outcome =
+            await AiRepairOrchestrator(validationEngine: engine).run(
+          initialCandidate: const AiMealCandidate(
+            items: [AiMealCandidateItem(name: 'Unknown', grams: 100)],
+          ),
+          mode: AiValidationMode.capture,
+          repairer: (_, __, ___) async {
+            attempts += 1;
+            return AiMealCandidate(
+              items: [
+                AiMealCandidateItem(name: 'Unknown', grams: 100 + attempts),
+              ],
             );
+          },
+        );
 
         expect(attempts, maxRepairPasses);
         expect(outcome.repairLimitReached, isTrue);
@@ -311,33 +384,33 @@ void main() {
           'rice, dry': riceCandidates,
         });
 
-        final outcome = await AiRepairOrchestrator(validationEngine: engine)
-            .run(
-              initialCandidate: const AiMealCandidate(
-                items: [
-                  AiMealCandidateItem(
-                    name: 'Rice',
-                    grams: 65,
-                    servedGrams: 180,
-                    stateHint: 'cooked',
-                    searchTerms: ['Rice', 'dry rice'],
-                  ),
-                ],
+        final outcome =
+            await AiRepairOrchestrator(validationEngine: engine).run(
+          initialCandidate: const AiMealCandidate(
+            items: [
+              AiMealCandidateItem(
+                name: 'Rice',
+                grams: 65,
+                servedGrams: 180,
+                stateHint: 'cooked',
+                searchTerms: ['Rice', 'dry rice'],
               ),
-              mode: AiValidationMode.capture,
-              repairer: (_, __, ___) async => const AiMealCandidate(
-                items: [
-                  AiMealCandidateItem(
-                    name: 'Rice, dry',
-                    grams: 65,
-                    servedGrams: 180,
-                    stateHint: 'cooked',
-                    matchedBarcode: 'rice-dry',
-                    searchTerms: ['Rice', 'dry rice'],
-                  ),
-                ],
+            ],
+          ),
+          mode: AiValidationMode.capture,
+          repairer: (_, __, ___) async => const AiMealCandidate(
+            items: [
+              AiMealCandidateItem(
+                name: 'Rice, dry',
+                grams: 65,
+                servedGrams: 180,
+                stateHint: 'cooked',
+                matchedBarcode: 'rice-dry',
+                searchTerms: ['Rice', 'dry rice'],
               ),
-            );
+            ],
+          ),
+        );
 
         expect(outcome.repairPassesUsed, 1);
         expect(outcome.repairLimitReached, isFalse);
@@ -640,7 +713,9 @@ void main() {
       expect(items[1].estimatedGrams, 30);
     });
 
-    test('parses sequence of mealContext and item objects from Apple Intelligence response', () {
+    test(
+        'parses sequence of mealContext and item objects from Apple Intelligence response',
+        () {
       const raw =
           '''{"mealContext": {"dishType": "Pizza mit Fleisch", "expectedKcalRange": [600, 1200], "expectedMacroProfile": {"proteinPercent": 20, "carbsPercent": 40, "fatPercent": 30}, "cookingMethod": "baked", "contextNotes": "Traditional pizza base with meat and toppings"}, {"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 250, "estimatedGrams": 250, "confidence": 0.95, "stateHint": "baked", "searchTerms": ["Fladenbrot", "Pizza", "Crust"]} {"name": "Hähnchenbrust", "catalogSearchTerm": "Hähnchenbrust", "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.90, "stateHint": "cooked", "searchTerms": ["Hähnchenbrust", "Chicken breast"]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
@@ -685,7 +760,9 @@ void main() {
       expect(candidate.items[0].name, 'Test');
     });
 
-    test('parses exact Apple Intelligence test connection output with unclosed items', () {
+    test(
+        'parses exact Apple Intelligence test connection output with unclosed items',
+        () {
       const raw =
           '''{"mealContext": {"dishType": "Test", "expectedKcalRange": [500, 800], "expectedMacroProfile": {"proteinPercent": [15, 25], "carbsPercent": [45, 55], "fatPercent": [25, 35]}, "cookingMethod": "baked", "contextNotes": "placeholder test meal"}, {"name": "Test", "catalogSearchTerm": null, "servedGrams": 1, "estimatedGrams": 1, "confidence": 1.0, "stateHint": "raw", "searchTerms": ["Test", "single item", "basic test"]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
@@ -695,7 +772,9 @@ void main() {
       expect(candidate.items[0].grams, 1);
     });
 
-    test('parses exact Apple Intelligence pizza output with uncomma-separated objects in items', () {
+    test(
+        'parses exact Apple Intelligence pizza output with uncomma-separated objects in items',
+        () {
       const raw =
           '''{"dishType": "Pizza", "expectedKcalRange": [500, 800], "cookingMethod": "baked", "items": [{"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["fladenbrot", "base", "bread"]} {"name": "Fleisch", "catalogSearchTerm": null, "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.85, "stateHint": "cooked", "searchTerms": ["fleisch", "meat", "hähnchen"]}]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
@@ -705,7 +784,9 @@ void main() {
       expect(candidate.items[1].name, 'Fleisch');
     });
 
-    test('parses exact Apple Intelligence output with double bracket closing error', () {
+    test(
+        'parses exact Apple Intelligence output with double bracket closing error',
+        () {
       const raw =
           '''{"dishType": "Pilz und Reis", "expectedKcalRange": [500, 800], "cookingMethod": "fried", "items": [{"name": "Reis", "catalogSearchTerm": ["Reis", "alternative search term"], "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["Reis", "cooked rice"]}]]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);

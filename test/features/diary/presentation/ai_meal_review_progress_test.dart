@@ -9,8 +9,7 @@ import 'package:train_libre/services/ai_meal_validation.dart';
 import 'package:train_libre/services/ai_service.dart';
 import 'package:train_libre/widgets/common/app_button.dart';
 
-Future<AiValidationResult> _riceValidation(int grams) =>
-    AiMealValidationEngine(
+Future<AiValidationResult> _riceValidation(int grams) => AiMealValidationEngine(
       matchLoader: (_) async => [
         FoodItem(
           barcode: 'rice',
@@ -30,11 +29,11 @@ Future<AiValidationResult> _riceValidation(int grams) =>
     );
 
 AppButton _saveButton(WidgetTester tester) => tester.widget<AppButton>(
-  find.ancestor(
-    of: find.text('Save to Diary'),
-    matching: find.byType(AppButton),
-  ),
-);
+      find.ancestor(
+        of: find.text('Save to Diary'),
+        matching: find.byType(AppButton),
+      ),
+    );
 
 Future<void> _pumpReview(
   WidgetTester tester,
@@ -82,6 +81,32 @@ void main() {
     expect(find.text('260 kcal'), findsWidgets);
     expect(find.textContaining('Preliminary nutrition'), findsNothing);
     expect(_saveButton(tester).onPressed, isNotNull);
+    preliminary.dispose();
+  });
+
+  testWidgets('portion actions are available without entering edit mode',
+      (tester) async {
+    final preliminary = ValueNotifier<AiValidationResult?>(null);
+    final finalResult = Completer<AiValidationResult>();
+    await _pumpReview(tester, preliminary, finalResult.future);
+    finalResult.complete(await _riceValidation(200));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Larger portions'));
+    await tester.pump();
+    expect(find.text('Adjust estimate'), findsOneWidget);
+    expect(find.text('Smaller portions'), findsOneWidget);
+    expect(
+        tester
+            .widget<AppButton>(
+                find.widgetWithText(AppButton, 'Larger portions'))
+            .onPressed,
+        isNotNull);
+    expect(
+        tester
+            .widget<AppButton>(
+                find.widgetWithText(AppButton, 'Smaller portions'))
+            .onPressed,
+        isNotNull);
     preliminary.dispose();
   });
 

@@ -65,6 +65,7 @@ class AiMealScanRunner {
     required AiCandidateLoader analyze,
     required AiCandidateRepairer repairer,
     required bool fastMode,
+    bool automaticRepair = true,
     bool Function()? isCancelled,
     void Function()? onValidating,
     void Function(AiMealCandidate candidate)? onCandidateReady,
@@ -215,6 +216,7 @@ class AiMealScanRunner {
           initialCandidate: selected.candidate!,
           initialValidation: selected.validation,
           mode: AiValidationMode.capture,
+          maxPasses: automaticRepair ? maxRepairPasses : 0,
           repairer: (candidate, validation, attempt) {
             ensureActive();
             onProgress?.call(

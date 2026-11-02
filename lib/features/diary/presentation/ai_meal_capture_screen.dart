@@ -1124,6 +1124,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
       final runResult = await AiMealScanRunner(validationEngine: engine).run(
         fastMode: fastMode && cloudProvider,
+        automaticRepair: !useDirectNutrition,
         isCancelled: () => _analysisCancelled || !mounted,
         onCandidateReady: (candidate) {
           unawaited(

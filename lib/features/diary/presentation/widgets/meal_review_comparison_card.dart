@@ -20,6 +20,7 @@ class MealReviewComparisonCard extends StatelessWidget {
   final Key dismissibleKey;
   final String name;
   final int estimatedGrams;
+  final int? servedGrams;
   final bool isFluid;
   final double confidence;
 
@@ -41,6 +42,7 @@ class MealReviewComparisonCard extends StatelessWidget {
     required this.dismissibleKey,
     required this.name,
     required this.estimatedGrams,
+    this.servedGrams,
     this.isFluid = false,
     required this.confidence,
     this.leading,
@@ -134,21 +136,20 @@ class MealReviewComparisonCard extends StatelessWidget {
                               );
                               final baseFoodLang =
                                   BaseFoodLanguageService.resolveLanguageCode(
-                                    choice: themeService.baseFoodLanguage,
-                                    context: context,
-                                  );
+                                choice: themeService.baseFoodLanguage,
+                                context: context,
+                              );
                               final matchName =
                                   matchedFood!.source == FoodItemSource.base
-                                  ? matchedFood!.getLocalizedName(
-                                      context,
-                                      languageCode: baseFoodLang,
-                                    )
-                                  : matchedFood!.getLocalizedName(context);
+                                      ? matchedFood!.getLocalizedName(
+                                          context,
+                                          languageCode: baseFoodLang,
+                                        )
+                                      : matchedFood!.getLocalizedName(context);
                               // Only name the database entry when it differs —
                               // printing the same word twice tells the user
                               // nothing and makes the card look cluttered.
-                              final differs =
-                                  matchName.trim().toLowerCase() !=
+                              final differs = matchName.trim().toLowerCase() !=
                                   name.trim().toLowerCase();
                               return Text(
                                 differs
@@ -219,8 +220,7 @@ class MealReviewComparisonCard extends StatelessWidget {
                                 (issue) => Text(
                                   aiValidationIssueText(l10n, issue),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        issue.severity ==
+                                    color: issue.severity ==
                                             AiValidationSeverity.error
                                         ? theme.colorScheme.error
                                         : Colors.orange[800],
@@ -315,11 +315,24 @@ class MealReviewComparisonCard extends StatelessWidget {
                                   horizontal: DesignConstants.spacingS,
                                   vertical: 4,
                                 ),
-                                child: Text(
-                                  '$estimatedGrams${isFluid ? 'ml' : 'g'}',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      servedGrams != null &&
+                                              servedGrams != estimatedGrams
+                                          ? '${l10n.aiMealRawEquivalent}: $estimatedGrams g'
+                                          : '$estimatedGrams${isFluid ? 'ml' : 'g'}',
+                                      style:
+                                          theme.textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (servedGrams != null &&
+                                        servedGrams != estimatedGrams)
+                                      Text(
+                                          '${l10n.aiMealServed}: $servedGrams g',
+                                          style: theme.textTheme.bodySmall),
+                                  ],
                                 ),
                               ),
                             ),

@@ -2465,6 +2465,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get mealTotalAmountLabel => 'Totale hoeveelheid van recept';
 
   @override
+  String get aiMealRawEquivalent => 'Rauw equivalent';
+
+  @override
+  String get aiMealServed => 'Geserveerd';
+
+  @override
   String get mealWeightBasisLabel => 'Toestand';
 
   @override
@@ -3165,6 +3171,15 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get aiReviewScanTimedOut =>
       'Het AI-verzoek duurde te lang. De scan is gestopt. Ga terug en probeer het opnieuw.';
+
+  @override
+  String get aiReviewAdjustPortions => 'Schatting aanpassen';
+
+  @override
+  String get aiReviewPortionsLarger => 'Grotere porties';
+
+  @override
+  String get aiReviewPortionsSmaller => 'Kleinere porties';
 
   @override
   String get aiReviewFeedbackHint =>

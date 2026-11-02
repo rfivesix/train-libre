@@ -41,9 +41,9 @@ class AiService {
     FlutterSecureStorage? secureStorage,
     DynamicModelIdsLoader? dynamicModelIdsLoader,
     AiHttpGet? httpGet,
-  }) : _secureStorage = secureStorage ?? deviceOnlySecureStorage,
-       _dynamicModelIdsLoader = dynamicModelIdsLoader,
-       _httpGet = httpGet ?? http.get;
+  })  : _secureStorage = secureStorage ?? deviceOnlySecureStorage,
+        _dynamicModelIdsLoader = dynamicModelIdsLoader,
+        _httpGet = httpGet ?? http.get;
   static final AiService instance = AiService._();
 
   @visibleForTesting
@@ -84,9 +84,9 @@ class AiService {
 
   static const FlutterSecureStorage deviceOnlySecureStorage =
       FlutterSecureStorage(
-        iOptions: deviceOnlyIosOptions,
-        mOptions: deviceOnlyMacOsOptions,
-      );
+    iOptions: deviceOnlyIosOptions,
+    mOptions: deviceOnlyMacOsOptions,
+  );
 
   /// The options items were stored with before [deviceOnlySecureStorage]; kept
   /// so [migrateSecureStorageToDeviceOnly] can find and move them.
@@ -324,14 +324,14 @@ class AiService {
 
   /// Every key this service owns, used by the device-only migration.
   static List<String> get _allStorageKeys => [
-    for (final provider in AiProvider.values) apiKeyStorageKeyFor(provider),
-    for (final provider in AiProvider.values)
-      selectedModelStorageKeyFor(provider),
-    _providerKey,
-    _customBaseUrlKey,
-    _customModelKey,
-    _timeoutKey,
-  ];
+        for (final provider in AiProvider.values) apiKeyStorageKeyFor(provider),
+        for (final provider in AiProvider.values)
+          selectedModelStorageKeyFor(provider),
+        _providerKey,
+        _customBaseUrlKey,
+        _customModelKey,
+        _timeoutKey,
+      ];
 
   /// Moves keychain items written before [deviceOnlyAppleOptions] existed onto
   /// the device-only accessibility class, so they stop being included in iOS
@@ -378,16 +378,15 @@ class AiService {
     await _secureStorage.delete(key: apiKeyStorageKeyFor(provider));
   }
 
-  List<AiProviderMetadata> getSupportedProviders() => _providerRegistry.values
-      .where((p) {
+  List<AiProviderMetadata> getSupportedProviders() =>
+      _providerRegistry.values.where((p) {
         if (p.provider == AiProvider.appleFoundation &&
             !kIsWeb &&
             !Platform.isIOS) {
           return false;
         }
         return true;
-      })
-      .toList(growable: false);
+      }).toList(growable: false);
 
   AiProviderMetadata getProviderMetadata(AiProvider provider) =>
       _providerRegistry[provider]!;
@@ -419,8 +418,8 @@ class AiService {
 
   Future<AiProvider> _resolveDefaultProvider() async {
     if (!kIsWeb && Platform.isIOS) {
-      final appleAvailable = await AppleFoundationService.instance
-          .isAvailable();
+      final appleAvailable =
+          await AppleFoundationService.instance.isAvailable();
       if (appleAvailable) {
         return AiProvider.appleFoundation;
       }
@@ -731,8 +730,7 @@ class AiService {
     final userContent = textHint != null && textHint.trim().isNotEmpty
         ? '$textHint. Return the identified ingredients as a JSON object.'
         : 'Analyze this meal and identify all food components. Return ONLY a valid JSON object matching the requested format.';
-    final attachDepthMap =
-        depthMap != null &&
+    final attachDepthMap = depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;
 
@@ -796,8 +794,7 @@ class AiService {
     String? depthMapLegend,
     AiUsageCollector? usageCollector,
   }) async {
-    final attachDepthMap =
-        depthMap != null &&
+    final attachDepthMap = depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;
     final prompt = _buildDirectNutritionPrompt(
@@ -843,8 +840,7 @@ class AiService {
     AiUsageCollector? usageCollector,
   }) async {
     final raw = await _callSelectedProviderRaw(
-      userContent:
-          '''Previous meal estimate:
+      userContent: '''Previous meal estimate:
 ${jsonEncode({'items': previousItems.map((item) => item.toJson()).toList()})}
 
 User correction: $feedback
@@ -863,9 +859,14 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
     if (candidate.items.isEmpty) throw const AiParseException();
     final items = <AiMealCandidateItem>[];
     for (var index = 0; index < candidate.items.length; index++) {
-      final item = candidate.items[index];
+      final original = candidate.items[index];
+      // Direct estimates describe the food as eaten. Some models still return
+      // a raw equivalent in estimatedGrams despite the prompt.
+      final served = original.servedGrams;
+      final grams = served != null && served > 0 ? served : original.grams;
+      final item = original.copyWith(grams: grams, servedGrams: grams);
       final nutrition = item.nutritionPer100g;
-      if (item.grams <= 0 || item.grams > 3000 || nutrition == null) {
+      if (item.grams <= 0 || nutrition == null) {
         throw const AiParseException(
           'The direct nutrition estimate is incomplete.',
         );
@@ -924,6 +925,10 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
     return candidate.copyWith(items: items);
   }
 
+  @visibleForTesting
+  AiMealCandidate attachDirectEstimateFoodsForTesting(AiMealCandidate candidate) =>
+      _attachDirectEstimateFoods(candidate);
+
   String _buildDirectNutritionPrompt({
     String? languageCode,
     DepthScaleFacts? depthFacts,
@@ -940,13 +945,17 @@ Update the ingredient quantities and nutrient estimates to follow this correctio
 
 Do not search, cite, or imitate any food database or branded catalog entry. Estimate the actual visible/prepared food. Break composite meals into useful ingredients without inventing tiny ingredients that cannot be distinguished.
 Estimate the entire visible or described serving, including heaped, deep, stacked or unusually large portions. Use visible dimensions, depth cues when available, and reasonable food density; do not assume a standard serving or cap the total. Respect explicit user-provided quantities. Check that component weights plausibly account for the whole serving without double counting.
+Consider each component's footprint and average thickness, including layers and the interior of mounds, before estimating its eaten weight. Use only supported scale cues; do not invent a precise size when scale is uncertain. In this mode both gram fields describe the same eaten weight and nutrition is per 100 g of that food as eaten.
 Include every consumed food and drink. For each item include `name`, `estimatedGrams` (positive integer, or millilitres for drinks), `servedGrams` (positive integer), `isFluid` (true for drinks, false for foods), `confidence` (0..1), and `nutritionPer100g` (or per 100ml for drinks) with `protein`, `carbs`, and `fat` as non-negative numbers. Include `sugar`, `fiber`, `salt`, or `caffeine` only when you can make a reasonable estimate; otherwise use null or omit the field. Do not return calories: the app calculates calories from the three macros using 4/4/9.
 Return only JSON, with a top-level `dishType` and `items` array:
 {"dishType":"Meal title","items":[{"name":"ingredient","estimatedGrams":120,"servedGrams":120,"isFluid":false,"confidence":0.8,"nutritionPer100g":{"protein":10.2,"carbs":15.5,"fat":6.1,"sugar":2.0,"fiber":1.3,"salt":0.4,"caffeine":0}}]}''';
   }
 
-  String _depthPhotoContext(DepthScaleFacts? facts, int? index) =>
-      facts?.isValid == true && index != null && index >= 0
+  String _depthPhotoContext(DepthScaleFacts? facts, int? index) => facts
+                  ?.isValid ==
+              true &&
+          index != null &&
+          index >= 0
       ? '\nThe LiDAR scene scale corresponds to meal photo ${index + 1} (counting meal photos in order).'
       : '';
 
@@ -1041,8 +1050,7 @@ Return only JSON, with a top-level `dishType` and `items` array:
     final previousJson = jsonEncode(
       previousResults.map((e) => e.toJson()).toList(),
     );
-    final userContent =
-        '''
+    final userContent = '''
 Previous analysis result:
 $previousJson
 
@@ -1100,32 +1108,35 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     final actionable = validation.allIssues
         .where((issue) => issue.severity != AiValidationSeverity.info)
         .toList(growable: false);
-    final scoped =
-        actionable.isNotEmpty &&
+    final scoped = actionable.isNotEmpty &&
         actionable.every((issue) => issue.itemIndex != null);
     final affectedIndices = scoped
         ? (actionable.map((issue) => issue.itemIndex!).toSet().toList()..sort())
         : List<int>.generate(candidate.items.length, (index) => index);
-    final semanticOnly =
-        actionable.isNotEmpty &&
+    final semanticOnly = actionable.isNotEmpty &&
         scoped &&
         actionable.every(
           (issue) =>
               issue.code == 'ambiguous_nutrition_match' ||
               issue.code == 'ambiguous_db_match',
         );
-    final userContent =
-        '''
+    final userContent = '''
 Requested meal items (itemIndex is zero-based and must be returned unchanged):
 ${jsonEncode([
-          for (final index in affectedIndices) {...candidate.items[index].toJson(), 'estimatedGrams': candidate.items[index].grams, 'itemIndex': index, 'catalogLocked': !validation.items[index].needsCatalogRepair},
+          for (final index in affectedIndices)
+            {
+              ...candidate.items[index].toJson(),
+              'estimatedGrams': candidate.items[index].grams,
+              'itemIndex': index,
+              'catalogLocked': !validation.items[index].needsCatalogRepair
+            },
         ])}
 
 Deterministic validation feedback (totals include unchanged items):
 ${validation.toRepairFeedback(itemIndices: affectedIndices.toSet())}
 
 Return exactly these ${affectedIndices.length} items, identified by itemIndex.
-${semanticOnly ? 'Select only catalog entries; preserve quantities and preparation state.' : 'Repair only the requested items. For catalogLocked items adjust only quantities to fit the meal context; their food selection is fixed.'}
+${semanticOnly ? 'Select only catalog entries; preserve quantities and preparation state.' : 'Repair only the requested items. Preserve valid quantities; do not resize portions to fit the meal context. For catalogLocked items the food selection is fixed.'}
 Use only the candidate IDs supplied for that particular item. If none are supplied, return matchedBarcode: null. Return catalogSearchTerm: null when it is no longer relevant. Original packaged-product evidence cannot be added or changed by this repair.
 ''';
 
@@ -1156,10 +1167,11 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       final previous = candidate.items[index];
       final checked = validation.items[index];
       final response = byIndex[index]!;
-      final grams = semanticOnly || response.estimatedGrams <= 0
+      final preserveQuantity = previous.grams > 0;
+      final grams = preserveQuantity || response.estimatedGrams <= 0
           ? previous.grams
           : response.estimatedGrams;
-      final served = semanticOnly
+      final served = preserveQuantity
           ? previous.servedGrams
           : response.servedGrams ?? previous.servedGrams;
       if (!checked.needsCatalogRepair) {
@@ -1178,10 +1190,10 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       final selections = requestedId != null && requestedId.isNotEmpty
           ? supplied.where((food) => food.barcode == requestedId).toList()
           : supplied
-                .where(
-                  (food) => food.getLocalizedName(null) == response.name.trim(),
-                )
-                .toList();
+              .where(
+                (food) => food.getLocalizedName(null) == response.name.trim(),
+              )
+              .toList();
       if (requestedId != null &&
           requestedId.isNotEmpty &&
           selections.length != 1) {
@@ -1225,8 +1237,7 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
     try {
       final providerEnum = await getSelectedProvider();
       String? apiKey;
-      final isOfflineProvider =
-          providerEnum == AiProvider.ollama ||
+      final isOfflineProvider = providerEnum == AiProvider.ollama ||
           providerEnum == AiProvider.custom ||
           providerEnum == AiProvider.appleFoundation;
       if (!isOfflineProvider) {
@@ -1257,12 +1268,12 @@ Use only the candidate IDs supplied for that particular item. If none are suppli
       final _AiRawResponse rawResult;
       switch (providerEnum) {
         case AiProvider.appleFoundation:
-          final response = await AppleFoundationService.instance
-              .generateMealJson(
-                prompt: userContent,
-                systemPrompt: systemPrompt,
-                imagesBase64: imageDataList,
-              );
+          final response =
+              await AppleFoundationService.instance.generateMealJson(
+            prompt: userContent,
+            systemPrompt: systemPrompt,
+            imagesBase64: imageDataList,
+          );
           rawResult = _AiRawResponse(response, null);
           break;
         case AiProvider.openai:

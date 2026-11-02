@@ -20,23 +20,23 @@ class AiMealValidationEngine {
     } else {
       final session = ProductLocalDataSource.instance.createAiSearchSession();
       _matchLoader = (item) => defaultMatchLoader(
-        item,
-        aiSession: session,
-        includeOff: item.canSearchOff,
-      );
+            item,
+            aiSession: session,
+            includeOff: item.canSearchOff,
+          );
     }
   }
 
   String _itemCacheKey(AiMealCandidateItem item) => jsonEncode([
-    item.name,
-    item.matchedBarcode,
-    item.catalogSearchTerm,
-    item.searchTerms,
-    item.isPackagedProduct,
-    item.allowOffFallback,
-    item.selectedFood?.barcode,
-    item.selectedFood?.id,
-  ]);
+        item.name,
+        item.matchedBarcode,
+        item.catalogSearchTerm,
+        item.searchTerms,
+        item.isPackagedProduct,
+        item.allowOffFallback,
+        item.selectedFood?.barcode,
+        item.selectedFood?.id,
+      ]);
 
   static Future<List<FoodItem>> defaultMatchLoader(
     AiMealCandidateItem item, {
@@ -77,7 +77,7 @@ class AiMealValidationEngine {
     required AiValidationMode mode,
     AiMacroTargetContext? targetContext,
   }) async {
-    final normalized = _normalize(candidate);
+    final normalized = _normalize(candidate, mode);
     final mealIssues = <AiValidationIssue>[...normalized.issues];
     final validatedItems = <AiValidatedMealItem>[];
     final items = normalized.candidate.items;
@@ -105,7 +105,11 @@ class AiMealValidationEngine {
         final match = _evaluateMatch(item, matches);
         final nutrition = match.bestMatch == null
             ? AiNutritionTotals.zero
-            : AiNutritionTotals.fromFood(match.bestMatch!, item.grams);
+            : AiNutritionTotals.fromFood(
+                match.bestMatch!,
+                mode == AiValidationMode.capture
+                    ? catalogGrams(item, match.bestMatch!)
+                    : item.grams);
         final issues = _validateItem(
           index: i,
           item: item,
@@ -147,8 +151,7 @@ class AiMealValidationEngine {
       for (final item in validatedItems) ...item.issues,
     ];
     final score = _computeValidationScore(allIssues, macroFit);
-    final passed =
-        _isGoodEnough(
+    final passed = _isGoodEnough(
           issues: allIssues,
           score: score,
           macroFit: macroFit,
@@ -213,7 +216,7 @@ class AiMealValidationEngine {
     return _maxInt(8, (targetGrams * 0.30).round());
   }
 
-  _NormalizedCandidate _normalize(AiMealCandidate candidate) {
+  _NormalizedCandidate _normalize(AiMealCandidate candidate, AiValidationMode mode) {
     final issues = <AiValidationIssue>[];
     final byKey = <String, AiMealCandidateItem>{};
     final duplicateNames = <String>{};
@@ -244,6 +247,10 @@ class AiMealValidationEngine {
         duplicateNames.add(normalized.name);
         byKey[key] = existing.copyWith(
           grams: existing.grams + normalized.grams,
+          servedGrams: mode == AiValidationMode.capture
+              ? (existing.servedGrams ?? existing.grams) +
+                  (normalized.servedGrams ?? normalized.grams)
+              : existing.servedGrams,
           confidence: _maxDouble(
             existing.confidence ?? 0,
             normalized.confidence ?? 0,
@@ -280,6 +287,23 @@ class AiMealValidationEngine {
   static int _maxInt(int a, int b) => a > b ? a : b;
   static double _maxDouble(double a, double b) => a > b ? a : b;
 
+  /// A clearly prepared catalog entry is per 100 g as served, not per 100 g
+  /// of the raw ingredient. Leave ambiguous catalog names on the model's basis.
+  static int catalogGrams(AiMealCandidateItem item, FoodItem food) {
+    if (item.servedGrams == null ||
+        item.servedGrams! <= 0 ||
+        !isPreparedState(item.stateHint)) {
+      return item.grams;
+    }
+    final name = '${food.name} ${food.nameDe} ${food.nameEn}'.toLowerCase();
+    final prepared = RegExp(
+        r'\b(cooked|boiled|fried|baked|grilled|gekocht|gebraten|gebacken|gegrillt|zubereitet)\b');
+    final raw = RegExp(r'\b(raw|roh)\b');
+    return prepared.hasMatch(name) && !raw.hasMatch(name)
+        ? item.servedGrams!
+        : item.grams;
+  }
+
   static bool isPreparedState(String? stateHint) {
     if (stateHint == null) return false;
     const preparedStates = {
@@ -313,14 +337,12 @@ class AiRepairOrchestrator {
       int round,
       AiValidationResult result,
       int durationMilliseconds,
-    )?
-    onRepairValidation,
+    )? onRepairValidation,
     void Function(AiValidationResult result, int durationMilliseconds)?
-    onFallbackValidation,
+        onFallbackValidation,
   }) async {
     var candidate = initialCandidate;
-    var validation =
-        initialValidation ??
+    var validation = initialValidation ??
         await validationEngine.validateMealCandidate(
           candidate: candidate,
           mode: mode,
@@ -357,13 +379,11 @@ class AiRepairOrchestrator {
         items: [
           for (final item in validation.items)
             item.candidate.copyWith(
-              allowOffFallback:
-                  item.candidate.allowOffFallback ||
+              allowOffFallback: item.candidate.allowOffFallback ||
                   (item.needsCatalogRepair &&
                       !item.candidate.isPackagedProduct),
-              selectedFood: item.needsCatalogRepair
-                  ? null
-                  : item.match.bestMatch,
+              selectedFood:
+                  item.needsCatalogRepair ? null : item.match.bestMatch,
             ),
         ],
       );
@@ -402,8 +422,8 @@ class AiRepairOrchestrator {
     }
 
     final limitReached =
-        (!validation.passed || validation.needsSemanticSelection) &&
-        repairPasses >= maxPasses;
+        maxPasses > 0 && (!validation.passed || validation.needsSemanticSelection) &&
+            repairPasses >= maxPasses;
     return AiRepairOutcome(
       validation: validation.copyWithRepairMetadata(
         repairPassesUsed: repairPasses,

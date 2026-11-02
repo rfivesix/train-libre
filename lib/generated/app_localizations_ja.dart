@@ -2404,6 +2404,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealTotalAmountLabel => 'レシピ全体の量';
 
   @override
+  String get aiMealRawEquivalent => '生の状態の換算量';
+
+  @override
+  String get aiMealServed => '提供量';
+
+  @override
   String get mealWeightBasisLabel => '状態';
 
   @override
@@ -3075,6 +3081,15 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get aiReviewScanTimedOut =>
       'AIへのリクエストがタイムアウトしたため、スキャンを終了しました。戻ってもう一度お試しください。';
+
+  @override
+  String get aiReviewAdjustPortions => '推定を調整';
+
+  @override
+  String get aiReviewPortionsLarger => '量を増やす';
+
+  @override
+  String get aiReviewPortionsSmaller => '量を減らす';
 
   @override
   String get aiReviewFeedbackHint => 'AI が何を間違えたのか説明してください...';
