@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.7.0-beta.1] - 2026-10-31
 
+### Fixed
+- The AI meal scanner now updates distance guidance from live absolute LiDAR measurements during camera preview and clears it when the distance is suitable, the camera stops, or camera permission is lost. Devices without live absolute depth continue scanning without a stale hint.
+
 ### Added
 - Added a dedicated AI assistant user guide covering setup, data access, reviewed changes, photos, and chat history.
 - Added Spanish and Dutch as app localization targets, including selectable base-food display language preferences and locale-aware automatic selection.

@@ -13,6 +13,7 @@ import UIKit
 public class DepthScanPlugin: NSObject {
   public static let channelName = "com.trainlibre.app/depth_scan"
   public static let barcodeChannelName = "com.trainlibre.app/depth_scan/barcodes"
+  public static let liveDistanceChannelName = "com.trainlibre.app/depth_scan/live_distance"
   public static let previewViewType = "com.trainlibre.app/depth_scan_preview"
 
   private static var instance: DepthScanPlugin?
@@ -34,6 +35,12 @@ public class DepthScanPlugin: NSObject {
       binaryMessenger: registrar.messenger()
     )
     barcodeChannel.setStreamHandler(BarcodeStreamHandler.shared)
+
+    let liveDistanceChannel = FlutterEventChannel(
+      name: liveDistanceChannelName,
+      binaryMessenger: registrar.messenger()
+    )
+    liveDistanceChannel.setStreamHandler(LiveDistanceStreamHandler.shared)
 
     registrar.register(
       DepthScanPreviewFactory(),
@@ -175,6 +182,42 @@ final class BarcodeStreamHandler: NSObject, FlutterStreamHandler {
 
     DispatchQueue.main.async { [weak self] in
       self?.sink?(value)
+    }
+  }
+}
+
+/// Emits current absolute LiDAR distance in metres to Flutter. A nil event
+/// invalidates any previously shown guidance when the camera stops.
+final class LiveDistanceStreamHandler: NSObject, FlutterStreamHandler {
+  static let shared = LiveDistanceStreamHandler()
+  private var sink: FlutterEventSink?
+  private let gate = NSLock()
+
+  func onListen(
+    withArguments arguments: Any?,
+    eventSink events: @escaping FlutterEventSink
+  ) -> FlutterError? {
+    gate.lock()
+    sink = events
+    gate.unlock()
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    gate.lock()
+    sink = nil
+    gate.unlock()
+    return nil
+  }
+
+  func emit(_ metres: Double?) {
+    DispatchQueue.main.async { [weak self] in
+      guard let self else { return }
+      self.gate.lock()
+      let currentSink = self.sink
+      self.gate.unlock()
+      let value: Any = metres.map { $0 as Any } ?? NSNull()
+      currentSink?(value)
     }
   }
 }
@@ -392,6 +435,7 @@ public class DepthScanController: NSObject {
   /// 1.2 s focus wait before a photo blocked barcode delivery, and a barcode in
   /// frame delayed the shutter by however many frames had queued up behind it.
   private let metadataQueue = DispatchQueue(label: "com.trainlibre.app.depth_scan.metadata")
+  private let liveDepthQueue = DispatchQueue(label: "com.trainlibre.app.depth_scan.live_depth")
 
   private let session = AVCaptureSession()
   private var photoOutput: AVCapturePhotoOutput?
@@ -542,6 +586,7 @@ public class DepthScanController: NSObject {
   }
 
   public func stop() {
+    LiveDistanceStreamHandler.shared.emit(nil)
     sessionQueue.async { [weak self] in
       guard let self, self.session.isRunning else { return }
       if let device = self.videoDevice, device.hasTorch && device.torchMode == .on {
@@ -708,6 +753,17 @@ public class DepthScanController: NSObject {
     photoOutput = photo
 
     if !isChatCamera {
+      // Only LiDAR supplies absolute camera-to-subject distance. Relative
+      // stereo depth can still accompany captures but must not drive guidance.
+      if device.deviceType == .builtInLiDARDepthCamera {
+        let liveDepth = AVCaptureDepthDataOutput()
+        liveDepth.isFilteringEnabled = true
+        if session.canAddOutput(liveDepth) {
+          session.addOutput(liveDepth)
+          liveDepth.setDelegate(self, callbackQueue: liveDepthQueue)
+        }
+      }
+
       // Barcode detection shares the session — this is the whole reason the
       // capture screen can drop its separate scanner camera.
       let metadata = AVCaptureMetadataOutput()
@@ -884,6 +940,56 @@ public class DepthScanController: NSObject {
       }
       Thread.sleep(forTimeInterval: 0.05)
     }
+  }
+}
+
+// MARK: - Live absolute distance
+
+extension DepthScanController: AVCaptureDepthDataOutputDelegate {
+  public func depthDataOutput(
+    _ output: AVCaptureDepthDataOutput,
+    didOutput depthData: AVDepthData,
+    timestamp: CMTime,
+    connection: AVCaptureConnection
+  ) {
+    guard depthData.depthDataAccuracy == .absolute else {
+      LiveDistanceStreamHandler.shared.emit(nil)
+      return
+    }
+
+    let map = depthData.depthDataMap
+    guard CVPixelBufferGetPixelFormatType(map) == kCVPixelFormatType_DepthFloat32 else {
+      LiveDistanceStreamHandler.shared.emit(nil)
+      return
+    }
+    CVPixelBufferLockBaseAddress(map, .readOnly)
+    defer { CVPixelBufferUnlockBaseAddress(map, .readOnly) }
+    guard let base = CVPixelBufferGetBaseAddress(map) else {
+      LiveDistanceStreamHandler.shared.emit(nil)
+      return
+    }
+
+    let width = CVPixelBufferGetWidth(map)
+    let height = CVPixelBufferGetHeight(map)
+    let rowStride = CVPixelBufferGetBytesPerRow(map) / MemoryLayout<Float>.size
+    let values = base.assumingMemoryBound(to: Float.self)
+    var samples: [Double] = []
+    // The centre quarter approximates the food's subject distance without
+    // letting background walls or table edges dominate the guidance.
+    for y in (height * 3 / 8)..<(height * 5 / 8) {
+      for x in (width * 3 / 8)..<(width * 5 / 8) where x % 2 == 0 && y % 2 == 0 {
+        let metres = Double(values[y * rowStride + x])
+        if metres.isFinite && metres > 0.05 && metres < 2.0 {
+          samples.append(metres)
+        }
+      }
+    }
+    guard samples.count >= 8 else {
+      LiveDistanceStreamHandler.shared.emit(nil)
+      return
+    }
+    samples.sort()
+    LiveDistanceStreamHandler.shared.emit(samples[samples.count / 2])
   }
 }
 

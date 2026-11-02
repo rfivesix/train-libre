@@ -1,36 +1,37 @@
 // lib/features/diary/presentation/scanner_screen.dart
 
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import '../../../generated/app_localizations.dart';
-
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
-
-import 'dart:developer' as developer;
-
-import '../../../services/haptic_feedback_service.dart';
-
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../generated/app_localizations.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../services/haptic_feedback_service.dart';
 import '../../../navigation/app_route_observer.dart';
-import '../../../widgets/common/database_placeholder_widget.dart';
-import '../../../util/design_constants.dart';
-import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/global_app_bar.dart';
 import '../../ai_assistant/presentation/ai_global_cloud_visibility.dart';
+import '../../ai_assistant/presentation/widgets/cloud_overlay/header_glass_button.dart';
+import '../data/sources/product_local_data_source.dart';
+import '../domain/models/food_item.dart';
+import 'widgets/ai_barcode_banner.dart';
+import 'widgets/barcode_camera_preview_demo.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
 /// Uses the `qr_code_scanner_plus` package (FLOSS-compatible) to detect
-/// barcodes and returns the first successfully scanned code to the calling
-/// screen. This is the standalone barcode entrance; `AiMealCaptureScreen`
-/// additionally detects barcodes passively on its unified camera session.
+/// barcodes. The user confirms a detected product from the bottom banner before
+/// the code is returned to the calling screen. This is the standalone barcode
+/// entrance; `AiMealCaptureScreen` detects barcodes passively on its camera.
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
 
@@ -39,18 +40,18 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
+    with WidgetsBindingObserver, RouteAware {
   late final AiGlobalCloudVisibilityLease _cloudVisibilityLease;
   bool _isDone = false;
+  bool _isIosSimulator = false;
+  String? _detectedBarcode;
+  FoodItem? _detectedProduct;
   bool _isFlashOn = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
   bool _isCheckingPermission = true;
   bool _isRequestingPermission = false;
   bool _isRouteObserverAttached = false;
   bool _isTopRoute = true;
-  late final AnimationController _animationController;
-  late final Animation<double> _animation;
-
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
 
@@ -69,13 +70,30 @@ class _ScannerScreenState extends State<ScannerScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance
-        .isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
       });
     }
+  }
+
+  Future<void> _detectIosSimulator() async {
+    if (!Platform.isIOS) return;
+    try {
+      final info = await DeviceInfoPlugin().iosInfo;
+      if (mounted) {
+        setState(() => _isIosSimulator = !info.isPhysicalDevice);
+      }
+    } catch (_) {
+      // Keep the camera preview when the runtime cannot confirm a simulator.
+    }
+  }
+
+  Future<void> _prepareScanner() async {
+    await _detectIosSimulator();
+    await _checkPermission(initial: true);
   }
 
   @override
@@ -88,21 +106,11 @@ class _ScannerScreenState extends State<ScannerScreen>
       ),
     );
     _checkDbStatus();
+    unawaited(_prepareScanner());
     WidgetsBinding.instance.addObserver(this);
-    _checkPermission(initial: true);
 
-    // Lock viewfinder strictly to Portrait mode
+    // Lock viewfinder strictly to Portrait mode.
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-    // Initialize looping laser sweep animation
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 2500),
-      vsync: this,
-    );
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-    _animationController.repeat(reverse: true);
   }
 
   @override
@@ -152,7 +160,6 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
     // The QR controller self-disposes when the QRView is unmounted; disposing
     // it here as well is deprecated.
-    _animationController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     // Restore default app orientations
     SystemChrome.setPreferredOrientations([
@@ -164,28 +171,44 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
-    controller
-        .getFlashStatus()
-        .then((status) {
-          if (mounted && status != null) {
-            setState(() => _isFlashOn = status);
-          }
-        })
-        .catchError((_) {});
+    controller.getFlashStatus().then((status) {
+      if (mounted && status != null) {
+        setState(() => _isFlashOn = status);
+      }
+    }).catchError((_) {});
     controller.scannedDataStream.listen((scanData) {
-      if (scanData.code != null && !_isDone) {
+      final code = scanData.code;
+      if (code != null && code.isNotEmpty && !_isDone) {
         developer.log(
-          'Barcode detected: ${scanData.code} (${scanData.format})',
+          'Barcode detected: $code (${scanData.format})',
         );
         HapticFeedbackService.instance.confirmationFeedback();
         if (mounted) {
           setState(() {
             _isDone = true;
+            _detectedBarcode = code;
+            _detectedProduct = null;
           });
-          Navigator.of(context).pop(scanData.code);
+          unawaited(_loadDetectedProduct(code));
         }
       }
     });
+  }
+
+  Future<void> _loadDetectedProduct(String code) async {
+    try {
+      final product =
+          await ProductLocalDataSource.instance.getProductByBarcode(code);
+      if (mounted && _detectedBarcode == code && product != null) {
+        setState(() => _detectedProduct = product);
+      }
+    } catch (_) {}
+  }
+
+  void _returnDetectedBarcode() {
+    final code = _detectedBarcode;
+    if (code == null) return;
+    Navigator.of(context).pop(code);
   }
 
   Future<void> _toggleFlash() async {
@@ -276,7 +299,9 @@ class _ScannerScreenState extends State<ScannerScreen>
           centerTitle: false,
           title: Text(
             l10n.scann_barcode_capslock,
-            style: Theme.of(context).textTheme.titleLarge
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
         ),
@@ -297,33 +322,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       canPop: true,
       child: Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(
-          automaticallyImplyLeading: true,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          foregroundColor: Theme.of(context).colorScheme.onSurface,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: false,
-          title: Text(
-            l10n.scann_barcode_capslock,
-            style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          actions: [
-            if (_cameraPermissionStatus.isGranted)
-              IconButton(
-                icon: Icon(
-                  _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
-                  size: 20,
-                  color: _isFlashOn
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-                ),
-                tooltip: l10n.scannerToggleFlash,
-                onPressed: _toggleFlash,
-              ),
-          ],
-        ),
+        appBar: GlobalAppBar(title: l10n.scann_barcode_capslock),
         body: _buildBody(l10n),
       ),
     );
@@ -335,109 +334,92 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
 
     if (_cameraPermissionStatus.isGranted) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final screenWidth = constraints.maxWidth;
-          final screenHeight = constraints.maxHeight;
+      return Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(48),
+                child: LayoutBuilder(
+                  builder: (context, previewConstraints) {
+                    final previewWidth = previewConstraints.maxWidth;
+                    final previewHeight = previewConstraints.maxHeight;
+                    final boxWidth = previewWidth * 0.86;
+                    final boxHeight = boxWidth * 0.42;
+                    final left = (previewWidth - boxWidth) / 2;
+                    final top = ((previewHeight - boxHeight) / 2.2)
+                        .clamp(0.0, previewHeight - boxHeight);
+                    final scanBox = Rect.fromLTWH(
+                      left,
+                      top,
+                      boxWidth,
+                      boxHeight,
+                    );
 
-          // Compute scan target box size and position dynamically
-          final boxWidth = screenWidth * 0.8;
-          final boxHeight =
-              boxWidth * 0.45; // Optimal aspect ratio for barcodes
-          final left = (screenWidth - boxWidth) / 2;
-          final top =
-              (screenHeight - boxHeight) /
-              2.2; // Optically balanced slightly above center
-
-          final scanBox = Rect.fromLTWH(left, top, boxWidth, boxHeight);
-
-          return Stack(
-            children: [
-              // 1. Scanner Camera View
-              Positioned.fill(
-                child: QRView(
-                  key: qrKey,
-                  onQRViewCreated: _onQRViewCreated,
-                  formatsAllowed: const [
-                    BarcodeFormat.ean8,
-                    BarcodeFormat.ean13,
-                  ],
-                ),
-              ),
-
-              // 2. Custom Translucent Mask Overlay with transparent cutout
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: ScannerOverlayPainter(
-                    scanBox: scanBox,
-                    barrierColor: Colors.black.withValues(alpha: 0.65),
-                    borderColor: Theme.of(context)
-                        .colorScheme
-                        .primary, // Sleek primary brand border
-                    borderRadius: 16.0,
-                    borderWidth: 2.5,
-                  ),
-                ),
-              ),
-
-              // 3. Sweeping red laser line
-              AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  final currentTop = top + (boxHeight * _animation.value);
-                  return Positioned(
-                    top: currentTop,
-                    left: left + 12,
-                    width: boxWidth - 24,
-                    height: 2,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: DesignConstants.brandRedColor,
-                        boxShadow: [
-                          BoxShadow(
-                            color: DesignConstants.brandRedColor.withValues(
-                              alpha: 0.8,
-                            ),
-                            blurRadius: 6,
-                            spreadRadius: 1.5,
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (_isIosSimulator)
+                          const BarcodeCameraPreviewDemo()
+                        else
+                          QRView(
+                            key: qrKey,
+                            onQRViewCreated: _onQRViewCreated,
+                            formatsAllowed: const [
+                              BarcodeFormat.ean8,
+                              BarcodeFormat.ean13,
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              // 4. Guided instructions at the bottom of the scan frame
-              Positioned(
-                top: top + boxHeight + 36,
-                left: 24,
-                right: 24,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.scann_barcode_capslock,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.scannerAlignInstruction,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
+                        CustomPaint(
+                          painter: ScannerOverlayPainter(
+                            scanBox: scanBox,
+                            barrierColor: Colors.black.withValues(
+                              alpha: 0.62,
+                            ),
+                            borderColor: Theme.of(context).colorScheme.primary,
+                            borderRadius: 22,
+                            borderWidth: 3,
+                          ),
+                        ),
+                        Positioned(
+                          right: 20,
+                          bottom: 20,
+                          child: HeaderGlassButton(
+                            icon: _isFlashOn
+                                ? LucideIcons.zap
+                                : LucideIcons.zap_off,
+                            tooltip: l10n.scannerToggleFlash,
+                            isDarkSurface: true,
+                            platformViewBackdrop: true,
+                            backgroundColor: _isFlashOn
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                            foregroundColor: _isFlashOn
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Colors.white,
+                            onPressed: _toggleFlash,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
-            ],
-          );
-        },
+            ),
+          ),
+          if (_detectedBarcode != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              child: AiBarcodeBanner(
+                detectedBarcode: _detectedBarcode,
+                detectedProduct: _detectedProduct,
+                isLoggingBarcode: false,
+                primaryAccent: Theme.of(context).colorScheme.primary,
+                onLogBarcode: _returnDetectedBarcode,
+              ),
+            ),
+        ],
       );
     }
 
@@ -461,8 +443,8 @@ class _ScannerScreenState extends State<ScannerScreen>
               onPressed: _isRequestingPermission
                   ? null
                   : (_cameraPermissionStatus.isPermanentlyDenied
-                        ? _openSettings
-                        : _requestPermission),
+                      ? _openSettings
+                      : _requestPermission),
               label: _cameraPermissionStatus.isPermanentlyDenied
                   ? l10n.scannerOpenSettings
                   : l10n.scannerGrantPermission,
@@ -478,7 +460,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 }
 
-/// A custom painter that draws a dark semi-transparent mask with a cleared centered cutout.
+/// Dims the camera around the barcode target and draws a modern corner frame.
 class ScannerOverlayPainter extends CustomPainter {
   final Rect scanBox;
   final Color barrierColor;
@@ -515,16 +497,58 @@ class ScannerOverlayPainter extends CustomPainter {
 
     canvas.drawPath(maskPath, paint);
 
-    // Draw the rounded border around the transparent cutout
-    final borderPaint = Paint()
+    final markerOffset = borderWidth * 1.5;
+    final frameRect = scanBox.inflate(markerOffset);
+
+    final cornerPaint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth;
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(scanBox, Radius.circular(borderRadius)),
-      borderPaint,
-    );
+      ..strokeWidth = borderWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final cornerLength = (frameRect.width * 0.085).clamp(22.0, 38.0);
+    final radius = borderRadius + markerOffset;
+    final corners = <Path>[
+      Path()
+        ..moveTo(frameRect.left, frameRect.top + radius + cornerLength)
+        ..lineTo(frameRect.left, frameRect.top + radius)
+        ..arcToPoint(
+          Offset(frameRect.left + radius, frameRect.top),
+          radius: Radius.circular(radius),
+          clockwise: true,
+        )
+        ..lineTo(frameRect.left + radius + cornerLength, frameRect.top),
+      Path()
+        ..moveTo(frameRect.right - radius - cornerLength, frameRect.top)
+        ..lineTo(frameRect.right - radius, frameRect.top)
+        ..arcToPoint(
+          Offset(frameRect.right, frameRect.top + radius),
+          radius: Radius.circular(radius),
+          clockwise: true,
+        )
+        ..lineTo(frameRect.right, frameRect.top + radius + cornerLength),
+      Path()
+        ..moveTo(frameRect.left, frameRect.bottom - radius - cornerLength)
+        ..lineTo(frameRect.left, frameRect.bottom - radius)
+        ..arcToPoint(
+          Offset(frameRect.left + radius, frameRect.bottom),
+          radius: Radius.circular(radius),
+          clockwise: false,
+        )
+        ..lineTo(frameRect.left + radius + cornerLength, frameRect.bottom),
+      Path()
+        ..moveTo(frameRect.right - radius - cornerLength, frameRect.bottom)
+        ..lineTo(frameRect.right - radius, frameRect.bottom)
+        ..arcToPoint(
+          Offset(frameRect.right, frameRect.bottom - radius),
+          radius: Radius.circular(radius),
+          clockwise: false,
+        )
+        ..lineTo(frameRect.right, frameRect.bottom - radius - cornerLength),
+    ];
+    for (final corner in corners) {
+      canvas.drawPath(corner, cornerPaint);
+    }
   }
 
   @override

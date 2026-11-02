@@ -70,6 +70,9 @@ class DepthScanChannel implements IDepthScanService {
   static const EventChannel _barcodeChannel = EventChannel(
     'com.trainlibre.app/depth_scan/barcodes',
   );
+  static const EventChannel _liveDistanceChannel = EventChannel(
+    'com.trainlibre.app/depth_scan/live_distance',
+  );
 
   /// Platform view id of the live preview. Registered natively alongside the
   /// method channel, so it is only available where [capability] reports a
@@ -81,6 +84,7 @@ class DepthScanChannel implements IDepthScanService {
 
   DepthScanCapability? _cachedCapability;
   Stream<String>? _barcodeStream;
+  Stream<double?>? _liveDistanceStream;
 
   @override
   Future<bool> isLiDARSupported() async => (await capability()).depthSupported;
@@ -190,6 +194,16 @@ class DepthScanChannel implements IDepthScanService {
         .map((event) => event as String)
         .where((code) => code.isNotEmpty);
     return _barcodeStream!;
+  }
+
+  /// Current absolute LiDAR distance in centimetres. Devices without a live
+  /// absolute depth output produce no values.
+  Stream<double?> get liveDistanceCm {
+    if (!Platform.isIOS) return const Stream<double?>.empty();
+    _liveDistanceStream ??= _liveDistanceChannel
+        .receiveBroadcastStream()
+        .map((event) => event is num ? event.toDouble() * 100 : null);
+    return _liveDistanceStream!;
   }
 
   @override

@@ -32,6 +32,7 @@ import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'ai_meal_review_reveal_route.dart';
 import 'ai_meal_review_screen.dart';
+import 'ai_meal_distance_guidance.dart';
 import 'meal_analysis_morph_route.dart';
 import 'meal_analysis_screen.dart';
 import 'meal_editor_screen.dart';
@@ -112,8 +113,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _useNativeSession = false;
   StreamSubscription<String>? _barcodeSubscription;
 
-  /// Set when the last capture measured a distance outside the range LiDAR can
-  /// be trusted at. Replaces the previous hard-coded distance pill.
+  final AiMealDistanceGuidance _distanceGuidance = AiMealDistanceGuidance();
+  StreamSubscription<double?>? _distanceSubscription;
   String? _distanceHint;
 
   // Voice dictation state
@@ -263,6 +264,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     _voiceHoldTimer?.cancel();
     _voiceDemoTimer?.cancel();
     _barcodeSubscription?.cancel();
+    _distanceSubscription?.cancel();
     _analysisController?.dispose();
     unawaited(VoiceDictationService.instance.cancel());
     if (_useNativeSession) {
@@ -283,7 +285,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     if (state == AppLifecycleState.resumed) {
       if (_isTopRoute && !_isCameraSuspended && !_isAnalyzing) {
-        unawaited(_resumeCamera());
+        unawaited(_refreshPermissionAndResumeCamera());
       }
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
@@ -295,9 +297,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
   }
 
+  Future<void> _refreshPermissionAndResumeCamera() async {
+    final status = await Permission.camera.status;
+    if (!mounted) return;
+    if (!status.isGranted) {
+      _clearDistanceHint();
+      setState(() => _cameraPermission = status);
+      await DepthScanChannel.instance.stopSession();
+      return;
+    }
+    if (!_cameraPermission.isGranted) {
+      setState(() => _cameraPermission = status);
+      await _initCaptureSession();
+      return;
+    }
+    await _resumeCamera();
+  }
+
   /// Suspends active camera preview and depth/barcode hardware.
   Future<void> _suspendCamera() async {
     _isCameraSuspended = true;
+    _clearDistanceHint();
     if (_isFlashOn && mounted) {
       setState(() => _isFlashOn = false);
     }
@@ -413,12 +433,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (!started) {
       // Native session refused; the scanner camera path still works.
       setState(() => _useNativeSession = false);
+      _clearDistanceHint();
       return;
     }
 
     _barcodeSubscription?.cancel();
     _barcodeSubscription = DepthScanChannel.instance.barcodes.listen(
       _onBarcodeDetected,
+    );
+    _distanceSubscription?.cancel();
+    _distanceSubscription = DepthScanChannel.instance.liveDistanceCm.listen(
+      _onLiveDistance,
+      onError: (_) => _clearDistanceHint(),
     );
   }
 
@@ -506,11 +532,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final status = await Permission.camera.status;
     if (status.isGranted) {
       if (mounted) {
+        if (!_cameraPermission.isGranted) _clearDistanceHint();
         setState(() {
           _cameraPermission = status;
         });
       }
     } else {
+      _clearDistanceHint();
       final req = await Permission.camera.request();
       if (mounted) {
         setState(() {
@@ -583,27 +611,33 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     return null;
   }
 
-  /// A short, non-alarming note when the measurement fell outside the range
-  /// LiDAR is dependable at. Null means everything was fine — the common case,
-  /// which deliberately shows nothing at all.
-  String? _distanceHintFor(AppLocalizations l10n, DepthCaptureResult result) {
-    final facts = result.scaleFacts;
-    if (facts == null) return null;
-    if (facts.isValid) return null;
-    if (facts.accuracy != 'absolute') return null;
+  void _onLiveDistance(double? distanceCm) {
+    if (!mounted ||
+        !_isTopRoute ||
+        _isCameraSuspended ||
+        !_cameraPermission.isGranted) {
+      return;
+    }
+    final next = _distanceGuidance.update(distanceCm);
+    final l10n = AppLocalizations.of(context)!;
+    final text = switch (next) {
+      AiMealDistanceHint.moveAway => l10n.aiCaptureMoveAway,
+      AiMealDistanceHint.moveCloser => l10n.aiCaptureMoveCloser,
+      null => null,
+    };
+    if (_distanceHint != text) setState(() => _distanceHint = text);
+  }
 
-    if (facts.subjectDistanceCm < 15) {
-      return l10n.aiCaptureMoveAway;
-    }
-    if (facts.subjectDistanceCm > 120) {
-      return l10n.aiCaptureMoveCloser;
-    }
-    return null;
+  void _clearDistanceHint() {
+    _distanceGuidance.update(null);
+    if (_distanceHint != null && mounted) setState(() => _distanceHint = null);
   }
 
   Future<void> _takeShutterPhoto() async {
     if (_images.length >= _maxImages) return;
 
+    // A still capture must not leave guidance based on an older preview frame.
+    _clearDistanceHint();
     HapticFeedbackService.instance.selectionFeedback();
 
     // The running session takes the photo — including on devices without
@@ -628,10 +662,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         setState(() {
           _depthCaptures[capture.imageFile.path] = capture;
           _images.add(capture.imageFile);
-          _distanceHint = _distanceHintFor(
-            AppLocalizations.of(context)!,
-            capture,
-          );
         });
         if (capture.scaleFacts?.isValid == true ||
             capture.depthBuffer != null) {
