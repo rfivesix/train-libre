@@ -30,6 +30,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added image attachments to AI chat from the photo library or camera, with removable draft previews, support for multiple images per prompt, and image-only prompts. On iOS, camera capture opens in a floating in-chat panel with permission and recovery handling; Android continues to use the system camera flow.
 
 ### Changed
+- Disabled the floating AI assistant by default for new installs while keeping AI chat available from the Add menu; existing user preferences remain respected.
+- Improved the AI meal scanner's voice input presentation with a larger microphone cloud and a more legible, glass-styled live transcript panel.
+- Improved AI meal portion handling by estimating component volume and thickness, preserving valid quantities during catalog repair, and using served weights for clearly prepared catalog foods where appropriate.
+- Updated the adaptive TDEE estimator to reach high confidence after 14 days when the effective sample size and uncertainty criteria are met, and preserved recursive state when upgrading from the previous confidence-only algorithm version.
+- Updated meal review quantity editing so served weights stay in step with edited database lookup weights.
 - Replaced the workout rest-timer completion chime across in-app playback (`assets/sounds/timer_done.mp3` and `assets/sounds/timer_done.wav`), iOS background notifications (`ios/Runner/timer_done.caf`), and Android background alarms (`android/app/src/main/res/raw/rest_timer_done.mp3`) with a custom synthesized stereo two-step chime.
 - Added live workout settings for rest-timer notifications and the in-app silent-mode override, and removed the duplicate calorie recalculation notification.
 - Apply the live-workout silent-mode preference immediately so the iOS audio session no longer remains in playback mode after the switch is turned off.
@@ -87,6 +92,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle haptic feedback when sending a chat prompt or starting voice recording from the composer.
 
 ### Fixed
+- Serialized the AI meal capture return transition so the previous screen is not left covered by overlapping routes after accepting a scan.
 - Kept rest-timer sounds independent of optional workout banners in the background, and avoided requesting Android audio focus for the timer chime.
 - Disabled PostHog Android auto-initialization so telemetry setup remains consent-controlled and startup no longer reports a missing manifest token.
 - Preserve localized privacy and terms pages in the generated website sitemap when syncing documentation.
