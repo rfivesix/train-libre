@@ -78,7 +78,7 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("androidx.health.connect:connect-client:1.2.0-alpha06")
     implementation("androidx.documentfile:documentfile:1.1.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
     // --- Home screen widgets ---
     // Glance renders the app widgets. It brings DataStore along, which is what
