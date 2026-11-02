@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/gestures.dart' show kTouchSlop;
@@ -1655,7 +1656,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           ),
                         ),
                       ),
-                      _buildScannerCameraActions(l10n),
+                      if (!_isDictating) _buildScannerCameraActions(l10n),
                     ],
                   ),
                 ),
@@ -2167,9 +2168,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   opacity: _isDictating ? 1 : 0,
                   duration: const Duration(milliseconds: 260),
                   child: SizedBox.square(
-                    dimension: 56,
+                    dimension: 72,
                     child: AiNeuralCloudOrbWidget(
-                      size: 56,
+                      size: 72,
                       morph: _isDictating ? 1 : 0,
                       energy: _voiceLevel,
                       accentColor: const Color(0xFFFF453A),
@@ -2189,39 +2190,55 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   width: transcriptWidth,
                   bottom: 56,
                   child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.94),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 56),
-                          child: SingleChildScrollView(
-                            child: AnimatedTranscriptText(
-                              text: _voiceTranscript,
-                              animateWords: false,
-                              placeholder: _isVoiceStarting
-                                  ? l10n.voiceStarting
-                                  : (_images.isEmpty
-                                        ? l10n.voiceExampleStandalone
-                                        : l10n.voiceExampleWithPhoto),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'Inter',
-                                fontSize: 14,
-                                height: 1.35,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.62),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: Colors.white30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.18),
+                                blurRadius: 18,
+                                offset: const Offset(0, 6),
                               ),
-                              placeholderStyle: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.65),
-                                fontFamily: 'Inter',
-                                fontSize: 13,
-                                height: 1.35,
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                minHeight: 72,
+                                maxHeight: 112,
+                              ),
+                              child: SingleChildScrollView(
+                                child: AnimatedTranscriptText(
+                                  text: _voiceTranscript,
+                                  animateWords: false,
+                                  placeholder: _isVoiceStarting
+                                      ? l10n.voiceStarting
+                                      : (_images.isEmpty
+                                            ? l10n.voiceExampleStandalone
+                                            : l10n.voiceExampleWithPhoto),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'Inter',
+                                    fontSize: 18,
+                                    height: 1.35,
+                                  ),
+                                  placeholderStyle: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.72),
+                                    fontFamily: 'Inter',
+                                    fontSize: 16,
+                                    height: 1.35,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
