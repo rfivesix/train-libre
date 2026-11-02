@@ -46,6 +46,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../navigation/push_route_and_wait.dart';
 import '../../../widgets/common/app_button.dart';
 
 // lib/screens/add_food_screen.dart
@@ -921,8 +922,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           else
             GestureDetector(
               onTap: () async {
-                final result = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(
+                final result = await pushRouteAndWaitForCompletion<bool>(
+                  context,
+                  MaterialPageRoute<bool>(
                     builder: (_) => AiMealCaptureScreen(
                       initialDate: widget.initialDate,
                       initialMealType: widget.initialMealType,

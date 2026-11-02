@@ -10,7 +10,7 @@ class AiOverlayDemoConfiguration {
   final bool useLiveAi;
 
   const AiOverlayDemoConfiguration({
-    this.enabled = true,
+    this.enabled = false,
     this.liveliness = 0.10,
     this.showResizeHandles = false,
     this.openDirectlyFullscreen = true,
@@ -51,9 +51,9 @@ class AiOverlayDemoSettings {
 
   static void initialize(SharedPreferences preferences) {
     configuration.value = AiOverlayDemoConfiguration(
-      // The floating assistant is on by default for new installs. An explicit
-      // saved false remains respected as the user's preference.
-      enabled: preferences.getBool(_enabledKey) ?? true,
+      // An explicit saved preference takes precedence; new installs keep the
+      // floating assistant hidden until the user enables it.
+      enabled: preferences.getBool(_enabledKey) ?? false,
       liveliness: preferences.getDouble(_livelinessKey) ?? 0.10,
       showResizeHandles: preferences.getBool(_resizeHandlesKey) ?? false,
       openDirectlyFullscreen: preferences.getBool(_fullscreenKey) ?? true,
