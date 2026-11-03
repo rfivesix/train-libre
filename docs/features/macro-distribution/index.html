@@ -105,6 +105,7 @@
 </ul></div>
 <div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
 <li><a href="../overview/index.html" class="sidebar-link">Feature Capabilities &amp; Privacy</a></li>
+<li><a href="../app-comparison/index.html" class="sidebar-link">Fitness App Feature Comparison</a></li>
 <li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3)</a></li>
 <li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
 <li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimate &amp; Adaptive Calorie Target</a></li>
@@ -116,6 +117,8 @@
 <li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
 <li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
 <li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Capture &amp; Validation</a></li>
+<li><a href="../ai-assistant-data-access/index.html" class="sidebar-link">AI Assistant Data Access &amp; Change Proposals</a></li>
+<li><a href="../ai-assistant-meal-logging/index.html" class="sidebar-link">AI Assistant Meal Logging</a></li>
 <li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint</a></li>
 <li><a href="../health-sync-export/index.html" class="sidebar-link">Health Sync &amp; Export</a></li>
 <li><a href="../live-activity-workout/index.html" class="sidebar-link">Workout Live Activity &amp; Android Notification</a></li>
@@ -127,6 +130,7 @@
 <li><a href="../../user-guide/tracking-a-workout/index.html" class="sidebar-link">Track a workout</a></li>
 <li><a href="../../user-guide/supersets-and-editing/index.html" class="sidebar-link">Supersets and edit workout entries</a></li>
 <li><a href="../../user-guide/workout-routines/index.html" class="sidebar-link">Create and use workout routines</a></li>
+<li><a href="../../user-guide/ai-chat/index.html" class="sidebar-link">Use the AI assistant</a></li>
 <li><a href="../../user-guide/ai-workout-routines/index.html" class="sidebar-link">Create a workout routine with an AI assistant</a></li>
 <li><a href="../../user-guide/exercise-catalog/index.html" class="sidebar-link">Find and create exercises</a></li>
 <li><a href="../../user-guide/workout-history/index.html" class="sidebar-link">Review workout history</a></li>
@@ -135,6 +139,7 @@
 <li><a href="../../user-guide/food-catalogs/index.html" class="sidebar-link">Choose food catalog settings</a></li>
 <li><a href="../../user-guide/saved-meals/index.html" class="sidebar-link">Create and reuse recipes</a></li>
 <li><a href="../../user-guide/ai-meal-capture/index.html" class="sidebar-link">Configure and use AI Meal Capture</a></li>
+<li><a href="../../user-guide/ai-chat-food-logging/index.html" class="sidebar-link">Log food with the AI chat</a></li>
 <li><a href="../../user-guide/water-and-drinks/index.html" class="sidebar-link">Log water and other drinks</a></li>
 <li><a href="../../user-guide/daily-targets/index.html" class="sidebar-link">Set daily targets</a></li>
 <li><a href="../../user-guide/weight-goals/index.html" class="sidebar-link">Set and manage a weight goal</a></li>
@@ -190,7 +195,7 @@
 <p>If this result is negative while fat is above its floor, the engine first reduces fat to the amount the remaining budget affords, bounded by the floor and the initial fat target, then recalculates carbohydrates. If the result remains negative, the engine sets carbohydrates to zero and assigns the remaining calories to fat. If that fat amount is under 25 g, it sets fat to 25 g and lowers protein as needed to fit the remaining calories. This 25 g value is a fallback in the algorithm, not nutrition guidance.</p>
 <p>The second path adds the warning reason <code>macro_distribution_constrained</code>. Each macro output is finally clamped to 0–999 g. Other warning reasons may also be added by the calorie-estimation stage, such as when its calorie floor is applied.</p>
 <h2 id="versioning-and-application" class="doc-h2">Versioning and application<a href="#versioning-and-application" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The macro allocator is part of the recommendation algorithm identified by <code>AdaptiveNutritionRecommendationService.algorithmVersion</code>. The service compares a stored snapshot's version with the current version and regenerates when they differ. It does not check freshness through an <code>isFreshFor</code> method. Algorithm updates retain the recursive maintenance estimate and reset observation-calibration histories; the macro outputs are generated again under the new version.</p>
+<p>The macro allocator is part of the recommendation algorithm identified by <code>AdaptiveNutritionRecommendationService.algorithmVersion</code>. The service compares a stored snapshot's version with the current version and regenerates when they differ. The recursive maintenance estimate is retained. Observation-calibration histories are reset for observation-model upgrades, but are preserved for the confidence-only update from version 1.2 to 1.3. Macro outputs are generated again under the new version.</p>
 <p>Generation saves a recommendation snapshot. It does not change active nutrition targets automatically: applying the recommendation is a separate explicit action that writes its calorie and macro values to the user's active targets.</p>
 <p>The displayed values are software-generated estimates. Users can edit their active goals, and the app does not account for medical conditions or provide clinical dietary advice.</p>
         </article>

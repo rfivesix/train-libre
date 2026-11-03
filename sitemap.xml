@@ -3,11 +3,20 @@
   <url><loc>https://trainlibre.com/</loc></url>
   <url><loc>https://trainlibre.com/about.html</loc></url>
   <url><loc>https://trainlibre.com/privacy.html</loc></url>
+  <url><loc>https://trainlibre.com/privacy-de.html</loc></url>
+  <url><loc>https://trainlibre.com/privacy-fr.html</loc></url>
+  <url><loc>https://trainlibre.com/privacy-it.html</loc></url>
+  <url><loc>https://trainlibre.com/privacy-ja.html</loc></url>
   <url><loc>https://trainlibre.com/terms.html</loc></url>
+  <url><loc>https://trainlibre.com/terms-de.html</loc></url>
+  <url><loc>https://trainlibre.com/terms-fr.html</loc></url>
+  <url><loc>https://trainlibre.com/terms-it.html</loc></url>
+  <url><loc>https://trainlibre.com/terms-ja.html</loc></url>
   <url><loc>https://trainlibre.com/support.html</loc></url>
   <url><loc>https://trainlibre.com/impressum.html</loc></url>
   <url><loc>https://trainlibre.com/docs/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/overview/</loc></url>
+  <url><loc>https://trainlibre.com/docs/features/app-comparison/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/sleep-scoring-engine/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/muscle-recovery-model/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/bayesian-tdee-estimator/</loc></url>
@@ -19,6 +28,8 @@
   <url><loc>https://trainlibre.com/docs/features/intelligent-workouts/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/meal-capture-pipeline/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/byok-ai-validation/</loc></url>
+  <url><loc>https://trainlibre.com/docs/features/ai-assistant-data-access/</loc></url>
+  <url><loc>https://trainlibre.com/docs/features/ai-assistant-meal-logging/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/depth-scale-hint/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/health-sync-export/</loc></url>
   <url><loc>https://trainlibre.com/docs/features/live-activity-workout/</loc></url>
@@ -28,6 +39,7 @@
   <url><loc>https://trainlibre.com/docs/user-guide/tracking-a-workout/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/supersets-and-editing/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/workout-routines/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/ai-chat/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/ai-workout-routines/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/exercise-catalog/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/workout-history/</loc></url>
@@ -36,6 +48,7 @@
   <url><loc>https://trainlibre.com/docs/user-guide/food-catalogs/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/saved-meals/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/ai-meal-capture/</loc></url>
+  <url><loc>https://trainlibre.com/docs/user-guide/ai-chat-food-logging/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/water-and-drinks/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/daily-targets/</loc></url>
   <url><loc>https://trainlibre.com/docs/user-guide/weight-goals/</loc></url>
