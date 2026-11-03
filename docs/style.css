@@ -1304,7 +1304,7 @@ h1 {
   margin: 20px 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-m);
-  overscroll-behavior: contain;
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-text) var(--bg-soft);
@@ -1318,6 +1318,11 @@ h1 {
   font-size: 0.8rem;
   line-height: 1.4;
   background: var(--bg);
+}
+
+.comparison-table-scroll:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 4px;
 }
 
 .comparison-table th, .comparison-table td {
@@ -1364,6 +1369,10 @@ h1 {
   text-transform: uppercase;
 }
 
+.comparison-table tbody tr:not(.comparison-category-row):hover td {
+  background: var(--bg-soft);
+}
+
 .comparison-app-column > a {
   display: block;
   min-height: 2.4em;
@@ -1376,8 +1385,9 @@ h1 {
 .comparison-app-platforms, .comparison-value-pair {
   display: grid;
   gap: 4px;
-  margin-top: 7px;
 }
+
+.comparison-app-platforms { margin-top: 7px; }
 
 .comparison-table .sr-only {
   position: absolute;
