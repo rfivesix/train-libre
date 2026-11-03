@@ -131,11 +131,8 @@ void main() {
     await tester.tap(find.byKey(const Key('delete_all_local_app_data_button')));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Apple Health'), findsOneWidget);
-    expect(find.textContaining('Health Connect'), findsOneWidget);
-    expect(
-      find.textContaining('does not delete data already exported'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('health-platform records'), findsOneWidget);
+    expect(find.textContaining('It does not delete backups, exports'),
+        findsOneWidget);
   });
 }

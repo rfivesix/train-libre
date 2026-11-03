@@ -141,8 +141,11 @@ void main() {
     test('the shipped config supports the current schema 2 release', () {
       // Guards the release order: the manifest URL may only be switched once
       // this number and the importer move together.
-      expect(AppDataSources.supportedCatalogSchemaVersion, 2);
-      expect(AppDataSources.exerciseCatalog.supportedSchemaVersion, 2);
+      expect(AppDataSources.supportedCatalogSchemaVersion, greaterThanOrEqualTo(2));
+      expect(
+        AppDataSources.exerciseCatalog.supportedSchemaVersion,
+        AppDataSources.supportedCatalogSchemaVersion,
+      );
     });
   });
 

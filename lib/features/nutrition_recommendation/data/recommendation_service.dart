@@ -419,7 +419,7 @@ class AdaptiveNutritionRecommendationService {
     );
     final previousRecommendation = latestSnapshot?.recommendation;
     final recursiveState = algorithmChanged &&
-            latestSnapshot?.algorithmVersion != _previousConfidenceOnlyVersion
+            latestSnapshot.algorithmVersion != _previousConfidenceOnlyVersion
         ? _prepareRecursiveStateForAlgorithmUpgrade(latestRecursiveState)
         : latestRecursiveState;
 

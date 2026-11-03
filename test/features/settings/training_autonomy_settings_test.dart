@@ -10,6 +10,7 @@ import 'package:train_libre/features/sleep/platform/permissions/sleep_permission
 import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/features/workout/domain/models/prescription_enums.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/services/experience_level_service.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/training_autonomy_service.dart';
 import 'package:train_libre/services/unit_service.dart';
@@ -60,7 +61,8 @@ class _FakeSleepSettingsService implements SleepSettingsService {
     int lookbackDays = 30,
     Duration minInterval = const Duration(hours: 6),
     bool force = false,
-  }) async => null;
+  }) async =>
+      null;
 
   @override
   Future<void> dispose() async {}
@@ -139,6 +141,9 @@ void main() {
       );
       final autonomyService = TrainingAutonomyService();
       await autonomyService.initialize();
+      final experienceService = ExperienceLevelService();
+      await experienceService.reload();
+      await experienceService.setLevel(ExperienceLevel.advanced);
 
       await tester.pumpWidget(
         MultiProvider(
@@ -146,6 +151,7 @@ void main() {
             ChangeNotifierProvider(create: (_) => ThemeService()),
             ChangeNotifierProvider(create: (_) => UnitService()),
             ChangeNotifierProvider.value(value: autonomyService),
+            ChangeNotifierProvider.value(value: experienceService),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -173,7 +179,14 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Trainingserfahrung'), findsOneWidget);
-      expect(find.textContaining('Profi'), findsOneWidget);
+      expect(find.textContaining('Fortgeschritten'), findsOneWidget);
+
+      await tester
+          .tap(find.byKey(const Key('settings_training_experience_entry')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Anfänger').last);
+      await tester.pumpAndSettle();
+      expect(experienceService.level, ExperienceLevel.beginner);
     });
   });
 }

@@ -91,6 +91,8 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(accept);
+    await tester.pumpAndSettle();
     await tester.tap(accept);
     await tester.pumpAndSettle();
 
@@ -120,6 +122,8 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(decline);
+    await tester.pumpAndSettle();
     await tester.tap(decline);
     await tester.pumpAndSettle();
 

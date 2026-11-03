@@ -53,9 +53,7 @@ void main() {
       'ai_meal_capture_tour_completed': true,
     });
 
-    await db
-        .into(db.products)
-        .insert(
+    await db.into(db.products).insert(
           const ProductsCompanion(
             barcode: drift.Value('off-1'),
             name: drift.Value('OFF product'),
@@ -70,20 +68,20 @@ void main() {
     for (var i = 0; i < 20; i++) {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-            MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'),
-            (MethodCall call) async {
-              qrCalls.add(call.method);
-              return true;
-            },
-          );
+        MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'),
+        (MethodCall call) async {
+          qrCalls.add(call.method);
+          return true;
+        },
+      );
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-            MethodChannel('net.touchcapture.qr.flutterqrplus/qrview_$i'),
-            (MethodCall call) async {
-              qrCalls.add(call.method);
-              return true;
-            },
-          );
+        MethodChannel('net.touchcapture.qr.flutterqrplus/qrview_$i'),
+        (MethodCall call) async {
+          qrCalls.add(call.method);
+          return true;
+        },
+      );
     }
   });
 
@@ -91,14 +89,14 @@ void main() {
     for (var i = 0; i < 20; i++) {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-            MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'),
-            null,
-          );
+        MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'),
+        null,
+      );
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-            MethodChannel('net.touchcapture.qr.flutterqrplus/qrview_$i'),
-            null,
-          );
+        MethodChannel('net.touchcapture.qr.flutterqrplus/qrview_$i'),
+        null,
+      );
     }
     await db.close();
   });
@@ -403,8 +401,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      final flashFinder = find.widgetWithIcon(IconButton, LucideIcons.zap_off);
-      expect(flashFinder, findsOneWidget);
+      expect(find.byIcon(LucideIcons.zap_off), findsOneWidget);
 
       final uiKitFinder = find.byType(UiKitView);
       if (uiKitFinder.evaluate().isNotEmpty) {
@@ -419,7 +416,7 @@ void main() {
       await tester.pump();
 
       final flashButtonFinder = find.byWidgetPredicate(
-        (w) => w is IconButton && w.tooltip == 'Blitz ein-/ausschalten',
+        (w) => w is HeaderGlassButton && w.tooltip == 'Blitz ein-/ausschalten',
       );
       expect(flashButtonFinder, findsOneWidget);
 

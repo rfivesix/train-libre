@@ -30,6 +30,14 @@ class _FakeExportService extends HealthExportService {
   }
 }
 
+Future<void> _waitForExports(_FakeExportService service, int count) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 5));
+  while (service.exportCalls < count && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+  expect(service.exportCalls, count);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -50,8 +58,7 @@ void main() {
       });
 
       coordinator.start();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(service.exportCalls, 1);
+      await _waitForExports(service, 1);
 
       for (var index = 0; index < 3; index++) {
         await database
@@ -66,6 +73,7 @@ void main() {
               ),
             );
       }
+      await _waitForExports(service, 2);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(service.exportCalls, 2);
     },
@@ -90,7 +98,7 @@ void main() {
       });
 
       coordinator.start();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await _waitForExports(service, 1);
 
       expect(service.exportedPlatforms, [HealthExportPlatform.healthConnect]);
     },

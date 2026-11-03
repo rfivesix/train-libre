@@ -54,8 +54,7 @@ void main() {
               (week) => week.maintenanceEstimate.posteriorMaintenanceCalories,
             )
             .toList(growable: false);
-        final trailingRange =
-            trailingPosterior.reduce(math.max) -
+        final trailingRange = trailingPosterior.reduce(math.max) -
             trailingPosterior.reduce(math.min);
 
         expectNoAbsurdMaintenanceJumps(model, maxJumpCalories: 420);
@@ -269,18 +268,19 @@ void main() {
 
         final summary = summarizeRecoveryWindows(
           weeks: weeks,
+          // Week 0 follows 28 warmup days; weeks 3–4 include the illness.
           preStart: 2,
-          preEnd: 5,
-          eventStart: 6,
-          eventEnd: 8,
-          postStart: 9,
-          postEnd: 12,
+          preEnd: 3,
+          eventStart: 3,
+          eventEnd: 5,
+          postStart: 6,
+          postEnd: 10,
         );
         final recoveryWeeks = weeksUntilPosteriorRecoversToBand(
           weeks: model,
           baselineMedian: summary.preEventPosteriorMedian,
           toleranceCalories: 220,
-          searchStartWeek: 9,
+          searchStartWeek: 6,
           sustainedWeeks: 2,
         );
 
@@ -406,17 +406,18 @@ void main() {
         final summary = summarizeRecoveryWindows(
           weeks: weeks,
           preStart: 0,
-          preEnd: 4,
-          eventStart: 4,
-          eventEnd: 7,
-          postStart: 7,
-          postEnd: 11,
+          // Weeks 2–3 contain sparse data; week 6 has recovered logging.
+          preEnd: 1,
+          eventStart: 2,
+          eventEnd: 4,
+          postStart: 6,
+          postEnd: 10,
         );
         final poorMedianAbsError = median(
-          posteriorAbsoluteErrorSeries(weeks).sublist(4, 7),
+          posteriorAbsoluteErrorSeries(weeks).sublist(2, 4),
         );
         final recoveredMedianAbsError = median(
-          posteriorAbsoluteErrorSeries(weeks).sublist(7, 11),
+          posteriorAbsoluteErrorSeries(weeks).sublist(6, 10),
         );
 
         final allQualityFlags = model
