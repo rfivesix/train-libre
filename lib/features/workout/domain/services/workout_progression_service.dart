@@ -199,19 +199,29 @@ class WorkoutProgressionService {
     }
     if (sessions.isEmpty) return null;
 
-    final latest = sessions.values.reduce((left, right) {
-      final leftDate = left
-          .map(
-            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-          )
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      final rightDate = right
-          .map(
-            (set) => set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-          )
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-      return leftDate.isAfter(rightDate) ? left : right;
-    });
+    // BOLT OPTIMIZATION: Avoid .map().reduce() inside reduce callback which
+    // results in intermediate Iterable allocations and redundant O(N) iterations.
+    List<SetLog>? latest;
+    DateTime? latestDate;
+
+    for (final session in sessions.values) {
+      DateTime? sessionLatestDate;
+      for (final set in session) {
+        final date = set.performedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        if (sessionLatestDate == null || date.isAfter(sessionLatestDate)) {
+          sessionLatestDate = date;
+        }
+      }
+
+      if (sessionLatestDate != null) {
+        if (latestDate == null || sessionLatestDate.isAfter(latestDate)) {
+          latestDate = sessionLatestDate;
+          latest = session;
+        }
+      }
+    }
+
+    if (latest == null) return null;
     latest.sort((left, right) {
       final order = (left.logOrder ?? 0).compareTo(right.logOrder ?? 0);
       return order != 0 ? order : (left.id ?? 0).compareTo(right.id ?? 0);
